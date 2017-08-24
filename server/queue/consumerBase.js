@@ -1,5 +1,5 @@
 /**
- * author Shemna beevi k.
+ * author: SBK
  */
 const globalConfig = require('../utils/globalConfig');
 const kafka = require('kafka-node');
