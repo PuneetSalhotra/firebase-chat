@@ -1,6 +1,8 @@
 const FrequencyDistribution = require('./frequencyDistribution');
 const SingleDimensionalAggr = require('./singleDimentionalAggr');
 const MultiDimensionalAggr = require('./multiDimensionalAggr');
+const MultiValueVisualization = require('./multiValueVisualization');
+
 
 const CONST = require('../../constants');
 
@@ -15,6 +17,9 @@ exports.get = function (id, args) {
         break;
     case CONST.WIDGET_TYPE_IDS.MULTI_DIMENSIONAL_AGGR:
         widgetInstance = new MultiDimensionalAggr(args);
+        break;
+    case CONST.WIDGET_TYPE_IDS.MULTI_VALUE_VISUALIZATION:
+        widgetInstance = new MultiValueVisualization(args);
         break;
     default:
         break;

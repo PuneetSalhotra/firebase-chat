@@ -1,6 +1,6 @@
 const WidgetBase = require('./base');
 const CONST = require('../../constants');
-
+const _ =require('lodash');
 
 class MultiDimensionalAggrWidget extends WidgetBase {
     constructor(args) {
@@ -8,24 +8,51 @@ class MultiDimensionalAggrWidget extends WidgetBase {
         this.id = CONST.WIDGET_TYPE_IDS.MULTI_DIMENSIONAL_AGGR;
     }
 
-    crunchDataAndSave(data) {
-        var totalSum;
-        this.form.normalizeData(data.formDataJson)
-        .then((normalizedFormData) => {
-            const entity1Data = normalizedFormData[this.rule.widget_entity2_id];
-            const entity2Data = normalizedFormData[this.rule.widget_entity3_id];
-            const startDateTime = convertUTCTimeToRuleTimeZone(normalizedFormData['startDateTime']);
-            const endDateTime = convertUTCTimeToRuleTimeZone(normalizedFormData['endDateTime']);
-            const formSubmissionDate = null;
-            
-            var promises = [
-                this.getSumAggrByDateForAnEntity(entity1Data, formSubmissionDate),
-                this.getSumAggrByDateForAnEntity(entity2Data, formSubmissionDate) 
-            ];
+    aggregateAndSaveTransaction(formSubmissionDate, data) {
+        const entity1Data = data.normalizedFormData[this.rule.widget_entity2_id];
+        const entity2Data = data.normalizedFormData[this.rule.widget_entity3_id];
+        var promises = [
+            this.services.activityFormTransaction.getSumByDay(formSubmissionDate, entity1Data, data.payload),
+            this.services.activityFormTransaction.getSumByDay(formSubmissionDate, entity2Data, data.payload),
+        ];
+        Promise.all(promises)
+        .then((result) => {
+            const sumEntity1 = result[0][0] ? result[0][0].total_sum : undefined;
+            const sumEntity2 = result[1][0] ? result[1][0].total_sum : undefined;
 
+            let widgetData = [{
+                date: formSubmissionDate.value,
+                widget_id: this.rule.widget_id,
+                entity_id: this.rule.widget_entity2_id,
+                index : 1,
+                sum: sumEntity1   //TODO OOOOO at a time both may not be present
+            }, {
+                date: formSubmissionDate.value,
+                widget_id: this.rule.widget_id,
+                entity_id: this.rule.widget_entity3_id,
+                index: 2,
+                sum: sumEntity2   //TODO OOOOO at a time both may not be present
+            }];
+            widgetData[0] = _.merge(widgetData[0], _.pick(data.payload, ['asset_id', 'organization_id']));
+            widgetData[1] = _.merge(widgetData[1], _.pick(data.payload, ['asset_id', 'organization_id']));
+            return this.createOrUpdateWidgetTransaction(widgetData);
+        });
+    }
+
+    createOrUpdateWidgetTransaction(widgetData) {
+        const widgetTransactionSvc = this.services.widgetTransaction;
+        return widgetTransactionSvc.getByDayAndFields(widgetData)
+        .then((result) => {
+            const widgetTrans1Id = result[0] ? result[0].idWidgetTransaction1 : undefined;
+            const widgetTrans2Id = result[0] ? result[0].idWidgetTransaction2 : undefined;
+            widgetData[0].widget_transaction_id = widgetTrans1Id;
+            widgetData[1].widget_transaction_id = widgetTrans2Id;
+            var promises = [
+                widgetTrans1Id ?   widgetTransactionSvc.updateMultiDimAggregate(widgetData[0]) : widgetTransactionSvc.createMultiDimAggregare(widgetData[0]),
+                widgetTrans2Id ?   widgetTransactionSvc.updateMultiDimAggregate(widgetData[1]) : widgetTransactionSvc.createMultiDimAggregare(widgetData[1])
+            ];
             return Promise.all(promises);
-            
-        })
+        }) 
     }
 
 }

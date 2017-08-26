@@ -11,14 +11,28 @@ class FormBase {
         this.args = args;
     }
 
-    getWidgets() {
+    getWidgets(args) {
+        const self = this;
         return new Promise((resolve, reject) => {
-            widgetRuleSvc.getByForm(this.id)
+            widgetRuleSvc.getByForm({organizationId: args.organization_id, formId: this.id}, self.objCollection)
             .then((rules) => {
-                resolve(rules.map((rule) => widgets.get(rule.widget_type_id, {rule, form: this})));
+                resolve(rules.map((rule) => {
+                    return widgets.get(rule.widget_type_id, {rule, form: self, objCollection: self.objCollection});
+                }));
             })
             .catch(reject);
         })
+    }
+
+    normalizeData(data) {
+        return new Promise((resolve, reject) => {
+            const normalizedData = {};
+            data.forEach(function(data){
+                const fieldIdKey = data.field_id;
+                normalizedData[fieldIdKey] = data;
+            });
+            resolve(normalizedData);
+        });
     }
 }
 module.exports = FormBase;

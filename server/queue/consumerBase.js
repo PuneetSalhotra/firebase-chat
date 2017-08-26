@@ -4,7 +4,7 @@
 const globalConfig = require('../utils/globalConfig');
 const kafka = require('kafka-node');
 const db = require("../utils/dbWrapper");
-const util = new require('../utils/util')();
+const util = new (require('../utils/util'))();
 const redis = require('redis');   //using elasticache as redis
 const AwsSns = require('../utils/snsWrapper');
 const _ = require('lodash');

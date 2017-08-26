@@ -7,10 +7,6 @@ class AttendanceForm extends FormBase {
         this.id = CONST.FORM_IDS.ATTENDANCE_FORM;
     }
 
-    normalizeData(formData) {
-        
-    }
-
 }
 
 module.exports = AttendanceForm;
