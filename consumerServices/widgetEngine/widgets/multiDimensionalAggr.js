@@ -17,18 +17,20 @@ class MultiDimensionalAggrWidget extends WidgetBase {
             entity_id: entity1Data.field_id,
             form_id: this.form.id,
             entity_data_type_id: entity1Data.field_data_type_id,
-            access_level_id: this.rule.access_level_id  || 5       
+            access_level_id: this.rule.access_level_id  || 5,
+            asset_type_id: 0      
         }, {
             start: formSubmissionDate.startOfDayInUTC,
             end: formSubmissionDate.endOfDayInUTC,
             entity_id: entity2Data.field_id,
             form_id: this.form.id,
             entity_data_type_id: entity2Data.field_data_type_id,
-            access_level_id: this.rule.access_level_id  || 5  
+            access_level_id: this.rule.access_level_id  || 5,
+            asset_type_id: 0  
         }];
-        activityQueryData[0] = _.merge(activityQueryData[0], _.pick(data.payload, ['asset_id', 'asset_type_id', 'activity_id', 
+        activityQueryData[0] = _.merge(activityQueryData[0], _.pick(data.payload, ['asset_id', 'activity_id', 
         'organization_id', 'account_id', 'workforce_id', 'activity_type_category_id']));
-        activityQueryData[1] = _.merge(activityQueryData[1], _.pick(data.payload, ['asset_id', 'asset_type_id', 'activity_id', 
+        activityQueryData[1] = _.merge(activityQueryData[1], _.pick(data.payload, ['asset_id', 'activity_id', 
         'organization_id', 'account_id', 'workforce_id', 'activity_type_category_id']));
 
         var promises = [

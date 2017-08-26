@@ -18,9 +18,10 @@ class SingleDimensionalAggrWidget extends WidgetBase {
             entity_id: entityData.field_id,
             form_id: this.form.id,
             entity_data_type_id: entityData.field_data_type_id,
-            access_level_id: this.rule.access_level_id  || 5       
+            access_level_id: this.rule.access_level_id  || 5,
+            asset_type_id: 0      
         };
-        activityQueryData = _.merge(activityQueryData, _.pick(data.payload, ['asset_id', 'asset_type_id', 'activity_id', 
+        activityQueryData = _.merge(activityQueryData, _.pick(data.payload, ['asset_id',, 'activity_id', 
         'organization_id', 'account_id', 'workforce_id', 'activity_type_category_id']));
 
         this.services.activityFormTransaction.getSumByDay(activityQueryData)
