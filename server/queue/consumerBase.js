@@ -12,7 +12,7 @@ const _ = require('lodash');
 const KafkaConsumer = kafka.Consumer;
 const kafkaClient = new kafka.Client(global.config.kafkaIP);
 const redisClient = redis.createClient(global.config.redisPort, global.config.redisIp);
-const cacheWrapper = new require('../utils/cacheWrapper')(redisClient);
+const cacheWrapper = new (require('../utils/cacheWrapper'))(redisClient);
 const sns = new AwsSns(); 
 
 class ConsumerBase {

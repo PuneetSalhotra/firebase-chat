@@ -42,16 +42,16 @@ function ActivityTimelineController(objCollection) {
             else
                 res.send(responseWrapper.getResponse(false, {}, 200));
             return;
-        };
-        if (req.body.hasOwnProperty('activity_stream_type_id') && req.body.activity_stream_type_id > 0) {
+        };        
+        if (req.body.hasOwnProperty('activity_stream_type_id') && req.body.activity_stream_type_id > 0) {            
             if (util.hasValidActivityId(req.body)) {
                 if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5) {
                     cacheWrapper.checkAssetParity(req.body.asset_id, (assetMessageCounter), function (err, status) {
                         if (err) {
                             res.send(responseWrapper.getResponse(false, {}, -7998));
-                        } else {
+                        } else {                            
                             if (status) {     // proceed
-                                if (streamTypeId === 705 || streamTypeId === 313) {
+                                if (streamTypeId === 705 || streamTypeId === 313) {                                    
                                     if (req.body.hasOwnProperty('form_transaction_id') && Number(req.body.form_transaction_id) > 0) {
                                         req.body.flag_timeline_entry = 0;
                                         proceedActivityTimelineAdd(Number(req.body.form_transaction_id));
@@ -81,8 +81,8 @@ function ActivityTimelineController(objCollection) {
                                     }
 
 
-                                } else {
-                                    proceedActivityTimelineAdd(0);//passing formTransactionId as o
+                                } else {                                    
+                                    proceedActivityTimelineAdd(0);//passing formTransactionId as 0
                                 }
                                 cacheWrapper.setAssetParity(req.body.asset_id, req.body.asset_message_counter, function (err, status) {
                                     if (err) {
@@ -92,13 +92,47 @@ function ActivityTimelineController(objCollection) {
 
                                 });
                             } else {  // this is a duplicate hit,
+                                console.log('this is a duplicate hit'); 
                                 res.send(responseWrapper.getResponse(false, {}, 200));
                             }
                         }
                     });
 
                 } else if (deviceOsId === 5) {
-                    proceedActivityTimelineAdd(0);//passing formTransactionId as o
+                    //proceedActivityTimelineAdd(0);//passing formTransactionId as o
+                    if (streamTypeId === 705 || streamTypeId === 313) {
+                        if (req.body.hasOwnProperty('form_transaction_id') && Number(req.body.form_transaction_id) > 0) {
+                            req.body.flag_timeline_entry = 0;
+                            proceedActivityTimelineAdd(Number(req.body.form_transaction_id));
+                            cacheWrapper.setMessageUniqueIdLookup(req.body.message_unique_id, req.body.form_transaction_id, function (err, status) {
+                                if (err) {
+                                    console.log("error in setting in message unique id look up");
+                                } else
+                                    console.log("message unique id look up is set successfully");
+                            });
+                        } else {
+                            cacheWrapper.getFormTransactionId(function (err, formTransactionId) {
+                                if (err) {
+                                    console.log(err);
+                                    res.send(responseWrapper.getResponse(false, {form_transaction_id: 0}, -7998));
+                                    return;
+                                } else {
+                                    req.body['form_transaction_id'] = formTransactionId;
+                                    proceedActivityTimelineAdd(formTransactionId);
+                                    cacheWrapper.setMessageUniqueIdLookup(req.body.message_unique_id, formTransactionId, function (err, status) {
+                                        if (err) {
+                                            console.log("error in setting in message unique id look up");
+                                        } else
+                                            console.log("message unique id look up is set successfully");
+                                    });
+                                }
+                            });
+                        }
+
+
+                    } else {
+                        proceedActivityTimelineAdd(0);//passing formTransactionId as 0
+                    }
                 } else {
                     res.send(responseWrapper.getResponse(false, {}, -3304));
                 }
@@ -194,7 +228,7 @@ function ActivityTimelineController(objCollection) {
             }
         });
     });
-    
+
     app.post('/' + global.config.version + '/activity/timeline/entry/comment/list', function (req, res) {
         req.body['module'] = 'activity';
         activityTimelineService.retrieveFormFieldTimeline(req.body, function (err, data, statusCode) {

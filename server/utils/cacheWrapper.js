@@ -58,6 +58,18 @@ function CacheWrapper(client) {
         });
     };
 
+    this.retrieveFormTransactionId = function (callback) {
+
+        client.get('form_transaction_id', function (err, id) {
+            if (err) {
+                console.log(err);
+                callback(err, 0);
+            }
+            //console.log('getActivityId => ' + id);
+            callback(false, id);
+        });
+    };
+
 
     var getAssetParity = function (assetId, callback) {
 

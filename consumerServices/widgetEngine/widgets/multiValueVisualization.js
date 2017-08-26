@@ -9,6 +9,15 @@ class MultiDimensionalAggrWidget extends WidgetBase {
         this.id = CONST.WIDGET_TYPE_IDS.MULTI_VALUE_VISUALIZATION;
     }
 
+    retrievFormTransactionId() {
+        return new Promise((resolve, reject) => {
+            this.objCollection.cacheWrapper.retrieveFormTransactionId((err, id) => {
+                if(err) return reject(err);
+                else return resolve(id);
+            });
+        });
+    }
+
     aggregateAndSaveTransaction(formSubmissionDate, data) {
         const entity1Data = data.normalizedFormData[this.rule.widget_entity2_id];
         const entity2Data = data.normalizedFormData[this.rule.widget_entity3_id];
@@ -17,8 +26,11 @@ class MultiDimensionalAggrWidget extends WidgetBase {
             form_id: this.form.id,
             entity_id: entity1Data.field_id
         };
-        activityQueryData = _.merge(activityQueryData, _.pick(data.payload, ['form_transaction_id']));
-        this.services.activityFormTransaction.getByTransactionField(activityQueryData)
+        this.retrievFormTransactionId()
+        .then((id) => {
+            activityQueryData.form_transaction_id = id;
+            return this.services.activityFormTransaction.getByTransactionField(activityQueryData);
+        })
         .then((result) => {
             choice = result[0] ? result[0].data_entity_text : undefined;
             let activityQueryData = {
