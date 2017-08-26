@@ -87,25 +87,37 @@ IN p_form_transaction_id BIGINT(20), IN p_form_id BIGINT(20), IN p_field_id1 BIG
 
     getFormTransactionsByChoice(data){
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
-                data.form_id,
-                data.entity_id,
-                data.choice,
-                data.start,
-                data.end,
-                0,
-                50 // his has to be rectified
-            );
+            const limit = 50;
+            let rows = [];
+            var self = this;
+            function loop(opts) {
+                var paramsArr = new Array(
+                    data.form_id,
+                    data.entity_id,
+                    data.choice,
+                    data.start,
+                    data.end,
+                    opts.startFrom,
+                    limit 
+                );
+      
+                var queryString = self.objCollection.util.getQueryString('ds_p1_activity_form_transaction_select_field_choice_transactions', paramsArr);
+                if (queryString === '') return reject();
+                self.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
+                    if(err) return reject(err);
+                    rows = rows.concat(data);
+                    if(data.length < limit) return resolve(rows);
+                    loop({startFrom: rows.length + 1});
+                });
+            }
+
+            loop({startFrom: 0});
+
             /* "ds_p1_activity_form_transaction_select_field_choice_transactions
 IN p_form_id BIGINT(20), IN p_field_id1 BIGINT(20), IN p_choice VARCHAR(300), IN p_start_datetime DATETIME, 
 IN p_end_datetime DATETIME, IN p_start_from SMALLINT(6), IN p_limit_value TINYINT(4)
 " */
-            var queryString = this.objCollection.util.getQueryString('ds_p1_activity_form_transaction_select_field_choice_transactions', paramsArr);
-            if (queryString === '') return reject();
-            this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
-                if (err) return reject(err);
-                return resolve(data);
-            });
+
         });
     }
     

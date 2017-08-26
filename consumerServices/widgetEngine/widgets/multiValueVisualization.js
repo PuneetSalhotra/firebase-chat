@@ -18,7 +18,7 @@ class MultiDimensionalAggrWidget extends WidgetBase {
         });
     }
 
-    getChoiceSumField(entityData) {
+    getChoiceSumField() {
         var field;
         switch(this.rule.widget_entity3_data_type_id) {
             case 5:
@@ -74,8 +74,8 @@ class MultiDimensionalAggrWidget extends WidgetBase {
             return Promise.all(promises);
         })
         .then((results) => {
-            const field = this.getChoiceSumField(entity2Data);
-            const sum = results.map(function(res){ return res[field]; }).reduce(function(a, b){ return a + b; }, 0);
+            const field = this.getChoiceSumField();
+            const sum = results.map((res) =>  res[field]).filter((val) => !_.isUndefined(val)).reduce((a, b) => { return a + b; }, 0);
             let widgetData = {
                 date: formSubmissionDate.valueInRuleTimeZone,
                 choice: choice,
