@@ -11,9 +11,29 @@ class MultiDimensionalAggrWidget extends WidgetBase {
     aggregateAndSaveTransaction(formSubmissionDate, data) {
         const entity1Data = data.normalizedFormData[this.rule.widget_entity2_id];
         const entity2Data = data.normalizedFormData[this.rule.widget_entity3_id];
+        let activityQueryData = [{
+            start: formSubmissionDate.startOfDayInUTC,
+            end: formSubmissionDate.endOfDayInUTC,
+            entity_id: entity1Data.field_id,
+            form_id: this.form.id,
+            entity_data_type_id: entity1Data.field_data_type_id,
+            access_level_id: this.rule.access_level_id  || 5       
+        }, {
+            start: formSubmissionDate.startOfDayInUTC,
+            end: formSubmissionDate.endOfDayInUTC,
+            entity_id: entity2Data.field_id,
+            form_id: this.form.id,
+            entity_data_type_id: entity2Data.field_data_type_id,
+            access_level_id: this.rule.access_level_id  || 5  
+        }];
+        activityQueryData[0] = _.merge(activityQueryData[0], _.pick(data.payload, ['asset_id', 'asset_type_id', 'activity_id', 
+        'organization_id', 'account_id', 'workforce_id', 'activity_type_category_id']));
+        activityQueryData[1] = _.merge(activityQueryData[1], _.pick(data.payload, ['asset_id', 'asset_type_id', 'activity_id', 
+        'organization_id', 'account_id', 'workforce_id', 'activity_type_category_id']));
+
         var promises = [
-            this.services.activityFormTransaction.getSumByDay(formSubmissionDate, entity1Data, data.payload),
-            this.services.activityFormTransaction.getSumByDay(formSubmissionDate, entity2Data, data.payload),
+            this.services.activityFormTransaction.getSumByDay(activityQueryData[0]),
+            this.services.activityFormTransaction.getSumByDay(activityQueryData[1]),
         ];
         Promise.all(promises)
         .then((result) => {
@@ -21,17 +41,19 @@ class MultiDimensionalAggrWidget extends WidgetBase {
             const sumEntity2 = result[1][0] ? result[1][0].total_sum : undefined;
 
             let widgetData = [{
-                date: formSubmissionDate.value,
+                date: formSubmissionDate.valueInRuleTimeZone,
                 widget_id: this.rule.widget_id,
                 entity_id: this.rule.widget_entity2_id,
                 index : 1,
-                sum: sumEntity1   //TODO OOOOO at a time both may not be present
+                sum: sumEntity1,
+                period_flag: this.getPeriodFlag(), //TODO one can exist?
             }, {
-                date: formSubmissionDate.value,
+                date: formSubmissionDate.valueInRuleTimeZone,
                 widget_id: this.rule.widget_id,
                 entity_id: this.rule.widget_entity3_id,
                 index: 2,
-                sum: sumEntity2   //TODO OOOOO at a time both may not be present
+                sum: sumEntity2,
+                period_flag: this.getPeriodFlag()
             }];
             widgetData[0] = _.merge(widgetData[0], _.pick(data.payload, ['asset_id', 'organization_id']));
             widgetData[1] = _.merge(widgetData[1], _.pick(data.payload, ['asset_id', 'organization_id']));

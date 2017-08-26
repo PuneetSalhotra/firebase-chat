@@ -23,11 +23,11 @@ class WidgetBase {
     convertUTCTimeToRuleTimeZone(time) {
         var ruleTime =  moment.utc(time).utcOffset(this.rule.widget_timezone_offset / (60 * 1000));
         return {
-            startOfDay: moment(ruleTime).startOf('day').format("YYYY-MM-DD HH:mm:ss"), //TODOOOOOOOOO Correct to reflect timezone
-            endOfDay: moment(ruleTime).endOf('day').format("YYYY-MM-DD HH:mm:ss"),
-            startOfMonth: moment(ruleTime).startOf('month').format("YYYY-MM-DD HH:mm:ss"), //TODOOOOOOOOO Correct to reflect timezone
-            endOfMonth: moment(ruleTime).endOf('month').format("YYYY-MM-DD HH:mm:ss"),
-            value: moment(ruleTime).format("YYYY-MM-DD HH:mm:ss")
+            startOfDayInUTC: moment(ruleTime).startOf('day').utc().format("YYYY-MM-DD HH:mm:ss"), //TODOOOOOOOOO Correct to reflect timezone
+            endOfDayInUTC: moment(ruleTime).endOf('day').utc().format("YYYY-MM-DD HH:mm:ss"),
+            startOfMonthInUTC: moment(ruleTime).startOf('month').utc().format("YYYY-MM-DD HH:mm:ss"), //TODOOOOOOOOO Correct to reflect timezone
+            endOfMonthInUTC: moment(ruleTime).endOf('month').utc().format("YYYY-MM-DD HH:mm:ss"),
+            valueInRuleTimeZone: moment(ruleTime).format("YYYY-MM-DD HH:mm:ss")
         };
     }
 

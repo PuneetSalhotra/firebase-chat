@@ -12,11 +12,22 @@ class SingleDimensionalAggrWidget extends WidgetBase {
 
     aggregateAndSaveTransaction(formSubmissionDate, data) {
         const entityData = data.normalizedFormData[this.rule.widget_entity2_id];
-        this.services.activityFormTransaction.getSumByDay(formSubmissionDate, entityData, data.payload)
+        let activityQueryData = {
+            start: formSubmissionDate.startOfDayInUTC,
+            end: formSubmissionDate.endOfDayInUTC,
+            entity_id: entityData.field_id,
+            form_id: this.form.id,
+            entity_data_type_id: entityData.field_data_type_id,
+            access_level_id: this.rule.access_level_id  || 5       
+        };
+        activityQueryData = _.merge(activityQueryData, _.pick(data.payload, ['asset_id', 'asset_type_id', 'activity_id', 
+        'organization_id', 'account_id', 'workforce_id', 'activity_type_category_id']));
+
+        this.services.activityFormTransaction.getSumByDay(activityQueryData)
         .then((result) => {
             const sum = result[0] ? result[0].total_sum : undefined;
             let widgetData = {
-                date: formSubmissionDate.value,
+                date: formSubmissionDate.valueInRuleTimeZone,
                 sum: sum,
                 widget_id: this.rule.widget_id,
                 period_flag: this.getPeriodFlag()

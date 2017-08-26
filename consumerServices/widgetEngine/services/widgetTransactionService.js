@@ -7,7 +7,7 @@ class WidgetTransactionService {
     getByPeriodFlag(lookupData){
         return new Promise((resolve, reject) => {
             var paramsArr = new Array(
-                lookupData.widgetId,
+                lookupData.widget_id,
                 lookupData.date,
                 lookupData.period_flag
             );
@@ -74,11 +74,11 @@ IN p_submitted_field_value_sum DOUBLE(16,4)
     getByDayAndFields(lookupData){
         return new Promise((resolve, reject) => {
             var paramsArr = new Array(
-                lookupData[0].widgetId,
+                lookupData[0].widget_id,
                 lookupData[0].date,
                 lookupData[0].entity_id,
                 lookupData[1].entity_id,
-                0
+                lookupData[0].period_flag
             );
 /*"ds_p1_widget_transaction_select_widget_field_flag
 IN p_widget_id BIGINT(20), IN p_form_submission_date DATE, IN p_field_id1 BIGINT(20), 

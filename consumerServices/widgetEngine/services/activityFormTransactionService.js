@@ -3,7 +3,7 @@ class ActivityFormTransaction {
         this.objCollection = args.objCollection;
     }
 
-    getSumByDay(date, entity, payload) {
+    getSumByDay(data) {
         /*"ds_p1_activity_form_transaction_select_field_sum_datetime
 IN p_form_id BIGINT(20), IN p_field_id BIGINT(20),  IN p_data_type_id SMALLINT(6), IN p_access_level_id SMALLINT(6), 
 IN p_start_datetime DATETIME, IN p_end_datetime DATETIME, IN p_activity_id BIGINT(20), IN p_activity_type_id BIGINT(20), 
@@ -11,19 +11,19 @@ IN p_asset_id BIGINT(20), IN p_asset_type_id BIGINT(20), IN p_workforce_id BIGIN
 IN p_organization_id BIGINT(20)"*/
         return new Promise((resolve, reject) => {
             var paramsArr = new Array(
-                entity.form_id,
-                entity.field_id,
-                entity.field_data_type_id,
-                payload.asset_id, //todooooooooooo generalice access level
-                date.start,
-                date.end,
-                payload.activity_id,
-                payload.activity_type_category_id,
-                payload.asset_id,
-                null, //TODOOOOOOOOOO
-                payload.workforce_id,
-                payload.account_id,
-                payload.organization_id
+                data.form_id,
+                data.entity_id,
+                data.entity_data_type_id,
+                data.access_level_id, 
+                data.start,
+                data.end,
+                data.activity_id,
+                data.activity_type_category_id,
+                data.asset_id,
+                data.asset_type_id,  //TODO this is from where
+                data.workforce_id,
+                data.account_id,
+                data.organization_id
             );
             var queryString = this.objCollection.util.getQueryString('ds_p1_activity_form_transaction_select_field_sum_datetime', paramsArr);
             if (queryString === '') return reject();
@@ -39,14 +39,14 @@ IN p_organization_id BIGINT(20)"*/
         return new Promise((resolve, reject) => {
             var paramsArr = new Array(
                 data.form_id,
-                5,
-                data.startOfMonth,
-                data.endOfMonth,
+                data.access_level_id,
+                data.start,
+                data.end,
                 data.activity_id,
-                data.activity_type_id,
+                data.activity_type_category_id,
                 data.asset_id,
                 data.asset_type_id,
-                data.worforce_id,
+                data.workforce_id,
                 data.account_id,
                 data.organization_id
             );
@@ -91,8 +91,8 @@ IN p_form_transaction_id BIGINT(20), IN p_form_id BIGINT(20), IN p_field_id1 BIG
                 data.form_id,
                 data.entity_id,
                 data.choice,
-                data.startOfDay,
-                data.endOfDay,
+                data.start,
+                data.end,
                 0,
                 50 // his has to be rectified
             );

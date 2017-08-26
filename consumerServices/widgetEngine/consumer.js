@@ -22,7 +22,7 @@ class WidgetEngineConsumer extends ConsumerBase {
             const formInstance = forms.get(formData[0].form_id, {objCollection: this.objCollection});
             formInstance.getWidgets(message.payload)
             .then((widgets) => {
-                const promises = widgets.map((widget) => widget.crunchDataAndSave(message));
+                const promises = widgets.map((widget) => widget && widget.crunchDataAndSave(message));
                 return Promise.all(promises);
             })
             .then(() => {

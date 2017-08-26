@@ -8,19 +8,19 @@ class FrequencyDistributionWidget extends WidgetBase {
         this.id = CONST.WIDGET_TYPE_IDS.FREQUENCY_DISTRIBUTION;
     }
     aggregateAndSaveTransaction(formSubmissionDate, data) {
-        const entityData = data.normalizedFormData[this.rule.widget_entity2_id];
         let activityQueryData = {
-            startOfMonth: formSubmissionDate.startOfMonth,
-            endOfMonth: formSubmissionDate.endOfMonth,
-            form_id: this.form.id
+            start: formSubmissionDate.startOfMonthInUTC,
+            end: formSubmissionDate.endOfMonthInUTC,
+            form_id: this.form.id,
+            access_level_id: this.rule.access_level_id || 5
         };
         activityQueryData = _.merge(activityQueryData, _.pick(data.payload, ['activity_id', 'asset_id', 'organization_id',
-                'activity_type_id', 'asset_type_id', 'worforce_id', 'account_id', 'field_id', 'data_type_id']));
+                'activity_type_category_id', 'asset_type_id', 'workforce_id', 'account_id', 'field_id', 'data_type_id']));
         this.services.activityFormTransaction.getCountForMonth(activityQueryData)
         .then((result) => {
             const count = result[0] ? result[0].form_count : undefined;
             let widgetData = {
-                date: formSubmissionDate.value,
+                date: formSubmissionDate.valueInRuleTimeZone,
                 count: count,
                 widget_id: this.rule.widget_id,
                 period_flag: this.getPeriodFlag()
