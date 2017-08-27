@@ -1,3 +1,6 @@
+/**
+ * author: SBK
+ */
 const WidgetBase = require('./base');
 const CONST = require('../../constants');
 const _ =require('lodash');
@@ -48,7 +51,7 @@ class MultiDimensionalAggrWidget extends WidgetBase {
                 entity_id: this.rule.widget_entity2_id,
                 index : 1,
                 sum: sumEntity1,
-                period_flag: this.getPeriodFlag(), //TODO one can exist?
+                period_flag: this.getPeriodFlag(), 
             }, {
                 date: formSubmissionDate.valueInRuleTimeZone,
                 widget_id: this.rule.widget_id,

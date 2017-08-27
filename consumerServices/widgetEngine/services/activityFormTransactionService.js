@@ -1,3 +1,6 @@
+/**
+ * author: SBK
+ */
 class ActivityFormTransaction {
     constructor(args) {
         this.objCollection = args.objCollection;
@@ -20,7 +23,7 @@ IN p_organization_id BIGINT(20)"*/
                 data.activity_id,
                 data.activity_type_category_id,
                 data.asset_id,
-                data.asset_type_id,  //TODO this is from where
+                data.asset_type_id,  
                 data.workforce_id,
                 data.account_id,
                 data.organization_id

@@ -1,3 +1,6 @@
+/**
+ * author: SBK
+ */
 var cluster = require('cluster');
 var numCPUs = require('os').cpus().length;
 

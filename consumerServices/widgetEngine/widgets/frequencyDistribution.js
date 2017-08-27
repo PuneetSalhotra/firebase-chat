@@ -1,3 +1,6 @@
+/**
+ * author: SBK
+ */
 const WidgetBase = require('./base');
 const CONST = require('../../constants');
 const _ =require('lodash');

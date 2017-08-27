@@ -1,3 +1,6 @@
+/**
+ * author: SBK
+ */
 const FrequencyDistribution = require('./frequencyDistribution');
 const SingleDimensionalAggr = require('./singleDimentionalAggr');
 const MultiDimensionalAggr = require('./multiDimensionalAggr');

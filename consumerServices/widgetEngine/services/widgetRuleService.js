@@ -1,4 +1,6 @@
-
+/**
+ * author: SBK
+ */
 class WidgetRuleService {
     constructor(args) {
     }
