@@ -14,10 +14,6 @@ var corsOptions = {
     }
 };
 app.use(cors());
-
-//var morgan = require('morgan');
-//app.use(morgan("combined"));
-
 var bodyParser = require('body-parser');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
@@ -38,16 +34,21 @@ var redisClient = redis.createClient(global.config.redisPort, global.config.redi
 var CacheWrapper = require('./server/utils/cacheWrapper');
 var cacheWrapper = new CacheWrapper(redisClient);
 var QueueWrapper = require('./server/queue/queueWrapper');
-
+var ActivityCommonService = require("./server/services/activityCommonService");
 redisClient.on('connect', function () {
-    var kafkaProducer = new KafkaProducer(kafkaClient);
     console.log("redis is connected");
-    kafkaProducer.on('ready', function () {
+    var kafkaProducer = new KafkaProducer(kafkaClient);
+    new Promise((resolve, reject) => {
+        if (kafkaProducer.ready)
+            return resolve();
+        kafkaProducer.on('ready', resolve);
+    }).then(() => {
         console.log('Kafka Producer ready!!');
         var queueWrapper = new QueueWrapper(kafkaProducer);
 
         var util = new Util();
-        var responseWrapper = new ResponseWrapper(util);
+        var responseWrapper = new ResponseWrapper(util);        
+        var activityCommonService = new ActivityCommonService(db, util);
 
         var objCollection = {
             app: app,
@@ -55,7 +56,8 @@ redisClient.on('connect', function () {
             db: db,
             responseWrapper: responseWrapper,
             cacheWrapper: cacheWrapper,
-            queueWrapper: queueWrapper
+            queueWrapper: queueWrapper,
+            activityCommonService: activityCommonService
         };
         new EncTokenInterceptor(app, cacheWrapper, responseWrapper, util);
         new ControlInterceptor(objCollection);
@@ -67,12 +69,8 @@ redisClient.on('connect', function () {
         console.log(error);
     });
 
-
-
 });
 
 redisClient.on('error', function (error) {
     console.log(error);
 });
-
-

@@ -145,9 +145,47 @@ function FormConfigService(db, util) {
             });
         }
     };
+    
+    this.getSpecifiedForm = function (request, callback) {
+        var paramsArr = new Array();
+        var queryString = '';
+        
+        paramsArr = new Array(
+                request.organization_id,                
+                request.account_id,               
+                request.workforce_id,                
+                request.form_id,
+                '1970-01-01 00:00:00',
+                request.page_start,
+                request.page_limit
+                );
+        queryString = util.getQueryString('ds_v1_workforce_form_field_mapping_select', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (err === false) {
+                    if (data.length > 0) {
+                        //console.log(data);
+                        formatFromsListing(data, function (err, finalData) {
+                            if (err === false) {
+                                callback(false, {data: finalData}, 200);
+                            }
+                        });
+                    } else {
+                        callback(false, {}, 200);
+                    }
+                    return;
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, false, -9999);
+                    return;
+                }
+            });
+        }
+    };
+
 
     var formatFromsListing = function (data, callback) {        
-        var responseData = new Array();        
+        var responseData = new Array();
         data.forEach(function (rowData, index) {
             
             var rowDataArr = {

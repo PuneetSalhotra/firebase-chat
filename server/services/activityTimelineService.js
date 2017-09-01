@@ -14,10 +14,13 @@ function ActivityTimelineService(objectCollection) {
 
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
-        var activityTypeCategoryId = request.activity_type_category_id;
+        var activityTypeCategoryId = Number(request.activity_type_category_id);
         var activityStreamTypeId = Number(request.activity_stream_type_id);
-
-        if (activityStreamTypeId === 705 || activityStreamTypeId === 313) {   // add form case
+        
+        if (activityTypeCategoryId === 9 && activityStreamTypeId === 705) {   // add form case
+            var formDataJson = JSON.parse(request.activity_timeline_collection);
+            request.form_id = formDataJson[0]['form_id'];
+            console.log('form id extracted from json is: '+formDataJson[0]['form_id']);
             // add form entries
             addFormEntries(request, function (err, response) {
                 if (err === false) {
@@ -27,7 +30,12 @@ function ActivityTimelineService(objectCollection) {
                 }
             });
         }
-        var isAddToTimeline = request.hasOwnProperty('flag_timeline_entry') ? false : true;
+        else{
+            request.form_id = 0;
+        }
+        var isAddToTimeline = true;
+        if (request.hasOwnProperty('flag_timeline_entry'))
+            isAddToTimeline = (Number(request.flag_timeline_entry)) > 0 ? true : false;        
         if (isAddToTimeline) {
             activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
 
@@ -42,6 +50,18 @@ function ActivityTimelineService(objectCollection) {
                 activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {
 
                 });
+                if (request.hasOwnProperty('device_os_id')) {
+                    if (Number(request.device_os_id) !== 5) {
+                        //incr the asset_message_counter                        
+                        cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
+                            if (err) {
+                                console.log("error in setting in asset parity");
+                            } else
+                                console.log("asset parity is set successfully")
+
+                        });
+                    }
+                }
 
             });
 
@@ -92,6 +112,7 @@ function ActivityTimelineService(objectCollection) {
         var queryString = util.getQueryString('ds_v1_activity_form_field_timeline_transaction_insert', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
+                activityCommonService.updateWholeLotForTimelineComment(request, function (err, data) {});
                 if (err === false) {
                     callback(false, {}, 200);
                     return;
@@ -102,11 +123,22 @@ function ActivityTimelineService(objectCollection) {
                 }
             });
         }
+        if (request.hasOwnProperty('device_os_id')) {
+            if (Number(request.device_os_id) !== 5) {
+                //incr the asset_message_counter                        
+                cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
+                    if (err) {
+                        console.log("error in setting in asset parity");
+                    } else
+                        console.log("asset parity is set successfully")
+
+                });
+            }
+        }
 
     };
 
     this.retrieveFormFieldTimeline = function (request, callback) {
-
         var paramsArr = new Array(
                 request.form_transaction_id,
                 request.form_id,
@@ -137,6 +169,8 @@ function ActivityTimelineService(objectCollection) {
 
     this.retrieveFormCollection = function (request, callback) {
         //var activityTypeCategoryId = util.replaceZero(request.activity_type_category_id);
+        var logDatetime = util.getCurrentUTCTime();
+        request['datetime_log'] = logDatetime;
         var paramsArr = new Array(
                 request.form_transaction_id,
                 request.form_id,
@@ -147,8 +181,8 @@ function ActivityTimelineService(objectCollection) {
         var queryString = util.getQueryString('ds_v1_activity_form_transaction_select_transaction', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
+                activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
                 if (err === false) {
-                    //console.log(data);
                     formatFormDataCollection(data, function (err, responseData) {
                         if (err === false) {
                             callback(false, {data: responseData}, 200);
@@ -169,6 +203,10 @@ function ActivityTimelineService(objectCollection) {
     };
 
     this.retrieveTimelineList = function (request, callback) {
+        var logDatetime = util.getCurrentUTCTime();
+        request['datetime_log'] = logDatetime;
+
+        activityCommonService.resetAssetUnreadCount(request, function (err, data) {});
         var activityTypeCategoryId = util.replaceZero(request.activity_type_category_id);
         if (activityTypeCategoryId > 0) {
             var paramsArr = new Array(
@@ -270,12 +308,12 @@ function ActivityTimelineService(objectCollection) {
             rowDataArr.message_unique_id = rowData['log_message_unique_id'];
             rowDataArr.datetime_log = util.replaceDefaultDatetime(rowData['log_datetime']);
             //rowDataArr.field_value = '';                
-            getFieldValue(rowData, function (err, fieldValue) {                
-                if(err){
+            getFieldValue(rowData, function (err, fieldValue) {
+                if (err) {
                     console.log(err);
                     console.log('error occured');
                 }
-                rowDataArr.field_value = fieldValue;                
+                rowDataArr.field_value = fieldValue;
                 responseData.push(rowDataArr);
                 next();
             });
@@ -289,112 +327,95 @@ function ActivityTimelineService(objectCollection) {
         var fieldValue = '';
         //console.log(rowData);
         var dataTypeId = Number(rowData['data_type_id']);
-        console.log(typeof dataTypeId, 'dataype '+dataTypeId);
+        console.log(typeof dataTypeId, 'dataype ' + dataTypeId);
         switch (dataTypeId) {
-            case 1://Date
-                fieldValue = rowData['data_entity_date_1'];                
+            case 1:     //Date
+            case 2:     //Future Date
+            case 3:     //Past Date
+                fieldValue = rowData['data_entity_date_1'];
                 break;
-            case 2://Date and Time
-                fieldValue = rowData['data_entity_datetime_1'];                
+            case 4:     //Date and Time
+                fieldValue = rowData['data_entity_datetime_1'];
                 break;
-            case 3://Counter
-                fieldValue = rowData['data_entity_tinyint_1'];
-                break;
-            case 4://Number
+            case 5:     //Number
                 fieldValue = rowData['data_entity_bigint_1'];
                 break;
-            case 5://Percentage
+            case 6:     //Decimal
+                fieldValue = rowData['data_entity_double_1'];
+                break;
+            case 7:     //Scale (0 to 100)
+            case 8:     //Scale (0 to 5)
                 fieldValue = rowData['data_entity_tinyint_1'];
                 break;
-            case 6://Reference - Organization
-
-            case 7://Reference - Account
-
-            case 8://Reference - WorkForce
-
-            case 9://Reference - Asset Type
-
-            case 10://Reference - Asset
-
-            case 11://Reference - Activity Type
-
-            case 12://Reference - Activity
-
-            case 13://Reference - Activity Status
+            case 9:     //Reference - Organization
+            case 10:    //Reference - Building
+            case 11:    //Reference - Floor
+            case 12:    //Reference - Person
+            case 13:    //Reference - Vehicle
+            case 14:    //Reference - Room
+            case 15:    //Reference - Desk
+            case 16:    //Reference - Assistant
                 fieldValue = rowData['data_entity_bigint_1'];
                 break;
-            case 14://Decimal
-                fieldValue = rowData['data_entity_decimal_1'];
-                break;
-            case 15://Location
+            case 17:    //Location
                 fieldValue = rowData['data_entity_decimal_2'] + '|' + rowData['data_entity_decimal_3'];
                 break;
-            case 16://Money
-                fieldValue = rowData['data_entity_decimal_1'];
+            case 18:    //Money with currency name
+                fieldValue = rowData['data_entity_decimal_1'] + '|' + rowData['data_entity_text_1'];
                 break;
-            case 17://Title
-                fieldValue = rowData['data_entity_text_1'];                
-                break;
-            case 18://Description
+            case 19:    //short text
                 fieldValue = rowData['data_entity_text_1'];
                 break;
-            case 19://Label
+            case 20:    //long text
+                fieldValue = rowData['data_entity_text_2'];
+                break;
+            case 21:    //Label
                 fieldValue = rowData['data_entity_text_1'];
                 break;
-            case 20://Email ID
+            case 22:    //Email ID
                 fieldValue = rowData['data_entity_text_1'];
                 break;
-            case 21://Phone Number with Country Code
+            case 23:    //Phone Number with Country Code
                 fieldValue = rowData['data_entity_bigint_1'] + '|' + rowData['data_entity_text_1'];
                 break;
-            case 22://Gallery Image
-
-            case 23://Camera Front Image
-
-            case 24://Camera Back Image
+            case 24:    //Gallery Image
+            case 25:    //Camera Image            
+            case 26:    //Video Attachment
                 fieldValue = rowData['data_entity_text_1'];
                 break;
-            case 25://Signature
-
-            case 26://Picnature
-                fieldValue = rowData['data_entity_text_1'] + '|' + rowData['data_entity_bigint_1'] + '|' + rowData['data_entity_bigint_1'];
+            case 27:    //General Signature with asset reference
+            case 28:    //General Picnature with asset reference
+            case 29:    //Coworker Signature with asset reference
+            case 30:    //Coworker Picnature with asset reference
+                fieldValue = rowData['data_entity_text_1'] + '|' + rowData['data_entity_bigint_1'] + '|' + rowData['data_entity_tinyint_1'];
                 break;
-            case 27://Audio Attachment
+            case 31:    //Cloud Document Link
                 fieldValue = rowData['data_entity_text_1'];
                 break;
-            case 28://Video Attachment
+            case 32:    //PDF Document
                 fieldValue = rowData['data_entity_text_1'];
                 break;
-            case 29://Cloud Document
-                fieldValue = rowData['data_entity_text_1'];
-                break;
-            case 30://Single Selection List
+            case 33:    //Single Selection List
                 fieldValue = rowData['data_entity_tinyint_1'] + '|' + rowData['data_entity_text_1'];
                 break;
-            case 31://Multi Selection List
-                fieldValue = JSON.parse(rowData['data_entity_text_2']);
+            case 34:    //multiple Selection List
+                fieldValue = rowData['data_entity_tinyint_1'] + '|' + rowData['data_entity_text_1'];
                 break;
-            case 32://QR Code
+            case 35:    //QR Code
+            case 36:    //QR Code
+            case 38:    //Audio Attachment
+                fieldValue = rowData['data_entity_text_1'];
                 break;
-            case 33://Data Interface
+            case 39:
                 break;
-            case 34://Web Link
-                break;
-            case 35://General Signature with asset reference
-                break;
-            case 36://General Picnature with asset reference
-                break;
-            case 37://Coworker Signature with asset reference
-                break;
-            case 38://Coworker Picnature with asset reference
-                break;
+                fieldValue = rowData['data_entity_tinyint_1'];
             default:
-                console.log('came into default');
+                console.log('came into default for data type id: ' + dataTypeId);
                 break;
         }
         ;
         //console.log(fieldValue, 'datatype of fieldvalue is '+ typeof fieldValue);
-        
+
         callback(false, fieldValue);
     };
 
@@ -578,39 +599,39 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_collection = {};
                             break;
                         case 310:
-                            rowDataArr.activity_timeline_text = rowData['entity_text_2'];
+                            rowDataArr.activity_timeline_text = rowData['data_entity_text_2'];
                             rowDataArr.activity_timeline_url = '';
                             rowDataArr.activity_timeline_collection = {};
                             break;
                         case 311:
                             rowDataArr.activity_timeline_text = '';
-                            rowDataArr.activity_timeline_url = rowData['entity_text_1'];
+                            rowDataArr.activity_timeline_url = rowData['data_entity_text_1'];
                             rowDataArr.activity_timeline_collection = {};
                             break;
                         case 312:
-                            rowDataArr.activity_timeline_text = rowData['entity_text_2'];
+                            rowDataArr.activity_timeline_text = rowData['data_entity_text_2'];
                             rowDataArr.activity_timeline_url = '';
                             rowDataArr.activity_timeline_collection = {};
                             break;
                         case 313:   //Added form on to the Document
-                            rowDataArr.activity_timeline_text = rowData['entity_text_1'];
+                            rowDataArr.activity_timeline_text = rowData['data_entity_text_1'];
                             rowDataArr.activity_timeline_url = '';
                             rowDataArr.activity_timeline_collection = {};
                             break;
                         case 314:   //Added Cloud based Document link on to the Document
                             rowDataArr.activity_timeline_text = '';
-                            rowDataArr.activity_timeline_url = rowData['entity_text_1'];
+                            rowDataArr.activity_timeline_url = rowData['data_entity_text_1'];
                             rowDataArr.activity_timeline_collection = {};
                             break;
                         case 315:   //Added Email conversation on to the Document
                             rowDataArr.activity_timeline_text = '';
                             rowDataArr.activity_timeline_url = '';
-                            rowDataArr.activity_timeline_collection = rowData['entity_text_1'];
+                            rowDataArr.activity_timeline_collection = rowData['data_entity_text_1'];
                             break;
                         case 316:   //Added notepad on to the Document
                             rowDataArr.activity_timeline_text = '';
                             rowDataArr.activity_timeline_url = '';
-                            rowDataArr.activity_timeline_collection = rowData['entity_text_1'];
+                            rowDataArr.activity_timeline_collection = rowData['data_entity_text_1'];
                             break;
                     }
                     ;
@@ -628,10 +649,10 @@ function ActivityTimelineService(objectCollection) {
 
     var addFormEntries = function (request, callback) {
 
-        var formDataJson = JSON.parse((request.activity_timeline_collection));
+        var formDataJson = JSON.parse(request.activity_timeline_collection);
 
         formDataJson.forEach(function (row, index) {
-            if (formDataJson.hasOwnProperty('data_type_combo_id')) {
+            if (row.hasOwnProperty('data_type_combo_id')) {
                 var datatypeComboId = row.data_type_combo_id;
             } else
                 var datatypeComboId = 0;
@@ -665,122 +686,100 @@ function ActivityTimelineService(objectCollection) {
 
             var dataTypeId = Number(row.field_data_type_id);
             switch (dataTypeId) {
-                case 1://Date
+                case 1:     // Date
+                case 2:     // future Date
+                case 3:     // past Date
                     params[9] = row.field_value;
                     break;
-                case 2://Date and Time
+                case 4:     // Date and time
                     params[10] = row.field_value;
-                    //console.log(params[10] );
                     break;
-                case 3://Counter
-                    params[11] = row.field_value;
-                    break;
-                case 4://Number
+                case 5:     //Number
                     params[12] = row.field_value;
                     break;
-                case 5://Percentage
+                case 6:     //Decimal
+                    params[13] = row.field_value;
+                    break;
+                case 7:     //Scale (0 to 100)
+                case 8:     //Scale (0 to 5)
                     params[11] = row.field_value;
                     break;
-                case 6://Reference - Organization
-
-                case 7://Reference - Account
-
-                case 8://Reference - WorkForce
-
-                case 9://Reference - Asset Type
-
-                case 10://Reference - Asset
-
-                case 11://Reference - Activity Type
-
-                case 12://Reference - Activity
-
-                case 13://Reference - Activity Status
-                    params[11] = row.field_value;
+                case 9:     //Reference - Organization
+                case 10:    //Reference - Building
+                case 11:    //Reference - Floor
+                case 12:    //Reference - Person
+                case 13:    //Reference - Vehicle
+                case 14:    //Reference - Room
+                case 15:    //Reference - Desk
+                case 16:    //Reference - Assistant
+                    params[12] = row.field_value;
                     break;
-                case 14://Decimal
-                    params[14] = row.field_value;
-                    break;
-                case 15://Location
+                case 17:    //Location
                     var location = row.field_value.split('|');
                     params[15] = location[0];
                     params[16] = location[1];
                     break;
-                case 16://Money
-                    params[14] = row.field_value;
+                case 18:    //Money with currency name
+                    var money = row.field_value.split('|');
+                    params[14] = money[0];
+                    params[17] = money[1];
                     break;
-                case 17://Title
-                    break;
+                case 19:    //Short Text                    
                     params[17] = row.field_value;
-                case 18://Description
+                    break;
+                case 20:    //Long Text
                     params[18] = row.field_value;
                     break;
-                case 19://Label
+                case 21:    //Label
                     params[17] = row.field_value;
                     break;
-                case 20://Email ID
+                case 22:    //Email ID
                     params[17] = row.field_value;
                     break;
-                case 21://Phone Number with Country Code
+                case 23:    //Phone Number with Country Code
                     var phone = row.field_value.split('|');
-                    params[12] = phone[0];
-                    params[17] = phone[1];
+                    params[12] = phone[0];  //country code
+                    params[17] = phone[1];  //phone number
                     break;
-                case 22://Gallery Image
-
-                case 23://Camera Front Image
-
-                case 24://Camera Back Image
+                case 24:    //Gallery Image
+                case 25:    //Camera Front Image                
+                case 26:    //Video Attachment
                     params[17] = row.field_value;
                     break;
-                case 25://Signature
-
-                case 26://Picnature
+                case 27:    //General Signature with asset reference
+                case 28:    //General Picnature with asset reference
+                case 29:    //Coworker Signature with asset reference
+                case 30:    //Coworker Picnature with asset reference
                     var signatureData = row.field_value.split('|');
                     params[17] = signatureData[0];  //image path
                     params[12] = signatureData[1];  // asset reference
                     params[11] = signatureData[1];  // accepted /rejected flag
                     break;
-                case 27://Audio Attachment
+                case 31:    //Cloud Document Link
                     params[17] = row.field_value;
                     break;
-                case 28://Video Attachment
+                case 32:    //PDF Document
                     params[17] = row.field_value;
                     break;
-                case 29://Cloud Document
-                    params[17] = row.field_value;
-                    break;
-                case 30://Single Selection List
+                case 33:    //Single Selection List
                     var comboData = row.field_value.split('|');
                     params[11] = comboData[0];
                     params[17] = comboData[0];
                     break;
-                case 31://Multi Selection List                    
-                    params[18] = row.field_value;
+                case 34:    //Multi Selection List
+                    var comboData = row.field_value.split('|');
+                    params[11] = comboData[0];
+                    params[17] = comboData[0];
                     break;
-                case 32://QR Code
+                case 35:    //QR Code                    
+                case 36:    //Barcode
+                    params[17] = row.field_value;
                     break;
-                case 33://Data Interface
+                case 38:    //Audio Attachment
+                    params[17] = row.field_value;
                     break;
-                case 34://Web Link
-                    break;
-                case 35://General Signature with asset reference
-                    
-                case 36://General Picnature with asset reference
-                    
-                case 37://Coworker Signature with asset reference
-                    
-                case 38://Coworker Picnature with asset reference
-                    /*
-                     * "data_entity_cloud_path (Image)
-                        data_entity_bigint_1 (Asset Reference)
-                        data_entity_tinyint_1 (Approved/Rejected)"
-                     */
-                    var approvalData = row.field_value.split('|');
-                    params[17] = approvalData[0];
-                    params[11] = approvalData[1];
-                    params[11] = approvalData[2];
-                    break;
+                case 39:    //Flag
+                    params[11] = row.field_value;
             }
             ;
 

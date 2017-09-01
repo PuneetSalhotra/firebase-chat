@@ -10,7 +10,7 @@ function ActivityListingController(objCollection) {
     var responseWrapper = objCollection.responseWrapper;
     var app = objCollection.app;
 
-    var activityListingService = new ActivityListingService(objCollection.db, objCollection.util);
+    var activityListingService = new ActivityListingService(objCollection);
 
     app.post('/' + global.config.version + '/activity/access/asset/list', function (req, res) {
         req.body['module'] = 'activity';
@@ -125,6 +125,36 @@ function ActivityListingController(objCollection) {
             }
         });
     });
+    
+    app.post('/' + global.config.version + '/activity/stats/duevstotal/collection', function (req, res) {
+        req.body['module'] = 'activity';
+        activityListingService.getDuevsTotal(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response  
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                console.log('did not get proper rseponse');
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    app.post('/' + global.config.version + '/activity/access/asset/filter/daterange', function (req, res) {
+        req.body['module'] = 'activity';
+        activityListingService.getActivityListDateRange(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response  
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                console.log('did not get proper rseponse');
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+
+
 
 
 }

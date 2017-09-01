@@ -17,19 +17,19 @@ function Util() {
     this.hasValidActivityId = function (request) {
         if (request.hasOwnProperty('activity_id')) {
             var returnValue;
-            (this.replaceZero(request.activity_id) <= 0)? returnValue = false:returnValue = true;
+            (this.replaceZero(request.activity_id) <= 0) ? returnValue = false : returnValue = true;
             return returnValue;
         } else
             return false;
     };
-    
+
     this.isValidAssetMessageCounter = function (request) {
         if (request.hasOwnProperty('asset_message_counter')) {
-            var returnValue;
+            var returnValue = false;
             var messageCounter = this.replaceZero(request.asset_message_counter);
-            console.log('after replacing '+ messageCounter);
-            (messageCounter <= 0 || messageCounter === NaN )? returnValue = false:returnValue = true;
-            console.log ('returning ' + returnValue);
+            //console.log('after replacing ' + messageCounter);
+            (messageCounter === 0) ? returnValue = false : returnValue = true;
+            //console.log('returning ' + returnValue);
             return returnValue;
         } else
             return false;
@@ -76,7 +76,7 @@ function Util() {
         });
     };
 
-    this.sendSmsSinfini = function (messageString, countryCode, phoneNumber, callback) {        
+    this.sendSmsSinfini = function (messageString, countryCode, phoneNumber, callback) {
         messageString = encodeURI(messageString);
         var url = "http://api-alerts.solutionsinfini.com/v3/?method=sms&api_key=A85da7898dc8bd4d79fdd62cd6f5cc4ec&to=" + countryCode + "" + phoneNumber + "&sender=BLUFLK&format=json&message=" + messageString;
         console.log(url);
@@ -96,7 +96,7 @@ function Util() {
         });
     };
 
-    this.sendInternationalSMS = function (messageString, countryCode, phoneNumber, callback) {        
+    this.sendInternationalSMS = function (messageString, countryCode, phoneNumber, callback) {
         var accountSid = global.config.twilioAccountSid; // Your Account SID from www.twilio.com/console
         var authToken = global.config.twilioAuthToken; // Your Auth Token from www.twilio.com/console
         var client = new twilio.RestClient(accountSid, authToken);
@@ -157,7 +157,7 @@ function Util() {
         request.post({
             uri: url,
             form: requestData
-        }, function (error, response, body) {            
+        }, function (error, response, body) {
             var foo = JSON.parse(body);
             console.log(JSON.stringify(foo));
             var res = {};
@@ -266,14 +266,25 @@ function Util() {
     };
 
     this.replaceZero = function (value) {
-        if ((value === undefined || value === null || value === '') && (Number(value) === NaN))
+        if (value === undefined || value === null || value === '')
             return Number(0);
-        else
-            return Number(value);
+        else {
+            var retValue = Number(value);
+            //console.log("inside replaceZero function retValue is", retValue)
+            //console.log("inside replaceZero function", retValue);
+            if (isNaN(retValue)) {
+                //console.log('returning 0');
+                return 0;
+            } else {
+                //console.log('returning '+ retValue);
+                return retValue;
+            }
+        }
+
     };
 
     this.replaceOne = function (value) {
-        if (value === undefined || value === null || value === ''|| value === 0 || value === '0')
+        if (value === undefined || value === null || value === '' || value === 0 || value === '0')
             return Number(1);
         else
             return Number(value);
@@ -438,6 +449,40 @@ function Util() {
     this.randomInt = function (low, high) {
         return Math.floor(Math.random() * (high - low + 1) + low);
     };
+
+    this.mysqlEscapeString = function (str) {
+        if (typeof str != 'string')
+            return str;
+        str.replace("\0","\\0");
+        str.replace("\'","\\'");
+        str.replace('\"','\\"');
+        console.log(str);
+        str.replace('\%','\\%');
+        str.replace("\n","\\n");
+        return str;
+        
+        
+        /*
+        return str.replace(/[\0\x08\x09\x1a\n\r"'\\\%]/g, function (char) {
+            switch (char) {
+                case "\0":
+                    return "\\0";
+                case "\'":
+                    return "\\'";
+                case '\"':
+                    return '\\"';
+                case '\%':
+                    return "\\%";
+                case "\n":
+                    return "\\n";
+                default:
+                    console.log('inside default while mysqlEscapeString returning the same string itself');
+                    console.log(str);
+                    break;
+            }
+        });
+        */
+    }
 }
 
 module.exports = Util;

@@ -14,35 +14,103 @@ function ActivityService(objectCollection) {
         var logDatetime = util.getCurrentUTCTime();
         var activityData = {activity_id: request.activity_id};
         request['datetime_log'] = logDatetime;
+        
         activityListInsert(request, function (err, boolResult) {
 
             if (err === false) {
+                var activityTypeCategroyId = Number(request.activity_type_category_id);
+                var activityStreamTypeId = 1;
+                var activityAssetMappingAsset = Number(request.asset_id);
+                var updateTypeId = 0;
+                switch (activityTypeCategroyId) {
+                    case 1: // to-do
+                        activityStreamTypeId = 401;
+                        break;
+                    case 2: // notepad 
+                        activityStreamTypeId = 501;
+                        break;
+                    case 3: //plant
+                        break;
+                    case 4: //employee id card
+                        activityStreamTypeId = 101;
+                        var employeeJson = JSON.parse(request.activity_inline_data);
+                        activityAssetMappingAsset = employeeJson.employee_asset_id;
+                        break;
+                    case 5: //Co-worker Contact Card
+                        activityStreamTypeId = 203;
+                        break;
+                    case 6: //  External Contact Card - Customer
+                        activityStreamTypeId = 1103;
+                        break;
+                    case 7: //  speed Dial Contact 
+                        activityStreamTypeId = 1;
+                        break;
+                    case 8: //  Mail
+                        activityStreamTypeId = 1701;
+                        break;
+                    case 9: //form
+                        activityStreamTypeId = 701;
+                        break;
+                    case 10:    //document
+                        activityStreamTypeId = 301;
+                        break;
+                    case 11:    //folder
+                        activityStreamTypeId = 1401;
+                        break;
+                    case 14:    //voice call
+                        activityStreamTypeId = 801;
+                        break;
+                    case 15:    //video conference
+                        activityStreamTypeId = 1601;
+                        break;
+                    case 28:    // post-it
+                        activityStreamTypeId = 901;
+                        break;
+                    case 29:    // External Contact Card - Supplier
+                        activityStreamTypeId = 1203;
+                        break;
+                    case 30:    //contact group
+                        activityStreamTypeId = 1301;
+                        break;
+                    default:
+                        activityStreamTypeId = 1;   //by default so that we know
+                        console.log('adding streamtype id 1');
+                        break;
+
+                }
+                ;
+                console.log('streamtype id is: ' + activityStreamTypeId)
                 assetActivityListInsertAddActivity(request, function (err, status) {
                     if (err === false) {
 
                         // do the timeline transactions here..                    
 
-                        activityCommonService.assetTimelineTransactionInsert(request, {}, 1, function (err, data) {
+                        activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
 
                         });
-                        activityCommonService.activityTimelineTransactionInsert(request, {}, 1, function (err, data) {
+                        activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
 
                         });
-                        activityCommonService.activityListHistoryInsert(request, 0, function (err, restult) {
+                        activityCommonService.activityListHistoryInsert(request, updateTypeId, function (err, restult) {
 
                         });
-                        activityCommonService.assetActivityListHistoryInsert(request, 0, 0, function (err, restult) {
+                        activityCommonService.assetActivityListHistoryInsert(request, activityAssetMappingAsset, 0, function (err, restult) {
 
                         });
                         callback(false, activityData, 200);
-                        //incr the asset_message_counter
-                        cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
-                            if (err) {
-                                console.log("error in setting in asset parity");
-                            } else
-                                console.log("asset parity is set successfully")
+                        if (request.hasOwnProperty('device_os_id')) {
+                            if (Number(request.device_os_id) !== 5) {
+                                //incr the asset_message_counter                        
+                                cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
+                                    if (err) {
+                                        console.log("error in setting in asset parity");
+                                    } else
+                                        console.log("asset parity is set successfully")
 
-                        });
+                                });
+                            }
+                        }
+
                         cacheWrapper.setMessageUniqueIdLookup(request.message_unique_id, request.activity_id, function (err, status) {
                             if (err) {
                                 console.log("error in setting in message unique id look up");
@@ -67,21 +135,33 @@ function ActivityService(objectCollection) {
         var paramsArr = new Array();
         var activityInlineData = JSON.parse(request.activity_inline_data);
         var activityTypeCategoryId = Number(request.activity_type_category_id);
-        /*
-         *  IN p_form_id BIGINT(20), IN p_form_transaction_id BIGINT(20)
-         */
+        var activityChannelId = 0;
+        var activityChannelCategoryId = 0;
+        var activityStatusId = 0;
+        if (request.hasOwnProperty('activity_channel_id'))
+            activityChannelId = request.activity_channel_id;
+        if (request.hasOwnProperty('activity_channel_category_id'))
+            activityChannelCategoryId = request.activity_channel_category_id;
+        if (request.hasOwnProperty('activity_status_id'))
+            activityStatusId = request.activity_status_id;
         switch (activityTypeCategoryId) {
             case 2:    // notepad
+                /*
+                 * 
+                 * 
+                 * 
+                 IN p_channel_activity_id BIGINT(20), IN p_channel_activity_type_category_id TINYINT(4)
+                 */
                 paramsArr = new Array(
                         request.activity_id,
                         request.activity_title,
                         request.activity_description,
-                        request.activity_inline_data,
+                        util.encodeSpecialChars(request.activity_inline_data),
                         "",
                         0,
                         request.activity_datetime_start,
                         request.activity_datetime_end,
-                        0, // activity status taking as 0 for now
+                        activityStatusId,
                         request.activity_type_id,
                         request.activity_parent_id,
                         activityInlineData.asset_id,
@@ -94,7 +174,9 @@ function ActivityService(objectCollection) {
                         request.asset_id,
                         request.datetime_log, // server log date time   
                         0,
-                        0
+                        0,
+                        activityChannelId,
+                        activityChannelCategoryId
                         );
                 break;
             case 3: // plant activity            
@@ -103,12 +185,12 @@ function ActivityService(objectCollection) {
                         request.activity_id,
                         request.activity_title,
                         request.activity_description,
-                        request.activity_inline_data,
+                        util.encodeSpecialChars(request.activity_inline_data),
                         "",
                         0,
                         request.activity_datetime_start,
                         request.activity_datetime_end,
-                        0, // activity status taking as 0 for now
+                        activityStatusId,
                         request.activity_type_id,
                         request.activity_parent_id,
                         activityInlineData.employee_asset_id,
@@ -121,7 +203,9 @@ function ActivityService(objectCollection) {
                         request.asset_id,
                         request.datetime_log, // server log date time   
                         0,
-                        0
+                        0,
+                        activityChannelId,
+                        activityChannelCategoryId
                         );
                 break;
             case 5: // coworker card
@@ -129,12 +213,12 @@ function ActivityService(objectCollection) {
                         request.activity_id,
                         request.activity_title,
                         request.activity_description,
-                        request.activity_inline_data,
+                        util.encodeSpecialChars(request.activity_inline_data),
                         "",
                         0,
                         request.activity_datetime_start,
                         request.activity_datetime_end,
-                        0, // activity status taking as 0 for now
+                        activityStatusId,
                         request.activity_type_id,
                         request.activity_parent_id,
                         activityInlineData.contact_asset_id,
@@ -147,20 +231,23 @@ function ActivityService(objectCollection) {
                         request.asset_id,
                         request.datetime_log, // server log date time   
                         0,
-                        0
+                        0,
+                        activityChannelId,
+                        activityChannelCategoryId
                         );
                 break;
-            case 6:    // contact
+            case 29:    // contact supplier
+            case 6:    // contact customer
                 paramsArr = new Array(
                         request.activity_id,
                         request.activity_title,
                         request.activity_description,
-                        request.activity_inline_data,
+                        util.encodeSpecialChars(request.activity_inline_data),
                         "",
-                        0, //activityInlineData.contact_asset_id, //contact asset id
+                        activityInlineData.contact_asset_id, //contact asset id
                         request.activity_datetime_start,
                         request.activity_datetime_end,
-                        0, // activity status taking as 0 for now
+                        activityStatusId,
                         request.activity_type_id,
                         request.activity_parent_id,
                         request.asset_id,
@@ -173,7 +260,9 @@ function ActivityService(objectCollection) {
                         request.asset_id,
                         request.datetime_log, // server log date time   
                         0,
-                        0
+                        0,
+                        activityChannelId,
+                        activityChannelCategoryId
                         );
                 break;
             case 9:// form
@@ -181,12 +270,12 @@ function ActivityService(objectCollection) {
                         request.activity_id,
                         request.activity_title,
                         request.activity_description,
-                        request.activity_inline_data,
+                        util.encodeSpecialChars(request.activity_inline_data),
                         "",
                         0,
                         request.activity_datetime_start,
                         request.activity_datetime_end,
-                        0, // activity status taking as 0 for now
+                        activityStatusId,
                         request.activity_type_id,
                         request.activity_parent_id,
                         request.asset_id,
@@ -199,20 +288,22 @@ function ActivityService(objectCollection) {
                         request.asset_id,
                         request.datetime_log, // server log date time   
                         request.activity_form_id,
-                        request.form_transaction_id
+                        request.form_transaction_id,
+                        activityChannelId,
+                        activityChannelCategoryId
                         );
                 break;
-            default:
+            case 28:    //post it
                 paramsArr = new Array(
                         request.activity_id,
                         request.activity_title,
                         request.activity_description,
-                        request.activity_inline_data,
+                        util.encodeSpecialChars(request.activity_inline_data),
                         "",
                         0,
                         request.activity_datetime_start,
                         request.activity_datetime_end,
-                        0, // activity status taking as 0 for now
+                        activityStatusId,
                         request.activity_type_id,
                         request.activity_parent_id,
                         request.asset_id,
@@ -225,11 +316,41 @@ function ActivityService(objectCollection) {
                         request.asset_id,
                         request.datetime_log, // server log date time   
                         0,
-                        0
+                        0,
+                        activityChannelId,
+                        activityChannelCategoryId
+                        );
+                break;
+            default:
+                paramsArr = new Array(
+                        request.activity_id,
+                        request.activity_title,
+                        request.activity_description,
+                        util.encodeSpecialChars(request.activity_inline_data),
+                        "",
+                        0,
+                        request.activity_datetime_start,
+                        request.activity_datetime_end,
+                        activityStatusId,
+                        request.activity_type_id,
+                        request.activity_parent_id,
+                        request.asset_id,
+                        request.workforce_id,
+                        request.account_id,
+                        request.organization_id,
+                        request.message_unique_id, //request.asset_id + new Date().getTime() + getRandomInt(), //message unique id
+                        request.flag_retry,
+                        request.flag_offline,
+                        request.asset_id,
+                        request.datetime_log, // server log date time   
+                        0,
+                        0,
+                        activityChannelId,
+                        activityChannelCategoryId
                         );
                 break;
         }
-        var queryString = util.getQueryString('ds_v1_activity_list_insert_form', paramsArr);
+        var queryString = util.getQueryString('ds_v1_activity_list_insert', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
@@ -293,63 +414,7 @@ function ActivityService(objectCollection) {
 
 
     };
-    this.alterActivityStatus = function (request, callback) {
 
-        var logDatetime = util.getCurrentUTCTime();
-        request['datetime_log'] = logDatetime;
-
-        var proceedStatusUpdate = function () {
-            activityListUpdateStatus(request, function (err, data) {
-                if (err === false) {
-                    assetActivityListUpdateStatus(request, activityStatusId, activityStatusTypeId, function (err, data) {
-
-                    });
-                    activityCommonService.activityListHistoryInsert(request, 18, function (err, result) {
-
-                    });
-                    activityCommonService.assetTimelineTransactionInsert(request, {}, 11, function (err, data) {
-
-                    });
-                    activityCommonService.activityTimelineTransactionInsert(request, {}, 11, function (err, data) {
-
-                    });
-                    activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) {
-
-                    });
-                    activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {
-
-                    });
-
-                    cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
-                        if (err) {
-                            console.log("error in setting in asset parity");
-                        } else
-                            console.log("asset parity is set successfully");
-                    });
-                    callback(false, {}, 200);
-                    return;
-                } else {
-                    callback(err, {}, -9998);
-                    return;
-                }
-
-            });
-        }
-
-        var activityStatusTypeCategoryId = Number(request.activity_status_type_category_id);
-        var activityStatusId = Number(request.activity_status_id);
-        var activityStatusTypeId = Number(request.activity_status_type_id);
-        var activityTypeCategoryId = Number(request.activity_type_category_id);
-
-        if (activityTypeCategoryId === 9) {   //approval
-            checkActivityStatusChangeEligibility(request, function (err, proceedStatus) {
-
-            });
-            proceedStatusUpdate();
-        } else {
-            proceedStatusUpdate();
-        }
-    };
     var checkActivityStatusChangeEligibility = function (request, calback) {
         var paramsArr = new Array(
                 request.organization_id,
@@ -450,6 +515,120 @@ function ActivityService(objectCollection) {
                     return;
                 }
             });
+        }
+    };
+
+    this.alterActivityStatus = function (request, callback) {
+
+        var logDatetime = util.getCurrentUTCTime();
+        request['datetime_log'] = logDatetime;
+        var activityStreamTypeId = 11;
+        if (request.hasOwnProperty('activity_type_category_id')) {
+            var activityTypeCategroyId = Number(request.activity_type_category_id);
+            switch (activityTypeCategroyId) {
+                case 1: // to-do 
+                    activityStreamTypeId = 404;
+                    break;
+                case 2: // notepad 
+                    activityStreamTypeId = 504;
+                    break;
+                case 3: //plant
+                    break;
+                case 4: //employee id card
+                    activityStreamTypeId = 11;  // nothing defined yet
+                    break;
+                case 5: //Co-worker Contact Card
+                    activityStreamTypeId = 208;
+                    break;
+                case 6: //  External Contact Card - Customer
+                    activityStreamTypeId = 1108;
+                    break;
+                case 9: //form
+                    activityStreamTypeId = 704;
+                    break;
+                case 10:    //document
+                    activityStreamTypeId = 305;
+                    break;
+                case 11:    //folder
+                    activityStreamTypeId = 1402;
+                    break;
+                case 14:    //voice call
+                    break;
+                case 15:    //video conference
+                    break;
+                case 28:    // post-it
+                    activityStreamTypeId = 903;
+                    break;
+                case 29:    // External Contact Card - Supplier
+                    activityStreamTypeId = 1208;
+                    break;
+                case 30:    //contact group
+                    activityStreamTypeId = 11;  // non existent now 
+                    break;
+                default:
+                    activityStreamTypeId = 11;   //by default so that we know
+                    console.log('adding streamtype id 11');
+                    break;
+
+            }
+            ;
+        }
+        var proceedStatusUpdate = function () {
+            activityListUpdateStatus(request, function (err, data) {
+                if (err === false) {
+                    assetActivityListUpdateStatus(request, activityStatusId, activityStatusTypeId, function (err, data) {
+
+                    });
+                    activityCommonService.activityListHistoryInsert(request, 402, function (err, result) {
+
+                    });
+                    activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
+
+                    });
+                    activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
+
+                    });
+                    activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) {
+
+                    });
+                    activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {
+
+                    });
+
+                    if (request.hasOwnProperty('device_os_id')) {
+                        if (Number(request.device_os_id) !== 5) {
+                            //incr the asset_message_counter                        
+                            cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
+                                if (err) {
+                                    console.log("error in setting in asset parity");
+                                } else
+                                    console.log("asset parity is set successfully")
+
+                            });
+                        }
+                    }
+                    callback(false, {}, 200);
+                    return;
+                } else {
+                    callback(err, {}, -9998);
+                    return;
+                }
+
+            });
+        }
+
+        var activityStatusTypeCategoryId = Number(request.activity_status_type_category_id);
+        var activityStatusId = Number(request.activity_status_id);
+        var activityStatusTypeId = Number(request.activity_status_type_id);
+        var activityTypeCategoryId = Number(request.activity_type_category_id);
+
+        if (activityTypeCategoryId === 9) {   //approval
+            checkActivityStatusChangeEligibility(request, function (err, proceedStatus) {
+
+            });
+            proceedStatusUpdate();
+        } else {
+            proceedStatusUpdate();
         }
     };
 }
