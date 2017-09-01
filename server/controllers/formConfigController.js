@@ -72,6 +72,22 @@ function FormConfigController(objCollection) {
         });
     });
     
+    app.post('/' + global.config.version + '/form/access/global/entry/collection', function (req, res) {
+        req.body['module'] = 'form';
+        
+        formConfigService.getSpecifiedForm (req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                console.log('did not get proper rseponse');
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+
+    
 };
 
 

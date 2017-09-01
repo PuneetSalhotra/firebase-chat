@@ -11,7 +11,7 @@ function QueueWrapper(producer) {
         var payloads = [
             {topic: global.config.kafkaTopic, messages: JSON.stringify((event)), partition: partition}
         ];
-        
+        console.log(payloads);
         producer.send(payloads, function (err, data) {
             if(err){
                 console.log('error in producing data');

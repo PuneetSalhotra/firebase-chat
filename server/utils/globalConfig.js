@@ -19,9 +19,12 @@ if (mode === 'dev') {
     config.slave1Ip = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
     config.slave2Ip = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
 
-    config.dbUser = 'sravan';
+    config.dbUser = 'apiuser';
+    //config.dbUser = 'sravan';
     config.database = 'desker';
-    config.dbPassword = 'sravandbaccess2';
+    //config.database = 'desker';
+    config.dbPassword = 'apidbuser';
+    //config.dbPassword = 'sravandbaccess2';
 
     config.conLimit = 10;
 

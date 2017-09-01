@@ -1,7 +1,6 @@
 /**
  * author Sri Sai Venkatesh.
  */
-//console.log("running consumer partition number: " + process.argv[2]);
 
 require('../utils/globalConfig');
 var kafka = require('kafka-node');

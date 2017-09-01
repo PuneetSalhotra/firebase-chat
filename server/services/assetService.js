@@ -46,7 +46,7 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
                                         );
                                 var updateQueryString = util.getQueryString('ds_v1_asset_list_update_passcode', paramsArr);
                                 db.executeQuery(0, updateQueryString, request, function (err, data) {
-                                    assetListHistoryInsert(request, selectData[0]['asset_id'], selectData[0]['organization_id'], 21, util.getCurrentUTCTime(), function (err, data) {
+                                    assetListHistoryInsert(request, selectData[0]['asset_id'], selectData[0]['organization_id'], 208, util.getCurrentUTCTime(), function (err, data) {
 
                                     });
                                 });
@@ -90,6 +90,31 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
 
     };
 
+    this.getAssetWorkStatuses = function (request, callback) {
+        var paramsArr = new Array(
+                request.page_start,
+                request.page_limit
+                );
+
+        var queryString = util.getQueryString('ds_v1_asset_type_category_status_master_select', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (data.length > 0) {
+                    //console.log(data);
+                    formatAssetWorkStatuses(data, function (error, data) {
+                        if (error === false)
+                            callback(false, {data: data}, 200);
+                    });
+                    //callback(false, {data: data}, 200);                    
+                } else {
+                    callback(false, {}, 200);
+                }
+            });
+        }
+
+    };
+
+
     var formatPhoneNumberAssets = function (rows, callback) {
         //var responseData = new Array();
         var data = new Array();
@@ -101,8 +126,10 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
                 'operating_asset_id': util.replaceDefaultNumber(rowData['operating_asset_id']),
                 'asset_first_name': util.replaceDefaultString(rowData['asset_first_name']),
                 'asset_last_name': util.replaceDefaultString(rowData['asset_last_name']),
-                'asset_phone_number': util.replaceDefaultNumber(rowData['asset_phone_number']),
-                'asset_phone_country_code': util.replaceDefaultNumber(rowData['asset_phone_country_code']),
+                'operating_asset_first_name': util.replaceDefaultString(rowData['operating_asset_first_name']),
+                'operating_asset_last_name': util.replaceDefaultString(rowData['operating_asset_last_name']),
+                'asset_phone_number': util.replaceDefaultNumber(rowData['operating_asset_phone_number']),
+                'asset_phone_country_code': util.replaceDefaultNumber(rowData['operating_asset_phone_country_code']),
                 'asset_image_path': util.replaceDefaultString(rowData['asset_image_path']),
                 'workforce_id': util.replaceDefaultNumber(rowData['workforce_id']),
                 'workforce_name': util.replaceDefaultString(rowData['workforce_name']),
@@ -118,6 +145,31 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
         callback(false, data);
     };
 
+    var formatAssetWorkStatuses = function (rows, callback) {
+        var data = new Array();
+        rows.forEach(function (rowData, index) {
+
+            var rowDataArr = {
+                'asset_type_category_status_id': util.replaceZero(rowData['asset_type_category_status_id']),
+                'asset_type_category_id': util.replaceDefaultNumber(rowData['asset_type_category_id']),
+                'asset_type_category_status_name': util.replaceDefaultString(rowData['asset_type_category_status_name']),
+                'asset_type_category_name': util.replaceDefaultString(rowData['asset_type_category_name']),
+                'log_asset_id': util.replaceDefaultNumber(rowData['log_asset_id']),
+                'log_asset_first_name': util.replaceDefaultString(rowData['log_asset_first_name']),
+                'log_asset_last_name': util.replaceDefaultString(rowData['log_asset_last_name']),
+                'log_asset_image_path': util.replaceDefaultString(rowData['log_asset_image_path']),
+                'log_datetime': util.replaceDefaultDatetime(rowData['log_datetime']),
+                'log_state': util.replaceZero(rowData['log_state']),
+                'log_active': util.replaceZero(rowData['log_active']),
+                'update_sequence_id': util.replaceZero(rowData['update_sequence_id'])
+            };
+            data.push(rowDataArr);
+
+        }, this);
+
+        callback(false, data);
+    };
+
     var formatAssetData = function (row, callback) {
 
         var rowData = {
@@ -125,9 +177,11 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
             'operating_asset_id': util.replaceDefaultNumber(row['operating_asset_id']),
             'asset_first_name': util.replaceDefaultString(row['asset_first_name']),
             'asset_last_name': util.replaceDefaultString(row['asset_last_name']),
+            'operating_asset_first_name': util.replaceDefaultString(row['operating_asset_first_name']),
+            'operating_asset_last_name': util.replaceDefaultString(row['operating_asset_last_name']),
             'asset_email_id': util.replaceDefaultString(row['asset_email_id']),
-            'asset_phone_number': util.replaceDefaultNumber(row['asset_phone_number']),
-            'asset_phone_country_code': util.replaceDefaultNumber(row['asset_phone_country_code']),
+            'asset_phone_number': util.replaceDefaultNumber(row['operating_asset_phone_number']),
+            'asset_phone_country_code': util.replaceDefaultNumber(row['operating_asset_phone_country_code']),
             'asset_timezone_id': util.replaceDefaultNumber(row['asset_timezone_id']),
             'asset_timezone_offset': util.replaceDefaultString(row['asset_timezone_offset']),
             'asset_last_seen_location_latitude': util.replaceDefaultString(row['asset_last_location_latitude']),
@@ -278,7 +332,7 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
         var dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
         var encToken = uuid.v1();
-        
+
         var proceedLinking = function (callback) {
             updateAssetLinkStatus(request, request.asset_id, encToken, dateTimeLog, function (err, data) {
                 if (err === false) {
@@ -296,7 +350,7 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
                         "asset_auth_token": encToken
                     };
                     updateAssetLinkStatus(request, request.operating_asset_id, encToken, dateTimeLog, function (err, data) {
-                        assetListHistoryInsert(request, request.operating_asset_id, request.organization_id, 1, dateTimeLog, function (err, data) {
+                        assetListHistoryInsert(request, request.operating_asset_id, request.organization_id, 201, dateTimeLog, function (err, data) {
 
                             cacheWrapper.setAssetParity(request.operating_asset_id, 0, function (err, reply) {  // setting asset parity for operating asset id
                                 if (!err) {
@@ -317,9 +371,9 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
                         });
 
                     });
-                    assetListHistoryInsert(request, request.asset_id, request.organization_id, 1, dateTimeLog, function (err, data) {
+                    assetListHistoryInsert(request, request.asset_id, request.organization_id, 201, dateTimeLog, function (err, data) {
                         if (err === false) {
-                            activityCommonService.assetTimelineTransactionInsert(request, {}, 5, function (err, data) {
+                            activityCommonService.assetTimelineTransactionInsert(request, {}, 1001, function (err, data) {
 
                             });
                             cacheWrapper.setAssetParity(request.asset_id, 0, function (err, reply) {   // setting asset parity for desk asset id 
@@ -352,7 +406,7 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
         }
         if (request.hasOwnProperty('asset_token_push') && request.asset_token_push !== '' && request.asset_token_push !== null) {
             console.log('inside ha asset token push condition');
-            sns.createPlatformEndPoint(Number(request.device_os_id), request.asset_token_push, function (err, endPointArn) {                
+            sns.createPlatformEndPoint(Number(request.device_os_id), request.asset_token_push, function (err, endPointArn) {
                 if (!err) {
                     console.log('success in creating platform end point');
                     request.asset_push_arn = endPointArn;
@@ -436,18 +490,22 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
             if (err === false) {
                 if (contactAssetData.length > 0) {
                     responseDataCollection.asset_id = contactAssetData[0]['asset_id'];
-                    getContactActivityid(request, contactAssetData[0]['asset_id'], function (err, contactActivityData) {
-                        if (err === false) {
-                            if (contactActivityData.length > 0) {
-                                //responseDataCollection.activity_id = contactActivityData[0]['activity_id'];
-                                callback(false, responseDataCollection, -3205);
-                            } else {
-                                callback(false, responseDataCollection, 200);// status is 200 here as there is no activitty id available
-                            }
-                        } else {
-                            callback(false, responseDataCollection, -3205);
-                        }
-                    });
+                    callback(false, responseDataCollection, 200);
+                    /*
+                     getContactActivityid(request, contactAssetData[0]['asset_id'], function (err, contactActivityData) {
+                     if (err === false) {
+                     if (contactActivityData.length > 0) {
+                     responseDataCollection.activity_id = contactActivityData[0]['activity_id'];
+                     callback(false, responseDataCollection, -3205);
+                     } else {    // asset for contact phone number exist, but contact card is not exist
+                     //responseDataCollection.activity_id = 0;
+                     callback(false, responseDataCollection, 200);// status is 200 here as there is no activitty id available
+                     }
+                     } else {
+                     callback(false, responseDataCollection, -3205);
+                     }
+                     });
+                     */
 
                 } else {   // create an asset and then add activity here..
                     createAsset(request, function (err, newAssetId) {
@@ -525,10 +583,11 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
         var paramsArr = new Array(
                 request.organization_id,
                 activityInlineData.contact_phone_number,
-                activityInlineData.contact_phone_country_code
+                activityInlineData.contact_phone_country_code,
+                activityInlineData.contact_asset_type_id
                 );
 
-        var queryString = util.getQueryString('ds_v1_asset_list_select_category_contact_phone_number', paramsArr);
+        var queryString = util.getQueryString('ds_v1_asset_list_select_category_phone_number', paramsArr);
         if (queryString != '') {
             //global.logger.write(queryString, request, 'asset', 'trace');
             db.executeQuery(1, queryString, request, function (err, data) {
@@ -581,6 +640,84 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
         }
 
 
+    };
+
+    var assetListUpdateLampStatus = function (request, assetId, callback) {
+
+        var paramsArr = new Array(
+                assetId,
+                request.organization_id,
+                request.lamp_status,
+                request.track_gps_datetime,
+                request.asset_id,
+                request.datetime_log
+                );
+
+        var queryString = util.getQueryString('ds_v1_asset_list_update_lamp_status', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, assetData) {
+                if (err === false) {
+                    callback(false, true);
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, false);
+                }
+            });
+        }
+    };
+
+
+    this.alterLampStatus = function (request, callback) {
+        var dateTimeLog = util.getCurrentUTCTime();
+        request['datetime_log'] = dateTimeLog;
+
+        assetListUpdateLampStatus(request, request.asset_id, function (err, data) {
+            if (err === false) {
+                assetListHistoryInsert(request, request.asset_id, request.organization_id, request.update_type_id, dateTimeLog, function (err, data) {
+                });
+                assetListUpdateLampStatus(request, request.operating_asset_id, function (err, data) {
+                    if (err === false) {
+                        assetListHistoryInsert(request, request.operating_asset_id, request.organization_id, request.update_type_id, dateTimeLog, function (err, data) {
+                        });
+                        callback(false, {}, 200);
+                        return;
+                    } else {
+                        callback(err, {}, -9998);
+                    }
+                });
+            } else {
+                callback(err, {}, -9998);
+            }
+        });
+
+    };
+
+    this.getPayrollCollection = function (request, callback) {
+        var paramsArr = new Array(
+                request.account_id
+                );
+
+        var queryString = util.getQueryString('ds_v1_account_list_select', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (err === false) {
+                    var rowData = {                        
+                        'account_id': util.replaceDefaultNumber(data[0]['account_id']),
+                        'account_name': util.replaceDefaultString(data[0]['account_name']),
+                        'organization_id': util.replaceDefaultNumber(data[0]['organization_id']),
+                        'organization_name': util.replaceDefaultString(data[0]['organization_name']),
+                        'payroll_cycle_type_id': util.replaceDefaultNumber(data[0]['payroll_cycle_type_id']),
+                        'payroll_cycle_type_name': util.replaceDefaultString(data[0]['payroll_cycle_type_name']),
+                        'payroll_cycle_start_date': util.replaceDefaultDatetime(data[0]['payroll_cycle_start_date'])
+                    };
+
+                    callback(false, rowData, 200);
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, false);
+                }
+            });
+        }
     };
 
 }

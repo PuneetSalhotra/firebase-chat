@@ -96,7 +96,7 @@ function ActivityCommonService(db, util) {
             });
         }
     };
-    
+
     var updateActivityLogLastUpdatedDatetimeAsset = function (request, assetCollection, callback) {
 
         var paramsArr = new Array(
@@ -120,7 +120,7 @@ function ActivityCommonService(db, util) {
             });
         }
     };
-    
+
     this.updateActivityLogLastUpdatedDatetime = function (request, assetId, callback) {
 
         function updateAssetsLogDatetime(assetData) {
@@ -205,7 +205,7 @@ function ActivityCommonService(db, util) {
 
     this.assetTimelineTransactionInsert = function (request, participantData, streamTypeId, callback) {
 
-        var activityId = request.activity_id;
+        var activityId = util.replaceZero(request.activity_id);
         var organizationId = request.organization_id;
         var accountId = request.account_id;
         var workforceId = request.workforce_id;
@@ -214,11 +214,26 @@ function ActivityCommonService(db, util) {
         var entityTypeId = 0;
         var entityText1 = "";
         var entityText2 = "";
-
+        var formTransactionId = 0;
+        var dataTypeId = 0;
+        var formId = 0;
         var retryFlag = 0;
         if (Number(request.device_os_id) === 5)
             retryFlag = 1;
 
+        if (request.hasOwnProperty('activity_type_category_id')) {
+            var activityTypeCategoryId = Number(request.activity_type_category_id);
+            if (activityTypeCategoryId === 4) {
+                if (request.hasOwnProperty('activity_inline_data')) {
+                    var inlineJson = JSON.parse(request.activity_inline_data);
+                    var assetId = inlineJson.employee_asset_id;
+                }
+            } else {
+                var assetId = request.asset_id;
+            }
+        } else {
+            var assetId = request.asset_id;
+        }
 
         if (participantData.hasOwnProperty('organization_id')) {
 
@@ -243,7 +258,7 @@ function ActivityCommonService(db, util) {
             case 309:   // activity cover altered
                 entityTypeId = 0;
                 entityText1 = ""
-                entityText2 = request.activity_cover_data;
+                entityText2 = request.activity_cover_collection;
                 break;
             case 310:   // text message
                 entityTypeId = 0;
@@ -264,6 +279,9 @@ function ActivityCommonService(db, util) {
                 entityTypeId = 0;
                 entityText1 = request.form_transaction_id;
                 entityText2 = request.activity_timeline_collection;
+                formTransactionId = request.form_transaction_id;
+                formId = request.form_id;
+                dataTypeId = 37;    //static for all form submissions                
                 break;
             case 314:   // cloud based document
                 entityTypeId = 0;
@@ -278,6 +296,11 @@ function ActivityCommonService(db, util) {
             case 316:   // clip notepad
                 entityTypeId = 0;
                 entityText1 = request.activity_timeline_collection;
+                entityText2 = '';
+                break;
+            case 1302:   // add contact to a group
+                entityTypeId = 0;
+                entityText1 = request.activity_parent_prev_id;
                 entityText2 = '';
                 break;
 
@@ -302,6 +325,11 @@ function ActivityCommonService(db, util) {
                 entityText2, // entity text 2
                 request.track_latitude,
                 request.track_longitude,
+                formTransactionId,    //form_transaction_id   
+                formId,    //form_id
+                dataTypeId,//data_type_id  should be 37 static
+                '',//location latitude
+                '',//location longitude                
                 request.track_gps_accuracy,
                 request.track_gps_status,
                 request.track_gps_location,
@@ -320,7 +348,7 @@ function ActivityCommonService(db, util) {
                 request.track_gps_datetime,
                 request.datetime_log
                 );
-        var queryString = util.getQueryString("ds_v1_asset_timeline_transaction_insert", paramsArr);
+        var queryString = util.getQueryString("ds_v1_asset_timeline_transaction_insert_form", paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false)
@@ -337,18 +365,38 @@ function ActivityCommonService(db, util) {
     };
 
     this.activityTimelineTransactionInsert = function (request, participantData, streamTypeId, callback) {
-
+        var assetId = request.asset_id;
         var organizationId = request.organization_id;
         var accountId = request.account_id;
         var workforceId = request.workforce_id;
-        var assetId = request.asset_id;
         var messageUniqueId = request.message_unique_id;
         var entityTypeId = 0;
         var entityText1 = "";
         var entityText2 = "";
         var retryFlag = 0;
+        var formTransactionId = 0;
+        var dataTypeId = 0;
+        var formId = 0;
         if (Number(request.device_os_id) === 5)
             retryFlag = 1;
+
+
+        if (request.hasOwnProperty('activity_type_category_id')) {
+            var activityTypeCategoryId = Number(request.activity_type_category_id);
+            if (activityTypeCategoryId === 4) {
+                if (request.hasOwnProperty('activity_inline_data')) {
+                    var inlineJson = JSON.parse(request.activity_inline_data);
+                    assetId = inlineJson.employee_asset_id;
+                } else {
+                    assetId = request.asset_id;
+                }
+            } else {
+                assetId = request.asset_id;
+            }
+        } else {
+            assetId = request.asset_id;
+        }
+
 
         if (participantData.length > 0) {
             organizationId = participantData.organization_id;
@@ -372,7 +420,7 @@ function ActivityCommonService(db, util) {
             case 309:   // activity cover altered
                 entityTypeId = 0;
                 entityText1 = ""
-                entityText2 = request.activity_cover_data;
+                entityText2 = request.activity_cover_collection;
                 break;
             case 310:   // text message
                 entityTypeId = 0;
@@ -393,6 +441,9 @@ function ActivityCommonService(db, util) {
                 entityTypeId = 0;
                 entityText1 = request.form_transaction_id;
                 entityText2 = request.activity_timeline_collection;
+                formTransactionId = request.form_transaction_id;
+                formId = request.form_id;
+                dataTypeId = 37;    //static for all form submissions
                 break;
             case 314:   // cloud based document
                 entityTypeId = 0;
@@ -425,11 +476,16 @@ function ActivityCommonService(db, util) {
                 accountId,
                 organizationId,
                 streamTypeId,
-                entityTypeId, // entity type id
-                entityText1, // entity text 1
-                entityText2, // entity text 2
+                entityTypeId,   // entity type id
+                entityText1,    // entity text 1
+                entityText2,    // entity text 2
                 request.track_latitude,
                 request.track_longitude,
+                formTransactionId,    //form_transaction_id   
+                formId,    //form_id
+                dataTypeId,//data_type_id  should be 37 static
+                '',//location latitude
+                '',//location longitude
                 request.track_gps_accuracy,
                 request.track_gps_status,
                 request.track_gps_location,
@@ -448,7 +504,7 @@ function ActivityCommonService(db, util) {
                 request.track_gps_datetime,
                 request.datetime_log
                 );
-        var queryString = util.getQueryString("ds_v1_activity_timeline_transaction_insert", paramsArr);
+        var queryString = util.getQueryString("ds_v1_activity_timeline_transaction_insert_form", paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false)
@@ -463,6 +519,122 @@ function ActivityCommonService(db, util) {
             });
         }
     };
+
+    this.assetListUpdateImagePath = function (request, callback) {
+        var inlineJson = JSON.parse(request.activity_inline_data);
+        var paramsArr = new Array(
+                inlineJson.employee_asset_id,
+                inlineJson.employee_organization_id,
+                inlineJson.employee_profile_picture,
+                request.asset_id,
+                request.datetime_log // server log date time
+                );
+
+        var queryString = util.getQueryString('ds_v1_asset_list_update_image', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                if (err === false) {
+                    paramsArr = new Array(
+                            inlineJson.employee_asset_id,
+                            inlineJson.employee_organization_id,
+                            206,
+                            request.datetime_log // server log date time
+                            );
+
+                    queryString = util.getQueryString('ds_v1_asset_list_history_insert', paramsArr);
+                    if (queryString != '') {
+                        db.executeQuery(0, queryString, request, function (err, data) {
+                            if (err === false) {
+                                callback(false, true);
+
+                            } else {
+                                // some thing is wrong and have to be dealt
+                                callback(err, false);
+                            }
+                        });
+                    }
+
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, false);
+                }
+            });
+        }
+    };
+
+    this.resetAssetUnreadCount = function (request, callback) {
+        var paramsArr = new Array(
+                request.activity_id,
+                request.asset_id,
+                request.organization_id,
+                request.datetime_log // server log date time
+                );
+
+        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_last_seen_unread_count', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                if (err === false) {
+                    callback(false, true);
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, false);
+                }
+            });
+        }
+    };
+
+    this.updateAssetLastSeenDatetime = function (request, callback) {
+        var paramsArr = new Array(
+                request.activity_id,
+                request.asset_id,
+                request.organization_id,
+                request.datetime_log // server log date time
+                );
+
+        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_last_seen_datetime', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                if (err === false) {
+                    callback(false, true);
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, false);
+                }
+            });
+        }
+    };
+
+    this.updateWholeLotForTimelineComment = function (request, callback) {
+        
+        var paramsArr = new Array();
+        var queryString = '';
+        this.getAllParticipantsExceptAsset(request, Number(request.asset_id), function (err, participantsData) {
+            if (err === false) {
+                participantsData.forEach(function (assetInfo, index) {
+                    paramsArr = new Array(
+                            request.activity_id,
+                            request.asset_id,
+                            request.organization_id,
+                            request.datetime_log // server log date time
+                            );
+                    queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_field_updates_count', paramsArr);
+                    if (queryString != '') {
+                        db.executeQuery(0, queryString, request, function (err, data) {
+                            if (err === false) {
+                                callback(false, true);
+                            } else {
+                                // some thing is wrong and have to be dealt
+                                callback(err, false);
+                            }
+                        });
+                    }
+                }, this);
+            }
+        });
+    };
+
+
+
 
 }
 ;

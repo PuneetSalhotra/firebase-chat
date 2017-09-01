@@ -20,7 +20,7 @@ function ActivityController(objCollection) {
     var assetService = new AssetService(objCollection.db, objCollection.util, objCollection.cacheWrapper, activityCommonService);
 
     app.post('/' + global.config.version + '/activity/add', function (req, res) {
-        
+
         req.body['module'] = 'activity';    // adding module name to request so that it is accessable for cassandra logging
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
@@ -32,7 +32,8 @@ function ActivityController(objCollection) {
                 var activityTypeCategoryId = Number(req.body.activity_type_category_id);
                 var parentActivityId = (req.body.activity_parent_id === 'undefined' || req.body.activity_parent_id === '' || req.body.activity_parent_id === null) ? 0 : Number(req.body.activity_parent_id);
                 switch (activityTypeCategoryId) {
-                    case 6: // contacts
+                    case 29: // Co-worker Contact Card - supplier
+                    case 6: // Co-worker Contact Card - customer
                         // this end point is strategically being added in activity controller as 
                         // every contact asset is an activity...
                         assetService.addAsset(req.body, function (err, data, statusCode) {
@@ -63,33 +64,18 @@ function ActivityController(objCollection) {
                         }.bind(this));
                         break;
                     case 8:     // mail
-                        if (parentActivityId === 0) {
-                            addActivity(req.body, function (err, newParentActivityId) {
-                                if (err === false) {
-                                    req.body['activity_parent_id'] = newParentActivityId;
-                                    addActivity(req.body, function (err, activityId) {
-                                        if (err === false) {
-                                            res.send(responseWrapper.getResponse(false, {activity_id: activityId}, 200));
-                                        } else {
-                                            res.send(responseWrapper.getResponse(false, {activity_id: 0}, -7998));
-                                        }
-                                    });
-                                } else {
-                                    res.send(responseWrapper.getResponse(false, {activity_id: 0}, -7998));
-                                }
-                            });
-                        } else {
-                            addActivity(req.body, function (err, activityId) {
-                                if (err === false) {
-                                    res.send(responseWrapper.getResponse(false, {activity_id: activityId}, 200));
-                                } else {
-                                    res.send(responseWrapper.getResponse(false, {activity_id: 0}, -7998));
-                                }
-                            });
-                        }
+                        addActivity(req.body, function (err, activityId) {
+                            if (err === false) {
+                                res.send(responseWrapper.getResponse(false, {activity_id: activityId}, 200));
+                                return;
+                            } else {
+                                res.send(responseWrapper.getResponse(false, {activity_id: 0}, -7998));
+                                return;
+                            }
+                        });
+
                         break;
-                    case 9:     // form
-                        console.log('came into case 9')
+                    case 9:     // form                        
                         //generate a form transaction id first and give it back to the client along with new activity id
                         cacheWrapper.getFormTransactionId(function (err, formTransactionId) {
                             if (err) {
@@ -109,6 +95,7 @@ function ActivityController(objCollection) {
                         });
                         break;
                     default:
+                        console.log('generating activity id via default condition');
                         addActivity(req.body, function (err, activityId) {
                             if (err === false) {
                                 res.send(responseWrapper.getResponse(false, {activity_id: activityId}, 200));
@@ -125,7 +112,7 @@ function ActivityController(objCollection) {
         };
 
         if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5) {
-            
+
             cacheWrapper.checkAssetParity(req.body.asset_id, Number(req.body.asset_message_counter), function (err, status) {
                 if (err) {
                     res.send(responseWrapper.getResponse(false, {activity_id: 0}, -7998));
@@ -222,7 +209,7 @@ function ActivityController(objCollection) {
                 res.send(responseWrapper.getResponse(false, {}, -3301));
             }
         } else {
-            res.send(responseWrapper.getResponse(false, {activity_id: 0}, -3303));
+            res.send(responseWrapper.getResponse(false, {}, -3303));
         }
 
 
