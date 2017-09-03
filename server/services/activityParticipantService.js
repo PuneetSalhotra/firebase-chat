@@ -11,10 +11,10 @@ function ActivityParticipantService(objectCollection) {
     var sns = objectCollection.sns;
 
     this.getParticipantsList = function (request, callback) {
-        
+
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
-        
+
         var paramsArr = new Array(
                 request.organization_id,
                 request.activity_id,
@@ -24,7 +24,7 @@ function ActivityParticipantService(objectCollection) {
                 );
         var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_participants_differential', paramsArr);
         if (queryString != '') {
-            db.executeQuery(1, queryString, request, function (err, data) {                
+            db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
                     formatParticipantList(data, function (err, response) {
                         if (err === false)
@@ -62,7 +62,7 @@ function ActivityParticipantService(objectCollection) {
                 'asset_image_path': (util.replaceDefaultString(rowData['asset_image_path']) !== ''),
                 'asset_phone_number': util.replaceDefaultString(rowData['asset_phone_number']),
                 'asset_phone_number_code': util.replaceDefaultString(rowData['asset_phone_country_code']),
-                'log_asset_id': util.replaceDefaultNumber(rowData['log_asset_id']),                
+                'log_asset_id': util.replaceDefaultNumber(rowData['log_asset_id']),
                 'log_state': util.replaceDefaultNumber(rowData['log_state']),
                 'log_active': util.replaceDefaultNumber(rowData['log_active']),
                 "operating_asset_id": util.replaceZero(rowData['operating_asset_id']),
@@ -128,37 +128,28 @@ function ActivityParticipantService(objectCollection) {
                                         if (data.length > 0) {
                                             var assetPushArn = data[0].asset_push_arn;
                                             //console.log('from query we got ' + assetPushArn + ' as arn');
-                                            var paramsArr = new Array(
-                                                    request.activity_id,
-                                                    request.organization_id
-                                                    );
-                                            var queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
-                                            if (queryString != '') {
-                                                db.executeQuery(1, queryString, request, function (err, data) {
-                                                    if (err === false) {
-                                                        var inlineData = JSON.parse(data[0]['activity_inline_data']);
-                                                        //console.log(inlineData);
-                                                        var pushString = {
-                                                            title: inlineData.sender.asset_name + ' sent a Post-It: ',
-                                                            description: data[0]['description'].substring(0, 100)
-                                                        };
-                                                        // get badge count
-                                                        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_unread_task_count', participantParamsArr);
-                                                        if (queryString != '') {
-                                                            db.executeQuery(1, queryString, request, function (err, data) {
-                                                                if (err === false) {
-                                                                    var badgeCount = util.replaceOne(data[0]['badge_count']);
-                                                                    sns.publish(pushString, badgeCount, assetPushArn);
-                                                                }
-                                                            });
-                                                        }
-
-
+                                            activityCommonService.getActivityDetails(request, function (err, activityData) {
+                                                if (err === false) {
+                                                    var inlineData = JSON.parse(activityData[0]['activity_inline_data']);
+                                                    //console.log(inlineData);
+                                                    var pushString = {
+                                                        title: inlineData.sender.asset_name + ' sent a Post-It: ',
+                                                        description: activityData[0]['description'].substring(0, 100)
+                                                    };
+                                                    // get badge count
+                                                    var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_unread_task_count', participantParamsArr);
+                                                    if (queryString != '') {
+                                                        db.executeQuery(1, queryString, request, function (err, data) {
+                                                            if (err === false) {
+                                                                var badgeCount = util.replaceOne(data[0]['badge_count']);
+                                                                sns.publish(pushString, badgeCount, assetPushArn);
+                                                            }
+                                                        });
                                                     }
-                                                });
-                                            }
 
 
+                                                }
+                                            });
                                         } else {
                                             //nothing
                                         }
@@ -399,7 +390,7 @@ function ActivityParticipantService(objectCollection) {
                 if (err === false) {
                     if (index === maxIndex) {
                         activityCommonService.updateActivityLogDiffDatetime(request, 0, function (err, data) {
-                        activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
+                            activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
                         });
                         if (request.hasOwnProperty('device_os_id')) {
                             if (Number(request.device_os_id) !== 5) {
@@ -498,7 +489,7 @@ function ActivityParticipantService(objectCollection) {
                 //callback(false, {}, 200);
                 if (maxIndex === index) {
                     activityCommonService.updateActivityLogDiffDatetime(request, 0, function (err, data) {
-                    activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
+                        activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
                     });
                     if (request.hasOwnProperty('device_os_id')) {
                         if (Number(request.device_os_id) !== 5) {

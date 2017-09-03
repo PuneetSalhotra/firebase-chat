@@ -29,21 +29,22 @@ var Consumer = function (partitionId) {
     var util = new Util();
     var redis = require('redis');   //using elasticache as redis
     var redisClient = redis.createClient(global.config.redisPort, global.config.redisIp);
-    var CacheWrapper = require('../utils/cacheWrapper');    
+    var CacheWrapper = require('../utils/cacheWrapper');
     var cacheWrapper = new CacheWrapper(redisClient);
     var AwsSns = require('../utils/snsWrapper');
     var sns = new AwsSns();
 
     var ActivityCommonService = require("../services/activityCommonService");
     var activityCommonService = new ActivityCommonService(db, util);
-
+    var forEachAsync = require('forEachAsync').forEachAsync;
     var objCollection = {
         util: util,
         db: db,
         //cassandraWrapper: cassandraWrapper,
         cacheWrapper: cacheWrapper,
         activityCommonService: activityCommonService,
-        sns: sns
+        sns: sns,
+        forEachAsync: forEachAsync
     };
     kafkaConsumer.on('message', function (message) {
         try {
@@ -74,8 +75,8 @@ var Consumer = function (partitionId) {
         } catch (exception) {
             console.log(exception);
         }
-        
-       //console.log(message);
+
+        //console.log(message);
     });
 
     kafkaConsumer.on('connect', function (err, data) {

@@ -2,7 +2,7 @@
  * author: Sri Sai Venkatesh
  */
 
-var Logger = require("/var/www/html/desker/NODEJS/desker_api_0.1/server/utils/logger");
+var Logger = require("/var/www/html/node/Bharat/server/utils/logger");
 logger = new Logger();
 
 config = {};

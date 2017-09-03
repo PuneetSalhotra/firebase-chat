@@ -87,7 +87,6 @@ function CacheWrapper(client) {
     };
 
     this.checkAssetParity = function (assetId, parity, callback) {
-
         getAssetParity(assetId, function (err, reply) {
             if (err === false) {
                 if (Number(reply) < parity) {
@@ -102,12 +101,11 @@ function CacheWrapper(client) {
     };
 
     this.getMessageUniqueIdLookup = function (messageUniqueId, callback) {
-
         client.hget('message_unique_id_lookup', messageUniqueId, function (err, reply) {
             if (err) {
-                console.log(err);
+                //console.log(err);
+                callback(err,false);
             } else {
-                //console.log(reply);
                 callback(false, reply);
             }
         });
