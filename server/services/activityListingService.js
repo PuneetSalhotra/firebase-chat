@@ -3,11 +3,11 @@
  */
 
 function ActivityListingService(objCollection) {
-    
+
     var db = objCollection.db;
     var util = objCollection.util;
     var activityCommonService = objCollection.activityCommonService;
-    
+
     this.getActivityListDifferential = function (request, callback) {
         var paramsArr = new Array();
         var queryString = '';
@@ -56,31 +56,23 @@ function ActivityListingService(objCollection) {
     this.getActivityInlineCollection = function (request, callback) {
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
-        var paramsArr = new Array(
-                request.activity_id,
-                request.organization_id
-                );
-        var queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
-        if (queryString != '') {
-            db.executeQuery(1, queryString, request, function (err, data) {
-                if (err === false) {
-                    formatActivityInlineCollection(data, {}, function (err, responseData) {
-                        if (err === false) {
-                            callback(false, {data: responseData}, 200);
-                        } else {
-                            callback(false, {}, -9999)
-                        }
-                    });
-                    activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
-                    return;
-                } else {
-                    // some thing is wrong and have to be dealt
-                    callback(err, false, -9999);
-                    return;
-                }
-            });
-        }
-
+        activityCommonService.getActivityDetails(request, function (err, activityData) {
+            if (err === false) {
+                formatActivityInlineCollection(activityData, {}, function (err, responseData) {
+                    if (err === false) {
+                        callback(false, {data: responseData}, 200);
+                    } else {
+                        callback(false, {}, -9999)
+                    }
+                });
+                activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
+                return;
+            } else {
+                // some thing is wrong and have to be dealt
+                callback(err, false, -9999);
+                return;
+            }
+        });
     };
 
     this.getActivityCoverCollection = function (request, callback) {
@@ -305,7 +297,7 @@ function ActivityListingService(objCollection) {
     this.getDuevsTotal = function (request, callback) {
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
-        
+
         var paramsArr = new Array(
                 request.organization_id,
                 request.activity_id,
@@ -327,14 +319,14 @@ function ActivityListingService(objCollection) {
         }
 
     };
-    
+
     this.getActivityListDateRange = function (request, callback) {
 
         var paramsArr = new Array(
                 request.organization_id,
                 request.asset_id,
                 request.datetime_start,
-                request.datetime_end                
+                request.datetime_end
                 );
         var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_asset_open_payroll_activity', paramsArr);
         if (queryString != '') {

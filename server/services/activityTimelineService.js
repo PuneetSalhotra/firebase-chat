@@ -278,8 +278,6 @@ function ActivityTimelineService(objectCollection) {
         var responseData = new Array();
         forEachAsync(data, function (next, rowData) {
             var rowDataArr = {};
-            console.log(rowData.data_type_id + ' is data type id');
-
             rowDataArr.activity_id = util.replaceDefaultNumber(rowData['activity_id']);
             rowDataArr.activity_title = util.replaceDefaultString(rowData['activity_title']);
             rowDataArr.asset_id = util.replaceDefaultNumber(rowData['asset_id']);
@@ -301,7 +299,8 @@ function ActivityTimelineService(objectCollection) {
             rowDataArr.field_mandatory_enabled = util.replaceDefaultNumber(rowData['field_mandatory_enabled']);
             rowDataArr.field_preview_enabled = util.replaceZero(rowData['field_preview_enabled']);
             rowDataArr.data_type_combo_id = util.replaceZero(rowData['data_type_combo_id']);
-            rowDataArr.data_type_id = util.replaceDefaultNumber(rowData['data_type_id']);
+            rowDataArr.data_type_combo_value = util.replaceZero(rowData['data_type_combo_value']);
+            rowDataArr.data_type_id = util.replaceDefaultString(rowData['data_type_id']);
             rowDataArr.data_type_name = util.replaceDefaultString(rowData['data_type_name']);
             rowDataArr.data_type_category_id = util.replaceDefaultNumber(rowData['data_type_category_id']);
             rowDataArr.data_type_category_name = util.replaceDefaultString(rowData['data_type_category_name']);
@@ -324,28 +323,26 @@ function ActivityTimelineService(objectCollection) {
     };
 
     var getFieldValue = function (rowData, callback) {
-        var fieldValue = '';
-        //console.log(rowData);
-        var dataTypeId = Number(rowData['data_type_id']);
-        console.log(typeof dataTypeId, 'dataype ' + dataTypeId);
+        var fieldValue;        
+        var dataTypeId = Number(rowData['data_type_id']);        
         switch (dataTypeId) {
             case 1:     //Date
             case 2:     //Future Date
             case 3:     //Past Date
-                fieldValue = rowData['data_entity_date_1'];
+                fieldValue = util.replaceDefaultDate(rowData['data_entity_date_1']);
                 break;
             case 4:     //Date and Time
-                fieldValue = rowData['data_entity_datetime_1'];
+                fieldValue = util.replaceDefaultDatetime(rowData['data_entity_datetime_1']);
                 break;
             case 5:     //Number
-                fieldValue = rowData['data_entity_bigint_1'];
+                fieldValue = util.replaceDefaultNumber(rowData['data_entity_bigint_1']);
                 break;
             case 6:     //Decimal
-                fieldValue = rowData['data_entity_double_1'];
+                fieldValue = util.replaceDefaultNumber(rowData['data_entity_double_1']);
                 break;
             case 7:     //Scale (0 to 100)
             case 8:     //Scale (0 to 5)
-                fieldValue = rowData['data_entity_tinyint_1'];
+                fieldValue = util.replaceDefaultNumber(rowData['data_entity_tinyint_1']);
                 break;
             case 9:     //Reference - Organization
             case 10:    //Reference - Building
@@ -355,7 +352,7 @@ function ActivityTimelineService(objectCollection) {
             case 14:    //Reference - Room
             case 15:    //Reference - Desk
             case 16:    //Reference - Assistant
-                fieldValue = rowData['data_entity_bigint_1'];
+                fieldValue = util.replaceZero(rowData['data_entity_bigint_1']);
                 break;
             case 17:    //Location
                 fieldValue = rowData['data_entity_decimal_2'] + '|' + rowData['data_entity_decimal_3'];
@@ -364,16 +361,16 @@ function ActivityTimelineService(objectCollection) {
                 fieldValue = rowData['data_entity_decimal_1'] + '|' + rowData['data_entity_text_1'];
                 break;
             case 19:    //short text
-                fieldValue = rowData['data_entity_text_1'];
+                fieldValue = util.replaceDefaultString(rowData['data_entity_text_1']);
                 break;
             case 20:    //long text
-                fieldValue = rowData['data_entity_text_2'];
+                fieldValue = util.replaceDefaultString(rowData['data_entity_text_2']);
                 break;
             case 21:    //Label
-                fieldValue = rowData['data_entity_text_1'];
+                fieldValue = util.replaceDefaultString(rowData['data_entity_text_1']);
                 break;
             case 22:    //Email ID
-                fieldValue = rowData['data_entity_text_1'];
+                fieldValue = util.replaceDefaultString(rowData['data_entity_text_1']);
                 break;
             case 23:    //Phone Number with Country Code
                 fieldValue = rowData['data_entity_bigint_1'] + '|' + rowData['data_entity_text_1'];
@@ -381,7 +378,7 @@ function ActivityTimelineService(objectCollection) {
             case 24:    //Gallery Image
             case 25:    //Camera Image            
             case 26:    //Video Attachment
-                fieldValue = rowData['data_entity_text_1'];
+                fieldValue = util.replaceDefaultString(rowData['data_entity_text_1']);
                 break;
             case 27:    //General Signature with asset reference
             case 28:    //General Picnature with asset reference
@@ -390,27 +387,28 @@ function ActivityTimelineService(objectCollection) {
                 fieldValue = rowData['data_entity_text_1'] + '|' + rowData['data_entity_bigint_1'] + '|' + rowData['data_entity_tinyint_1'];
                 break;
             case 31:    //Cloud Document Link
-                fieldValue = rowData['data_entity_text_1'];
+                fieldValue = util.replaceDefaultString(rowData['data_entity_text_1']);
                 break;
             case 32:    //PDF Document
-                fieldValue = rowData['data_entity_text_1'];
+                fieldValue = util.replaceDefaultString(rowData['data_entity_text_1']);
                 break;
             case 33:    //Single Selection List
-                fieldValue = rowData['data_entity_tinyint_1'] + '|' + rowData['data_entity_text_1'];
+                fieldValue = util.replaceDefaultString(rowData['data_entity_text_1']);
                 break;
             case 34:    //multiple Selection List
-                fieldValue = rowData['data_entity_tinyint_1'] + '|' + rowData['data_entity_text_1'];
+                fieldValue = util.replaceDefaultString(rowData['data_entity_text_1']);
                 break;
             case 35:    //QR Code
             case 36:    //QR Code
             case 38:    //Audio Attachment
-                fieldValue = rowData['data_entity_text_1'];
+                fieldValue = util.replaceDefaultString(rowData['data_entity_text_1']);
                 break;
             case 39:
                 break;
-                fieldValue = rowData['data_entity_tinyint_1'];
+                fieldValue = util.replaceDefaultNumber(rowData['data_entity_tinyint_1']);
             default:
                 console.log('came into default for data type id: ' + dataTypeId);
+                fieldValue = ''
                 break;
         }
         ;
@@ -762,14 +760,10 @@ function ActivityTimelineService(objectCollection) {
                     params[17] = row.field_value;
                     break;
                 case 33:    //Single Selection List
-                    var comboData = row.field_value.split('|');
-                    params[11] = comboData[0];
-                    params[17] = comboData[0];
+                    params[17] = row.field_value;
                     break;
                 case 34:    //Multi Selection List
-                    var comboData = row.field_value.split('|');
-                    params[11] = comboData[0];
-                    params[17] = comboData[0];
+                    params[17] = row.field_value;
                     break;
                 case 35:    //QR Code                    
                 case 36:    //Barcode

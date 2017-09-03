@@ -23,6 +23,15 @@ function Util() {
             return false;
     };
 
+    this.hasValidGenericId = function (request, parameter) {        
+        var returnValue;
+        if (request.hasOwnProperty(parameter)) {
+            (this.replaceZero(request[parameter]) <= 0) ? returnValue = false : returnValue = true;
+            return returnValue;
+        } else
+            return false;
+    };
+
     this.isValidAssetMessageCounter = function (request) {
         if (request.hasOwnProperty('asset_message_counter')) {
             var returnValue = false;
@@ -266,17 +275,14 @@ function Util() {
     };
 
     this.replaceZero = function (value) {
-        if (value === undefined || value === null || value === '')
+        if (value === undefined || value === null || value === '') {
+            //console.log('inside null / undefined case of replaceZero')
             return Number(0);
-        else {
+        } else {
             var retValue = Number(value);
-            //console.log("inside replaceZero function retValue is", retValue)
-            //console.log("inside replaceZero function", retValue);
             if (isNaN(retValue)) {
-                //console.log('returning 0');
                 return 0;
             } else {
-                //console.log('returning '+ retValue);
                 return retValue;
             }
         }
@@ -302,6 +308,13 @@ function Util() {
             return "1970-01-01 00:00:00";
         else
             return this.getFormatedLogDatetime(value);
+    };
+    
+    this.replaceDefaultDate = function (value) {
+        if (value === undefined || value === null || value === '' || value === '1970-01-01' || value === '1970-01-01 00:00:00')
+            return '1970-01-01';
+        else
+            return this.getFormatedLogDate(value);
     };
 
     this.replaceDefaultAssetUrl = function (value) {
@@ -453,35 +466,35 @@ function Util() {
     this.mysqlEscapeString = function (str) {
         if (typeof str != 'string')
             return str;
-        str.replace("\0","\\0");
-        str.replace("\'","\\'");
-        str.replace('\"','\\"');
+        str.replace("\0", "\\0");
+        str.replace("\'", "\\'");
+        str.replace('\"', '\\"');
         console.log(str);
-        str.replace('\%','\\%');
-        str.replace("\n","\\n");
+        str.replace('\%', '\\%');
+        str.replace("\n", "\\n");
         return str;
-        
-        
+
+
         /*
-        return str.replace(/[\0\x08\x09\x1a\n\r"'\\\%]/g, function (char) {
-            switch (char) {
-                case "\0":
-                    return "\\0";
-                case "\'":
-                    return "\\'";
-                case '\"':
-                    return '\\"';
-                case '\%':
-                    return "\\%";
-                case "\n":
-                    return "\\n";
-                default:
-                    console.log('inside default while mysqlEscapeString returning the same string itself');
-                    console.log(str);
-                    break;
-            }
-        });
-        */
+         return str.replace(/[\0\x08\x09\x1a\n\r"'\\\%]/g, function (char) {
+         switch (char) {
+         case "\0":
+         return "\\0";
+         case "\'":
+         return "\\'";
+         case '\"':
+         return '\\"';
+         case '\%':
+         return "\\%";
+         case "\n":
+         return "\\n";
+         default:
+         console.log('inside default while mysqlEscapeString returning the same string itself');
+         console.log(str);
+         break;
+         }
+         });
+         */
     }
 }
 

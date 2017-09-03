@@ -1,5 +1,5 @@
 var aws = require('aws-sdk');
-aws.config.loadFromPath('/var/www/html/desker/NODEJS/desker_api_0.1/server/utils/config.json');
+aws.config.loadFromPath('/var/www/html/node/Bharat/server/utils/config.json');
 //var queueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/desker-logging-queue";
 var queueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/desker-logging-staging";
 var sqs = new aws.SQS();

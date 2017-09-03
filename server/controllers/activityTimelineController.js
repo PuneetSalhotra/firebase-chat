@@ -4,7 +4,6 @@
  */
 
 var ActivityTimelineService = require("../services/activityTimelineService");
-var ActivityCommonService = require("../services/activityCommonService");
 
 function ActivityTimelineController(objCollection) {
 
@@ -13,8 +12,7 @@ function ActivityTimelineController(objCollection) {
     var queueWrapper = objCollection.queueWrapper;
     var app = objCollection.app;
     var util = objCollection.util;
-
-    var activityCommonService = new ActivityCommonService(objCollection.db, objCollection.util);
+    
     var activityTimelineService = new ActivityTimelineService(objCollection);
 
     app.post('/' + global.config.version + '/activity/timeline/entry/add', function (req, res) {
