@@ -307,38 +307,29 @@ function ActivityUpdateService(objectCollection) {
 
     var assetActivityListUpdateInline = function (request, callback) {
 
-        var paramsArr = new Array(
-                request.activity_id,
-                request.organization_id,
-                0,
-                50
-                );
+        var paramsArr = new Array();
+        activityCommonService.getAllParticipants(request, function (err, participantsData) {
+            if (err === false) {
+                participantsData.forEach(function (rowData, index) {
+                    paramsArr = new Array(
+                            request.activity_id,
+                            rowData['asset_id'],
+                            request.organization_id,
+                            request.activity_inline_data
+                            );
+                    queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_inline_data', paramsArr);
+                    db.executeQuery(0, queryString, request, function (error, queryResponse) {
 
-        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_participants', paramsArr);
-        if (queryString != '') {
-            db.executeQuery(1, queryString, request, function (err, data) {
-                if (err === false) {
-                    data.forEach(function (rowData, index) {
-                        paramsArr = new Array(
-                                request.activity_id,
-                                rowData['asset_id'],
-                                request.organization_id,
-                                request.activity_inline_data
-                                );
-                        queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_inline_data', paramsArr);
-                        db.executeQuery(0, queryString, request, function (error, queryResponse) {
-
-                        });
-                    }, this);
-                    callback(false, true);
-                    return;
-                } else {
-                    // some thing is wrong and have to be dealt
-                    callback(true, false);
-                    return;
-                }
-            });
-        }
+                    });
+                }, this);
+                callback(false, true);
+                return;
+            } else {
+                // some thing is wrong and have to be dealt
+                callback(true, false);
+                return;
+            }
+        });
     };
 
     var assetActivityListUpdateParent = function (request, callback) {

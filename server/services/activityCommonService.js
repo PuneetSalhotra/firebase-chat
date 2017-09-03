@@ -325,11 +325,11 @@ function ActivityCommonService(db, util) {
                 entityText2, // entity text 2
                 request.track_latitude,
                 request.track_longitude,
-                formTransactionId,    //form_transaction_id   
-                formId,    //form_id
-                dataTypeId,//data_type_id  should be 37 static
-                '',//location latitude
-                '',//location longitude                
+                formTransactionId, //form_transaction_id   
+                formId, //form_id
+                dataTypeId, //data_type_id  should be 37 static
+                '', //location latitude
+                '', //location longitude                
                 request.track_gps_accuracy,
                 request.track_gps_status,
                 request.track_gps_location,
@@ -476,16 +476,16 @@ function ActivityCommonService(db, util) {
                 accountId,
                 organizationId,
                 streamTypeId,
-                entityTypeId,   // entity type id
-                entityText1,    // entity text 1
-                entityText2,    // entity text 2
+                entityTypeId, // entity type id
+                entityText1, // entity text 1
+                entityText2, // entity text 2
                 request.track_latitude,
                 request.track_longitude,
-                formTransactionId,    //form_transaction_id   
-                formId,    //form_id
-                dataTypeId,//data_type_id  should be 37 static
-                '',//location latitude
-                '',//location longitude
+                formTransactionId, //form_transaction_id   
+                formId, //form_id
+                dataTypeId, //data_type_id  should be 37 static
+                request.track_latitude, //location latitude
+                request.track_longitude, //location longitude
                 request.track_gps_accuracy,
                 request.track_gps_status,
                 request.track_gps_location,
@@ -605,7 +605,7 @@ function ActivityCommonService(db, util) {
     };
 
     this.updateWholeLotForTimelineComment = function (request, callback) {
-        
+
         var paramsArr = new Array();
         var queryString = '';
         this.getAllParticipantsExceptAsset(request, Number(request.asset_id), function (err, participantsData) {
@@ -633,8 +633,23 @@ function ActivityCommonService(db, util) {
         });
     };
 
-
-
+    this.getActivityDetails = function (request, callback) {
+        var paramsArr = new Array(
+                request.activity_id,
+                request.organization_id
+                );
+        var queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (err === false) {
+                    callback(false, data);
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, false);
+                }
+            });
+        }
+    };
 
 }
 ;
