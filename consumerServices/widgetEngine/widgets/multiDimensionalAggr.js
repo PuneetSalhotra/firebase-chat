@@ -12,33 +12,29 @@ class MultiDimensionalAggrWidget extends WidgetBase {
     }
 
     aggregateAndSaveTransaction(formSubmissionDate, data) {
-        const entity1Data = data.normalizedFormData[this.rule.widget_entity2_id];
-        const entity2Data = data.normalizedFormData[this.rule.widget_entity3_id];
         let activityQueryData = [{
             start: formSubmissionDate.startOfDayInUTC,
             end: formSubmissionDate.endOfDayInUTC,
-            entity_id: entity1Data.field_id,
+            entity_id: this.rule.widget_entity2_id,
             form_id: this.form.id,
-            entity_data_type_id: entity1Data.field_data_type_id,
+            entity_data_type_id: this.rule.widget_entity2_data_type_id,
             access_level_id: this.rule.access_level_id  || 5,
             asset_type_id: 0      
         }, {
             start: formSubmissionDate.startOfDayInUTC,
             end: formSubmissionDate.endOfDayInUTC,
-            entity_id: entity2Data.field_id,
+            entity_id: this.rule.widget_entity3_id,
             form_id: this.form.id,
-            entity_data_type_id: entity2Data.field_data_type_id,
+            entity_data_type_id: this.rule.widget_entity3_data_type_id,
             access_level_id: this.rule.access_level_id  || 5,
             asset_type_id: 0  
         }];
-        activityQueryData[0] = _.merge(activityQueryData[0], _.pick(data.payload, ['asset_id', 'activity_id', 
-        'organization_id', 'account_id', 'workforce_id', 'activity_type_category_id']));
-        activityQueryData[1] = _.merge(activityQueryData[1], _.pick(data.payload, ['asset_id', 'activity_id', 
-        'organization_id', 'account_id', 'workforce_id', 'activity_type_category_id']));
+        activityQueryData[0] = _.merge(activityQueryData[0], data);
+        activityQueryData[1] = _.merge(activityQueryData[1], data);
 
         var promises = [
-            this.services.activityFormTransaction.getSumByDay(activityQueryData[0]),
-            this.services.activityFormTransaction.getSumByDay(activityQueryData[1]),
+            this.services.activityFormTransactionAnalytics.getSumByDay(activityQueryData[0]),
+            this.services.activityFormTransactionAnalytics.getSumByDay(activityQueryData[1]),
         ];
         Promise.all(promises)
         .then((result) => {
@@ -60,8 +56,8 @@ class MultiDimensionalAggrWidget extends WidgetBase {
                 sum: sumEntity2,
                 period_flag: this.getPeriodFlag()
             }];
-            widgetData[0] = _.merge(widgetData[0], _.pick(data.payload, ['asset_id', 'organization_id']));
-            widgetData[1] = _.merge(widgetData[1], _.pick(data.payload, ['asset_id', 'organization_id']));
+            widgetData[0] = _.merge(widgetData[0], data);
+            widgetData[1] = _.merge(widgetData[1], data);
             return this.createOrUpdateWidgetTransaction(widgetData);
         });
     }

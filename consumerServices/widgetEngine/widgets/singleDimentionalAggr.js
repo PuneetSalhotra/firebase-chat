@@ -14,20 +14,18 @@ class SingleDimensionalAggrWidget extends WidgetBase {
     }
 
     aggregateAndSaveTransaction(formSubmissionDate, data) {
-        const entityData = data.normalizedFormData[this.rule.widget_entity2_id];
         let activityQueryData = {
             start: formSubmissionDate.startOfDayInUTC,
             end: formSubmissionDate.endOfDayInUTC,
-            entity_id: entityData.field_id,
+            entity_id: this.rule.widget_entity2_id,
             form_id: this.form.id,
-            entity_data_type_id: entityData.field_data_type_id,
+            entity_data_type_id: this.rule.widget_entity2_data_type_id,
             access_level_id: this.rule.access_level_id  || 5,
             asset_type_id: 0      
         };
-        activityQueryData = _.merge(activityQueryData, _.pick(data.payload, ['asset_id',, 'activity_id', 
-        'organization_id', 'account_id', 'workforce_id', 'activity_type_category_id']));
+        activityQueryData = _.merge(activityQueryData, data);
 
-        this.services.activityFormTransaction.getSumByDay(activityQueryData)
+        this.services.activityFormTransactionAnalytics.getSumByDay(activityQueryData)
         .then((result) => {
             const sum = result[0] ? result[0].total_sum : undefined;
             let widgetData = {
@@ -36,7 +34,7 @@ class SingleDimensionalAggrWidget extends WidgetBase {
                 widget_id: this.rule.widget_id,
                 period_flag: this.getPeriodFlag()
             };
-            widgetData = _.merge(widgetData, _.pick(data.payload, ['asset_id', 'organization_id']));
+            widgetData = _.merge(widgetData, data);
             return this.createOrUpdateWidgetTransaction(widgetData);
         });
     }

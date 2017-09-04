@@ -18,9 +18,8 @@ class FrequencyDistributionWidget extends WidgetBase {
             access_level_id: this.rule.access_level_id || 5,
             asset_type_id: 0
         };
-        activityQueryData = _.merge(activityQueryData, _.pick(data.payload, ['activity_id', 'asset_id', 'organization_id',
-                'activity_type_category_id', 'workforce_id', 'account_id', 'field_id', 'data_type_id']));
-        this.services.activityFormTransaction.getCountForMonth(activityQueryData)
+        activityQueryData = _.merge(activityQueryData, data);
+        this.services.activityFormTransactionAnalytics.getCountForMonth(activityQueryData)
         .then((result) => {
             const count = result[0] ? result[0].form_count : undefined;
             let widgetData = {
@@ -29,7 +28,7 @@ class FrequencyDistributionWidget extends WidgetBase {
                 widget_id: this.rule.widget_id,
                 period_flag: this.getPeriodFlag()
             };
-            widgetData = _.merge(widgetData, _.pick(data.payload, ['asset_id', 'organization_id']));
+            widgetData = _.merge(widgetData, data);
             return this.createOrUpdateWidgetTransaction(widgetData);
         });
     }
