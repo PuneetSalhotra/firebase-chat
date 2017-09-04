@@ -18,8 +18,9 @@ const sns = new AwsSns();
 class ConsumerBase {
     constructor(opts) {
         this.partition = opts.partition || 0;
+        this.topic = opts.topic;
         this.kafkaConsumer = new KafkaConsumer(kafkaClient,
-            [{topic: global.config.kafkaTopic, partition: this.partition}],
+            [{topic: this.topic, partition: this.partition}],
             {
                 groupId: 'test-node-group',
                 autoCommit: true,

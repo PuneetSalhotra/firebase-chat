@@ -19,13 +19,9 @@ if (mode === 'dev') {
     config.slave1Ip = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
     config.slave2Ip = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
 
-    config.dbUser = 'apiuser';
-    //config.dbUser = 'sravan';
-    config.database = 'desker';
-    //config.database = 'desker';
+    config.dbUser = 'apiuser';    
+    config.database = 'desker';    
     config.dbPassword = 'apidbuser';
-    //config.dbPassword = 'sravandbaccess2';
-
     config.conLimit = 10;
 
     config.redisIp = '127.0.0.1';
@@ -33,7 +29,8 @@ if (mode === 'dev') {
 
     //config.kafkaIP = "34.192.228.175:2181";
     config.kafkaIP = 'localhost:2181';
-    config.kafkaTopic = 'desker-activities';    
+    config.kafkaActivitiesTopic = 'desker-activities';    
+    config.kafkaFormWidgetTopic = 'desker-form-widgets';    
     
     config.cassandraIP = '34.192.228.175';
     config.cassandraKeyspace = 'deskerlog';
@@ -59,8 +56,9 @@ if (mode === 'prod') {
 
     //config.kafkaIP = "34.192.228.175:2181";
     config.kafkaIP = 'localhost:2181';
-    config.kafkaTopic = 'desker-activities';
-
+    config.kafkaActivitiesTopic = 'desker-activities';    
+    config.kafkaFormWidgetTopic = 'desker-form-widgets';    
+    
     config.cassandraIP = '34.192.228.175';
     config.cassandraKeyspace = 'deskerlog';
     config.cassandraUser = 'aamir';

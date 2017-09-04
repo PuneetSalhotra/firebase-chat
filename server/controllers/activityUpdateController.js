@@ -28,7 +28,7 @@ function ActivityUpdateController(objCollection) {
                 payload: req.body
             };
 
-            queueWrapper.raiseEvent(event, req.body.activity_id);
+            queueWrapper.raiseActivityEvent(event, req.body.activity_id);
             res.send(responseWrapper.getResponse(false, {}, 200));
             return;
         };
@@ -73,7 +73,7 @@ function ActivityUpdateController(objCollection) {
                 payload: req.body
             };
 
-            queueWrapper.raiseEvent(event, req.body.activity_id);
+            queueWrapper.raiseActivityEvent(event, req.body.activity_id);
             res.send(responseWrapper.getResponse(false, {}, 200));
             return;
         };
@@ -120,7 +120,7 @@ function ActivityUpdateController(objCollection) {
                 method: "alterActivityParent",
                 payload: req.body
             };
-            queueWrapper.raiseEvent(event, req.body.activity_id);
+            queueWrapper.raiseActivityEvent(event, req.body.activity_id);
             res.send(responseWrapper.getResponse(false, {}, 200));
             return;
         };

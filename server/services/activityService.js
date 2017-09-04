@@ -11,6 +11,7 @@ function ActivityService(objectCollection) {
     var activityCommonService = objectCollection.activityCommonService;
     var util = objectCollection.util;
     var forEachAsync = objectCollection.forEachAsync;
+    var queueWrapper = objectCollection.queueWrapper;
 
     this.addActivity = function (request, callback) {
 
@@ -545,14 +546,10 @@ function ActivityService(objectCollection) {
                     forEachAsync(formTransactionData, function (next, rowData) {
                         var fieldId = rowData['field_id'];
                         finalFormTransactionData[fieldId] = rowData;
-                        //finalFormTransactionData.push({}.rowData['field_id'] = rowData);
                         next();
                     }).then(function () {
-                        //console.log(typeof finalFormTransactionData);
                         var finalFormTransactionKeys = (Object.keys(finalFormTransactionData));
-                        //console.log(finalFormTransactionKeys);
                         forEachAsync(finalFormTransactionKeys, function (next, keyValue) {
-                            //console.log(finalFormTransactionData[keyValue].form_transaction_id);
                             var paramsArr = new Array(
                                     finalFormTransactionData[keyValue].form_transaction_id,
                                     finalFormTransactionData[keyValue].form_id,
@@ -585,9 +582,9 @@ function ActivityService(objectCollection) {
                                     '',
                                     '',
                                     request.app_version,
-                                    request.service_version,                                    
-                                    finalFormTransactionData[keyValue].log_asset_id,                                    
-                                    finalFormTransactionData[keyValue].log_message_unique_id,                                    
+                                    request.service_version,
+                                    finalFormTransactionData[keyValue].log_asset_id,
+                                    finalFormTransactionData[keyValue].log_message_unique_id,
                                     0,
                                     request.flag_offline,
                                     finalFormTransactionData[keyValue].form_transaction_datetime,
@@ -596,6 +593,7 @@ function ActivityService(objectCollection) {
                             var queryString = util.getQueryString('ds_v1_activity_form_transaction_analytics_insert', paramsArr);
                             if (queryString != '') {
                                 db.executeQuery(0, queryString, request, function (err, data) {
+                                    next();
                                     if (err === false) {
                                         //callback(false, true);
                                         //return;
@@ -606,9 +604,8 @@ function ActivityService(objectCollection) {
                                     }
                                 });
                             }
-                            next();
-                        }).then(function(){
-                            
+                        }).then(function () {
+                            callback(false, {formTransactionId: formTransactionId, formId: formId});
                         });
                     });
                 } else {
@@ -677,6 +674,7 @@ function ActivityService(objectCollection) {
 
             }
             ;
+            request.activity_stream_type_id = activityStreamTypeId;
         }
 
         activityListUpdateStatus(request, function (err, data) {
@@ -701,6 +699,32 @@ function ActivityService(objectCollection) {
                 });
                 if (activityTypeCategoryId === 9 && activityStatusTypeId === 22) {   //form and submitted state                    
                     duplicateFormTransactionData(request, function (err, data) {
+                        console.log(data.formTransactionId, ' is formTransactionId');
+                        console.log(data.formId, ' is formId');
+                        var widgetEngineQueueMessage = {
+                            form_id: data.formId,
+                            form_transaction_id: data.formTransactionId,
+                            organization_id: request.organization_id,
+                            account_id: request.account_id,
+                            workforce_id: request.workforce_id,
+                            asset_id: request.asset_id,
+                            activity_id: request.activity_id,
+                            activity_type_category_id: request.activity_type_category_id,
+                            activity_stream_type_id: request.activity_stream_type_id,
+                            track_gps_location: request.track_gps_location,
+                            track_gps_datetime: request.track_gps_datetime,
+                            track_gps_accuracy: request.track_gps_accuracy,
+                            track_gps_status: request.track_gps_status,
+                            device_os_id: request.device_os_id,
+                            service_version: request.service_version,
+                            app_version: request.app_version,
+                            api_version: request.api_version
+                        };
+                        var event = {
+                            name: "Form Based Widget Engine",                            
+                            payload: widgetEngineQueueMessage
+                        };
+                        queueWrapper.raiseFormWidgetEvent(event, request.activity_id);
 
                     });
                 }

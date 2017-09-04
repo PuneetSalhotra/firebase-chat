@@ -159,7 +159,7 @@ function ActivityController(objCollection) {
                     method: "addActivity",
                     payload: req
                 };
-                queueWrapper.raiseEvent(event, activityId);
+                queueWrapper.raiseActivityEvent(event, activityId);
                 console.log("new activityId is" + activityId);
                 callback(false, activityId);
             }
@@ -185,7 +185,7 @@ function ActivityController(objCollection) {
                 method: "alterActivityStatus",
                 payload: req.body
             };
-            queueWrapper.raiseEvent(event, req.body.activity_id);
+            queueWrapper.raiseActivityEvent(event, req.body.activity_id);
             res.send(responseWrapper.getResponse(false, {}, 200));
             return;
         };

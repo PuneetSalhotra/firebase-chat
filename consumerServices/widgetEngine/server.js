@@ -19,5 +19,9 @@ if (cluster.isMaster) {
     });
 } else {  
     var WidgetEngineConsumer = require("./consumer.js");
-    new WidgetEngineConsumer({partition: Number(process.argv[2])});
+    var options = {
+        partition: Number(process.argv[2]),
+        topic: 'desker-form-widgets'
+    };
+    new WidgetEngineConsumer(options);
 }

@@ -34,7 +34,7 @@ function ActivityTimelineController(objCollection) {
                 method: "addTimelineTransaction",
                 payload: req.body
             };
-            queueWrapper.raiseEvent(event, req.body.activity_id);
+            queueWrapper.raiseActivityEvent(event, req.body.activity_id);
             if (formTransactionId > 0)
                 res.send(responseWrapper.getResponse(false, {form_transaction_id: formTransactionId}, 200));
             else
@@ -171,7 +171,7 @@ function ActivityTimelineController(objCollection) {
                 method: "addTimelineComment",
                 payload: req.body
             };
-            queueWrapper.raiseEvent(event, req.body.activity_id);
+            queueWrapper.raiseActivityEvent(event, req.body.activity_id);
             res.send(responseWrapper.getResponse(false, {}, 200));
             return;
         };

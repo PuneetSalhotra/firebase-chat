@@ -49,7 +49,7 @@ function ActivityParticipantController(objCollection) {
                 payload: req.body
             };
 
-            queueWrapper.raiseEvent(event, req.body.activity_id);
+            queueWrapper.raiseActivityEvent(event, req.body.activity_id);
             res.send(responseWrapper.getResponse(false, {}, 200));
             return;
         };
@@ -97,7 +97,7 @@ function ActivityParticipantController(objCollection) {
                 method: "unassignParticicpant",
                 payload: req.body
             };
-            queueWrapper.raiseEvent(event, req.body.activity_id);
+            queueWrapper.raiseActivityEvent(event, req.body.activity_id);
             res.send(responseWrapper.getResponse(false, {}, 200));
             return;
         };
@@ -144,7 +144,7 @@ function ActivityParticipantController(objCollection) {
                 method: "updateParticipantAccess",
                 payload: req.body
             };
-            queueWrapper.raiseEvent(event, req.body.activity_id);
+            queueWrapper.raiseActivityEvent(event, req.body.activity_id);
             res.send(responseWrapper.getResponse(false, {}, 200));
             return;
         };
