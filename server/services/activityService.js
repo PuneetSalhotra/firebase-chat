@@ -698,9 +698,7 @@ function ActivityService(objectCollection) {
 
                 });
                 if (activityTypeCategoryId === 9 && activityStatusTypeId === 22) {   //form and submitted state                    
-                    duplicateFormTransactionData(request, function (err, data) {
-                        console.log(data.formTransactionId, ' is formTransactionId');
-                        console.log(data.formId, ' is formId');
+                    duplicateFormTransactionData(request, function (err, data) {                        
                         var widgetEngineQueueMessage = {
                             form_id: data.formId,
                             form_transaction_id: data.formTransactionId,
