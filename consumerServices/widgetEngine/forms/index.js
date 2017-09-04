@@ -1,17 +1,14 @@
 /**
  * author: SBK
  */
-const AttendanceForm = require('./attendanceForm');
+
 const CONST = require('../../constants');
+const FormBase = require('./base');
 
 exports.get = function (id, args) {
     let formInstance;
-    switch(id) {
-    case CONST.FORM_IDS.ATTENDANCE_FORM:
-        formInstance = new AttendanceForm(args);
-        break;
-    default:
-        break;
-    }
+    args.id = id;
+    formInstance = new FormBase(args);
+    
     return formInstance;
 }

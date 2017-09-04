@@ -2,10 +2,7 @@
  * author: SBK
  */
 
-module.exports = {
-    FORM_IDS: {
-        ATTENDANCE_FORM: 221
-    },  
+module.exports = {      
     WIDGET_TYPE_IDS: {
         SINGLE_DIMENSIONAL_AGGR: 1,
         MULTI_DIMENSIONAL_AGGR: 2,

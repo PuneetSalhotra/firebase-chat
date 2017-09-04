@@ -9,6 +9,7 @@ class FormBase {
     constructor(args) {
         this.objCollection = args.objCollection;
         this.args = args;
+        this.id = args.id;
     }
 
     getWidgets(args) {
