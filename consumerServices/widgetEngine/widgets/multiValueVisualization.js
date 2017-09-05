@@ -74,7 +74,7 @@ class MultiDimensionalAggrWidget extends WidgetBase {
         })
         .then((results) => {
             const field = this.getChoiceSumField();
-            const sum = results.map((res) =>  res[field]).filter((val) => !_.isUndefined(val)).reduce((a, b) => { return a + b; }, 0);
+            const sum = results.map((res) =>  res[0][field]).filter((val) => !_.isUndefined(val)).reduce((a, b) => { return a + b; }, 0);
             let widgetData = {
                 date: formSubmissionDate.valueInRuleTimeZone,
                 choice: choice,
