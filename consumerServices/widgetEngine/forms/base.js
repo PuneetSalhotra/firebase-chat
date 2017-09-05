@@ -24,16 +24,5 @@ class FormBase {
             .catch(reject);
         })
     }
-
-    normalizeData(data) {
-        return new Promise((resolve, reject) => {
-            const normalizedData = {};
-            data.forEach(function(data){
-                const fieldIdKey = data.field_id;
-                normalizedData[fieldIdKey] = data;
-            });
-            resolve(normalizedData);
-        });
-    }
 }
 module.exports = FormBase;

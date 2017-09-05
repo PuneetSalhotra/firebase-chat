@@ -12,24 +12,22 @@ class WidgetEngineConsumer extends ConsumerBase {
 
     validateMessage(message){
         const messagePayload = (message || {}).payload;
-        var formDataJson = JSON.parse((messagePayload.activity_timeline_collection || '[]'));
         return new Promise((resolve, reject) => {
-            if(!formDataJson[0] || !formDataJson[0].form_id)  return reject("Invalid message for widgetEngine, Skipping message");
-            return resolve({payload: message.payload, formData: formDataJson});
+            if(!messagePayload.form_id)  return reject("Invalid message for widgetEngine, Skipping message");
+            return resolve(messagePayload);
         });
     }
 
     actOnMessage(message) {
         return new Promise((resolve, reject) => {
-            var formData = message.formData;
-            const formInstance = forms.get(formData[0].form_id, {objCollection: this.objCollection});
-            formInstance.getWidgets(message.payload)
+            const formInstance = forms.get(message.form_id, {objCollection: this.objCollection});
+            formInstance.getWidgets(message)
             .then((widgets) => {
                 const promises = widgets.map((widget) => widget && widget.crunchDataAndSave(message));
                 return Promise.all(promises);
             })
             .then(() => {
-                resolve(message.formData);
+                resolve(message);
             })
             .catch(reject);
         });     

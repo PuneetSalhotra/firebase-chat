@@ -4,7 +4,7 @@
 const _ = require('lodash');
 const moment = require('moment');
 
-const ActivityFormTransactionSvc = require('../services/activityFormTransactionService');
+const ActivityFormTransactionAnalyticsSvc = require('../services/activityFormTransactionAnalyticsService');
 const WidgetTransactionSvc = require('../services/widgetTransactionService');
 
 class WidgetBase {
@@ -14,7 +14,7 @@ class WidgetBase {
         this.args = args;
         this.form = args.form;
         this.services = {
-            activityFormTransaction: new ActivityFormTransactionSvc(args),
+            activityFormTransactionAnalytics: new ActivityFormTransactionAnalyticsSvc(args),
             widgetTransaction: new WidgetTransactionSvc(args)
 
         }
@@ -39,12 +39,8 @@ class WidgetBase {
     }
 
     crunchDataAndSave(data) {
-        this.form.normalizeData(data.formData)
-        .then((normalizedFormData) => {
-            data.normalizedFormData = normalizedFormData;
-            const formSubmissionDate = this.convertUTCTimeToRuleTimeZone(data.payload.track_gps_datetime);
-            return this.aggregateAndSaveTransaction(formSubmissionDate, data);
-        });
+        const formSubmissionDate = this.convertUTCTimeToRuleTimeZone(data.track_gps_datetime);
+        return this.aggregateAndSaveTransaction(formSubmissionDate, data);
     }
 
 }

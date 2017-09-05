@@ -1,7 +1,7 @@
 /**
  * author: SBK
  */
-class ActivityFormTransaction {
+class ActivityFormTransactionAnalytics{
     constructor(args) {
         this.objCollection = args.objCollection;
     }
@@ -28,7 +28,7 @@ IN p_organization_id BIGINT(20)"*/
                 data.account_id,
                 data.organization_id
             );
-            var queryString = this.objCollection.util.getQueryString('ds_p1_activity_form_transaction_select_field_sum_datetime', paramsArr);
+            var queryString = this.objCollection.util.getQueryString('ds_p1_activity_form_transaction_analytics_select_field_sum_dt', paramsArr);
             if (queryString === '') return reject();
             this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
                 if (err) return reject();
@@ -53,14 +53,14 @@ IN p_organization_id BIGINT(20)"*/
                 data.account_id,
                 data.organization_id
             );
-            /*"    "ds_p1_activity_form_transaction_select_form_count_level_dt
+            /*"    "ds_p1_activity_form_transaction_analytics_select_form_count_dt
 IN p_form_id BIGINT(20), IN p_access_level_id TINYINT(4), IN p_start_datetime DATETIME, IN p_end_datetime DATETIME, I
 N p_activity_id BIGINT(20),
 IN p_activity_type_id BIGINT(20), IN p_asset_id BIGINT(20), IN p_asset_type_id BIGINT(20), 
 IN p_workforce_id BIGINT(20), IN p_account_id BIGINT(20), IN p_organization_id BIGINT(20)
 "
 */
-            var queryString = this.objCollection.util.getQueryString('ds_p1_activity_form_transaction_select_form_count_level_dt', paramsArr);
+            var queryString = this.objCollection.util.getQueryString('ds_p1_activity_form_transaction_analytics_select_form_count_dt', paramsArr);
             if (queryString === '') return reject();
             this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
                 if (err) return reject(err);
@@ -76,10 +76,10 @@ IN p_workforce_id BIGINT(20), IN p_account_id BIGINT(20), IN p_organization_id B
                 data.form_id,
                 data.entity_id
             );
-            /*"ds_p1_activity_form_transaction_select_transaction_field
+            /*"ds_p1_activity_form_transaction_analytics_select_trans_field
 IN p_form_transaction_id BIGINT(20), IN p_form_id BIGINT(20), IN p_field_id1 BIGINT(20)
 "*/
-            var queryString = this.objCollection.util.getQueryString('ds_p1_activity_form_transaction_select_transaction_field', paramsArr);
+            var queryString = this.objCollection.util.getQueryString('ds_p1_activity_form_transaction_analytics_select_trans_field', paramsArr);
             if (queryString === '') return reject();
             this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
                 if (err) return reject(err);
@@ -104,7 +104,7 @@ IN p_form_transaction_id BIGINT(20), IN p_form_id BIGINT(20), IN p_field_id1 BIG
                     limit 
                 );
       
-                var queryString = self.objCollection.util.getQueryString('ds_p1_activity_form_transaction_select_field_choice_transactions', paramsArr);
+                var queryString = self.objCollection.util.getQueryString('ds_p1_activity_form_transaction_analytics_select_fld_choice', paramsArr);
                 if (queryString === '') return reject();
                 self.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
                     if(err) return reject(err);
@@ -116,7 +116,7 @@ IN p_form_transaction_id BIGINT(20), IN p_form_id BIGINT(20), IN p_field_id1 BIG
 
             loop({startFrom: 0});
 
-            /* "ds_p1_activity_form_transaction_select_field_choice_transactions
+            /* "ds_p1_activity_form_transaction_analytics_select_fld_choice
 IN p_form_id BIGINT(20), IN p_field_id1 BIGINT(20), IN p_choice VARCHAR(300), IN p_start_datetime DATETIME, 
 IN p_end_datetime DATETIME, IN p_start_from SMALLINT(6), IN p_limit_value TINYINT(4)
 " */
@@ -126,4 +126,4 @@ IN p_end_datetime DATETIME, IN p_start_from SMALLINT(6), IN p_limit_value TINYIN
     
 }
 
-module.exports = ActivityFormTransaction;
+module.exports = ActivityFormTransactionAnalytics;

@@ -44,34 +44,30 @@ class MultiDimensionalAggrWidget extends WidgetBase {
     }
 
     aggregateAndSaveTransaction(formSubmissionDate, data) {
-        const entity1Data = data.normalizedFormData[this.rule.widget_entity2_id];
-        const entity2Data = data.normalizedFormData[this.rule.widget_entity3_id];
         let choice;
         let activityQueryData = {
             form_id: this.form.id,
-            entity_id: entity1Data.field_id
+            entity_id: this.rule.widget_entity2_id
         };
-        this.retrievFormTransactionId()
-        .then((id) => {
-            activityQueryData.form_transaction_id = id;
-            return this.services.activityFormTransaction.getByTransactionField(activityQueryData);
-        })
+        activityQueryData = _.merge(activityQueryData, data);
+
+        this.services.activityFormTransactionAnalytics.getByTransactionField(activityQueryData)
         .then((result) => {
             choice = result[0] ? result[0].data_entity_text_1 : undefined;
             let activityQueryData = {
                 form_id: this.form.id,
-                entity_id: entity1Data.field_id,
+                entity_id: this.rule.widget_entity2_id,
                 choice: choice,
                 start: formSubmissionDate.startOfDayInUTC,
                 end: formSubmissionDate.endOfDayInUTC
             };
-            return this.services.activityFormTransaction.getFormTransactionsByChoice(activityQueryData);
+            return this.services.activityFormTransactionAnalytics.getFormTransactionsByChoice(activityQueryData);
         })
         .then((rows) => {
             var promises = [];
-            rows.forEach((row) => promises.push(this.services.activityFormTransaction.getByTransactionField({
+            rows.forEach((row) => promises.push(this.services.activityFormTransactionAnalytics.getByTransactionField({
                 form_id: this.form.id,
-                entity_id: entity2Data.field_id,
+                entity_id: this.rule.widget_entity3_id,
                 form_transaction_id: row.form_transaction_id
             })));
             return Promise.all(promises);
@@ -86,7 +82,7 @@ class MultiDimensionalAggrWidget extends WidgetBase {
                 widget_id: this.rule.widget_id,
                 period_flag: this.getPeriodFlag()
             };
-            widgetData = _.merge(widgetData, _.pick(data.payload, ['asset_id', 'organization_id']));
+            widgetData = _.merge(widgetData, data);
             return this.createOrUpdateWidgetTransaction(widgetData);
         });
     }
