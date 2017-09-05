@@ -524,7 +524,8 @@ function ActivityService(objectCollection) {
     var getFormTransactionRecords = function (request, formTransactionId, formId, callback) {
         var paramsArr = new Array(
                 formTransactionId,
-                formId
+                formId,
+                request.organization_id
                 );
         queryString = util.getQueryString('ds_v1_activity_form_transaction_select', paramsArr);
         db.executeQuery(1, queryString, request, function (err, data) {
@@ -560,8 +561,8 @@ function ActivityService(objectCollection) {
                                     finalFormTransactionData[keyValue].workforce_id,
                                     finalFormTransactionData[keyValue].account_id,
                                     finalFormTransactionData[keyValue].organization_id,
-                                    finalFormTransactionData[keyValue].data_entity_date_1,
-                                    finalFormTransactionData[keyValue].data_entity_datetime_1,
+                                    util.replaceDefaultDate(finalFormTransactionData[keyValue].data_entity_date_1),
+                                    util.replaceDefaultDatetime(finalFormTransactionData[keyValue].data_entity_datetime_1),
                                     finalFormTransactionData[keyValue].data_entity_tinyint_1,
                                     finalFormTransactionData[keyValue].data_entity_bigint_1,
                                     finalFormTransactionData[keyValue].data_entity_double_1,
@@ -587,7 +588,7 @@ function ActivityService(objectCollection) {
                                     finalFormTransactionData[keyValue].log_message_unique_id,
                                     0,
                                     request.flag_offline,
-                                    finalFormTransactionData[keyValue].form_transaction_datetime,
+                                    util.replaceDefaultDatetime(finalFormTransactionData[keyValue].form_transaction_datetime),
                                     request.datetime_log
                                     );
                             var queryString = util.getQueryString('ds_v1_activity_form_transaction_analytics_insert', paramsArr);
