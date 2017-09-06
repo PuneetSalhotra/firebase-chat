@@ -118,6 +118,13 @@ function ActivityController(objCollection) {
             //var parentActivityId = (req.body.activity_parent_id === 'undefined' || req.body.activity_parent_id === '' || req.body.activity_parent_id === null) ? 0 : Number(req.body.activity_parent_id);
         };
 
+        try {
+            JSON.parse(req.body.activity_inline_data);
+        } catch (exeption) {
+            res.send(responseWrapper.getResponse(false, {activity_id: 0}, -3308));
+            return;
+        }
+
         if ((util.hasValidGenericId(req.body, 'asset_message_counter')) && deviceOsId !== 5) {
             cacheWrapper.checkAssetParity(req.body.asset_id, Number(req.body.asset_message_counter), function (err, status) {
                 if (err) {
@@ -209,7 +216,7 @@ function ActivityController(objCollection) {
                     } else {
                         res.send(responseWrapper.getResponse(false, {}, -3304));
                     }
-                }else{
+                } else {
                     res.send(responseWrapper.getResponse(false, {}, -3306));
                 }
 
