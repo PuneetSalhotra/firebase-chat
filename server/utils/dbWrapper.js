@@ -69,7 +69,7 @@ var executeQuery = function (flag, queryString, request, callback) {
 
                 conn.query(queryString, function (err, rows, fields) {
                     if (!err) {                        
-                        global.logger.write(queryString, request, 'trace');
+                        //global.logger.write(queryString, request, 'trace');
                         console.log(queryString);
                         conn.release();
                         callback(false, rows[0]);

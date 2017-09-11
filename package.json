@@ -1,0 +1,24 @@
+{
+  "name": "desker_api_v1",
+  "version": "1.0.0",
+  "keywords": [
+    "util",
+    "functional",
+    "server",
+    "client",
+    "browser"
+  ],
+  "author": "venkatesh",
+  "contributors": [],
+  "dependencies": {
+    "body-parser": "1.14.1",
+    "bunyan": "1.8.1",
+    "express": "4.13.4",
+    "moment": "",
+    "mysql": "",
+    "nodemailer": "2.4.2",
+    "redis": "",
+    "request": "",
+    "twilio": "2.9.1"
+  }
+}

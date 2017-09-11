@@ -224,7 +224,7 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
             case 1:
                 // send sms
                 var smsString = util.getSMSString(verificationCode);
-                global.logger.write("sms string is " + smsString, request, 'trace'); // no third party api's in this case
+                //global.logger.write("sms string is " + smsString, request, 'trace'); // no third party api's in this case
                 if (countryCode === 91) {
                     // send local sms
                     switch (global.sms_mode) {

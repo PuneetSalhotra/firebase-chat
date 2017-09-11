@@ -284,7 +284,7 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
                 break;
             case 1:
                 // send sms                
-                global.logger.write("sms string is " + smsString, request, 'trace'); // no third party api's in this case
+                //global.logger.write("sms string is " + smsString, request, 'trace'); // no third party api's in this case
                 if (countryCode === 91) {
                     // send local sms
                     switch (global.config.sms_mode) {
@@ -699,7 +699,7 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
 
         var queryString = util.getQueryString('ds_v1_account_list_select', paramsArr);
         if (queryString != '') {
-            db.executeQuery(1, queryString, request, function (err, data) {
+            db.executeQuery(1, queryString, request, function (err, data) {                
                 if (err === false) {
                     var rowData = {                        
                         'account_id': util.replaceDefaultNumber(data[0]['account_id']),
