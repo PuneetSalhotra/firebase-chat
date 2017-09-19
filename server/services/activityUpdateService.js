@@ -14,7 +14,7 @@ function ActivityUpdateService(objectCollection) {
         var paramsArr = new Array(
                 request.activity_id,
                 request.organization_id,
-                request.activity_inline_data
+                (request.activity_inline_data)
                 );
 
         var queryString = util.getQueryString('ds_v1_activity_list_update_inline_data', paramsArr);
@@ -332,19 +332,19 @@ function ActivityUpdateService(objectCollection) {
         });
     };
 
-    var assetActivityListUpdateParent = function (request, callback) {
-
-        var activityTypeCategoryId = Number(request.activity_type_category_id);
-        if (activityTypeCategoryId === 6 || activityTypeCategoryId === 29) {  //altering parent for a contact card
-            var paramsArr = new Array(
+    var assetActivityListUpdateParent = function (request, assetId, callback) {
+        var paramsArr = new Array();
+        var queryString = '';
+        if (Number(assetId) > 0) {
+            paramsArr = new Array(
                     request.activity_id,
-                    request.asset_id,
+                    assetId,
                     request.organization_id,
                     request.activity_parent_id,
                     request.asset_id,
                     request.datetime_log
                     );
-            var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_parent_details', paramsArr);
+            queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_parent_details', paramsArr);
             db.executeQuery(0, queryString, request, function (error, queryResponse) {
                 if (error === false) {
                     callback(false, true);
@@ -352,40 +352,25 @@ function ActivityUpdateService(objectCollection) {
                     callback(true, false);
             });
         } else {
-            /*
-             var paramsArr = new Array(
-             request.activity_id,
-             request.organization_id,
-             0,
-             50
-             );
-             
-             var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_participants', paramsArr);
-             if (queryString != '') {
-             db.executeQuery(1, queryString, request, function (err, data) {
-             if (err === false) {
-             data.forEach(function (rowData, index) {
-             paramsArr = new Array(
-             request.activity_id,
-             rowData['asset_id'],
-             request.organization_id,
-             request.activity_inline_data
-             );
-             queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_inline_data', paramsArr);
-             db.executeQuery(0, queryString, request, function (error, queryResponse) {
-             
-             });
-             }, this);
-             callback(false, true);
-             return;
-             } else {
-             // some thing is wrong and have to be dealt
-             callback(true, false);
-             return;
-             }
-             });
-             }
-             */
+            activityCommonService.getAllParticipants(request, function (err, participantsData) {
+                if (err === false && participantsData.length > 0) {
+                    participantsData.forEach(function (rowData, index) {
+                        paramsArr = new Array(
+                                request.activity_id,
+                                rowData.asset_id,
+                                request.organization_id,
+                                request.activity_parent_id,
+                                request.asset_id,
+                                request.datetime_log
+                                );
+                        queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_parent_details', paramsArr);
+                        db.executeQuery(0, queryString, request, function (error, queryResponse) { });
+                    }, this);
+                    callback(false, true);
+                } else {
+                    callback(false, false);
+                }
+            });
         }
     };
 
@@ -394,8 +379,7 @@ function ActivityUpdateService(objectCollection) {
 
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
-        var activityTypeCategoryId = request.activity_type_category_id;
-
+        var activityTypeCategoryId = request.activity_type_category_id;        
         activityListUpdateInline(request, function (err, data) {
             if (err === false) {
                 assetActivityListUpdateInline(request, function (err, data) {
@@ -509,86 +493,115 @@ function ActivityUpdateService(objectCollection) {
 
     };
 
+    var activityListUpdateParent = function (request, callback) {
+
+        activityCommonService.getActivityDetails(request, request.activity_parent_id, function (err, parentActivityData) {
+            if (err === false) {
+                var paramsArr = new Array(
+                        request.activity_id,
+                        request.organization_id,
+                        request.activity_parent_id,
+                        parentActivityData[0].activity_title,
+                        parentActivityData[0].activity_type_id,
+                        parentActivityData[0].activity_type_name,
+                        parentActivityData[0].activity_type_category_id,
+                        parentActivityData[0].activity_type_category_name,
+                        request.asset_id,
+                        request.datetime_log
+                        );
+                var queryString = util.getQueryString('ds_v1_activity_list_update_parent', paramsArr);
+                db.executeQuery(0, queryString, request, function (error, queryResponse) {
+                    if (err === false) {
+                        callback(false, true);
+                    } else {
+                        callback(err, true);
+                    }
+                });
+                return;
+            } else {
+                // some thing is wrong and have to be dealt
+                callback(err, false);
+                return;
+            }
+        });
+    };
+
+
     this.alterActivityParent = function (request, callback) {
 
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
-
-
-        var alterActivityParentAssetMapping = function () {
-
-            assetActivityListUpdateParent(request, function (err, data) {
+        var activityTypeCategoryId = Number(request.activity_type_category_id);
+        var streamtypeId = 1302;
+        switch (activityTypeCategoryId) {
+            case 10:
+                if (Number(request.activity_parent_id) === 0) {   // removed from a file
+                    streamtypeId = 304;
+                }
+                if (Number(request.activity_parent_prev_id) === 0 && Number(request.activity_parent_id) !== 0) {  // added freshly to a project
+                    streamtypeId = 302;
+                }
+                if (Number(request.activity_parent_prev_id) !== 0 && Number(request.activity_parent_id) !== 0) {  // moved from one project to another project
+                    streamtypeId = 303;
+                }
+                break;
+            case 11:
+                break;
+            default:
+                break;
+        }
+        ;
+        if (activityTypeCategoryId === 6 || activityTypeCategoryId === 29) {  //altering parent for a contact card
+            assetActivityListUpdateParent(request, request.asset_id, function (err, data) {
                 if (err === false) {
-                    var activityTypeCategoryId = Number(request.activity_type_category_id);
-                    var streamtypeId = 1302;
-
-                    switch (activityTypeCategoryId) {
-                        case 10:
-                            if (Number(request.activity_parent_id) === 0) {   // removed from a file
-                                streamtypeId = 304;
-                            }
-                            if (Number(request.activity_parent_prev_id) === 0 && Number(request.activity_parent_id) !== 0) {  // added freshly to a project
-                                streamtypeId = 302;
-                            }
-                            if (Number(request.activity_parent_prev_id) !== 0 && Number(request.activity_parent_id) !== 0) {  // moved from one project to another project
-                                streamtypeId = 303;
-                            }
-                            break;
-                        case 11:
-                            break;
-                        default:
-                            break;
-                    }
-                    ;
-
                     activityCommonService.assetActivityListHistoryInsert(request, 0, 401, function (err, restult) {
 
                     });
-                    activityCommonService.assetTimelineTransactionInsert(request, {}, 1302, function (err, data) {
+                } else {
+                    callback(err, false);
+                    return;
+                }
+            });
+        } else {
+            activityListUpdateParent(request, function (err, data) {
+                if (err === false) {
+                    assetActivityListUpdateParent(request, 0, function (err, data) {
+
+                    });
+                    activityCommonService.activityListHistoryInsert(request, 401, function (err, restult) {
 
                     });
                     activityCommonService.activityTimelineTransactionInsert(request, {}, 1302, function (err, data) {
 
                     });
-                    //updating log differential datetime for only this asset
-                    activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) {
+                    activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {
 
                     });
-                    if (request.hasOwnProperty('device_os_id')) {
-                        if (Number(request.device_os_id) !== 5) {
-                            //incr the asset_message_counter                        
-                            cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
-                                if (err) {
-                                    console.log("error in setting in asset parity");
-                                } else
-                                    console.log("asset parity is set successfully")
-
-                            });
-                        }
-                    }
-                    callback(false, {}, 200);
+                } else {
+                    callback(err, false);
+                    return;
                 }
-
-
             });
-        }
 
-        var activityTypeCategoryId = Number(request.activity_type_category_id);
-        if (activityTypeCategoryId === 6 || activityTypeCategoryId === 29) {  //altering parent for a contact card
-            alterActivityParentAssetMapping();
-        } else {
-            /*
-             activityListUpdateParent(request, function (err, data) {
-             if (err === false) {
-             
-             }
-             });
-             activityCommonService.activityListHistoryInsert(request, 23, function (err, result) {
-             
-             });
-             */
         }
+        activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) {
 
+        });
+        activityCommonService.assetTimelineTransactionInsert(request, {}, 1302, function (err, data) {
+
+        });
+        if (request.hasOwnProperty('device_os_id')) {
+            if (Number(request.device_os_id) !== 5) {
+                //incr the asset_message_counter                        
+                cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
+                    if (err) {
+                        console.log("error in setting in asset parity");
+                    } else
+                        console.log("asset parity is set successfully")
+
+                });
+            }
+        }
     };
 
 

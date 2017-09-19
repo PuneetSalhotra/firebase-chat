@@ -18,7 +18,7 @@ function ActivityParticipantController(objCollection) {
 
     app.post('/' + global.config.version + '/activity/participant/list', function (req, res) {
         req.body['module'] = 'activity';
-        
+
         participantService.getParticipantsList(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response    
@@ -101,6 +101,13 @@ function ActivityParticipantController(objCollection) {
             res.send(responseWrapper.getResponse(false, {}, 200));
             return;
         };
+        try {
+            JSON.parse(req.body.activity_participant_collection);
+            console.log('no exception so far');
+        } catch (exeption) {
+            res.send(responseWrapper.getResponse(false, {}, -3308));
+            return;
+        }
         if (util.hasValidActivityId(req.body)) {
             if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5) {
                 cacheWrapper.checkAssetParity(req.body.asset_id, Number(assetMessageCounter), function (err, status) {

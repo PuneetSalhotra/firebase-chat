@@ -164,7 +164,7 @@ function ActivityService(objectCollection) {
                         request.activity_id,
                         request.activity_title,
                         request.activity_description,
-                        util.encodeSpecialChars(request.activity_inline_data),
+                        (request.activity_inline_data),
                         "",
                         0,
                         request.activity_datetime_start,
@@ -193,7 +193,7 @@ function ActivityService(objectCollection) {
                         request.activity_id,
                         request.activity_title,
                         request.activity_description,
-                        util.encodeSpecialChars(request.activity_inline_data),
+                        (request.activity_inline_data),
                         "",
                         0,
                         request.activity_datetime_start,
@@ -221,7 +221,7 @@ function ActivityService(objectCollection) {
                         request.activity_id,
                         request.activity_title,
                         request.activity_description,
-                        util.encodeSpecialChars(request.activity_inline_data),
+                        (request.activity_inline_data),
                         "",
                         0,
                         request.activity_datetime_start,
@@ -250,7 +250,7 @@ function ActivityService(objectCollection) {
                         request.activity_id,
                         request.activity_title,
                         request.activity_description,
-                        util.encodeSpecialChars(request.activity_inline_data),
+                        (request.activity_inline_data),
                         "",
                         activityInlineData.contact_asset_id, //contact asset id
                         request.activity_datetime_start,
@@ -278,7 +278,7 @@ function ActivityService(objectCollection) {
                         request.activity_id,
                         request.activity_title,
                         request.activity_description,
-                        util.encodeSpecialChars(request.activity_inline_data),
+                        (request.activity_inline_data),
                         "",
                         0,
                         request.activity_datetime_start,
@@ -306,7 +306,7 @@ function ActivityService(objectCollection) {
                         request.activity_id,
                         request.activity_title,
                         request.activity_description,
-                        util.encodeSpecialChars(request.activity_inline_data),
+                        (request.activity_inline_data),
                         "",
                         0,
                         request.activity_datetime_start,
@@ -334,7 +334,7 @@ function ActivityService(objectCollection) {
                         request.activity_id,
                         request.activity_title,
                         request.activity_description,
-                        util.encodeSpecialChars(request.activity_inline_data),
+                        (request.activity_inline_data),
                         "",
                         0,
                         request.activity_datetime_start,
@@ -358,6 +358,8 @@ function ActivityService(objectCollection) {
                         );
                 break;
         }
+        paramsArr.push(request.track_latitude);
+        paramsArr.push(request.track_longitude);        
         var queryString = util.getQueryString('ds_v1_activity_list_insert', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
@@ -537,7 +539,7 @@ function ActivityService(objectCollection) {
 
     var duplicateFormTransactionData = function (request, callback) {
 
-        activityCommonService.getActivityDetails(request, function (err, activityData) {    // get activity form_id and form_transaction id
+        activityCommonService.getActivityDetails(request, 0, function (err, activityData) {    // get activity form_id and form_transaction id
             var formTransactionId = activityData[0].form_transaction_id;
             var formId = activityData[0].form_id;
             getFormTransactionRecords(request, formTransactionId, formId, function (err, formTransactionData) { // get all form transaction data
@@ -699,7 +701,7 @@ function ActivityService(objectCollection) {
 
                 });
                 if (activityTypeCategoryId === 9 && activityStatusTypeId === 22) {   //form and submitted state                    
-                    duplicateFormTransactionData(request, function (err, data) {                        
+                    duplicateFormTransactionData(request, function (err, data) {
                         var widgetEngineQueueMessage = {
                             form_id: data.formId,
                             form_transaction_id: data.formTransactionId,
@@ -720,7 +722,7 @@ function ActivityService(objectCollection) {
                             api_version: request.api_version
                         };
                         var event = {
-                            name: "Form Based Widget Engine",                            
+                            name: "Form Based Widget Engine",
                             payload: widgetEngineQueueMessage
                         };
                         queueWrapper.raiseFormWidgetEvent(event, request.activity_id);

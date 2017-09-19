@@ -21,7 +21,7 @@ Asseme the widget timezone is IST
 p_period_flag = 0"*/
             var queryString = this.objCollection.util.getQueryString('ds_p1_widget_transaction_select_widget_flag', paramsArr);
             if (queryString === '') return reject();
-            this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
+            this.objCollection.db.executeQuery(1, queryString, {}, function (err, data) {
                 if (err) return reject();
                 /*idWidgetTransaction*/
                 return resolve(data);
@@ -38,7 +38,7 @@ p_period_flag = 0"*/
                 data.date,
                 data.sum,
                 data.asset_id,
-                moment.utc().format("YYYY-MM-DD HH:mm:ss")
+                this.objCollection.util.getCurrentUTCTime()
             );
             /* "ds_p1_widget_transaction_insert_single_dimension_aggregate
 IN p_widget_id BIGINT(20), IN p_asset_id BIGINT(20), IN p_organization_id BIGINT(20), 
@@ -89,7 +89,7 @@ IN p_field_id2 BIGINT(20), IN p_period_flag TINYINT(4)
 "*/
             var queryString = this.objCollection.util.getQueryString('ds_p1_widget_transaction_select_widget_field_flag', paramsArr);
             if (queryString === '') return reject();
-            this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
+            this.objCollection.db.executeQuery(1, queryString, {}, function (err, data) {
                 if (err) return reject();
                 return resolve(data);
             });
@@ -106,7 +106,7 @@ IN p_field_id2 BIGINT(20), IN p_period_flag TINYINT(4)
                 data.index,
                 data.sum,
                 data.asset_id,
-                moment.utc().format("YYYY-MM-DD HH:mm:ss")
+                this.objCollection.util.getCurrentUTCTime()
             );
             /* "ds_p1_widget_transaction_insert_multi_dimension_aggregate
 IN p_widget_id BIGINT(20), IN p_asset_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_form_submission_date DATE,
@@ -130,7 +130,7 @@ IN p_index_value TINYINT(4),  IN p_submitted_field_value_sum DOUBLE(16,4), IN p_
                 data.index,
                 data.sum,
                 data.asset_id,
-                moment.utc().format("YYYY-MM-DD HH:mm:ss")
+                this.objCollection.util.getCurrentUTCTime()
             );
             /* ""ds_p1_widget_transaction_update_multi_dimension_aggregate
 IN p_widget_transaction_id BIGINT(20),IN p_organization_id BIGINT(20), IN p_form_submission_date DATE, 
@@ -154,7 +154,7 @@ IN p_index_value TINYINT(4),  IN p_sum_value DOUBLE(16,4), IN p_log_asset_id BIG
                 data.date,
                 data.count,
                 data.asset_id,
-                moment.utc().format("YYYY-MM-DD HH:mm:ss")
+                this.objCollection.util.getCurrentUTCTime()
             );
             /* "ds_p1_widget_transaction_insert_form_submission_count
 IN p_widget_id BIGINT(20), IN p_asset_id BIGINT(20), IN p_organization_id BIGINT(20), 
@@ -176,7 +176,7 @@ IN p_form_submission_date DATE, IN p_submitted_form_count BIGINT(20), IN p_log_a
                 data.widget_id,
                 data.date,
                 data.count,
-                moment.utc().format("YYYY-MM-DD HH:mm:ss")
+                this.objCollection.util.getCurrentUTCTime()
             );
             /* "ds_p1_widget_transaction_update_form_submission_count
 IN p_widget_transaction_id BIGINT(20), IN p_widget_id BIGINT(20), 
@@ -203,7 +203,7 @@ IN p_form_submission_date DATE, IN p_widget_form_count BIGINT(20), IN p_log_date
 IN p_widget_id BIGINT(20), IN p_form_submission_date DATE, IN p_choice DOUBLE(16,4), IN p_period_flag TINYINT(4)"*/
             var queryString = this.objCollection.util.getQueryString('ds_p1_widget_transaction_select_widget_choice_flag', paramsArr);
             if (queryString === '') return reject();
-            this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
+            this.objCollection.db.executeQuery(1, queryString, {}, function (err, data) {
                 if (err) return reject(err);
                 return resolve(data);
             });
@@ -220,7 +220,7 @@ IN p_widget_id BIGINT(20), IN p_form_submission_date DATE, IN p_choice DOUBLE(16
                 data.sum,
                 data.choice,
                 data.asset_id,
-                moment.utc().format("YYYY-MM-DD HH:mm:ss")
+                this.objCollection.util.getCurrentUTCTime()
             );
             /* ""ds_p1_widget_transaction_insert_multi_value_visualization
 IN p_widget_id BIGINT(20), IN p_asset_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_form_submission_date DATE, 
@@ -260,3 +260,4 @@ IN p_form_submission_date DATE, IN p_choice VARCHAR(300), IN p_sum_value DOUBLE(
 }
 
 module.exports = WidgetTransactionService;
+//util.getCurrentUTCTime()

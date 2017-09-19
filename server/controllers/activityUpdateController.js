@@ -15,8 +15,8 @@ function ActivityUpdateController(objCollection) {
 
     app.put('/' + global.config.version + '/activity/inline/alter', function (req, res) {
         req.body['module'] = 'activity';
-        
-        var deviceOsId = 0;        
+
+        var deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
 
@@ -32,7 +32,14 @@ function ActivityUpdateController(objCollection) {
             res.send(responseWrapper.getResponse(false, {}, 200));
             return;
         };
-        if (util.hasValidActivityId(req.body)) {            
+        try {
+            JSON.parse(req.body.activity_inline_data);
+            console.log('json is fine');
+        } catch (exeption) {
+            res.send(responseWrapper.getResponse(false, {}, -3308));
+            return;
+        }
+        if (util.hasValidActivityId(req.body)) {
             if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5) {
                 cacheWrapper.checkAssetParity(req.body.asset_id, Number(req.body.asset_message_counter), function (err, status) {
                     if (err) {
@@ -61,10 +68,10 @@ function ActivityUpdateController(objCollection) {
     app.put('/' + global.config.version + '/activity/cover/alter', function (req, res) {
         req.body['module'] = 'activity';
 
-        var deviceOsId = 0;        
+        var deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
-        
+
         var proceedCoverUpdate = function () {
             var event = {
                 name: "alterActivityCover",
@@ -77,7 +84,7 @@ function ActivityUpdateController(objCollection) {
             res.send(responseWrapper.getResponse(false, {}, 200));
             return;
         };
-        if (util.hasValidActivityId(req.body)) {            
+        if (util.hasValidActivityId(req.body)) {
             if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5) {
                 cacheWrapper.checkAssetParity(req.body.asset_id, Number(req.body.asset_message_counter), function (err, status) {
                     if (err) {
@@ -102,7 +109,7 @@ function ActivityUpdateController(objCollection) {
             res.send(responseWrapper.getResponse(false, {}, -3301));
         }
     });
-    
+
     app.put('/' + global.config.version + '/activity/parent/alter', function (req, res) {
         req.body['module'] = 'activity';    // adding module name to request so that it is accessable for cassandra logging
         var assetMessageCounter = 0;

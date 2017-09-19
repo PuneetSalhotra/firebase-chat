@@ -16,8 +16,8 @@ var mode = 'dev';
 
 if (mode === 'dev') {
     config.masterIp = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
-    config.slave1Ip = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
-    config.slave2Ip = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
+    config.slave1Ip = 'readreplica1.citeodhwc7z9.us-east-1.rds.amazonaws.com';
+    config.slave2Ip = 'readreplica2.citeodhwc7z9.us-east-1.rds.amazonaws.com';
 
     config.dbUser = 'apiuser';    
     config.database = 'desker';    
@@ -42,7 +42,7 @@ if (mode === 'dev') {
 
 if (mode === 'prod') {
     config.masterIp = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
-    config.slave1Ip = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
+    config.slave1Ip = 'readreplica1.citeodhwc7z9.us-east-1.rds.amazonaws.com';
     config.slave2Ip = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
 
     config.dbUser = 'sravan';

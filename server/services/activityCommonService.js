@@ -260,12 +260,18 @@ function ActivityCommonService(db, util) {
                 entityText1 = ""
                 entityText2 = request.activity_cover_collection;
                 break;
-            case 310:   // text message
+            case 310:   // text message     --> File
+            case 607:   // text message     --> Customer Request
+            case 1307:   // text message    --> Visitor Request
+            case 1507:   // text message    --> Time Card
                 entityTypeId = 0;
                 entityText1 = ""
                 entityText2 = request.activity_timeline_text;
                 break;
-            case 311:   // image
+            case 311:   // image    --> file           
+            case 608:   // image    --> Customer Request          
+            case 1308:   // image    --> Visitor Request
+            case 1508:   // image   --> Time Card       
                 entityTypeId = 0;
                 entityText1 = request.activity_timeline_url;
                 entityText2 = '';
@@ -281,9 +287,14 @@ function ActivityCommonService(db, util) {
                 entityText2 = request.activity_timeline_collection;
                 formTransactionId = request.form_transaction_id;
                 formId = request.form_id;
-                dataTypeId = 37;    //static for all form submissions                
+                dataTypeId = 37;    //static for all form submissions
                 break;
-            case 314:   // cloud based document
+            case 314:   // cloud based document -- file
+            case 610:   // cloud based document -- Customer Request
+            case 709:   // cloud based document -- Form
+            case 1310:   // cloud based document -- Visitor Request
+            case 1408:   // cloud based document -- Project
+            case 1510:   // cloud based document -- Time Card
                 entityTypeId = 0;
                 entityText1 = request.activity_timeline_url;
                 entityText2 = '';
@@ -298,18 +309,11 @@ function ActivityCommonService(db, util) {
                 entityText1 = request.activity_timeline_collection;
                 entityText2 = '';
                 break;
-            case 1302:   // add contact to a group
-                entityTypeId = 0;
-                entityText1 = request.activity_parent_prev_id;
-                entityText2 = '';
-                break;
-
             default:
                 entityTypeId = 0;
                 entityText1 = "";
                 entityText2 = "";
                 break;
-
         }
         ;
 
@@ -422,12 +426,18 @@ function ActivityCommonService(db, util) {
                 entityText1 = ""
                 entityText2 = request.activity_cover_collection;
                 break;
-            case 310:   // text message
+            case 310:   // text message     --> File
+            case 607:   // text message     --> Customer Request
+            case 1307:   // text message    --> Visitor Request
+            case 1507:   // text message    --> Time Card
                 entityTypeId = 0;
                 entityText1 = ""
                 entityText2 = request.activity_timeline_text;
                 break;
-            case 311:   // image                
+            case 311:   // image    --> file           
+            case 608:   // image    --> Customer Request          
+            case 1308:   // image    --> Visitor Request
+            case 1508:   // image   --> Time Card       
                 entityTypeId = 0;
                 entityText1 = request.activity_timeline_url;
                 entityText2 = '';
@@ -445,7 +455,12 @@ function ActivityCommonService(db, util) {
                 formId = request.form_id;
                 dataTypeId = 37;    //static for all form submissions
                 break;
-            case 314:   // cloud based document
+            case 314:   // cloud based document -- file
+            case 610:   // cloud based document -- Customer Request
+            case 709:   // cloud based document -- Form
+            case 1310:   // cloud based document -- Visitor Request
+            case 1408:   // cloud based document -- Project
+            case 1510:   // cloud based document -- Time Card
                 entityTypeId = 0;
                 entityText1 = request.activity_timeline_url;
                 entityText2 = '';
@@ -465,7 +480,6 @@ function ActivityCommonService(db, util) {
                 entityText1 = "";
                 entityText2 = "";
                 break;
-
         }
         ;
 
@@ -633,11 +647,19 @@ function ActivityCommonService(db, util) {
         });
     };
 
-    this.getActivityDetails = function (request, callback) {
-        var paramsArr = new Array(
-                request.activity_id,
-                request.organization_id
-                );
+    this.getActivityDetails = function (request, activityId, callback) {
+        var paramsArr = new Array();
+        if (Number(activityId > 0)) {
+            paramsArr = new Array(
+                    activityId,
+                    request.organization_id
+                    );
+        } else {
+            paramsArr = new Array(
+                    request.activity_id,
+                    request.organization_id
+                    );
+        }
         var queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
@@ -649,6 +671,50 @@ function ActivityCommonService(db, util) {
                 }
             });
         }
+    };
+
+    this.handlePush = function (request, assetId, callback) {
+        if (assetId === 0)
+            assetId
+        var participantParamsArr = new Array(
+                participantData.organization_id,
+                participantData.asset_id
+                );
+
+        var queryString = util.getQueryString('ds_v1_asset_list_select', participantParamsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (data.length > 0) {
+                    var assetPushArn = data[0].asset_push_arn;
+                    //console.log('from query we got ' + assetPushArn + ' as arn');
+                    this.getActivityDetails(request, function (err, activityData) {
+                        if (err === false) {
+                            var inlineData = JSON.parse(activityData[0]['activity_inline_data']);
+                            //console.log(inlineData);
+                            var pushString = {
+                                title: inlineData.sender.asset_name + ' sent a Post-It: ',
+                                description: activityData[0]['description'].substring(0, 100)
+                            };
+                            // get badge count
+                            var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_unread_task_count', participantParamsArr);
+                            if (queryString != '') {
+                                db.executeQuery(1, queryString, request, function (err, data) {
+                                    if (err === false) {
+                                        var badgeCount = util.replaceOne(data[0]['badge_count']);
+                                        sns.publish(pushString, badgeCount, assetPushArn);
+                                    }
+                                });
+                            }
+
+
+                        }
+                    });
+                } else {
+                    //nothing
+                }
+            });
+        }
+
     };
 
 }

@@ -23,7 +23,7 @@ function Util() {
             return false;
     };
 
-    this.hasValidGenericId = function (request, parameter) {        
+    this.hasValidGenericId = function (request, parameter) {
         var returnValue;
         if (request.hasOwnProperty(parameter)) {
             (this.replaceZero(request[parameter]) <= 0) ? returnValue = false : returnValue = true;
@@ -43,8 +43,6 @@ function Util() {
         } else
             return false;
     };
-
-
 
     this.sendSmsMvaayoo = function (messageString, countryCode, phoneNumber, callback) {
 //        console.log("inside sendSmsMvaayoo");
@@ -184,7 +182,6 @@ function Util() {
     };
 
     this.decodeSpecialChars = function (string) {
-
         if (typeof string === 'string') {
             string = string.replace(";sqt;", "'");
             string = htmlEntities(string);
@@ -199,6 +196,7 @@ function Util() {
         return value.replace(/\\/g, "\\\\")
                 .replace(/\$/g, "\\$")
                 .replace(/'/g, "\\'")
+                .replace(/"/g, "\\\"")
                 .replace(/"/g, "\\\"");
     };
 
@@ -234,17 +232,19 @@ function Util() {
     };
 
     this.getQueryString = function (callName, paramsArr) {
-
         var queryString = "CALL " + callName + "(";
         paramsArr.forEach(function (item, index) {
+            if (typeof item === 'string' || item instanceof String)
+                item = item.replace(/'/g, "\\'")    // escaping single quote                   
+                    .replace(/\"/g, '\\"');         // escaping \" from UI
             if (index === (paramsArr.length - 1))
                 queryString = queryString + "'" + item + "'";
             else
                 queryString = queryString + "'" + item + "',";
         }, this);
         queryString = queryString + ");";
-        //queryString.replace("'null'", "null");
         return queryString;
+
     };
 
     this.getRandomInt = function () {
@@ -309,7 +309,7 @@ function Util() {
         else
             return this.getFormatedLogDatetime(value);
     };
-    
+
     this.replaceDefaultDate = function (value) {
         if (value === undefined || value === null || value === '' || value === '1970-01-01' || value === '1970-01-01 00:00:00')
             return '1970-01-01';
@@ -464,37 +464,19 @@ function Util() {
     };
 
     this.mysqlEscapeString = function (str) {
-        if (typeof str != 'string')
-            return str;
-        str.replace("\0", "\\0");
-        str.replace("\'", "\\'");
-        str.replace('\"', '\\"');
-        console.log(str);
-        str.replace('\%', '\\%');
-        str.replace("\n", "\\n");
-        return str;
-
-
-        /*
-         return str.replace(/[\0\x08\x09\x1a\n\r"'\\\%]/g, function (char) {
-         switch (char) {
-         case "\0":
-         return "\\0";
-         case "\'":
-         return "\\'";
-         case '\"':
-         return '\\"';
-         case '\%':
-         return "\\%";
-         case "\n":
-         return "\\n";
-         default:
-         console.log('inside default while mysqlEscapeString returning the same string itself');
-         console.log(str);
-         break;
-         }
-         });
+        /*if (typeof str != 'string')
+         return str;
+         str.replace("\0", "\\0");
+         str.replace("\'", "\\'");
+         str.replace('\"', '\\"');
+         str.replace('\%', '\\%');
+         str.replace("\n", "\\n");
          */
+        str = str.replace(/\"/g, '\\"');
+        str = str.replace(/\\n/g, '\\n');
+        return str;
+        //return str.replace('\\','\\\\');
+
     }
 }
 

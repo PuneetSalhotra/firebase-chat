@@ -56,7 +56,7 @@ function ActivityListingService(objCollection) {
     this.getActivityInlineCollection = function (request, callback) {
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
-        activityCommonService.getActivityDetails(request, function (err, activityData) {
+        activityCommonService.getActivityDetails(request,0, function (err, activityData) {
             if (err === false) {
                 formatActivityInlineCollection(activityData, {}, function (err, responseData) {
                     if (err === false) {
@@ -394,7 +394,8 @@ function ActivityListingService(objCollection) {
                 "activity_priority_enabled": util.replaceZero(rowData['activity_priority_enabled']),
                 "activity_pinned_enabled": util.replaceZero(rowData['activity_pinned_enabled']),
                 "activity_flag_active": util.replaceZero(rowData['is_active']),
-                //"activity_count_update": util.replaceZero(rowData['update_count']),
+                "activity_location_latitude": util.replaceZero(rowData['activity_location_latitude']),
+                "activity_location_longitude": util.replaceZero(rowData['activity_location_longitude']),
                 "activity_status_id": util.replaceDefaultNumber(rowData['activity_status_id']),
                 "activity_status_name": util.replaceDefaultString(rowData['activity_status_name']),
                 "activity_status_type_id": util.replaceDefaultNumber(rowData['activity_status_type_id']),
@@ -426,7 +427,7 @@ function ActivityListingService(objCollection) {
                 "form_transaction_id": util.replaceZero(rowData['form_transaction_id']),
                 "operating_asset_id": util.replaceZero(rowData['operating_asset_id']),
                 "operating_asset_first_name": util.replaceDefaultString(rowData['operating_asset_first_name']),
-                "operating_asset_last_name": util.replaceDefaultString(rowData['operating_asset_last_name'])
+                "operating_asset_last_name": util.replaceDefaultString(rowData['operating_asset_last_name'])                
             };
             responseData.push(rowDataArr);
         }, this);

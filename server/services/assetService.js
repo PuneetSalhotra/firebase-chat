@@ -193,7 +193,10 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
             'account_id': util.replaceDefaultNumber(row['account_id']),
             'account_name': util.replaceDefaultString(row['account_name']),
             'organization_name': util.replaceDefaultString(row['organization_name']),
-            'organization_id': util.replaceDefaultNumber(row['organization_id'])
+            'organization_id': util.replaceDefaultNumber(row['organization_id']),
+            'asset_status_id': util.replaceDefaultNumber(row['asset_status_id']),
+            'asset_status_name': util.replaceDefaultString(row['asset_status_name'])
+
         };
 
         callback(false, rowData);
@@ -699,16 +702,17 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
 
         var queryString = util.getQueryString('ds_v1_account_list_select', paramsArr);
         if (queryString != '') {
-            db.executeQuery(1, queryString, request, function (err, data) {                
+            db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
-                    var rowData = {                        
+                    var rowData = {
                         'account_id': util.replaceDefaultNumber(data[0]['account_id']),
                         'account_name': util.replaceDefaultString(data[0]['account_name']),
                         'organization_id': util.replaceDefaultNumber(data[0]['organization_id']),
                         'organization_name': util.replaceDefaultString(data[0]['organization_name']),
                         'payroll_cycle_type_id': util.replaceDefaultNumber(data[0]['payroll_cycle_type_id']),
                         'payroll_cycle_type_name': util.replaceDefaultString(data[0]['payroll_cycle_type_name']),
-                        'payroll_cycle_start_date': util.replaceDefaultDatetime(data[0]['payroll_cycle_start_date'])
+                        'payroll_cycle_start_date': util.replaceDefaultDatetime(data[0]['payroll_cycle_start_date']),
+                        'timecard_session_time_out': util.replaceDefaultDatetime(data[0]['timecard_session_time_out'])
                     };
 
                     callback(false, rowData, 200);
@@ -719,6 +723,51 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
             });
         }
     };
+
+    var assetListUpdateStatus = function (request, callback) {
+
+        var paramsArr = new Array(
+                request.asset_id,
+                request.organization_id,
+                request.asset_type_category_id,
+                request.asset_status_id,
+                request.asset_id,
+                request.datetime_log
+                );
+
+        var queryString = util.getQueryString('ds_v1_asset_list_update_asset_status', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, assetData) {
+                if (err === false) {
+                    callback(false, true);
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, false);
+                }
+            });
+        }
+    };
+
+
+    this.alterAssetStatus = function (request, callback) {
+        var dateTimeLog = util.getCurrentUTCTime();
+        request['datetime_log'] = dateTimeLog;
+        assetListUpdateStatus(request, function (err, data) {
+            if (err === false) {
+                assetListHistoryInsert(request, request.asset_id, request.organization_id, 207, dateTimeLog, function (err, data) {
+                });
+                activityCommonService.assetTimelineTransactionInsert(request, {}, 810, function (err, data) {
+
+                });
+                callback(false,{},200);
+                return;
+            } else {
+                callback(err, {}, -9998);
+            }
+        });
+
+    };
+
 
 }
 ;

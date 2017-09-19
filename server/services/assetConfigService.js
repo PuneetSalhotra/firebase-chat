@@ -21,6 +21,10 @@ function AssetConfigService() {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
+                    data.forEach(function (rowData, index) {                        
+                        rowData.log_asset_first_name = util.replaceDefaultString(rowData.log_asset_first_name);
+                        rowData.log_asset_last_name = util.replaceDefaultString(rowData.log_asset_last_name);
+                    }, this);
                     callback(false, {data: data}, 200);
                     return;
                 } else {

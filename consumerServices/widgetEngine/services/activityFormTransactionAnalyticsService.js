@@ -30,7 +30,7 @@ IN p_organization_id BIGINT(20)"*/
             );
             var queryString = this.objCollection.util.getQueryString('ds_p1_activity_form_transaction_analytics_select_field_sum_dt', paramsArr);
             if (queryString === '') return reject();
-            this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
+            this.objCollection.db.executeQuery(1, queryString, {}, function (err, data) {
                 if (err) return reject();
                 /**total_sum */
                 return resolve(data);
@@ -62,7 +62,7 @@ IN p_workforce_id BIGINT(20), IN p_account_id BIGINT(20), IN p_organization_id B
 */
             var queryString = this.objCollection.util.getQueryString('ds_p1_activity_form_transaction_analytics_select_form_count_dt', paramsArr);
             if (queryString === '') return reject();
-            this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
+            this.objCollection.db.executeQuery(1, queryString, {}, function (err, data) {
                 if (err) return reject(err);
                 return resolve(data);
             });
@@ -81,7 +81,7 @@ IN p_form_transaction_id BIGINT(20), IN p_form_id BIGINT(20), IN p_field_id1 BIG
 "*/
             var queryString = this.objCollection.util.getQueryString('ds_p1_activity_form_transaction_analytics_select_trans_field', paramsArr);
             if (queryString === '') return reject();
-            this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
+            this.objCollection.db.executeQuery(1, queryString, {}, function (err, data) {
                 if (err) return reject(err);
                 return resolve(data);
             });
@@ -106,7 +106,7 @@ IN p_form_transaction_id BIGINT(20), IN p_form_id BIGINT(20), IN p_field_id1 BIG
       
                 var queryString = self.objCollection.util.getQueryString('ds_p1_activity_form_transaction_analytics_select_fld_choice', paramsArr);
                 if (queryString === '') return reject();
-                self.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
+                self.objCollection.db.executeQuery(1, queryString, {}, function (err, data) {
                     if(err) return reject(err);
                     rows = rows.concat(data);
                     if(data.length < limit) return resolve(rows);

@@ -115,8 +115,6 @@ function ActivityParticipantService(objectCollection) {
                                 loopAddParticipant(participantCollection, nextIndex, maxIndex);
                             }
                             if (Number(request.activity_type_category_id) === 28) {// post it, send a push notification
-                                //sns.publish();
-                                //asset_push_arn
                                 var participantParamsArr = new Array(
                                         participantData.organization_id,
                                         participantData.asset_id
@@ -128,7 +126,7 @@ function ActivityParticipantService(objectCollection) {
                                         if (data.length > 0) {
                                             var assetPushArn = data[0].asset_push_arn;
                                             //console.log('from query we got ' + assetPushArn + ' as arn');
-                                            activityCommonService.getActivityDetails(request, function (err, activityData) {
+                                            this.getActivityDetails(request, function (err, activityData) {
                                                 if (err === false) {
                                                     var inlineData = JSON.parse(activityData[0]['activity_inline_data']);
                                                     //console.log(inlineData);
@@ -155,8 +153,6 @@ function ActivityParticipantService(objectCollection) {
                                         }
                                     });
                                 }
-
-
                             }
                             callback(false, true);
                         } else {
@@ -167,6 +163,11 @@ function ActivityParticipantService(objectCollection) {
                 } else {
                     if (alreadyAssignedStatus > 0) {
                         console.log("participant already assigned");
+                        var nextIndex = index + 1;
+                        if (nextIndex <= maxIndex) {
+                            console.log("next index is: ", nextIndex);
+                            loopAddParticipant(participantCollection, nextIndex, maxIndex);
+                        }
                         callback(false, false);
                     } else {
                         callback(true, false);

@@ -12,7 +12,7 @@ var masterDbPool = mysql.createPool({
     database: global.config.database,
     debug: false
 });
-/*
+
  var slave1DbPool = mysql.createPool({
  connectionLimit: global.config.conLimit,
  host: global.config.slave1Ip,
@@ -21,8 +21,9 @@ var masterDbPool = mysql.createPool({
  database: global.config.database,
  debug: false
  });
- */
-var slave1DbPool = masterDbPool;
+ 
+//var slave1DbPool = masterDbPool;
+
 /* var slave2DbPool = mysql.createPool({
  connectionLimit: global.config.conLimit,
  host: global.config.slave2Ip,
@@ -41,9 +42,8 @@ var executeQuery = function (flag, queryString, request, callback) {
      * flag = 1 --> slave 1
      * flag = 2 --> slave 2
      */
-//    console.log("inside executeQuery class1");
+
     var conPool;
-//    console.log("inside executeQuery class");
     switch (flag) {
         case 0:
             conPool = masterDbPool;

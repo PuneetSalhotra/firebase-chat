@@ -9,6 +9,7 @@ function ActivityTimelineService(objectCollection) {
     var cacheWrapper = objectCollection.cacheWrapper;
     var activityCommonService = objectCollection.activityCommonService;
     var util = objectCollection.util;
+    //var forEachAsync = objectCollection.forEachAsync;
 
     this.addTimelineTransaction = function (request, callback) {
 
@@ -16,11 +17,11 @@ function ActivityTimelineService(objectCollection) {
         request['datetime_log'] = logDatetime;
         var activityTypeCategoryId = Number(request.activity_type_category_id);
         var activityStreamTypeId = Number(request.activity_stream_type_id);
-        
+
         if (activityTypeCategoryId === 9 && activityStreamTypeId === 705) {   // add form case
             var formDataJson = JSON.parse(request.activity_timeline_collection);
             request.form_id = formDataJson[0]['form_id'];
-            console.log('form id extracted from json is: '+formDataJson[0]['form_id']);
+            console.log('form id extracted from json is: ' + formDataJson[0]['form_id']);
             // add form entries
             addFormEntries(request, function (err, response) {
                 if (err === false) {
@@ -29,13 +30,12 @@ function ActivityTimelineService(objectCollection) {
                     //callback(true, {}, -9999);
                 }
             });
-        }
-        else{
+        } else {
             request.form_id = 0;
         }
         var isAddToTimeline = true;
         if (request.hasOwnProperty('flag_timeline_entry'))
-            isAddToTimeline = (Number(request.flag_timeline_entry)) > 0 ? true : false;        
+            isAddToTimeline = (Number(request.flag_timeline_entry)) > 0 ? true : false;
         if (isAddToTimeline) {
             activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
 
@@ -323,8 +323,8 @@ function ActivityTimelineService(objectCollection) {
     };
 
     var getFieldValue = function (rowData, callback) {
-        var fieldValue;        
-        var dataTypeId = Number(rowData['data_type_id']);        
+        var fieldValue;
+        var dataTypeId = Number(rowData['data_type_id']);
         switch (dataTypeId) {
             case 1:     //Date
             case 2:     //Future Date
@@ -419,7 +419,7 @@ function ActivityTimelineService(objectCollection) {
 
     var formatActivityTimelineList = function (data, activityTypeCategoryId, callback) {
         var responseData = new Array();
-        data.forEach(function (rowData, index) {
+        forEachAsync(data, function (next, rowData) {
             var rowDataArr = {};
             rowDataArr.activity_id = util.replaceDefaultNumber(rowData['activity_id']);
             rowDataArr.activity_type_id = util.replaceDefaultNumber(rowData['activity_type_id']);
@@ -447,7 +447,7 @@ function ActivityTimelineService(objectCollection) {
             switch (activityTypeCategoryId) {
                 case 1: //To do
 
-                    switch (rowData['streamtype_id']) {
+                    switch (rowData['timeline_stream_type_id']) {
                         case 401:
                         case 402:
                         case 403:
@@ -460,7 +460,7 @@ function ActivityTimelineService(objectCollection) {
                     ;
                     break;
                 case 2: //  notepad
-                    switch (rowData['streamtype_id']) {
+                    switch (rowData['timeline_stream_type_id']) {
                         case 501:
                         case 502:
                         case 503:
@@ -474,7 +474,7 @@ function ActivityTimelineService(objectCollection) {
                     break;
 
                 case 3: //plant // not yet defined
-                    switch (rowData['streamtype_id']) {
+                    switch (rowData['timeline_stream_type_id']) {
                         case 101:
                             rowDataArr.activity_timeline_text = '';
                             break;
@@ -490,7 +490,7 @@ function ActivityTimelineService(objectCollection) {
 
                 case 4: // employee id card
                     /*
-                     switch (rowData['streamtype_id']) {
+                     switch (rowData['timeline_stream_type_id']) {
                      case 101:
                      rowDataArr.activity_timeline_text = '';
                      break;
@@ -508,7 +508,7 @@ function ActivityTimelineService(objectCollection) {
                     break;
 
                 case 5: // coworker
-                    switch (rowData['streamtype_id']) {
+                    switch (rowData['timeline_stream_type_id']) {
                         case 101:
 
                             break;
@@ -523,7 +523,7 @@ function ActivityTimelineService(objectCollection) {
                     break;
 
                 case 6: // external contact card
-                    switch (rowData['streamtype_id']) {
+                    switch (rowData['timeline_stream_type_id']) {
                         case 101:
                             rowDataArr.activity_timeline_text = '';
                             break;
@@ -537,7 +537,7 @@ function ActivityTimelineService(objectCollection) {
                     ;
                     break;
                 case 9: // form
-                    switch (rowData['streamtype_id']) {
+                    switch (rowData['timeline_stream_type_id']) {
                         case 101:
                             rowDataArr.activity_timeline_text = '';
                             break;
@@ -550,7 +550,7 @@ function ActivityTimelineService(objectCollection) {
                     }
                     ;
                 case 10: // document
-                    switch (rowData['streamtype_id']) {
+                    switch (rowData['timeline_stream_type_id']) {
                         case 301:
                             rowDataArr.activity_timeline_text = '';
                             rowDataArr.activity_timeline_url = '';
@@ -641,8 +641,11 @@ function ActivityTimelineService(objectCollection) {
             ;
 
             responseData.push(rowDataArr);
-        }, this);
-        callback(false, responseData);
+            next();
+        }).then(function () {
+            callback(false, responseData);
+        });
+
     };
 
     var addFormEntries = function (request, callback) {
