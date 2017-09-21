@@ -12,7 +12,8 @@ function ActivityService(objectCollection) {
     var util = objectCollection.util;
     var forEachAsync = objectCollection.forEachAsync;
     var queueWrapper = objectCollection.queueWrapper;
-
+    var activityPushService = objectCollection.activityPushService;
+    
     this.addActivity = function (request, callback) {
 
         var logDatetime = util.getCurrentUTCTime();
@@ -20,7 +21,7 @@ function ActivityService(objectCollection) {
         request['datetime_log'] = logDatetime;
 
         activityListInsert(request, function (err, boolResult) {
-
+            activityCommonService.updateAssetLocation(request, function (err, data) {});
             if (err === false) {
                 var activityTypeCategroyId = Number(request.activity_type_category_id);
                 var activityStreamTypeId = 1;
@@ -359,7 +360,7 @@ function ActivityService(objectCollection) {
                 break;
         }
         paramsArr.push(request.track_latitude);
-        paramsArr.push(request.track_longitude);        
+        paramsArr.push(request.track_longitude);
         var queryString = util.getQueryString('ds_v1_activity_list_insert', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
@@ -681,6 +682,7 @@ function ActivityService(objectCollection) {
         }
 
         activityListUpdateStatus(request, function (err, data) {
+            activityCommonService.updateAssetLocation(request, function (err, data) {});
             if (err === false) {
                 assetActivityListUpdateStatus(request, activityStatusId, activityStatusTypeId, function (err, data) {
 
@@ -700,6 +702,7 @@ function ActivityService(objectCollection) {
                 activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {
 
                 });
+                activityPushService.sendPush(request, objectCollection, 0, function () {});
                 if (activityTypeCategoryId === 9 && activityStatusTypeId === 22) {   //form and submitted state                    
                     duplicateFormTransactionData(request, function (err, data) {
                         var widgetEngineQueueMessage = {

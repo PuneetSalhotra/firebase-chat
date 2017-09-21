@@ -8,6 +8,7 @@ function ActivityUpdateService(objectCollection) {
     var cacheWrapper = objectCollection.cacheWrapper;
     var activityCommonService = objectCollection.activityCommonService;
     var util = objectCollection.util;
+    var activityPushService = objectCollection.activityPushService;
 
     var activityListUpdateInline = function (request, callback) {
 
@@ -380,6 +381,7 @@ function ActivityUpdateService(objectCollection) {
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         var activityTypeCategoryId = request.activity_type_category_id;        
+        activityCommonService.updateAssetLocation(request, function (err, data) {});
         activityListUpdateInline(request, function (err, data) {
             if (err === false) {
                 assetActivityListUpdateInline(request, function (err, data) {
@@ -440,7 +442,7 @@ function ActivityUpdateService(objectCollection) {
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         var activityTypeCategoryId = request.activity_type_category_id;
-
+        activityCommonService.updateAssetLocation(request, function (err, data) {});
         activityListUpdateCover(request, function (err, data) {
             if (err === false) {
                 activityCommonService.activityListHistoryInsert(request, 403, function (err, result) {
@@ -464,6 +466,7 @@ function ActivityUpdateService(objectCollection) {
                     assetActivityListUpdateSubTaskCover(request, function (err, data) {
 
                     });
+                    activityPushService.sendPush(request, objectCollection, 0, function () {});
 
                 });
                 if (request.hasOwnProperty('device_os_id')) {
@@ -551,6 +554,7 @@ function ActivityUpdateService(objectCollection) {
                 break;
         }
         ;
+        activityCommonService.updateAssetLocation(request, function (err, data) {});
         if (activityTypeCategoryId === 6 || activityTypeCategoryId === 29) {  //altering parent for a contact card
             assetActivityListUpdateParent(request, request.asset_id, function (err, data) {
                 if (err === false) {

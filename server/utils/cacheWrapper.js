@@ -33,6 +33,25 @@ function CacheWrapper(client) {
 
         });
     };
+    
+    this.getAssetMap = function (assetId, callback) {
+        client.hget('asset_map', assetId, function (err, reply) {
+            if (err) {
+                console.log(err);
+                callback(err, false);
+            } else {
+                
+                if (typeof reply === 'string') {
+                    var collection = JSON.parse(reply);                    
+                    callback(false, collection);
+                } else {
+                    callback(false, false);
+                }
+            }
+
+        });
+    };
+
 
     this.getActivityId = function (callback) {
 

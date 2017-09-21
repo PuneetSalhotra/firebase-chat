@@ -51,7 +51,7 @@ if (mode === 'prod') {
 
     config.conLimit = 10;
 
-    config.redisIp = 'prod-rediscache.apppnf.0001.use1.cache.amazonaws.com';
+    config.redisIp = 'rediscluster1.apppnf.ng.0001.use1.cache.amazonaws.com';
     config.redisPort = 6379;
 
     //config.kafkaIP = "34.192.228.175:2181";

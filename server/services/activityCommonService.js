@@ -2,7 +2,7 @@
  * author: Sri Sai Venkatesh
  */
 
-function ActivityCommonService(db, util) {
+function ActivityCommonService(db, util, forEachAsync) {
 
     this.getAllParticipants = function (request, callback) {
         var paramsArr = new Array(
@@ -673,50 +673,32 @@ function ActivityCommonService(db, util) {
         }
     };
 
-    this.handlePush = function (request, assetId, callback) {
-        if (assetId === 0)
-            assetId
-        var participantParamsArr = new Array(
-                participantData.organization_id,
-                participantData.asset_id
+    this.updateAssetLocation = function (request, callback) {
+        var paramsArr = new Array(
+                request.organization_id,
+                request.asset_id,
+                request.track_latitude,
+                request.track_longitude,
+                request.track_gps_accuracy,
+                request.track_gps_status,
+                request.track_gps_location,
+                request.track_gps_datetime,
+                request.asset_id,
+                request.datetime_log
                 );
-
-        var queryString = util.getQueryString('ds_v1_asset_list_select', participantParamsArr);
+        var queryString = util.getQueryString('ds_v1_asset_list_update_location', paramsArr);
         if (queryString != '') {
-            db.executeQuery(1, queryString, request, function (err, data) {
-                if (data.length > 0) {
-                    var assetPushArn = data[0].asset_push_arn;
-                    //console.log('from query we got ' + assetPushArn + ' as arn');
-                    this.getActivityDetails(request, function (err, activityData) {
-                        if (err === false) {
-                            var inlineData = JSON.parse(activityData[0]['activity_inline_data']);
-                            //console.log(inlineData);
-                            var pushString = {
-                                title: inlineData.sender.asset_name + ' sent a Post-It: ',
-                                description: activityData[0]['description'].substring(0, 100)
-                            };
-                            // get badge count
-                            var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_unread_task_count', participantParamsArr);
-                            if (queryString != '') {
-                                db.executeQuery(1, queryString, request, function (err, data) {
-                                    if (err === false) {
-                                        var badgeCount = util.replaceOne(data[0]['badge_count']);
-                                        sns.publish(pushString, badgeCount, assetPushArn);
-                                    }
-                                });
-                            }
-
-
-                        }
-                    });
+            db.executeQuery(0, queryString, request, function (err, data) {
+                if (err === false) {
+                    callback(false, data);
                 } else {
-                    //nothing
+                    // some thing is wrong and have to be dealt
+                    callback(err, false);
                 }
             });
         }
-
-    };
-
+    };  
+    
 }
 ;
 

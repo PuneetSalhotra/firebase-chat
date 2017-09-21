@@ -192,14 +192,6 @@ function Util() {
 
     };
 
-    this.encodeSpecialChars = function (value) {
-        return value.replace(/\\/g, "\\\\")
-                .replace(/\$/g, "\\$")
-                .replace(/'/g, "\\'")
-                .replace(/"/g, "\\\"")
-                .replace(/"/g, "\\\"");
-    };
-
     var htmlEntities = function (str) {
         return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     };
@@ -236,7 +228,7 @@ function Util() {
         paramsArr.forEach(function (item, index) {
             if (typeof item === 'string' || item instanceof String)
                 item = item.replace(/'/g, "\\'")    // escaping single quote                   
-                    .replace(/\"/g, '\\"');         // escaping \" from UI
+                        .replace(/\"/g, '\\"');         // escaping \" from UI
             if (index === (paramsArr.length - 1))
                 queryString = queryString + "'" + item + "'";
             else
@@ -463,21 +455,10 @@ function Util() {
         return Math.floor(Math.random() * (high - low + 1) + low);
     };
 
-    this.mysqlEscapeString = function (str) {
-        /*if (typeof str != 'string')
-         return str;
-         str.replace("\0", "\\0");
-         str.replace("\'", "\\'");
-         str.replace('\"', '\\"');
-         str.replace('\%', '\\%');
-         str.replace("\n", "\\n");
-         */
-        str = str.replace(/\"/g, '\\"');
-        str = str.replace(/\\n/g, '\\n');
-        return str;
-        //return str.replace('\\','\\\\');
-
+    this.getUniqueArray = function (a) {
+        return Array.from(new Set(a));
     }
 }
+;
 
 module.exports = Util;

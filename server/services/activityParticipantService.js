@@ -9,6 +9,7 @@ function ActivityParticipantService(objectCollection) {
     var activityCommonService = objectCollection.activityCommonService;
     var util = objectCollection.util;
     var sns = objectCollection.sns;
+    var activityPushService = objectCollection.activityPushService;
 
     this.getParticipantsList = function (request, callback) {
 
@@ -110,49 +111,10 @@ function ActivityParticipantService(objectCollection) {
                     addParticipant(request, participantData, newRecordStatus, function (err, data) {
                         if (err === false) {
                             console.log("participant successfully added");
+                            activityPushService.sendPush(request, objectCollection, participantData.asset_id, function () {});
                             var nextIndex = index + 1;
                             if (nextIndex <= maxIndex) {
                                 loopAddParticipant(participantCollection, nextIndex, maxIndex);
-                            }
-                            if (Number(request.activity_type_category_id) === 28) {// post it, send a push notification
-                                var participantParamsArr = new Array(
-                                        participantData.organization_id,
-                                        participantData.asset_id
-                                        );
-
-                                var queryString = util.getQueryString('ds_v1_asset_list_select', participantParamsArr);
-                                if (queryString != '') {
-                                    db.executeQuery(1, queryString, request, function (err, data) {
-                                        if (data.length > 0) {
-                                            var assetPushArn = data[0].asset_push_arn;
-                                            //console.log('from query we got ' + assetPushArn + ' as arn');
-                                            this.getActivityDetails(request, function (err, activityData) {
-                                                if (err === false) {
-                                                    var inlineData = JSON.parse(activityData[0]['activity_inline_data']);
-                                                    //console.log(inlineData);
-                                                    var pushString = {
-                                                        title: inlineData.sender.asset_name + ' sent a Post-It: ',
-                                                        description: activityData[0]['description'].substring(0, 100)
-                                                    };
-                                                    // get badge count
-                                                    var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_unread_task_count', participantParamsArr);
-                                                    if (queryString != '') {
-                                                        db.executeQuery(1, queryString, request, function (err, data) {
-                                                            if (err === false) {
-                                                                var badgeCount = util.replaceOne(data[0]['badge_count']);
-                                                                sns.publish(pushString, badgeCount, assetPushArn);
-                                                            }
-                                                        });
-                                                    }
-
-
-                                                }
-                                            });
-                                        } else {
-                                            //nothing
-                                        }
-                                    });
-                                }
                             }
                             callback(false, true);
                         } else {
@@ -176,7 +138,7 @@ function ActivityParticipantService(objectCollection) {
             });
 
         };
-
+        activityCommonService.updateAssetLocation(request, function (err, data) {});
         var activityStreamTypeId = 2;
         if (request.hasOwnProperty('activity_type_category_id')) {
             var activityTypeCategroyId = Number(request.activity_type_category_id);
@@ -303,7 +265,7 @@ function ActivityParticipantService(objectCollection) {
                 }
             }.bind(this));
         };
-
+        activityCommonService.updateAssetLocation(request, function (err, data) {});
         var activityStreamTypeId = 3;
         if (request.hasOwnProperty('activity_type_category_id')) {
             var activityTypeCategroyId = Number(request.activity_type_category_id);
@@ -428,7 +390,7 @@ function ActivityParticipantService(objectCollection) {
                 }
             }.bind(this));
         };
-
+        activityCommonService.updateAssetLocation(request, function (err, data) {});
         var activityStreamTypeId = 3;
         if (request.hasOwnProperty('activity_type_category_id')) {
             var activityTypeCategroyId = Number(request.activity_type_category_id);

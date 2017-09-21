@@ -11,7 +11,7 @@ function AssetController(objCollection) {
     var responseWrapper = objCollection.responseWrapper;
     var app = objCollection.app;
 
-    var activityCommonService = new ActivityCommonService(objCollection.db, objCollection.util);
+    var activityCommonService = objCollection.activityCommonService;
     var assetService = new AssetService(objCollection.db, objCollection.util, objCollection.cacheWrapper, activityCommonService);
 
     app.put('/' + global.config.version + '/asset/passcode/alter', function (req, res) {

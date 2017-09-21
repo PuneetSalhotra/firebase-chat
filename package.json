@@ -13,12 +13,18 @@
   "dependencies": {
     "body-parser": "1.14.1",
     "bunyan": "1.8.1",
-    "express": "4.13.4",
+    "express": "",
     "moment": "",
     "mysql": "",
     "nodemailer": "2.4.2",
     "redis": "",
     "request": "",
-    "twilio": "2.9.1"
+    "twilio": "2.9.1",
+    "lodash": "",
+    "cors": "",
+    "kafka-node": "",
+    "forEachAsync": "",
+    "aws-sdk": "",
+    "cassandra-driver": ""
   }
 }

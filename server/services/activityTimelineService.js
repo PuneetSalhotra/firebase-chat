@@ -1,23 +1,22 @@
 /*
  * author: Sri Sai Venkatesh
  */
-'use strict';
-var forEachAsync = require('forEachAsync').forEachAsync;
+
 function ActivityTimelineService(objectCollection) {
 
     var db = objectCollection.db;
     var cacheWrapper = objectCollection.cacheWrapper;
     var activityCommonService = objectCollection.activityCommonService;
     var util = objectCollection.util;
-    //var forEachAsync = objectCollection.forEachAsync;
-
+    var forEachAsync = objectCollection.forEachAsync;
+    var activityPushService = objectCollection.activityPushService;
     this.addTimelineTransaction = function (request, callback) {
 
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         var activityTypeCategoryId = Number(request.activity_type_category_id);
         var activityStreamTypeId = Number(request.activity_stream_type_id);
-
+        activityCommonService.updateAssetLocation(request, function (err, data) {});
         if (activityTypeCategoryId === 9 && activityStreamTypeId === 705) {   // add form case
             var formDataJson = JSON.parse(request.activity_timeline_collection);
             request.form_id = formDataJson[0]['form_id'];
@@ -38,7 +37,7 @@ function ActivityTimelineService(objectCollection) {
             isAddToTimeline = (Number(request.flag_timeline_entry)) > 0 ? true : false;
         if (isAddToTimeline) {
             activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
-
+                activityPushService.sendPush(request, objectCollection, 0, function () {});
                 activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
 
                 });
@@ -70,7 +69,7 @@ function ActivityTimelineService(objectCollection) {
 
     };
     this.addTimelineComment = function (request, callback) {
-
+        activityCommonService.updateAssetLocation(request, function (err, data) {});
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         //IN p_form_transaction_id BIGINT(20), IN p_form_id BIGINT(20), IN p_field_id BIGINT(20), IN p_activity_id BIGINT(20), IN p_asset_id BIGINT(20), 
