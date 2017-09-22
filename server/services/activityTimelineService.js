@@ -1,7 +1,7 @@
 /*
  * author: Sri Sai Venkatesh
  */
-'use strict';
+
 var forEachAsync = require('forEachAsync').forEachAsync;
 function ActivityTimelineService(objectCollection) {
 
