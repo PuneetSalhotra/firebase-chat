@@ -22,7 +22,7 @@ function ActivityTimelineService(objectCollection) {
             request.form_id = formDataJson[0]['form_id'];
             console.log('form id extracted from json is: ' + formDataJson[0]['form_id']);
             // add form entries
-            addFormEntries(request, function (err, response) {
+            addFormEntries(request, function (err, approvalFieldsArr) {
                 if (err === false) {
                     //callback(false,{},200);
                 } else {
@@ -488,19 +488,6 @@ function ActivityTimelineService(objectCollection) {
                     break;
 
                 case 4: // employee id card
-                    /*
-                     switch (rowData['timeline_stream_type_id']) {
-                     case 101:
-                     rowDataArr.activity_timeline_text = '';
-                     break;
-                     case 102:
-                     rowDataArr.activity_timeline_text = '';
-                     break;
-                     case 103:
-                     rowDataArr.activity_timeline_text = '';
-                     break;
-                     };
-                     */
                     rowDataArr.activity_timeline_text = '';
                     rowDataArr.activity_timeline_url = '';
                     rowDataArr.activity_timeline_collection = {};
@@ -508,14 +495,19 @@ function ActivityTimelineService(objectCollection) {
 
                 case 5: // coworker
                     switch (rowData['timeline_stream_type_id']) {
-                        case 101:
-
+                        case 201:
                             break;
-                        case 102:
-
+                        case 202:
                             break;
-                        case 103:
+                        case 203:
                             rowDataArr.activity_timeline_text = '';
+                            rowDataArr.activity_timeline_url = '';
+                            rowDataArr.activity_timeline_collection = {};
+                            break;
+                        case 206:
+                            rowDataArr.activity_timeline_text = '';
+                            rowDataArr.activity_timeline_url = '';
+                            rowDataArr.activity_timeline_collection = {};
                             break;
                     }
                     ;
@@ -551,45 +543,13 @@ function ActivityTimelineService(objectCollection) {
                 case 10: // document
                     switch (rowData['timeline_stream_type_id']) {
                         case 301:
-                            rowDataArr.activity_timeline_text = '';
-                            rowDataArr.activity_timeline_url = '';
-                            rowDataArr.activity_timeline_collection = {};
-                            break;
                         case 302:
-                            rowDataArr.activity_timeline_text = '';
-                            rowDataArr.activity_timeline_url = '';
-                            rowDataArr.activity_timeline_collection = {};
-                            break;
                         case 303:
-                            rowDataArr.activity_timeline_text = '';
-                            rowDataArr.activity_timeline_url = '';
-                            rowDataArr.activity_timeline_collection = {};
-                            break;
                         case 304:
-                            rowDataArr.activity_timeline_text = '';
-                            rowDataArr.activity_timeline_url = '';
-                            rowDataArr.activity_timeline_collection = {};
-                            break;
                         case 305:
-                            rowDataArr.activity_timeline_text = '';
-                            rowDataArr.activity_timeline_url = '';
-                            rowDataArr.activity_timeline_collection = {};
-                            break;
                         case 306:
-                            rowDataArr.activity_timeline_text = '';
-                            rowDataArr.activity_timeline_url = '';
-                            rowDataArr.activity_timeline_collection = {};
-                            break;
                         case 307:
-                            rowDataArr.activity_timeline_text = '';
-                            rowDataArr.activity_timeline_url = '';
-                            rowDataArr.activity_timeline_collection = {};
-                            break;
                         case 308:
-                            rowDataArr.activity_timeline_text = '';
-                            rowDataArr.activity_timeline_url = '';
-                            rowDataArr.activity_timeline_collection = {};
-                            break;
                         case 309:
                             rowDataArr.activity_timeline_text = '';
                             rowDataArr.activity_timeline_url = '';
@@ -648,10 +608,9 @@ function ActivityTimelineService(objectCollection) {
     };
 
     var addFormEntries = function (request, callback) {
-
         var formDataJson = JSON.parse(request.activity_timeline_collection);
-
-        formDataJson.forEach(function (row, index) {
+        var approvalFields = new Array();
+        forEachAsync(formDataJson, function (next, row) {
             if (row.hasOwnProperty('data_type_combo_id')) {
                 var datatypeComboId = row.data_type_combo_id;
             } else
@@ -748,8 +707,14 @@ function ActivityTimelineService(objectCollection) {
                     break;
                 case 27:    //General Signature with asset reference
                 case 28:    //General Picnature with asset reference
+                    var signatureData = row.field_value.split('|');
+                    params[17] = signatureData[0];  //image path
+                    params[12] = signatureData[1];  // asset reference
+                    params[11] = signatureData[1];  // accepted /rejected flag
+                    break;
                 case 29:    //Coworker Signature with asset reference
                 case 30:    //Coworker Picnature with asset reference
+                    approvalFields.push(row.field_id);
                     var signatureData = row.field_value.split('|');
                     params[17] = signatureData[0];  //image path
                     params[12] = signatureData[1];  // asset reference
@@ -794,9 +759,9 @@ function ActivityTimelineService(objectCollection) {
             params.push(request.datetime_log);                                  // IN p_log_datetime DATETIME
 
             var queryString = util.getQueryString('ds_v1_activity_form_transaction_insert', params);
-
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
+                    next();
                     if (err === false) {
                         //success
                     } else {
@@ -806,8 +771,10 @@ function ActivityTimelineService(objectCollection) {
             } else {
                 //callback(false, {}, -3303);
             }
-        }, this);
-        callback(false, true);
+
+        }).then(function () {
+            callback(false, approvalFields);
+        });
     };
 
 

@@ -78,8 +78,7 @@ var Consumer = function (partitionId) {
                     serviceObjectCollection[serviceName][method](messageJson['payload'], function (err, data) {
                         console.log(data);
                         console.log(err);
-                    });
-
+                    });                    
                 }
             } catch (exception) {
                 console.log(exception);

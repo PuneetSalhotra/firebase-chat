@@ -703,7 +703,7 @@ function ActivityService(objectCollection) {
 
                 });
                 activityPushService.sendPush(request, objectCollection, 0, function () {});
-                if (activityTypeCategoryId === 9 && activityStatusTypeId === 22) {   //form and submitted state                    
+                if (activityTypeCategoryId === 9 && activityStatusTypeId === 23) {   //form and submitted state                    
                     duplicateFormTransactionData(request, function (err, data) {
                         var widgetEngineQueueMessage = {
                             form_id: data.formId,

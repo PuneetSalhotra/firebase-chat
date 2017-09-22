@@ -228,11 +228,6 @@ function ActivityController(objCollection) {
             return;
         }
 
-
-
-
-
-
     });
 
 }

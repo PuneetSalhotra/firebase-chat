@@ -110,8 +110,7 @@ function ActivityParticipantService(objectCollection) {
                     //proceed and add a participant
                     addParticipant(request, participantData, newRecordStatus, function (err, data) {
                         if (err === false) {
-                            console.log("participant successfully added");
-                            activityPushService.sendPush(request, objectCollection, participantData.asset_id, function () {});
+                            console.log("participant successfully added");                            
                             var nextIndex = index + 1;
                             if (nextIndex <= maxIndex) {
                                 loopAddParticipant(participantCollection, nextIndex, maxIndex);
@@ -481,6 +480,7 @@ function ActivityParticipantService(objectCollection) {
         if (newRecordStatus) {
             activityAssetMappingInsertParticipantAssign(request, participantData, function (err, data) {
                 if (err === false) {
+                    activityPushService.sendPush(request, objectCollection, participantData.asset_id, function () {});
                     activityCommonService.assetTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
 
                     });
@@ -504,6 +504,7 @@ function ActivityParticipantService(objectCollection) {
             console.log('re-assigining to the archived row');
             activityAssetMappingUpdateParticipantReAssign(request, participantData, function (err, data) {
                 if (err === false) {
+                    activityPushService.sendPush(request, objectCollection, participantData.asset_id, function () {});
                     activityCommonService.assetActivityListHistoryInsert(request, participantData.asset_id, 502, function (err, restult) {
                         if (err === false) {
                             activityCommonService.assetTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {

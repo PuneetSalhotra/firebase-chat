@@ -27,8 +27,6 @@ var ControlInterceptor = require('./server/interceptors/controlInterceptor');
 var kafka = require('kafka-node');
 var KafkaProducer = kafka.Producer;
 var kafkaClient = new kafka.Client(global.config.kafkaIP);
-
-
 var redis = require('redis');   //using elasticache as redis
 var redisClient = redis.createClient(global.config.redisPort, global.config.redisIp);
 var CacheWrapper = require('./server/utils/cacheWrapper');
