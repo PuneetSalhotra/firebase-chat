@@ -66,7 +66,6 @@ var executeQuery = function (flag, queryString, request, callback) {
                 callback(err, false);
                 return;
             } else {
-
                 conn.query(queryString, function (err, rows, fields) {
                     if (!err) {                        
                         //global.logger.write(queryString, request, 'trace');

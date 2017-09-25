@@ -13,7 +13,6 @@ config.whitelist = ['http://mydesk.desker.co', 'https://mydesk.desker.co', 'http
 
 var mode = 'dev';
 
-
 if (mode === 'dev') {
     config.masterIp = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
     config.slave1Ip = 'readreplica1.citeodhwc7z9.us-east-1.rds.amazonaws.com';
@@ -53,9 +52,8 @@ if (mode === 'prod') {
 
     config.redisIp = 'rediscluster1.apppnf.ng.0001.use1.cache.amazonaws.com';
     config.redisPort = 6379;
-
-    //config.kafkaIP = "34.192.228.175:2181";
-    config.kafkaIP = 'localhost:2181';
+    
+    config.kafkaIP = '192.168.7.53:2181';
     config.kafkaActivitiesTopic = 'desker-activities';    
     config.kafkaFormWidgetTopic = 'desker-form-widgets';    
     

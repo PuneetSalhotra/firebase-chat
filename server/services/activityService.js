@@ -2,8 +2,6 @@
  * author: Sri Sai Venkatesh
  */
 
-//var forEachAsync = require('forEachAsync').forEachAsync;
-
 function ActivityService(objectCollection) {
 
     var db = objectCollection.db;

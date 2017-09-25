@@ -59,6 +59,7 @@ function ActivityParticipantService(objectCollection) {
                 'asset_type_id': util.replaceDefaultNumber(rowData['asset_type_id']),
                 'asset_type_name': util.replaceDefaultString(rowData['asset_type_name']),
                 'asset_type_category_id': util.replaceDefaultNumber(rowData['asset_type_category_id']),
+                'field_id': util.replaceDefaultNumber(rowData['field_id']),
                 'asset_type_category_name': util.replaceDefaultString(rowData['asset_type_category_name']),
                 'asset_image_path': (util.replaceDefaultString(rowData['asset_image_path']) !== ''),
                 'asset_phone_number': util.replaceDefaultString(rowData['asset_phone_number']),
