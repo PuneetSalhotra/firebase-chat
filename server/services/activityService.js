@@ -1,5 +1,5 @@
 /* 
- * author: Sri Sai Venkatesh may 2017
+ * author: Sri Sai Venkatesh
  */
 
 function ActivityService(objectCollection) {
@@ -75,6 +75,23 @@ function ActivityService(objectCollection) {
                     case 30:    //contact group
                         activityStreamTypeId = 1301;
                         break;
+                    //Added by Nani Kalyan
+                    case 31:    //Calendar Event
+                        activityStreamTypeId = 501;
+                        break;
+                    //Added by Nani Kalyan
+                    case 32:    //Customer Request
+                        activityStreamTypeId = 601;
+                        break;
+                    //Added by Nani Kalyan
+                    case 33:    //Visitor Request
+                        activityStreamTypeId = 1301;
+                        break;
+                    //Added by Nani Kalyan
+                    case 34:    //Time Card
+                        activityStreamTypeId = 1501;
+                        break;
+                    /////////////////////////////////
                     default:
                         activityStreamTypeId = 1;   //by default so that we know
                         console.log('adding streamtype id 1');
@@ -421,8 +438,6 @@ function ActivityService(objectCollection) {
                 }
             });
         }
-
-
     };
 
     /*var checkActivityStatusChangeEligibility = function (request, calback) {
@@ -628,13 +643,13 @@ function ActivityService(objectCollection) {
         var activityTypeCategoryId = Number(request.activity_type_category_id);
 
         if (request.hasOwnProperty('activity_type_category_id')) {
-            var activityTypeCategroyId = Number(request.activity_type_category_id);
+            var activityTypeCategroyId = Number(request.activity_type_category_id);            
             switch (activityTypeCategroyId) {
                 case 1: // to-do 
                     activityStreamTypeId = 404;
                     break;
                 case 2: // notepad 
-                    activityStreamTypeId = 504;
+                    //activityStreamTypeId = 504;
                     break;
                 case 3: //plant
                     break;
@@ -647,6 +662,11 @@ function ActivityService(objectCollection) {
                 case 6: //  External Contact Card - Customer
                     activityStreamTypeId = 1108;
                     break;
+                //Added by Nani Kalyan
+                case 8: //Mail 
+                    activityStreamTypeId = 1702; 
+                    break;
+                ////////////////////////////////
                 case 9: //form
                     activityStreamTypeId = 704;
                     break;
@@ -657,8 +677,10 @@ function ActivityService(objectCollection) {
                     activityStreamTypeId = 1402;
                     break;
                 case 14:    //voice call
+                    activityStreamTypeId = 802; //Added by Nani Kalyan
                     break;
                 case 15:    //video conference
+                    activityStreamTypeId = 1602; //Added by Nani Kalyan
                     break;
                 case 28:    // post-it
                     activityStreamTypeId = 903;
@@ -669,13 +691,28 @@ function ActivityService(objectCollection) {
                 case 30:    //contact group
                     activityStreamTypeId = 11;  // non existent now 
                     break;
+                //Added by Nani Kalyan
+                case 31: //Calendar Event 
+                    activityStreamTypeId = 502; 
+                    break;
+                //Added by Nani Kalyan
+                case 32: //Customer Request
+                    activityStreamTypeId = 502; 
+                    break;
+                //Added by Nani Kalyan
+                case 33: //Visitor Request 
+                    activityStreamTypeId = 1302; 
+                    break;
+                //Added by Nani Kalyan
+                case 34: //Time Card 
+                    activityStreamTypeId = 1502; 
+                    break;
                 default:
                     activityStreamTypeId = 11;   //by default so that we know
                     console.log('adding streamtype id 11');
                     break;
 
-            }
-            ;
+            };
             request.activity_stream_type_id = activityStreamTypeId;
         }
 

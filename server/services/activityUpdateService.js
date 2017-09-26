@@ -380,17 +380,36 @@ function ActivityUpdateService(objectCollection) {
 
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
-        var activityTypeCategoryId = request.activity_type_category_id;        
+        var activityTypeCategoryId = Number(request.activity_type_category_id);        
         activityCommonService.updateAssetLocation(request, function (err, data) {});
         activityListUpdateInline(request, function (err, data) {
             if (err === false) {
                 assetActivityListUpdateInline(request, function (err, data) {
                     if (err === false) {
-                        activityCommonService.assetTimelineTransactionInsert(request, {}, 4, function (err, data) {
+                        //Switch - Case Added by Nani Kalyan
+                        switch(activityTypeCategoryId) {
+                            case 8: // Mail
+                                activityStreamTypeId = 1705;
+                                break;
+                            case 15: //Video Conference
+                                activityStreamTypeId = 1607;
+                                break;
+                            case 28: //Post it
+                                activityStreamTypeId = 904;
+                                break;
+                            case 31: //Calendar Event
+                                activityStreamTypeId = 507;
+                                break;
+                            default:
+                                activityStreamTypeId = 1705;   //by default so that we know
+                                console.log('adding streamtype id 1705');
+                                break;
+                        }
+                        
+                        activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
 
                         });
-
-                        activityCommonService.activityTimelineTransactionInsert(request, {}, 4, function (err, data) {
+                        activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
 
                         });
                         if (request.hasOwnProperty('device_os_id')) {
@@ -449,11 +468,42 @@ function ActivityUpdateService(objectCollection) {
 
                 });
                 assetActivityListUpdateCover(request, function (err, data) {
-                    activityCommonService.assetTimelineTransactionInsert(request, {}, 309, function (err, data) {
+                    //Switch-CASE Added by Nani Kalyan
+                    switch (activityTypeCategoryId) {
+                        case 10: //File
+                            activityStreamTypeId = 309;
+                            break;
+                        case 11: //Project
+                            activityStreamTypeId = 1406;
+                            break;
+                        case 14: //Voice Call
+                            activityStreamTypeId = 806;
+                            break;
+                        case 15: //Video Conference
+                            activityStreamTypeId = 1606;
+                            break;
+                        case 31: //Calendar Event
+                            activityStreamTypeId = 503;
+                            break;
+                        case 32: //Customer Request
+                            activityStreamTypeId = 606;
+                            break;
+                        case 33: //Visitor Request
+                            activityStreamTypeId = 1306;
+                            break;
+                        case 34: //Time Card
+                            activityStreamTypeId = 1506;
+                            break;
+                        default:
+                            activityStreamTypeId = 1506;   //by default so that we know
+                            console.log('adding streamtype id 1506');
+                            break;
+                        }
+
+                    activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
 
                     });
-                    activityCommonService.activityTimelineTransactionInsert(request, {}, 309, function (err, data) {
-
+                    activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
                     });
                     //updating log differential datetime for only this asset
                     activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) {

@@ -76,7 +76,7 @@ function ActivityParticipantService(objectCollection) {
         callback(false, responseData);
     };
 
-    this.assignCoworker = function (request, callback) {
+    this.assignCoworker = function (request, callback) { //Addparticipant Request
 
         var loopAddParticipant = function (participantCollection, index, maxIndex) {
             iterateAddParticipant(participantCollection, index, maxIndex, function (err, data) {
@@ -139,7 +139,7 @@ function ActivityParticipantService(objectCollection) {
 
         };
         activityCommonService.updateAssetLocation(request, function (err, data) {});
-        var activityStreamTypeId = 2;
+        var activityStreamTypeId = 2; //Older 2:added participant
         if (request.hasOwnProperty('activity_type_category_id')) {
             var activityTypeCategroyId = Number(request.activity_type_category_id);
             switch (activityTypeCategroyId) {
@@ -157,6 +157,11 @@ function ActivityParticipantService(objectCollection) {
                 case 6: //  External Contact Card - Customer
                     activityStreamTypeId = 1106;
                     break;
+                //Added by Nani Kalyan
+                case 8:    //Mail
+                    activityStreamTypeId = 1703;
+                    break;    
+                //////////////////////////////
                 case 9: //form
                     activityStreamTypeId = 702;
                     break;
@@ -167,8 +172,10 @@ function ActivityParticipantService(objectCollection) {
                     activityStreamTypeId = 1403;
                     break;
                 case 14:    //voice call
+                    activityStreamTypeId = 803; //Added by Nani kalyan
                     break;
                 case 15:    //video conference
+                    activityStreamTypeId = 1603; //Added by Nani kalyan
                     break;
                 case 28:    // post-it
                     activityStreamTypeId = 902;
@@ -179,6 +186,23 @@ function ActivityParticipantService(objectCollection) {
                 case 30:    //contact group
                     activityStreamTypeId = 1301;
                     break;
+                //Added by Nani Kalyan
+                case 31:    //Calendar Event
+                    activityStreamTypeId = 504;
+                    break;
+                //Added by Nani Kalyan
+                case 32:    //Customer Request
+                    activityStreamTypeId = 603;
+                    break;
+                //Added by Nani Kalyan
+                case 33:    //Visitor Request
+                    activityStreamTypeId = 1303;
+                    break;
+                //Added by Nani Kalyan
+                case 34:    //Time Card
+                    activityStreamTypeId = 1503;
+                    break;
+                //////////////////////////////////
                 default:
                     activityStreamTypeId = 2;   //by default so that we know
                     console.log('adding streamtype id 2');
@@ -284,6 +308,11 @@ function ActivityParticipantService(objectCollection) {
                 case 6: //  External Contact Card - Customer
                     activityStreamTypeId = 1109;
                     break;
+                //Added by Nani Kalyan
+                case 8:    //Mail
+                    activityStreamTypeId = 1704;
+                    break;
+                ////////////////////////////////
                 case 9: //form
                     activityStreamTypeId = 707;
                     break;
@@ -294,8 +323,10 @@ function ActivityParticipantService(objectCollection) {
                     activityStreamTypeId = 1405;
                     break;
                 case 14:    //voice call
+                    activityStreamTypeId = 805; //Added by Nani Kalyan
                     break;
                 case 15:    //video conference
+                    activityStreamTypeId = 1605; //Added by Nani Kalyan
                     break;
                 case 28:    // post-it
                     activityStreamTypeId = 906;
@@ -306,6 +337,23 @@ function ActivityParticipantService(objectCollection) {
                 case 30:    //contact group
                     activityStreamTypeId = 1301;
                     break;
+                //Added by Nani Kalyan
+                case 31:    //Calendar Event
+                    activityStreamTypeId = 506;
+                    break;
+                //Added by Nani Kalyan
+                case 32:    //Customer Request
+                    activityStreamTypeId = 605;
+                    break;
+                //Added by Nani Kalyan
+                case 33:    //Visitor Request
+                    activityStreamTypeId = 1305;
+                    break;
+                //Added by Nani Kalyan
+                case 34:    //Time Card
+                    activityStreamTypeId = 1505;
+                    break;
+                ////////////////////////////////////////
                 default:
                     activityStreamTypeId = 3;   //by default so that we know
                     console.log('adding streamtype id 3');
@@ -419,11 +467,14 @@ function ActivityParticipantService(objectCollection) {
                     activityStreamTypeId = 1404;
                     break;
                 case 14:    //voice call
+                    activityStreamTypeId = 804; //Added by Nani Kalyan
                     break;
                 case 15:    //video conference
+                    activityStreamTypeId = 1604; //Added by Nani Kalyan
                     break;
                 case 28:    // post-it
-                    activityStreamTypeId = 4;   // adding a default value
+                    //activityStreamTypeId = 4;   // adding a default value
+                    activityStreamTypeId = 905; //Added by Nani Kalyan
                     break;
                 case 29:    // External Contact Card - Supplier
                     activityStreamTypeId = 4;   // adding a default value
@@ -431,6 +482,23 @@ function ActivityParticipantService(objectCollection) {
                 case 30:    //contact group
                     activityStreamTypeId = 4;   // adding a default value
                     break;
+                //Added by Nani Kalyan
+                case 31:    //Calendar Event
+                    activityStreamTypeId = 505;
+                    break;
+                //Added by Nani Kalyan
+                case 32:    //Customer Request
+                    activityStreamTypeId = 604;
+                    break;
+                //Added by Nani Kalyan
+                case 33:    //Visitor Request
+                    activityStreamTypeId = 1304;
+                    break;
+                //Added by Nani Kalyan
+                case 34:    //Visitor Request
+                    activityStreamTypeId = 1504;
+                    break;
+                /////////////////////////////////
                 default:
                     activityStreamTypeId = 4;   //by default so that we know
                     console.log('adding streamtype id 4');
