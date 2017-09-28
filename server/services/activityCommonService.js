@@ -648,7 +648,7 @@ function ActivityCommonService(db, util, forEachAsync) {
     };
 
     this.getActivityDetails = function (request, activityId, callback) {
-        var paramsArr = new Array();
+        var paramsArr ;
         if (Number(activityId > 0)) {
             paramsArr = new Array(
                     activityId,

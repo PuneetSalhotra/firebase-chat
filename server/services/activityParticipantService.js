@@ -126,8 +126,7 @@ function ActivityParticipantService(objectCollection) {
                     if (alreadyAssignedStatus > 0) {
                         console.log("participant already assigned");
                         var nextIndex = index + 1;
-                        if (nextIndex <= maxIndex) {
-                            console.log("next index is: ", nextIndex);
+                        if (nextIndex <= maxIndex) {                            
                             loopAddParticipant(participantCollection, nextIndex, maxIndex);
                         }
                         callback(false, false);

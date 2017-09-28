@@ -445,7 +445,6 @@ function ActivityTimelineService(objectCollection) {
 
             switch (activityTypeCategoryId) {
                 case 1: //To do
-
                     switch (rowData['timeline_stream_type_id']) {
                         case 401:
                         case 402:

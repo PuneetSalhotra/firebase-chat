@@ -67,7 +67,8 @@ if (mode === 'prod') {
 
 config.platformApplicationIosDev = 'arn:aws:sns:us-east-1:430506864995:app/APNS_SANDBOX/deskerIOS';
 config.platformApplicationIosProd = "AC66cabb9ae7db92bbf7e6113ff2eeabad";
-config.platformApplicationAndroid = "arn:aws:sns:us-east-1:430506864995:app/GCM/deskerAndroid";
+config.platformApplicationAndroid = "arn:aws:sns:us-east-1:430506864995:app/GCM/DeskerCoAndroid";
+//config.platformApplicationAndroid = "arn:aws:sns:us-east-1:430506864995:app/GCM/deskerAndroid";
 config.platformApplicationWindows = 'arn:aws:sns:us-east-1:430506864995:app/WNS/deskerWindows';
 config.twilioAccountSid = "AC66cabb9ae7db92bbf7e6113ff2eeabad";
 config.twilioAuthToken = "7d4f9ee9f8122d2a7129e13fdaefd919";

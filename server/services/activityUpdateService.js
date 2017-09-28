@@ -205,17 +205,12 @@ function ActivityUpdateService(objectCollection) {
     };
 
     var assetActivityListUpdateCover = function (request, callback) {
-
         var paramsArr = new Array();
         var queryString = '';
         var coverJson = JSON.parse(request.activity_cover_data);
-
         activityCommonService.getAllParticipants(request, function (err, participantsData) {
-
             if (err === false && participantsData.length > 0) {
-
                 participantsData.forEach(function (rowData, index) {
-
                     paramsArr = new Array(
                             request.activity_id,
                             rowData.asset_id,
@@ -227,7 +222,6 @@ function ActivityUpdateService(objectCollection) {
                             request.datetime_log
                             );
                     queryString = util.getQueryString('ds_v1_activity_asset_mapping_update', paramsArr);
-
                     if (queryString != '') {
                         db.executeQuery(0, queryString, request, function (err, data) {
                             if (err === false) {
@@ -238,8 +232,6 @@ function ActivityUpdateService(objectCollection) {
                             }
                         });
                     }
-
-
                 }, this);
                 callback(false, true);
             } else {
@@ -249,24 +241,20 @@ function ActivityUpdateService(objectCollection) {
     };
     //assetActivityListUpdateSubTaskCover
     var assetActivityListUpdateSubTaskCover = function (request, callback) {
-
         var paramsArr = new Array();
         var queryString = '';
         var coverJson = JSON.parse(request.activity_cover_data);
-
         paramsArr = new Array(
                 request.activity_id,
                 request.organization_id,
-                0, 100
+                0, 50
                 );
-
         queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_sub_tasks', paramsArr);
-
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false && data.length > 0) {
+                    console.log(data);
                     data.forEach(function (rowData, index) {
-
                         paramsArr = new Array(
                                 data.activity_id,
                                 rowData.asset_id,
@@ -279,7 +267,7 @@ function ActivityUpdateService(objectCollection) {
                                 request.datetime_log
                                 );
                         queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_parent', paramsArr);
-
+                        queryString = '';
                         if (queryString != '') {
                             db.executeQuery(0, queryString, request, function (err, data) {
                                 if (err === false) {
@@ -290,8 +278,6 @@ function ActivityUpdateService(objectCollection) {
                                 }
                             });
                         }
-
-
                     }, this);
                 } else {
                     // some thing is wrong and have to be dealt
@@ -299,11 +285,7 @@ function ActivityUpdateService(objectCollection) {
                 }
             });
         }
-
-
         callback(false, true);
-
-
     };
 
     var assetActivityListUpdateInline = function (request, callback) {
@@ -380,14 +362,14 @@ function ActivityUpdateService(objectCollection) {
 
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
-        var activityTypeCategoryId = Number(request.activity_type_category_id);        
+        var activityTypeCategoryId = Number(request.activity_type_category_id);
         activityCommonService.updateAssetLocation(request, function (err, data) {});
         activityListUpdateInline(request, function (err, data) {
             if (err === false) {
                 assetActivityListUpdateInline(request, function (err, data) {
                     if (err === false) {
                         //Switch - Case Added by Nani Kalyan
-                        switch(activityTypeCategoryId) {
+                        switch (activityTypeCategoryId) {
                             case 8: // Mail
                                 activityStreamTypeId = 1705;
                                 break;
@@ -405,7 +387,7 @@ function ActivityUpdateService(objectCollection) {
                                 console.log('adding streamtype id 1705');
                                 break;
                         }
-                        
+
                         activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
 
                         });
@@ -464,9 +446,7 @@ function ActivityUpdateService(objectCollection) {
         activityCommonService.updateAssetLocation(request, function (err, data) {});
         activityListUpdateCover(request, function (err, data) {
             if (err === false) {
-                activityCommonService.activityListHistoryInsert(request, 403, function (err, result) {
-
-                });
+                activityCommonService.activityListHistoryInsert(request, 403, function (err, result) {});
                 assetActivityListUpdateCover(request, function (err, data) {
                     //Switch-CASE Added by Nani Kalyan
                     switch (activityTypeCategoryId) {
@@ -498,12 +478,16 @@ function ActivityUpdateService(objectCollection) {
                             activityStreamTypeId = 1506;   //by default so that we know
                             console.log('adding streamtype id 1506');
                             break;
-                        }
+                    }
+                    ;
 
+                    //activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) { });
+                    //activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) { });
                     activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
 
                     });
                     activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
+
                     });
                     //updating log differential datetime for only this asset
                     activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) {
@@ -513,9 +497,7 @@ function ActivityUpdateService(objectCollection) {
                     activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {
 
                     });
-                    assetActivityListUpdateSubTaskCover(request, function (err, data) {
-
-                    });
+                    //assetActivityListUpdateSubTaskCover(request, function (err, data) {}); facing some issues here, handle post alpha
                     activityPushService.sendPush(request, objectCollection, 0, function () {});
 
                 });
