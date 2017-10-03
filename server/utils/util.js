@@ -228,7 +228,8 @@ function Util() {
         paramsArr.forEach(function (item, index) {
             if (typeof item === 'string' || item instanceof String)
                 item = item.replace(/'/g, "\\'")    // escaping single quote                   
-                        .replace(/\"/g, '\\"');         // escaping \" from UI
+                        .replace(/\"/g, '\\"')         // escaping \" from UI
+                        .replace(/\n/g, '\\n');
             if (index === (paramsArr.length - 1))
                 queryString = queryString + "'" + item + "'";
             else
@@ -284,6 +285,13 @@ function Util() {
     this.replaceOne = function (value) {
         if (value === undefined || value === null || value === '' || value === 0 || value === '0')
             return Number(1);
+        else
+            return Number(value);
+    };
+
+    this.replaceQueryLimit = function (value) {
+        if (isNaN(Number(value)) === true || Number(value) === 0 || Number(value) > 50)
+            return 50;
         else
             return Number(value);
     };

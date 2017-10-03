@@ -20,7 +20,7 @@ function ActivityListingService(objCollection) {
                     request.activity_type_category_id,
                     request.datetime_differential,
                     request.page_start,
-                    request.page_limit
+                    util.replaceQueryLimit(request.page_limit)
                     );
             queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_asset_category', paramsArr);
         } else {
@@ -29,7 +29,7 @@ function ActivityListingService(objCollection) {
                     request.asset_id,
                     request.datetime_differential,
                     request.page_start,
-                    request.page_limit
+                    util.replaceQueryLimit(request.page_limit)
                     );
             queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_asset_differential', paramsArr);
         }
@@ -56,6 +56,7 @@ function ActivityListingService(objCollection) {
     this.getActivityInlineCollection = function (request, callback) {
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
+        activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
         activityCommonService.getActivityDetails(request,0, function (err, activityData) {
             if (err === false) {
                 formatActivityInlineCollection(activityData, {}, function (err, responseData) {
@@ -65,7 +66,7 @@ function ActivityListingService(objCollection) {
                         callback(false, {}, -9999)
                     }
                 });
-                activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
+                
                 return;
             } else {
                 // some thing is wrong and have to be dealt
@@ -78,6 +79,7 @@ function ActivityListingService(objCollection) {
     this.getActivityCoverCollection = function (request, callback) {
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
+        activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
         var paramsArr = new Array(
                 request.activity_id,
                 request.asset_id,
@@ -98,8 +100,7 @@ function ActivityListingService(objCollection) {
                         } else {
                             callback(false, {}, -9999)
                         }
-                    });
-                    activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
+                    });                    
                     return;
                 } else {
                     // some thing is wrong and have to be dealt
@@ -121,7 +122,7 @@ function ActivityListingService(objCollection) {
                 request.workforce_id,
                 request.datetime_differential,
                 request.page_start,
-                request.page_limit
+                util.replaceQueryLimit(request.page_limit)
                 );
         var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_category_coworker', paramsArr);
         if (queryString != '') {
@@ -152,7 +153,7 @@ function ActivityListingService(objCollection) {
                 request.workforce_id,
                 request.contact_search_string,
                 request.page_start,
-                request.page_limit
+                util.replaceQueryLimit(request.page_limit)
                 );
 
         var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_search_category_coworker', paramsArr);
@@ -196,7 +197,7 @@ function ActivityListingService(objCollection) {
                 request.activity_type_category_id,
                 request.search_string,
                 request.page_start,
-                request.page_limit
+                util.replaceQueryLimit(request.page_limit)
                 );
         var queryString = '';
         switch (Number(request.activity_type_category_id)) {
@@ -239,7 +240,7 @@ function ActivityListingService(objCollection) {
                 request.workforce_id,
                 request.contact_search_string,
                 request.page_start,
-                request.page_limit
+                util.replaceQueryLimit(request.page_limit)
                 );
 
         var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_search_category_contact', paramsArr);
@@ -271,7 +272,7 @@ function ActivityListingService(objCollection) {
                 5,
                 request.contact_search_string,
                 request.page_start,
-                request.page_limit
+                util.replaceQueryLimit(request.page_limit)
                 );
         var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_search_category_inline', paramsArr);
         if (queryString != '') {

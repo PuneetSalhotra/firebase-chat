@@ -12,7 +12,7 @@ function FormConfigService(db, util) {
                 request.organization_id,                
                 request.datetime_differential,
                 request.page_start,
-                request.page_limit
+                util.replaceQueryLimit(request.page_limit)
                 );
         queryString = util.getQueryString('ds_v1_workforce_form_field_mapping_select_level_organization', paramsArr);
         if (queryString != '') {
@@ -47,7 +47,7 @@ function FormConfigService(db, util) {
                 request.account_id,                
                 request.datetime_differential,
                 request.page_start,
-                request.page_limit
+                util.replaceQueryLimit(request.page_limit)
                 );
         queryString = util.getQueryString('ds_v1_workforce_form_field_mapping_select_level_account', paramsArr);
         if (queryString != '') {
@@ -83,7 +83,7 @@ function FormConfigService(db, util) {
                 request.workforce_id,                
                 request.datetime_differential,
                 request.page_start,
-                request.page_limit
+                util.replaceQueryLimit(request.page_limit)
                 );
         queryString = util.getQueryString('ds_v1_workforce_form_field_mapping_select_level_workforce', paramsArr);
         if (queryString != '') {
@@ -120,7 +120,7 @@ function FormConfigService(db, util) {
                 request.activity_id,                
                 request.datetime_differential,
                 request.page_start,
-                request.page_limit
+                util.replaceQueryLimit(request.page_limit)
                 );
         queryString = util.getQueryString('ds_v1_workforce_form_field_mapping_select_level_activity', paramsArr);
         if (queryString != '') {
@@ -157,7 +157,7 @@ function FormConfigService(db, util) {
                 request.form_id,
                 '1970-01-01 00:00:00',
                 request.page_start,
-                request.page_limit
+                util.replaceQueryLimit(request.page_limit)
                 );
         queryString = util.getQueryString('ds_v1_workforce_form_field_mapping_select', paramsArr);
         if (queryString != '') {

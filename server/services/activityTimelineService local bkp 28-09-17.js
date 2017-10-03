@@ -143,7 +143,7 @@ function ActivityTimelineService(objectCollection) {
                 request.form_id,
                 request.datetime_differential,
                 request.page_start,
-                util.replaceQueryLimit(request.page_limit)
+                request.page_limit
                 );
         var queryString = util.getQueryString('ds_v1_activity_form_field_timeline_transaction_select', paramsArr);
         if (queryString != '') {
@@ -175,7 +175,7 @@ function ActivityTimelineService(objectCollection) {
                 request.form_id,
                 request.datetime_differential,
                 request.page_start,
-                util.replaceQueryLimit(request.page_limit)
+                request.page_limit
                 );
         var queryString = util.getQueryString('ds_v1_activity_form_transaction_select_transaction', paramsArr);
         if (queryString != '') {
@@ -206,7 +206,6 @@ function ActivityTimelineService(objectCollection) {
         request['datetime_log'] = logDatetime;
 
         activityCommonService.resetAssetUnreadCount(request, function (err, data) {});
-        activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
         var activityTypeCategoryId = util.replaceZero(request.activity_type_category_id);
         if (activityTypeCategoryId > 0) {
             var paramsArr = new Array(
@@ -215,7 +214,7 @@ function ActivityTimelineService(objectCollection) {
                     request.timeline_transaction_id,
                     request.flag_previous,
                     request.page_start,
-                    util.replaceQueryLimit(request.page_limit)
+                    request.page_limit
                     );
             var queryString = util.getQueryString('ds_v1_activity_timeline_transaction_select_differential', paramsArr);
             if (queryString != '') {
@@ -495,14 +494,19 @@ function ActivityTimelineService(objectCollection) {
 
                 case 5: // coworker
                     switch (rowData['timeline_stream_type_id']) {
-                        case 101:
-
+                        case 201:
                             break;
-                        case 102:
-
+                        case 202:
                             break;
-                        case 103:
+                        case 203:
                             rowDataArr.activity_timeline_text = '';
+                            rowDataArr.activity_timeline_url = '';
+                            rowDataArr.activity_timeline_collection = {};
+                            break;
+                        case 206:
+                            rowDataArr.activity_timeline_text = '';
+                            rowDataArr.activity_timeline_url = '';
+                            rowDataArr.activity_timeline_collection = {};
                             break;
                     }
                     ;
@@ -524,26 +528,14 @@ function ActivityTimelineService(objectCollection) {
                     break;
                 case 9: // form
                     switch (rowData['timeline_stream_type_id']) {
-                        case 701:
-                        case 702:
-                        case 703:
-                        case 704:
+                        case 101:
                             rowDataArr.activity_timeline_text = '';
-                            rowDataArr.activity_timeline_url = '';
-                            rowDataArr.activity_timeline_collection = {};
                             break;
-                        case 705:
-                        case 706:
-                        case 707:
-                        case 708:
+                        case 102:
                             rowDataArr.activity_timeline_text = '';
-                            rowDataArr.activity_timeline_url = '';
-                            rowDataArr.activity_timeline_collection = {};
                             break;
-                        case 709:
+                        case 103:
                             rowDataArr.activity_timeline_text = '';
-                            rowDataArr.activity_timeline_url = rowData['data_entity_text_1'];
-                            rowDataArr.activity_timeline_collection = {};
                             break;
                     }
                     ;
@@ -596,178 +588,6 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_text = '';
                             rowDataArr.activity_timeline_url = '';
                             rowDataArr.activity_timeline_collection = rowData['data_entity_text_1'];
-                            break;
-                    }
-                    ;
-                    break;
-
-                case 11: // Project
-                    switch (rowData['timeline_stream_type_id']) {
-                        case 1401:
-                        case 1402:
-                        case 1403:
-                        case 1404:
-                        case 1405:
-                        case 1406:
-                        case 1407:
-                            rowDataArr.activity_timeline_text = '';
-                            rowDataArr.activity_timeline_url = '';
-                            rowDataArr.activity_timeline_collection = {};
-                            break;
-                        case 1408:
-                        case 1409:
-                            rowDataArr.activity_timeline_text = '';
-                            rowDataArr.activity_timeline_url = rowData['data_entity_text_1'];
-                            rowDataArr.activity_timeline_collection = {};
-                            break;
-                    }
-                    ;
-                    break;
-
-                case 14: // Voice Call
-                    switch (rowData['timeline_stream_type_id']) {
-                        case 801:
-                        case 802:
-                        case 803:
-                        case 804:
-                        case 805:
-                        case 806:
-                            rowDataArr.activity_timeline_text = '';
-                            rowDataArr.activity_timeline_url = '';
-                            rowDataArr.activity_timeline_collection = {};
-                            break;
-                        case 807:
-                            rowDataArr.activity_timeline_text = '';
-                            rowDataArr.activity_timeline_url = rowData['data_entity_text_1'];
-                            rowDataArr.activity_timeline_collection = {};
-                            break;
-                        case 808:
-                        case 809:
-                        case 810:
-                            rowDataArr.activity_timeline_text = '';
-                            rowDataArr.activity_timeline_url = '';
-                            rowDataArr.activity_timeline_collection = {};
-                            break;
-                    }
-                    ;
-                    break;
-
-                case 15: // Video Conference
-                    switch (rowData['timeline_stream_type_id']) {
-                        case 1601:
-                        case 1602:
-                        case 1603:
-                        case 1604:
-                        case 1605:
-                        case 1606:
-                        case 1607:
-                            rowDataArr.activity_timeline_text = '';
-                            rowDataArr.activity_timeline_url = '';
-                            rowDataArr.activity_timeline_collection = {};
-                            break;
-                        case 1608:
-                            rowDataArr.activity_timeline_text = '';
-                            rowDataArr.activity_timeline_url = rowData['data_entity_text_1'];
-                            rowDataArr.activity_timeline_collection = {};
-                            break;
-                    }
-                    ;
-                    break;
-
-                case 32: // Customer Request
-                    switch (rowData['timeline_stream_type_id']) {
-                        case 601:
-                        case 602:
-                        case 603:
-                        case 604:
-                        case 605:
-                        case 606:
-                            rowDataArr.activity_timeline_text = '';
-                            rowDataArr.activity_timeline_url = '';
-                            rowDataArr.activity_timeline_collection = {};
-                            break;
-                        case 607:
-                            rowDataArr.activity_timeline_text = rowData['data_entity_text_2'];
-                            rowDataArr.activity_timeline_url = '';
-                            rowDataArr.activity_timeline_collection = {};
-                            break;
-                        case 608:
-                        case 609:
-                        case 610:
-                            rowDataArr.activity_timeline_text = '';
-                            rowDataArr.activity_timeline_url = rowData['data_entity_text_1'];
-                            rowDataArr.activity_timeline_collection = {};
-                            break;
-                        case 611:
-                            rowDataArr.activity_timeline_text = '';
-                            rowDataArr.activity_timeline_url = '';
-                            rowDataArr.activity_timeline_collection = {};
-                            break;
-                    }
-                    ;
-                    break;
-
-                case 33: // Visitor Request
-                    switch (rowData['timeline_stream_type_id']) {
-                        case 1301:
-                        case 1302:
-                        case 1303:
-                        case 1304:
-                        case 1305:
-                        case 1306:
-                            rowDataArr.activity_timeline_text = '';
-                            rowDataArr.activity_timeline_url = '';
-                            rowDataArr.activity_timeline_collection = {};
-                            break;
-                        case 1307:
-                            rowDataArr.activity_timeline_text = rowData['data_entity_text_2'];
-                            rowDataArr.activity_timeline_url = '';
-                            rowDataArr.activity_timeline_collection = {};
-                            break;
-                        case 1308:
-                        case 1309:
-                        case 1310:
-                            rowDataArr.activity_timeline_text = '';
-                            rowDataArr.activity_timeline_url = rowData['data_entity_text_1'];
-                            rowDataArr.activity_timeline_collection = {};
-                            break;
-                        case 1311:
-                            rowDataArr.activity_timeline_text = '';
-                            rowDataArr.activity_timeline_url = '';
-                            rowDataArr.activity_timeline_collection = {};
-                            break;
-                    }
-                    ;
-                    break;
-
-                case 34: // Timecard
-                    switch (rowData['timeline_stream_type_id']) {
-                        case 1501:
-                        case 1502:
-                        case 1503:
-                        case 1504:
-                        case 1505:
-                        case 1506:
-                            rowDataArr.activity_timeline_text = '';
-                            rowDataArr.activity_timeline_url = '';
-                            rowDataArr.activity_timeline_collection = {};
-                            break;
-                        case 1507:
-                            rowDataArr.activity_timeline_text = rowData['data_entity_text_2'];
-                            rowDataArr.activity_timeline_url = '';
-                            rowDataArr.activity_timeline_collection = {};
-                            break;
-                        case 1508:
-                        case 1509:
-                        case 1510:
-                            rowDataArr.activity_timeline_text = '';
-                            rowDataArr.activity_timeline_url = rowData['data_entity_text_1'];
-                            rowDataArr.activity_timeline_collection = {};
-                            break;
-                        case 1511:
-                            rowDataArr.activity_timeline_text = '';
-                            rowDataArr.activity_timeline_url = '';
-                            rowDataArr.activity_timeline_collection = {};
                             break;
                     }
                     ;

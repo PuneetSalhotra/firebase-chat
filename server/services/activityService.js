@@ -191,7 +191,7 @@ function ActivityService(objectCollection) {
                 finalJson[mailData] = mailJson[mailData];
                 next();
             }
-        }).then(function () {            
+        }).then(function () {
             callback(false, JSON.stringify(finalJson));
         });
     };
@@ -595,16 +595,13 @@ function ActivityService(objectCollection) {
                             request.datetime_log
                             );
                     queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_status', paramsArr);
-                    db.executeQuery(0, queryString, request, function (error, queryResponse) {
-
-                    });
+                    db.executeQuery(0, queryString, request, function (error, queryResponse) { });
                 }, this);
                 callback(false, true);
                 return;
             } else {
                 // some thing is wrong and have to be dealt
-                callback(true, false);
-                console.log(err);
+                callback(true, false);                
                 return;
             }
         });
@@ -788,9 +785,8 @@ function ActivityService(objectCollection) {
             ;
             request.activity_stream_type_id = activityStreamTypeId;
         }
-
+        activityCommonService.updateAssetLocation(request, function (err, data) {});
         activityListUpdateStatus(request, function (err, data) {
-            activityCommonService.updateAssetLocation(request, function (err, data) {});
             if (err === false) {
                 assetActivityListUpdateStatus(request, activityStatusId, activityStatusTypeId, function (err, data) {
 

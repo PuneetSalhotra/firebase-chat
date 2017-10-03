@@ -15,7 +15,7 @@ function AssetConfigService() {
                 request.workforce_id,
                 request.datetime_differential,
                 request.page_start,
-                request.page_limit
+                util.replaceQueryLimit(request.page_limit)
                 );
         var queryString = util.getQueryString('ds_v1_workforce_asset_type_mapping_select', paramsArr);
         if (queryString != '') {

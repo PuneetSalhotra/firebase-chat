@@ -93,7 +93,7 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
     this.getAssetWorkStatuses = function (request, callback) {
         var paramsArr = new Array(
                 request.page_start,
-                request.page_limit
+                util.replaceQueryLimit(request.page_limit)
                 );
 
         var queryString = util.getQueryString('ds_v1_asset_type_category_status_master_select', paramsArr);

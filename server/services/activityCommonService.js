@@ -204,20 +204,18 @@ function ActivityCommonService(db, util, forEachAsync) {
     };
 
     this.assetTimelineTransactionInsert = function (request, participantData, streamTypeId, callback) {
-
-        var activityId = util.replaceZero(request.activity_id);
+        var assetId = request.asset_id;
         var organizationId = request.organization_id;
         var accountId = request.account_id;
         var workforceId = request.workforce_id;
-        var assetId = request.asset_id;
         var messageUniqueId = request.message_unique_id;
         var entityTypeId = 0;
         var entityText1 = "";
         var entityText2 = "";
+        var retryFlag = 0;
         var formTransactionId = 0;
         var dataTypeId = 0;
         var formId = 0;
-        var retryFlag = 0;
         if (Number(request.device_os_id) === 5)
             retryFlag = 1;
 
@@ -226,17 +224,19 @@ function ActivityCommonService(db, util, forEachAsync) {
             if (activityTypeCategoryId === 4) {
                 if (request.hasOwnProperty('activity_inline_data')) {
                     var inlineJson = JSON.parse(request.activity_inline_data);
-                    var assetId = inlineJson.employee_asset_id;
+                    assetId = inlineJson.employee_asset_id;
+                } else {
+                    assetId = request.asset_id;
                 }
             } else {
-                var assetId = request.asset_id;
+                assetId = request.asset_id;
             }
         } else {
-            var assetId = request.asset_id;
+            assetId = request.asset_id;
         }
 
-        if (participantData.hasOwnProperty('organization_id')) {
 
+        if (participantData.length > 0) {
             organizationId = participantData.organization_id;
             accountId = participantData.account_id;
             workforceId = participantData.workforce_id;
@@ -318,7 +318,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         ;
 
         var paramsArr = new Array(
-                activityId,
+                request.activity_id,
                 assetId,
                 workforceId,
                 accountId,
@@ -332,8 +332,8 @@ function ActivityCommonService(db, util, forEachAsync) {
                 formTransactionId, //form_transaction_id   
                 formId, //form_id
                 dataTypeId, //data_type_id  should be 37 static
-                '', //location latitude
-                '', //location longitude                
+                request.track_latitude, //location latitude
+                request.track_longitude, //location longitude
                 request.track_gps_accuracy,
                 request.track_gps_status,
                 request.track_gps_location,
@@ -348,7 +348,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 request.asset_id,
                 messageUniqueId,
                 retryFlag,
-                util.replaceZero(request.flag_offline),
+                request.flag_offline,
                 request.track_gps_datetime,
                 request.datetime_log
                 );
@@ -648,7 +648,7 @@ function ActivityCommonService(db, util, forEachAsync) {
     };
 
     this.getActivityDetails = function (request, activityId, callback) {
-        var paramsArr ;
+        var paramsArr;
         if (Number(activityId > 0)) {
             paramsArr = new Array(
                     activityId,
@@ -697,8 +697,8 @@ function ActivityCommonService(db, util, forEachAsync) {
                 }
             });
         }
-    };  
-    
+    };
+
 }
 ;
 

@@ -46,7 +46,7 @@ function WidgetService(db, util, cacheWrapper) {
                 request.date_end,
                 request.widget_datatype_id,
                 request.page_start,
-                request.page_limit
+                util.replaceQueryLimit(request.page_limit)
                 );
 
         var queryString = util.getQueryString('ds_v1_widget_transaction_select_sum_date_range', paramsArr);

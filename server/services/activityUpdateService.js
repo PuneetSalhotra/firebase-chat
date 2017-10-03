@@ -225,10 +225,10 @@ function ActivityUpdateService(objectCollection) {
                     if (queryString != '') {
                         db.executeQuery(0, queryString, request, function (err, data) {
                             if (err === false) {
-                                callback(true, false);
+                                //callback(true, false);
                             } else {
                                 // some thing is wrong and have to be dealt
-                                callback(true, false);
+                                //callback(true, false);
                             }
                         });
                     }
@@ -370,6 +370,19 @@ function ActivityUpdateService(objectCollection) {
                     if (err === false) {
                         //Switch - Case Added by Nani Kalyan
                         switch (activityTypeCategoryId) {
+                            case 4: //Id Card
+                                activityStreamTypeId = 102;
+                                break;
+                            case 5: //Co-worker Contact Card
+                                activityStreamTypeId = 205;
+                                break;
+                            case 6: //Customer Contact Card
+                                activityStreamTypeId = 1105;
+                                break;
+                            case 29: //Supplier Contact Card
+                                activityStreamTypeId = 1205;
+                                break;
+
                             case 8: // Mail
                                 activityStreamTypeId = 1705;
                                 break;
@@ -442,7 +455,7 @@ function ActivityUpdateService(objectCollection) {
 
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
-        var activityTypeCategoryId = request.activity_type_category_id;
+        var activityTypeCategoryId = Number(request.activity_type_category_id);
         activityCommonService.updateAssetLocation(request, function (err, data) {});
         activityListUpdateCover(request, function (err, data) {
             if (err === false) {
@@ -481,14 +494,9 @@ function ActivityUpdateService(objectCollection) {
                     }
                     ;
 
-                    //activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) { });
-                    //activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) { });
-                    activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
-
-                    });
-                    activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
-
-                    });
+                    activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) { });
+                    activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) { });
+                    
                     //updating log differential datetime for only this asset
                     activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) {
 
