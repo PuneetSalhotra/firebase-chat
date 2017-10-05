@@ -25,7 +25,7 @@ function ActivityPushService() {
                                 break;
                             case '/0.1/activity/status/alter':
                                 break;
-                            case '/activity/participant/access/set':
+                            case '/0.1/activity/participant/access/set':
                                 var activityInlineJson = JSON.parse(activityData[0]['activity_inline_data']);
                                 var contactName = activityInlineJson.contact_first_name + ' ' + activityInlineJson.contact_last_name;
                                 pushString.title = senderName;
@@ -40,7 +40,7 @@ function ActivityPushService() {
                                 break;
                             case '/0.1/activity/status/alter':
                                 break;
-                            case '/activity/participant/access/set':
+                            case '/0.1/activity/participant/access/set':
                                 pushString.title = senderName;
                                 pushString.description = 'Mail: ' + activityTitle;
                                 break;
@@ -53,14 +53,14 @@ function ActivityPushService() {
                                 break;
                             case '/0.1/activity/status/alter':
                                 break;
-                            case '/activity/participant/access/set':
+                            case '/0.1/activity/participant/access/set':
                                 pushString.title = senderName;
                                 pushString.description = 'Form has been shared for approval';
                                 break;
                         }
                         ;
                         break;
-                    case 10:    // Folders
+                    case 10:    // Folders                        
                         switch (request.url) {
                             case '/0.1/activity/timeline/entry/add':
                                 pushString.title = senderName;
@@ -68,7 +68,7 @@ function ActivityPushService() {
                                 break;
                             case '/0.1/activity/status/alter':
                                 break;
-                            case '/activity/participant/access/set':
+                            case '/0.1/activity/participant/access/set':
                                 pushString.title = senderName;
                                 pushString.description = 'Folder: ' + activityTitle + ' has been shared to collaborate';
                                 break;
@@ -81,7 +81,7 @@ function ActivityPushService() {
                                 break;
                             case '/0.1/activity/status/alter':
                                 break;
-                            case '/activity/participant/access/set':
+                            case '/0.1/activity/participant/access/set':
                                 pushString.title = senderName;
                                 pushString.description = 'Project: ' + activityTitle + ' has been shared to collaborate';
                                 break;
@@ -94,7 +94,7 @@ function ActivityPushService() {
                                 break;
                             case '/0.1/activity/status/alter':
                                 break;
-                            case '/activity/participant/access/set':
+                            case '/0.1/activity/participant/access/set':
                                 pushString.title = senderName;
                                 pushString.description = 'You missed a call at ' + objectCollection.util.getFormatedLogTime(activityData[0]['activity_datetime_start_expected']);
                                 break;
@@ -109,7 +109,7 @@ function ActivityPushService() {
                                 break;
                             case '/0.1/activity/status/alter':
                                 break;
-                            case '/activity/participant/access/set':
+                            case '/0.1/activity/participant/access/set':
                                 pushString.title = senderName;
                                 pushString.description = 'Meeting: ' + activityTitle + ' has been scheduled at ' + (activityData[0]['activity_datetime_start_expected']);
                                 break;
@@ -122,9 +122,9 @@ function ActivityPushService() {
                                 break;
                             case '/0.1/activity/status/alter':
                                 break;
-                            case '/activity/participant/access/set':
+                            case '/0.1/activity/participant/access/set':
                                 pushString.title = senderName;
-                                pushString.description = activityData[0]['description'].substring(0, 100);
+                                pushString.description = activityData[0]['activity_description'].substring(0, 100);
                                 break;
                         }
                         ;
@@ -135,7 +135,7 @@ function ActivityPushService() {
                                 break;
                             case '/0.1/activity/status/alter':
                                 break;
-                            case '/activity/participant/access/set':
+                            case '/0.1/activity/participant/access/set':
                                 pushString.title = senderName;
                                 pushString.description = 'Shared an Event to you - ' + activityTitle;
                                 break;
@@ -176,34 +176,44 @@ function ActivityPushService() {
     };
 
     this.sendPush = function (request, objectCollection, pushAssetId, callback) {
-        var proceedSendPush = function (pushReceivers, senderName) {
-            getPushString(request, objectCollection, senderName, function (err, pushStringObj) {
-                if (Object.keys(pushStringObj).length > 0) {
-                    objectCollection.forEachAsync(pushReceivers, function (next, rowData, assetId) {
-                        objectCollection.cacheWrapper.getAssetMap(assetId, function (err, assetMap) {
-                            if (assetMap !== false) {
-                                getAssetBadgeCount(request, objectCollection, assetMap.asset_id, assetMap.organization_id, function (err, badgeCount) {
-                                    objectCollection.sns.publish(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn);
-                                }.bind(this));
-                            }
+        var proceedSendPush = function (pushReceivers, senderName) {            
+            if (pushReceivers.length > 0) {
+                getPushString(request, objectCollection, senderName, function (err, pushStringObj) {
+                    if (Object.keys(pushStringObj).length > 0) {
+                        objectCollection.forEachAsync(pushReceivers, function (next, rowData) {
+                            objectCollection.cacheWrapper.getAssetMap(rowData.assetId, function (err, assetMap) {
+                                console.log(rowData.assetId, ' is asset for which we are about to send push');
+                                if (Object.keys(assetMap).length > 0) {
+                                    getAssetBadgeCount(request, objectCollection, assetMap.asset_id, assetMap.organization_id, function (err, badgeCount) {
+                                        console.log(badgeCount, ' is badge count obtained from db');
+                                        console.log(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn);
+                                        objectCollection.sns.publish(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn);
+                                    }.bind(this));
+                                }
+                            });
+                            next();
+                        }).then(function () {
+                            callback(false, true);
                         });
-                        next();
-                    }).then(function () {
+                    } else {
+                        console.log('push string is retrived as an empty object');
                         callback(false, true);
-                    });
-                }
-            }.bind(this));
+                    }
+                }.bind(this));
+            }
         }
+
         var pushReceivers = new Array();
         objectCollection.activityCommonService.getAllParticipants(request, function (err, participantsList) {
             if (err === false) {
                 var senderName = '';
                 if (pushAssetId > 0) {
+                    console.log('inside add participant case');
                     objectCollection.forEachAsync(participantsList, function (next, rowData) {
-                        if (Number(request.asset_id) === Number(rowData['asset_id']))
+                        if (Number(request.asset_id) === Number(rowData['asset_id']))   // sender details in this condition
                             senderName = rowData['operating_asset_first_name'] + ' ' + rowData['operating_asset_last_name'];
                         else if (Number(pushAssetId) === Number(rowData['asset_id'])) {
-                            pushReceivers[pushAssetId] = {assetId: rowData['asset_id'], organizationId: rowData['organization_id']};
+                            pushReceivers.push({assetId: rowData['asset_id'], organizationId: rowData['organization_id']});
                         }
                         next();
                     }).then(function () {
@@ -212,7 +222,8 @@ function ActivityPushService() {
                 } else {
                     objectCollection.forEachAsync(participantsList, function (next, rowData) {
                         if (Number(request.asset_id) !== Number(rowData['asset_id']))
-                            pushReceivers[rowData['asset_id']] = {assetId: rowData['asset_id'], organizationId: rowData['organization_id']};
+                            //pushReceivers[rowData['asset_id']] = {assetId: rowData['asset_id'], organizationId: rowData['organization_id']};
+                            pushReceivers.push({assetId: rowData['asset_id'], organizationId: rowData['organization_id']});
                         else
                             senderName = rowData['operating_asset_first_name'] + ' ' + rowData['operating_asset_last_name'];
                         next();
