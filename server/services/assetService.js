@@ -340,8 +340,7 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
             updateAssetLinkStatus(request, request.asset_id, encToken, dateTimeLog, function (err, data) {
                 if (err === false) {
                     var responseArr = {
-                        enc_token: encToken,
-                        "asset_message_counter": 0
+                        enc_token: encToken
                     };
                     var authTokenCollection = {
                         "asset_id": request.asset_id,
@@ -355,9 +354,15 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
                     updateAssetLinkStatus(request, request.operating_asset_id, encToken, dateTimeLog, function (err, data) {
                         assetListHistoryInsert(request, request.operating_asset_id, request.organization_id, 201, dateTimeLog, function (err, data) {
 
-                            cacheWrapper.setAssetParity(request.operating_asset_id, 0, function (err, reply) {  // setting asset parity for operating asset id
+                            cacheWrapper.getAssetParity(request.operating_asset_id, function (err, reply) {  // retriving asset parity for operating asset id
                                 if (!err) {
                                     authTokenCollection.asset_id = request.operating_asset_id;
+                                    if (reply === 0) {    // setting asset parity to 0
+                                        cacheWrapper.setAssetParity(request.operating_asset_id, 0, function (err, reply) {});
+                                        responseArr.operating_asset_message_counter = 0;
+                                    } else {  //sending the retrived parity value as response
+                                        responseArr.operating_asset_message_counter = reply;
+                                    }
                                     // setting auth token for operating asset id
                                     cacheWrapper.setTokenAuth(request.operating_asset_id, JSON.stringify(authTokenCollection), function (err, reply) {
                                         if (!err) {
@@ -379,9 +384,15 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
                             activityCommonService.assetTimelineTransactionInsert(request, {}, 1001, function (err, data) {
 
                             });
-                            cacheWrapper.setAssetParity(request.asset_id, 0, function (err, reply) {   // setting asset parity for desk asset id 
+                            cacheWrapper.getAssetParity(request.asset_id, function (err, reply) {   // setting asset parity for desk asset id 
                                 if (!err) {
                                     authTokenCollection.asset_id = request.asset_id;
+                                    if (reply === 0) {    // setting asset parity to 0
+                                        cacheWrapper.setAssetParity(request.asset_id, 0, function (err, reply) {});
+                                        responseArr.asset_message_counter = 0;
+                                    } else {  //sending the retrived parity value as response
+                                        responseArr.asset_message_counter = reply;
+                                    }
                                     cacheWrapper.setTokenAuth(request.asset_id, JSON.stringify(authTokenCollection), function (err, reply) {
                                         if (!err) {
 
@@ -407,8 +418,7 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
 
             });
         }
-        if (request.hasOwnProperty('asset_token_push') && request.asset_token_push !== '' && request.asset_token_push !== null) {
-            console.log('inside ha asset token push condition');
+        if (request.hasOwnProperty('asset_token_push') && request.asset_token_push !== '' && request.asset_token_push !== null) {            
             sns.createPlatformEndPoint(Number(request.device_os_id), request.asset_token_push, function (err, endPointArn) {
                 if (!err) {
                     console.log('success in creating platform end point');
@@ -427,6 +437,63 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
                 callback(err, response, status);
             });
         }
+    };
+
+    this.unlinkAsset = function (request, callback) {
+        var dateTimeLog = util.getCurrentUTCTime();
+        request['datetime_log'] = dateTimeLog;
+
+        updateAssetUnlink(request, request.asset_id, '', dateTimeLog, function (err, data) {
+            if (err === false) {
+                var responseArr = {};
+                var authTokenCollection = {
+                    "asset_id": request.asset_id,
+                    "workforce_id": request.workforce_id,
+                    "account_id": request.account_id,
+                    "organization_id": request.organization_id,
+                    "asset_token_push": '',
+                    "asset_push_arn": '',
+                    "asset_auth_token": ''
+                };
+                updateAssetUnlink(request, request.operating_asset_id, '', dateTimeLog, function (err, data) {
+                    assetListHistoryInsert(request, request.operating_asset_id, request.organization_id, 202, dateTimeLog, function (err, data) {
+                        authTokenCollection.asset_id = request.operating_asset_id;
+                        cacheWrapper.setTokenAuth(request.asset_id, JSON.stringify(authTokenCollection), function (err, reply) {
+                            if (!err) {
+
+                            } else {
+                                callback(false, responseArr, -7998);
+                            }
+                        });
+                    });
+
+                });
+                assetListHistoryInsert(request, request.asset_id, request.organization_id, 202, dateTimeLog, function (err, data) {
+                    if (err === false) {
+                        activityCommonService.assetTimelineTransactionInsert(request, {}, 1002, function (err, data) {
+
+                        });
+
+                        return;
+                    } else {
+                        callback(err, false, -9998);
+                    }
+                });
+                cacheWrapper.setTokenAuth(request.asset_id, JSON.stringify(authTokenCollection), function (err, reply) {
+                    if (!err) {
+
+                    } else {
+                        callback(false, responseArr, -7998);
+                    }
+                });
+                callback(false, {}, 200);
+            } else {
+                // some thing is wrong and have to be dealt                    
+                callback(err, false, -9998);
+                return;
+            }
+
+        });
     };
 
     var updateAssetLinkStatus = function (request, assetId, encToken, dateTimeLog, callback) {
@@ -448,6 +515,30 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
                 );
 
         var queryString = util.getQueryString('ds_v1_asset_list_update_link', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                //global.logger.write(queryString, request, 'asset', 'trace');
+                if (err === false) {
+                    callback(false, true);
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, false);
+                }
+            });
+        }
+    };
+
+
+    var updateAssetUnlink = function (request, assetId, encToken, dateTimeLog, callback) {
+
+        var paramsArr = new Array(
+                assetId,
+                request.organization_id,
+                request.asset_id,
+                dateTimeLog
+                );
+
+        var queryString = util.getQueryString('ds_v1_asset_list_update_unlink', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 //global.logger.write(queryString, request, 'asset', 'trace');
@@ -724,10 +815,9 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
         }
     };
 
-    var assetListUpdateStatus = function (request, callback) {
-
+    var assetListUpdateStatus = function (request, assetId, callback) {
         var paramsArr = new Array(
-                request.asset_id,
+                assetId,
                 request.organization_id,
                 request.asset_type_category_id,
                 request.asset_status_id,
@@ -748,18 +838,45 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
         }
     };
 
+    var assetListUpdateLampStatus = function (request, assetId, callback) {
+
+        var paramsArr = new Array(
+                assetId,
+                request.organization_id,
+                request.lamp_status_id,
+                request.track_latitude,
+                request.track_longitude,
+                request.track_gps_datetime,
+                request.asset_id,
+                request.datetime_log
+                );
+
+        var queryString = util.getQueryString('ds_v1_1_asset_list_update_lamp_status', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, assetData) {
+                if (err === false) {
+                    callback(false, true);
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, false);
+                }
+            });
+        }
+    };
+
+
 
     this.alterAssetStatus = function (request, callback) {
         var dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
-        assetListUpdateStatus(request, function (err, data) {
+        assetListUpdateStatus(request, 0, function (err, data) {
             if (err === false) {
                 assetListHistoryInsert(request, request.asset_id, request.organization_id, 207, dateTimeLog, function (err, data) {
                 });
                 activityCommonService.assetTimelineTransactionInsert(request, {}, 810, function (err, data) {
 
                 });
-                callback(false,{},200);
+                callback(false, {}, 200);
                 return;
             } else {
                 callback(err, {}, -9998);
@@ -767,6 +884,82 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
         });
 
     };
+
+    this.alterAssetAssignedStatus = function (request, callback) {
+        var dateTimeLog = util.getCurrentUTCTime();
+        request['datetime_log'] = dateTimeLog;
+        assetListUpdateStatus(request, request.asset_id, function (err, data) {
+            if (err === false) {
+                assetListUpdateStatus(request, request.operating_asset_id, function (err, data) {
+                    if (err === false) {
+                        assetListHistoryInsert(request, request.operating_asset_id, request.organization_id, 207, dateTimeLog, function (err, data) {
+                        });
+                        var operatingAssetData = {
+                            organization_id: request.organization_id,
+                            account_id: request.account_id,
+                            workforce_id: request.workforce_id,
+                            asset_id: request.asset_id,
+                            message_unique_id: request.message_unique_id
+                        };
+                        activityCommonService.assetTimelineTransactionInsert(request, operatingAssetData, 1512, function (err, data) {
+
+                        });
+                    } else {
+                        callback(err, {}, -9998);
+                    }
+                });
+                assetListHistoryInsert(request, request.asset_id, request.organization_id, 207, dateTimeLog, function (err, data) {
+                });
+                activityCommonService.assetTimelineTransactionInsert(request, {}, 1512, function (err, data) {
+
+                });
+                callback(false, {}, 200);
+                return;
+            } else {
+                callback(err, {}, -9998);
+            }
+        });
+
+    };
+
+    this.alterAssetLampStatus = function (request, callback) {
+        var dateTimeLog = util.getCurrentUTCTime();
+        request['datetime_log'] = dateTimeLog;
+        assetListUpdateLampStatus(request, request.asset_id, function (err, data) {
+            if (err === false) {
+                assetListUpdateLampStatus(request, request.operating_asset_id, function (err, data) {
+                    if (err === false) {
+                        assetListHistoryInsert(request, request.operating_asset_id, request.organization_id, 207, dateTimeLog, function (err, data) {
+                        });
+                        var operatingAssetData = {
+                            organization_id: request.organization_id,
+                            account_id: request.account_id,
+                            workforce_id: request.workforce_id,
+                            asset_id: request.asset_id,
+                            message_unique_id: request.message_unique_id
+                        };
+                        activityCommonService.assetTimelineTransactionInsert(request, operatingAssetData, 1512, function (err, data) {
+
+                        });
+                    } else {
+                        callback(err, {}, -9998);
+                    }
+                });
+                assetListHistoryInsert(request, request.asset_id, request.organization_id, 207, dateTimeLog, function (err, data) {
+                });
+                activityCommonService.assetTimelineTransactionInsert(request, {}, 1512, function (err, data) {
+
+                });
+                callback(false, {}, 200);
+                return;
+            } else {
+                callback(err, {}, -9998);
+            }
+        });
+
+    };
+
+
 
 
 }
