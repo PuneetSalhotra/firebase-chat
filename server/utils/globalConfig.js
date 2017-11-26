@@ -2,12 +2,9 @@
  * author: Sri Sai Venkatesh
  */
 
-var mode = 'dev';
+mode = 'dev';
 var Logger = require("./logger");
 logger = new Logger();
-logger.setEnvironment(mode)
-cassandraenv = {}
-cassandraenv.environment = mode
 
 config = {};
 config.version = '0.1';
@@ -20,8 +17,8 @@ if (mode === 'dev') {
     config.slave1Ip = 'readreplica1.citeodhwc7z9.us-east-1.rds.amazonaws.com';
     config.slave2Ip = 'readreplica2.citeodhwc7z9.us-east-1.rds.amazonaws.com';
 
-    config.dbUser = 'apiuser';    
-    config.database = 'desker';    
+    config.dbUser = 'apiuser';
+    config.database = 'desker';
     config.dbPassword = 'apidbuser';
     config.conLimit = 10;
 
@@ -30,14 +27,14 @@ if (mode === 'dev') {
 
     //config.kafkaIP = "34.192.228.175:2181";
     config.kafkaIP = 'localhost:2181';
-    config.kafkaActivitiesTopic = 'desker-activities';    
-    config.kafkaFormWidgetTopic = 'desker-form-widgets';    
-    
+    config.kafkaActivitiesTopic = 'desker-activities';
+    config.kafkaFormWidgetTopic = 'desker-form-widgets';
+
     config.cassandraIP = '34.192.228.175';
     config.cassandraKeyspace = 'deskerlog';
     config.cassandraUser = 'aamir';
     config.cassandraPassword = 'foxtrot88';
-    
+
     config.iosPushMode = 'dev';
 }
 
@@ -54,16 +51,16 @@ if (mode === 'prod') {
 
     config.redisIp = 'rediscluster1.apppnf.ng.0001.use1.cache.amazonaws.com';
     config.redisPort = 6379;
-    
+
     config.kafkaIP = '192.168.7.53:2181';
-    config.kafkaActivitiesTopic = 'desker-activities';    
-    config.kafkaFormWidgetTopic = 'desker-form-widgets';    
-    
+    config.kafkaActivitiesTopic = 'desker-activities';
+    config.kafkaFormWidgetTopic = 'desker-form-widgets';
+
     config.cassandraIP = '34.192.228.175';
     config.cassandraKeyspace = 'deskerlog';
     config.cassandraUser = 'aamir';
     config.cassandraPassword = 'foxtrot88';
-    
+
     config.iosPushMode = 'prod';    // currently shouuld be in dev
 }
 
