@@ -3,16 +3,33 @@ aws.config.loadFromPath('/var/www/html/node/Bharat/server/utils/config.json');
 //var queueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/desker-logging-queue";
 var queueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/desker-logging-staging";
 var sqs = new aws.SQS();
-var CassandraWrapper = require('../utils/cassandraWrapper');
-var cassandraCredentials = {
-    ip: '34.192.228.175',
-    user: 'aamir',
-    pwd: 'foxtrot88',
-    keyspace: 'deskerlog'
-};
+var CassandraWrapper = require('../utils/vnkcassandrawrapper');
+
+require('../utils/globalConfig');
+
 var Util = require('../utils/util');
 var util = new Util();
+
+if(global.cassandraenv.environment === 'dev') {
+var cassandraCredentials = {
+              ip: global.config.cassandraIP,
+              user: global.config.cassandraUser,
+              pwd: global.config.cassandraPassword,
+              keyspace: global.config.cassandraKeyspace
+};
+
 var cassandraWrapper = new CassandraWrapper(cassandraCredentials, util);
+} else if(global.cassandraenv.environment === 'prod'){
+        var cassandraCredentials = {
+              ip: global.config.cassandraIP,
+              user: global.config.cassandraUser,
+              pwd: global.config.cassandraPassword,
+              keyspace: global.config.cassandraKeyspace
+            };
+
+        var cassandraWrapper = new CassandraWrapper(cassandraCredentials, util);
+}
+
 
 var consume = function () {
     var params = {
@@ -32,8 +49,9 @@ var consume = function () {
                 try {
                     var body = data['Messages'][0].Body;
                     var messageCollection = JSON.parse(body);
-                    cassandraWrapper.logData(messageCollection);
+                    console.log(messageCollection.environment);
 
+                    cassandraWrapper.logData(messageCollection)
                 } catch (e) {
                     console.log(e);
                 }
@@ -58,4 +76,4 @@ var consume = function () {
     });
 };
 
-setInterval(consume, 500);
+setInterval(consume, 1000);

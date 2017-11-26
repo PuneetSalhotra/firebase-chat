@@ -1,15 +1,23 @@
 
 function CacheWrapper(client) {
 
-    this.getTokenAuth = function (assetId, callback) {
+    this.getServiceId = function(url, callback) {
+      client.hget('service_map', url, function (err, reply) {
+          if (err) {
+              console.log(err);
+              callback(err, false);
+          } else {
+              callback(false, reply)
+          }
+        })
+      }
 
+    this.getTokenAuth = function (assetId, callback) {
         client.hget('asset_map', assetId, function (err, reply) {
             if (err) {
                 console.log(err);
                 callback(err, false);
             } else {
-                //console.log(typeof reply + " is data type of reply");
-                //console.log(reply);
                 if (typeof reply === 'string') {
                     var collection = JSON.parse(reply);
                     //console.log("enc token retrived from redis is : " + collection.asset_auth_token);
@@ -18,7 +26,6 @@ function CacheWrapper(client) {
                     callback(false, false);
                 }
             }
-
         });
     };
 
@@ -30,7 +37,6 @@ function CacheWrapper(client) {
                 callback(err, false);
             } else
                 callback(false, true);
-
         });
     };
 
@@ -147,4 +153,3 @@ function CacheWrapper(client) {
 }
 
 module.exports = CacheWrapper;
-

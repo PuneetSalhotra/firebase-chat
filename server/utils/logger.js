@@ -7,13 +7,18 @@ var SQS = require("../queue/sqsProducer");
 function Logger() {
 
     var sqs = new SQS();
+    var environment = '';
     
-    this.write = function (message, request, level) {
-        
+    this.setEnvironment = (mode)=>{
+      //console.log('Nani from logger file');
+      environment = mode;
+    }
+    this.write = function (level, message, request) {
         var loggerCollection = {
             message: message,
             request: request,            
-            level: level
+            level: level,
+            environment: environment //'prod'
         };
         var loggerCollectionString = JSON.stringify(loggerCollection);
         sqs.produce(loggerCollectionString, function (err, response) {
@@ -21,7 +26,6 @@ function Logger() {
                 console.log("error is: "+ err);
             });
     };
-
 }
 ;
 module.exports = Logger;

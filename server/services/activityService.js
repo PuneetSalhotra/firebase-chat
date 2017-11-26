@@ -106,12 +106,14 @@ function ActivityService(objectCollection) {
                             /////////////////////////////////
                         default:
                             activityStreamTypeId = 1;   //by default so that we know
-                            console.log('adding streamtype id 1');
+                            //console.log('adding streamtype id 1');
+                            global.logger.write('debug','adding streamtype id 1', request)
                             break;
 
                     }
                     ;
-                    console.log('streamtype id is: ' + activityStreamTypeId)
+                    //console.log('streamtype id is: ' + activityStreamTypeId)
+                    global.logger.write('debug','streamtype id is: ' + activityStreamTypeId, request)
                     assetActivityListInsertAddActivity(request, function (err, status) {
                         if (err === false) {
 
@@ -135,9 +137,11 @@ function ActivityService(objectCollection) {
                                     //incr the asset_message_counter                        
                                     cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
                                         if (err) {
-                                            console.log("error in setting in asset parity");
+                                            //console.log("error in setting in asset parity");
+                                            global.logger.write('serverError','error in setting in asset parity' + err, request)
                                         } else
-                                            console.log("asset parity is set successfully")
+                                            //console.log("asset parity is set successfully")
+                                            global.logger.write('debug','asset parity is set successfully', request)
 
                                     });
                                 }
@@ -145,10 +149,11 @@ function ActivityService(objectCollection) {
 
                             cacheWrapper.setMessageUniqueIdLookup(request.message_unique_id, request.activity_id, function (err, status) {
                                 if (err) {
-                                    console.log("error in setting in message unique id look up");
+                                    //console.log("error in setting in message unique id look up");
+                                    global.logger.write('"error in setting in message unique id look up' + err, request)
                                 } else
-                                    console.log("message unique id look up is set successfully")
-
+                                    //console.log("message unique id look up is set successfully")
+                                    global.logger.write('debug','message unique id look up is set successfully', request)
                             });
                             return;
                         } else {
@@ -162,7 +167,8 @@ function ActivityService(objectCollection) {
                 }
             });
         }).catch((err) => {
-            console.log(err);
+            //console.log(err);
+            global.logger.write('serverError',err, request)
         });
     };
 
@@ -572,7 +578,8 @@ function ActivityService(objectCollection) {
                     return;
                 } else {
                     callback(err, false);
-                    console.log(err);
+                    //console.log(err);
+                    global.logger.write('serverError',err, request)
                     return;
                 }
             });
@@ -695,7 +702,8 @@ function ActivityService(objectCollection) {
                         });
                     });
                 } else {
-                    console.log('error while fetching from transaction data');
+                    //console.log('error while fetching from transaction data');
+                    global.logger.write('serverError','error while fetching from transaction data', request)
                 }
             });
         });
@@ -778,7 +786,8 @@ function ActivityService(objectCollection) {
                     break;
                 default:
                     activityStreamTypeId = 11;   //by default so that we know
-                    console.log('adding streamtype id 11');
+                    //console.log('adding streamtype id 11');
+                    global.logger.write('debug','adding streamtype id 11', request)
                     break;
 
             }
@@ -842,9 +851,11 @@ function ActivityService(objectCollection) {
                         //incr the asset_message_counter                        
                         cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
                             if (err) {
-                                console.log("error in setting in asset parity");
+                                //console.log("error in setting in asset parity");
+                                global.logger.write('serverError','error in setting in asset parity - ' + err, request)
                             } else
-                                console.log("asset parity is set successfully")
+                                //console.log("asset parity is set successfully")
+                                global.logger.write('debug','asset parity is set successfully', request)
 
                         });
                     }

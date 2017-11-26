@@ -54,9 +54,11 @@ function ActivityTimelineService(objectCollection) {
                         //incr the asset_message_counter                        
                         cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
                             if (err) {
-                                console.log("error in setting in asset parity");
+                                //console.log("error in setting in asset parity");
+                                global.logger.write('serverError','error in setting in asset parity - ' + err, request)
                             } else
-                                console.log("asset parity is set successfully")
+                                //console.log("asset parity is set successfully")
+                                global.logger.write('debug','asset parity is set successfully', request)
 
                         });
                     }
@@ -127,9 +129,11 @@ function ActivityTimelineService(objectCollection) {
                 //incr the asset_message_counter                        
                 cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
                     if (err) {
-                        console.log("error in setting in asset parity");
+                        //console.log("error in setting in asset parity");
+                        global.logger.write('serverError','error in setting in asset parity - ' + err, request)
                     } else
-                        console.log("asset parity is set successfully")
+                        //console.log("asset parity is set successfully")
+                        global.logger.write('debug','asset parity is set successfully', request)
 
                 });
             }
@@ -309,8 +313,9 @@ function ActivityTimelineService(objectCollection) {
             //rowDataArr.field_value = '';                
             getFieldValue(rowData, function (err, fieldValue) {
                 if (err) {
-                    console.log(err);
-                    console.log('error occured');
+                    //console.log(err);
+                    //console.log('error occured');
+                    global.logger.write('serverError','error occurred' + err, request)
                 }
                 rowDataArr.field_value = fieldValue;
                 responseData.push(rowDataArr);
@@ -407,7 +412,8 @@ function ActivityTimelineService(objectCollection) {
                 break;
                 fieldValue = util.replaceDefaultNumber(rowData['data_entity_tinyint_1']);
             default:
-                console.log('came into default for data type id: ' + dataTypeId);
+                //console.log('came into default for data type id: ' + dataTypeId);
+                global.logger.write('debug','asset parity is set successfully', request)
                 fieldValue = ''
                 break;
         }

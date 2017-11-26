@@ -253,7 +253,7 @@ function ActivityUpdateService(objectCollection) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false && data.length > 0) {
-                    console.log(data);
+                    //console.log(data);
                     data.forEach(function (rowData, index) {
                         paramsArr = new Array(
                                 data.activity_id,
@@ -397,7 +397,8 @@ function ActivityUpdateService(objectCollection) {
                                 break;
                             default:
                                 activityStreamTypeId = 1705;   //by default so that we know
-                                console.log('adding streamtype id 1705');
+                                //console.log('adding streamtype id 1705');
+                                global.logger.write('debug','adding streamtype id 1705', request)
                                 break;
                         }
 
@@ -412,9 +413,11 @@ function ActivityUpdateService(objectCollection) {
                                 //incr the asset_message_counter                        
                                 cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
                                     if (err) {
-                                        console.log("error in setting in asset parity");
+                                        //console.log("error in setting in asset parity");
+                                        global.logger.write('serverError','error in setting in asset parity - ' + err, request)
                                     } else
-                                        console.log("asset parity is set successfully")
+                                        //console.log("asset parity is set successfully")
+                                        global.logger.write('debug','asset parity is set successfully', request)
 
                                 });
                             }
@@ -463,6 +466,9 @@ function ActivityUpdateService(objectCollection) {
                 assetActivityListUpdateCover(request, function (err, data) {
                     //Switch-CASE Added by Nani Kalyan
                     switch (activityTypeCategoryId) {
+                        case 1:
+                            activityStreamTypeId = 405;
+                            break;
                         case 10: //File
                             activityStreamTypeId = 309;
                             break;
@@ -489,7 +495,8 @@ function ActivityUpdateService(objectCollection) {
                             break;
                         default:
                             activityStreamTypeId = 1506;   //by default so that we know
-                            console.log('adding streamtype id 1506');
+                            //console.log('adding streamtype id 1506');
+                            global.logger.write('debug','adding streamtype id 1506', request)
                             break;
                     }
                     ;
@@ -514,9 +521,11 @@ function ActivityUpdateService(objectCollection) {
                         //incr the asset_message_counter                        
                         cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
                             if (err) {
-                                console.log("error in setting in asset parity");
+                                //console.log("error in setting in asset parity");
+                                global.logger.write('serverError','error in setting in asset parity - ' + err, request)
                             } else
-                                console.log("asset parity is set successfully")
+                                //console.log("asset parity is set successfully")
+                                global.logger.write('debug','asset parity is set successfully', request)
 
                         });
                     }
@@ -615,7 +624,7 @@ function ActivityUpdateService(objectCollection) {
                     activityCommonService.activityListHistoryInsert(request, 401, function (err, restult) {
 
                     });
-                    activityCommonService.activityTimelineTransactionInsert(request, {}, 1302, function (err, data) {
+                    activityCommonService.activityTimelineTransactionInsert(request, {}, streamtypeId, function (err, data) {
 
                     });
                     activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {
@@ -631,7 +640,7 @@ function ActivityUpdateService(objectCollection) {
         activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) {
 
         });
-        activityCommonService.assetTimelineTransactionInsert(request, {}, 1302, function (err, data) {
+        activityCommonService.assetTimelineTransactionInsert(request, {}, streamtypeId, function (err, data) {
 
         });
         if (request.hasOwnProperty('device_os_id')) {
@@ -639,10 +648,11 @@ function ActivityUpdateService(objectCollection) {
                 //incr the asset_message_counter                        
                 cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
                     if (err) {
-                        console.log("error in setting in asset parity");
+                        //console.log("error in setting in asset parity");
+                        global.logger.write('serverError','error in setting in asset parity - ' + err, request)
                     } else
-                        console.log("asset parity is set successfully")
-
+                        //console.log("asset parity is set successfully")
+                        global.logger.write('debug','asset parity is set successfully', request)
                 });
             }
         }
@@ -653,5 +663,3 @@ function ActivityUpdateService(objectCollection) {
 }
 ;
 module.exports = ActivityUpdateService;
-
-

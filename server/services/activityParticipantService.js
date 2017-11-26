@@ -87,16 +87,18 @@ function ActivityParticipantService(objectCollection) {
                                 //incr the asset_message_counter                        
                                 cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
                                     if (err) {
-                                        console.log("error in setting in asset parity");
+                                        //console.log("error in setting in asset parity");
+                                        global.logger.write('serverError','error in setting in asset parity', request)
                                     } else
-                                        console.log("asset parity is set successfully")
-
+                                        //console.log("asset parity is set successfully")
+                                        global.logger.write('debug','asset parity is set successfully', request)
                                 });
                             }
                         }
                     }
                 } else {
-                    console.log("something is not wright in adding a participant");
+                    //console.log("something is not wright in adding a participant");
+                    global.logger.write('serverError','something is not wright in adding a participant', request)
                 }
             });
         };
@@ -109,20 +111,23 @@ function ActivityParticipantService(objectCollection) {
                     //proceed and add a participant
                     addParticipant(request, participantData, newRecordStatus, function (err, data) {
                         if (err === false) {
-                            console.log("participant successfully added");
+                            //console.log("participant successfully added");
+                            global.logger.write('debug','participant successfully added', request)
                             var nextIndex = index + 1;
                             if (nextIndex <= maxIndex) {
                                 loopAddParticipant(participantCollection, nextIndex, maxIndex);
                             }
                             callback(false, true);
                         } else {
-                            console.log(err);
+                            //console.log(err);
+                            global.logger.write('serverError','' + err, request)
                             callback(true, false);
                         }
                     }.bind(this));
                 } else {
                     if (alreadyAssignedStatus > 0) {
-                        console.log("participant already assigned");
+                        //console.log("participant already assigned");
+                        global.logger.write('debug','participant already assigned', request)
                         var nextIndex = index + 1;
                         if (nextIndex <= maxIndex) {
                             loopAddParticipant(participantCollection, nextIndex, maxIndex);
@@ -202,7 +207,8 @@ function ActivityParticipantService(objectCollection) {
                     //////////////////////////////////
                 default:
                     activityStreamTypeId = 2;   //by default so that we know
-                    console.log('adding streamtype id 2');
+                    //console.log('adding streamtype id 2');
+                    global.logger.write('debug','adding streamtype id 2', request)
                     break;
 
             }
@@ -228,16 +234,18 @@ function ActivityParticipantService(objectCollection) {
                             //incr the asset_message_counter                        
                             cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
                                 if (err) {
-                                    console.log("error in setting in asset parity");
+                                    //console.log("error in setting in asset parity");
                                 } else
-                                    console.log("asset parity is set successfully")
-
+                                global.logger.write('serverError','error in setting in asset parity' + err, request)
+                                    //console.log("asset parity is set successfully")
+                                    global.logger.write('debug','asset parity is set successfully', request)
                             });
                         }
                     }
                 }
             } else {
                 //console.log("something is not wright in adding a participant");
+                global.logger.write('serverError','something is not wright in adding a participant', request)
             }
         });
     };
@@ -256,16 +264,18 @@ function ActivityParticipantService(objectCollection) {
                                 //incr the asset_message_counter                        
                                 cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
                                     if (err) {
-                                        console.log("error in setting in asset parity");
+                                        //console.log("error in setting in asset parity");
+                                        global.logger.write('serverError','error in setting in asset parity' + err, request)
                                     } else
-                                        console.log("asset parity is set successfully")
-
+                                        //console.log("asset parity is set successfully")
+                                        global.logger.write('debug','asset parity is set successfully', request)
                                 });
                             }
                         }
                     }
                 } else {
-                    console.log("something is not wright in unassign a participant");
+                    //console.log("something is not wright in unassign a participant");
+                    global.logger.write('serverError','something is not wright in unassign a participant', request)
                 }
             });
         };
@@ -274,14 +284,16 @@ function ActivityParticipantService(objectCollection) {
             var participantData = participantCollection[index];
             unassignAssetFromActivity(request, participantData, function (err, data) {
                 if (err === false) {
-                    console.log("participant successfully un-assigned");
+                    //console.log("participant successfully un-assigned");
+                    global.logger.write('debug','participant successfully un-assigned', request)
                     var nextIndex = index + 1;
                     if (nextIndex <= maxIndex) {
                         loopUnassignParticipant(participantCollection, nextIndex, maxIndex);
                     }
                     callback(false, true);
                 } else {
-                    console.log(err);
+                    //console.log(err);
+                    global.logger.write('serverError','' + err, request)
                     callback(true, false);
                 }
             }.bind(this));
@@ -353,7 +365,8 @@ function ActivityParticipantService(objectCollection) {
                     ////////////////////////////////////////
                 default:
                     activityStreamTypeId = 3;   //by default so that we know
-                    console.log('adding streamtype id 3');
+                    //console.log('adding streamtype id 3');
+                    global.logger.write('debug','adding streamtype id 3', request)
                     break;
 
             }
@@ -377,7 +390,8 @@ function ActivityParticipantService(objectCollection) {
                             //incr the asset_message_counter                        
                             cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
                                 if (err) {
-                                    console.log("error in setting in asset parity");
+                                    //console.log("error in setting in asset parity");
+                                    global.logger.write('serverError','error in setting in asset parity' + err, request)
                                 } else
                                     console.log("asset parity is set successfully")
 
@@ -387,6 +401,7 @@ function ActivityParticipantService(objectCollection) {
                 }
             } else {
                 //console.log("something is not wright in adding a participant");
+                global.logger.write('serverError','something is not wright in adding a participant', request)
             }
         });
     };
@@ -405,16 +420,19 @@ function ActivityParticipantService(objectCollection) {
                                 //incr the asset_message_counter                        
                                 cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
                                     if (err) {
-                                        console.log("error in setting in asset parity");
+                                        //console.log("error in setting in asset parity");
                                     } else
-                                        console.log("asset parity is set successfully")
+                                    global.logger.write('serverError','error in setting in asset parity' + err, request)
+                                        //console.log("asset parity is set successfully")
+                                        global.logger.write('debug','asset parity is set successfully', request)
 
                                 });
                             }
                         }
                     }
                 } else {
-                    console.log("something is not wright in unassign a participant");
+                    //console.log("something is not wright in unassign a participant");
+                    global.logger.write('serverError','something is not wright in unassign a participant', request)
                 }
             });
         };
@@ -423,14 +441,16 @@ function ActivityParticipantService(objectCollection) {
             var participantData = participantCollection[index];
             updateAssetParticipantAccess(request, participantData, function (err, data) {
                 if (err === false) {
-                    console.log("participant successfully updated");
+                    //console.log("participant successfully updated");
+                    global.logger.write('debug','participant successfully updated', request)
                     var nextIndex = index + 1;
                     if (nextIndex <= maxIndex) {
                         loopUpdateParticipantAccess(participantCollection, nextIndex, maxIndex);
                     }
                     callback(false, true);
                 } else {
-                    console.log(err);
+                    //console.log(err);
+                    global.logger.write('serverError','' + err, request)
                     callback(true, false);
                 }
             }.bind(this));
@@ -498,7 +518,8 @@ function ActivityParticipantService(objectCollection) {
                     /////////////////////////////////
                 default:
                     activityStreamTypeId = 4;   //by default so that we know
-                    console.log('adding streamtype id 4');
+                    //console.log('adding streamtype id 4');
+                    global.logger.write('debug','adding streamtype id 4', request)
                     break;
 
             }
@@ -524,9 +545,11 @@ function ActivityParticipantService(objectCollection) {
                             //incr the asset_message_counter                        
                             cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
                                 if (err) {
-                                    console.log("error in setting in asset parity");
+                                    //console.log("error in setting in asset parity");
+                                    global.logger.write('serverError','error in setting in asset parity' + err, request)
                                 } else
-                                    console.log("asset parity is set successfully")
+                                    //console.log("asset parity is set successfully")
+                                    global.logger.write('debug','asset parity is set successfully', request)
 
                             });
                         }
@@ -534,6 +557,7 @@ function ActivityParticipantService(objectCollection) {
                 }
             } else {
                 //console.log("something is not wright in adding a participant");
+                global.logger.write('serverError','something is not wright in adding a participant', request)
             }
         });
     };
@@ -573,7 +597,8 @@ function ActivityParticipantService(objectCollection) {
             });
 
         } else {
-            console.log('re-assigining to the archived row');
+            //console.log('re-assigining to the archived row');
+            global.logger.write('debug','re-assigining to the archived row', request)
             activityAssetMappingUpdateParticipantReAssign(request, participantData, function (err, data) {
                 if (err === false) {
                     activityPushService.sendPush(request, objectCollection, participantData.asset_id, function () {});
@@ -587,7 +612,8 @@ function ActivityParticipantService(objectCollection) {
 
                                 });
                             } else {
-                                console.log('either documnent or a file');
+                                //console.log('either documnent or a file');
+                                global.logger.write('debug','either documnent or a file', request)
                             }
                         }
                     });
@@ -634,7 +660,8 @@ function ActivityParticipantService(objectCollection) {
                     return;
                 } else {
                     callback(err, false);
-                    console.log(err);
+                    //console.log(err);
+                    global.logger.write('serverError','' + err, request)
                     return;
                 }
             });
@@ -671,7 +698,8 @@ function ActivityParticipantService(objectCollection) {
                     return;
                 } else {
                     callback(err, false);
-                    console.log(err);
+                    //console.log(err);
+                    global.logger.write('serverError','' + err, request)
                     return;
                 }
             });
@@ -702,7 +730,8 @@ function ActivityParticipantService(objectCollection) {
                     return;
                 } else {
                     callback(err, false);
-                    console.log(err);
+                    //console.log(err);
+                    global.logger.write('serverError','' + err, request)
                     return;
                 }
             });
@@ -731,7 +760,8 @@ function ActivityParticipantService(objectCollection) {
                     return;
                 } else {
                     callback(err, false);
-                    console.log(err);
+                    //console.log(err);
+                    global.logger.write('serverError','' + err, request)
                     return;
                 }
             });
@@ -749,7 +779,8 @@ function ActivityParticipantService(objectCollection) {
                 if (err === false)
                 {
                     var participantCount = data[0].participant_count;
-                    console.log('participant count retrieved from query is: ' + participantCount);
+                    //console.log('participant count retrieved from query is: ' + participantCount);
+                    global.logger.write('debug','participant count retrieved from query is: ' + participantCount, request)
                     paramsArr = new Array(
                             activityId,
                             organizationId,
@@ -797,14 +828,16 @@ function ActivityParticipantService(objectCollection) {
                                 return;
                             } else {
                                 callback(err, false);
-                                console.log(err);
+                                //console.log(err);
+                                global.logger.write('serverError','' + err, request)
                                 return;
                             }
                         });
                     }
                 } else {
                     callback(err, false);
-                    console.log(err);
+                    //console.log(err);
+                    global.logger.write('serverError','' + err, request)
                     return;
                 }
             });
@@ -903,7 +936,8 @@ function ActivityParticipantService(objectCollection) {
                     return;
                 } else {
                     callback(err, false);
-                    console.log(err);
+                    //console.log(err);
+                    global.logger.write('serverError','' + err, request)
                     return;
                 }
             });

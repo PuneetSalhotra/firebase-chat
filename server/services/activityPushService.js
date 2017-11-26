@@ -182,11 +182,14 @@ function ActivityPushService() {
                     if (Object.keys(pushStringObj).length > 0) {
                         objectCollection.forEachAsync(pushReceivers, function (next, rowData) {
                             objectCollection.cacheWrapper.getAssetMap(rowData.assetId, function (err, assetMap) {
-                                console.log(rowData.assetId, ' is asset for which we are about to send push');
+                                //console.log(rowData.assetId, ' is asset for which we are about to send push');
+                                global.logger.write('debug', rowData.assetId + ' is asset for which we are about to send push', request)
                                 if (Object.keys(assetMap).length > 0) {
                                     getAssetBadgeCount(request, objectCollection, assetMap.asset_id, assetMap.organization_id, function (err, badgeCount) {
-                                        console.log(badgeCount, ' is badge count obtained from db');
-                                        console.log(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn);
+                                        //console.log(badgeCount, ' is badge count obtained from db');
+                                        //console.log(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn);
+                                        global.logger.write('debug', badgeCount + ' is badge count obtained from db', request)
+                                        global.logger.write('debug', pushStringObj + objectCollection.util.replaceOne(badgeCount) + assetMap.asset_push_arn, request)
                                         objectCollection.sns.publish(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn);
                                     }.bind(this));
                                 }
@@ -196,7 +199,8 @@ function ActivityPushService() {
                             callback(false, true);
                         });
                     } else {
-                        console.log('push string is retrived as an empty object');
+                        //console.log('push string is retrived as an empty object');
+                        global.logger.write('debug','push string is retrived as an empty object', request)
                         callback(false, true);
                     }
                 }.bind(this));
@@ -208,7 +212,7 @@ function ActivityPushService() {
             if (err === false) {
                 var senderName = '';
                 if (pushAssetId > 0) {
-                    console.log('inside add participant case');
+                    //console.log('inside add participant case');
                     objectCollection.forEachAsync(participantsList, function (next, rowData) {
                         if (Number(request.asset_id) === Number(rowData['asset_id']))   // sender details in this condition
                             senderName = rowData['operating_asset_first_name'] + ' ' + rowData['operating_asset_last_name'];

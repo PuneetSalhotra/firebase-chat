@@ -294,22 +294,25 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
                         case 1: // mvaayoo                        
                             util.sendSmsMvaayoo(smsString, countryCode, phoneNumber, function (error, data) {
                                 if (error)
-                                    console.log(error);
-                                console.log(data);
+                                    //console.log(error);
+                                //console.log(data);
+                                global.logger.write('trace','Data: '+ data +'Error - ' + error, request)
                             });
                             break;
                         case 2: // bulk sms                            
                             util.sendSmsBulk(smsString, countryCode, phoneNumber, function (error, data) {
                                 if (error)
-                                    console.log(error);
-                                console.log(data);
+                                    //console.log(error);
+                                //console.log(data);
+                                global.logger.write('trace','Data: '+ data +'Error - ' + error, request)
                             });
                             break;
                         case 3:// sinfini                                                        
                             util.sendSmsSinfini(smsString, countryCode, phoneNumber, function (error, data) {
                                 if (error)
-                                    console.log(error);
-                                console.log(data);
+                                    //console.log(error);
+                                //console.log(data);
+                                global.logger.write('trace','Data: '+ data +'Error - ' + error, request)
                             });
                             break;
                     }
@@ -321,8 +324,9 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
             case 2: //send call 
                 util.makeCall(smsString, countryCode, phoneNumber, function (error, data) {
                     if (error)
-                        console.log(error);
-                    console.log(data);
+                        //console.log(error);
+                    //console.log(data);
+                    global.logger.write('trace','Data: '+ data +'Error - ' + error, request)
                 })
                 break;
             case 3: //email
@@ -421,13 +425,15 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
         if (request.hasOwnProperty('asset_token_push') && request.asset_token_push !== '' && request.asset_token_push !== null) {            
             sns.createPlatformEndPoint(Number(request.device_os_id), request.asset_token_push, function (err, endPointArn) {
                 if (!err) {
-                    console.log('success in creating platform end point');
+                    //console.log('success in creating platform end point');
+                    global.logger.write('debug','success in creating platform end point', request)
                     request.asset_push_arn = endPointArn;
                     proceedLinking(function (err, response, status) {
                         callback(err, response, status);
                     });
                 } else {
-                    console.log('problem in creating platform end point');
+                    //console.log('problem in creating platform end point');
+                    global.logger.write('serverError','problem in creating platform end point - ' + err, request)
                     callback(err, {}, -3108);
                 }
             });

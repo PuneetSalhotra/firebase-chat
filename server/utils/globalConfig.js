@@ -2,16 +2,18 @@
  * author: Sri Sai Venkatesh
  */
 
-var Logger = require("/var/www/html/node/Bharat/server/utils/logger");
+var mode = 'dev';
+var Logger = require("./logger");
 logger = new Logger();
+logger.setEnvironment(mode)
+cassandraenv = {}
+cassandraenv.environment = mode
 
 config = {};
 config.version = '0.1';
 config.servicePort = 3000;
 config.sms_mode = 1;    //  2: bulkSMS  |   3: Sinfini
 config.whitelist = ['http://mydesk.desker.co', 'https://mydesk.desker.co', 'http://127.0.0.1'];
-
-var mode = 'dev';
 
 if (mode === 'dev') {
     config.masterIp = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
@@ -79,6 +81,3 @@ config.smtp_host = 'retail.smtp.com';
 config.smtp_port = '2525';
 config.smtp_user = 'angel@blueflock.com';
 config.smtp_pass = 'greneapple';
-
-
-

@@ -90,7 +90,8 @@ function ActivityCommonService(db, util, forEachAsync) {
                     return;
                 } else {
                     callback(true, false);
-                    console.log(err);
+                    //console.log(err);
+                    global.logger.write('serverError','' + err, request)
                     return;
                 }
             });
@@ -114,7 +115,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                     return;
                 } else {
                     callback(true, false);
-                    console.log(err);
+                    //console.log(err);
                     return;
                 }
             });
@@ -133,7 +134,8 @@ function ActivityCommonService(db, util, forEachAsync) {
                 };
                 updateActivityLogLastUpdatedDatetimeAsset(request, assetCollection, function (err, data) {
                     if (err !== false) {
-                        console.log(err);
+                        //console.log(err);
+                        global.logger.write('serverError','' + err, request)
                     }
                 });
             }, this);
@@ -361,7 +363,8 @@ function ActivityCommonService(db, util, forEachAsync) {
                     return;
                 } else {
                     callback(err, false);
-                    console.log(err);
+                    //console.log(err);
+                    global.logger.write('serverError','' + err, request)
                     return;
                 }
             });
@@ -527,7 +530,8 @@ function ActivityCommonService(db, util, forEachAsync) {
                     return;
                 } else {
                     callback(err, false);
-                    console.log(err);
+                    //console.log(err);
+                    global.logger.write('serverError','' + err, request)
                     return;
                 }
             });

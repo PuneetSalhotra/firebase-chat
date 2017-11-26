@@ -48,7 +48,6 @@ function AssetController(objCollection) {
     });
 
     app.post('/' + global.config.version + '/asset/inline/collection', function (req, res) {
-        req.body['module'] = 'asset';
         assetService.getAssetDetails(req.body, function (err, data, statusCode) {
 
             if (err === false) {
@@ -65,7 +64,6 @@ function AssetController(objCollection) {
     });
 
     app.post('/' + global.config.version + '/asset_status/access/global/list', function (req, res) {
-        req.body['module'] = 'asset';
         assetService.getAssetWorkStatuses(req.body, function (err, data, statusCode) {
 
             if (err === false) {
@@ -175,7 +173,6 @@ function AssetController(objCollection) {
     });
 
     app.post('/' + global.config.version + '/asset/status/collection', function (req, res) {
-        req.body['module'] = 'asset';
         assetService.getAssetDetails(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response    
@@ -191,7 +188,6 @@ function AssetController(objCollection) {
     });
 
     app.put('/' + global.config.version + '/asset/status/alter', function (req, res) {
-        req.body['module'] = 'asset';
         assetService.alterAssetStatus(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response    

@@ -15,7 +15,7 @@ function WidgetService(objCollection) {
                 request.workforce_id,
                 request.asset_id,
                 19, //form_type_id
-                9, //form_type_category_id
+                9,  //form_type_category_id
                 5   //widget_access_level_id                
                 );
 

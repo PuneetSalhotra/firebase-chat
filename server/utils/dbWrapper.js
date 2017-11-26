@@ -63,19 +63,22 @@ var executeQuery = function (flag, queryString, request, callback) {
         conPool.getConnection(function (err, conn) {
             if (err) {
                 console.log('ERROR WHILE GETTING CONNECTON');
+                global.logger.write('serverError','ERROR WHILE GETTING CONNECTON - ' + err, request);
                 callback(err, false);
                 return;
             } else {
                 conn.query(queryString, function (err, rows, fields) {
-                    if (!err) {                        
-                        //global.logger.write(queryString, request, 'trace');
+                    if (!err) {   
                         console.log(queryString);
+                        global.logger.write('debug','Query String - ' + queryString, request);
                         conn.release();
                         callback(false, rows[0]);
                         return;
                     } else {
                         console.log('SOME ERROR IN QUERY | ', queryString);
-                        console.log(err);
+                        global.logger.write('serverError','SOME ERROR IN QUERY - ' + queryString, err);
+                        //global.logger.write('serverError',err, request);
+                        //console.log(err);
                         conn.release();
                         callback(err, false);
                     }
@@ -85,6 +88,7 @@ var executeQuery = function (flag, queryString, request, callback) {
     } catch (exception) {
         //console.log(queryString);
         console.log(exception);
+        global.logger.write('serverError','Exception - ' + exception, request);
     }
 };
 
