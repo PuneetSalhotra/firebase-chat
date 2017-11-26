@@ -30,10 +30,9 @@ var AwsSns = function () {
             }),
             TargetArn: targetArn
         };
-
         sns.publish(params, function (err, data) {
             if (err)
-                console.log(err, err.stack); // an error occurred
+                console.log(err); // an error occurred
             else
                 console.log(data);           // successful response
         });

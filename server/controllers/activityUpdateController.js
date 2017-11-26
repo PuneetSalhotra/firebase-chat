@@ -92,6 +92,7 @@ function ActivityUpdateController(objCollection) {
                     } else {
                         if (status) {     // proceed                        
                             proceedCoverUpdate();
+                            return;
                         } else {  // this is a duplicate hit,
                             res.send(responseWrapper.getResponse(false, {}, 200));
                         }

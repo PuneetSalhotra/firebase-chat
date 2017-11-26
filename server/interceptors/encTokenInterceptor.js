@@ -33,7 +33,7 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                 req.body['module'] = 'asset';
                 //global.logger.write('', req.body, 'request');
                 next();
-                break;
+                break;                
             default:
                 //global.logger.write('', req.body, 'request');
                 //console.log("came to default");
@@ -54,9 +54,8 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                             res.send(responseWrapper.getResponse(null, {}, -3204));
                         }
                     }
-
                 });
-
+                
                 break;
         }
 
