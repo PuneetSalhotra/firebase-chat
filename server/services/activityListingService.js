@@ -199,13 +199,24 @@ function ActivityListingService(objCollection) {
                 request.page_start,
                 util.replaceQueryLimit(request.page_limit)
                 );
+        
+        var paramsArrForCalendar = new Array(
+                request.asset_id,
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.search_string,
+                request.page_start,
+                util.replaceQueryLimit(request.page_limit)
+                );
+        
         var queryString = '';
         switch (Number(request.activity_type_category_id)) {
             case 8: // mail
                 queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_search_category_inline', paramsArr);
                 break;
             case 31:    //calendar event
-                queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_search_calendar', paramsArr);
+                queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_search_calendar', paramsArrForCalendar);
                 break;
             default:
                 queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_search_category_title', paramsArr);
@@ -361,7 +372,7 @@ function ActivityListingService(objCollection) {
                 "asset_first_name": util.replaceDefaultString(rowData['asset_first_name']),
                 "asset_last_name": util.replaceDefaultString(rowData['asset_last_name']),
                 "workforce_id": util.replaceZero(rowData['workforce_id']),
-                "wrokforce_name": util.replaceDefaultString(rowData['workforce_name']),
+                "workforce_name": util.replaceDefaultString(rowData['workforce_name']),
                 "account_id": util.replaceZero(rowData['account_id']),
                 "account_name": util.replaceDefaultString(rowData['account_name']),
                 "organization_id": util.replaceZero(rowData['organization_id']),
@@ -403,6 +414,7 @@ function ActivityListingService(objCollection) {
                 "activity_status_type_name": util.replaceDefaultString(rowData['activity_status_type_name']),
                 "activity_update_count": util.replaceDefaultNumber(rowData['asset_unread_updates_count']),
                 "asset_unread_field_updates_count": util.replaceDefaultNumber(rowData['asset_unread_field_updates_count']),
+                "asset_unread_updates_count": util.replaceDefaultNumber(rowData['asset_unread_updates_count']),
                 "asset_id": util.replaceDefaultNumber(rowData['asset_id']),
                 "workforce_id": util.replaceZero(rowData['workforce_id']),
                 "workforce_name": util.replaceDefaultString(rowData['workforce_name']),
