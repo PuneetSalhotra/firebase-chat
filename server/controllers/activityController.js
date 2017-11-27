@@ -168,7 +168,28 @@ function ActivityController(objCollection) {
                     method: "addActivity",
                     payload: req
                 };
-                queueWrapper.raiseActivityEvent(event, activityId);
+                queueWrapper.raiseActivityEvent(event, activityId, (err, resp)=>{
+                        if(err) {
+                            //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
+                            global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent : " + resp,req);
+                        } else {
+                            if (req.hasOwnProperty('device_os_id')) {
+                                if (Number(req.device_os_id) !== 5) {
+                                    //incr the asset_message_counter                        
+                                    cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
+                                        if (err) {
+                                            //console.log("error in setting in asset parity");
+                                            global.logger.write('serverError',"error in setting in asset parity : " + err,req);
+                                        } else
+                                            //console.log("asset parity is set successfully")
+                                            global.logger.write('debug',"asset parity is set successfully",req);
+
+                                    });
+                                }
+                            }
+                        }
+                });
+                
                 console.log("new activityId is : " + activityId);
                 global.logger.write('debug',"new activityId is : " + activityId,req);
                 callback(false, activityId);
@@ -194,7 +215,27 @@ function ActivityController(objCollection) {
                 method: "alterActivityStatus",
                 payload: req.body
             };
-            queueWrapper.raiseActivityEvent(event, req.body.activity_id);
+            queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp)=>{
+                        if(err) {
+                            //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
+                            global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent : " + err,req.body);
+                        } else {
+                            if (req.hasOwnProperty('device_os_id')) {
+                                if (Number(req.device_os_id) !== 5) {
+                                    //incr the asset_message_counter                        
+                                    cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
+                                        if (err) {
+                                            //console.log("error in setting in asset parity");
+                                            global.logger.write('serverError',"error in setting in asset parity : " + err,req.body);
+                                        } else
+                                            //console.log("asset parity is set successfully")
+                                        global.logger.write('debug',"asset parity is set successfully",req.body);
+
+                                    });
+                                }
+                            }
+                        }
+                });
             res.send(responseWrapper.getResponse(false, {}, 200,req.body));
             return;
         };

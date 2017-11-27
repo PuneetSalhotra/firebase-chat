@@ -4,7 +4,7 @@
 
 function QueueWrapper(producer) {
 
-    this.raiseActivityEvent = function (event, activityId) {
+    this.raiseActivityEvent = function (event, activityId, callback) {
         //var partition = Number(activityId) % 4;
         var partition = 0;
         console.log("producing to partition id: " + partition);
@@ -17,16 +17,19 @@ function QueueWrapper(producer) {
                 global.logger.write('serverError','error in producing data : ' + err, event.payload)
                 //console.log('error in producing data');
                 //console.log(err);
+                callback(true, err);
             } else
                 console.log('Producer success callback message ' + JSON.stringify(data));
                 global.logger.write('debug','Producer success callback message ' + JSON.stringify(data), event.payload)
+                callback(false, 'Producer success callback message');
             return true;
         });
 
         producer.on('error', function (err) {
             global.logger.write('serverError','Producer send error message: ' + err, event.payload)
             //console.log('Producer send error message: ' + err);
-            return false;
+            callback(true, err)
+            //return false;
         });
     }
 

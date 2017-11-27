@@ -408,7 +408,7 @@ function ActivityUpdateService(objectCollection) {
                         activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
 
                         });
-                        if (request.hasOwnProperty('device_os_id')) {
+                        /*if (request.hasOwnProperty('device_os_id')) {
                             if (Number(request.device_os_id) !== 5) {
                                 //incr the asset_message_counter                        
                                 cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
@@ -421,7 +421,7 @@ function ActivityUpdateService(objectCollection) {
 
                                 });
                             }
-                        }
+                        }*/
                         callback(false, {}, 200);
 
                     } else {
@@ -516,7 +516,7 @@ function ActivityUpdateService(objectCollection) {
                     activityPushService.sendPush(request, objectCollection, 0, function () {});
 
                 });
-                if (request.hasOwnProperty('device_os_id')) {
+                /*if (request.hasOwnProperty('device_os_id')) {
                     if (Number(request.device_os_id) !== 5) {
                         //incr the asset_message_counter                        
                         cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
@@ -529,7 +529,7 @@ function ActivityUpdateService(objectCollection) {
 
                         });
                     }
-                }
+                } */
                 callback(false, {}, 200);
 
                 // if activity_type_category_id = 17 update asset image id also
@@ -643,7 +643,7 @@ function ActivityUpdateService(objectCollection) {
         activityCommonService.assetTimelineTransactionInsert(request, {}, streamtypeId, function (err, data) {
 
         });
-        if (request.hasOwnProperty('device_os_id')) {
+        /*if (request.hasOwnProperty('device_os_id')) {
             if (Number(request.device_os_id) !== 5) {
                 //incr the asset_message_counter                        
                 cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
@@ -655,7 +655,7 @@ function ActivityUpdateService(objectCollection) {
                         global.logger.write('debug','asset parity is set successfully', request)
                 });
             }
-        }
+        } */
     };
 
 
