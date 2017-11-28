@@ -3,225 +3,234 @@
  */
 var cassandra = require('cassandra-driver');
 var uuid = require('uuid');
-var logDataConfig = require('/var/www/html/desker/NODEJS/desker_api_0.1/server/utils/logDataConfig');
+//var logDataConfig = require('/var/www/html/desker/NODEJS/desker_api_0.1/server/utils/logDataConfig');
 
-function CassandraWrapper(cassandraCredentials, util) {
+function CassandraWrapper(cassandraCredentialsDev, cassandraCredentialsProd, util) {
+    
+    var logLevel = {
+        request: 1,
+        response: 2,
+        debug: 3,
+        warning: 4,
+        trace: 5,
+        appError: 6,
+        serverError: 7,
+        fatal: 8
+     };
 
-    var authProvider = new cassandra.auth.PlainTextAuthProvider(cassandraCredentials.user, cassandraCredentials.pwd);
-    var client = new cassandra.Client({contactPoints: [cassandraCredentials.ip], keyspace: cassandraCredentials.keyspace, authProvider: authProvider});
+    var sourceMap = {
+        0: "NA",
+        1: "android",
+        2: "IOS",
+        3: "windows",
+        4: "web",
+        5: "portal",
+        6: "reporting server"
+     };
+
+    
+    
+    var authProviderDev = new cassandra.auth.PlainTextAuthProvider(cassandraCredentialsDev.user, 
+                                                                cassandraCredentialsDev.pwd);
+    var clientDev = new cassandra.Client({contactPoints: [cassandraCredentialsDev.ip], 
+                                       keyspace: cassandraCredentialsDev.keyspace, 
+                                       authProvider: authProviderDev});
+                                   
+    var authProviderProd = new cassandra.auth.PlainTextAuthProvider(cassandraCredentialsProd.user, 
+                                                                cassandraCredentialsProd.pwd);
+    var clientProd = new cassandra.Client({contactPoints: [cassandraCredentialsProd.ip], 
+                                       keyspace: cassandraCredentialsProd.keyspace, 
+                                       authProvider: authProviderProd});
 
     this.logData = function (messageCollection) {
         var logTimestamp = util.getCurrentUTCTime();
+        var logDate = util.getCurrentDate();
         
-        if (messageCollection.level === 'request') {
-            // do bundle transaction insert
-            bundleTransactionInsert(messageCollection.request, logTimestamp, function (err, data) {
+        switch(messageCollection.object.module) {
 
-            });
+          case 'device':
+                  console.log('Module : Device');
+                  deviceTransactionInsert(messageCollection, logDate, logTimestamp, function () {});
+                  break;
+          case 'activity':
+                  console.log('Module : Activity');
+                  activityTransactionInsert(1, messageCollection, logDate, logTimestamp, function () {});
+                  break;
+          case 'asset':
+                  console.log('Module : Asset');
+                  activityTransactionInsert(0, messageCollection, logDate, logTimestamp, function () {});
+                  break;
+          default:
+                  console.log('No Such Module exists : \n' + messageCollection.request + '\n\n')
+        }
         }
 
-        if (messageCollection.request.module === 'device') {
-            // do a device transaction insert here
-            deviceTransactionInsert(messageCollection.message, messageCollection.request, messageCollection['level'], logTimestamp, function () {
+    deviceTransactionInsert = function(messageCollection, logDate, logTimestamp, callback) {
+      var transactionId = uuid.v1();
+      var logLevelId = (logLevel[messageCollection.level]) ? logLevel[messageCollection.level] : 0;
 
-            });
-
-        } else if (messageCollection.request.module === 'asset') {
-            transactionInsert("asset_record_transaction", messageCollection.message, messageCollection.request, messageCollection.level, logTimestamp, function () {
-
-            });
-            return;
-        } else {
-            transactionInsert("activity_record_transaction", messageCollection.message, messageCollection.request, messageCollection.level, logTimestamp, function () {
-
-            });
-            transactionInsert("asset_record_transaction", messageCollection.message, messageCollection.request, messageCollection.level, logTimestamp, function () {
-
-            });
-        }
-    };
-
-    var bundleTransactionInsert = function (reqBody, logTimestamp, callback) {
-
-        var bundleTransactionId = reqBody.bundle_transaction_id;
-        var deviceOsId = 0;
-
-        var query = "INSERT INTO deskerlog.bundle_transaction ";
-        query = query + "(asset_id, bundle_transaction_id, log_timestamp, activity_id, device_country_code, device_phone_number)";
-        query = query + "VALUES (";
-
-        if (reqBody.hasOwnProperty("asset_id")) {
-            query = query + reqBody.asset_id + ",";
-        } else {
-            query = query + "0,";
-        }
-        query = query + bundleTransactionId + ",";
-        query = query + "'" + logTimestamp + "',";
-
-        query = query + "0,";  // activity_id
-
-        if (reqBody.hasOwnProperty("asset_phone_country_code")) {
-            query = query + "'" + reqBody.asset_phone_country_code + "',";
-        } else {
-            query = query + "'0',";
-        }
+      var query = "INSERT INTO transactionsbydevice";
+      query += " (devcntrycd, " +         //asset_phone_country_code
+                 "devphnnmbr, " +         //asset_phone_number
+                 "date, " +               //
+                 "srvcid,  " +            //serviceid
+                 "bndlid, " +             //bundleTransactionId
+                 "recid, " +              //transactionid
+                 "actvtyid, " +           //activityid
+                 "actvtyttle, " +
+                 "asstid, " +             //asset_id
+                 "asstname, " +           //asstName
+                 "lvlid, " +              //logLevelid
+                 "lvlnm, " +              //level
+                 "msg, " +                //message
+                 "req, " +
+                 "reqtime, " +
+                 "rescode, " +
+                 "res, " +
+                 "ressts, " +
+                 "restime, " +
+                 "restat, " +
+                 "stktrc, " +
+                 "crtd, " +
+                 "srvcname, " +
+                 "url, " +
+                 "srcid, " +
+                 "srcnm) VALUES(";
+      query += (messageCollection.object.hasOwnProperty("asset_phone_country_code")) ?  "'"+messageCollection.object.asset_phone_country_code+"'" : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("asset_phone_number")) ?  "'"+messageCollection.object.asset_phone_number+"'" : "''"; query += ",";
+      query += "'" + logDate + "'"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("service_id")) ?  messageCollection.object.service_id : 0; query += ",";
+      query += (messageCollection.object.hasOwnProperty("bundle_transaction_id")) ?  messageCollection.object.bundle_transaction_id : "''"; query += ",";
+      query += transactionId; query += ",";
+      query += (messageCollection.object.hasOwnProperty("activity_id")) ?  messageCollection.object.activity_id : 0; query += ",";
+      query += (messageCollection.object.hasOwnProperty("activity_title")) ?  "'" + messageCollection.object.activity_title + "'" : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("asset_id")) ?  messageCollection.object.asset_id : 0; query += ",";
+      query += (messageCollection.object.hasOwnProperty("asset_name")) ?  messageCollection.object.asset_name : "''"; query += ",";
+      query += logLevelId; query += ",";
+      query += (messageCollection.level)? "'" + messageCollection.level + "'" : "''"; query += ",";
 
 
-        if (reqBody.hasOwnProperty("asset_phone_number")) {
-            query = query + "'" + reqBody.asset_phone_number + "');";
-        } else {
-            query = query + "'0');";
-        }
-
-        executeCassandraQuery(query, function (err, data) {
-            if (!err) {
-                callback(false, true);
-            } else {
-                callback(true, false);
-            }
-        });
-    };
-
-    var transactionInsert = function (table, message, reqBody, level, logTimestamp, callback) {
-
-        var transactionId = uuid.v1();
-        var logLevel = logDataConfig.logLevel[level];
-        var deviceOsId = 0;
-
-        var query = "INSERT INTO deskerlog." + table;// ";
-        query = query + "(bundle_transaction_id, record_transaction_id, asset_id, activity_id, service_id, service_name, service_url, source_id, source_name, level_id, level_name,";
-        query = query + "log_date, log_timestamp, log_request_timestamp, log_request_data, log_response_timestamp, log_response_data, log_response_code, log_response_turnaround, ";
-        query = query + "log_stacktrace_data, log_message) VALUES (";
-
-        query = query + reqBody.bundle_transaction_id + ",";                    //bundle transaction id
-        query = query + transactionId + ",";                                    //record_transaction_id
-        if (reqBody.hasOwnProperty("asset_id")) {                               //asset id
-            query = query + reqBody.asset_id + ",";
-        } else {
-            query = query + "0,";
-        }
-        if (reqBody.hasOwnProperty("activity_id")) {                            //activity id
-            query = query + reqBody.activity_id + ",";
-        } else {
-            query = query + "0,";
-        }
-        /*
-         var serviceId = Number(logDataConfig.serviceIdUrlMapping[reqBody.url]);        
-         if (serviceId === 'NaN')
-         query = query + 0 + ",";                                             //service id
-         else
-         query = query + serviceId + ",";                                     //service id
-         */
-        query = query + 0 + ",";                                                //service id
-        query = query + "'',";                                                  //service_name
-        query = query + "'" + reqBody.url + "',";                               //service_url
-        if (reqBody.hasOwnProperty("device_os_id")) {                           //source_id (os id)
-            deviceOsId = reqBody.device_os_id;
-            query = query + reqBody.device_os_id + ",";
-        } else {
-            query = query + "0,";
-        }
-        query = query + "'" + logDataConfig.sourceMap[deviceOsId] + "',";       //source_name
-        query = query + logLevel + ",";                                         //level_id
-        query = query + "'" + level + "',";                                     //level_name
-        query = query + "'" + util.getCurrentDate() + "',";                     //log_date
-        query = query + "'" + logTimestamp + "',";                              //timestamp generated from bundle transaction
-
-        switch (logLevel) {
+      switch (logLevelId) {
             case 1: // request
-                query = query + "'" + logTimestamp + "',";                       //request timestamp
-                query = query + JSON.stringify(reqBody).replace(/"/gi, "'") + ",";                  //log_request_data 
-                query = query + "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
-                query = query + "{},";                                          //response collection
-                query = query + "'0',";                                         //response code
-                query = query + "0,";                                           //response turnaround time
-                query = query + "'',";                                          //stack trace
-                query = query + "''";                                           //message string
+              console.log('In case 1');
+              query += (messageCollection.hasOwnProperty("message")) ?  "'" +messageCollection.message+"'" : "''"; query += ",";
+              query += "'',";                                          //log_request_data
+              query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
+              query += "'',";                                         //response code
+              query += "'',";                                          //response collection
+              query += "false,";                                        //response Status
+              query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
+              query += "0,";                                           //turnaround time
+              query += "'',";                                          //stack trace
                 break;
             case 2: // response
-                query = query + "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
-                query = query + "{},";                                          //log_request_data 
-                query = query + "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
-                query = query + message.replace(/"/gi, "'") + ",";              //response collection
-                query = query + "'0',";                                         //response code
-                query = query + "0,";                                           //response code
-                query = query + "'',";                                          //stack trace
-                query = query + "''";                                           //message string
+              console.log('In case 2');
+              query += (messageCollection.hasOwnProperty("message")) ?  "'" +messageCollection.message+"'" : "''"; query += ",";
+              query += "'',";                                          //log_request_data
+              query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
+              query += "'',";                                         //response code
+              query += "'',";                                          //response collection
+              query += "false,"                                        //response Status
+              query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
+              query += "0,";                                           //turnaround time
+              query += "'',";                                          //stack trace
                 break;
             case 3: //debug
-                query = query + "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
-                query = query + "{},";                                          //log_request_data 
-                query = query + "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
-                query = query + "{},";                                          //response collection
-                query = query + "'0',";                                         //response code
-                query = query + "0,";                                           //response code
-                query = query + "'',";                                          //stack trace
-                query = query + "''";                                           //message string
+              console.log('In case 3')
+              query += (messageCollection.hasOwnProperty("message")) ?  "'" +messageCollection.message+"'" : "''"; query += ",";
+              query += "'',";                                          //log_request_data
+              query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
+              query += "'',";                                         //response code
+              query += "'',";                                          //response collection
+              query += "false,"                                        //response Status
+              query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
+              query += "0,";                                           //turnaround time
+              query += "'',";                                          //stack trace
                 break;
             case 4: // warning
-                query = query + "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
-                query = query + "{},";                                          //log_request_data 
-                query = query + "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
-                query = query + "{},";                                          //response collection
-                query = query + "'0',";                                         //response code
-                query = query + "0,";                                           //response code
-                query = query + "'',";                                          //stack trace
-                query = query + "''";                                           //message string
+              console.log('In case 4')
+              query += (messageCollection.hasOwnProperty("message")) ?  "'" +messageCollection.message+"'" : "''"; query += ",";
+              query += "'',";                                          //log_request_data
+              query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
+              query += "'',";                                         //response code
+              query += "'',";                                          //response collection
+              query += "false,"                                        //response Status
+              query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
+              query += "0,";                                           //turnaround time
+              query += "'',";                                          //stack trace
                 break;
             case 5: // trace
-                query = query + "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
-                query = query + "{},";                                          //log_request_data 
-                query = query + "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
-                query = query + "{},";                                          //response collection
-                query = query + "'0',";                                         //response code
-                query = query + "0,";                                           //response turn around
-                query = query + "{},";                                          //stack trace
-                query = query + "'" + message.replace(/'/gi, '') + "'";                            //message string
+              console.log('In case 5')
+              query += (messageCollection.hasOwnProperty("message")) ?  "'" +messageCollection.message+"'" : "''"; query += ",";
+              query += "'',";                                          //log_request_data
+              query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
+              query += "'',";                                         //response code
+              query += "'',";                                          //response collection
+              query += "false,"                                        //response Status
+              query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
+              query += "0,";                                           //turnaround time
+              query += "'',";                                          //stack trace
                 break;
             case 6: //app error
-                query = query + "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
-                query = query + "{},";                                          //log_request_data 
-                query = query + "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
-                query = query + "{},";                                          //response collection
-                query = query + "'0',";                                         //response code
-                query = query + "0,";                                           //response code
-                query = query + "'',";                                          //stack trace
-                query = query + "'" + message + "'";                            //message string
+              console.log('In case 6')
+              query += (messageCollection.hasOwnProperty("message")) ?  "'" +messageCollection.message+"'" : "''"; query += ",";
+              query += "'',";                                          //log_request_data
+              query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
+              query += "'',";                                         //response code
+              query += "'',";                                          //response collection
+              query += "false,"                                        //response Status
+              query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
+              query += "0,";                                           //turnaround time
+              query += "'',";                                          //stack trace
                 break;
             case 7: //server error
-                query = query + "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
-                query = query + "{},";                                          //log_request_data 
-                query = query + "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
-                query = query + "{},";                                          //response collection
-                query = query + "'0',";                                         //response code
-                query = query + "0,";                                           //response code
-                query = query + message.replace(/"/gi, "'") + ",";              //stack trace
-                query = query + "''";                                           //message string
+              console.log('In case 7')
+              query += (messageCollection.hasOwnProperty("message")) ?  "'" +messageCollection.message+"'" : "''"; query += ",";
+              query += "'',";                                          //log_request_data
+              query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
+              query += "'',";                                         //response code
+              query += "'',";                                          //response collection
+              query += "false,"                                        //response Status
+              query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
+              query += "0,";                                           //turnaround time
+              query += "'',";                                          //stack trace
                 break;
             case 8: //fatal
-                query = query + "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
-                query = query + "{},";                                          //log_request_data 
-                query = query + "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
-                query = query + "{},";                                          //response collection
-                query = query + "'0',";                                         //response code
-                query = query + "0,";                                           //response code
-                query = query + "'',";                                          //stack trace
-                query = query + "'" + message + "'";                            //message string
+              console.log('In case 8')
+              query += (messageCollection.hasOwnProperty("message")) ?  "'" +messageCollection.message+"'" : "''"; query += ",";
+              query += "'',";                                          //log_request_data
+              query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
+              query += "'',";                                         //response code
+              query += "'',";                                          //response collection
+              query += "false,"                                        //response Status
+              query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
+              query += "0,";                                           //turnaround time
+              query += "'',";                                          //stack trace
                 break;
             default:
-                query = query + "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
-                query = query + "{},";                                          //log_request_data 
-                query = query + "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
-                query = query + "{},";                                          //response collection
-                query = query + "'0',";                                         //response code
-                query = query + "0,";                                           //response code
-                query = query + "'',";                                          //stack trace
-                query = query + "'" + message + "'";                            //message string
+              console.log('In Default case')
+              query += (messageCollection.hasOwnProperty("message")) ?  "'" +messageCollection.message+"'" : "''"; query += ",";
+              query += "'',";                                          //log_request_data
+              query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
+              query += "'vnk',";                                         //response code
+              query += "'',";                                          //response collection
+              query += "false,"                                        //response Status
+              query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
+              query += "0,";                                         //turnaround time
+              query += "'',";                                          //stack trace
                 break;
         }
-        query = query + ");";
 
-        executeCassandraQuery(query, function (err, data) {
+      query += "'" + logTimestamp + "'"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("service_name")) ?  messageCollection.object.service_name : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("url")) ?  "'" +messageCollection.object.url + "'" : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("device_os_id")) ?  messageCollection.object.device_os_id : 0; query += ",";
+      query += (sourceMap[messageCollection.object.device_os_id]) ? "'" + sourceMap[messageCollection.object.device_os_id] + "'": "NA";
+      query += ");";
+
+      //console.log(query);
+
+        executeCassandraQuery(messageCollection.environment, query, function (err, data) {
             if (!err) {
                 callback(false, true);
                 return;
@@ -230,184 +239,156 @@ function CassandraWrapper(cassandraCredentials, util) {
                 return;
             }
         });
-    };
+    }
 
-    var deviceTransactionInsert = function (message, reqBody, level, logTimestamp, callback) {
+    activityTransactionInsert = function(transactionType, messageCollection, logDate, logTimestamp, callback) {
 
-        var transactionId = uuid.v1();
-        var logLevel = logDataConfig.logLevel[level];
-        var deviceOsId = 0;
+      var transactionId = uuid.v1();
 
-        var query = "INSERT INTO deskerlog.device_record_transaction";// ";
-        query = query + "(bundle_transaction_id, record_transaction_id, device_phone_number, device_country_code, asset_id, activity_id, service_id, service_name, service_url, source_id, source_name, level_id, level_name,";
-        query = query + "log_date, log_timestamp, log_request_timestamp, log_request_data, log_response_timestamp, log_response_data, log_response_code, log_response_turnaround, ";
-        query = query + "log_stacktrace_data, log_message) VALUES (";
+      if(transactionType === 1) {
+      var query = "INSERT INTO transactionsbyactivity";
+      query += " (actvtyid, " +
+                 "date, " +
+                 "srvcid, " +
+                 "bndlid,  " +
+                 "recId, " +
+                 "actvtyttle, " +
+                 "asstid, " +
+                 "asstnm, " +
+                 "devCntryCd, " +
+                 "devPhnNmbr, " +
+                 "lvlId, " +
+                 "lvlnm, " +
+                 "msg, " +
+                 "req, " +
+                 "reqtime, " +
+                 "rescode, " +
+                 "res, " +
+                 "ressts, " +
+                 "restime, " +
+                 "restat, " +
+                 "stktrc, " +
+                 "crtd, " +
+                 "srvcname, " +
+                 "url, " +
+                 "srcid, " +
+                 "srcnm) VALUES(";
+      query += (messageCollection.object.hasOwnProperty("activity_id")) ?  messageCollection.object.activity_id : 0; query += ",";
+      query += "'" + logDate + "'"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("service_id")) ?  messageCollection.object.service_id : 0; query += ",";
+      query += (messageCollection.object.hasOwnProperty("bundle_transaction_id")) ?  messageCollection.object.bundle_transaction_id : "''"; query += ",";
+      query += transactionId; query += ",";
+      query += (messageCollection.object.hasOwnProperty("activity_title")) ?  "'" + messageCollection.object.activity_title + "'"  : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("asset_id")) ?  messageCollection.object.asset_id : 0; query += ",";
+      query += (messageCollection.object.hasOwnProperty("asset_name")) ?  messageCollection.object.asset_name : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("asset_phone_country_code")) ?  messageCollection.object.asset_phone_country_code : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("asset_phone_number")) ?  messageCollection.object.asset_phone_number : "''"; query += ",";
+      query += (logLevel[messageCollection.level]) ? logLevel[messageCollection.level] : 0; query += ",";
+      query += (messageCollection.hasOwnProperty("level")) ? "'"+messageCollection.level+"'" : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("message")) ?  "'" +messageCollection.object.message+"'" : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("request_data")) ?  messageCollection.object.request : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("request_timestamp")) ?  messageCollection.object.request_time : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("response_code")) ?  messageCollection.object.response_code : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("response_data")) ?  messageCollection.object.response : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("response_status")) ?  messageCollection.object.response_status : false; query += ",";
+      query += (messageCollection.object.hasOwnProperty("response_timestamp")) ?  messageCollection.object.response_time : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("response_turnaround")) ?  messageCollection.object.response_tat : 0; query += ",";
+      query += (messageCollection.object.hasOwnProperty("stack_trace")) ?  messageCollection.object.string_tokenizer : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("crtd")) ?  messageCollection.object.crtd : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("service_name")) ?  messageCollection.object.service_name : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("url")) ?  "'" +messageCollection.object.url + "'" : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("device_os_id")) ?  messageCollection.object.device_os_id : 0; query += ",";
+      query += (sourceMap[messageCollection.object.device_os_id]) ? "'" + sourceMap[messageCollection.object.device_os_id]+"'" : "NA";
+      query += ");";
 
-        query = query + reqBody.bundle_transaction_id + ",";                    //bundle transaction id
-        query = query + transactionId + ",";                                    //record_transaction_id
-        query = query + "'" + reqBody.asset_phone_number + "',";                //record_transaction_id
-        query = query + "'" + reqBody.asset_phone_country_code + "',";          //record_transaction_id
+      //console.log(query);
 
-        if (reqBody.hasOwnProperty("asset_id")) {                               //asset id
-            query = query + reqBody.asset_id + ",";
+      executeCassandraQuery(messageCollection.environment, query, function (err, data) {
+          if (!err) {
+              callback(false, true);
+              return;
         } else {
-            query = query + "0,";
+              callback(true, false);
+              return;
         }
+      });
+  }
+      
+      
+      var assetQuery = "INSERT INTO transactionsbyasset";
+      assetQuery += " (asstid, " +
+                 "date, " +
+                 "srvcid, " +
+                 "bndlid,  " +
+                 "recId, " +
+                 "actvtyid, " +
+                 "actvtyttle, " +
+                 "asstnm, " +
+                 "devCntryCd, " +
+                 "devPhnNmbr, " +
+                 "lvlId, " +
+                 "lvlnm, " +
+                 "msg, " +
+                 "req, " +
+                 "reqtime, " +
+                 "rescode, " +
+                 "res, " +
+                 "ressts, " +
+                 "restime, " +
+                 "restat, " +
+                 "stktrc, " +
+                 "crtd, " +
+                 "srvcname, " +
+                 "url, " +
+                 "srcid, " +
+                 "srcnm) VALUES(";
+      assetQuery += (messageCollection.object.hasOwnProperty("asset_id")) ?  messageCollection.object.asset_id : 0; assetQuery += ",";
+      assetQuery += "'" + logDate + "'"; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("service_id")) ?  messageCollection.object.service_id : 0; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("bundle_transaction_id")) ?  messageCollection.object.bundle_transaction_id : "''"; assetQuery += ",";
+      assetQuery += transactionId; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("activity_id")) ?  messageCollection.object.activity_id : 99666; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("activity_title")) ?  "'" + messageCollection.object.activity_title + "'" : "''"; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("asset_name")) ?  messageCollection.object.asset_name : "''"; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("asset_phone_country_code")) ?  messageCollection.object.asset_phone_country_code : "''"; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("asset_phone_number")) ?  messageCollection.object.asset_phone_number : "''"; assetQuery += ",";
+      assetQuery += (logLevel[messageCollection.level]) ? logLevel[messageCollection.level] : 0; assetQuery += ",";
+      assetQuery += (messageCollection.hasOwnProperty("level")) ?  "'"+messageCollection.level+"'" : "''"; assetQuery += ",";
+      assetQuery += (messageCollection.hasOwnProperty("message")) ?  "'" + messageCollection.message + "'" : "''"; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("request_data")) ?  messageCollection.object.request : "''"; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("request_timestamp")) ?  messageCollection.object.request_time : "''"; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("response_code")) ?  messageCollection.object.response_code : "''"; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("response_data")) ?  messageCollection.object.response : "''"; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("response_status")) ?  messageCollection.object.response_status : false; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("response_timestamp")) ?  messageCollection.object.response_time : "''"; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("response_turnaround")) ?  messageCollection.object.response_tat : 0; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("stack_trace")) ?  messageCollection.object.string_tokenizer : "''"; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("crtd")) ?  messageCollection.object.crtd : "''"; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("service_name")) ?  messageCollection.object.service_name : "''"; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("url")) ?  "'" +messageCollection.object.url + "'" : "''"; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("device_os_id")) ?  messageCollection.object.device_os_id : 0; assetQuery += ",";
+      assetQuery += (sourceMap[messageCollection.object.device_os_id]) ? "'" + sourceMap[messageCollection.object.device_os_id]+"'" : "NA"
+      assetQuery += ");";
 
-        if (reqBody.hasOwnProperty("activity_id")) {                            //activity id
-            query = query + reqBody.activity_id + ",";
-        } else {
-            query = query + "0,";
-        }
-        /*
-         var serviceId = logDataConfig.serviceIdUrlMapping[reqBody.url];
-         if (serviceId === 'undefined')
-         query = query + 0 + ",";                                             //service id
-         else
-         query = query + serviceId + ",";                                     //service id
-         */
-        query = query + 0 + ",";                                                //service id
-        query = query + "'',";                                                  //service_name
-        query = query + "'" + reqBody.url + "',";                               //service_url
-        if (reqBody.hasOwnProperty("device_os_id")) {                           //source_id (os id)
-            query = query + reqBody.device_os_id + ",";
-            deviceOsId = reqBody.device_os_id;
-        } else {
-            query = query + "0,";
-        }
-        query = query + "'" + logDataConfig.sourceMap[deviceOsId] + "',";       //source_name
-        query = query + logLevel + ",";                                         //level_id
-        query = query + "'" + level + "',";                                     //level_name
-        query = query + "'" + util.getCurrentDate() + "',";                     //log_date
-        query = query + "'" + logTimestamp + "',";                              //timestamp generated from bundle transaction
+      //console.log(query);
 
-        switch (logLevel) {
-            case 1: // request
-                query = query + "'" + logTimestamp + "',";                     //request timestamp
-                query = query + JSON.stringify(reqBody).replace(/"/gi, "'") + ",";                  //log_request_data 
-                query = query + "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
-                query = query + "{},";                                          //response collection
-                query = query + "'0',";                                         //response code
-                query = query + "0,";                                           //turnaround time
-                query = query + "'',";                                          //stack trace
-                query = query + "''";                                           //message string
-                break;
-            case 2: // response
-                query = query + "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
-                query = query + "{},";                                          //log_request_data 
-                query = query + "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
-                query = query + message.replace(/"/gi, "'") + ",";            //response collection
-                query = query + "'0',";                                         //response code
-                query = query + "0,";                                           //response code
-                query = query + "'',";                                          //stack trace
-                query = query + "''";                                           //message string
-                break;
-            case 3: //debug
-                query = query + "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
-                query = query + "{},";                                          //log_request_data 
-                query = query + "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
-                query = query + "{},";                                          //response collection
-                query = query + "'0',";                                         //response code
-                query = query + "0,";                                           //response code
-                query = query + "'',";                                          //stack trace
-                query = query + "''";                                           //message string
-                break;
-            case 4: // warning
-                query = query + "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
-                query = query + "{},";                                          //log_request_data 
-                query = query + "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
-                query = query + "{},";                                          //response collection
-                query = query + "'0',";                                         //response code
-                query = query + "0,";                                           //response code
-                query = query + "'',";                                          //stack trace
-                query = query + "''";                                           //message string
-                break;
-            case 5: // trace
-                query = query + "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
-                query = query + "{},";                                          //log_request_data 
-                query = query + "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
-                query = query + "{},";                                          //response collection
-                query = query + "'',";                                           //response code
-                query = query + "0,";                                           //response code
-                query = query + "'',";                                          //stack trace
-                query = query + "'" + message.replace(/'/gi, '') + "'";                            //message string
-                break;
-            case 6: //app error
-                query = query + "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
-                query = query + "{},";                                          //log_request_data 
-                query = query + "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
-                query = query + "{},";                                          //response collection
-                query = query + "'0',";                                         //response code
-                query = query + "0,";                                           //response code
-                query = query + "'',";                                          //stack trace
-                query = query + "''";                                           //message string
-                break;
-            case 7: //server error
-                query = query + "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
-                query = query + "{},";                                          //log_request_data 
-                query = query + "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
-                query = query + "{},";                                          //response collection
-                query = query + "'0',";                                         //response code
-                query = query + "0,";                                           //response code
-                query = query + message.replace(/"/gi, "'") + ",";              //stack trace
-                query = query + "''";                                           //message string
-                break;
-            case 8: //fatal
-                query = query + "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
-                query = query + "{},";                                          //log_request_data 
-                query = query + "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
-                query = query + "{},";                                          //response collection
-                query = query + "'0',";                                         //response code
-                query = query + "0,";                                           //response code
-                query = query + "'',";                                          //stack trace
-                query = query + "''";                                           //message string
-                break;
-            default:
-                query = query + "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
-                query = query + "{},";                                          //log_request_data 
-                query = query + "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
-                query = query + "{},";                                          //response collection
-                query = query + "'0',";                                         //response code
-                query = query + "0,";                                           //response code
-                query = query + "'',";                                          //stack trace
-                query = query + "''";                                           //message string
-                break;
-        }
-        query = query + ");";
-
-        executeCassandraQuery(query, function (err, data) {
-            if (err === false) {
+        executeCassandraQuery(messageCollection.environment, assetQuery, function (err, data) {
+          if (!err) {
                 callback(false, true);
                 return;
             } else {
-                callback(true, null);
+              callback(true, false);
                 return;
             }
         });
-    };
-    /*
-     var getMapString = function (jsonObj) {
-     console.log(typeof jsonObj);        
-     var objCount = Object.keys(jsonObj).length;
-     console.log(objCount);
-     var iteration = 0;
-     var mapString = '{';
-     jsonObj.forEach(function (value, key) {
-     if(iteration === objCount-1)
-     mapString = mapString + "'" + key + "':'" + value + "'";
-     else
-     mapString = mapString + "'" + key + "':'" + value + "',";
-     iteration = iteration +1;
-     }, this);
-     mapString = mapString + '}';
-     return mapString;
+ }
      
-     };
-     */
-    var executeCassandraQuery = function (query, callback) {
-        client.execute(query, function (err, result) {
+    var executeCassandraQuery = function (executeIn, query, callback) {
+        if(executeIn === 'dev' ) {
+            console.log('Executing in Dev')
+            clientDev.execute(query, function (err, result) {
             if (!err) {
-                console.log("query success | " + query);
+                //console.log("query success | " + query);
                 console.log(' ');
                 callback(false, true);
                 return;
@@ -419,7 +400,24 @@ function CassandraWrapper(cassandraCredentials, util) {
                 return;
             }
         });
+        } else if (executeIn === 'prod') {
+          console.log('Executing in Prod')
+            clientProd.execute(query, function (err, result) {
+            if (!err) {
+                //console.log("query success | " + query);
+                console.log(' ');
+                callback(false, true);
+                return;
+            } else {
+                console.log("query failed | " + query);
+                console.log(err);
+                console.log(' ');
+                callback(true, false);
+                return;
+            }
+        });
+        }
+        
     };
 }
-;
 module.exports = CassandraWrapper;

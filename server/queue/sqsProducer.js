@@ -28,7 +28,7 @@ function SqsProducer() {
             } else {
                 //console.log(data);
                 //console.log("successfully written data to sqs producer");
-                callback(false,true);
+                callback(false,data);
             }            
         });
 
@@ -36,4 +36,3 @@ function SqsProducer() {
 }
 
 module.exports = SqsProducer;
-

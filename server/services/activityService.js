@@ -2,8 +2,6 @@
  * author: Sri Sai Venkatesh
  */
 
-//var forEachAsync = require('forEachAsync').forEachAsync;
-
 function ActivityService(objectCollection) {
 
     var db = objectCollection.db;
@@ -12,127 +10,196 @@ function ActivityService(objectCollection) {
     var util = objectCollection.util;
     var forEachAsync = objectCollection.forEachAsync;
     var queueWrapper = objectCollection.queueWrapper;
+    var activityPushService = objectCollection.activityPushService;
 
     this.addActivity = function (request, callback) {
 
         var logDatetime = util.getCurrentUTCTime();
         var activityData = {activity_id: request.activity_id};
         request['datetime_log'] = logDatetime;
+        var activityTypeCategroyId = Number(request.activity_type_category_id);
 
-        activityListInsert(request, function (err, boolResult) {
-
-            if (err === false) {
-                var activityTypeCategroyId = Number(request.activity_type_category_id);
-                var activityStreamTypeId = 1;
-                var activityAssetMappingAsset = Number(request.asset_id);
-                var updateTypeId = 0;
-                switch (activityTypeCategroyId) {
-                    case 1: // to-do
-                        activityStreamTypeId = 401;
-                        break;
-                    case 2: // notepad 
-                        activityStreamTypeId = 501;
-                        break;
-                    case 3: //plant
-                        break;
-                    case 4: //employee id card
-                        activityStreamTypeId = 101;
-                        var employeeJson = JSON.parse(request.activity_inline_data);
-                        activityAssetMappingAsset = employeeJson.employee_asset_id;
-                        break;
-                    case 5: //Co-worker Contact Card
-                        activityStreamTypeId = 203;
-                        break;
-                    case 6: //  External Contact Card - Customer
-                        activityStreamTypeId = 1103;
-                        break;
-                    case 7: //  speed Dial Contact 
-                        activityStreamTypeId = 1;
-                        break;
-                    case 8: //  Mail
-                        activityStreamTypeId = 1701;
-                        break;
-                    case 9: //form
-                        activityStreamTypeId = 701;
-                        break;
-                    case 10:    //document
-                        activityStreamTypeId = 301;
-                        break;
-                    case 11:    //folder
-                        activityStreamTypeId = 1401;
-                        break;
-                    case 14:    //voice call
-                        activityStreamTypeId = 801;
-                        break;
-                    case 15:    //video conference
-                        activityStreamTypeId = 1601;
-                        break;
-                    case 28:    // post-it
-                        activityStreamTypeId = 901;
-                        break;
-                    case 29:    // External Contact Card - Supplier
-                        activityStreamTypeId = 1203;
-                        break;
-                    case 30:    //contact group
-                        activityStreamTypeId = 1301;
-                        break;
-                    default:
-                        activityStreamTypeId = 1;   //by default so that we know
-                        console.log('adding streamtype id 1');
-                        break;
-
+        new Promise((resolve, reject) => {
+            if (activityTypeCategroyId !== 8)
+                return resolve();
+            updateMailInlineJson(request, function (err, updatedJson) {
+                if (err === false) {
+                    request.activity_inline_data = updatedJson;
+                    return resolve();
                 }
-                ;
-                console.log('streamtype id is: ' + activityStreamTypeId)
-                assetActivityListInsertAddActivity(request, function (err, status) {
-                    if (err === false) {
+            });
+            //kafkaProducer.on('ready', resolve);
+        }).then(() => {
+            activityListInsert(request, function (err, boolResult) {
+                activityCommonService.updateAssetLocation(request, function (err, data) {});
+                if (err === false) {
 
-                        // do the timeline transactions here..                    
+                    var activityStreamTypeId = 1;
+                    var activityAssetMappingAsset = Number(request.asset_id);
+                    var updateTypeId = 0;
+                    switch (activityTypeCategroyId) {
+                        case 1: // to-do
+                            activityStreamTypeId = 401;
+                            break;
+                        case 2: // notepad 
+                            activityStreamTypeId = 501;
+                            break;
+                        case 3: //plant
+                            break;
+                        case 4: //employee id card
+                            activityStreamTypeId = 101;
+                            var employeeJson = JSON.parse(request.activity_inline_data);
+                            activityAssetMappingAsset = employeeJson.employee_asset_id;
+                            break;
+                        case 5: //Co-worker Contact Card
+                            activityStreamTypeId = 203;
+                            break;
+                        case 6: //  External Contact Card - Customer
+                            activityStreamTypeId = 1103;
+                            break;
+                        case 7: //  speed Dial Contact 
+                            activityStreamTypeId = 1;
+                            break;
+                        case 8: //  Mail
+                            activityStreamTypeId = 1701;
+                            break;
+                        case 9: //form
+                            activityStreamTypeId = 701;
+                            break;
+                        case 10:    //document
+                            activityStreamTypeId = 301;
+                            break;
+                        case 11:    //folder
+                            activityStreamTypeId = 1401;
+                            break;
+                        case 14:    //voice call
+                            activityStreamTypeId = 801;
+                            break;
+                        case 15:    //video conference
+                            activityStreamTypeId = 1601;
+                            break;
+                        case 28:    // post-it
+                            activityStreamTypeId = 901;
+                            break;
+                        case 29:    // External Contact Card - Supplier
+                            activityStreamTypeId = 1203;
+                            break;
+                        case 30:    //contact group
+                            activityStreamTypeId = 1301;
+                            break;
+                            //Added by Nani Kalyan
+                        case 31:    //Calendar Event
+                            activityStreamTypeId = 501;
+                            break;
+                            //Added by Nani Kalyan
+                        case 32:    //Customer Request
+                            activityStreamTypeId = 601;
+                            break;
+                            //Added by Nani Kalyan
+                        case 33:    //Visitor Request
+                            activityStreamTypeId = 1301;
+                            break;
+                            //Added by Nani Kalyan
+                        case 34:    //Time Card
+                            activityStreamTypeId = 1501;
+                            break;
+                            /////////////////////////////////
+                        default:
+                            activityStreamTypeId = 1;   //by default so that we know
+                            //console.log('adding streamtype id 1');
+                            global.logger.write('debug','adding streamtype id 1', request)
+                            break;
 
-                        activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
-
-                        });
-                        activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
-
-                        });
-                        activityCommonService.activityListHistoryInsert(request, updateTypeId, function (err, restult) {
-
-                        });
-                        activityCommonService.assetActivityListHistoryInsert(request, activityAssetMappingAsset, 0, function (err, restult) {
-
-                        });
-                        callback(false, activityData, 200);
-                        if (request.hasOwnProperty('device_os_id')) {
-                            if (Number(request.device_os_id) !== 5) {
-                                //incr the asset_message_counter                        
-                                cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
-                                    if (err) {
-                                        console.log("error in setting in asset parity");
-                                    } else
-                                        console.log("asset parity is set successfully")
-
-                                });
-                            }
-                        }
-
-                        cacheWrapper.setMessageUniqueIdLookup(request.message_unique_id, request.activity_id, function (err, status) {
-                            if (err) {
-                                console.log("error in setting in message unique id look up");
-                            } else
-                                console.log("message unique id look up is set successfully")
-
-                        });
-                        return;
-                    } else {
-                        console.log("not inserted to asset activity list");
-                        callback(false, activityData, 200);
                     }
+                    ;
+                    //console.log('streamtype id is: ' + activityStreamTypeId)
+                    global.logger.write('debug','streamtype id is: ' + activityStreamTypeId, request)
+                    assetActivityListInsertAddActivity(request, function (err, status) {
+                        if (err === false) {
+
+                            // do the timeline transactions here..                    
+
+                            activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
+
+                            });
+                            activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
+
+                            });
+                            activityCommonService.activityListHistoryInsert(request, updateTypeId, function (err, restult) {
+
+                            });
+                            activityCommonService.assetActivityListHistoryInsert(request, activityAssetMappingAsset, 0, function (err, restult) {
+
+                            });
+                            callback(false, activityData, 200);
+                            
+                            /*if (request.hasOwnProperty('device_os_id')) {
+                                if (Number(request.device_os_id) !== 5) {
+                                    //incr the asset_message_counter                        
+                                    cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
+                                        if (err) {
+                                            //console.log("error in setting in asset parity");
+                                            global.logger.write('serverError','error in setting in asset parity' + err, request)
+                                        } else
+                                            //console.log("asset parity is set successfully")
+                                            global.logger.write('debug','asset parity is set successfully', request)
+
+                                    });
+                                }
+                            }*/
+
+                            cacheWrapper.setMessageUniqueIdLookup(request.message_unique_id, request.activity_id, function (err, status) {
+                                if (err) {
+                                    //console.log("error in setting in message unique id look up");
+                                    global.logger.write('"error in setting in message unique id look up' + err, request)
+                                } else
+                                    //console.log("message unique id look up is set successfully")
+                                    global.logger.write('debug','message unique id look up is set successfully', request)
+                            });
+                            return;
+                        } else {
+                            console.log("not inserted to asset activity list");
+                            callback(false, activityData, 200);
+                        }
+                    });
+                } else {
+                    callback(err, activityData, -9999);
+                    return;
+                }
+            });
+        }).catch((err) => {
+            //console.log(err);
+            global.logger.write('serverError',err, request)
+        });
+    };
+
+    var updateMailInlineJson = function (request, callback) {
+        var mailJson = JSON.parse(request.activity_inline_data);
+        var finalJson = {};
+        forEachAsync(Object.keys(mailJson), function (next, mailData) {
+            if (mailJson[mailData] !== null && typeof mailJson[mailData] === 'object') {
+                var tempRefernceArr = new Array();
+                forEachAsync(mailJson[mailData], function (next, referenceData, index) {
+                    activityCommonService.getActivityDetails(request, Number(referenceData.activity_id), function (err, activityData) {
+                        if (err === false) {
+                            referenceData.organization_id = activityData[0]['organization_id'];
+                            referenceData.account_id = activityData[0]['account_id'];
+                            referenceData.workforce_id = activityData[0]['workforce_id'];
+                            referenceData.asset_id = activityData[0]['asset_id'];
+                            tempRefernceArr.push(referenceData);
+                            next();
+                        }
+                    });
+                }).then(function () {
+                    finalJson[mailData] = tempRefernceArr;
+                    next();
                 });
             } else {
-                callback(err, activityData, -9999);
-                return;
+                finalJson[mailData] = mailJson[mailData];
+                next();
             }
-
+        }).then(function () {
+            callback(false, JSON.stringify(finalJson));
         });
     };
 
@@ -164,7 +231,7 @@ function ActivityService(objectCollection) {
                         request.activity_id,
                         request.activity_title,
                         request.activity_description,
-                        util.encodeSpecialChars(request.activity_inline_data),
+                        (request.activity_inline_data),
                         "",
                         0,
                         request.activity_datetime_start,
@@ -193,7 +260,7 @@ function ActivityService(objectCollection) {
                         request.activity_id,
                         request.activity_title,
                         request.activity_description,
-                        util.encodeSpecialChars(request.activity_inline_data),
+                        (request.activity_inline_data),
                         "",
                         0,
                         request.activity_datetime_start,
@@ -221,7 +288,7 @@ function ActivityService(objectCollection) {
                         request.activity_id,
                         request.activity_title,
                         request.activity_description,
-                        util.encodeSpecialChars(request.activity_inline_data),
+                        (request.activity_inline_data),
                         "",
                         0,
                         request.activity_datetime_start,
@@ -250,9 +317,37 @@ function ActivityService(objectCollection) {
                         request.activity_id,
                         request.activity_title,
                         request.activity_description,
-                        util.encodeSpecialChars(request.activity_inline_data),
+                        (request.activity_inline_data),
                         "",
                         activityInlineData.contact_asset_id, //contact asset id
+                        request.activity_datetime_start,
+                        request.activity_datetime_end,
+                        activityStatusId,
+                        request.activity_type_id,
+                        request.activity_parent_id,
+                        request.asset_id,
+                        request.workforce_id,
+                        request.account_id,
+                        request.organization_id,
+                        request.message_unique_id, //request.asset_id + new Date().getTime() + getRandomInt(), //message unique id
+                        request.flag_retry,
+                        request.flag_offline,
+                        request.asset_id,
+                        request.datetime_log, // server log date time   
+                        activityFormId,
+                        0,
+                        activityChannelId,
+                        activityChannelCategoryId
+                        );
+                break;
+            case 8: // mail
+                paramsArr = new Array(
+                        request.activity_id,
+                        request.activity_title,
+                        request.activity_description,
+                        (request.activity_inline_data),
+                        "",
+                        0,
                         request.activity_datetime_start,
                         request.activity_datetime_end,
                         activityStatusId,
@@ -278,7 +373,7 @@ function ActivityService(objectCollection) {
                         request.activity_id,
                         request.activity_title,
                         request.activity_description,
-                        util.encodeSpecialChars(request.activity_inline_data),
+                        (request.activity_inline_data),
                         "",
                         0,
                         request.activity_datetime_start,
@@ -306,7 +401,7 @@ function ActivityService(objectCollection) {
                         request.activity_id,
                         request.activity_title,
                         request.activity_description,
-                        util.encodeSpecialChars(request.activity_inline_data),
+                        (request.activity_inline_data),
                         "",
                         0,
                         request.activity_datetime_start,
@@ -334,7 +429,7 @@ function ActivityService(objectCollection) {
                         request.activity_id,
                         request.activity_title,
                         request.activity_description,
-                        util.encodeSpecialChars(request.activity_inline_data),
+                        (request.activity_inline_data),
                         "",
                         0,
                         request.activity_datetime_start,
@@ -358,8 +453,11 @@ function ActivityService(objectCollection) {
                         );
                 break;
         }
+        ;
+        paramsArr.push(request.track_latitude);
+        paramsArr.push(request.track_longitude);
         var queryString = util.getQueryString('ds_v1_activity_list_insert', paramsArr);
-        if (queryString != '') {
+        if (queryString !== '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
                     callback(false, true);
@@ -420,8 +518,6 @@ function ActivityService(objectCollection) {
                 }
             });
         }
-
-
     };
 
     /*var checkActivityStatusChangeEligibility = function (request, calback) {
@@ -483,7 +579,8 @@ function ActivityService(objectCollection) {
                     return;
                 } else {
                     callback(err, false);
-                    console.log(err);
+                    //console.log(err);
+                    global.logger.write('serverError',err, request)
                     return;
                 }
             });
@@ -506,16 +603,13 @@ function ActivityService(objectCollection) {
                             request.datetime_log
                             );
                     queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_status', paramsArr);
-                    db.executeQuery(0, queryString, request, function (error, queryResponse) {
-
-                    });
+                    db.executeQuery(0, queryString, request, function (error, queryResponse) { });
                 }, this);
                 callback(false, true);
                 return;
             } else {
                 // some thing is wrong and have to be dealt
-                callback(true, false);
-                console.log(err);
+                callback(true, false);                
                 return;
             }
         });
@@ -537,16 +631,15 @@ function ActivityService(objectCollection) {
 
     var duplicateFormTransactionData = function (request, callback) {
 
-        activityCommonService.getActivityDetails(request, function (err, activityData) {    // get activity form_id and form_transaction id
+        activityCommonService.getActivityDetails(request, 0, function (err, activityData) {    // get activity form_id and form_transaction id
             var formTransactionId = activityData[0].form_transaction_id;
             var formId = activityData[0].form_id;
             getFormTransactionRecords(request, formTransactionId, formId, function (err, formTransactionData) { // get all form transaction data
                 if (err === false) {
-
                     var finalFormTransactionData = {};
                     forEachAsync(formTransactionData, function (next, rowData) {
-                        var fieldId = rowData['field_id'];
-                        finalFormTransactionData[fieldId] = rowData;
+                        var objectKey = rowData['field_id'] + '' + rowData['data_type_combo_id'];
+                        finalFormTransactionData[objectKey] = rowData;
                         next();
                     }).then(function () {
                         var finalFormTransactionKeys = (Object.keys(finalFormTransactionData));
@@ -610,7 +703,8 @@ function ActivityService(objectCollection) {
                         });
                     });
                 } else {
-                    console.log('error while fetching from transaction data');
+                    //console.log('error while fetching from transaction data');
+                    global.logger.write('serverError','error while fetching from transaction data', request)
                 }
             });
         });
@@ -633,7 +727,7 @@ function ActivityService(objectCollection) {
                     activityStreamTypeId = 404;
                     break;
                 case 2: // notepad 
-                    activityStreamTypeId = 504;
+                    //activityStreamTypeId = 504;
                     break;
                 case 3: //plant
                     break;
@@ -646,6 +740,11 @@ function ActivityService(objectCollection) {
                 case 6: //  External Contact Card - Customer
                     activityStreamTypeId = 1108;
                     break;
+                    //Added by Nani Kalyan
+                case 8: //Mail 
+                    activityStreamTypeId = 1702;
+                    break;
+                    ////////////////////////////////
                 case 9: //form
                     activityStreamTypeId = 704;
                     break;
@@ -656,8 +755,10 @@ function ActivityService(objectCollection) {
                     activityStreamTypeId = 1402;
                     break;
                 case 14:    //voice call
+                    activityStreamTypeId = 802; //Added by Nani Kalyan
                     break;
                 case 15:    //video conference
+                    activityStreamTypeId = 1602; //Added by Nani Kalyan
                     break;
                 case 28:    // post-it
                     activityStreamTypeId = 903;
@@ -668,16 +769,33 @@ function ActivityService(objectCollection) {
                 case 30:    //contact group
                     activityStreamTypeId = 11;  // non existent now 
                     break;
+                    //Added by Nani Kalyan
+                case 31: //Calendar Event 
+                    activityStreamTypeId = 502;
+                    break;
+                    //Added by Nani Kalyan
+                case 32: //Customer Request
+                    activityStreamTypeId = 602;
+                    break;
+                    //Added by Nani Kalyan
+                case 33: //Visitor Request 
+                    activityStreamTypeId = 1302;
+                    break;
+                    //Added by Nani Kalyan
+                case 34: //Time Card 
+                    activityStreamTypeId = 1502;
+                    break;
                 default:
                     activityStreamTypeId = 11;   //by default so that we know
-                    console.log('adding streamtype id 11');
+                    //console.log('adding streamtype id 11');
+                    global.logger.write('debug','adding streamtype id 11', request)
                     break;
 
             }
             ;
             request.activity_stream_type_id = activityStreamTypeId;
         }
-
+        activityCommonService.updateAssetLocation(request, function (err, data) {});
         activityListUpdateStatus(request, function (err, data) {
             if (err === false) {
                 assetActivityListUpdateStatus(request, activityStatusId, activityStatusTypeId, function (err, data) {
@@ -698,8 +816,9 @@ function ActivityService(objectCollection) {
                 activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {
 
                 });
-                if (activityTypeCategoryId === 9 && activityStatusTypeId === 22) {   //form and submitted state                    
-                    duplicateFormTransactionData(request, function (err, data) {                        
+                activityPushService.sendPush(request, objectCollection, 0, function () {});
+                if (activityTypeCategoryId === 9 && activityStatusTypeId === 23) {   //form and submitted state                    
+                    duplicateFormTransactionData(request, function (err, data) {
                         var widgetEngineQueueMessage = {
                             form_id: data.formId,
                             form_transaction_id: data.formTransactionId,
@@ -720,7 +839,7 @@ function ActivityService(objectCollection) {
                             api_version: request.api_version
                         };
                         var event = {
-                            name: "Form Based Widget Engine",                            
+                            name: "Form Based Widget Engine",
                             payload: widgetEngineQueueMessage
                         };
                         queueWrapper.raiseFormWidgetEvent(event, request.activity_id);
@@ -728,18 +847,20 @@ function ActivityService(objectCollection) {
                     });
                 }
 
-                if (request.hasOwnProperty('device_os_id')) {
+                /*if (request.hasOwnProperty('device_os_id')) {
                     if (Number(request.device_os_id) !== 5) {
                         //incr the asset_message_counter                        
                         cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
                             if (err) {
-                                console.log("error in setting in asset parity");
+                                //console.log("error in setting in asset parity");
+                                global.logger.write('serverError','error in setting in asset parity - ' + err, request)
                             } else
-                                console.log("asset parity is set successfully")
+                                //console.log("asset parity is set successfully")
+                                global.logger.write('debug','asset parity is set successfully', request)
 
                         });
                     }
-                }
+                }*/
                 callback(false, {}, 200);
                 return;
             } else {

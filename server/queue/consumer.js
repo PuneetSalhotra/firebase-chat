@@ -6,23 +6,25 @@ require('../utils/globalConfig');
 var kafka = require('kafka-node');
 var KafkaConsumer = kafka.Consumer;
 var KafkaProducer = kafka.Producer;
+var Util = require('../utils/util');
+var db = require("../utils/dbWrapper");
+var redis = require('redis');   //using elasticache as redis
+var CacheWrapper = require('../utils/cacheWrapper');
+var QueueWrapper = require('./queueWrapper');
+var AwsSns = require('../utils/snsWrapper');
+var forEachAsync = require('forEachAsync').forEachAsync;
+var ActivityCommonService = require("../services/activityCommonService");
+var ActivityPushService = require("../services/activityPushService");
 
 var Consumer = function (partitionId) {
 
     var serviceObjectCollection = {};
-    var Util = require('../utils/util');
-    var db = require("../utils/dbWrapper");
     var util = new Util();
-    var redis = require('redis');   //using elasticache as redis
     var redisClient = redis.createClient(global.config.redisPort, global.config.redisIp);
-    var CacheWrapper = require('../utils/cacheWrapper');
     var cacheWrapper = new CacheWrapper(redisClient);
-    var QueueWrapper = require('./queueWrapper');
-    var AwsSns = require('../utils/snsWrapper');
     var sns = new AwsSns();
-    var ActivityCommonService = require("../services/activityCommonService");
-    var activityCommonService = new ActivityCommonService(db, util);
-    var forEachAsync = require('forEachAsync').forEachAsync;
+    var activityCommonService = new ActivityCommonService(db, util, forEachAsync);
+    var activityPushService = new ActivityPushService();
     var kafkaClient = new kafka.Client(global.config.kafkaIP);
     var kafkaConsumer = new KafkaConsumer(
             kafkaClient,
@@ -50,7 +52,8 @@ var Consumer = function (partitionId) {
             activityCommonService: activityCommonService,
             sns: sns,
             forEachAsync: forEachAsync,
-            queueWrapper: queueWrapper
+            queueWrapper: queueWrapper,
+            activityPushService: activityPushService
         };
         kafkaConsumer.on('message', function (message) {
             try {
@@ -75,8 +78,7 @@ var Consumer = function (partitionId) {
                     serviceObjectCollection[serviceName][method](messageJson['payload'], function (err, data) {
                         console.log(data);
                         console.log(err);
-                    });
-
+                    });                    
                 }
             } catch (exception) {
                 console.log(exception);

@@ -50,22 +50,36 @@ class MultiDimensionalAggrWidget extends WidgetBase {
             entity_id: this.rule.widget_entity2_id
         };
         activityQueryData = _.merge(activityQueryData, data);
-
         this.services.activityFormTransactionAnalytics.getByTransactionField(activityQueryData)
         .then((result) => {
-            choice = result[0] ? result[0].data_entity_text_1 : undefined;
-            let activityQueryData = {
-                form_id: this.form.id,
-                entity_id: this.rule.widget_entity2_id,
-                choice: choice,
-                start: formSubmissionDate.startOfDayInUTC,
-                end: formSubmissionDate.endOfDayInUTC
-            };
-            return this.services.activityFormTransactionAnalytics.getFormTransactionsByChoice(activityQueryData);
-        })
+        choice = result[0] ? result[0].data_entity_text_1 : undefined;
+        switch(this.rule.widget_aggregate_id) {
+            case 1:
+                return this.getMultiValueAggregateCount(formSubmissionDate,data, choice);
+            break;
+            default:
+                return this.getMultiValueAggregate(formSubmissionDate,data, choice);
+            break;
+        }
+    });
+    }
+    
+    getMultiValueAggregate(formSubmissionDate, data, choice){
+         
+        let activityQueryData = {
+            form_id: this.form.id,
+            entity_id: this.rule.widget_entity2_id,
+            choice: choice,
+            start: formSubmissionDate.startDate,
+            end: formSubmissionDate.endDate,
+            widget_access_level_id: this.rule.widget_access_level_id
+        };
+        activityQueryData = _.merge(activityQueryData, data);
+        this.services.activityFormTransactionAnalytics.getFormTransactionsByChoice(activityQueryData)
         .then((rows) => {
             var promises = [];
             rows.forEach((row) => promises.push(this.services.activityFormTransactionAnalytics.getByTransactionField({
+				organization_id: data.organization_id,
                 form_id: this.form.id,
                 entity_id: this.rule.widget_entity3_id,
                 form_transaction_id: row.form_transaction_id
@@ -74,17 +88,54 @@ class MultiDimensionalAggrWidget extends WidgetBase {
         })
         .then((results) => {
             const field = this.getChoiceSumField();
-            const sum = results.map((res) =>  res[0][field]).filter((val) => !_.isUndefined(val)).reduce((a, b) => { return a + b; }, 0);
+            const aggr_value = results.map((res) =>  res[0][field]).filter((val) => !_.isUndefined(val)).reduce((a, b) => { 
+			
+			switch(this.rule.widget_aggregate_id){
+				case 2: return a + b; break;
+				case 3: return (a + b)/2; break;
+				case 4: return a < b ? a : b; break;
+				case 5: return a > b ? a : b; break;
+				default : return 0; break;
+			}
+		});
             let widgetData = {
                 date: formSubmissionDate.valueInRuleTimeZone,
                 choice: choice,
-                sum: sum,
+                aggr_value: aggr_value,
                 widget_id: this.rule.widget_id,
-                period_flag: this.getPeriodFlag()
+                period_flag: this.getPeriodFlag(),
+				widget_access_level_id: this.rule.widget_access_level_id
             };
             widgetData = _.merge(widgetData, data);
             return this.createOrUpdateWidgetTransaction(widgetData);
         });
+    }
+    
+    getMultiValueAggregateCount(formSubmissionDate, data, choice){
+
+        let activityQueryData = {
+            form_id: this.form.id,
+            entity_id: this.rule.widget_entity2_id,
+            choice: choice,
+            start: formSubmissionDate.startDate,
+            end: formSubmissionDate.endDate,
+            widget_access_level_id: this.rule.widget_access_level_id
+        };
+        activityQueryData = _.merge(activityQueryData, data);
+        this.services.activityFormTransactionAnalytics.getCountByTransactionFieldChoice(activityQueryData)
+       .then((result) => {
+            const choice_count = result[0] ? result[0].choice_count: undefined;    
+            let widgetData = {
+                date: formSubmissionDate.valueInRuleTimeZone,
+                choice: choice,
+                aggr_value: choice_count,
+                widget_id: this.rule.widget_id,
+                period_flag: this.getPeriodFlag(),
+                widget_access_level_id: this.rule.widget_access_level_id
+            };
+            widgetData = _.merge(widgetData, data);
+            return this.createOrUpdateWidgetTransaction(widgetData);
+        })
     }
 
     createOrUpdateWidgetTransaction(widgetData) {

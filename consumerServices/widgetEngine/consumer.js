@@ -10,10 +10,11 @@ class WidgetEngineConsumer extends ConsumerBase {
         super(opts);
     }
 
-    validateMessage(message){
+    validateMessage(message) {
         const messagePayload = (message || {}).payload;
         return new Promise((resolve, reject) => {
-            if(!messagePayload.form_id)  return reject("Invalid message for widgetEngine, Skipping message");
+            if (!messagePayload.form_id)
+                return reject("Invalid message for widgetEngine, Skipping message");
             return resolve(messagePayload);
         });
     }
@@ -22,15 +23,15 @@ class WidgetEngineConsumer extends ConsumerBase {
         return new Promise((resolve, reject) => {
             const formInstance = forms.get(message.form_id, {objCollection: this.objCollection});
             formInstance.getWidgets(message)
-            .then((widgets) => {
-                const promises = widgets.map((widget) => widget && widget.crunchDataAndSave(message));
-                return Promise.all(promises);
-            })
-            .then(() => {
-                resolve(message);
-            })
-            .catch(reject);
-        });     
+                    .then((widgets) => {
+                        const promises = widgets.map((widget) => widget && widget.crunchDataAndSave(message));
+                        return Promise.all(promises);
+                    })
+                    .then(() => {
+                        resolve(message);
+                    })
+                    .catch(reject);
+        });
     }
 }
 

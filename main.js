@@ -27,13 +27,12 @@ var ControlInterceptor = require('./server/interceptors/controlInterceptor');
 var kafka = require('kafka-node');
 var KafkaProducer = kafka.Producer;
 var kafkaClient = new kafka.Client(global.config.kafkaIP);
-
-
 var redis = require('redis');   //using elasticache as redis
 var redisClient = redis.createClient(global.config.redisPort, global.config.redisIp);
 var CacheWrapper = require('./server/utils/cacheWrapper');
 var cacheWrapper = new CacheWrapper(redisClient);
 var QueueWrapper = require('./server/queue/queueWrapper');
+var forEachAsync = require('forEachAsync').forEachAsync;
 var ActivityCommonService = require("./server/services/activityCommonService");
 redisClient.on('connect', function () {
     console.log("redis is connected");
@@ -47,8 +46,8 @@ redisClient.on('connect', function () {
         var queueWrapper = new QueueWrapper(kafkaProducer);
 
         var util = new Util();
-        var responseWrapper = new ResponseWrapper(util);        
-        var activityCommonService = new ActivityCommonService(db, util);
+        var responseWrapper = new ResponseWrapper(util);
+        var activityCommonService = new ActivityCommonService(db, util, forEachAsync);
 
         var objCollection = {
             app: app,
@@ -57,7 +56,8 @@ redisClient.on('connect', function () {
             responseWrapper: responseWrapper,
             cacheWrapper: cacheWrapper,
             queueWrapper: queueWrapper,
-            activityCommonService: activityCommonService
+            activityCommonService: activityCommonService,
+            forEachAsync: forEachAsync
         };
         new EncTokenInterceptor(app, cacheWrapper, responseWrapper, util);
         new ControlInterceptor(objCollection);

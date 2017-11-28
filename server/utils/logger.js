@@ -6,14 +6,14 @@ var SQS = require("../queue/sqsProducer");
 
 function Logger() {
 
-    var sqs = new SQS();
+    var sqs = new SQS();    
     
-    this.write = function (message, request, level) {
-        
+    this.write = function (level, message, object) {
         var loggerCollection = {
             message: message,
-            request: request,            
-            level: level
+            object: object,            
+            level: level,
+            environment: global.mode //'prod'
         };
         var loggerCollectionString = JSON.stringify(loggerCollection);
         sqs.produce(loggerCollectionString, function (err, response) {
@@ -21,7 +21,6 @@ function Logger() {
                 console.log("error is: "+ err);
             });
     };
-
 }
 ;
 module.exports = Logger;

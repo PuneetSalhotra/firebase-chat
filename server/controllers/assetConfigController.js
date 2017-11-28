@@ -14,18 +14,17 @@ function AssetConfigController(objCollection) {
     var assetConfigService = new AssetConfigService();
     
     app.post('/' + global.config.version + '/asset_type/access/workforce/list', function (req, res) {
-        req.body['module'] = 'asset';
         assetConfigService.getAssetTypesList(req.body, function (err, data, statusCode) {
 
             if (err === false) {
                 // got positive response    
 
-                res.send(responseWrapper.getResponse(err, data, statusCode));
+                res.send(responseWrapper.getResponse(err, data, statusCode,req.body));
 
             } else {
-                console.log('did not get proper rseponse');
+                console.log('did not get proper response');
                 data = new Array();
-                res.send(responseWrapper.getResponse(err, data, statusCode));
+                res.send(responseWrapper.getResponse(err, data, statusCode,req.body));
             }
         });
 

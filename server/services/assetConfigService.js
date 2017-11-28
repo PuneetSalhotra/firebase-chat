@@ -15,12 +15,16 @@ function AssetConfigService() {
                 request.workforce_id,
                 request.datetime_differential,
                 request.page_start,
-                request.page_limit
+                util.replaceQueryLimit(request.page_limit)
                 );
         var queryString = util.getQueryString('ds_v1_workforce_asset_type_mapping_select', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
+                    data.forEach(function (rowData, index) {                        
+                        rowData.log_asset_first_name = util.replaceDefaultString(rowData.log_asset_first_name);
+                        rowData.log_asset_last_name = util.replaceDefaultString(rowData.log_asset_last_name);
+                    }, this);
                     callback(false, {data: data}, 200);
                     return;
                 } else {

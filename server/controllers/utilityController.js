@@ -12,7 +12,7 @@ function UtilityController(objCollection) {
     app.post('/' + global.config.version + '/time/access/global/entry/collection', function (req, res) {
 
         var statusCode = 200;
-        res.send(responseWrapper.getResponse(false, {}, statusCode));
+        res.send(responseWrapper.getResponse(false, {}, statusCode,req.body));
 
     });
 

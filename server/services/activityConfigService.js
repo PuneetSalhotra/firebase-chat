@@ -11,7 +11,7 @@ function ActivityConfigService(db, util) {
                 request.workforce_id,
                 request.datetime_differential,
                 request.page_start,
-                request.page_limit
+                util.replaceQueryLimit(request.page_limit)
                 );
         var queryString = util.getQueryString('ds_v1_workforce_activity_type_mapping_select', paramsArr);
 
@@ -44,7 +44,7 @@ function ActivityConfigService(db, util) {
                 request.workforce_id,
                 request.datetime_differential,
                 request.page_start,
-                request.page_limit
+                util.replaceQueryLimit(request.page_limit)
                 );
         var queryString = util.getQueryString('ds_v1_workforce_activity_status_mapping_select', paramsArr);
 
@@ -74,7 +74,7 @@ function ActivityConfigService(db, util) {
 
         var paramsArr = new Array(
                 request.page_start,
-                request.page_limit
+                util.replaceQueryLimit(request.page_limit)
                 );
         var queryString = util.getQueryString('ds_v1_activity_participant_access_master_select', paramsArr);
 

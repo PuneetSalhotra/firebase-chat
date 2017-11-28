@@ -2,7 +2,7 @@
  * author: Sri Sai Venkatesh
  */
 
-function ActivityCommonService(db, util) {
+function ActivityCommonService(db, util, forEachAsync) {
 
     this.getAllParticipants = function (request, callback) {
         var paramsArr = new Array(
@@ -90,7 +90,8 @@ function ActivityCommonService(db, util) {
                     return;
                 } else {
                     callback(true, false);
-                    console.log(err);
+                    //console.log(err);
+                    global.logger.write('serverError','' + err, request)
                     return;
                 }
             });
@@ -114,7 +115,7 @@ function ActivityCommonService(db, util) {
                     return;
                 } else {
                     callback(true, false);
-                    console.log(err);
+                    //console.log(err);
                     return;
                 }
             });
@@ -133,7 +134,8 @@ function ActivityCommonService(db, util) {
                 };
                 updateActivityLogLastUpdatedDatetimeAsset(request, assetCollection, function (err, data) {
                     if (err !== false) {
-                        console.log(err);
+                        //console.log(err);
+                        global.logger.write('serverError','' + err, request)
                     }
                 });
             }, this);
@@ -204,20 +206,18 @@ function ActivityCommonService(db, util) {
     };
 
     this.assetTimelineTransactionInsert = function (request, participantData, streamTypeId, callback) {
-
-        var activityId = util.replaceZero(request.activity_id);
+        var assetId = request.asset_id;
         var organizationId = request.organization_id;
         var accountId = request.account_id;
         var workforceId = request.workforce_id;
-        var assetId = request.asset_id;
         var messageUniqueId = request.message_unique_id;
         var entityTypeId = 0;
         var entityText1 = "";
         var entityText2 = "";
+        var retryFlag = 0;
         var formTransactionId = 0;
         var dataTypeId = 0;
         var formId = 0;
-        var retryFlag = 0;
         if (Number(request.device_os_id) === 5)
             retryFlag = 1;
 
@@ -226,17 +226,19 @@ function ActivityCommonService(db, util) {
             if (activityTypeCategoryId === 4) {
                 if (request.hasOwnProperty('activity_inline_data')) {
                     var inlineJson = JSON.parse(request.activity_inline_data);
-                    var assetId = inlineJson.employee_asset_id;
+                    assetId = inlineJson.employee_asset_id;
+                } else {
+                    assetId = request.asset_id;
                 }
             } else {
-                var assetId = request.asset_id;
+                assetId = request.asset_id;
             }
         } else {
-            var assetId = request.asset_id;
+            assetId = request.asset_id;
         }
 
-        if (participantData.hasOwnProperty('organization_id')) {
 
+        if (participantData.length > 0) {
             organizationId = participantData.organization_id;
             accountId = participantData.account_id;
             workforceId = participantData.workforce_id;
@@ -260,12 +262,18 @@ function ActivityCommonService(db, util) {
                 entityText1 = ""
                 entityText2 = request.activity_cover_collection;
                 break;
-            case 310:   // text message
+            case 310:   // text message     --> File
+            case 607:   // text message     --> Customer Request
+            case 1307:   // text message    --> Visitor Request
+            case 1507:   // text message    --> Time Card
                 entityTypeId = 0;
                 entityText1 = ""
                 entityText2 = request.activity_timeline_text;
                 break;
-            case 311:   // image
+            case 311:   // image    --> file           
+            case 608:   // image    --> Customer Request          
+            case 1308:   // image    --> Visitor Request
+            case 1508:   // image   --> Time Card       
                 entityTypeId = 0;
                 entityText1 = request.activity_timeline_url;
                 entityText2 = '';
@@ -281,9 +289,14 @@ function ActivityCommonService(db, util) {
                 entityText2 = request.activity_timeline_collection;
                 formTransactionId = request.form_transaction_id;
                 formId = request.form_id;
-                dataTypeId = 37;    //static for all form submissions                
+                dataTypeId = 37;    //static for all form submissions
                 break;
-            case 314:   // cloud based document
+            case 314:   // cloud based document -- file
+            case 610:   // cloud based document -- Customer Request
+            case 709:   // cloud based document -- Form
+            case 1310:   // cloud based document -- Visitor Request
+            case 1408:   // cloud based document -- Project
+            case 1510:   // cloud based document -- Time Card
                 entityTypeId = 0;
                 entityText1 = request.activity_timeline_url;
                 entityText2 = '';
@@ -298,23 +311,16 @@ function ActivityCommonService(db, util) {
                 entityText1 = request.activity_timeline_collection;
                 entityText2 = '';
                 break;
-            case 1302:   // add contact to a group
-                entityTypeId = 0;
-                entityText1 = request.activity_parent_prev_id;
-                entityText2 = '';
-                break;
-
             default:
                 entityTypeId = 0;
                 entityText1 = "";
                 entityText2 = "";
                 break;
-
         }
         ;
 
         var paramsArr = new Array(
-                activityId,
+                request.activity_id,
                 assetId,
                 workforceId,
                 accountId,
@@ -328,8 +334,8 @@ function ActivityCommonService(db, util) {
                 formTransactionId, //form_transaction_id   
                 formId, //form_id
                 dataTypeId, //data_type_id  should be 37 static
-                '', //location latitude
-                '', //location longitude                
+                request.track_latitude, //location latitude
+                request.track_longitude, //location longitude
                 request.track_gps_accuracy,
                 request.track_gps_status,
                 request.track_gps_location,
@@ -344,7 +350,7 @@ function ActivityCommonService(db, util) {
                 request.asset_id,
                 messageUniqueId,
                 retryFlag,
-                util.replaceZero(request.flag_offline),
+                request.flag_offline,
                 request.track_gps_datetime,
                 request.datetime_log
                 );
@@ -357,7 +363,8 @@ function ActivityCommonService(db, util) {
                     return;
                 } else {
                     callback(err, false);
-                    console.log(err);
+                    //console.log(err);
+                    global.logger.write('serverError','' + err, request)
                     return;
                 }
             });
@@ -422,12 +429,18 @@ function ActivityCommonService(db, util) {
                 entityText1 = ""
                 entityText2 = request.activity_cover_collection;
                 break;
-            case 310:   // text message
+            case 310:   // text message     --> File
+            case 607:   // text message     --> Customer Request
+            case 1307:   // text message    --> Visitor Request
+            case 1507:   // text message    --> Time Card
                 entityTypeId = 0;
                 entityText1 = ""
                 entityText2 = request.activity_timeline_text;
                 break;
-            case 311:   // image                
+            case 311:   // image    --> file           
+            case 608:   // image    --> Customer Request          
+            case 1308:   // image    --> Visitor Request
+            case 1508:   // image   --> Time Card       
                 entityTypeId = 0;
                 entityText1 = request.activity_timeline_url;
                 entityText2 = '';
@@ -445,7 +458,12 @@ function ActivityCommonService(db, util) {
                 formId = request.form_id;
                 dataTypeId = 37;    //static for all form submissions
                 break;
-            case 314:   // cloud based document
+            case 314:   // cloud based document -- file
+            case 610:   // cloud based document -- Customer Request
+            case 709:   // cloud based document -- Form
+            case 1310:   // cloud based document -- Visitor Request
+            case 1408:   // cloud based document -- Project
+            case 1510:   // cloud based document -- Time Card
                 entityTypeId = 0;
                 entityText1 = request.activity_timeline_url;
                 entityText2 = '';
@@ -465,7 +483,6 @@ function ActivityCommonService(db, util) {
                 entityText1 = "";
                 entityText2 = "";
                 break;
-
         }
         ;
 
@@ -513,7 +530,8 @@ function ActivityCommonService(db, util) {
                     return;
                 } else {
                     callback(err, false);
-                    console.log(err);
+                    //console.log(err);
+                    global.logger.write('serverError','' + err, request)
                     return;
                 }
             });
@@ -633,14 +651,48 @@ function ActivityCommonService(db, util) {
         });
     };
 
-    this.getActivityDetails = function (request, callback) {
-        var paramsArr = new Array(
-                request.activity_id,
-                request.organization_id
-                );
+    this.getActivityDetails = function (request, activityId, callback) {
+        var paramsArr;
+        if (Number(activityId > 0)) {
+            paramsArr = new Array(
+                    activityId,
+                    request.organization_id
+                    );
+        } else {
+            paramsArr = new Array(
+                    request.activity_id,
+                    request.organization_id
+                    );
+        }
         var queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
+                if (err === false) {
+                    callback(false, data);
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, false);
+                }
+            });
+        }
+    };
+
+    this.updateAssetLocation = function (request, callback) {
+        var paramsArr = new Array(
+                request.organization_id,
+                request.asset_id,
+                request.track_latitude,
+                request.track_longitude,
+                request.track_gps_accuracy,
+                request.track_gps_status,
+                request.track_gps_location,
+                request.track_gps_datetime,
+                request.asset_id,
+                request.datetime_log
+                );
+        var queryString = util.getQueryString('ds_v1_asset_list_update_location', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
                     callback(false, data);
                 } else {

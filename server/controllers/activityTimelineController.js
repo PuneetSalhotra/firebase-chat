@@ -12,12 +12,10 @@ function ActivityTimelineController(objCollection) {
     var queueWrapper = objCollection.queueWrapper;
     var app = objCollection.app;
     var util = objCollection.util;
-    
+
     var activityTimelineService = new ActivityTimelineService(objCollection);
 
     app.post('/' + global.config.version + '/activity/timeline/entry/add', function (req, res) {
-        req.body['module'] = 'activity';    // adding module name to req.body so that it is accessable for cassandra logging
-
         var assetMessageCounter = 0;
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))
@@ -34,11 +32,31 @@ function ActivityTimelineController(objCollection) {
                 method: "addTimelineTransaction",
                 payload: req.body
             };
-            queueWrapper.raiseActivityEvent(event, req.body.activity_id);
+            queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp)=>{
+                        if(err) {
+                            //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
+                            global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent : " + err,req);
+                        } else {
+                            if (req.hasOwnProperty('device_os_id')) {
+                                if (Number(req.device_os_id) !== 5) {
+                                    //incr the asset_message_counter                        
+                                    cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
+                                        if (err) {
+                                            //console.log("error in setting in asset parity");
+                                            global.logger.write('serverError',"error in setting in asset parity : " + err,req.body);
+                                        } else
+                                            //console.log("asset parity is set successfully")
+                                            global.logger.write('debug',"asset parity is set successfully",req.body);
+
+                                    });
+                                }
+                            }
+                        }
+                });
             if (formTransactionId > 0)
-                res.send(responseWrapper.getResponse(false, {form_transaction_id: formTransactionId}, 200));
+                res.send(responseWrapper.getResponse(false, {form_transaction_id: formTransactionId}, 200,req.body));
             else
-                res.send(responseWrapper.getResponse(false, {}, 200));
+                res.send(responseWrapper.getResponse(false, {}, 200,req.body));
             return;
         };
         if (req.body.hasOwnProperty('activity_stream_type_id') && req.body.activity_stream_type_id > 0) {
@@ -46,41 +64,17 @@ function ActivityTimelineController(objCollection) {
                 if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5) {
                     cacheWrapper.checkAssetParity(req.body.asset_id, (assetMessageCounter), function (err, status) {
                         if (err) {
-                            res.send(responseWrapper.getResponse(false, {}, -7998));
+                            res.send(responseWrapper.getResponse(false, {}, -7998,req.body));
                         } else {
                             if (status) {     // proceed
                                 if (streamTypeId === 705) { // submit form case   
-                                    /*
-                                     if (req.body.hasOwnProperty('form_transaction_id') && Number(req.body.form_transaction_id) > 0) {
-                                     req.body.flag_timeline_entry = 0;
-                                     proceedActivityTimelineAdd(Number(req.body.form_transaction_id));
-                                     cacheWrapper.setMessageUniqueIdLookup(req.body.message_unique_id, req.body.form_transaction_id, function (err, status) {
-                                     if (err) {
-                                     console.log("error in setting in message unique id look up");
-                                     } else
-                                     console.log("message unique id look up is set successfully");
-                                     });
-                                     } else {
-                                     req.body.flag_timeline_entry = 1;
-                                     cacheWrapper.getFormTransactionId(function (err, formTransactionId) {
-                                     if (err) {
-                                     console.log(err);
-                                     res.send(responseWrapper.getResponse(false, {form_transaction_id: 0}, -7998));
-                                     return;
-                                     } else {
-                                     req.body['form_transaction_id'] = formTransactionId;
-                                     proceedActivityTimelineAdd(formTransactionId);
-                                     cacheWrapper.setMessageUniqueIdLookup(req.body.message_unique_id, formTransactionId, function (err, status) {
-                                     if (err) {
-                                     console.log("error in setting in message unique id look up");
-                                     } else
-                                     console.log("message unique id look up is set successfully");
-                                     });
-                                     }
-                                     });
-                                     }
-                                     */
                                     proceedActivityTimelineAdd(Number(req.body.form_transaction_id));
+                                    cacheWrapper.setMessageUniqueIdLookup(req.body.message_unique_id, req.body.form_transaction_id, function (err, status) {
+                                        if (err) {
+                                            console.log("error in setting in message unique id look up");
+                                        } else
+                                            console.log("message unique id look up is set successfully");
+                                    });
 
                                 } else {
                                     req.body.flag_timeline_entry = 1;
@@ -95,45 +89,45 @@ function ActivityTimelineController(objCollection) {
                                 });
                             } else {  // this is a duplicate hit,
                                 console.log('this is a duplicate hit');
-                                res.send(responseWrapper.getResponse(false, {}, 200));
+                                res.send(responseWrapper.getResponse(false, {}, 200,req.body));
                             }
                         }
                     });
 
                 } else if (deviceOsId === 5) {
-                    
+
                     //proceedActivityTimelineAdd(0);//passing formTransactionId as o
-                    if (streamTypeId === 705 ) {
+                    if (streamTypeId === 705) {
                         /*
-                        if (req.body.hasOwnProperty('form_transaction_id') && Number(req.body.form_transaction_id) > 0) {
-                            req.body.flag_timeline_entry = 0;
-                            proceedActivityTimelineAdd(Number(req.body.form_transaction_id));
-                            cacheWrapper.setMessageUniqueIdLookup(req.body.message_unique_id, req.body.form_transaction_id, function (err, status) {
-                                if (err) {
-                                    console.log("error in setting in message unique id look up");
-                                } else
-                                    console.log("message unique id look up is set successfully");
-                            });
-                        } else {
-                            cacheWrapper.getFormTransactionId(function (err, formTransactionId) {
-                                if (err) {
-                                    console.log(err);
-                                    res.send(responseWrapper.getResponse(false, {form_transaction_id: 0}, -7998));
-                                    return;
-                                } else {
-                                    req.body['form_transaction_id'] = formTransactionId;
-                                    proceedActivityTimelineAdd(formTransactionId);
-                                    cacheWrapper.setMessageUniqueIdLookup(req.body.message_unique_id, formTransactionId, function (err, status) {
-                                        if (err) {
-                                            console.log("error in setting in message unique id look up");
-                                        } else
-                                            console.log("message unique id look up is set successfully");
-                                    });
-                                }
-                            });
-                        }
-                        */
-                       
+                         if (req.body.hasOwnProperty('form_transaction_id') && Number(req.body.form_transaction_id) > 0) {
+                         req.body.flag_timeline_entry = 0;
+                         proceedActivityTimelineAdd(Number(req.body.form_transaction_id));
+                         cacheWrapper.setMessageUniqueIdLookup(req.body.message_unique_id, req.body.form_transaction_id, function (err, status) {
+                         if (err) {
+                         console.log("error in setting in message unique id look up");
+                         } else
+                         console.log("message unique id look up is set successfully");
+                         });
+                         } else {
+                         cacheWrapper.getFormTransactionId(function (err, formTransactionId) {
+                         if (err) {
+                         console.log(err);
+                         res.send(responseWrapper.getResponse(false, {form_transaction_id: 0}, -7998));
+                         return;
+                         } else {
+                         req.body['form_transaction_id'] = formTransactionId;
+                         proceedActivityTimelineAdd(formTransactionId);
+                         cacheWrapper.setMessageUniqueIdLookup(req.body.message_unique_id, formTransactionId, function (err, status) {
+                         if (err) {
+                         console.log("error in setting in message unique id look up");
+                         } else
+                         console.log("message unique id look up is set successfully");
+                         });
+                         }
+                         });
+                         }
+                         */
+
                         proceedActivityTimelineAdd(Number(req.body.form_transaction_id));
                     } else {
                         req.body.flag_timeline_entry = 1;
@@ -141,20 +135,18 @@ function ActivityTimelineController(objCollection) {
 
                     }
                 } else {
-                    res.send(responseWrapper.getResponse(false, {}, -3304));
+                    res.send(responseWrapper.getResponse(false, {}, -3304,req.body));
                 }
             } else {
-                res.send(responseWrapper.getResponse(false, {}, -3301));
+                res.send(responseWrapper.getResponse(false, {}, -3301,req.body));
             }
         } else {
-            res.send(responseWrapper.getResponse(false, {}, -3305));
+            res.send(responseWrapper.getResponse(false, {}, -3305,req.body));
         }
 
     });
 
     app.post('/' + global.config.version + '/activity/timeline/entry/comment/add', function (req, res) {
-        req.body['module'] = 'activity';    // adding module name to req.body so that it is accessable for cassandra logging
-
         var assetMessageCounter = 0;
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))
@@ -171,15 +163,35 @@ function ActivityTimelineController(objCollection) {
                 method: "addTimelineComment",
                 payload: req.body
             };
-            queueWrapper.raiseActivityEvent(event, req.body.activity_id);
-            res.send(responseWrapper.getResponse(false, {}, 200));
+            queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp)=>{
+                        if(err) {
+                            //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
+                            global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent : " + err,req);
+                        } else {
+                            if (req.hasOwnProperty('device_os_id')) {
+                                if (Number(req.device_os_id) !== 5) {
+                                    //incr the asset_message_counter                        
+                                    cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
+                                        if (err) {
+                                            //console.log("error in setting in asset parity");
+                                            global.logger.write('serverError',"error in setting in asset parity : " + err,req.body);
+                                        } else
+                                            //console.log("asset parity is set successfully")
+                                            global.logger.write('debug',"asset parity is set successfully",req.body);
+
+                                    });
+                                }
+                            }
+                        }
+                });
+            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
             return;
         };
         if (util.hasValidActivityId(req.body)) {
             if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5) {
                 cacheWrapper.checkAssetParity(req.body.asset_id, (assetMessageCounter), function (err, status) {
                     if (err) {
-                        res.send(responseWrapper.getResponse(false, {}, -7998));
+                        res.send(responseWrapper.getResponse(false, {}, -7998,req.body));
                     } else {
                         if (status) {     // proceed
 
@@ -192,7 +204,7 @@ function ActivityTimelineController(objCollection) {
                                     console.log("asset parity is set successfully");
                             });
                         } else {  // this is a duplicate hit,
-                            res.send(responseWrapper.getResponse(false, {}, 200));
+                            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
                         }
                     }
                 });
@@ -200,16 +212,15 @@ function ActivityTimelineController(objCollection) {
             } else if (deviceOsId === 5) {
                 proceedActivityTimelineCommentAdd();//passing formTransactionId as o
             } else {
-                res.send(responseWrapper.getResponse(false, {}, -3304));
+                res.send(responseWrapper.getResponse(false, {}, -3304,req.body));
             }
         } else {
-            res.send(responseWrapper.getResponse(false, {}, -3301));
+            res.send(responseWrapper.getResponse(false, {}, -3301,req.body));
         }
     });
 
 
     app.post('/' + global.config.version + '/activity/timeline/list', function (req, res) {
-        req.body['module'] = 'activity';
         activityTimelineService.retrieveTimelineList(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response    
@@ -223,7 +234,6 @@ function ActivityTimelineController(objCollection) {
     });
 
     app.post('/' + global.config.version + '/activity/timeline/entry/collection', function (req, res) {
-        req.body['module'] = 'activity';
         activityTimelineService.retrieveFormCollection(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response    
@@ -237,7 +247,6 @@ function ActivityTimelineController(objCollection) {
     });
 
     app.post('/' + global.config.version + '/activity/timeline/entry/comment/list', function (req, res) {
-        req.body['module'] = 'activity';
         activityTimelineService.retrieveFormFieldTimeline(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response    
@@ -250,11 +259,7 @@ function ActivityTimelineController(objCollection) {
         });
     });
 
-
-
-
 }
 ;
-
 
 module.exports = ActivityTimelineController;

@@ -9,18 +9,19 @@ function ActivityParticipantService(objectCollection) {
     var activityCommonService = objectCollection.activityCommonService;
     var util = objectCollection.util;
     var sns = objectCollection.sns;
+    var activityPushService = objectCollection.activityPushService;
 
     this.getParticipantsList = function (request, callback) {
 
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
-
+        activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
         var paramsArr = new Array(
                 request.organization_id,
                 request.activity_id,
                 request.datetime_differential,
                 request.page_start,
-                request.page_limit
+                util.replaceQueryLimit(request.page_limit)
                 );
         var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_participants_differential', paramsArr);
         if (queryString != '') {
@@ -29,8 +30,7 @@ function ActivityParticipantService(objectCollection) {
                     formatParticipantList(data, function (err, response) {
                         if (err === false)
                             callback(false, {data: response}, 200);
-                    });
-                    activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
+                    });                    
                     return;
                 } else {
                     // some thing is wrong and have to be dealt
@@ -58,6 +58,7 @@ function ActivityParticipantService(objectCollection) {
                 'asset_type_id': util.replaceDefaultNumber(rowData['asset_type_id']),
                 'asset_type_name': util.replaceDefaultString(rowData['asset_type_name']),
                 'asset_type_category_id': util.replaceDefaultNumber(rowData['asset_type_category_id']),
+                'field_id': util.replaceDefaultNumber(rowData['field_id']),
                 'asset_type_category_name': util.replaceDefaultString(rowData['asset_type_category_name']),
                 'asset_image_path': (util.replaceDefaultString(rowData['asset_image_path']) !== ''),
                 'asset_phone_number': util.replaceDefaultString(rowData['asset_phone_number']),
@@ -74,29 +75,31 @@ function ActivityParticipantService(objectCollection) {
         callback(false, responseData);
     };
 
-    this.assignCoworker = function (request, callback) {
+    this.assignCoworker = function (request, callback) { //Addparticipant Request
 
         var loopAddParticipant = function (participantCollection, index, maxIndex) {
             iterateAddParticipant(participantCollection, index, maxIndex, function (err, data) {
                 if (err === false) {
                     if (index === maxIndex) {
-                        updateParticipantCount(request.activity_id, request.organization_id, request, function (err, data) { });
-                        activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
-                        if (request.hasOwnProperty('device_os_id')) {
+                        updateParticipantCount(request.activity_id, request.organization_id, request, function (err, data) { });                        
+                        /*if (request.hasOwnProperty('device_os_id')) {
                             if (Number(request.device_os_id) !== 5) {
                                 //incr the asset_message_counter                        
                                 cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
                                     if (err) {
-                                        console.log("error in setting in asset parity");
+                                        //console.log("error in setting in asset parity");
+                                        global.logger.write('serverError','error in setting in asset parity', request)
                                     } else
-                                        console.log("asset parity is set successfully")
-
+                                        //console.log("asset parity is set successfully")
+                                        global.logger.write('debug','asset parity is set successfully', request)
                                 });
                             }
                         }
+                        }*/
                     }
                 } else {
-                    console.log("something is not wright in adding a participant");
+                    //console.log("something is not wright in adding a participant");
+                    global.logger.write('serverError','something is not wright in adding a participant', request)
                 }
             });
         };
@@ -109,64 +112,27 @@ function ActivityParticipantService(objectCollection) {
                     //proceed and add a participant
                     addParticipant(request, participantData, newRecordStatus, function (err, data) {
                         if (err === false) {
-                            console.log("participant successfully added");
+                            //console.log("participant successfully added");
+                            global.logger.write('debug','participant successfully added', request)
                             var nextIndex = index + 1;
                             if (nextIndex <= maxIndex) {
                                 loopAddParticipant(participantCollection, nextIndex, maxIndex);
                             }
-                            if (Number(request.activity_type_category_id) === 28) {// post it, send a push notification
-                                //sns.publish();
-                                //asset_push_arn
-                                var participantParamsArr = new Array(
-                                        participantData.organization_id,
-                                        participantData.asset_id
-                                        );
-
-                                var queryString = util.getQueryString('ds_v1_asset_list_select', participantParamsArr);
-                                if (queryString != '') {
-                                    db.executeQuery(1, queryString, request, function (err, data) {
-                                        if (data.length > 0) {
-                                            var assetPushArn = data[0].asset_push_arn;
-                                            //console.log('from query we got ' + assetPushArn + ' as arn');
-                                            activityCommonService.getActivityDetails(request, function (err, activityData) {
-                                                if (err === false) {
-                                                    var inlineData = JSON.parse(activityData[0]['activity_inline_data']);
-                                                    //console.log(inlineData);
-                                                    var pushString = {
-                                                        title: inlineData.sender.asset_name + ' sent a Post-It: ',
-                                                        description: activityData[0]['description'].substring(0, 100)
-                                                    };
-                                                    // get badge count
-                                                    var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_unread_task_count', participantParamsArr);
-                                                    if (queryString != '') {
-                                                        db.executeQuery(1, queryString, request, function (err, data) {
-                                                            if (err === false) {
-                                                                var badgeCount = util.replaceOne(data[0]['badge_count']);
-                                                                sns.publish(pushString, badgeCount, assetPushArn);
-                                                            }
-                                                        });
-                                                    }
-
-
-                                                }
-                                            });
-                                        } else {
-                                            //nothing
-                                        }
-                                    });
-                                }
-
-
-                            }
                             callback(false, true);
                         } else {
-                            console.log(err);
+                            //console.log(err);
+                            global.logger.write('serverError','' + err, request)
                             callback(true, false);
                         }
                     }.bind(this));
                 } else {
                     if (alreadyAssignedStatus > 0) {
-                        console.log("participant already assigned");
+                        //console.log("participant already assigned");
+                        global.logger.write('debug','participant already assigned', request)
+                        var nextIndex = index + 1;
+                        if (nextIndex <= maxIndex) {
+                            loopAddParticipant(participantCollection, nextIndex, maxIndex);
+                        }
                         callback(false, false);
                     } else {
                         callback(true, false);
@@ -175,8 +141,8 @@ function ActivityParticipantService(objectCollection) {
             });
 
         };
-
-        var activityStreamTypeId = 2;
+        activityCommonService.updateAssetLocation(request, function (err, data) {});
+        var activityStreamTypeId = 2; //Older 2:added participant
         if (request.hasOwnProperty('activity_type_category_id')) {
             var activityTypeCategroyId = Number(request.activity_type_category_id);
             switch (activityTypeCategroyId) {
@@ -194,6 +160,11 @@ function ActivityParticipantService(objectCollection) {
                 case 6: //  External Contact Card - Customer
                     activityStreamTypeId = 1106;
                     break;
+                    //Added by Nani Kalyan
+                case 8:    //Mail
+                    activityStreamTypeId = 1703;
+                    break;
+                    //////////////////////////////
                 case 9: //form
                     activityStreamTypeId = 702;
                     break;
@@ -204,8 +175,10 @@ function ActivityParticipantService(objectCollection) {
                     activityStreamTypeId = 1403;
                     break;
                 case 14:    //voice call
+                    activityStreamTypeId = 803; //Added by Nani kalyan
                     break;
                 case 15:    //video conference
+                    activityStreamTypeId = 1603; //Added by Nani kalyan
                     break;
                 case 28:    // post-it
                     activityStreamTypeId = 902;
@@ -216,9 +189,27 @@ function ActivityParticipantService(objectCollection) {
                 case 30:    //contact group
                     activityStreamTypeId = 1301;
                     break;
+                    //Added by Nani Kalyan
+                case 31:    //Calendar Event
+                    activityStreamTypeId = 504;
+                    break;
+                    //Added by Nani Kalyan
+                case 32:    //Customer Request
+                    activityStreamTypeId = 603;
+                    break;
+                    //Added by Nani Kalyan
+                case 33:    //Visitor Request
+                    activityStreamTypeId = 1303;
+                    break;
+                    //Added by Nani Kalyan
+                case 34:    //Time Card
+                    activityStreamTypeId = 1503;
+                    break;
+                    //////////////////////////////////
                 default:
                     activityStreamTypeId = 2;   //by default so that we know
-                    console.log('adding streamtype id 2');
+                    //console.log('adding streamtype id 2');
+                    global.logger.write('debug','adding streamtype id 2', request)
                     break;
 
             }
@@ -228,7 +219,7 @@ function ActivityParticipantService(objectCollection) {
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         request['activity_streamtype_id'] = activityStreamTypeId;
-
+        activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
         var index = 0;
         var activityParticipantCollection = JSON.parse(request.activity_participant_collection);
         var maxIndex = activityParticipantCollection.length - 1;
@@ -239,21 +230,24 @@ function ActivityParticipantService(objectCollection) {
                 if (maxIndex === index) {
                     updateParticipantCount(request.activity_id, request.organization_id, request, function (err, data) { });
                     activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
-                    if (request.hasOwnProperty('device_os_id')) {
+                    /*if (request.hasOwnProperty('device_os_id')) {
                         if (Number(request.device_os_id) !== 5) {
                             //incr the asset_message_counter                        
                             cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
                                 if (err) {
-                                    console.log("error in setting in asset parity");
+                                    //console.log("error in setting in asset parity");
                                 } else
-                                    console.log("asset parity is set successfully")
-
+                                global.logger.write('serverError','error in setting in asset parity' + err, request)
+                                    //console.log("asset parity is set successfully")
+                                    global.logger.write('debug','asset parity is set successfully', request)
                             });
                         }
                     }
+                    }*/
                 }
             } else {
                 //console.log("something is not wright in adding a participant");
+                global.logger.write('serverError','something is not wright in adding a participant', request)
             }
         });
     };
@@ -267,21 +261,24 @@ function ActivityParticipantService(objectCollection) {
                     if (index === maxIndex) {
                         updateParticipantCount(request.activity_id, request.organization_id, request, function (err, data) { });
                         activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
-                        if (request.hasOwnProperty('device_os_id')) {
+                        /*if (request.hasOwnProperty('device_os_id')) {
                             if (Number(request.device_os_id) !== 5) {
                                 //incr the asset_message_counter                        
                                 cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
                                     if (err) {
-                                        console.log("error in setting in asset parity");
+                                        //console.log("error in setting in asset parity");
+                                        global.logger.write('serverError','error in setting in asset parity' + err, request)
                                     } else
-                                        console.log("asset parity is set successfully")
-
+                                        //console.log("asset parity is set successfully")
+                                        global.logger.write('debug','asset parity is set successfully', request)
                                 });
                             }
                         }
+                        }*/
                     }
                 } else {
-                    console.log("something is not wright in unassign a participant");
+                    //console.log("something is not wright in unassign a participant");
+                    global.logger.write('serverError','something is not wright in unassign a participant', request)
                 }
             });
         };
@@ -290,19 +287,21 @@ function ActivityParticipantService(objectCollection) {
             var participantData = participantCollection[index];
             unassignAssetFromActivity(request, participantData, function (err, data) {
                 if (err === false) {
-                    console.log("participant successfully un-assigned");
+                    //console.log("participant successfully un-assigned");
+                    global.logger.write('debug','participant successfully un-assigned', request)
                     var nextIndex = index + 1;
                     if (nextIndex <= maxIndex) {
                         loopUnassignParticipant(participantCollection, nextIndex, maxIndex);
                     }
                     callback(false, true);
                 } else {
-                    console.log(err);
+                    //console.log(err);
+                    global.logger.write('serverError','' + err, request)
                     callback(true, false);
                 }
             }.bind(this));
         };
-
+        activityCommonService.updateAssetLocation(request, function (err, data) {});
         var activityStreamTypeId = 3;
         if (request.hasOwnProperty('activity_type_category_id')) {
             var activityTypeCategroyId = Number(request.activity_type_category_id);
@@ -321,6 +320,11 @@ function ActivityParticipantService(objectCollection) {
                 case 6: //  External Contact Card - Customer
                     activityStreamTypeId = 1109;
                     break;
+                    //Added by Nani Kalyan
+                case 8:    //Mail
+                    activityStreamTypeId = 1704;
+                    break;
+                    ////////////////////////////////
                 case 9: //form
                     activityStreamTypeId = 707;
                     break;
@@ -331,8 +335,10 @@ function ActivityParticipantService(objectCollection) {
                     activityStreamTypeId = 1405;
                     break;
                 case 14:    //voice call
+                    activityStreamTypeId = 805; //Added by Nani Kalyan
                     break;
                 case 15:    //video conference
+                    activityStreamTypeId = 1605; //Added by Nani Kalyan
                     break;
                 case 28:    // post-it
                     activityStreamTypeId = 906;
@@ -343,9 +349,27 @@ function ActivityParticipantService(objectCollection) {
                 case 30:    //contact group
                     activityStreamTypeId = 1301;
                     break;
+                    //Added by Nani Kalyan
+                case 31:    //Calendar Event
+                    activityStreamTypeId = 506;
+                    break;
+                    //Added by Nani Kalyan
+                case 32:    //Customer Request
+                    activityStreamTypeId = 605;
+                    break;
+                    //Added by Nani Kalyan
+                case 33:    //Visitor Request
+                    activityStreamTypeId = 1305;
+                    break;
+                    //Added by Nani Kalyan
+                case 34:    //Time Card
+                    activityStreamTypeId = 1505;
+                    break;
+                    ////////////////////////////////////////
                 default:
                     activityStreamTypeId = 3;   //by default so that we know
-                    console.log('adding streamtype id 3');
+                    //console.log('adding streamtype id 3');
+                    global.logger.write('debug','adding streamtype id 3', request)
                     break;
 
             }
@@ -364,21 +388,24 @@ function ActivityParticipantService(objectCollection) {
                 if (maxIndex === index) {
                     updateParticipantCount(request.activity_id, request.organization_id, request, function (err, data) { });
                     activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
-                    if (request.hasOwnProperty('device_os_id')) {
+                    /*if (request.hasOwnProperty('device_os_id')) {
                         if (Number(request.device_os_id) !== 5) {
                             //incr the asset_message_counter                        
                             cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
                                 if (err) {
-                                    console.log("error in setting in asset parity");
+                                    //console.log("error in setting in asset parity");
+                                    global.logger.write('serverError','error in setting in asset parity' + err, request)
                                 } else
                                     console.log("asset parity is set successfully")
 
                             });
                         }
                     }
+                    }*/
                 }
             } else {
                 //console.log("something is not wright in adding a participant");
+                global.logger.write('serverError','something is not wright in adding a participant', request)
             }
         });
     };
@@ -392,21 +419,25 @@ function ActivityParticipantService(objectCollection) {
                         activityCommonService.updateActivityLogDiffDatetime(request, 0, function (err, data) {
                             activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
                         });
-                        if (request.hasOwnProperty('device_os_id')) {
+                        /*if (request.hasOwnProperty('device_os_id')) {
                             if (Number(request.device_os_id) !== 5) {
                                 //incr the asset_message_counter                        
                                 cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
                                     if (err) {
-                                        console.log("error in setting in asset parity");
+                                        //console.log("error in setting in asset parity");
                                     } else
-                                        console.log("asset parity is set successfully")
+                                    global.logger.write('serverError','error in setting in asset parity' + err, request)
+                                        //console.log("asset parity is set successfully")
+                                        global.logger.write('debug','asset parity is set successfully', request)
 
                                 });
                             }
                         }
+                        }*/
                     }
                 } else {
-                    console.log("something is not wright in unassign a participant");
+                    //console.log("something is not wright in unassign a participant");
+                    global.logger.write('serverError','something is not wright in unassign a participant', request)
                 }
             });
         };
@@ -415,19 +446,21 @@ function ActivityParticipantService(objectCollection) {
             var participantData = participantCollection[index];
             updateAssetParticipantAccess(request, participantData, function (err, data) {
                 if (err === false) {
-                    console.log("participant successfully updated");
+                    //console.log("participant successfully updated");
+                    global.logger.write('debug','participant successfully updated', request)
                     var nextIndex = index + 1;
                     if (nextIndex <= maxIndex) {
                         loopUpdateParticipantAccess(participantCollection, nextIndex, maxIndex);
                     }
                     callback(false, true);
                 } else {
-                    console.log(err);
+                    //console.log(err);
+                    global.logger.write('serverError','' + err, request)
                     callback(true, false);
                 }
             }.bind(this));
         };
-
+        activityCommonService.updateAssetLocation(request, function (err, data) {});
         var activityStreamTypeId = 3;
         if (request.hasOwnProperty('activity_type_category_id')) {
             var activityTypeCategroyId = Number(request.activity_type_category_id);
@@ -456,11 +489,14 @@ function ActivityParticipantService(objectCollection) {
                     activityStreamTypeId = 1404;
                     break;
                 case 14:    //voice call
+                    activityStreamTypeId = 804; //Added by Nani Kalyan
                     break;
                 case 15:    //video conference
+                    activityStreamTypeId = 1604; //Added by Nani Kalyan
                     break;
                 case 28:    // post-it
-                    activityStreamTypeId = 4;   // adding a default value
+                    //activityStreamTypeId = 4;   // adding a default value
+                    activityStreamTypeId = 905; //Added by Nani Kalyan
                     break;
                 case 29:    // External Contact Card - Supplier
                     activityStreamTypeId = 4;   // adding a default value
@@ -468,9 +504,27 @@ function ActivityParticipantService(objectCollection) {
                 case 30:    //contact group
                     activityStreamTypeId = 4;   // adding a default value
                     break;
+                    //Added by Nani Kalyan
+                case 31:    //Calendar Event
+                    activityStreamTypeId = 505;
+                    break;
+                    //Added by Nani Kalyan
+                case 32:    //Customer Request
+                    activityStreamTypeId = 604;
+                    break;
+                    //Added by Nani Kalyan
+                case 33:    //Visitor Request
+                    activityStreamTypeId = 1304;
+                    break;
+                    //Added by Nani Kalyan
+                case 34:    //Visitor Request
+                    activityStreamTypeId = 1504;
+                    break;
+                    /////////////////////////////////
                 default:
                     activityStreamTypeId = 4;   //by default so that we know
-                    console.log('adding streamtype id 4');
+                    //console.log('adding streamtype id 4');
+                    global.logger.write('debug','adding streamtype id 4', request)
                     break;
 
             }
@@ -491,21 +545,25 @@ function ActivityParticipantService(objectCollection) {
                     activityCommonService.updateActivityLogDiffDatetime(request, 0, function (err, data) {
                         activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
                     });
-                    if (request.hasOwnProperty('device_os_id')) {
+                    /*if (request.hasOwnProperty('device_os_id')) {
                         if (Number(request.device_os_id) !== 5) {
                             //incr the asset_message_counter                        
                             cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
                                 if (err) {
-                                    console.log("error in setting in asset parity");
+                                    //console.log("error in setting in asset parity");
+                                    global.logger.write('serverError','error in setting in asset parity' + err, request)
                                 } else
-                                    console.log("asset parity is set successfully")
+                                    //console.log("asset parity is set successfully")
+                                    global.logger.write('debug','asset parity is set successfully', request)
 
                             });
                         }
                     }
+                    }*/
                 }
             } else {
                 //console.log("something is not wright in adding a participant");
+                global.logger.write('serverError','something is not wright in adding a participant', request)
             }
         });
     };
@@ -515,18 +573,25 @@ function ActivityParticipantService(objectCollection) {
         if (participantData.hasOwnProperty('field_id')) {
             fieldId = participantData.field_id;
         }
+        var activityTypeCategoryId = Number(request.activity_type_category_id);
         if (newRecordStatus) {
             activityAssetMappingInsertParticipantAssign(request, participantData, function (err, data) {
                 if (err === false) {
+                    activityPushService.sendPush(request, objectCollection, participantData.asset_id, function () {});
                     activityCommonService.assetTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
 
                     });
-                    if (Number(request.activity_type_category_id) !== 10 || Number(request.activity_type_category_id) !== 11 || (Number(request.activity_type_category_id) === 9 && fieldId > 0)) {
-                        activityCommonService.activityTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
+                    if (activityTypeCategoryId !== 10 && activityTypeCategoryId !== 11) {
+                        if (activityTypeCategoryId !== 9) {
+                            activityCommonService.activityTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
 
-                        });
-                    } else {
-                        console.log('either documnent or a file');
+                            });
+                        } else if (activityTypeCategoryId === 9 && fieldId > 0) {
+                            activityCommonService.activityTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
+
+                            });
+                        }
+
                     }
                     activityCommonService.assetActivityListHistoryInsert(request, participantData.asset_id, 0, function (err, restult) {
 
@@ -538,20 +603,23 @@ function ActivityParticipantService(objectCollection) {
             });
 
         } else {
-            console.log('re-assigining to the archived row');
+            //console.log('re-assigining to the archived row');
+            global.logger.write('debug','re-assigining to the archived row', request)
             activityAssetMappingUpdateParticipantReAssign(request, participantData, function (err, data) {
                 if (err === false) {
+                    activityPushService.sendPush(request, objectCollection, participantData.asset_id, function () {});
                     activityCommonService.assetActivityListHistoryInsert(request, participantData.asset_id, 502, function (err, restult) {
                         if (err === false) {
                             activityCommonService.assetTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
 
                             });
-                            if (Number(request.activity_type_category_id) !== 10 || Number(request.activity_type_category_id) !== 11 || (Number(request.activity_type_category_id) === 9 && fieldId > 0)) {
+                            if (activityTypeCategoryId !== 10 && activityTypeCategoryId !== 11 && (activityTypeCategoryId === 9 && fieldId > 0)) {
                                 activityCommonService.activityTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
 
                                 });
                             } else {
-                                console.log('either documnent or a file');
+                                //console.log('either documnent or a file');
+                                global.logger.write('debug','either documnent or a file', request)
                             }
                         }
                     });
@@ -598,7 +666,8 @@ function ActivityParticipantService(objectCollection) {
                     return;
                 } else {
                     callback(err, false);
-                    console.log(err);
+                    //console.log(err);
+                    global.logger.write('serverError','' + err, request)
                     return;
                 }
             });
@@ -635,7 +704,8 @@ function ActivityParticipantService(objectCollection) {
                     return;
                 } else {
                     callback(err, false);
-                    console.log(err);
+                    //console.log(err);
+                    global.logger.write('serverError','' + err, request)
                     return;
                 }
             });
@@ -666,7 +736,8 @@ function ActivityParticipantService(objectCollection) {
                     return;
                 } else {
                     callback(err, false);
-                    console.log(err);
+                    //console.log(err);
+                    global.logger.write('serverError','' + err, request)
                     return;
                 }
             });
@@ -695,7 +766,8 @@ function ActivityParticipantService(objectCollection) {
                     return;
                 } else {
                     callback(err, false);
-                    console.log(err);
+                    //console.log(err);
+                    global.logger.write('serverError','' + err, request)
                     return;
                 }
             });
@@ -713,7 +785,8 @@ function ActivityParticipantService(objectCollection) {
                 if (err === false)
                 {
                     var participantCount = data[0].participant_count;
-                    console.log('participant count retrieved from query is: ' + participantCount);
+                    //console.log('participant count retrieved from query is: ' + participantCount);
+                    global.logger.write('debug','participant count retrieved from query is: ' + participantCount, request)
                     paramsArr = new Array(
                             activityId,
                             organizationId,
@@ -761,14 +834,16 @@ function ActivityParticipantService(objectCollection) {
                                 return;
                             } else {
                                 callback(err, false);
-                                console.log(err);
+                                //console.log(err);
+                                global.logger.write('serverError','' + err, request)
                                 return;
                             }
                         });
                     }
                 } else {
                     callback(err, false);
-                    console.log(err);
+                    //console.log(err);
+                    global.logger.write('serverError','' + err, request)
                     return;
                 }
             });
@@ -776,7 +851,11 @@ function ActivityParticipantService(objectCollection) {
     };
 
     var unassignAssetFromActivity = function (request, participantData, callback) {
-
+        var fieldId = 0;
+        if (participantData.hasOwnProperty('field_id')) {
+            fieldId = participantData.field_id;
+        }
+        var activityTypeCategoryId = Number(request.activity_type_category_id);
         activityAssetMappingInsertParticipantUnassign(request, participantData, function (err, data) {
             if (err === false) {
 
@@ -785,11 +864,16 @@ function ActivityParticipantService(objectCollection) {
                         activityCommonService.assetTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
 
                         });
-                        if (Number(request.activity_type_category_id) !== 10 || Number(request.activity_type_category_id) !== 11) {
-                            //add form case also here
-                            activityCommonService.activityTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
+                        if (activityTypeCategoryId !== 10 && activityTypeCategoryId !== 11) {
+                            if (activityTypeCategoryId !== 9) {
+                                activityCommonService.activityTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
 
-                            });
+                                });
+                            } else if (activityTypeCategoryId === 9 && fieldId > 0) {
+                                activityCommonService.activityTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
+
+                                });
+                            }
                         }
                     }
                 });
@@ -802,17 +886,27 @@ function ActivityParticipantService(objectCollection) {
     }
 
     var updateAssetParticipantAccess = function (request, participantData, callback) {
-
+        var activityTypeCategoryId = Number(request.activity_type_category_id);
+        var fieldId = 0;
+        if (participantData.hasOwnProperty('field_id')) {
+            fieldId = participantData.field_id;
+        }
         activityAssetMappingUpdateParticipantAccess(request, participantData, function (err, data) {
             if (err === false) {
 
                 activityCommonService.assetTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
 
                 });
-                if (Number(request.activity_type_category_id) !== 10 || Number(request.activity_type_category_id) !== 11) {
-                    activityCommonService.activityTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
+                if (activityTypeCategoryId !== 10 && activityTypeCategoryId !== 11) {
+                    if (activityTypeCategoryId !== 9) {
+                        activityCommonService.activityTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
 
-                    });
+                        });
+                    } else if (activityTypeCategoryId === 9 && fieldId > 0) {
+                        activityCommonService.activityTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
+
+                        });
+                    }
                 }
                 activityCommonService.assetActivityListHistoryInsert(request, participantData.asset_id, 503, function (err, restult) {
 
@@ -848,7 +942,8 @@ function ActivityParticipantService(objectCollection) {
                     return;
                 } else {
                     callback(err, false);
-                    console.log(err);
+                    //console.log(err);
+                    global.logger.write('serverError','' + err, request)
                     return;
                 }
             });

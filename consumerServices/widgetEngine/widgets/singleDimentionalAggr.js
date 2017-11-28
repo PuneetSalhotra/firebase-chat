@@ -3,7 +3,7 @@
  */
 const WidgetBase = require('./base');
 const CONST = require('../../constants');
-const _ =require('lodash');
+const _ = require('lodash');
 
 
 
@@ -15,39 +15,43 @@ class SingleDimensionalAggrWidget extends WidgetBase {
 
     aggregateAndSaveTransaction(formSubmissionDate, data) {
         let activityQueryData = {
-            start: formSubmissionDate.startOfDayInUTC,
-            end: formSubmissionDate.endOfDayInUTC,
+            start: formSubmissionDate.startDate,
+            end: formSubmissionDate.endDate,
             entity_id: this.rule.widget_entity2_id,
             form_id: this.form.id,
             entity_data_type_id: this.rule.widget_entity2_data_type_id,
-            access_level_id: this.rule.access_level_id  || 5,
-            asset_type_id: 0      
+            widget_access_level_id: this.rule.widget_access_level_id,
+			widget_aggregate_id: this.rule.widget_aggregate_id,
+            asset_type_id: 0
         };
         activityQueryData = _.merge(activityQueryData, data);
 
-        this.services.activityFormTransactionAnalytics.getSumByDay(activityQueryData)
-        .then((result) => {
-            const sum = result[0] ? result[0].total_sum : undefined;
-            let widgetData = {
-                date: formSubmissionDate.valueInRuleTimeZone,
-                sum: sum,
-                widget_id: this.rule.widget_id,
-                period_flag: this.getPeriodFlag()
-            };
-            widgetData = _.merge(widgetData, data);
-            return this.createOrUpdateWidgetTransaction(widgetData);
-        });
+        this.services.activityFormTransactionAnalytics.getAggregateByDateRange(activityQueryData)
+                .then((result) => {
+                    const sum = result[0] ? result[0].aggr_value : undefined;
+                    let widgetData = {
+                        date: formSubmissionDate.valueInRuleTimeZone,
+                        sum: sum,
+                        widget_id: this.rule.widget_id,
+                        period_flag: this.getPeriodFlag(),
+						widget_access_level_id: this.rule.widget_access_level_id
+                    };
+                    widgetData = _.merge(widgetData, data);
+                    return this.createOrUpdateWidgetTransaction(widgetData);
+                });
     }
 
     createOrUpdateWidgetTransaction(widgetData) {
         const widgetTransactionSvc = this.services.widgetTransaction;
         return widgetTransactionSvc.getByPeriodFlag(widgetData)
-        .then((result) => {
-            const widgetTransId = result[0] ? result[0].idWidgetTransaction : undefined;
-            widgetData.widget_transaction_id = widgetTransId;
-            if(widgetTransId) return widgetTransactionSvc.update(widgetData);
-            else return widgetTransactionSvc.create(widgetData);
-        }) 
+                .then((result) => {
+                    const widgetTransId = result[0] ? result[0].idWidgetTransaction : undefined;
+                    widgetData.widget_transaction_id = widgetTransId;
+                    if (widgetTransId)
+                        return widgetTransactionSvc.update(widgetData);
+                    else
+                        return widgetTransactionSvc.create(widgetData);
+                })
     }
 }
 
