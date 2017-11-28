@@ -3,33 +3,30 @@ aws.config.loadFromPath('/var/www/html/node/Bharat/server/utils/config.json');
 //var queueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/desker-logging-queue";
 var queueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/desker-logging-staging";
 var sqs = new aws.SQS();
-var CassandraWrapper = require('../utils/vnkcassandrawrapper');
+var CassandraWrapper = require('../utils/cassandraWrapper');
 
 require('../utils/globalConfig');
 
 var Util = require('../utils/util');
 var util = new Util();
 
-if(global.cassandraenv.environment === 'dev') {
-var cassandraCredentials = {
-              ip: global.config.cassandraIP,
-              user: global.config.cassandraUser,
-              pwd: global.config.cassandraPassword,
-              keyspace: global.config.cassandraKeyspace
+var cassandraCredentialsDev = {
+              ip: '34.192.228.175',
+              user: 'aamir' ,
+              pwd: 'foxtrot88',
+              keyspace: 'deskerlog'
 };
 
-var cassandraWrapper = new CassandraWrapper(cassandraCredentials, util);
-} else if(global.cassandraenv.environment === 'prod'){
-        var cassandraCredentials = {
-              ip: global.config.cassandraIP,
-              user: global.config.cassandraUser,
-              pwd: global.config.cassandraPassword,
-              keyspace: global.config.cassandraKeyspace
+var cassandraCredentialsProd = {
+              ip: '34.192.228.175',
+              user: 'aamir' ,
+              pwd: 'foxtrot88',
+              keyspace: 'deskerlog'
             };
 
-        var cassandraWrapper = new CassandraWrapper(cassandraCredentials, util);
-}
-
+var cassandraWrapper = new CassandraWrapper(cassandraCredentialsDev,
+                                            cassandraCredentialsProd, 
+                                            util);
 
 var consume = function () {
     var params = {
@@ -49,8 +46,8 @@ var consume = function () {
                 try {
                     var body = data['Messages'][0].Body;
                     var messageCollection = JSON.parse(body);
-                    console.log(messageCollection.environment);
-
+                    //console.log(messageCollection);
+                    
                     cassandraWrapper.logData(messageCollection)
                 } catch (e) {
                     console.log(e);

@@ -26,7 +26,27 @@ function ActivityUpdateController(objCollection) {
                 payload: req.body
             };
 
-            queueWrapper.raiseActivityEvent(event, req.body.activity_id);
+            queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp)=>{
+                        if(err) {
+                            //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
+                            global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent : " + err,req);
+                        } else {
+                            if (req.hasOwnProperty('device_os_id')) {
+                                if (Number(req.device_os_id) !== 5) {
+                                    //incr the asset_message_counter                        
+                                    cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
+                                        if (err) {
+                                            //console.log("error in setting in asset parity");
+                                            global.logger.write('serverError',"error in setting in asset parity : " + err,req.body);
+                                        } else
+                                            //console.log("asset parity is set successfully")
+                                            global.logger.write('debug',"asset parity is set successfully",req.body);
+
+                                    });
+                                }
+                            }
+                        }
+                });
             res.send(responseWrapper.getResponse(false, {}, 200,req.body));
             return;
         };
@@ -76,7 +96,27 @@ function ActivityUpdateController(objCollection) {
                 payload: req.body
             };
 
-            queueWrapper.raiseActivityEvent(event, req.body.activity_id);
+            queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp)=>{
+                        if(err) {
+                            //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
+                            global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent : " + err,req);
+                        } else {
+                            if (req.hasOwnProperty('device_os_id')) {
+                                if (Number(req.device_os_id) !== 5) {
+                                    //incr the asset_message_counter                        
+                                    cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
+                                        if (err) {
+                                            //console.log("error in setting in asset parity");
+                                            global.logger.write('serverError',"error in setting in asset parity : " + err,req.body);
+                                        } else
+                                            //console.log("asset parity is set successfully")
+                                            global.logger.write('debug',"asset parity is set successfully",req.body);
+
+                                    });
+                                }
+                            }
+                        }
+                });
             res.send(responseWrapper.getResponse(false, {}, 200,req.body));
             return;
         };
@@ -122,7 +162,27 @@ function ActivityUpdateController(objCollection) {
                 method: "alterActivityParent",
                 payload: req.body
             };
-            queueWrapper.raiseActivityEvent(event, req.body.activity_id);
+            queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp)=>{
+                        if(err) {
+                            //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
+                            global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent : " + err,req);
+                        } else {
+                            if (req.hasOwnProperty('device_os_id')) {
+                                if (Number(req.device_os_id) !== 5) {
+                                    //incr the asset_message_counter                        
+                                    cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
+                                        if (err) {
+                                            //console.log("error in setting in asset parity");
+                                            global.logger.write('serverError',"error in setting in asset parity : " + err,req.body);
+                                        } else
+                                            //console.log("asset parity is set successfully")
+                                            global.logger.write('debug',"asset parity is set successfully",req.body);
+
+                                    });
+                                }
+                            }
+                        }
+                });
             res.send(responseWrapper.getResponse(false, {}, 200,req.body));
             return;
         };

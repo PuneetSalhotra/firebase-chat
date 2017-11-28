@@ -8,10 +8,10 @@ function Logger() {
 
     var sqs = new SQS();    
     
-    this.write = function (level, message, request) {
+    this.write = function (level, message, object) {
         var loggerCollection = {
             message: message,
-            request: request,            
+            object: object,            
             level: level,
             environment: global.mode //'prod'
         };

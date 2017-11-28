@@ -132,7 +132,8 @@ function ActivityService(objectCollection) {
 
                             });
                             callback(false, activityData, 200);
-                            if (request.hasOwnProperty('device_os_id')) {
+                            
+                            /*if (request.hasOwnProperty('device_os_id')) {
                                 if (Number(request.device_os_id) !== 5) {
                                     //incr the asset_message_counter                        
                                     cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
@@ -145,7 +146,7 @@ function ActivityService(objectCollection) {
 
                                     });
                                 }
-                            }
+                            }*/
 
                             cacheWrapper.setMessageUniqueIdLookup(request.message_unique_id, request.activity_id, function (err, status) {
                                 if (err) {
@@ -846,7 +847,7 @@ function ActivityService(objectCollection) {
                     });
                 }
 
-                if (request.hasOwnProperty('device_os_id')) {
+                /*if (request.hasOwnProperty('device_os_id')) {
                     if (Number(request.device_os_id) !== 5) {
                         //incr the asset_message_counter                        
                         cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
@@ -859,7 +860,7 @@ function ActivityService(objectCollection) {
 
                         });
                     }
-                }
+                }*/
                 callback(false, {}, 200);
                 return;
             } else {

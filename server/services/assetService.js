@@ -435,9 +435,7 @@ function AssetService(objectCollection) {
                     });
                     assetListHistoryInsert(request, request.asset_id, request.organization_id, 201, dateTimeLog, function (err, data) {
                         if (err === false) {
-                            activityCommonService.assetTimelineTransactionInsert(request, {}, 1001, function (err, data) {
-
-                            });
+                            activityCommonService.assetTimelineTransactionInsert(request, {}, 1001, function (err, data) { });
                             cacheWrapper.getAssetParity(request.asset_id, function (err, reply) {   // setting asset parity for desk asset id 
                                 if (!err) {
                                     authTokenCollection.asset_id = request.asset_id;
@@ -460,7 +458,8 @@ function AssetService(objectCollection) {
                             });
                             return;
                         } else {
-                            callback(err, false, -9998);
+                            //callback(err, false, -9998);
+                            callback(err, false, -3201);
                         }
                     });
 

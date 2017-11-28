@@ -49,7 +49,7 @@ function ActivityTimelineService(objectCollection) {
                 activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {
 
                 });
-                if (request.hasOwnProperty('device_os_id')) {
+                /*if (request.hasOwnProperty('device_os_id')) {
                     if (Number(request.device_os_id) !== 5) {
                         //incr the asset_message_counter                        
                         cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
@@ -62,7 +62,7 @@ function ActivityTimelineService(objectCollection) {
 
                         });
                     }
-                }
+                }*/
 
             });
 
@@ -124,7 +124,7 @@ function ActivityTimelineService(objectCollection) {
                 }
             });
         }
-        if (request.hasOwnProperty('device_os_id')) {
+        /*if (request.hasOwnProperty('device_os_id')) {
             if (Number(request.device_os_id) !== 5) {
                 //incr the asset_message_counter                        
                 cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
@@ -137,7 +137,7 @@ function ActivityTimelineService(objectCollection) {
 
                 });
             }
-        }
+        } */
 
     };
 
