@@ -12,7 +12,7 @@ function AssetController(objCollection) {
     var app = objCollection.app;
 
     var activityCommonService = objCollection.activityCommonService;
-    var assetService = new AssetService(objCollection.db, objCollection.util, objCollection.cacheWrapper, activityCommonService);
+    var assetService = new AssetService(objCollection);
 
     app.put('/' + global.config.version + '/asset/passcode/alter', function (req, res) {
 
@@ -171,6 +171,50 @@ function AssetController(objCollection) {
         });
 
     });
+    
+    app.post('/' + global.config.version + '/asset/cover/collection', function (req, res) {
+        req.body.access_level_id = 5;
+        //req.body.page_start = (req.body.hasOwnProperty('page_start'))? req.body.page_start : 0;
+        req.body.page_start = req.body.page_start || 0;
+        req.body.page_limit = req.body.page_limit || 50;
+        
+        assetService.getAssetCoverCollection(req.body, function (err, data, statusCode) {
+
+            if (err === false) {
+                // got positive response   
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                return;
+            } else {
+                //console.log('did not get proper rseponse');
+                data = {}
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+
+    });
+    
+    app.post('/' + global.config.version + '/asset/access/workforce/cover/collection', function (req, res) {
+        req.body.access_level_id = 3;
+        //req.body.page_start = (req.body.hasOwnProperty('page_start'))? req.body.page_start : 0;
+        req.body.page_start = req.body.page_start || 0;
+        req.body.page_limit = req.body.page_limit || 50;
+        
+        assetService.getAssetCoverCollection(req.body, function (err, data, statusCode) {
+
+            if (err === false) {
+                // got positive response   
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                return;
+            } else {
+                //console.log('did not get proper rseponse');
+                data = {}
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+
+    });
+
+
 
     app.post('/' + global.config.version + '/asset/status/collection', function (req, res) {
         assetService.getAssetDetails(req.body, function (err, data, statusCode) {
@@ -185,7 +229,24 @@ function AssetController(objCollection) {
             }
         });
 
+    });    
+    
+    
+    app.put('/' + global.config.version + '/asset/cover/status/alter', function (req, res) {
+        assetService.alterAssetStatus(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+
+            } else {
+                //console.log('did not get proper rseponse');
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+
     });
+
 
     app.put('/' + global.config.version + '/asset/status/alter', function (req, res) {
         assetService.alterAssetStatus(req.body, function (err, data, statusCode) {

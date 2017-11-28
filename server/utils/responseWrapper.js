@@ -3,7 +3,6 @@ function ResponseWrapper(util) {
 
 
     this.getResponse = function (err, data, statusCode, request) {
-        //console.log('req in response wrapper is \n' + request);
         var response = {
             status: statusCode,
             service_id: request.bundle_transaction_id || 0,

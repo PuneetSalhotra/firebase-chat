@@ -89,15 +89,20 @@ function WidgetService(objCollection) {
                 if (err === false) {
                     objCollection.forEachAsync(widgetData, function (next, rowData) {
                         widgetTransactionSelect(request, rowData, function (err, widgetArr) {
-                            /*
-                            if (!err && widgetArr.length > 0) {
-                                responseArr.push(widgetArr) ;
+                          
+                            if ((!err) && widgetArr.length > 0) {
+                                var tmpCollection = {};
+                                tmpCollection["asset_id"] = rowData.asset_id;
+                                tmpCollection.widget_timeline = widgetArr;
+                                responseArr.push(tmpCollection) ;
                                 next();
                             } else if(err){
                                 callback(err, {}, -9998);
                                 return;
+                            }else{
+                                next();
                             }
-                            */
+                           
                            console.log(widgetArr);
                         });                        
                     }).then(function () {
