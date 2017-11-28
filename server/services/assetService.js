@@ -5,7 +5,12 @@
 var uuid = require('uuid');
 var AwsSns = require('../utils/snsWrapper');
 
-function AssetService(db, util, cacheWrapper, activityCommonService) {
+function AssetService(objectCollection) {
+
+    var db = objectCollection.db;
+    var util = objectCollection.util;
+    var cacheWrapper = objectCollection.cacheWrapper;
+    var activityCommonService = objectCollection.activityCommonService;
     var sns = new AwsSns();
     this.getPhoneNumberAssets = function (request, callback) {
 
@@ -202,7 +207,52 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
         callback(false, rowData);
     };
 
-
+    var formatAssetCoverData = function (rowArray, callback) {
+        var responseArr = new Array();
+        objectCollection.forEachAsync(rowArray, function (next, row) {
+            var rowData = {
+                'asset_id': util.replaceDefaultNumber(row['asset_id']),
+                'operating_asset_id': util.replaceDefaultNumber(row['operating_asset_id']),
+                'asset_first_name': util.replaceDefaultString(row['asset_first_name']),
+                'asset_last_name': util.replaceDefaultString(row['asset_last_name']),
+                'operating_asset_first_name': util.replaceDefaultString(row['operating_asset_first_name']),
+                'operating_asset_last_name': util.replaceDefaultString(row['operating_asset_last_name']),
+                'asset_email_id': util.replaceDefaultString(row['asset_email_id']),
+                'asset_phone_number': util.replaceDefaultNumber(row['operating_asset_phone_number']),
+                'asset_phone_country_code': util.replaceDefaultNumber(row['operating_asset_phone_country_code']),
+                'asset_timezone_id': util.replaceDefaultNumber(row['asset_timezone_id']),
+                'asset_timezone_offset': util.replaceDefaultString(row['asset_timezone_offset']),
+                'asset_last_seen_location_latitude': util.replaceDefaultString(row['asset_last_location_latitude']),
+                'asset_last_seen_location_longitude': util.replaceDefaultString(row['asset_last_location_longitude']),
+                'asset_last_seen_location_gps_accuracy': util.replaceDefaultString(row['asset_last_location_gps_accuracy']),
+                'asset_image_path': util.replaceDefaultString(row['asset_image_path']),
+                'workforce_id': util.replaceDefaultNumber(row['workforce_id']),
+                'workforce_name': util.replaceDefaultString(row['workforce_name']),
+                'account_id': util.replaceDefaultNumber(row['account_id']),
+                'account_name': util.replaceDefaultString(row['account_name']),
+                'organization_name': util.replaceDefaultString(row['organization_name']),
+                'organization_id': util.replaceDefaultNumber(row['organization_id']),
+                'asset_status_id': util.replaceDefaultNumber(row['asset_status_id']),
+                'asset_status_name': util.replaceDefaultString(row['asset_status_name']),
+                'asset_last_location_gps_enabled': util.replaceDefaultNumber(row['asset_last_location_gps_enabled']),
+                'asset_last_location_address': util.replaceDefaultString(row['asset_last_location_address']),
+                'asset_last_location_datetime': util.replaceDefaultDatetime(row['asset_last_location_datetime']),
+                'asset_session_status_id': util.replaceDefaultNumber(row['asset_session_status_id']),
+                'asset_session_status_name': util.replaceDefaultString(row['asset_session_status_name']),
+                'asset_session_status_datetime': util.replaceDefaultDatetime(row['asset_session_status_datetime']),
+                'asset_status_id': util.replaceDefaultNumber(row['asset_status_id']),
+                'asset_status_name': util.replaceDefaultString(row['asset_status_name']),
+                'asset_status_datetime': util.replaceDefaultDatetime(row['asset_status_datetime']),
+                'asset_assigned_status_id': util.replaceDefaultNumber(row['asset_assigned_status_id']),
+                'asset_assigned_status_name': util.replaceDefaultString(row['asset_assigned_status_name']),
+                'asset_assigned_status_datetime': util.replaceDefaultDatetime(row['asset_assigned_status_datetime'])
+            };
+            responseArr.push(rowData);
+            next();
+        }).then(function () {
+            callback(false, responseArr);
+        });
+    };
 
     this.checkAssetPasscode = function (request, callback) {
         var verificationCode = util.cleanPhoneNumber(request.verification_passcode);
@@ -295,24 +345,24 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
                             util.sendSmsMvaayoo(smsString, countryCode, phoneNumber, function (error, data) {
                                 if (error)
                                     //console.log(error);
-                                //console.log(data);
-                                global.logger.write('trace','Data: '+ data +'Error - ' + error, request)
+                                    //console.log(data);
+                                    global.logger.write('trace', 'Data: ' + data + 'Error - ' + error, request)
                             });
                             break;
                         case 2: // bulk sms                            
                             util.sendSmsBulk(smsString, countryCode, phoneNumber, function (error, data) {
                                 if (error)
                                     //console.log(error);
-                                //console.log(data);
-                                global.logger.write('trace','Data: '+ data +'Error - ' + error, request)
+                                    //console.log(data);
+                                    global.logger.write('trace', 'Data: ' + data + 'Error - ' + error, request)
                             });
                             break;
                         case 3:// sinfini                                                        
                             util.sendSmsSinfini(smsString, countryCode, phoneNumber, function (error, data) {
                                 if (error)
                                     //console.log(error);
-                                //console.log(data);
-                                global.logger.write('trace','Data: '+ data +'Error - ' + error, request)
+                                    //console.log(data);
+                                    global.logger.write('trace', 'Data: ' + data + 'Error - ' + error, request)
                             });
                             break;
                     }
@@ -325,8 +375,8 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
                 util.makeCall(smsString, countryCode, phoneNumber, function (error, data) {
                     if (error)
                         //console.log(error);
-                    //console.log(data);
-                    global.logger.write('trace','Data: '+ data +'Error - ' + error, request)
+                        //console.log(data);
+                        global.logger.write('trace', 'Data: ' + data + 'Error - ' + error, request)
                 })
                 break;
             case 3: //email
@@ -422,18 +472,18 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
 
             });
         }
-        if (request.hasOwnProperty('asset_token_push') && request.asset_token_push !== '' && request.asset_token_push !== null) {            
+        if (request.hasOwnProperty('asset_token_push') && request.asset_token_push !== '' && request.asset_token_push !== null) {
             sns.createPlatformEndPoint(Number(request.device_os_id), request.asset_token_push, function (err, endPointArn) {
                 if (!err) {
                     //console.log('success in creating platform end point');
-                    global.logger.write('debug','success in creating platform end point', request)
+                    global.logger.write('debug', 'success in creating platform end point', request)
                     request.asset_push_arn = endPointArn;
                     proceedLinking(function (err, response, status) {
                         callback(err, response, status);
                     });
                 } else {
                     //console.log('problem in creating platform end point');
-                    global.logger.write('serverError','problem in creating platform end point - ' + err, request)
+                    global.logger.write('serverError', 'problem in creating platform end point - ' + err, request)
                     callback(err, {}, -3108);
                 }
             });
@@ -821,17 +871,54 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
         }
     };
 
+    this.getAssetCoverCollection = function (request, callback) {
+        var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.asset_id,
+                0, //p_asset_type_category_id > 0 (given category) else all categories
+                request.access_level_id, //p_is_access_level = 5 (asset_level)
+                0, //p_is_sort = 0(static)
+                request.page_start,
+                request.page_limit
+                );
+
+        var queryString = util.getQueryString('ds_v1_asset_list_select_list_level', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (err === false) {
+                    formatAssetCoverData(data, function (err, finalData) {
+                        callback(false, finalData, 200);
+                    });
+                    //console.log(data);
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, {}, -9998);
+                }
+            });
+        }
+    };
+
     var assetListUpdateStatus = function (request, assetId, callback) {
+        
         var paramsArr = new Array(
                 assetId,
                 request.organization_id,
-                request.asset_type_category_id,
-                request.asset_status_id,
+                request.asset_clocked_status_id,
+                request.asset_assigned_status_id,
+                request.asset_session_status_id,
+                request.track_gps_datetime,
+                request.track_latitude,
+                request.track_longitude,
+                request.track_gps_accuracy,
+                request.track_gps_status,
+                request.track_gps_location,
                 request.asset_id,
                 request.datetime_log
                 );
 
-        var queryString = util.getQueryString('ds_v1_asset_list_update_asset_status', paramsArr);
+        var queryString = util.getQueryString('ds_v1_asset_list_update_status_all', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, assetData) {
                 if (err === false) {
@@ -875,12 +962,12 @@ function AssetService(db, util, cacheWrapper, activityCommonService) {
     this.alterAssetStatus = function (request, callback) {
         var dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
-        assetListUpdateStatus(request, 0, function (err, data) {
+        assetListUpdateStatus(request, request.asset_id, function (err, data) {
             if (err === false) {
-                assetListHistoryInsert(request, request.asset_id, request.organization_id, 207, dateTimeLog, function (err, data) {
-                });
-                activityCommonService.assetTimelineTransactionInsert(request, {}, 810, function (err, data) {
-
+                assetListUpdateStatus(request, request.operating_asset_id, function (err, data) {
+                    if (err) {
+                        callback(err, {}, -9998);
+                    }
                 });
                 callback(false, {}, 200);
                 return;
