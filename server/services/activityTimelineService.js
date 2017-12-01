@@ -448,6 +448,7 @@ function ActivityTimelineService(objectCollection) {
             rowDataArr.message_unique_id = rowData['log_message_unique_id'];
             rowDataArr.activity_timeline_text = '';
             rowDataArr.activity_timeline_url = '';
+            rowDataArr.activity_timeline_url_preview = '';
             rowDataArr.activity_timeline_collection = {};
 
             switch (activityTypeCategoryId) {

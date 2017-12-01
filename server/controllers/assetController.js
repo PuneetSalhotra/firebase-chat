@@ -246,23 +246,7 @@ function AssetController(objCollection) {
         });
 
     });
-
-
-    app.put('/' + global.config.version + '/asset/status/alter', function (req, res) {
-        assetService.alterAssetStatus(req.body, function (err, data, statusCode) {
-            if (err === false) {
-                // got positive response    
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
-
-            } else {
-                //console.log('did not get proper rseponse');
-                data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
-            }
-        });
-
-    });
-
+   
     app.put('/' + global.config.version + '/asset/cover/assigned_status/alter', function (req, res) {
         req.body['module'] = 'asset';
         assetService.alterAssetAssignedStatus(req.body, function (err, data, statusCode) {
