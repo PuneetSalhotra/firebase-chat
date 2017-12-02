@@ -214,12 +214,15 @@ function ActivityCommonService(db, util, forEachAsync) {
         var entityTypeId = 0;
         var entityText1 = "";
         var entityText2 = "";
+        var entityText3 = "";
         var retryFlag = 0;
         var formTransactionId = 0;
         var dataTypeId = 0;
         var formId = 0;
         if (Number(request.device_os_id) === 5)
             retryFlag = 1;
+
+            entityText3 = (request.hasOwnProperty('activity_timeline_title')) ? request.activity_timeline_title : "";
 
         if (request.hasOwnProperty('activity_type_category_id')) {
             var activityTypeCategoryId = Number(request.activity_type_category_id);
@@ -276,7 +279,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             case 1508:   // image   --> Time Card       
                 entityTypeId = 0;
                 entityText1 = request.activity_timeline_url;
-                entityText2 = '';
+                entityText2 = (request.hasOwnProperty('activity_timeline_url_preview')) ? request.activity_timeline_url_preview : '';
                 break;
             case 313:   // form                
                 entityTypeId = 0;
@@ -299,7 +302,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             case 1510:   // cloud based document -- Time Card
                 entityTypeId = 0;
                 entityText1 = request.activity_timeline_url;
-                entityText2 = '';
+                entityText2 = (request.hasOwnProperty('activity_timeline_url_preview')) ? request.activity_timeline_url_preview : '';
                 break;
             case 315:   // clip mail to task
                 entityTypeId = 0;
@@ -329,6 +332,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityTypeId, // entity type id
                 entityText1, // entity text 1
                 entityText2, // entity text 2
+                entityText3, //Beta
                 request.track_latitude,
                 request.track_longitude,
                 formTransactionId, //form_transaction_id   
@@ -354,7 +358,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 request.track_gps_datetime,
                 request.datetime_log
                 );
-        var queryString = util.getQueryString("ds_v1_asset_timeline_transaction_insert_form", paramsArr);
+        var queryString = util.getQueryString("ds_v1_1_asset_timeline_transaction_insert", paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false)
@@ -380,6 +384,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         var entityTypeId = 0;
         var entityText1 = "";
         var entityText2 = "";
+        var entityText3 = ""; //Beta
         var retryFlag = 0;
         var formTransactionId = 0;
         var dataTypeId = 0;
@@ -387,6 +392,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         if (Number(request.device_os_id) === 5)
             retryFlag = 1;
 
+        entityText3 = (request.hasOwnProperty('activity_timeline_title')) ? request.activity_timeline_title : "";
 
         if (request.hasOwnProperty('activity_type_category_id')) {
             var activityTypeCategoryId = Number(request.activity_type_category_id);
@@ -443,7 +449,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             case 1508:   // image   --> Time Card       
                 entityTypeId = 0;
                 entityText1 = request.activity_timeline_url;
-                entityText2 = '';
+                entityText2 = (request.hasOwnProperty('activity_timeline_url_preview')) ? request.activity_timeline_url_preview : '';
                 break;
             case 313:   // form                
                 entityTypeId = 0;
@@ -466,7 +472,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             case 1510:   // cloud based document -- Time Card
                 entityTypeId = 0;
                 entityText1 = request.activity_timeline_url;
-                entityText2 = '';
+                entityText2 = (request.hasOwnProperty('activity_timeline_url_preview')) ? request.activity_timeline_url_preview : '';
                 break;
             case 315:   // clip mail to task
                 entityTypeId = 0;
@@ -496,6 +502,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityTypeId, // entity type id
                 entityText1, // entity text 1
                 entityText2, // entity text 2
+                entityText3, //Beta
                 request.track_latitude,
                 request.track_longitude,
                 formTransactionId, //form_transaction_id   
@@ -521,7 +528,8 @@ function ActivityCommonService(db, util, forEachAsync) {
                 request.track_gps_datetime,
                 request.datetime_log
                 );
-        var queryString = util.getQueryString("ds_v1_activity_timeline_transaction_insert_form", paramsArr);
+        //Beta
+        var queryString = util.getQueryString("ds_v1_1_activity_timeline_transaction_insert", paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false)

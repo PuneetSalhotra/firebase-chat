@@ -439,7 +439,7 @@ function ActivityTimelineService(objectCollection) {
             rowDataArr.asset_last_name = util.replaceDefaultString(rowData['asset_last_name']);
             rowDataArr.asset_image_path = util.replaceDefaultString(rowData['asset_image_path']);
             rowDataArr.workforce_id = util.replaceDefaultNumber(rowData['workforce_id']);
-            rowDataArr.workforce_name = util.replaceDefaultNumber(rowData['workforce_name']);
+            rowDataArr.workforce_name = util.replaceDefaultString(rowData['workforce_name']);
             rowDataArr.account_id = util.replaceDefaultNumber(rowData['account_id']);
             rowDataArr.account_name = util.replaceDefaultString(rowData['account_name']);
             rowDataArr.organization_id = util.replaceDefaultNumber(rowData['organization_id']);
@@ -448,8 +448,13 @@ function ActivityTimelineService(objectCollection) {
             rowDataArr.message_unique_id = rowData['log_message_unique_id'];
             rowDataArr.activity_timeline_text = '';
             rowDataArr.activity_timeline_url = '';
-            rowDataArr.activity_timeline_url_preview = '';
             rowDataArr.activity_timeline_collection = {};
+            rowDataArr.activity_timeline_url_title ='';
+
+
+            //Added for Beta
+            rowDataArr.activity_timeline_url_title = util.replaceDefaultString(rowData['data_entity_text_3']);
+            rowDataArr.activity_timeline_url_preview = '';
 
             switch (activityTypeCategoryId) {
                 case 1: //To do
@@ -551,6 +556,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_text = '';
                             rowDataArr.activity_timeline_url = rowData['data_entity_text_1'];
                             rowDataArr.activity_timeline_collection = {};
+                            rowDataArr.activity_timeline_url_preview = util.replaceDefaultString(rowData['data_entity_text_2']);
                             break;
                     }
                     ;
@@ -578,6 +584,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_text = '';
                             rowDataArr.activity_timeline_url = rowData['data_entity_text_1'];
                             rowDataArr.activity_timeline_collection = {};
+                            rowDataArr.activity_timeline_url_preview = util.replaceDefaultString(rowData['data_entity_text_2']);
                             break;
                         case 312:
                             rowDataArr.activity_timeline_text = rowData['data_entity_text_2'];
@@ -593,6 +600,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_text = '';
                             rowDataArr.activity_timeline_url = rowData['data_entity_text_1'];
                             rowDataArr.activity_timeline_collection = {};
+                            rowDataArr.activity_timeline_url_preview = util.replaceDefaultString(rowData['data_entity_text_2']);
                             break;
                         case 315:   //Added Email conversation on to the Document
                             rowDataArr.activity_timeline_text = '';
@@ -626,6 +634,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_text = '';
                             rowDataArr.activity_timeline_url = rowData['data_entity_text_1'];
                             rowDataArr.activity_timeline_collection = {};
+                            rowDataArr.activity_timeline_url_preview = util.replaceDefaultString(rowData['data_entity_text_2']);
                             break;
                     }
                     ;
@@ -647,6 +656,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_text = '';
                             rowDataArr.activity_timeline_url = rowData['data_entity_text_1'];
                             rowDataArr.activity_timeline_collection = {};
+                            rowDataArr.activity_timeline_url_preview = util.replaceDefaultString(rowData['data_entity_text_2']);
                             break;
                         case 808:
                         case 809:
@@ -676,6 +686,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_text = '';
                             rowDataArr.activity_timeline_url = rowData['data_entity_text_1'];
                             rowDataArr.activity_timeline_collection = {};
+                            rowDataArr.activity_timeline_url_preview = util.replaceDefaultString(rowData['data_entity_text_2']);
                             break;
                     }
                     ;
@@ -704,6 +715,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_text = '';
                             rowDataArr.activity_timeline_url = rowData['data_entity_text_1'];
                             rowDataArr.activity_timeline_collection = {};
+                            rowDataArr.activity_timeline_url_preview = util.replaceDefaultString(rowData['data_entity_text_2']);
                             break;
                         case 611:
                             rowDataArr.activity_timeline_text = '';
@@ -737,6 +749,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_text = '';
                             rowDataArr.activity_timeline_url = rowData['data_entity_text_1'];
                             rowDataArr.activity_timeline_collection = {};
+                            rowDataArr.activity_timeline_url_preview = util.replaceDefaultString(rowData['data_entity_text_2']);
                             break;
                         case 1311:
                             rowDataArr.activity_timeline_text = '';
@@ -770,6 +783,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_text = '';
                             rowDataArr.activity_timeline_url = rowData['data_entity_text_1'];
                             rowDataArr.activity_timeline_collection = {};
+                            rowDataArr.activity_timeline_url_preview = util.replaceDefaultString(rowData['data_entity_text_2']);
                             break;
                         case 1511:
                             rowDataArr.activity_timeline_text = '';

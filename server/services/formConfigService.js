@@ -183,6 +183,82 @@ function FormConfigService(db, util) {
         }
     };
 
+    //Added by V Nani Kalyan for BETA
+    this.getRegisterForms = function (request, callback) {
+        var paramsArr = new Array();
+        var queryString = '';
+
+        paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                0, //request.group_id
+                10, //form_type_category_id
+                3, //entity_level_id,
+                request.page_start,
+                util.replaceQueryLimit(request.page_limit)
+                );
+        queryString = util.getQueryString('ds_v1_workforce_form_mapping_select_category_level', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (err === false) {
+                    if (data.length > 0) {
+                        //console.log(data);
+                        formatFromsListing(data, function (err, finalData) {
+                            if (err === false) {
+                                callback(false, {data: finalData}, 200);
+                            }
+                        });
+                    } else {
+                        callback(false, {}, 200);
+                    }
+                    return;
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, false, -9999);
+                    return;
+                }
+            });
+        }
+    };
+
+    this.getAllFormSubmissions = function (request, callback) {
+        var paramsArr = new Array();
+        var queryString = '';
+
+        paramsArr = new Array(
+                request.form_id,
+                request.workforce_id,
+                request.account_id,
+                request.organization_id,
+                request.datetime_differential,
+                3, //entity_level_id,
+                request.page_start,
+                util.replaceQueryLimit(request.page_limit)
+                );
+        queryString = util.getQueryString('ds_v1_activity_form_transaction_analytics_select_form', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (err === false) {
+                    if (data.length > 0) {
+                        //console.log(data);
+                        formatFromsListing(data, function (err, finalData) {
+                            if (err === false) {
+                                callback(false, {data: finalData}, 200);
+                            }
+                        });
+                    } else {
+                        callback(false, {}, 200);
+                    }
+                    return;
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, false, -9999);
+                    return;
+                }
+            });
+        }
+    };
 
     var formatFromsListing = function (data, callback) {        
         var responseData = new Array();
