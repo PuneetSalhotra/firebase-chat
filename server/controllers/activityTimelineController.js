@@ -226,7 +226,7 @@ function ActivityTimelineController(objCollection) {
                 // got positive response    
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                console.log('did not get proper rseponse');
+                console.log('did not get proper response');
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
