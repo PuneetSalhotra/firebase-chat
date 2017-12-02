@@ -35,6 +35,20 @@ if (mode === 'dev') {
     config.cassandraUser = 'aamir';
     config.cassandraPassword = 'foxtrot88';
 
+    config.cassandraCredentialsDev = {
+        ip: '34.192.228.175',
+        user: 'aamir',
+        pwd: 'foxtrot88',
+        keyspace: 'deskerlog'
+    };
+
+    config.cassandraCredentialsProd = {
+        ip: '34.192.228.175',
+        user: 'aamir',
+        pwd: 'foxtrot88',
+        keyspace: 'deskerlog'
+    };
+
     config.iosPushMode = 'dev';
 }
 
@@ -60,6 +74,20 @@ if (mode === 'prod') {
     config.cassandraKeyspace = 'deskerlog';
     config.cassandraUser = 'aamir';
     config.cassandraPassword = 'foxtrot88';
+
+    config.cassandraCredentialsDev = {
+        ip: '34.192.228.175',
+        user: 'aamir',
+        pwd: 'foxtrot88',
+        keyspace: 'deskerlog'
+    };
+
+    config.cassandraCredentialsProd = {
+        ip: '34.192.228.175',
+        user: 'aamir',
+        pwd: 'foxtrot88',
+        keyspace: 'deskerlog'
+    };
 
     config.iosPushMode = 'prod';    // currently shouuld be in dev
 }

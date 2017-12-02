@@ -10,23 +10,9 @@ require('../utils/globalConfig');
 var Util = require('../utils/util');
 var util = new Util();
 
-var cassandraCredentialsDev = {
-              ip: '34.192.228.175',
-              user: 'aamir' ,
-              pwd: 'foxtrot88',
-              keyspace: 'deskerlog'
-};
-
-var cassandraCredentialsProd = {
-              ip: '34.192.228.175',
-              user: 'aamir' ,
-              pwd: 'foxtrot88',
-              keyspace: 'deskerlog'
-            };
-
-var cassandraWrapper = new CassandraWrapper(cassandraCredentialsDev,
-                                            cassandraCredentialsProd, 
-                                            util);
+var cassandraWrapper = new CassandraWrapper(global.config.cassandraCredentialsDev,
+        global.config.cassandraCredentialsProd,
+        util);
 
 var consume = function () {
     var params = {
@@ -47,7 +33,7 @@ var consume = function () {
                     var body = data['Messages'][0].Body;
                     var messageCollection = JSON.parse(body);
                     //console.log(messageCollection);
-                    
+
                     cassandraWrapper.logData(messageCollection)
                 } catch (e) {
                     console.log(e);
