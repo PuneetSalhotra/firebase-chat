@@ -9,6 +9,7 @@ function ActivityUpdateService(objectCollection) {
     var activityCommonService = objectCollection.activityCommonService;
     var util = objectCollection.util;
     var activityPushService = objectCollection.activityPushService;
+    var queueWrapper = objCollection.queueWrapper;
 
     var activityListUpdateInline = function (request, callback) {
 
@@ -363,7 +364,10 @@ function ActivityUpdateService(objectCollection) {
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         var activityTypeCategoryId = Number(request.activity_type_category_id);
+        var newRequest = {};
+
         activityCommonService.updateAssetLocation(request, function (err, data) {});
+
         activityListUpdateInline(request, function (err, data) {
             if (err === false) {
                 assetActivityListUpdateInline(request, function (err, data) {
@@ -398,61 +402,73 @@ function ActivityUpdateService(objectCollection) {
                             default:
                                 activityStreamTypeId = 1705;   //by default so that we know
                                 //console.log('adding streamtype id 1705');
-                                global.logger.write('debug','adding streamtype id 1705', request)
+                                global.logger.write('debug', 'adding streamtype id 1705', request)
                                 break;
                         }
 
-                        activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
+                        activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) { });
+                        activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) { });
 
-                        });
-                        activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
-
-                        });
-                        /*if (request.hasOwnProperty('device_os_id')) {
-                            if (Number(request.device_os_id) !== 5) {
-                                //incr the asset_message_counter                        
-                                cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
-                                    if (err) {
-                                        //console.log("error in setting in asset parity");
-                                        global.logger.write('serverError','error in setting in asset parity - ' + err, request)
-                                    } else
-                                        //console.log("asset parity is set successfully")
-                                        global.logger.write('debug','asset parity is set successfully', request)
-
-                                });
-                            }
-                        }*/
                         callback(false, {}, 200);
 
                     } else {
                         callback(false, {}, -9999);
                     }
                 });
-                activityCommonService.activityListHistoryInsert(request, 404, function (err, result) {
-
-                });
-
-                activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) {
-
-                });
-
-                activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {
-
-                });
+                activityCommonService.activityListHistoryInsert(request, 404, function (err, result) { });
+                activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) { });
+                activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) { });
 
                 if (Number(request.activity_type_category_id) === 4) {    // id card inline update
-                    activityCommonService.assetListUpdateImagePath(request, function (err, data) {
+                    activityCommonService.assetListUpdate(request, function (err, data) {});
 
-                    });
-                }
+                    var empIdJson = JSON.parse(request.activity_inline_data);
+                    newRequest.activity_type_category_id = 5;
+                    activityCommonService.getCoWorkerActivityId(request, function (err, data) {
+                        if (err) {
+                            console.log('Unable to retrieved the activity id : ' + err);
+                        } else {
+                            try {
+                                console.log('JSON.stringify(data) -- ' + JSON.stringify(data));
+
+                                console.log('Activity Id : ' + data.activity_id);
+                                JSON.parse(data.activity_inline_data);
+                                console.log('json is fine');
+
+                                request.activity_id = data.activity_id;
+                                var inlineJson = JSON.parse(data.activity_inline_data);
+                                inlineJson.contact_email_id = empIdJson.employee_email_id;
+                                inlineJson.contact_profile_picture = empIdJson.employee_profile_picture;
+                                request.activity_type_category_id = 5;
+                                request.activity_inline_data = inlineJson;
+
+                                var event = {
+                                    name: "alterActivityInline",
+                                    service: "activityUpdateService",
+                                    method: "alterActivityInline",
+                                    payload: request
+                                };
+
+                                queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
+                                    if (err) {
+                                        //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
+                                        global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent : " + err, req);
+                                    } else {
+                                    }
+                                });
+                            } catch (exception) {
+                                //res.send(responseWrapper.getResponse(false, {}, -3308,req.body));
+                                //return;
+                            }
+                        }
+                    })
+                } //if category_id==4
 
             } else {
                 callback(err, {}, -9999);
             }
         });
-        // call resource ranking...
-
-    };
+    }
 
     this.alterActivityCover = function (request, callback) {
 
@@ -496,14 +512,14 @@ function ActivityUpdateService(objectCollection) {
                         default:
                             activityStreamTypeId = 1506;   //by default so that we know
                             //console.log('adding streamtype id 1506');
-                            global.logger.write('debug','adding streamtype id 1506', request)
+                            global.logger.write('debug', 'adding streamtype id 1506', request)
                             break;
                     }
                     ;
 
                     activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) { });
                     activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) { });
-                    
+
                     //updating log differential datetime for only this asset
                     activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) {
 
@@ -516,20 +532,7 @@ function ActivityUpdateService(objectCollection) {
                     activityPushService.sendPush(request, objectCollection, 0, function () {});
 
                 });
-                /*if (request.hasOwnProperty('device_os_id')) {
-                    if (Number(request.device_os_id) !== 5) {
-                        //incr the asset_message_counter                        
-                        cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
-                            if (err) {
-                                //console.log("error in setting in asset parity");
-                                global.logger.write('serverError','error in setting in asset parity - ' + err, request)
-                            } else
-                                //console.log("asset parity is set successfully")
-                                global.logger.write('debug','asset parity is set successfully', request)
 
-                        });
-                    }
-                } */
                 callback(false, {}, 200);
 
                 // if activity_type_category_id = 17 update asset image id also
@@ -644,18 +647,18 @@ function ActivityUpdateService(objectCollection) {
 
         });
         /*if (request.hasOwnProperty('device_os_id')) {
-            if (Number(request.device_os_id) !== 5) {
-                //incr the asset_message_counter                        
-                cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
-                    if (err) {
-                        //console.log("error in setting in asset parity");
-                        global.logger.write('serverError','error in setting in asset parity - ' + err, request)
-                    } else
-                        //console.log("asset parity is set successfully")
-                        global.logger.write('debug','asset parity is set successfully', request)
-                });
-            }
-        } */
+         if (Number(request.device_os_id) !== 5) {
+         //incr the asset_message_counter
+         cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
+         if (err) {
+         //console.log("error in setting in asset parity");
+         global.logger.write('serverError','error in setting in asset parity - ' + err, request)
+         } else
+         //console.log("asset parity is set successfully")
+         global.logger.write('debug','asset parity is set successfully', request)
+         });
+         }
+         } */
     };
 
 
