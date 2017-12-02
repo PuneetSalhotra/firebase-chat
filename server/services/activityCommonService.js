@@ -551,7 +551,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         var paramsArr = new Array(
                 inlineJson.employee_asset_id,
                 inlineJson.employee_organization_id,
-                inlineJson.employee_asset_email,
+                inlineJson.employee_email_id,
                 inlineJson.employee_profile_picture,
                 request.activity_inline_data,
                 request.asset_id,
@@ -717,16 +717,14 @@ function ActivityCommonService(db, util, forEachAsync) {
       var paramsArr = new Array(
               request.asset_id,
               request.organization_id,
-              request.activity_type_category_id
+              5// activityTypeCategoryId is 5 for coworker activity
+              //request.activity_type_category_id
               );
       var queryString = util.getQueryString('ds_v1_activity_list_select_category_contact', paramsArr);
       if (queryString != '') {
-          db.executeQuery(1, queryString, request, function (err, data) {
+          db.executeQuery(1, queryString, request, function (err, coworkerData) {
               if (err === false) {
-                  console.log('DATA :' + data)
-                  console.log('In query DATA: ' + data.activity_id);
-                  console.log('In query DATA: ' + data.activity_type_category_id);
-                  callback(false, data);
+                  callback(false, coworkerData);
               } else {
                   // some thing is wrong and have to be dealt
                   callback(err, false);

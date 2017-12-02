@@ -80,45 +80,45 @@ function ActivityUpdateService(objectCollection) {
         }
         /*
          var coverJson = JSON.parse(request.activity_cover_data);
-         
+
          if (coverJson.hasOwnProperty('title')) {
          //update activity title
          updateActivityTitle(request, coverJson.title.new, function (err, data) {
          if (err === false) {
          activityCommonService.activityListHistoryInsert(request, 12, function (err, result) {
-         
+
          });
          assetActivityListUpdateCover(request, 12, coverJson.title.new, function (err, data) {
-         
+
          });
          }
          });
          }
-         
+
          if (coverJson.hasOwnProperty('description')) {
          //update activity title
          updateActivityDescription(request, coverJson.description.new, function (err, data) {
          if (err === false) {
          activityCommonService.activityListHistoryInsert(request, 13, function (err, result) {
-         
+
          });
          assetActivityListUpdateCover(request, 13, function (err, data) {
-         
+
          });
          }
          });
          }
-         
+
          if (coverJson.hasOwnProperty('duedate')) {
          //update activity due-date
          updateActivityDuedate(request, coverJson.duedate.new, function (err, data) {
          if (err === false) {
          activityCommonService.activityListHistoryInsert(request, 14, function (err, result) {
-         
+
          });
-         
+
          assetActivityListUpdateCover(request, 14, coverJson.duedate.new, function (err, data) {
-         
+
          });
          }
          });
@@ -364,8 +364,7 @@ function ActivityUpdateService(objectCollection) {
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         var activityTypeCategoryId = Number(request.activity_type_category_id);
-        var newRequest = {};
-
+        
         activityCommonService.updateAssetLocation(request, function (err, data) {});
 
         activityListUpdateInline(request, function (err, data) {
@@ -378,7 +377,7 @@ function ActivityUpdateService(objectCollection) {
                                 activityStreamTypeId = 102;
                                 break;
                             case 5: //Co-worker Contact Card
-                                activityStreamTypeId = 205;
+                                activityStreamTypeId = 210; //Beta
                                 break;
                             case 6: //Customer Contact Card
                                 activityStreamTypeId = 1105;
@@ -423,33 +422,30 @@ function ActivityUpdateService(objectCollection) {
                     activityCommonService.assetListUpdate(request, function (err, data) {});
 
                     var empIdJson = JSON.parse(request.activity_inline_data);
-                    newRequest.activity_type_category_id = 5;
-                    activityCommonService.getCoWorkerActivityId(request, function (err, data) {
-                        if (err) {
-                            console.log('Unable to retrieved the activity id : ' + err);
-                        } else {
+                    var newRequest = Object.assign({}, request);
+
+                    activityCommonService.getCoWorkerActivityId(request, function (err, coworkerData) {
+                        if (!err) {
                             try {
-                                console.log('JSON.stringify(data) -- ' + JSON.stringify(data));
+                                var inlineJson = JSON.parse(coworkerData[0].activity_inline_data);
 
-                                console.log('Activity Id : ' + data.activity_id);
-                                JSON.parse(data.activity_inline_data);
-                                console.log('json is fine');
-
-                                request.activity_id = data.activity_id;
-                                var inlineJson = JSON.parse(data.activity_inline_data);
+                                newRequest.activity_id = coworkerData[0].activity_id;
+                                newRequest.activity_type_category_id = coworkerData[0].activity_type_category_id;
+                                                                           
                                 inlineJson.contact_email_id = empIdJson.employee_email_id;
                                 inlineJson.contact_profile_picture = empIdJson.employee_profile_picture;
-                                request.activity_type_category_id = 5;
-                                request.activity_inline_data = inlineJson;
+                                newRequest.activity_inline_data = JSON.stringify(inlineJson);
+                                                                                                                          
+                                //console.log('newRequest: ', newRequest)
 
                                 var event = {
                                     name: "alterActivityInline",
                                     service: "activityUpdateService",
                                     method: "alterActivityInline",
-                                    payload: request
+                                    payload: newRequest
                                 };
 
-                                queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
+                                queueWrapper.raiseActivityEvent(event, data.activity_id, (err, resp) => {
                                     if (err) {
                                         //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
                                         global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent : " + err, req);
@@ -457,9 +453,11 @@ function ActivityUpdateService(objectCollection) {
                                     }
                                 });
                             } catch (exception) {
-                                //res.send(responseWrapper.getResponse(false, {}, -3308,req.body));
-                                //return;
+                                res.send(responseWrapper.getResponse(false, {}, -3308,req.body));
+                                return;
                             }
+                        } else {
+                               console.log(err)
                         }
                     })
                 } //if category_id==4
