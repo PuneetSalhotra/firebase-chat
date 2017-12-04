@@ -10,6 +10,7 @@ function ActivityTimelineService(objectCollection) {
     var util = objectCollection.util;
     var forEachAsync = objectCollection.forEachAsync;
     var activityPushService = objectCollection.activityPushService;
+
     this.addTimelineTransaction = function (request, callback) {
 
         var logDatetime = util.getCurrentUTCTime();
@@ -36,45 +37,27 @@ function ActivityTimelineService(objectCollection) {
         if (request.hasOwnProperty('flag_timeline_entry'))
             isAddToTimeline = (Number(request.flag_timeline_entry)) > 0 ? true : false;
         if (isAddToTimeline) {
-            activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
-                activityPushService.sendPush(request, objectCollection, 0, function () {});
-                activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
+          activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
+            if(err) {
 
-                });
-                //updating log differential datetime for only this asset
-                activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) {
+            } else {
+              activityPushService.sendPush(request, objectCollection, 0, function () {});
+              activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) { });
 
-                });
-
-                activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {
-
-                });
-                /*if (request.hasOwnProperty('device_os_id')) {
-                    if (Number(request.device_os_id) !== 5) {
-                        //incr the asset_message_counter                        
-                        cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
-                            if (err) {
-                                //console.log("error in setting in asset parity");
-                                global.logger.write('serverError','error in setting in asset parity - ' + err, request)
-                            } else
-                                //console.log("asset parity is set successfully")
-                                global.logger.write('debug','asset parity is set successfully', request)
-
-                        });
-                    }
-                }*/
-
+              //updating log differential datetime for only this asset
+              activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) { });
+              activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) { });
+            }
             });
-
         }
         callback(false, {}, 200);
-
     };
+
     this.addTimelineComment = function (request, callback) {
         activityCommonService.updateAssetLocation(request, function (err, data) {});
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
-        //IN p_form_transaction_id BIGINT(20), IN p_form_id BIGINT(20), IN p_field_id BIGINT(20), IN p_activity_id BIGINT(20), IN p_asset_id BIGINT(20), 
+        //IN p_form_transaction_id BIGINT(20), IN p_form_id BIGINT(20), IN p_field_id BIGINT(20), IN p_activity_id BIGINT(20), IN p_asset_id BIGINT(20),
         //IN p_workforce_id BIGINT(20), IN p_account_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_stream_type_id SMALLINT(6), IN p_entity_text_1 VARCHAR(1200), IN p_entity_text_2 VARCHAR(4800), IN p_location_latitude DECIMAL(12,8), IN p_location_longitude DECIMAL(12,8), IN p_location_gps_accuracy DOUBLE(16,4), IN p_location_gps_enabled TINYINT(1), IN p_location_address VARCHAR(300), IN p_location_datetime DATETIME, IN p_device_manufacturer_name VARCHAR(50), IN p_device_model_name VARCHAR(50), IN p_device_os_id TINYINT(4), IN p_device_os_name VARCHAR(50), IN p_device_os_version VARCHAR(50), IN p_device_app_version VARCHAR(50), IN p_device_api_version VARCHAR(50), IN p_log_asset_id BIGINT(20), IN p_log_message_unique_id VARCHAR(50), IN p_log_retry TINYINT(1), IN p_log_offline TINYINT(1), IN p_transaction_datetime DATETIME, IN p_log_datetime DATETIME
 
         var paramsArr = new Array(
@@ -126,7 +109,7 @@ function ActivityTimelineService(objectCollection) {
         }
         /*if (request.hasOwnProperty('device_os_id')) {
             if (Number(request.device_os_id) !== 5) {
-                //incr the asset_message_counter                        
+                //incr the asset_message_counter
                 cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
                     if (err) {
                         //console.log("error in setting in asset parity");
@@ -310,7 +293,7 @@ function ActivityTimelineService(objectCollection) {
             rowDataArr.data_type_category_name = util.replaceDefaultString(rowData['data_type_category_name']);
             rowDataArr.message_unique_id = rowData['log_message_unique_id'];
             rowDataArr.datetime_log = util.replaceDefaultDatetime(rowData['log_datetime']);
-            //rowDataArr.field_value = '';                
+            //rowDataArr.field_value = '';
             getFieldValue(rowData, function (err, fieldValue) {
                 if (err) {
                     //console.log(err);
@@ -381,7 +364,7 @@ function ActivityTimelineService(objectCollection) {
                 fieldValue = rowData['data_entity_bigint_1'] + '|' + rowData['data_entity_text_1'];
                 break;
             case 24:    //Gallery Image
-            case 25:    //Camera Image            
+            case 25:    //Camera Image
             case 26:    //Video Attachment
                 fieldValue = util.replaceDefaultString(rowData['data_entity_text_1']);
                 break;
@@ -439,7 +422,7 @@ function ActivityTimelineService(objectCollection) {
             rowDataArr.asset_last_name = util.replaceDefaultString(rowData['asset_last_name']);
             rowDataArr.asset_image_path = util.replaceDefaultString(rowData['asset_image_path']);
             rowDataArr.workforce_id = util.replaceDefaultNumber(rowData['workforce_id']);
-            rowDataArr.workforce_name = util.replaceDefaultNumber(rowData['workforce_name']);
+            rowDataArr.workforce_name = util.replaceDefaultString(rowData['workforce_name']);
             rowDataArr.account_id = util.replaceDefaultNumber(rowData['account_id']);
             rowDataArr.account_name = util.replaceDefaultString(rowData['account_name']);
             rowDataArr.organization_id = util.replaceDefaultNumber(rowData['organization_id']);
@@ -448,8 +431,13 @@ function ActivityTimelineService(objectCollection) {
             rowDataArr.message_unique_id = rowData['log_message_unique_id'];
             rowDataArr.activity_timeline_text = '';
             rowDataArr.activity_timeline_url = '';
-            rowDataArr.activity_timeline_url_preview = '';
             rowDataArr.activity_timeline_collection = {};
+            rowDataArr.activity_timeline_url_title ='';
+
+
+            //Added for Beta
+            rowDataArr.activity_timeline_url_title = util.replaceDefaultString(rowData['data_entity_text_3']);
+            rowDataArr.activity_timeline_url_preview = '';
 
             switch (activityTypeCategoryId) {
                 case 1: //To do
@@ -551,6 +539,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_text = '';
                             rowDataArr.activity_timeline_url = rowData['data_entity_text_1'];
                             rowDataArr.activity_timeline_collection = {};
+                            rowDataArr.activity_timeline_url_preview = util.replaceDefaultString(rowData['data_entity_text_2']);
                             break;
                     }
                     ;
@@ -578,6 +567,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_text = '';
                             rowDataArr.activity_timeline_url = rowData['data_entity_text_1'];
                             rowDataArr.activity_timeline_collection = {};
+                            rowDataArr.activity_timeline_url_preview = util.replaceDefaultString(rowData['data_entity_text_2']);
                             break;
                         case 312:
                             rowDataArr.activity_timeline_text = rowData['data_entity_text_2'];
@@ -593,6 +583,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_text = '';
                             rowDataArr.activity_timeline_url = rowData['data_entity_text_1'];
                             rowDataArr.activity_timeline_collection = {};
+                            rowDataArr.activity_timeline_url_preview = util.replaceDefaultString(rowData['data_entity_text_2']);
                             break;
                         case 315:   //Added Email conversation on to the Document
                             rowDataArr.activity_timeline_text = '';
@@ -626,6 +617,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_text = '';
                             rowDataArr.activity_timeline_url = rowData['data_entity_text_1'];
                             rowDataArr.activity_timeline_collection = {};
+                            rowDataArr.activity_timeline_url_preview = util.replaceDefaultString(rowData['data_entity_text_2']);
                             break;
                     }
                     ;
@@ -647,6 +639,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_text = '';
                             rowDataArr.activity_timeline_url = rowData['data_entity_text_1'];
                             rowDataArr.activity_timeline_collection = {};
+                            rowDataArr.activity_timeline_url_preview = util.replaceDefaultString(rowData['data_entity_text_2']);
                             break;
                         case 808:
                         case 809:
@@ -676,6 +669,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_text = '';
                             rowDataArr.activity_timeline_url = rowData['data_entity_text_1'];
                             rowDataArr.activity_timeline_collection = {};
+                            rowDataArr.activity_timeline_url_preview = util.replaceDefaultString(rowData['data_entity_text_2']);
                             break;
                     }
                     ;
@@ -704,6 +698,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_text = '';
                             rowDataArr.activity_timeline_url = rowData['data_entity_text_1'];
                             rowDataArr.activity_timeline_collection = {};
+                            rowDataArr.activity_timeline_url_preview = util.replaceDefaultString(rowData['data_entity_text_2']);
                             break;
                         case 611:
                             rowDataArr.activity_timeline_text = '';
@@ -737,6 +732,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_text = '';
                             rowDataArr.activity_timeline_url = rowData['data_entity_text_1'];
                             rowDataArr.activity_timeline_collection = {};
+                            rowDataArr.activity_timeline_url_preview = util.replaceDefaultString(rowData['data_entity_text_2']);
                             break;
                         case 1311:
                             rowDataArr.activity_timeline_text = '';
@@ -770,6 +766,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_text = '';
                             rowDataArr.activity_timeline_url = rowData['data_entity_text_1'];
                             rowDataArr.activity_timeline_collection = {};
+                            rowDataArr.activity_timeline_url_preview = util.replaceDefaultString(rowData['data_entity_text_2']);
                             break;
                         case 1511:
                             rowDataArr.activity_timeline_text = '';
@@ -803,7 +800,7 @@ function ActivityTimelineService(objectCollection) {
                 var datatypeComboId = 0;
             var params = new Array(
                     request.form_transaction_id, //0
-                    row.form_id, //1                    
+                    row.form_id, //1
                     row.field_id, //2
                     datatypeComboId, //3
                     request.activity_id, //4
@@ -869,7 +866,7 @@ function ActivityTimelineService(objectCollection) {
                     params[14] = money[0];
                     params[17] = money[1];
                     break;
-                case 19:    //Short Text                    
+                case 19:    //Short Text
                     params[17] = row.field_value;
                     break;
                 case 20:    //Long Text
@@ -887,7 +884,7 @@ function ActivityTimelineService(objectCollection) {
                     params[17] = phone[1];  //phone number
                     break;
                 case 24:    //Gallery Image
-                case 25:    //Camera Front Image                
+                case 25:    //Camera Front Image
                 case 26:    //Video Attachment
                     params[17] = row.field_value;
                     break;
@@ -918,7 +915,7 @@ function ActivityTimelineService(objectCollection) {
                 case 34:    //Multi Selection List
                     params[17] = row.field_value;
                     break;
-                case 35:    //QR Code                    
+                case 35:    //QR Code
                 case 36:    //Barcode
                     params[17] = row.field_value;
                     break;
@@ -933,7 +930,7 @@ function ActivityTimelineService(objectCollection) {
             params.push('');                                                    //IN p_device_manufacturer_name VARCHAR(50)
             params.push('');                                                    // IN p_device_model_name VARCHAR(50)
             params.push(request.device_os_id);                                  // IN p_device_os_id TINYINT(4)
-            params.push('');                                                    // IN p_device_os_name VARCHAR(50), 
+            params.push('');                                                    // IN p_device_os_name VARCHAR(50),
             params.push('');                                                    // IN p_device_os_version VARCHAR(50)
             params.push(request.app_version);                                   // IIN p_device_app_version VARCHAR(50)
             params.push(request.api_version);                                   // IN p_device_api_version VARCHAR(50)
