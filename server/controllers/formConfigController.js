@@ -86,6 +86,29 @@ function FormConfigController(objCollection) {
             }
         });
     });
+    
+      //Added By Nani Kalyan
+    app.post('/' + global.config.version + '/form/register/access/workforce/list', function (req, res) {
+        formConfigService.getRegisterForms(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+
+    app.post('/' + global.config.version + '/form/access/workforce/timeline/list', function (req, res) {
+        formConfigService.getAllFormSubmissions(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
 
     
 };
