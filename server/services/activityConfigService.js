@@ -71,12 +71,13 @@ function ActivityConfigService(db, util) {
     };
 
     this.getActivityParticipantAccess = function (request, callback) {
-
+        var productId = (request.hasOwnProperty('product_id')) ? request.product_id : 1;
         var paramsArr = new Array(
                 request.page_start,
-                util.replaceQueryLimit(request.page_limit)
+                util.replaceQueryLimit(request.page_limit),
+                productId
                 );
-        var queryString = util.getQueryString('ds_v1_activity_participant_access_master_select', paramsArr);
+        var queryString = util.getQueryString('ds_v1_1_activity_participant_access_master_select', paramsArr);
 
         //console.log(queryString);
         if (queryString != '') {

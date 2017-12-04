@@ -96,12 +96,15 @@ function AssetService(objectCollection) {
     };
 
     this.getAssetWorkStatuses = function (request, callback) {
+        var productId = (request.hasOwnProperty('product_id')) ? request.product_id : 1;
         var paramsArr = new Array(
                 request.page_start,
-                util.replaceQueryLimit(request.page_limit)
+                util.replaceQueryLimit(request.page_limit),
+                productId
                 );
 
-        var queryString = util.getQueryString('ds_v1_asset_type_category_status_master_select', paramsArr);
+        //PAM
+        var queryString = util.getQueryString('ds_v1_1_asset_type_category_status_master_select', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (data.length > 0) {

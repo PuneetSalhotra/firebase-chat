@@ -219,6 +219,10 @@ function ActivityService(objectCollection) {
             activityStatusId = request.activity_status_id;
         if (request.hasOwnProperty('activity_form_id'))
             activityFormId = request.activity_form_id;
+        
+        //BETA
+        var activitySubTypeId = (request.hasOwnProperty('activity_sub_type_id')) ? request.activity_sub_type_id : 0;
+        
         switch (activityTypeCategoryId) {
             case 2:    // notepad
                 /*
@@ -424,6 +428,41 @@ function ActivityService(objectCollection) {
                         activityChannelCategoryId
                         );
                 break;
+            case 10:
+                var ownerAssetID;
+                if(request.hasOwnProperty('owner_asset_id')) {
+                      ownerAssetID = request.owner_asset_id;
+                } else {
+                      ownerAssetID = request.asset_id;
+                }
+                
+                paramsArr = new Array(
+                        request.activity_id,
+                        request.activity_title,
+                        request.activity_description,
+                        (request.activity_inline_data),
+                        "",
+                        0,
+                        request.activity_datetime_start,
+                        request.activity_datetime_end,
+                        activityStatusId,
+                        request.activity_type_id,
+                        request.activity_parent_id,
+                        ownerAssetID,
+                        request.workforce_id,
+                        request.account_id,
+                        request.organization_id,
+                        request.message_unique_id, //request.asset_id + new Date().getTime() + getRandomInt(), //message unique id
+                        request.flag_retry,
+                        request.flag_offline,
+                        request.asset_id,
+                        request.datetime_log, // server log date time   
+                        activityFormId,
+                        0,
+                        activityChannelId,
+                        activityChannelCategoryId
+                        );
+               break;
             default:
                 paramsArr = new Array(
                         request.activity_id,
@@ -455,14 +494,48 @@ function ActivityService(objectCollection) {
         }
         ;
         paramsArr.push(request.track_latitude);
-        paramsArr.push(request.track_longitude);
-        var queryString = util.getQueryString('ds_v1_activity_list_insert', paramsArr);
+        paramsArr.push(request.track_longitude); 
+        paramsArr.push(activitySubTypeId);
+        
+        //var queryString = util.getQueryString('ds_v1_activity_list_insert', paramsArr);
+        var queryString = util.getQueryString('ds_v1_activity_list_insert_sub_type', paramsArr);
         if (queryString !== '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
-                    callback(false, true);
-                    return;
-                } else {
+                    //BETA        
+                    if(activityTypeCategoryId === 10 && (request.asset_id !== ownerAssetID)) {
+                        var paramsArr1 = new Array(
+                                request.activity_id,
+                                request.asset_id,
+                                request.workforce_id,
+                                request.account_id,
+                                request.organization_id,
+                                29, //request.participant_access_id,
+                                request.message_unique_id,
+                                request.flag_retry,
+                                request.flag_offline,
+                                request.asset_id,
+                                request.datetime_log,
+                                0 //Field Id
+                                );
+                        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_insert_asset_assign_appr', paramsArr1);
+                        if (queryString !== '') {
+                                db.executeQuery(0, queryString, request, function (err, data) {
+                                if (err === false) {
+                                    callback(false, true);
+                                    return;
+                                } else {
+                                    callback(err, false);
+                                    return;
+                                    }
+                              });
+                          }
+                    } else {
+                        callback(false, true);
+                        return;
+                    }
+                
+            } else {
                     // some thing is wrong and have to be dealt
                     callback(err, false);
                     return;

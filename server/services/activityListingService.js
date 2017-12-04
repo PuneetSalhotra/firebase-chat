@@ -215,6 +215,20 @@ function ActivityListingService(objCollection) {
             case 8: // mail
                 queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_search_category_inline', paramsArr);
                 break;
+            case 10: //File BETA
+                var paramsArrForFile = new Array(
+                        request.asset_id,
+                        request.organization_id,
+                        request.account_id,
+                        request.workforce_id,
+                        request.activity_type_category_id,
+                        request.search_string,
+                        request.activity_sub_type_id,
+                        request.page_start,
+                        util.replaceQueryLimit(request.page_limit)
+                        );
+                queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_search_category_sub_type', paramsArrForFile);
+                break;
             case 31:    //calendar event
                 queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_search_calendar', paramsArrForCalendar);
                 break;
@@ -440,7 +454,9 @@ function ActivityListingService(objCollection) {
                 "form_transaction_id": util.replaceZero(rowData['form_transaction_id']),
                 "operating_asset_id": util.replaceZero(rowData['operating_asset_id']),
                 "operating_asset_first_name": util.replaceDefaultString(rowData['operating_asset_first_name']),
-                "operating_asset_last_name": util.replaceDefaultString(rowData['operating_asset_last_name'])                
+                "operating_asset_last_name": util.replaceDefaultString(rowData['operating_asset_last_name']),
+                "activity_sub_type_id": util.replaceDefaultNumber(rowData['activity_sub_type_id']),
+                "activity_sub_type_name": util.replaceDefaultString(rowData['activity_sub_type_name'])
             };
             responseData.push(rowDataArr);
         }, this);
