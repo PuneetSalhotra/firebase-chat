@@ -1,5 +1,16 @@
 
 function ResponseWrapper(util) {
+    
+    var serviceid;
+
+        try {
+            console.log('In Try Service Id : ' + request.bundle_transaction_id)
+            serviceid = request.bundle_transaction_id
+            global.logger.write('response','',request);
+        } catch(exception) {
+            serviceid = ''
+            console.log('In Catch Service Id : ' + serviceid)
+        }
 
 
     this.getResponse = function (err, data, statusCode, request) {
