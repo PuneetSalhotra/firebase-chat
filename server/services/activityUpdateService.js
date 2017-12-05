@@ -401,7 +401,7 @@ function ActivityUpdateService(objectCollection) {
                             default:
                                 activityStreamTypeId = 1705;   //by default so that we know
                                 //console.log('adding streamtype id 1705');
-                                global.logger.write('debug', 'adding streamtype id 1705', request)
+                                global.logger.write('debug', 'adding streamtype id 1705', {},request)
                                 break;
                         }
 
@@ -419,12 +419,12 @@ function ActivityUpdateService(objectCollection) {
                 activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) { });
 
                 if (Number(request.activity_type_category_id) === 4) {    // id card inline update
-                    activityCommonService.assetListUpdate(request, function (err, data) {});
+                    assetListUpdate(request, function (err, data) {});
 
                     var empIdJson = JSON.parse(request.activity_inline_data);
                     var newRequest = Object.assign({}, request);
 
-                    activityCommonService.getCoWorkerActivityId(request, function (err, coworkerData) {
+                    getCoWorkerActivityId(request, function (err, coworkerData) {
                         if (!err) {
                             try {
                                 var inlineJson = JSON.parse(coworkerData[0].activity_inline_data);
@@ -448,7 +448,7 @@ function ActivityUpdateService(objectCollection) {
                                 queueWrapper.raiseActivityEvent(event, data.activity_id, (err, resp) => {
                                     if (err) {
                                         //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                                        global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent : " + err, req);
+                                        global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent",err, request);
                                     } else {
                                     }
                                 });
@@ -510,7 +510,7 @@ function ActivityUpdateService(objectCollection) {
                         default:
                             activityStreamTypeId = 1506;   //by default so that we know
                             //console.log('adding streamtype id 1506');
-                            global.logger.write('debug', 'adding streamtype id 1506', request)
+                            global.logger.write('debug', 'adding streamtype id 1506', {},request)
                             break;
                     }
                     ;
@@ -544,6 +544,70 @@ function ActivityUpdateService(objectCollection) {
         });
         // call resource ranking...
 
+    };
+    
+    var getCoWorkerActivityId = function(request, callback) {
+      var paramsArr = new Array(
+              request.asset_id,
+              request.organization_id,
+              5// activityTypeCategoryId is 5 for coworker activity
+              //request.activity_type_category_id
+              );
+      var queryString = util.getQueryString('ds_v1_activity_list_select_category_contact', paramsArr);
+      if (queryString != '') {
+          db.executeQuery(1, queryString, request, function (err, coworkerData) {
+              if (err === false) {
+                  callback(false, coworkerData);
+              } else {
+                  // some thing is wrong and have to be dealt
+                  callback(err, false);
+              }
+          });
+      }
+    }
+    
+    var assetListUpdate = function (request, callback) {
+        var inlineJson = JSON.parse(request.activity_inline_data);
+        var paramsArr = new Array(
+                inlineJson.employee_asset_id,
+                inlineJson.employee_organization_id,
+                inlineJson.employee_email_id,
+                inlineJson.employee_profile_picture,
+                request.activity_inline_data,
+                request.asset_id,
+                request.datetime_log // server log date time
+                );
+
+        var queryString = util.getQueryString('ds_v1_asset_list_update', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                if (err === false) {
+                    paramsArr = new Array(
+                            inlineJson.employee_asset_id,
+                            inlineJson.employee_organization_id,
+                            205,
+                            request.datetime_log // server log date time
+                            );
+
+                    queryString = util.getQueryString('ds_v1_asset_list_history_insert', paramsArr);
+                    if (queryString != '') {
+                        db.executeQuery(0, queryString, request, function (err, data) {
+                            if (err === false) {
+                                callback(false, true);
+
+                            } else {
+                                // some thing is wrong and have to be dealt
+                                callback(err, false);
+                            }
+                        });
+                    }
+
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, false);
+                }
+            });
+        }
     };
 
     var activityListUpdateParent = function (request, callback) {

@@ -2,7 +2,7 @@
  * author: Sri Sai Venkatesh
  */
 
-function FormConfigService(db, util) {
+function FormConfigService(db, util, activityCommonService) {
 
   this.getOrganizationalLevelForms = function (request, callback) {
         var paramsArr = new Array();
@@ -183,7 +183,7 @@ function FormConfigService(db, util) {
         }
     };
 
-    //Added by V Nani Kalyan
+    //Added by V Nani Kalyan for BETA
     this.getRegisterForms = function (request, callback) {
         var paramsArr = new Array();
         var queryString = '';
@@ -242,7 +242,7 @@ function FormConfigService(db, util) {
                 if (err === false) {
                     if (data.length > 0) {
                         //console.log(data);
-                        formatFromsListing(data, function (err, finalData) {
+               activityCommonService.formatFormDataCollection(data, function (err, finalData) {
                             if (err === false) {
                                 callback(false, {data: finalData}, 200);
                             }

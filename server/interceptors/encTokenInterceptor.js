@@ -26,17 +26,17 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                      */
                     case '/0.1/asset/passcode/alter':
                         req.body['module'] = 'device';
-                        global.logger.write('request', '', req.body);
+                        global.logger.write('request', '', {}, req.body);
                         next();
                         break;
                     case '/0.1/asset/passcode/check':
                         req.body['module'] = 'device';
-                        global.logger.write('request', '', req.body);
+                        global.logger.write('request', '', {}, req.body);
                         next();
                         break;
                     case '/0.1/asset/link/set':
                         req.body['module'] = 'asset';
-                        global.logger.write('request', '', req.body);
+                        global.logger.write('request', '', {}, req.body);
                         next();
                         break;
                     default:
@@ -50,22 +50,21 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                             }
                         }
                         console.log('Module : ' + req.body['module'])
-                        //console.log(req.body);
                         cacheWrapper.getTokenAuth(req.body.asset_id, function (err, encToken) {
                             if (err) {
                                 console.log("redis token Checking error:");
-                                global.logger.write('appError', 'Redis token Checking error - ' + err, req.body);
+                                global.logger.write('appError', 'Redis token Checking error', err, req.body);
                                 res.send(responseWrapper.getResponse(null, {}, -7998, req.body));
                                 return;
                             } else {
                                 console.log(encToken);
                                 if (encToken === req.body.asset_token_auth) {
                                     console.log("successfully redis encToken checking is done");
-                                    global.logger.write('debug', 'successfully redis encToken checking is done', req.body);
+                                    global.logger.write('debug', 'successfully redis encToken checking is done', {},req.body);
                                     next();
                                 } else {
                                     console.log('redis encToken checking failed');
-                                    global.logger.write('serverError', 'Redis encToken checking failed', req.body);
+                                    global.logger.write('serverError', 'Redis encToken checking failed', {}, req.body);
                                     res.send(responseWrapper.getResponse(null, {}, -3204, req.body));
                                     return;
                                 }

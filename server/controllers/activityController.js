@@ -24,7 +24,7 @@ function ActivityController(objCollection) {
             deviceOsId = Number(req.body.device_os_id);
 
         var proceedAddActivity = function () {
-            global.logger.write('debug','came into proceed add activity ',req.body);
+            global.logger.write('debug','came into proceed add activity ',{},req.body);
             if (util.hasValidGenericId(req.body, 'activity_type_category_id')) {
                 if (util.hasValidGenericId(req.body, 'activity_type_id')) {
                     var activityTypeCategoryId = Number(req.body.activity_type_category_id);
@@ -77,7 +77,7 @@ function ActivityController(objCollection) {
                             cacheWrapper.getFormTransactionId(function (err, formTransactionId) {
                                 if (err) {
                                     console.log(err);
-                                    global.logger.write('serverError',err,req.body);
+                                    global.logger.write('serverError','',err,req.body);
                                     res.send(responseWrapper.getResponse(false, {activity_id: 0}, -7998,req.body));
                                     return;
                                 } else {
@@ -94,7 +94,7 @@ function ActivityController(objCollection) {
                             break;
                         default:
                             //console.log('generating activity id via default condition');
-                            global.logger.write('debug','generating activity id via default condition',req.body);
+                            global.logger.write('debug','generating activity id via default condition',{},req.body);
                             addActivity(req.body, function (err, activityId) {
                                 if (err === false) {
                                     res.send(responseWrapper.getResponse(false, {activity_id: activityId}, 200, req.body));
@@ -132,7 +132,7 @@ function ActivityController(objCollection) {
                 } else {
                     if (status) {     // proceed
                         //console.log("calling proceedAddActivity");
-                        global.logger.write('debug','calling proceedAddActivity',req.body);
+                        global.logger.write('debug','calling proceedAddActivity',{},req.body);
                         proceedAddActivity();
                     } else {  // get the activity id using message unique id and send as response
                         cacheWrapper.getMessageUniqueIdLookup(req.body.message_unique_id, function (err, activityId) {
@@ -157,7 +157,7 @@ function ActivityController(objCollection) {
         cacheWrapper.getActivityId(function (err, activityId) {
             if (err) {
                 console.log(err);
-                global.logger.write('debug',err,req);
+                global.logger.write('debug','',err,req);
                 callback(true, 0);
                 return;
             } else {
@@ -171,7 +171,7 @@ function ActivityController(objCollection) {
                 queueWrapper.raiseActivityEvent(event, activityId, (err, resp)=>{
                         if(err) {
                             //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                            global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent : " + resp,req);
+                            global.logger.write('serverError','Error in queueWrapper raiseActivityEvent',resp,req);
                         } else {
                             if (req.hasOwnProperty('device_os_id')) {
                                 if (Number(req.device_os_id) !== 5) {
@@ -179,10 +179,10 @@ function ActivityController(objCollection) {
                                     cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                         if (err) {
                                             //console.log("error in setting in asset parity");
-                                            global.logger.write('serverError',"error in setting in asset parity : " + err,req);
+                                            global.logger.write('serverError','error in setting in asset parity',err,req);
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('debug',"asset parity is set successfully",req);
+                                            global.logger.write('debug',"asset parity is set successfully",{},req);
 
                                     });
                                 }
@@ -191,7 +191,7 @@ function ActivityController(objCollection) {
                 });
                 
                 console.log("new activityId is : " + activityId);
-                global.logger.write('debug',"new activityId is : " + activityId,req);
+                global.logger.write('debug',"new activityId is :" + activityId,{},req);
                 callback(false, activityId);
             }
 
@@ -218,7 +218,7 @@ function ActivityController(objCollection) {
             queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp)=>{
                         if(err) {
                             //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                            global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent : " + err,req.body);
+                            global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req.body);
                         } else {
                             if (req.hasOwnProperty('device_os_id')) {
                                 if (Number(req.device_os_id) !== 5) {
@@ -226,10 +226,10 @@ function ActivityController(objCollection) {
                                     cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                         if (err) {
                                             //console.log("error in setting in asset parity");
-                                            global.logger.write('serverError',"error in setting in asset parity : " + err,req.body);
+                                            global.logger.write('serverError',"error in setting in asset parity",err,req.body);
                                         } else
                                             //console.log("asset parity is set successfully")
-                                        global.logger.write('debug',"asset parity is set successfully",req.body);
+                                        global.logger.write('debug',"asset parity is set successfully",{},req.body);
 
                                     });
                                 }

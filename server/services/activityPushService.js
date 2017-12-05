@@ -183,13 +183,13 @@ function ActivityPushService() {
                         objectCollection.forEachAsync(pushReceivers, function (next, rowData) {
                             objectCollection.cacheWrapper.getAssetMap(rowData.assetId, function (err, assetMap) {
                                 //console.log(rowData.assetId, ' is asset for which we are about to send push');
-                                global.logger.write('debug', rowData.assetId + ' is asset for which we are about to send push', request)
+                                global.logger.write('debug', rowData.assetId + ' is asset for which we are about to send push',{},request)
                                 if (Object.keys(assetMap).length > 0) {
                                     getAssetBadgeCount(request, objectCollection, assetMap.asset_id, assetMap.organization_id, function (err, badgeCount) {
                                         //console.log(badgeCount, ' is badge count obtained from db');
                                         //console.log(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn);
-                                        global.logger.write('debug', badgeCount + ' is badge count obtained from db', request)
-                                        global.logger.write('debug', pushStringObj + objectCollection.util.replaceOne(badgeCount) + assetMap.asset_push_arn, request)
+                                        global.logger.write('debug', badgeCount + ' is badge count obtained from db', {},request)
+                                        global.logger.write('debug', pushStringObj + objectCollection.util.replaceOne(badgeCount) + assetMap.asset_push_arn, {},request)
                                         objectCollection.sns.publish(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn);
                                     }.bind(this));
                                 }
@@ -200,7 +200,7 @@ function ActivityPushService() {
                         });
                     } else {
                         //console.log('push string is retrived as an empty object');
-                        global.logger.write('debug','push string is retrived as an empty object', request)
+                        global.logger.write('debug','push string is retrived as an empty object', {},request)
                         callback(false, true);
                     }
                 }.bind(this));

@@ -349,7 +349,7 @@ function AssetService(objectCollection) {
                                 if (error)
                                     //console.log(error);
                                     //console.log(data);
-                                    global.logger.write('trace', 'Data: ' + data + 'Error - ' + error, request)
+                                    global.logger.write('trace', data, error, request)
                             });
                             break;
                         case 2: // bulk sms                            
@@ -357,7 +357,7 @@ function AssetService(objectCollection) {
                                 if (error)
                                     //console.log(error);
                                     //console.log(data);
-                                    global.logger.write('trace', 'Data: ' + data + 'Error - ' + error, request)
+                                    global.logger.write('trace', data, error, request)
                             });
                             break;
                         case 3:// sinfini                                                        
@@ -365,7 +365,7 @@ function AssetService(objectCollection) {
                                 if (error)
                                     //console.log(error);
                                     //console.log(data);
-                                    global.logger.write('trace', 'Data: ' + data + 'Error - ' + error, request)
+                                    global.logger.write('trace',data,error, request)
                             });
                             break;
                     }
@@ -379,7 +379,7 @@ function AssetService(objectCollection) {
                     if (error)
                         //console.log(error);
                         //console.log(data);
-                        global.logger.write('trace', 'Data: ' + data + 'Error - ' + error, request)
+                        global.logger.write('trace',data,error, request)
                 })
                 break;
             case 3: //email
@@ -478,14 +478,14 @@ function AssetService(objectCollection) {
             sns.createPlatformEndPoint(Number(request.device_os_id), request.asset_token_push, function (err, endPointArn) {
                 if (!err) {
                     //console.log('success in creating platform end point');
-                    global.logger.write('debug', 'success in creating platform end point', request)
+                    global.logger.write('debug', 'success in creating platform end point', {},request)
                     request.asset_push_arn = endPointArn;
                     proceedLinking(function (err, response, status) {
                         callback(err, response, status);
                     });
                 } else {
                     //console.log('problem in creating platform end point');
-                    global.logger.write('serverError', 'problem in creating platform end point - ' + err, request)
+                    global.logger.write('serverError', 'problem in creating platform end point',err, request)
                     callback(err, {}, -3108);
                 }
             });
