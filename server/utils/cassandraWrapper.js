@@ -3,7 +3,7 @@
  */
 var cassandra = require('cassandra-driver');
 var uuid = require('uuid');
-//var logDataConfig = require('/var/www/html/desker/NODEJS/desker_api_0.1/server/utils/logDataConfig');
+var util = require('./util');
 
 function CassandraWrapper(cassandraCredentialsDev, cassandraCredentialsProd, util) {
 
@@ -61,9 +61,9 @@ function CassandraWrapper(cassandraCredentialsDev, cassandraCredentialsProd, uti
                   activityTransactionInsert(0, messageCollection, logDate, logTimestamp, function () {});
                   break;
           default:
-                  console.log('No Such Module exists : \n' + messageCollection.request + '\n\n')
+                  console.log('No Such Module exists : \n' + messageCollection.request + '\n\n');
         }
-        }
+        };
 
     deviceTransactionInsert = function(messageCollection, logDate, logTimestamp, callback) {
       var transactionId = uuid.v1();
@@ -99,7 +99,7 @@ function CassandraWrapper(cassandraCredentialsDev, cassandraCredentialsProd, uti
       query += (messageCollection.object.hasOwnProperty("asset_phone_country_code")) ?  "'"+messageCollection.object.asset_phone_country_code+"'" : "''"; query += ",";
       query += (messageCollection.object.hasOwnProperty("asset_phone_number")) ?  "'"+messageCollection.object.asset_phone_number+"'" : "''"; query += ",";
       query += "'" + logDate + "'"; query += ",";
-      query += (messageCollection.object.hasOwnProperty("service_id")) ?  messageCollection.object.service_id : 0; query += ",";
+      query += (messageCollection.object.hasOwnProperty("service_id")) ?  util.replaceDefaultNumber(messageCollection.object.service_id) : 0; query += ",";
       query += (messageCollection.object.hasOwnProperty("bundle_transaction_id")) ?  messageCollection.object.bundle_transaction_id : "''"; query += ",";
       query += transactionId; query += ",";
       query += (messageCollection.object.hasOwnProperty("activity_id")) ?  messageCollection.object.activity_id : 0; query += ",";
@@ -113,7 +113,7 @@ function CassandraWrapper(cassandraCredentialsDev, cassandraCredentialsProd, uti
       switch (logLevelId) {
             case 1: // request
               console.log('In case 1');
-              query += (messageCollection.hasOwnProperty("message")) ?  "'" +messageCollection.message+"'" : "''"; query += ",";
+              query += (messageCollection.hasOwnProperty("message")) ?  "$$" +messageCollection.message+"$$" : "''"; query += ",";
               query += "'',";                                          //log_request_data
               query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
               query += "'',";                                         //response code
@@ -125,96 +125,96 @@ function CassandraWrapper(cassandraCredentialsDev, cassandraCredentialsProd, uti
                 break;
             case 2: // response
               console.log('In case 2');
-              query += (messageCollection.hasOwnProperty("message")) ?  "'" +messageCollection.message+"'" : "''"; query += ",";
+              query += (messageCollection.hasOwnProperty("message")) ?  "$$" +messageCollection.message+"$$" : "''"; query += ",";
               query += "'',";                                          //log_request_data
               query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
               query += "'',";                                         //response code
               query += "'',";                                          //response collection
-              query += "false,"                                        //response Status
+              query += "false,";                                        //response Status
               query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
               query += "0,";                                           //turnaround time
               query += "'',";                                          //stack trace
                 break;
             case 3: //debug
-              console.log('In case 3')
-              query += (messageCollection.hasOwnProperty("message")) ?  "'" +messageCollection.message+"'" : "''"; query += ",";
+              console.log('In case 3');
+              query += (messageCollection.hasOwnProperty("message")) ?  "$$" +messageCollection.message+"$$" : "''"; query += ",";
               query += "'',";                                          //log_request_data
               query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
               query += "'',";                                         //response code
               query += "'',";                                          //response collection
-              query += "false,"                                        //response Status
+              query += "false,";                                       //response Status
               query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
               query += "0,";                                           //turnaround time
               query += "'',";                                          //stack trace
                 break;
             case 4: // warning
               console.log('In case 4')
-              query += (messageCollection.hasOwnProperty("message")) ?  "'" +messageCollection.message+"'" : "''"; query += ",";
+              query += (messageCollection.hasOwnProperty("message")) ?  "$$" +messageCollection.message+"$$" : "''"; query += ",";
               query += "'',";                                          //log_request_data
               query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
               query += "'',";                                         //response code
               query += "'',";                                          //response collection
-              query += "false,"                                        //response Status
+              query += "false,";                                        //response Status
               query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
               query += "0,";                                           //turnaround time
               query += "'',";                                          //stack trace
                 break;
             case 5: // trace
-              console.log('In case 5')
-              query += (messageCollection.hasOwnProperty("message")) ?  "'" +messageCollection.message+"'" : "''"; query += ",";
+              console.log('In case 5');
+              query += (messageCollection.hasOwnProperty("message")) ?  "$$" +messageCollection.message+"$$" : "''"; query += ",";
               query += "'',";                                          //log_request_data
               query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
               query += "'',";                                         //response code
               query += "'',";                                          //response collection
-              query += "false,"                                        //response Status
+              query += "false,";                                        //response Status
               query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
               query += "0,";                                           //turnaround time
               query += "'',";                                          //stack trace
                 break;
             case 6: //app error
-              console.log('In case 6')
-              query += (messageCollection.hasOwnProperty("message")) ?  "'" +messageCollection.message+"'" : "''"; query += ",";
+              console.log('In case 6');
+              query += (messageCollection.hasOwnProperty("message")) ?  "$$" +messageCollection.message+"$$" : "''"; query += ",";
               query += "'',";                                          //log_request_data
               query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
               query += "'',";                                         //response code
               query += "'',";                                          //response collection
-              query += "false,"                                        //response Status
+              query += "false,";                                        //response Status
               query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
               query += "0,";                                           //turnaround time
               query += "'',";                                          //stack trace
                 break;
             case 7: //server error
-              console.log('In case 7')
-              query += (messageCollection.hasOwnProperty("message")) ?  "'" +messageCollection.message+"'" : "''"; query += ",";
+              console.log('In case 7');
+              query += (messageCollection.hasOwnProperty("message")) ?  "$$" +messageCollection.message+"$$" : "''"; query += ",";
               query += "'',";                                          //log_request_data
               query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
               query += "'',";                                         //response code
               query += "'',";                                          //response collection
-              query += "false,"                                        //response Status
+              query += "false,";                                        //response Status
               query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
               query += "0,";                                           //turnaround time
               query += "'',";                                          //stack trace
                 break;
             case 8: //fatal
-              console.log('In case 8')
-              query += (messageCollection.hasOwnProperty("message")) ?  "'" +messageCollection.message+"'" : "''"; query += ",";
+              console.log('In case 8');
+              query += (messageCollection.hasOwnProperty("message")) ?  "$$" +messageCollection.message+"$$" : "''"; query += ",";
               query += "'',";                                          //log_request_data
               query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
               query += "'',";                                         //response code
               query += "'',";                                          //response collection
-              query += "false,"                                        //response Status
+              query += "false,";                                        //response Status
               query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
               query += "0,";                                           //turnaround time
               query += "'',";                                          //stack trace
                 break;
             default:
-              console.log('In Default case')
-              query += (messageCollection.hasOwnProperty("message")) ?  "'" +messageCollection.message+"'" : "''"; query += ",";
+              console.log('In Default case');
+              query += (messageCollection.hasOwnProperty("message")) ?  "$$" +messageCollection.message+"$$" : "''"; query += ",";
               query += "'',";                                          //log_request_data
               query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
               query += "'vnk',";                                         //response code
               query += "'',";                                          //response collection
-              query += "false,"                                        //response Status
+              query += "false,";                                        //response Status
               query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
               query += "0,";                                         //turnaround time
               query += "'',";                                          //stack trace
@@ -228,8 +228,6 @@ function CassandraWrapper(cassandraCredentialsDev, cassandraCredentialsProd, uti
       query += (sourceMap[messageCollection.object.device_os_id]) ? "'" + sourceMap[messageCollection.object.device_os_id] + "'": "'NA'";
       query += ");";
 
-      //console.log(query);
-
         executeCassandraQuery(messageCollection.environment, query, function (err, data) {
             if (!err) {
                 callback(false, true);
@@ -239,7 +237,7 @@ function CassandraWrapper(cassandraCredentialsDev, cassandraCredentialsProd, uti
                 return;
             }
         });
-    }
+    };
 
     activityTransactionInsert = function(transactionType, messageCollection, logDate, logTimestamp, callback) {
 
@@ -275,7 +273,7 @@ function CassandraWrapper(cassandraCredentialsDev, cassandraCredentialsProd, uti
                  "srcnm) VALUES(";
       query += (messageCollection.object.hasOwnProperty("activity_id")) ?  messageCollection.object.activity_id : 0; query += ",";
       query += "'" + logDate + "'"; query += ",";
-      query += (messageCollection.object.hasOwnProperty("service_id")) ?  messageCollection.object.service_id : 0; query += ",";
+      query += (messageCollection.object.hasOwnProperty("service_id")) ? util.replaceDefaultNumber(messageCollection.object.service_id) : 0; query += ",";
       query += (messageCollection.object.hasOwnProperty("bundle_transaction_id")) ?  messageCollection.object.bundle_transaction_id : "''"; query += ",";
       query += transactionId; query += ",";
       query += (messageCollection.object.hasOwnProperty("activity_title")) ?  "'" + messageCollection.object.activity_title + "'"  : "''"; query += ",";
@@ -285,7 +283,7 @@ function CassandraWrapper(cassandraCredentialsDev, cassandraCredentialsProd, uti
       query += (messageCollection.object.hasOwnProperty("asset_phone_number")) ?  messageCollection.object.asset_phone_number : "''"; query += ",";
       query += (logLevel[messageCollection.level]) ? logLevel[messageCollection.level] : 0; query += ",";
       query += (messageCollection.hasOwnProperty("level")) ? "'"+messageCollection.level+"'" : "''"; query += ",";
-      query += (messageCollection.object.hasOwnProperty("message")) ?  "'" +messageCollection.object.message+"'" : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("message")) ?  "$$" +messageCollection.object.message+"$$" : "''"; query += ",";
       query += (messageCollection.object.hasOwnProperty("request_data")) ?  messageCollection.object.request : "''"; query += ",";
       query += (messageCollection.object.hasOwnProperty("request_timestamp")) ?  messageCollection.object.request_time : "''"; query += ",";
       query += (messageCollection.object.hasOwnProperty("response_code")) ?  messageCollection.object.response_code : "''"; query += ",";
@@ -300,8 +298,6 @@ function CassandraWrapper(cassandraCredentialsDev, cassandraCredentialsProd, uti
       query += (messageCollection.object.hasOwnProperty("device_os_id")) ?  messageCollection.object.device_os_id : 0; query += ",";
       query += (sourceMap[messageCollection.object.device_os_id]) ? "'" + sourceMap[messageCollection.object.device_os_id]+"'" : "'NA'";
       query += ");";
-
-      //console.log(query);
 
       executeCassandraQuery(messageCollection.environment, query, function (err, data) {
           if (!err) {
@@ -344,7 +340,7 @@ function CassandraWrapper(cassandraCredentialsDev, cassandraCredentialsProd, uti
                  "srcnm) VALUES(";
       assetQuery += (messageCollection.object.hasOwnProperty("asset_id")) ?  messageCollection.object.asset_id : 0; assetQuery += ",";
       assetQuery += "'" + logDate + "'"; assetQuery += ",";
-      assetQuery += (messageCollection.object.hasOwnProperty("service_id")) ?  messageCollection.object.service_id : 0; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("service_id")) ?  util.replaceDefaultNumber(messageCollection.object.service_id) : 0; assetQuery += ",";
       assetQuery += (messageCollection.object.hasOwnProperty("bundle_transaction_id")) ?  messageCollection.object.bundle_transaction_id : "''"; assetQuery += ",";
       assetQuery += transactionId; assetQuery += ",";
       assetQuery += (messageCollection.object.hasOwnProperty("activity_id")) ?  messageCollection.object.activity_id : 0; assetQuery += ",";
@@ -354,7 +350,7 @@ function CassandraWrapper(cassandraCredentialsDev, cassandraCredentialsProd, uti
       assetQuery += (messageCollection.object.hasOwnProperty("asset_phone_number")) ?  messageCollection.object.asset_phone_number : "''"; assetQuery += ",";
       assetQuery += (logLevel[messageCollection.level]) ? logLevel[messageCollection.level] : 0; assetQuery += ",";
       assetQuery += (messageCollection.hasOwnProperty("level")) ?  "'"+messageCollection.level+"'" : "''"; assetQuery += ",";
-      assetQuery += (messageCollection.hasOwnProperty("message")) ?  "'" + messageCollection.message + "'" : "''"; assetQuery += ",";
+      assetQuery += (messageCollection.hasOwnProperty("message")) ?  "$$" + messageCollection.message + "$$" : "''"; assetQuery += ",";
       assetQuery += (messageCollection.object.hasOwnProperty("request_data")) ?  messageCollection.object.request : "''"; assetQuery += ",";
       assetQuery += (messageCollection.object.hasOwnProperty("request_timestamp")) ?  messageCollection.object.request_time : "''"; assetQuery += ",";
       assetQuery += (messageCollection.object.hasOwnProperty("response_code")) ?  messageCollection.object.response_code : "''"; assetQuery += ",";
@@ -367,10 +363,8 @@ function CassandraWrapper(cassandraCredentialsDev, cassandraCredentialsProd, uti
       assetQuery += (messageCollection.object.hasOwnProperty("service_name")) ?  messageCollection.object.service_name : "''"; assetQuery += ",";
       assetQuery += (messageCollection.object.hasOwnProperty("url")) ?  "'" +messageCollection.object.url + "'" : "''"; assetQuery += ",";
       assetQuery += (messageCollection.object.hasOwnProperty("device_os_id")) ?  messageCollection.object.device_os_id : 0; assetQuery += ",";
-      assetQuery += (sourceMap[messageCollection.object.device_os_id]) ? "'" + sourceMap[messageCollection.object.device_os_id]+"'" : "'NA'"
+      assetQuery += (sourceMap[messageCollection.object.device_os_id]) ? "'" + sourceMap[messageCollection.object.device_os_id]+"'" : "'NA'";
       assetQuery += ");";
-
-      //console.log(query);
 
         executeCassandraQuery(messageCollection.environment, assetQuery, function (err, data) {
           if (!err) {
@@ -381,15 +375,15 @@ function CassandraWrapper(cassandraCredentialsDev, cassandraCredentialsProd, uti
                 return;
             }
         });
- }
+ };
 
     var executeCassandraQuery = function (executeIn, query, callback) {
-        if(executeIn === global.mode) {
-            console.log('Executing in Dev')
+       if(executeIn === global.mode) {
+            //console.log('Executing in Dev')
             clientDev.execute(query, function (err, result) {
             if (!err) {
-                //console.log("query success | " + query);
-                console.log(' ');
+                //console.log(executeIn + " - query success | " + query);
+                console.log('Success');
                 callback(false, true);
                 return;
             } else {
@@ -401,11 +395,11 @@ function CassandraWrapper(cassandraCredentialsDev, cassandraCredentialsProd, uti
             }
         });
         } else if (executeIn === global.mode) {
-          console.log('Executing in Prod')
+          //console.log('Executing in Prod')
             clientProd.execute(query, function (err, result) {
             if (!err) {
-                //console.log("query success | " + query);
-                console.log(' ');
+                //console.log(executeIn + " - query success | " + query);
+                console.log('Success');
                 callback(false, true);
                 return;
             } else {
@@ -416,6 +410,8 @@ function CassandraWrapper(cassandraCredentialsDev, cassandraCredentialsProd, uti
                 return;
             }
         });
+        } else {
+            console.log('In else Part');
         }
 
     };
