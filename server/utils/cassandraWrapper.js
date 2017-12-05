@@ -1,71 +1,73 @@
 /*
- * author: V Nani Kalyan
+ * author: Sri Sai Venkatesh
  */
 var cassandra = require('cassandra-driver');
 var uuid = require('uuid');
+//var logDataConfig = require('/var/www/html/desker/NODEJS/desker_api_0.1/server/utils/logDataConfig');
 
-var logLevel = {
-    request: 1,
-    response: 2,
-    debug: 3,
-    warning: 4,
-    trace: 5,
-    appError: 6,
-    serverError: 7,
-    fatal: 8
-};
+function CassandraWrapper(cassandraCredentialsDev, cassandraCredentialsProd, util) {
 
-var sourceMap = {
-    0: "NA",
-    1: "android",
-    2: "IOS",
-    3: "windows",
-    4: "web",
-    5: "portal",
-    6: "reporting server"
-};
+    var logLevel = {
+        request: 1,
+        response: 2,
+        debug: 3,
+        warning: 4,
+        trace: 5,
+        appError: 6,
+        serverError: 7,
+        fatal: 8
+     };
 
-function CassandraWrapper(cassandraCredentials, util) {
-    //console.log('cassandraCredentials : ' + JSON.stringify(cassandraCredentialsProd))
+    var sourceMap = {
+        0: "NA",
+        1: "android",
+        2: "IOS",
+        3: "windows",
+        4: "web",
+        5: "portal",
+        6: "reporting server"
+     };
 
 
-    var authProvider = new cassandra.auth.PlainTextAuthProvider(cassandraCredentials.user, cassandraCredentials.pwd);
-    var client = new cassandra.Client({contactPoints: [cassandraCredentials.ip],
-                                       keyspace: cassandraCredentials.keyspace
-                                      });
+
+    var authProviderDev = new cassandra.auth.PlainTextAuthProvider(cassandraCredentialsDev.user,
+                                                                cassandraCredentialsDev.pwd);
+    var clientDev = new cassandra.Client({contactPoints: [cassandraCredentialsDev.ip],
+                                       keyspace: cassandraCredentialsDev.keyspace,
+                                       authProvider: authProviderDev});
+
+    var authProviderProd = new cassandra.auth.PlainTextAuthProvider(cassandraCredentialsProd.user,
+                                                                cassandraCredentialsProd.pwd);
+    var clientProd = new cassandra.Client({contactPoints: [cassandraCredentialsProd.ip],
+                                       keyspace: cassandraCredentialsProd.keyspace,
+                                       authProvider: authProviderProd});
 
     this.logData = function (messageCollection) {
         var logTimestamp = util.getCurrentUTCTime();
-        var x =new Date();
-        var month = x.getMonth() + 1;
-        var logDate = x.getFullYear() + '-' + x.getMonth() + '-' + x.getDate();
-        //console.log('logDate : ' + logDate)
+        var logDate = util.getCurrentDate();
 
-        switch(messageCollection.request.module) {
+        switch(messageCollection.object.module) {
 
           case 'device':
-                  console.log('Module : Device')
+                  console.log('Module : Device');
                   deviceTransactionInsert(messageCollection, logDate, logTimestamp, function () {});
                   break;
           case 'activity':
-                  console.log('Module : Activity')
-                  activityTransactionInsert(messageCollection, logDate, logTimestamp, function () {});
-                  assetTransactionInsert(messageCollection, logDate, logTimestamp, function () {});
+                  console.log('Module : Activity');
+                  activityTransactionInsert(1, messageCollection, logDate, logTimestamp, function () {});
                   break;
           case 'asset':
-                  console.log('Module : Asset')
-                  assetTransactionInsert(messageCollection, logDate, logTimestamp, function () {});
+                  console.log('Module : Asset');
+                  activityTransactionInsert(0, messageCollection, logDate, logTimestamp, function () {});
                   break;
           default:
                   console.log('No Such Module exists : \n' + messageCollection.request + '\n\n')
         }
-    }
+        }
 
     deviceTransactionInsert = function(messageCollection, logDate, logTimestamp, callback) {
       var transactionId = uuid.v1();
-      var log_level = (messageCollection.level)? "'" + messageCollection.level + "'" : "''";
-      var loglevelid = (logLevel[messageCollection.level]) ? logLevel[messageCollection.level] : 0;
-      var sourcename = (sourceMap[messageCollection.request.device_os_id]) ? sourceMap[messageCollection.request.device_os_id] : "'NA'";
+      var logLevelId = (logLevel[messageCollection.level]) ? logLevel[messageCollection.level] : 0;
 
       var query = "INSERT INTO transactionsbydevice";
       query += " (devcntrycd, " +         //asset_phone_country_code
@@ -94,23 +96,35 @@ function CassandraWrapper(cassandraCredentials, util) {
                  "url, " +
                  "srcid, " +
                  "srcnm) VALUES(";
-      query += (messageCollection.request.hasOwnProperty("asset_phone_country_code")) ?  messageCollection.request.asset_phone_country_code : "''"; query += ",";
-      query += (messageCollection.request.hasOwnProperty("asset_phone_number")) ?  messageCollection.request.asset_phone_number : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("asset_phone_country_code")) ?  "'"+messageCollection.object.asset_phone_country_code+"'" : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("asset_phone_number")) ?  "'"+messageCollection.object.asset_phone_number+"'" : "''"; query += ",";
       query += "'" + logDate + "'"; query += ",";
-      query += (messageCollection.request.hasOwnProperty("service_id")) ?  messageCollection.request.service_id : 0; query += ",";
-      query += (messageCollection.request.hasOwnProperty("bundle_transaction_id")) ?  messageCollection.request.bundle_transaction_id : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("service_id")) ?  messageCollection.object.service_id : 0; query += ",";
+      query += (messageCollection.object.hasOwnProperty("bundle_transaction_id")) ?  messageCollection.object.bundle_transaction_id : "''"; query += ",";
       query += transactionId; query += ",";
-      query += (messageCollection.request.hasOwnProperty("activity_id")) ?  messageCollection.request.activity_id : 99666; query += ",";
-      query += (messageCollection.request.hasOwnProperty("activity_title")) ?  "'" + messageCollection.request.activity_title + "'" : "''"; query += ",";
-      query += (messageCollection.request.hasOwnProperty("asset_id")) ?  messageCollection.request.asset_id : 0; query += ",";
-      query += (messageCollection.request.hasOwnProperty("asset_name")) ?  messageCollection.request.asset_name : "''"; query += ",";
-      query += loglevelid; query += ",";
-      query += log_level; query += ",";
+      query += (messageCollection.object.hasOwnProperty("activity_id")) ?  messageCollection.object.activity_id : 0; query += ",";
+      query += (messageCollection.object.hasOwnProperty("activity_title")) ?  "'" + messageCollection.object.activity_title + "'" : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("asset_id")) ?  messageCollection.object.asset_id : 0; query += ",";
+      query += (messageCollection.object.hasOwnProperty("asset_name")) ?  messageCollection.object.asset_name : "''"; query += ",";
+      query += logLevelId; query += ",";
+      query += (messageCollection.level)? "'" + messageCollection.level + "'" : "''"; query += ",";
 
 
-      switch (loglevelid) {
-          case 1: // request
-              console.log('In case 1')
+      switch (logLevelId) {
+            case 1: // request
+              console.log('In case 1');
+              query += (messageCollection.hasOwnProperty("message")) ?  "'" +messageCollection.message+"'" : "''"; query += ",";
+              query += "'',";                                          //log_request_data
+              query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
+              query += "'',";                                         //response code
+              query += "'',";                                          //response collection
+              query += "false,";                                        //response Status
+              query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
+              query += "0,";                                           //turnaround time
+              query += "'',";                                          //stack trace
+                break;
+            case 2: // response
+              console.log('In case 2');
               query += (messageCollection.hasOwnProperty("message")) ?  "'" +messageCollection.message+"'" : "''"; query += ",";
               query += "'',";                                          //log_request_data
               query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
@@ -120,20 +134,8 @@ function CassandraWrapper(cassandraCredentials, util) {
               query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
               query += "0,";                                           //turnaround time
               query += "'',";                                          //stack trace
-              break;
-          case 2: // response
-              console.log('In case 2')
-              query += (messageCollection.hasOwnProperty("message")) ?  "'" +messageCollection.message+"'" : "''"; query += ",";
-              query += "'',";                                          //log_request_data
-              query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
-              query += "'',";                                         //response code
-              query += "'',";                                          //response collection
-              query += "false,"                                        //response Status
-              query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
-              query += "0,";                                           //turnaround time
-              query += "'',";                                          //stack trace
-              break;
-          case 3: //debug
+                break;
+            case 3: //debug
               console.log('In case 3')
               query += (messageCollection.hasOwnProperty("message")) ?  "'" +messageCollection.message+"'" : "''"; query += ",";
               query += "'',";                                          //log_request_data
@@ -144,8 +146,8 @@ function CassandraWrapper(cassandraCredentials, util) {
               query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
               query += "0,";                                           //turnaround time
               query += "'',";                                          //stack trace
-              break;
-          case 4: // warning
+                break;
+            case 4: // warning
               console.log('In case 4')
               query += (messageCollection.hasOwnProperty("message")) ?  "'" +messageCollection.message+"'" : "''"; query += ",";
               query += "'',";                                          //log_request_data
@@ -156,8 +158,8 @@ function CassandraWrapper(cassandraCredentials, util) {
               query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
               query += "0,";                                           //turnaround time
               query += "'',";                                          //stack trace
-              break;
-          case 5: // trace
+                break;
+            case 5: // trace
               console.log('In case 5')
               query += (messageCollection.hasOwnProperty("message")) ?  "'" +messageCollection.message+"'" : "''"; query += ",";
               query += "'',";                                          //log_request_data
@@ -168,8 +170,8 @@ function CassandraWrapper(cassandraCredentials, util) {
               query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
               query += "0,";                                           //turnaround time
               query += "'',";                                          //stack trace
-              break;
-          case 6: //app error
+                break;
+            case 6: //app error
               console.log('In case 6')
               query += (messageCollection.hasOwnProperty("message")) ?  "'" +messageCollection.message+"'" : "''"; query += ",";
               query += "'',";                                          //log_request_data
@@ -180,8 +182,8 @@ function CassandraWrapper(cassandraCredentials, util) {
               query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
               query += "0,";                                           //turnaround time
               query += "'',";                                          //stack trace
-              break;
-          case 7: //server error
+                break;
+            case 7: //server error
               console.log('In case 7')
               query += (messageCollection.hasOwnProperty("message")) ?  "'" +messageCollection.message+"'" : "''"; query += ",";
               query += "'',";                                          //log_request_data
@@ -192,8 +194,8 @@ function CassandraWrapper(cassandraCredentials, util) {
               query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
               query += "0,";                                           //turnaround time
               query += "'',";                                          //stack trace
-              break;
-          case 8: //fatal
+                break;
+            case 8: //fatal
               console.log('In case 8')
               query += (messageCollection.hasOwnProperty("message")) ?  "'" +messageCollection.message+"'" : "''"; query += ",";
               query += "'',";                                          //log_request_data
@@ -204,8 +206,8 @@ function CassandraWrapper(cassandraCredentials, util) {
               query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
               query += "0,";                                           //turnaround time
               query += "'',";                                          //stack trace
-              break;
-          default:
+                break;
+            default:
               console.log('In Default case')
               query += (messageCollection.hasOwnProperty("message")) ?  "'" +messageCollection.message+"'" : "''"; query += ",";
               query += "'',";                                          //log_request_data
@@ -216,38 +218,34 @@ function CassandraWrapper(cassandraCredentials, util) {
               query += "'" + logTimestamp + "',";                      //timestamp generated from bundle transaction
               query += "0,";                                         //turnaround time
               query += "'',";                                          //stack trace
-              break;
-      }
+                break;
+        }
 
       query += "'" + logTimestamp + "'"; query += ",";
-      query += (messageCollection.request.hasOwnProperty("service_name")) ?  messageCollection.request.service_name : "''"; query += ",";
-      query += (messageCollection.request.hasOwnProperty("url")) ?  "'" +messageCollection.request.url + "'" : "''"; query += ",";
-      query += (messageCollection.request.hasOwnProperty("device_os_id")) ?  messageCollection.request.device_os_id : 0; query += ",";
-      query += "'" + sourcename + "'";
+      query += (messageCollection.object.hasOwnProperty("service_name")) ?  messageCollection.object.service_name : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("url")) ?  "'" +messageCollection.object.url + "'" : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("device_os_id")) ?  messageCollection.object.device_os_id : 0; query += ",";
+      query += (sourceMap[messageCollection.object.device_os_id]) ? "'" + sourceMap[messageCollection.object.device_os_id] + "'": "'NA'";
       query += ");";
 
       //console.log(query);
 
-      executeCassandraQuery(query, function (err, data) {
-          if (!err) {
-              callback(false, true);
-              return;
-          } else {
-              callback(true, false);
-              return;
-          }
-      });
+        executeCassandraQuery(messageCollection.environment, query, function (err, data) {
+            if (!err) {
+                callback(false, true);
+                return;
+            } else {
+                callback(true, false);
+                return;
+            }
+        });
     }
 
-    activityTransactionInsert = function(messageCollection, logDate, logTimestamp, callback) {
+    activityTransactionInsert = function(transactionType, messageCollection, logDate, logTimestamp, callback) {
 
       var transactionId = uuid.v1();
-      var log_level = (messageCollection.request.level)? "'" + messageCollection.request.level + "'" : "''";
-      var loglevelid = (logLevel[messageCollection.request.level]) ? logLevel[messageCollection.request.level] : 0;
-      var sourcename = (sourceMap[messageCollection.request.device_os_id]) ? sourceMap[messageCollection.request.device_os_id] : "'NA'";
 
-      //console.log("Message : " + messageCollection.message)
-
+      if(transactionType === 1) {
       var query = "INSERT INTO transactionsbyactivity";
       query += " (actvtyid, " +
                  "date, " +
@@ -275,58 +273,50 @@ function CassandraWrapper(cassandraCredentials, util) {
                  "url, " +
                  "srcid, " +
                  "srcnm) VALUES(";
-      query += (messageCollection.request.hasOwnProperty("activity_id")) ?  messageCollection.request.activity_id : 0; query += ",";
+      query += (messageCollection.object.hasOwnProperty("activity_id")) ?  messageCollection.object.activity_id : 0; query += ",";
       query += "'" + logDate + "'"; query += ",";
-      query += (messageCollection.request.hasOwnProperty("service_id")) ?  messageCollection.request.service_id : 0; query += ",";
-      query += (messageCollection.request.hasOwnProperty("bundle_transaction_id")) ?  messageCollection.request.bundle_transaction_id : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("service_id")) ?  messageCollection.object.service_id : 0; query += ",";
+      query += (messageCollection.object.hasOwnProperty("bundle_transaction_id")) ?  messageCollection.object.bundle_transaction_id : "''"; query += ",";
       query += transactionId; query += ",";
-      query += (messageCollection.request.hasOwnProperty("activity_title")) ?  "'" + messageCollection.request.activity_title + "'"  : "''"; query += ",";
-      query += (messageCollection.request.hasOwnProperty("asset_id")) ?  messageCollection.request.asset_id : 0; query += ",";
-      query += (messageCollection.request.hasOwnProperty("asstNm")) ?  messageCollection.request.asset_name : "''"; query += ",";
-      query += (messageCollection.request.hasOwnProperty("asset_phone_country_code")) ?  messageCollection.request.asset_phone_country_code : "''"; query += ",";
-      query += (messageCollection.request.hasOwnProperty("asset_phone_number")) ?  messageCollection.request.asset_phone_number : "''"; query += ",";
-      query += loglevelid; query += ",";
-      query += (messageCollection.request.hasOwnProperty("level")) ? "'"+messageCollection.request.level+"'" : "''"; query += ",";
-      query += (messageCollection.request.hasOwnProperty("message")) ?  "'" +messageCollection.request.message+"'" : "''"; query += ",";
-      query += (messageCollection.request.hasOwnProperty("req")) ?  messageCollection.request.request : "''"; query += ",";
-      query += (messageCollection.request.hasOwnProperty("reqTime")) ?  messageCollection.request.request_time : "''"; query += ",";
-      query += (messageCollection.request.hasOwnProperty("resCode")) ?  messageCollection.request.response_code : "''"; query += ",";
-      query += (messageCollection.request.hasOwnProperty("res")) ?  messageCollection.request.response : "''"; query += ",";
-      query += (messageCollection.request.hasOwnProperty("resSts")) ?  messageCollection.request.response_status : false; query += ",";
-      query += (messageCollection.request.hasOwnProperty("resTime")) ?  messageCollection.request.response_time : "''"; query += ",";
-      query += (messageCollection.request.hasOwnProperty("resTAT")) ?  messageCollection.request.response_tat : 0; query += ",";
-      query += (messageCollection.request.hasOwnProperty("stkTrc")) ?  messageCollection.request.string_tokenizer : "''"; query += ",";
-      query += (messageCollection.request.hasOwnProperty("crtd")) ?  messageCollection.request.crtd : "''"; query += ",";
-      query += (messageCollection.request.hasOwnProperty("srvcName")) ?  messageCollection.request.service_name : "''"; query += ",";
-      query += (messageCollection.request.hasOwnProperty("url")) ?  "'" +messageCollection.request.url + "'" : "''"; query += ",";
-      query += (messageCollection.request.hasOwnProperty("device_os_id")) ?  messageCollection.request.device_os_id : 0; query += ",";
-      query += "'" + sourcename + "'";
+      query += (messageCollection.object.hasOwnProperty("activity_title")) ?  "'" + messageCollection.object.activity_title + "'"  : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("asset_id")) ?  messageCollection.object.asset_id : 0; query += ",";
+      query += (messageCollection.object.hasOwnProperty("asset_name")) ?  messageCollection.object.asset_name : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("asset_phone_country_code")) ?  messageCollection.object.asset_phone_country_code : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("asset_phone_number")) ?  messageCollection.object.asset_phone_number : "''"; query += ",";
+      query += (logLevel[messageCollection.level]) ? logLevel[messageCollection.level] : 0; query += ",";
+      query += (messageCollection.hasOwnProperty("level")) ? "'"+messageCollection.level+"'" : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("message")) ?  "'" +messageCollection.object.message+"'" : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("request_data")) ?  messageCollection.object.request : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("request_timestamp")) ?  messageCollection.object.request_time : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("response_code")) ?  messageCollection.object.response_code : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("response_data")) ?  messageCollection.object.response : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("response_status")) ?  messageCollection.object.response_status : false; query += ",";
+      query += (messageCollection.object.hasOwnProperty("response_timestamp")) ?  messageCollection.object.response_time : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("response_turnaround")) ?  messageCollection.object.response_tat : 0; query += ",";
+      query += (messageCollection.object.hasOwnProperty("stack_trace")) ?  messageCollection.object.string_tokenizer : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("crtd")) ?  messageCollection.object.crtd : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("service_name")) ?  messageCollection.object.service_name : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("url")) ?  "'" +messageCollection.object.url + "'" : "''"; query += ",";
+      query += (messageCollection.object.hasOwnProperty("device_os_id")) ?  messageCollection.object.device_os_id : 0; query += ",";
+      query += (sourceMap[messageCollection.object.device_os_id]) ? "'" + sourceMap[messageCollection.object.device_os_id]+"'" : "'NA'";
       query += ");";
 
       //console.log(query);
 
-      executeCassandraQuery(query, function (err, data) {
+      executeCassandraQuery(messageCollection.environment, query, function (err, data) {
           if (!err) {
               callback(false, true);
               return;
-          } else {
+        } else {
               callback(true, false);
               return;
-          }
+        }
       });
-    }
+  }
 
-    assetTransactionInsert = function(messageCollection, logDate, logTimestamp, callback) {
 
-      var transactionId = uuid.v1();
-      var log_level = (messageCollection.request.level)? "'" + messageCollection.request.level + "'" : "''";
-      var loglevelid = (logLevel[messageCollection.request.level]) ? logLevel[messageCollection.request.level] : 0;
-      var sourcename = (sourceMap[messageCollection.request.device_os_id]) ? sourceMap[messageCollection.request.device_os_id] : "'NA'";
-
-      //console.log("Message : " + messageCollection.message)
-
-      var query = "INSERT INTO transactionsbyasset";
-      query += " (asstid, " +
+      var assetQuery = "INSERT INTO transactionsbyasset";
+      assetQuery += " (asstid, " +
                  "date, " +
                  "srvcid, " +
                  "bndlid,  " +
@@ -352,49 +342,51 @@ function CassandraWrapper(cassandraCredentials, util) {
                  "url, " +
                  "srcid, " +
                  "srcnm) VALUES(";
-      query += (messageCollection.request.hasOwnProperty("asset_id")) ?  messageCollection.request.asset_id : 0; query += ",";
-      query += "'" + logDate + "'"; query += ",";
-      query += (messageCollection.request.hasOwnProperty("service_id")) ?  messageCollection.request.service_id : 0; query += ",";
-      query += (messageCollection.request.hasOwnProperty("bundle_transaction_id")) ?  messageCollection.request.bundle_transaction_id : "'99666'"; query += ",";
-      query += transactionId; query += ",";
-      query += (messageCollection.request.hasOwnProperty("activity_id")) ?  messageCollection.request.activity_id : 99666; query += ",";
-      query += (messageCollection.request.hasOwnProperty("activity_title")) ?  "'" + messageCollection.request.activity_title + "'" : "''"; query += ",";
-      query += (messageCollection.request.hasOwnProperty("asset_name")) ?  messageCollection.request.asset_name : "''"; query += ",";
-      query += (messageCollection.request.hasOwnProperty("asset_phone_country_code")) ?  messageCollection.request.asset_phone_country_code : "'IND'"; query += ",";
-      query += (messageCollection.request.hasOwnProperty("asset_phone_number")) ?  messageCollection.request.asset_phone_number : "''"; query += ",";
-      query += loglevelid; query += ",";
-      query += (messageCollection.request.hasOwnProperty("level")) ?  "'"+messageCollection.request.level+"'" : "''"; query += ",";
-      query += (messageCollection.request.hasOwnProperty("message")) ?  "'" + messageCollection.request.message + "'" : "''"; query += ",";
-      query += (messageCollection.request.hasOwnProperty("req")) ?  messageCollection.request.request : "''"; query += ",";
-      query += (messageCollection.request.hasOwnProperty("reqTime")) ?  messageCollection.request.request_time : "''"; query += ",";
-      query += (messageCollection.request.hasOwnProperty("resCode")) ?  messageCollection.request.response_code : "''"; query += ",";
-      query += (messageCollection.request.hasOwnProperty("res")) ?  messageCollection.request.response : "''"; query += ",";
-      query += (messageCollection.request.hasOwnProperty("resSts")) ?  messageCollection.request.response_status : false; query += ",";
-      query += (messageCollection.request.hasOwnProperty("resTime")) ?  messageCollection.request.response_time : "''"; query += ",";
-      query += (messageCollection.request.hasOwnProperty("resTAT")) ?  messageCollection.request.response_tat : 0; query += ",";
-      query += (messageCollection.request.hasOwnProperty("stkTrc")) ?  messageCollection.request.string_tokenizer : "''"; query += ",";
-      query += (messageCollection.request.hasOwnProperty("crtd")) ?  messageCollection.request.crtd : "''"; query += ",";
-      query += (messageCollection.request.hasOwnProperty("srvcName")) ?  messageCollection.request.service_name : "''"; query += ",";
-      query += (messageCollection.request.hasOwnProperty("url")) ?  "'" +messageCollection.request.url + "'" : "''"; query += ",";
-      query += (messageCollection.request.hasOwnProperty("device_os_id")) ?  messageCollection.request.device_os_id : 0; query += ",";
-      query += "'" + sourcename + "'";
-      query += ");";
+      assetQuery += (messageCollection.object.hasOwnProperty("asset_id")) ?  messageCollection.object.asset_id : 0; assetQuery += ",";
+      assetQuery += "'" + logDate + "'"; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("service_id")) ?  messageCollection.object.service_id : 0; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("bundle_transaction_id")) ?  messageCollection.object.bundle_transaction_id : "''"; assetQuery += ",";
+      assetQuery += transactionId; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("activity_id")) ?  messageCollection.object.activity_id : 0; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("activity_title")) ?  "'" + messageCollection.object.activity_title + "'" : "''"; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("asset_name")) ?  messageCollection.object.asset_name : "''"; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("asset_phone_country_code")) ?  messageCollection.object.asset_phone_country_code : "''"; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("asset_phone_number")) ?  messageCollection.object.asset_phone_number : "''"; assetQuery += ",";
+      assetQuery += (logLevel[messageCollection.level]) ? logLevel[messageCollection.level] : 0; assetQuery += ",";
+      assetQuery += (messageCollection.hasOwnProperty("level")) ?  "'"+messageCollection.level+"'" : "''"; assetQuery += ",";
+      assetQuery += (messageCollection.hasOwnProperty("message")) ?  "'" + messageCollection.message + "'" : "''"; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("request_data")) ?  messageCollection.object.request : "''"; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("request_timestamp")) ?  messageCollection.object.request_time : "''"; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("response_code")) ?  messageCollection.object.response_code : "''"; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("response_data")) ?  messageCollection.object.response : "''"; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("response_status")) ?  messageCollection.object.response_status : false; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("response_timestamp")) ?  messageCollection.object.response_time : "''"; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("response_turnaround")) ?  messageCollection.object.response_tat : 0; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("stack_trace")) ?  messageCollection.object.string_tokenizer : "''"; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("crtd")) ?  messageCollection.object.crtd : "''"; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("service_name")) ?  messageCollection.object.service_name : "''"; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("url")) ?  "'" +messageCollection.object.url + "'" : "''"; assetQuery += ",";
+      assetQuery += (messageCollection.object.hasOwnProperty("device_os_id")) ?  messageCollection.object.device_os_id : 0; assetQuery += ",";
+      assetQuery += (sourceMap[messageCollection.object.device_os_id]) ? "'" + sourceMap[messageCollection.object.device_os_id]+"'" : "'NA'"
+      assetQuery += ");";
 
       //console.log(query);
 
-      executeCassandraQuery(query, function (err, data) {
+        executeCassandraQuery(messageCollection.environment, assetQuery, function (err, data) {
           if (!err) {
-              callback(false, true);
-              return;
-          } else {
+                callback(false, true);
+                return;
+            } else {
               callback(true, false);
-              return;
-          }
-      });
-    }
+                return;
+            }
+        });
+ }
 
-    var executeCassandraQuery = function (query, callback) {
-        client.execute(query, function (err, result) {
+    var executeCassandraQuery = function (executeIn, query, callback) {
+        if(executeIn === global.mode) {
+            console.log('Executing in Dev')
+            clientDev.execute(query, function (err, result) {
             if (!err) {
                 //console.log("query success | " + query);
                 console.log(' ');
@@ -408,6 +400,24 @@ function CassandraWrapper(cassandraCredentials, util) {
                 return;
             }
         });
+        } else if (executeIn === global.mode) {
+          console.log('Executing in Prod')
+            clientProd.execute(query, function (err, result) {
+            if (!err) {
+                //console.log("query success | " + query);
+                console.log(' ');
+                callback(false, true);
+                return;
+            } else {
+                console.log("query failed | " + query);
+                console.log(err);
+                console.log(' ');
+                callback(true, false);
+                return;
+            }
+        });
+        }
+
     };
 }
 module.exports = CassandraWrapper;
