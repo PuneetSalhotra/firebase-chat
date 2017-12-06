@@ -546,9 +546,13 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
     };
 
-    this.resetAssetUnreadCount = function (request, callback) {
+    this.resetAssetUnreadCount = function (request, activityId, callback) {
+        if(activityId === 0) {
+            activityId = request.activity_id;
+        }
+                
         var paramsArr = new Array(
-                request.activity_id,
+                activityId,
                 request.asset_id,
                 request.organization_id,
                 request.datetime_log // server log date time
