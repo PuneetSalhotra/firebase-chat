@@ -192,7 +192,7 @@ function ActivityTimelineService(objectCollection) {
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
 
-        activityCommonService.resetAssetUnreadCount(request, function (err, data) {});
+        activityCommonService.resetAssetUnreadCount(request, 0, function (err, data) {});
         activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
         var activityTypeCategoryId = util.replaceZero(request.activity_type_category_id);
         if (activityTypeCategoryId > 0) {
