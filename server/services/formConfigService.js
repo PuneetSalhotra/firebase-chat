@@ -2,9 +2,13 @@
  * author: Sri Sai Venkatesh
  */
 
-function FormConfigService(db, util, activityCommonService) {
+function FormConfigService(objCollection) {
 
-  this.getOrganizationalLevelForms = function (request, callback) {
+    var db = objCollection.db;
+    var util = objCollection.util;
+    var activityCommonService = objCollection.activityCommonService;
+
+    this.getOrganizationalLevelForms = function (request, callback) {
         var paramsArr = new Array();
         var queryString = '';
 
@@ -242,7 +246,7 @@ function FormConfigService(db, util, activityCommonService) {
                 if (err === false) {
                     if (data.length > 0) {
                         //console.log(data);
-               activityCommonService.formatFormDataCollection(data, function (err, finalData) {
+                        activityCommonService.formatFormDataCollection(data, function (err, finalData) {
                             if (err === false) {
                                 callback(false, {data: finalData}, 200);
                             }
@@ -316,6 +320,7 @@ function FormConfigService(db, util, activityCommonService) {
         callback(false, responseData);
     };
 
-};
+}
+;
 
 module.exports = FormConfigService;

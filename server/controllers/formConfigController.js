@@ -10,7 +10,7 @@ function FormConfigController(objCollection) {
     var responseWrapper = objCollection.responseWrapper;    
     var app = objCollection.app;
 
-    var formConfigService = new FormConfigService(objCollection.db, objCollection.util, objCollection.activityCommonService);
+    var formConfigService = new FormConfigService(objCollection);
 
     app.post('/' + global.config.version + '/form/access/organisation/list', function (req, res) {
         

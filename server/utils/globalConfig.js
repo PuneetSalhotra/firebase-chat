@@ -29,26 +29,6 @@ if (mode === 'dev') {
     config.kafkaIP = 'localhost:2181';
     config.kafkaActivitiesTopic = 'desker-activities';
     config.kafkaFormWidgetTopic = 'desker-form-widgets';
-
-    config.cassandraIP = '34.192.228.175';
-    config.cassandraKeyspace = 'deskerlog';
-    config.cassandraUser = 'aamir';
-    config.cassandraPassword = 'foxtrot88';
-
-    config.cassandraCredentialsDev = {
-        ip: '34.192.228.175',
-        user: 'aamir',
-        pwd: 'foxtrot88',
-        keyspace: 'deskerlog'
-    };
-
-    config.cassandraCredentialsProd = {
-        ip: '34.192.228.175',
-        user: 'aamir',
-        pwd: 'foxtrot88',
-        keyspace: 'deskerlog'
-    };
-
     config.iosPushMode = 'dev';
 }
 
@@ -69,26 +49,6 @@ if (mode === 'prod') {
     config.kafkaIP = '192.168.7.53:2181';
     config.kafkaActivitiesTopic = 'desker-activities';
     config.kafkaFormWidgetTopic = 'desker-form-widgets';
-
-    config.cassandraIP = '34.192.228.175';
-    config.cassandraKeyspace = 'deskerlog';
-    config.cassandraUser = 'aamir';
-    config.cassandraPassword = 'foxtrot88';
-
-    config.cassandraCredentialsDev = {
-        ip: '34.192.228.175',
-        user: 'aamir',
-        pwd: 'foxtrot88',
-        keyspace: 'deskerlog'
-    };
-
-    config.cassandraCredentialsProd = {
-        ip: '34.192.228.175',
-        user: 'aamir',
-        pwd: 'foxtrot88',
-        keyspace: 'deskerlog'
-    };
-
     config.iosPushMode = 'prod';    // currently shouuld be in dev
 }
 
@@ -106,3 +66,21 @@ config.smtp_host = 'retail.smtp.com';
 config.smtp_port = '2525';
 config.smtp_user = 'angel@blueflock.com';
 config.smtp_pass = 'greneapple';
+
+config.cassandraCredentialsDev = {
+    ip: '192.168.7.120',
+    user: 'aamir',
+    pwd: 'foxtrot88',
+    log_keyspace: 'deskerlog_staging',
+    session_keyspace: 'deskersession_staging'
+};
+
+config.cassandraCredentialsProd = {
+    ip: '192.168.7.120',
+    user: 'aamir',
+    pwd: 'foxtrot88',
+    log_keyspace: 'deskerlogv2',
+    session_keyspace: 'deskersession'
+};
+
+config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/desker-logging-staging";

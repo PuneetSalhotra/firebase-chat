@@ -1,22 +1,19 @@
+require('../utils/globalConfig');
 var aws = require('aws-sdk');
 aws.config.loadFromPath('/var/www/html/node/Bharat/server/utils/config.json');
-//var queueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/desker-logging-queue";
-var queueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/desker-logging-staging";
-var sqs = new aws.SQS();
 var CassandraWrapper = require('../utils/cassandraWrapper');
-
-require('../utils/globalConfig');
-
+var CassandraInterceptor = require('../interceptors/cassandraInterceptor');
 var Util = require('../utils/util');
-var util = new Util();
 
-var cassandraWrapper = new CassandraWrapper(global.config.cassandraCredentialsDev,
-        global.config.cassandraCredentialsProd,
-        util);
+var sqs = new aws.SQS();
+var util = new Util();
+var cassandraWrapper = new CassandraWrapper();
+var cassandraInterceptor = new CassandraInterceptor(util, cassandraWrapper);
+
 
 var consume = function () {
     var params = {
-        QueueUrl: queueUrl,
+        QueueUrl: global.config.SQSqueueUrl,
         VisibilityTimeout: 60 // 10 min wait time for anyone else to process.
     };
 
@@ -33,14 +30,21 @@ var consume = function () {
                     var body = data['Messages'][0].Body;
                     var messageCollection = JSON.parse(body);
                     //console.log(messageCollection);
-
-                    cassandraWrapper.logData(messageCollection)
+                    switch (messageCollection.log) {
+                        case 'log':
+                            cassandraWrapper.logData(messageCollection);
+                            break;
+                        case 'session':
+                            cassandraWrapper.logSessionData(messageCollection);
+                            break;
+                    }
+                    ;
                 } catch (e) {
                     console.log(e);
                 }
 
                 params = {
-                    QueueUrl: queueUrl,
+                    QueueUrl: global.config.SQSqueueUrl,
                     ReceiptHandle: deletMesageHandle
                 };
                 sqs.deleteMessage(params, function (err, data) {
@@ -53,8 +57,6 @@ var consume = function () {
             } else {
                 //console.log("no new message yet!!");
             }
-
-
         }
     });
 };

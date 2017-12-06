@@ -26,17 +26,17 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                      */
                     case '/0.1/asset/passcode/alter':
                         req.body['module'] = 'device';
-                        global.logger.write('request', '', {}, req.body);
+                        global.logger.write('request', '', req.body, req.body);
                         next();
                         break;
                     case '/0.1/asset/passcode/check':
                         req.body['module'] = 'device';
-                        global.logger.write('request', '', {}, req.body);
+                        global.logger.write('request', '', req.body, req.body);
                         next();
                         break;
                     case '/0.1/asset/link/set':
                         req.body['module'] = 'asset';
-                        global.logger.write('request', '', {}, req.body);
+                        global.logger.write('request', '', req.body, req.body);
                         next();
                         break;
                     default:
