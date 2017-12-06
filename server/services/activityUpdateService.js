@@ -564,7 +564,7 @@ function ActivityUpdateService(objectCollection) {
               }
           });
       }
-    }
+    };
     
     var assetListUpdate = function (request, callback) {
         var inlineJson = JSON.parse(request.activity_inline_data);
@@ -722,8 +722,21 @@ function ActivityUpdateService(objectCollection) {
          }
          } */
     };
+    
+    
+    this.resetUnreadUpdateCount = function (request, callback) {
 
-
+        var logDatetime = util.getCurrentUTCTime();
+        request['datetime_log'] = logDatetime;
+        //var activityTypeCategoryId = Number(request.activity_type_category_id);
+        
+        var activityArray = JSON.parse(request.activity_id_array);        
+        forEachAsync(activityArray, function (next, activityId) {
+            activityCommonService.resetAssetUnreadCount(request, activityId, function (err, data) {});
+            //console.log(activityId);
+            next();
+        });
+     };
 
 }
 ;
