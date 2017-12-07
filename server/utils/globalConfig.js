@@ -64,8 +64,8 @@ config.nexmoSecretKey = "0c8aa63d";
 
 config.smtp_host = 'retail.smtp.com';
 config.smtp_port = '2525';
-config.smtp_user = 'angel@blueflock.com';
-config.smtp_pass = 'greneapple';
+config.smtp_user = 'donotreply@blueflock.com';
+config.smtp_pass = '%*^$#r@@t';
 
 config.cassandraCredentialsDev = {
     ip: '192.168.7.120',

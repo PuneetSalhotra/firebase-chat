@@ -429,7 +429,7 @@ function Util() {
         // send mail with defined transport object
         transporter.sendMail(mailOptions, function (error, info) {
             if (error) {
-                callback(error, info);
+                callback(true, error);
             } else {
                 console.log('Message sent: ' + info.response);
                 callback(false, info);

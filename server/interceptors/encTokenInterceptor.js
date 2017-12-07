@@ -39,6 +39,11 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                         global.logger.write('request', '', req.body, req.body);
                         next();
                         break;
+                    case '/0.1/send/email':
+                        //req.body['module'] = 'asset';
+                        //global.logger.write('request', '', req.body, req.body);
+                        next();
+                        break;
                     default:
                         if (req.body.hasOwnProperty("activity_id")) {
                             req.body['module'] = 'activity';
@@ -63,7 +68,7 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                                     global.logger.write('debug', 'successfully redis encToken checking is done', {},req.body);
                                     next();
                                 } else {
-                                    console.log('redis encToken checking failed');
+                                    console.log('redis encToken checking failed : ' + err);
                                     global.logger.write('serverError', 'Redis encToken checking failed', {}, req.body);
                                     res.send(responseWrapper.getResponse(null, {}, -3204, req.body));
                                     return;
