@@ -35,7 +35,7 @@ if (mode === 'dev') {
 if (mode === 'prod') {
     config.masterIp = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
     config.slave1Ip = 'readreplica1.citeodhwc7z9.us-east-1.rds.amazonaws.com';
-    config.slave2Ip = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
+    config.slave2Ip = 'readreplica2.citeodhwc7z9.us-east-1.rds.amazonaws.com';
 
     config.dbUser = 'sravan';
     config.database = 'desker';
@@ -46,7 +46,7 @@ if (mode === 'prod') {
     config.redisIp = 'rediscluster1.apppnf.ng.0001.use1.cache.amazonaws.com';
     config.redisPort = 6379;
 
-    config.kafkaIP = '192.168.7.53:2181';
+    config.kafkaIP = 'localhost:2181';
     config.kafkaActivitiesTopic = 'desker-activities';
     config.kafkaFormWidgetTopic = 'desker-form-widgets';
     config.iosPushMode = 'prod';    // currently shouuld be in dev
