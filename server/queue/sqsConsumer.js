@@ -32,10 +32,10 @@ var consume = function () {
                     //console.log(messageCollection);
                     switch (messageCollection.log) {
                         case 'log':
-                            cassandraWrapper.logData(messageCollection);
+                            cassandraInterceptor.logData(messageCollection);
                             break;
                         case 'session':
-                            cassandraWrapper.logSessionData(messageCollection);
+                            cassandraInterceptor.logSessionData(messageCollection);
                             break;
                     }
                     ;
