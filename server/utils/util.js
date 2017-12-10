@@ -205,7 +205,17 @@ function Util() {
         var now = moment().utc().format("YYYY-MM-DD");
         return now;
     };
-
+    
+    this.getCurrentMonth = function () {
+        var now = moment().utc().format("MM");
+        return now;
+    };
+    
+    this.getCurrentYear = function () {
+        var now = moment().utc().format("YYYY");
+        return now;
+    };
+    
     this.getCurrentUTCTimestamp = function () {
         var now = moment().utc().valueOf();
         return now;
@@ -336,6 +346,16 @@ function Util() {
 
     this.getFormatedLogTime = function (timeString) {
         var value = moment(timeString).format("HH:mm:ss");
+        return value;
+    };
+    
+    this.getFormatedLogYear = function (timeString) {
+        var value = moment(timeString).format("YYYY");
+        return value;
+    };
+    
+    this.getFormatedLogMonth = function (timeString) {
+        var value = moment(timeString).format("MM");
         return value;
     };
 
