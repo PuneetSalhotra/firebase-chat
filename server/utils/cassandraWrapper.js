@@ -47,14 +47,15 @@ function CassandraWrapper() {
         }
         connectionResource.execute(query, function (err, result) {
             if (!err) {
-                //console.log(executeIn + " - query success | " + query);
+                //console.log(" - query success | " + query);
                 console.log('Success');
-                callback(false, true);
+                //console.log('Result : ' + JSON.stringify(result));
+                callback(false, result);
                 return;
             } else {
                 console.log("query failed | " + query);
                 console.log(err);                
-                callback(true, false);
+                callback(true, err);
                 return;
             }
         });

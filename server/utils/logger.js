@@ -20,12 +20,13 @@ function Logger() {
         var loggerCollectionString = JSON.stringify(loggerCollection);
         sqs.produce(loggerCollectionString, function (err, response) {
             if(err)
-                console.log("error is: "+ err);
+                console.log("error is: "+ err);            
             });
     };
     
     this.writeSession = function (request) {
-        var loggerCollection = {                    
+        var loggerCollection = {
+            message: request,
             request: request,
             environment: global.mode, //'prod'
             log: 'session'
@@ -33,7 +34,7 @@ function Logger() {
         var loggerCollectionString = JSON.stringify(loggerCollection);
         sqs.produce(loggerCollectionString, function (err, response) {
             if(err)
-                console.log("error is: "+ err);
+                console.log("error is: "+ err);            
             });
     };
 }

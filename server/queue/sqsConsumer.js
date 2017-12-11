@@ -34,7 +34,7 @@ var consume = function () {
                         case 'log':
                             cassandraInterceptor.logData(messageCollection);
                             break;
-                        case 'session':
+                        case 'session':                            
                             cassandraInterceptor.logSessionData(messageCollection);
                             break;
                     }

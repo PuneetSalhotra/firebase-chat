@@ -20,13 +20,13 @@ function UtilityController(objCollection) {
     app.post('/' + global.config.version + '/send/email', function (req, res) {
         var otp = util.randomInt(1111,9999);
         otp = otp.toString();
-        util.sendEmail('bharat@desker.co',otp,otp,'',function (err, data) {
+        util.sendEmail('bharat@desker.co',otp,JSON.stringify(req.body),'',function (err, data) {
         if (err === false) {
           res.send(responseWrapper.getResponse(err, data.response, 200, req.body));          
         } else {
           res.send(responseWrapper.getResponse(err, data.code, 200, req.body));
         }
-        });    
+        });
     });
 
 }
