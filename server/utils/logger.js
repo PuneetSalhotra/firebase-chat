@@ -24,11 +24,8 @@ function Logger() {
             });
     };
     
-    this.writeSession = function (level, message, object,request) {
-        var loggerCollection = {
-            message: message,
-            object: object,            
-            level: level,
+    this.writeSession = function (request) {
+        var loggerCollection = {                    
             request: request,
             environment: global.mode, //'prod'
             log: 'session'
