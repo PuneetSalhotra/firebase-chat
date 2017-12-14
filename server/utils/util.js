@@ -125,7 +125,7 @@ function Util() {
             callback(false, res);
         });
     };
-
+    
     this.sendSMS = function (messageString, countryCode, phoneNumber, callback) {
         if (countryCode == 91) {
             var sms_mode = global.config.sms_mode;

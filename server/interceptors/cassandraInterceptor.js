@@ -443,8 +443,8 @@ function CassandraInterceptor(util, cassandraWrapper) {
         var logDate = util.getCurrentDate();
         var Id = uuid.v1();
         
-        //console.log('In logSessioData Function messageCollection : \n' + messageCollection)
-        //console.log('messageCollection.request.asset_clocked_status_id :' + messageCollection.request.asset_clocked_status_id)
+        console.log('In logSessioData Function messageCollection : \n' + JSON.stringify(messageCollection));
+        console.log('messageCollection.request.asset_clocked_status_id :' + messageCollection.request.asset_clocked_status_id)
         if(messageCollection.request.asset_assigned_status_id > 0) {
             sessionsByAsset(messageCollection, Id,'sessions_by_asset',function(){});
             sessionsByAsset(messageCollection, Id,'sessions_by_workforce',function(){});
