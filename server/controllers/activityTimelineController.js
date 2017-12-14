@@ -258,6 +258,20 @@ function ActivityTimelineController(objCollection) {
             }
         });
     });
+    
+    //PAM
+    app.post('/' + global.config.version + '/asset/timeline/list', function (req, res) {
+        activityTimelineService.retrieveTimelineListBasedOnAsset(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                console.log('did not get proper response');
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
 
 }
 ;

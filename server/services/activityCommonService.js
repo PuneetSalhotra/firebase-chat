@@ -270,7 +270,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             case 1307:   // text message    --> Visitor Request
             case 1507:   // text message    --> Time Card
                 entityTypeId = 0;
-                entityText1 = ""
+                entityText1 = "";
                 entityText2 = request.activity_timeline_text;
                 break;
             case 311:   // image    --> file
@@ -313,6 +313,18 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityTypeId = 0;
                 entityText1 = request.activity_timeline_collection;
                 entityText2 = '';
+                break;
+            case 320:   // Add video call communication
+            case 321:   // Add phone call communication
+            case 322:   // Add mobile call communication
+                entityTypeId = 0;
+                entityText1 = request.activity_timeline_url;
+                entityText2 = (request.hasOwnProperty('activity_timeline_url_preview')) ? request.activity_timeline_url_preview : '';
+                break;
+            case 323:   // Add message communication
+                entityTypeId = 0;
+                entityText1 = "";
+                entityText2 = request.activity_timeline_text;
                 break;
             default:
                 entityTypeId = 0;
@@ -416,7 +428,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             accountId = participantData.account_id;
             workforceId = participantData.workforce_id;
             assetId = participantData.asset_id;
-            messageUniqueId = participantData.message_unique_id
+            messageUniqueId = participantData.message_unique_id;
         }
 
         switch (streamTypeId) {
@@ -483,6 +495,18 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityTypeId = 0;
                 entityText1 = request.activity_timeline_collection;
                 entityText2 = '';
+                break;
+            case 320:   // Add video call communication
+            case 321:   // Add phone call communication
+            case 322:   // Add mobile call communication
+                entityTypeId = 0;
+                entityText1 = request.activity_timeline_url;
+                entityText2 = (request.hasOwnProperty('activity_timeline_url_preview')) ? request.activity_timeline_url_preview : '';
+                break;
+            case 323:   // Add message communication
+                entityTypeId = 0;
+                entityText1 = "";
+                entityText2 = request.activity_timeline_text;
                 break;
             default:
                 entityTypeId = 0;
@@ -816,6 +840,30 @@ function ActivityCommonService(db, util, forEachAsync) {
 
         callback(false, fieldValue);
     };
+    
+    //PAM
+    /*this.activityAccountListDiff = function(request, callback) {
+        var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.asset_id,
+                request.datetime_differential,
+                request.page_start,
+                util.replaceQueryLimit(request.page_limit)
+                );
+
+        var queryString = util.getQueryString('ds_v1_activity_list_select_account_differential', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (err === false) {
+                   console.log('DATA : ' + data);
+                   callback(false, data, 200);
+                } else {
+                    callback(true, err, -9998);
+                }
+            });
+        }
+    }; */
 
 }
 ;

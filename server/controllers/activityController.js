@@ -272,7 +272,22 @@ function ActivityController(objCollection) {
         }
 
     });
+    
+    //PAM
+    /*app.post('/' + global.config.version + '/activity/account/list', function (req, res) {
+        activityCommonService.activityAccountListDiff(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
 
+            } else {
+                //console.log('did not get proper rseponse');
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });*/
+    
 }
 ;
 

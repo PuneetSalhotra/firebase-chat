@@ -223,6 +223,9 @@ function ActivityService(objectCollection) {
         //BETA
         var activitySubTypeId = (request.hasOwnProperty('activity_sub_type_id')) ? request.activity_sub_type_id : 0;
         
+        //PAM
+        var activitySubTypeName = (request.hasOwnProperty('activity_sub_type_name')) ? request.activity_sub_type_name : '';
+        
         switch (activityTypeCategoryId) {
             case 2:    // notepad
                 /*
@@ -496,9 +499,11 @@ function ActivityService(objectCollection) {
         paramsArr.push(request.track_latitude);
         paramsArr.push(request.track_longitude); 
         paramsArr.push(activitySubTypeId);
+        paramsArr.push(activitySubTypeName); //PAM
         
         //var queryString = util.getQueryString('ds_v1_activity_list_insert', paramsArr);
-        var queryString = util.getQueryString('ds_v1_activity_list_insert_sub_type', paramsArr);
+        //var queryString = util.getQueryString('ds_v1_activity_list_insert_sub_type', paramsArr);
+        var queryString = util.getQueryString('ds_v1_activity_list_insert_pam', paramsArr);
         if (queryString !== '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
@@ -942,9 +947,6 @@ function ActivityService(objectCollection) {
             }
 
         });
-
-
-
     };
 }
 ;
