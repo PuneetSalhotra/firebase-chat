@@ -126,6 +126,38 @@ function ActivityUpdateService(objectCollection) {
          callback(false, true);
          */
     };
+    
+    //PAM
+    var activityListUpdateChannel = function (request, callback) {
+        var paramsArr = new Array();
+        var queryString = '';
+        paramsArr = new Array(
+                    request.organization_id,
+                    request.account_id,
+                    request.workforce_id,
+                    request.activity_id,
+                    request.channel_activity_id,
+                    request.channel_activity_type_category_id,
+                    request.asset_id,
+                    request.datetime_log
+                    );
+
+        queryString = util.getQueryString('ds_v1_activity_list_update_channel', paramsArr);
+
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                if (err === false) {
+                    callback(false, true);
+                    return;
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(true, false);
+                    //console.log(err);
+                    return;
+                }
+            });
+        }
+    };
 
     var updateActivityTitle = function (request, newActivityTitle, callback) {
 
@@ -240,6 +272,44 @@ function ActivityUpdateService(objectCollection) {
             }
         });
     };
+    
+    //PAM
+    var assetActivityListUpdateChannel = function (request, callback) {
+        var paramsArr = new Array();
+        var queryString = '';
+        activityCommonService.getAllParticipants(request, function (err, participantsData) {
+            if (err === false && participantsData.length > 0) {
+                participantsData.forEach(function (rowData, index) {
+                    paramsArr = new Array(
+                            request.organization_id,
+                            request.account_id,
+                            request.workforce_id,
+                            request.activity_id,
+                            rowData.asset_id,
+                            request.channel_activity_id,
+                            request.channel_activity_type_category_id,
+                            request.asset_id,
+                            request.datetime_log
+                            );
+                    queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_channel', paramsArr);
+                    if (queryString != '') {
+                        db.executeQuery(0, queryString, request, function (err, data) {
+                            if (err === false) {
+                                //callback(true, false);
+                            } else {
+                                // some thing is wrong and have to be dealt
+                                //callback(true, false);
+                            }
+                        });
+                    }
+                }, this);
+                callback(false, true);
+            } else {
+                callback(true, false);
+            }
+        });
+    };
+    
     //assetActivityListUpdateSubTaskCover
     var assetActivityListUpdateSubTaskCover = function (request, callback) {
         var paramsArr = new Array();
@@ -543,6 +613,55 @@ function ActivityUpdateService(objectCollection) {
             }
         });
         // call resource ranking...
+
+    };
+    
+    //PAM
+    this.alterActivityCoverChannelActivity = function (request, callback) {
+
+        var logDatetime = util.getCurrentUTCTime();
+        request['datetime_log'] = logDatetime;
+        var activityTypeCategoryId = Number(request.activity_type_category_id);
+        activityCommonService.updateAssetLocation(request, function (err, data) {});
+        activityListUpdateChannel(request, function (err, data) {
+            if (err === false) {
+                activityCommonService.activityListHistoryInsert(request, 403, function (err, result) {});
+                
+                assetActivityListUpdateChannel(request, function (err, data) {
+                    //Switch-CASE Added by Nani Kalyan
+                    switch (activityTypeCategoryId) {
+                        case 37: //Reservation
+                            activityStreamTypeId = 18003;
+                            break;
+                        case 41: //Event
+                            activityStreamTypeId = 17003;
+                            break;
+                        default:
+                            activityStreamTypeId = 1;   //by default so that we know
+                            //console.log('adding streamtype id 1506');
+                            global.logger.write('debug', 'adding streamtype id 1', {},request)
+                            break;
+                    }
+                    ;
+
+              activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) { });
+              activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) { });
+              activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {});
+              
+              //updating log differential datetime for only this asset
+              activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) { });
+                            
+              //assetActivityListUpdateSubTaskCover(request, function (err, data) {}); facing some issues here, handle post alpha
+              activityPushService.sendPush(request, objectCollection, 0, function () {});
+
+                });
+
+                callback(false, {}, 200);
+    
+            } else {
+                callback(err, {}, -9999);
+            }
+        });
 
     };
     

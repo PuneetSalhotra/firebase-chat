@@ -104,6 +104,13 @@ function ActivityService(objectCollection) {
                             activityStreamTypeId = 1501;
                             break;
                             /////////////////////////////////
+                        //PAM
+                        case 37:    //Reservation
+                            activityStreamTypeId = 18001;
+                            break;
+                        case 41:    //Event
+                            activityStreamTypeId = 17001;
+                            break;
                         default:
                             activityStreamTypeId = 1;   //by default so that we know
                             //console.log('adding streamtype id 1');

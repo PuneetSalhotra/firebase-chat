@@ -1302,7 +1302,14 @@ function AssetService(objectCollection) {
                 
                 global.logger.writeSession(request.body);
                 assetListUpdateStatus(request, assetId, function (err, data) {});
-                callback(assetId,{},200);
+                cacheWrapper.getAssetParity(assetId, (err, data)=>{
+                    if(err === false) {
+                        callback(false,{"asset_message_counter" : data},200);
+                    } else {
+                        callback(false, {}, -7998);
+                    }
+                });
+                
             } else{
                 callback(err,{},-9998);
             }
@@ -1337,8 +1344,8 @@ function AssetService(objectCollection) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, assetId) {
                 if (err === false) {
-                    console.log('Asset Id : ' + assetId);
-                    callback(false, assetId);
+                    console.log('Asset Id : ' + assetId[0].asset_id);
+                    callback(false, assetId[0].asset_id);
                 } else {
                     callback(true, err);
                 }

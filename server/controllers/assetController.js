@@ -297,7 +297,7 @@ function AssetController(objCollection) {
     });
     
     //PAM 
-    app.put('/' + global.config.version + '/asset/cover/alter/clockin', function (req, res) {
+    app.put('/' + global.config.version + '/pam/asset/cover/alter/clockin', function (req, res) {
         assetService.assetClockIn(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response    
@@ -312,7 +312,7 @@ function AssetController(objCollection) {
     });
     
     //PAM /asset/cover/alter/clockout
-    app.put('/' + global.config.version + '/asset/cover/alter/clockout', function (req, res) {
+    app.put('/' + global.config.version + '/pam/asset/cover/alter/clockout', function (req, res) {
         assetService.assetClockOut(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response    
@@ -327,7 +327,7 @@ function AssetController(objCollection) {
     });
     
     //PAM
-    app.post('/' + global.config.version + '/asset_type/stats/onduty_total', function (req, res) {
+    app.post('/' + global.config.version + '/pam/asset_type/stats/onduty_total', function (req, res) {
         assetService.assetStatsOnDutyTotal(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response    
