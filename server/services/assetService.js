@@ -1294,17 +1294,21 @@ function AssetService(objectCollection) {
     this.assetClockIn = function(request, callback) {
         var dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
+        var response = {};
         
-        assetListSelectPasscode(request, function(err, assetId) {
+        assetListSelectPasscode(request, function(err, resp) {
             if(err === false) {
                 request['asset_assigned_status_id'] = 0;
                 request['asset_session_status_id'] = 0;
                 
                 global.logger.writeSession(request.body);
-                assetListUpdateStatus(request, assetId, function (err, data) {});
-                cacheWrapper.getAssetParity(assetId, (err, data)=>{
+                assetListUpdateStatus(request, resp.asset_id, function (err, data) {});
+                cacheWrapper.getAssetParity(resp.asset_id, (err, data)=>{
                     if(err === false) {
-                        callback(false,{"asset_message_counter" : data},200);
+                        response.asset_id = resp.asset_id;
+                        response.asset_message_counter = data;
+                        response.asset_encryption_token_id = resp.asset_encryption_token_id;
+                        callback(false,response,200);
                     } else {
                         callback(false, {}, -7998);
                     }
@@ -1335,6 +1339,7 @@ function AssetService(objectCollection) {
 
     //PAM
     var assetListSelectPasscode = function(request, callback) {
+        var response = {};
         var paramsArr = new Array(
                 request.organization_id,
                 request.passcode
@@ -1344,8 +1349,10 @@ function AssetService(objectCollection) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, assetId) {
                 if (err === false) {
-                    console.log('Asset Id : ' + assetId[0].asset_id);
-                    callback(false, assetId[0].asset_id);
+                    //console.log('Asset Id : ' + JSON.stringify(assetId[0]));
+                    response.asset_id = assetId[0].asset_id;
+                    response.asset_encryption_token_id = assetId[0].asset_encryption_token_id;
+                    callback(false, response);
                 } else {
                     callback(true, err);
                 }
