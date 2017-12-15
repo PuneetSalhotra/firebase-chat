@@ -214,8 +214,6 @@ function AssetController(objCollection) {
 
     });
 
-
-
     app.post('/' + global.config.version + '/asset/status/collection', function (req, res) {
         assetService.getAssetDetails(req.body, function (err, data, statusCode) {
             if (err === false) {

@@ -80,45 +80,45 @@ function ActivityUpdateService(objectCollection) {
         }
         /*
          var coverJson = JSON.parse(request.activity_cover_data);
-
+         
          if (coverJson.hasOwnProperty('title')) {
          //update activity title
          updateActivityTitle(request, coverJson.title.new, function (err, data) {
          if (err === false) {
          activityCommonService.activityListHistoryInsert(request, 12, function (err, result) {
-
+         
          });
          assetActivityListUpdateCover(request, 12, coverJson.title.new, function (err, data) {
-
+         
          });
          }
          });
          }
-
+         
          if (coverJson.hasOwnProperty('description')) {
          //update activity title
          updateActivityDescription(request, coverJson.description.new, function (err, data) {
          if (err === false) {
          activityCommonService.activityListHistoryInsert(request, 13, function (err, result) {
-
+         
          });
          assetActivityListUpdateCover(request, 13, function (err, data) {
-
+         
          });
          }
          });
          }
-
+         
          if (coverJson.hasOwnProperty('duedate')) {
          //update activity due-date
          updateActivityDuedate(request, coverJson.duedate.new, function (err, data) {
          if (err === false) {
          activityCommonService.activityListHistoryInsert(request, 14, function (err, result) {
-
+         
          });
-
+         
          assetActivityListUpdateCover(request, 14, coverJson.duedate.new, function (err, data) {
-
+         
          });
          }
          });
@@ -364,7 +364,7 @@ function ActivityUpdateService(objectCollection) {
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         var activityTypeCategoryId = Number(request.activity_type_category_id);
-        
+
         activityCommonService.updateAssetLocation(request, function (err, data) {});
 
         activityListUpdateInline(request, function (err, data) {
@@ -401,7 +401,7 @@ function ActivityUpdateService(objectCollection) {
                             default:
                                 activityStreamTypeId = 1705;   //by default so that we know
                                 //console.log('adding streamtype id 1705');
-                                global.logger.write('debug', 'adding streamtype id 1705', {},request)
+                                global.logger.write('debug', 'adding streamtype id 1705', {}, request)
                                 break;
                         }
 
@@ -419,7 +419,7 @@ function ActivityUpdateService(objectCollection) {
                 activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) { });
 
                 if (Number(request.activity_type_category_id) === 4) {    // id card inline update
-                    assetListUpdate(request, function (err, data) {});
+                    assetListUpdate(request, function (err, data) {});   //opearating asset id
 
                     var empIdJson = JSON.parse(request.activity_inline_data);
                     var newRequest = Object.assign({}, request);
@@ -428,14 +428,15 @@ function ActivityUpdateService(objectCollection) {
                         if (!err) {
                             try {
                                 var inlineJson = JSON.parse(coworkerData[0].activity_inline_data);
+                                assetListUpdateOperatingAsset(request, Number(coworkerData[0].asset_id), function (err, data) {});    // desk asset
 
                                 newRequest.activity_id = coworkerData[0].activity_id;
                                 newRequest.activity_type_category_id = coworkerData[0].activity_type_category_id;
-                                                                           
+
                                 inlineJson.contact_email_id = empIdJson.employee_email_id;
                                 inlineJson.contact_profile_picture = empIdJson.employee_profile_picture;
                                 newRequest.activity_inline_data = JSON.stringify(inlineJson);
-                                                                                                                          
+
                                 //console.log('newRequest: ', newRequest)
 
                                 var event = {
@@ -448,16 +449,18 @@ function ActivityUpdateService(objectCollection) {
                                 queueWrapper.raiseActivityEvent(event, data.activity_id, (err, resp) => {
                                     if (err) {
                                         //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                                        global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent",err, request);
+                                        global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent", err, request);
                                     } else {
                                     }
                                 });
                             } catch (exception) {
-                                res.send(responseWrapper.getResponse(false, {}, -3308,req.body));
+                                //res.send(responseWrapper.getResponse(false, {}, -3308,req.body));
+                                console.log("exception occured");
+                                console.log(exception);
                                 return;
                             }
                         } else {
-                               console.log(err)
+                            console.log(err)
                         }
                     })
                 } //if category_id==4
@@ -510,7 +513,7 @@ function ActivityUpdateService(objectCollection) {
                         default:
                             activityStreamTypeId = 1506;   //by default so that we know
                             //console.log('adding streamtype id 1506');
-                            global.logger.write('debug', 'adding streamtype id 1506', {},request)
+                            global.logger.write('debug', 'adding streamtype id 1506', {}, request)
                             break;
                     }
                     ;
@@ -545,27 +548,27 @@ function ActivityUpdateService(objectCollection) {
         // call resource ranking...
 
     };
-    
-    var getCoWorkerActivityId = function(request, callback) {
-      var paramsArr = new Array(
-              request.asset_id,
-              request.organization_id,
-              5// activityTypeCategoryId is 5 for coworker activity
-              //request.activity_type_category_id
-              );
-      var queryString = util.getQueryString('ds_v1_activity_list_select_category_contact', paramsArr);
-      if (queryString != '') {
-          db.executeQuery(1, queryString, request, function (err, coworkerData) {
-              if (err === false) {
-                  callback(false, coworkerData);
-              } else {
-                  // some thing is wrong and have to be dealt
-                  callback(err, false);
-              }
-          });
-      }
+
+    var getCoWorkerActivityId = function (request, callback) {
+        var paramsArr = new Array(
+                request.asset_id,
+                request.organization_id,
+                5// activityTypeCategoryId is 5 for coworker activity
+                //request.activity_type_category_id
+                );
+        var queryString = util.getQueryString('ds_v1_activity_list_select_category_contact', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, coworkerData) {
+                if (err === false) {
+                    callback(false, coworkerData);
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, false);
+                }
+            });
+        }
     };
-    
+
     var assetListUpdate = function (request, callback) {
         var inlineJson = JSON.parse(request.activity_inline_data);
         var paramsArr = new Array(
@@ -601,6 +604,32 @@ function ActivityUpdateService(objectCollection) {
                             }
                         });
                     }
+
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, false);
+                }
+            });
+        }
+    };
+
+    var assetListUpdateOperatingAsset = function (request, deskAssetId, callback) {
+
+        var paramsArr = new Array(
+                deskAssetId,
+                request.workforce_id,
+                request.account_id,
+                request.organization_id,
+                request.asset_id,
+                request.asset_id,
+                request.datetime_log
+                );
+
+        var queryString = util.getQueryString('ds_v1_asset_list_update_operating_asset', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                if (err === false) {
+                    callback(false, true);
 
                 } else {
                     // some thing is wrong and have to be dealt
@@ -722,21 +751,21 @@ function ActivityUpdateService(objectCollection) {
          }
          } */
     };
-    
-    
+
+
     this.resetUnreadUpdateCount = function (request, callback) {
 
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         //var activityTypeCategoryId = Number(request.activity_type_category_id);
-        
-        var activityArray = JSON.parse(request.activity_id_array);        
+
+        var activityArray = JSON.parse(request.activity_id_array);
         forEachAsync(activityArray, function (next, activityId) {
             activityCommonService.resetAssetUnreadCount(request, activityId, function (err, data) {});
             //console.log(activityId);
             next();
         });
-     };
+    };
 
 }
 ;
