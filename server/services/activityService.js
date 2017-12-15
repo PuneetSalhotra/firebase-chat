@@ -105,8 +105,20 @@ function ActivityService(objectCollection) {
                             break;
                             /////////////////////////////////
                         //PAM
+                        case 36:    //Menu Item
+                            activityStreamTypeId = 19001;
+                            break;
                         case 37:    //Reservation
                             activityStreamTypeId = 18001;
+                            break;
+                        case 38:    //Item Order
+                            activityStreamTypeId = 21001;
+                            break;
+                        case 39:    //Inventory
+                            activityStreamTypeId = 20001;
+                            break;
+                        case 40:    //Payment
+                            activityStreamTypeId = 22004;
                             break;
                         case 41:    //Event
                             activityStreamTypeId = 17001;

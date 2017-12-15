@@ -206,6 +206,25 @@ function ActivityParticipantService(objectCollection) {
                     activityStreamTypeId = 1503;
                     break;
                     //////////////////////////////////
+                //PAM
+                case 36:    //Menu Item
+                    activityStreamTypeId = 19002;
+                    break;
+                case 37:    //Reservation
+                    activityStreamTypeId = 18002;
+                    break;
+                case 38:    //Item Order
+                    activityStreamTypeId = 21002;
+                    break;
+                case 39:    //Inventory
+                    activityStreamTypeId = 20002;
+                    break;
+                case 40:    //Payment
+                    activityStreamTypeId = 22005;
+                    break;
+                case 41:    //Event
+                    activityStreamTypeId = 17002;
+                    break;
                 default:
                     activityStreamTypeId = 2;   //by default so that we know
                     //console.log('adding streamtype id 2');
