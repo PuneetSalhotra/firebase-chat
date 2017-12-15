@@ -874,9 +874,9 @@ function AssetService(objectCollection) {
     
     var deleteAsset = function(request, callback) {        
         var paramsArr = new Array(
-                request.asset_id,
+                request.target_asset_id,
                 request.organization_id,
-                request.log_asset_id,                
+                request.asset_id,        
                 request.datetime_log
                 );
 
@@ -1351,10 +1351,7 @@ function AssetService(objectCollection) {
         
         deleteAsset(request, function (err, AssetId) {
             if (err === false) { 
-                console.log('Asset_Id' + AssetId);
-                
-                assetListHistoryInsert(request, AssetId, request.organization_id, 204, dateTimeLog, function (err, data) {});
-                console.log('Deleted Successfully : ' + JSON.stringify(AssetId));
+                assetListHistoryInsert(request, request.target_asset_id, request.organization_id, 204, dateTimeLog, function (err, data) {});
                 var responseDataCollection = {};
                 responseDataCollection.asset_id = AssetId;
                 callback(false, responseDataCollection, 200);
