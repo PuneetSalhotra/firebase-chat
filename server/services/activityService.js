@@ -211,39 +211,22 @@ function ActivityService(objectCollection) {
     };
     
     //PAM
-    var generateFourDigitString = function (arr) {
-        var code = util.randomInt(1111,9999);
-            code = code.toString();
-            
-        if(arr.indexOf(code) === -1) {
-            return code
-        } else {
-            return generateFourDigitString(arr);
-        }
-    };
-    
-    //PAM
-    var checkingUniqueCode = function(request, callback) {
+    var checkingUniqueCode = function(request, code, callback) {
         var paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
-                request.asset_id,
-                request.activity_id
+                code,
+                request.activity_parent_id
                 );
 
         var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_existing_reserv_code', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
+                //console.log('data.length :' + data.length);
                 if (data.length > 0) {
-                    console.log(JSON.stringify(data[0]));
-                    var reservationCode = generateFourDigitString(data[0]);
-                    console.log('Code in IF part : ' + reservationCode);
-                    callback(false, reservationCode);
+                    callback(true, false);
                 } else {
-                    var code = util.randomInt(1111,9999);
-                        code = code.toString();
-                        console.log('Code in else part : ' + code);
-                        callback(false, code);
+                    callback(false, code);
                 }
             });
         }
@@ -275,13 +258,20 @@ function ActivityService(objectCollection) {
         
         new Promise((resolve, reject)=>{
             if(activityTypeCategoryId === 37) { //PAM
-                checkingUniqueCode(request,(err, data)=>{
+                var reserveCode;
+                function generateUniqueCode() {
+                    reserveCode = util.randomInt(1111,9999).toString();
+                    checkingUniqueCode(request,reserveCode, (err, data)=>{
                     if(err === false) {
                         console.log('activitySubTypeName : ' + data);
                         activitySubTypeName = data;
                         return resolve();
-                    }
-                });
+                       } else {
+                           generateUniqueCode();
+                        }
+                    });
+                }
+               generateUniqueCode(); 
             } else {
                 return resolve();
             }
@@ -528,7 +518,6 @@ function ActivityService(objectCollection) {
                break;
             //PAM
             case 37:
-                console.log('Executing case 37');
                 activitySubTypeId = 0;
                 paramsArr = new Array(
                         request.activity_id,
