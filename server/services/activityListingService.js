@@ -91,7 +91,7 @@ function ActivityListingService(objCollection) {
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
-        activityCommonService.getActivityDetails(request,0, function (err, activityData) {
+        activityCommonService.getActivityDetails(request, 0, function (err, activityData) {
             if (err === false) {
                 formatActivityInlineCollection(activityData, {}, function (err, responseData) {
                     if (err === false) {
@@ -100,7 +100,7 @@ function ActivityListingService(objCollection) {
                         callback(false, {}, -9999)
                     }
                 });
-                
+
                 return;
             } else {
                 // some thing is wrong and have to be dealt
@@ -134,7 +134,7 @@ function ActivityListingService(objCollection) {
                         } else {
                             callback(false, {}, -9999)
                         }
-                    });                    
+                    });
                     return;
                 } else {
                     // some thing is wrong and have to be dealt
@@ -233,7 +233,7 @@ function ActivityListingService(objCollection) {
                 request.page_start,
                 util.replaceQueryLimit(request.page_limit)
                 );
-        
+
         var paramsArrForCalendar = new Array(
                 request.asset_id,
                 request.organization_id,
@@ -243,7 +243,7 @@ function ActivityListingService(objCollection) {
                 request.page_start,
                 util.replaceQueryLimit(request.page_limit)
                 );
-        
+
         var queryString = '';
         switch (Number(request.activity_type_category_id)) {
             case 8: // mail
@@ -407,6 +407,67 @@ function ActivityListingService(objCollection) {
         }
 
     };
+
+    this.getAllContactTypes = function (request, callback) {
+
+        var paramsArr = new Array(
+                request.workforce_id,
+                request.account_id,
+                request.organization_id,
+                request.page_start,
+                request.page_limit
+                );
+        var queryString = util.getQueryString('ds_p1_activity_list_select_contacts', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (err === false) {
+                    formatActivityListing(data, function (err, finalData) {
+                        if (err === false) {
+                            callback(false, {data: finalData}, 200);
+                        }
+                    });
+                    return;
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, false, -9999);
+                    return;
+                }
+            });
+        }
+
+    };
+
+    this.searchAllContactTypes = function (request, callback) {
+
+        var paramsArr = new Array(
+                request.workforce_id,
+                request.account_id,
+                request.organization_id,
+                request.search_string,
+                request.page_start,
+                request.page_limit
+                );
+        var queryString = util.getQueryString('ds_p1_activity_list_select_contact_search', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (err === false) {
+                    formatActivityListing(data, function (err, finalData) {
+                        if (err === false) {
+                            callback(false, {data: finalData}, 200);
+                        }
+                    });
+                    return;
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, false, -9999);
+                    return;
+                }
+            });
+        }
+
+    };
+
+
 
     var formatActivityInlineCollection = function (data, collection, callback) {
 
