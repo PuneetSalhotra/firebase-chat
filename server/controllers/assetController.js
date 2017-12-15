@@ -78,7 +78,7 @@ function AssetController(objCollection) {
             }
         });
     });
-
+    
     app.put('/' + global.config.version + '/asset/link/set', function (req, res) {
 
         assetService.linkAsset(req.body, function (err, data, statusCode) {
@@ -276,7 +276,128 @@ function AssetController(objCollection) {
         });
 
     });
+    
+    //PAM
+    app.post('/' + global.config.version + '/asset_mapping/access/account/list', function (req, res) {
+        assetService.getAssetAccessAccountLevelDifferential(req.body, function (err, data, statusCode) {
 
+            if (err === false) {
+                // got positive response    
+
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+
+            } else {
+                //console.log('did not get proper rseponse');
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    //PAM 
+    app.put('/' + global.config.version + '/pam/asset/cover/alter/clockin', function (req, res) {
+        assetService.assetClockIn(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+
+            } else {
+                //console.log('did not get proper rseponse');
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    //PAM /asset/cover/alter/clockout
+    app.put('/' + global.config.version + '/pam/asset/cover/alter/clockout', function (req, res) {
+        assetService.assetClockOut(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+
+            } else {
+                //console.log('did not get proper rseponse');
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    //PAM
+    app.post('/' + global.config.version + '/pam/asset_type/stats/onduty_total', function (req, res) {
+        assetService.assetStatsOnDutyTotal(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+
+            } else {
+                //console.log('did not get proper rseponse');
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    //PAM
+    app.post('/' + global.config.version + '/asset/access/account/list', function (req, res) {
+        assetService.assetAccountListDiff(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+
+            } else {
+                //console.log('did not get proper rseponse');
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    //PAM
+    app.put('/' + global.config.version + '/asset/status/alter', function (req, res) {
+          assetService.removeAsset(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response   
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                //console.log('did not get proper rseponse');
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    })
+    
+    //PAM
+    app.put('/' + global.config.version + '/asset/inline/alter', function (req, res) {
+        assetService.assetInlineAlter(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+
+            } else {
+                //console.log('did not get proper rseponse');
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    
+    //PAM
+    app.post('/' + global.config.version + '/asset/add', function (req, res) {
+        assetService.assetAddForPAM(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+
+            } else {
+                //console.log('did not get proper rseponse');
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
 }
-
 module.exports = AssetController;

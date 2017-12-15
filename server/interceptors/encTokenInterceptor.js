@@ -39,11 +39,16 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                         global.logger.write('request', '', req.body, req.body);
                         next();
                         break;
+                    case '/0.1/pam/asset/cover/alter/clockin':
+                        req.body['module'] = 'asset';
+                        global.logger.write('request', '', req.body, req.body);
+                        next();
+                        break;
                     case '/0.1/send/email':
                         //req.body['module'] = 'asset';
                         //global.logger.write('request', '', req.body, req.body);
                         next();
-                        break;
+                        break;                   
                     default:
                         if (req.body.hasOwnProperty("activity_id")) {
                             req.body['module'] = 'activity';

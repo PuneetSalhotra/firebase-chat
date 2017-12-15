@@ -52,6 +52,40 @@ function ActivityListingService(objCollection) {
         }
 
     };
+    
+    //PAM
+    this.getActivityAssetAccountLevelDifferential = function (request, callback) {
+        var paramsArr = new Array();
+        var queryString = '';
+        paramsArr = new Array(
+                    request.organization_id,
+                    request.account_id,
+                    request.asset_id,
+                    request.datetime_differential,
+                    request.page_start,
+                    util.replaceQueryLimit(request.page_limit)
+                    );
+        queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_account_differential', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                //console.log(data);
+                if (err === false) {
+                    formatActivityListing(data, function (err, finalData) {
+                        if (err === false) {
+                            callback(false, {data: finalData}, 200);
+                        }
+                    });
+                    return;
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, false, -9999);
+                    return;
+                }
+            });
+        }
+
+    };
+    
 
     this.getActivityInlineCollection = function (request, callback) {
         var logDatetime = util.getCurrentUTCTime();
