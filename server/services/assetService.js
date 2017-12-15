@@ -1480,9 +1480,9 @@ function AssetService(objectCollection) {
                                     }).then(function(){
                                         callback(false, {"total_count" : count, responseData},200);
                                     });
-                                }
-                                    
-                                    //callback(false,{},200);
+                                } else {
+                                    callback(false,{"total_count" : count, "responseData" : []},200);
+                                }   
                             } else {
                                 callback(true, err, -9998);
                             }
@@ -1501,10 +1501,10 @@ function AssetService(objectCollection) {
         request['datetime_log'] = dateTimeLog;
 
             var paramsArr = new Array(
-                request.asset_id,
+                request.target_asset_id,
                 request.organization_id,
                 request.asset_inline_data,
-                request.log_asset_id,
+                request.asset_id,
                 request.datetime_log
                 );
 
@@ -1512,7 +1512,7 @@ function AssetService(objectCollection) {
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
-       assetListHistoryInsert(request, request.asset_id, request.organization_id, 205, dateTimeLog, function (err, data) { });
+                    assetListHistoryInsert(request, request.target_asset_id, request.organization_id, 205, dateTimeLog, function (err, data) { });
                     callback(false, data, 200);
                 } else {
                     callback(true, err, -9998);
