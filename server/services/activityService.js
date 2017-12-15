@@ -209,6 +209,46 @@ function ActivityService(objectCollection) {
             callback(false, JSON.stringify(finalJson));
         });
     };
+    
+    //PAM
+    var generateFourDigitString = function (arr) {
+        var code = util.randomInt(1111,9999);
+            code = code.toString();
+            
+        if(arr.indexOf(code) === -1) {
+            return code
+        } else {
+            return generateFourDigitString(arr);
+        }
+    };
+    
+    //PAM
+    var checkingUniqueCode = function(request, callback) {
+        var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.asset_id,
+                request.activity_id
+                );
+
+        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_existing_reserv_code', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (data.length > 0) {
+                    console.log(JSON.stringify(data[0]));
+                    var reservationCode = generateFourDigitString(data[0]);
+                    console.log('Code in IF part : ' + reservationCode);
+                    callback(false, reservationCode);
+                } else {
+                    var code = util.randomInt(1111,9999);
+                        code = code.toString();
+                        console.log('Code in else part : ' + code);
+                        callback(false, code);
+                }
+            });
+        }
+        
+    };
 
     var activityListInsert = function (request, callback) {
         var paramsArr = new Array();
@@ -233,7 +273,20 @@ function ActivityService(objectCollection) {
         //PAM
         var activitySubTypeName = (request.hasOwnProperty('activity_sub_type_name')) ? request.activity_sub_type_name : '';
         
-        switch (activityTypeCategoryId) {
+        new Promise((resolve, reject)=>{
+            if(activityTypeCategoryId === 37) { //PAM
+                checkingUniqueCode(request,(err, data)=>{
+                    if(err === false) {
+                        console.log('activitySubTypeName : ' + data);
+                        activitySubTypeName = data;
+                        return resolve();
+                    }
+                });
+            } else {
+                return resolve();
+            }
+        }).then(()=>{
+          switch (activityTypeCategoryId) {
             case 2:    // notepad
                 /*
                  * 
@@ -473,6 +526,37 @@ function ActivityService(objectCollection) {
                         activityChannelCategoryId
                         );
                break;
+            //PAM
+            case 37:
+                console.log('Executing case 37');
+                activitySubTypeId = 0;
+                paramsArr = new Array(
+                        request.activity_id,
+                        request.activity_title,
+                        request.activity_description,
+                        (request.activity_inline_data),
+                        "",
+                        0,
+                        request.activity_datetime_start,
+                        request.activity_datetime_end,
+                        activityStatusId,
+                        request.activity_type_id,
+                        request.activity_parent_id,
+                        request.asset_id,
+                        request.workforce_id,
+                        request.account_id,
+                        request.organization_id,
+                        request.message_unique_id, //request.asset_id + new Date().getTime() + getRandomInt(), //message unique id
+                        request.flag_retry,
+                        request.flag_offline,
+                        request.asset_id,
+                        request.datetime_log, // server log date time   
+                        activityFormId,
+                        0,
+                        activityChannelId,
+                        activityChannelCategoryId
+                        );
+                break;
             default:
                 paramsArr = new Array(
                         request.activity_id,
@@ -507,9 +591,7 @@ function ActivityService(objectCollection) {
         paramsArr.push(request.track_longitude); 
         paramsArr.push(activitySubTypeId);
         paramsArr.push(activitySubTypeName); //PAM
-        
-        //var queryString = util.getQueryString('ds_v1_activity_list_insert', paramsArr);
-        //var queryString = util.getQueryString('ds_v1_activity_list_insert_sub_type', paramsArr);
+                
         var queryString = util.getQueryString('ds_v1_activity_list_insert_pam', paramsArr);
         if (queryString !== '') {
             db.executeQuery(0, queryString, request, function (err, data) {
@@ -554,6 +636,7 @@ function ActivityService(objectCollection) {
                 }
             });
         }
+        });
     };
 
     var assetActivityListInsertAddActivity = function (request, callback) {

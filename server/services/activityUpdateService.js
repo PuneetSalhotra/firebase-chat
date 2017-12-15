@@ -9,7 +9,7 @@ function ActivityUpdateService(objectCollection) {
     var activityCommonService = objectCollection.activityCommonService;
     var util = objectCollection.util;
     var activityPushService = objectCollection.activityPushService;
-    var queueWrapper = objCollection.queueWrapper;
+    var queueWrapper = objectCollection.queueWrapper;
 
     var activityListUpdateInline = function (request, callback) {
 
@@ -523,7 +523,8 @@ function ActivityUpdateService(objectCollection) {
                                     }
                                 });
                             } catch (exception) {
-                                res.send(responseWrapper.getResponse(false, {}, -3308,req.body));
+                                console.log('Exception vnk : ' + exception);
+                                //res.send(responseWrapper.getResponse(false, {}, -3308,request.body));
                                 return;
                             }
                         } else {
