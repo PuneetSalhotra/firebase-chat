@@ -1089,13 +1089,13 @@ function AssetService(objectCollection) {
     };
 
 
-
     this.alterAssetStatus = function (request, callback) {
         var dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
         
-        if(request.asset_assigned_status_id > 0) {
-            //Session Status
+        if(request.asset_assigned_status_id == 0 && (request.asset_clocked_status_id > 0 || request.asset_session_status_id > 0)){
+        
+        //Session Status
         this.getAssetDetails(request, (err, data, statuscode)=>{
                 
             var x = JSON.parse(JSON.stringify(data));
@@ -1110,6 +1110,9 @@ function AssetService(objectCollection) {
             console.log('requestAssetSessionStatusId : ' + requestAssetSessionStatusId);
             console.log('retrievedAssetSessionStatusId : ' + retrievedAssetSessionStatusId);
             
+            console.log('requestAssetStatusId Clocked : ' + requestAssetStatusId);
+            console.log('retrievedAssetStatusId Clocked : ' + retrievedAssetStatusId);
+            
             request['first_name'] = x.data.asset_first_name;
             request['last_name'] = x.data.asset_last_name;
             request['workforce_name'] = x.data.workforce_name;
@@ -1117,10 +1120,11 @@ function AssetService(objectCollection) {
             request['organization_name'] = x.data.organization_name;
             
             //Session Storage
-            if(requestAssetSessionStatusId === 8 || requestAssetSessionStatusId === 9) {
+            if(request.asset_clocked_status_id > 0) {
+                    if(requestAssetSessionStatusId === 8 || requestAssetSessionStatusId === 9) {
                 if(retrievedAssetSessionStatusId === 10) {
                     //MySQL Insert
-                    this.mySqlInsertForAlterAssetStatus(request, callback);
+                    //this.mySqlInsertForAlterAssetStatus(request, callback);
                 } else {
                     if(requestAssetSessionStatusId !== retrievedAssetSessionStatusId) {
                         //update log
@@ -1133,7 +1137,7 @@ function AssetService(objectCollection) {
                     global.logger.writeSession(request);
                     
                     //MySQL Insert
-                    this.mySqlInsertForAlterAssetStatus(request, callback);
+                    //this.mySqlInsertForAlterAssetStatus(request, callback);
                     }
                 }
             } else if(requestAssetSessionStatusId === 10) {
@@ -1147,16 +1151,18 @@ function AssetService(objectCollection) {
                     global.logger.writeSession(request);
                     
                     //MySQL Insert
-                    this.mySqlInsertForAlterAssetStatus(request, callback);
+                    //this.mySqlInsertForAlterAssetStatus(request, callback);
+                }
             }
             
-            //==================================
+            
+            //==========================================================================================================
             //Clock Status Storage
-            if(requestAssetStatusId === 1 || requestAssetStatusId === 3 || requestAssetStatusId === 4){    
+            if(request.asset_session_status_id > 0) {
+                   if(requestAssetStatusId === 1 || requestAssetStatusId === 3 || requestAssetStatusId === 4){    
                 if( retrievedAssetStatusId === 2) {
-                    //console.log('In if');
                     //MySql Insert
-                    this.mySqlInsertForAlterAssetStatus(request, callback);
+                    //this.mySqlInsertForAlterAssetStatus(request, callback);
                     
                 } else {
                     if(retrievedAssetStatusId !== requestAssetStatusId) {
@@ -1170,7 +1176,7 @@ function AssetService(objectCollection) {
                         global.logger.writeSession(request);
                     
                         //MySQL Insert
-                        this.mySqlInsertForAlterAssetStatus(request, callback);
+                       //this.mySqlInsertForAlterAssetStatus(request, callback);
                     }
                 }
             } else if(requestAssetStatusId === 2) {
@@ -1183,64 +1189,21 @@ function AssetService(objectCollection) {
                     global.logger.writeSession(request);
                     
                     //MySQL Insert
-                    this.mySqlInsertForAlterAssetStatus(request, callback);
+                    //this.mySqlInsertForAlterAssetStatus(request, callback);
                 }
-        });
-        }
-        
-            //Clocked Status
-            /*this.getAssetDetails(request, (err, data, statuscode)=>{
+            }
             
-                var x = JSON.parse(JSON.stringify(data));
-                var retrievedAssetStatusId = util.replaceDefaultNumber(x.data.asset_status_id);
-                var requestAssetStatusId = util.replaceDefaultNumber(request.asset_clocked_status_id);
-                var retrievedAssetStatusDateTime = util.replaceDefaultDatetime(x.data.asset_status_datetime);
-                
-                request['first_name'] = x.data.asset_first_name;
-                request['last_name'] = x.data.asset_last_name;
-                request['workforce_name'] = x.data.workforce_name;
-                request['account_name'] = x.data.account_name;
-                request['organization_name'] = x.data.organization_name;
-                
-                //console.log('asset_status_id : ' , x.data.asset_status_id);
-                //console.log('request.asset_clocked_status_id : ' , request.asset_clocked_status_id);
-                
-            if(requestAssetStatusId === 1 || requestAssetStatusId === 3 || requestAssetStatusId === 4){    
-                if( retrievedAssetStatusId === 2) {
-                    //console.log('In if');
-                    //MySql Insert
-                    this.mySqlInsertForAlterAssetStatus(request, callback);
-                    
-                } else {
-                    if(retrievedAssetStatusId != requestAssetStatusId) {
-                        //console.log('In else');
-                        var ms = util.differenceDatetimes(dateTimeLog, retrievedAssetStatusDateTime);
-                        var hours = (ms * 0.001)/3600;
-                        //console.log('dateTimeLog : ' + dateTimeLog)
-                        //console.log('retrievedAssetStatusDateTime : ' + retrievedAssetStatusDateTime)
-                        //console.log('Hours : ' + Math.round(hours));
-                        request['hours'] = Math.round(hours);
-                        global.logger.writeSession(request);
-                    
-                        //MySQL Insert
-                        this.mySqlInsertForAlterAssetStatus(request, callback);
-                    }
-                }
-            } else if(requestAssetStatusId === 2) {
-                    var ms = util.differenceDatetimes(dateTimeLog, retrievedAssetStatusDateTime);
-                    var hours = (ms * 0.001)/3600;
-                    //console.log('dateTimeLog : ' + dateTimeLog)
-                    //console.log('retrievedAssetStatusDateTime : ' + retrievedAssetStatusDateTime)
-                    //console.log('Hours : ' + Math.round(hours));
-                    request['hours'] = Math.round(hours);
-                    global.logger.writeSession(request);
-                    
+        });
+                //MySQL Insert
+                this.mySqlInsertForAlterAssetStatus(request, callback);
+        } else if(request.asset_assigned_status_id > 0 && request.asset_session_status_id == 0 && request.asset_clocked_status_id == 0) {
                     //MySQL Insert
                     this.mySqlInsertForAlterAssetStatus(request, callback);
-                }
-                
-            }); */
-                     
+        } else {
+            //console.log('request : ' , request);
+            global.logger.write('request', '-3206', request, request);
+            callback('', {}, -3206);
+        }                     
         };
         
     this.mySqlInsertForAlterAssetStatus = function(request,callback) {
