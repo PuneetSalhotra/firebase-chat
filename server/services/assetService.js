@@ -266,14 +266,6 @@ function AssetService(objectCollection) {
             'user_asset_access_role_name': util.replaceDefaultString(row['user_asset_access_role_name']),
             'user_asset_access_level_id': util.replaceDefaultNumber(row['user_asset_access_level_id']),
             'user_asset_access_level_name': util.replaceDefaultString(row['user_asset_access_level_name']),
-            'operating_asset_id': util.replaceDefaultNumber(row['operating_asset_id']),
-            'operating_asset_first_name': util.replaceDefaultString(row['operating_asset_first_name']),
-            'operating_asset_last_name': util.replaceDefaultString(row['operating_asset_last_name']),
-            'operating_asset_image_path': util.replaceDefaultString(row['operating_asset_image_path']),
-            'operating_asset_type_id': util.replaceDefaultNumber(row['operating_asset_type_id']),
-            'operating_asset_type_name': util.replaceDefaultString(row['operating_asset_type_name']),
-            'operating_asset_type_category_id': util.replaceDefaultNumber(row['operating_asset_type_category_id']),
-            'operating_asset_type_category_name': util.replaceDefaultString(row['operating_asset_type_category_name']),
             'activity_id': util.replaceDefaultNumber(row['activity_id']),
             'activity_title': util.replaceDefaultString(row['activity_title']),
             'activity_type_id': util.replaceDefaultNumber(row['activity_type_id']),
@@ -302,9 +294,6 @@ function AssetService(objectCollection) {
             'account_type_name': util.replaceDefaultString(row['account_type_name']),
             'account_type_category_id': util.replaceDefaultNumber(row['account_type_category_id']),
             'account_type_category_name': util.replaceDefaultString(row['account_type_category_name']),
-            'account_location_latitude': util.replaceDefaultString(row['account_location_latitude']),
-            'account_location_longitude': util.replaceDefaultString(row['account_location_longitude']),
-            'account_address': util.replaceDefaultString(row['account_address']),
             'organization_id': util.replaceDefaultNumber(row['organization_id']),
             'organization_name': util.replaceDefaultString(row['organization_name']),
             'organization_image_path': util.replaceDefaultString(row['organization_image_path']),
@@ -315,6 +304,7 @@ function AssetService(objectCollection) {
             'workforce_view_map_enabled': util.replaceDefaultNumber(row['workforce_view_map_enabled']),
             'log_asset_id': util.replaceDefaultNumber(row['log_asset_id']),
             'log_asset_first_name': util.replaceDefaultString(row['log_asset_first_name']),
+            'log_asset_last_name': util.replaceDefaultString(row['log_asset_first_name']),
             'asset_last_name': util.replaceDefaultString(row['asset_last_name']),
             'log_asset_image_path': util.replaceDefaultString(row['log_asset_image_path']),
             'log_datetime': util.replaceDefaultDatetime(row['log_datetime']),
@@ -1267,9 +1257,9 @@ function AssetService(objectCollection) {
                          callback(err, {}, -9998);
                     }
                 });
-    }
+    };
 
-    this.alterAssetAssignedStatus = function (request, callback) {
+    /*this.alterAssetAssignedStatus = function (request, callback) {
         var dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
         assetListUpdateStatus(request, request.asset_id, function (err, data) {
@@ -1304,7 +1294,7 @@ function AssetService(objectCollection) {
             }
         });
 
-    };
+    }; 
 
     this.alterAssetLampStatus = function (request, callback) {
         var dateTimeLog = util.getCurrentUTCTime();
@@ -1341,7 +1331,7 @@ function AssetService(objectCollection) {
             }
         });
 
-    };
+    };*/
     
     //PAM
     this.removeAsset = function (request, callback) {
