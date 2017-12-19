@@ -1093,7 +1093,7 @@ function AssetService(objectCollection) {
         var dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
         
-        if(request.asset_assigned_status_id == 0 && (request.asset_clocked_status_id > 0 || request.asset_session_status_id > 0)){
+        if(request.asset_clocked_status_id > 0 || request.asset_session_status_id > 0){
         
         //Session Status
         this.getAssetDetails(request, (err, data, statuscode)=>{
@@ -1192,19 +1192,14 @@ function AssetService(objectCollection) {
                     //this.mySqlInsertForAlterAssetStatus(request, callback);
                 }
             }
-            
+         //MySQL Insert
+         this.mySqlInsertForAlterAssetStatus(request, callback);           
         });
-                //MySQL Insert
-                this.mySqlInsertForAlterAssetStatus(request, callback);
-        } else if(request.asset_assigned_status_id > 0 && request.asset_session_status_id == 0 && request.asset_clocked_status_id == 0) {
-                    //MySQL Insert
-                    this.mySqlInsertForAlterAssetStatus(request, callback);
-        } else {
-            //console.log('request : ' , request);
-            global.logger.write('request', '-3206', request, request);
-            callback('', {}, -3206);
-        }                     
-        };
+       } else {
+            //MySQL Insert
+            this.mySqlInsertForAlterAssetStatus(request, callback);        
+       }
+       };
         
     this.mySqlInsertForAlterAssetStatus = function(request,callback) {
         assetListUpdateStatus(request, request.asset_id, function (err, data) {
@@ -1532,7 +1527,7 @@ function AssetService(objectCollection) {
             db.executeQuery(0, queryString, request, function (err, assetData) {
                 if (err === false) {
                     assetListHistoryInsert(request, assetData[0]['asset_id'], request.organization_id, 0, dateTimeLog, function (err, data) {});
-                    callback(false, {"asset_id" : assetData[0]['asset_id']});
+                    callback(false, {"asset_id" : assetData[0]['asset_id']}, 200);
                 } else {
                     // some thing is wrong and have to be dealt
                     callback(true, err, -9999);
