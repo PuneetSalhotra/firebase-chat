@@ -70,7 +70,7 @@ function ActivityListingService(objCollection) {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log(data);
                 if (err === false) {
-                    formatActivityListing(data, function (err, finalData) {
+                    formatActivityAccountListing(data, function (err, finalData) {
                         if (err === false) {
                             callback(false, {data: finalData}, 200);
                         }
@@ -86,7 +86,80 @@ function ActivityListingService(objCollection) {
 
     };
     
-
+    var formatActivityAccountListing = function (data, callback) {
+        var responseData = new Array();
+        data.forEach(function (rowData, index) {
+            var rowDataArr = {
+                "activity_id": util.replaceDefaultNumber(rowData['activity_id']),
+                "activity_title": util.replaceDefaultString(util.ucfirst(util.decodeSpecialChars(rowData['activity_title']))),
+                "activity_description": util.replaceDefaultString(util.decodeSpecialChars(rowData['activity_description'])),
+                "activity_inline_data": JSON.parse(util.replaceDefaultString(rowData['activity_inline_data'])),
+                "activity_type_id": util.replaceDefaultNumber(rowData['activity_type_id']),
+                "activity_type_name": (util.replaceDefaultString(rowData['activity_type_id']) === 1) ? 'Personal ' : util.replaceDefaultString(rowData['activity_type_name']),
+                "activity_type_category_id": util.replaceDefaultNumber(rowData['activity_type_category_id']),
+                "activity_type_category_name": util.replaceDefaultString(rowData['activity_type_category_name']),
+                "activity_datetime_start_expected": util.replaceDefaultDatetime(rowData['activity_datetime_start_expected']),
+                "activity_datetime_end_expected": util.replaceDefaultString(rowData['activity_datetime_end_expected']),
+                "activity_datetime_end_deferred": util.replaceDefaultString(rowData['activity_datetime_end_deferred']),
+                "activity_datetime_end_estimated": util.replaceDefaultString(rowData['activity_datetime_end_estimated']),
+                "activity_priority_enabled": util.replaceZero(rowData['activity_priority_enabled']),
+                "activity_pinned_enabled": util.replaceZero(rowData['activity_pinned_enabled']),
+                "activity_flag_active": util.replaceZero(rowData['is_active']),
+                "activity_location_latitude": util.replaceZero(rowData['activity_location_latitude']),
+                "activity_location_longitude": util.replaceZero(rowData['activity_location_longitude']),
+                "activity_status_id": util.replaceDefaultNumber(rowData['activity_status_id']),
+                "activity_status_name": util.replaceDefaultString(rowData['activity_status_name']),
+                "activity_status_type_id": util.replaceDefaultNumber(rowData['activity_status_type_id']),
+                "activity_status_type_name": util.replaceDefaultString(rowData['activity_status_type_name']),
+                "activity_update_count": util.replaceDefaultNumber(rowData['asset_unread_updates_count']),
+                "asset_unread_field_updates_count": util.replaceDefaultNumber(rowData['asset_unread_field_updates_count']),
+                "asset_unread_updates_count": util.replaceDefaultNumber(rowData['asset_unread_updates_count']),
+                "asset_id": util.replaceDefaultNumber(rowData['asset_id']),
+                "workforce_id": util.replaceZero(rowData['workforce_id']),
+                "workforce_name": util.replaceDefaultString(rowData['workforce_name']),
+                "activity_image_path": util.replaceDefaultActivityImage(rowData['activity_image_path']),
+                "log_asset_id": util.replaceDefaultNumber(rowData['log_asset_id']),
+                "log_state": util.replaceDefaultNumber(rowData['log_state']),
+                "log_active": util.replaceDefaultNumber(rowData['log_active']),
+                "log_datetime": util.replaceDefaultDatetime(rowData['asset_datetime_last_differential']),
+                "asset_participant_access_id": util.replaceDefaultNumber(rowData['asset_participant_access_id']),
+                "asset_participant_access_name": util.replaceDefaultString(rowData['asset_participant_access_name']),
+                "parent_activity_id": util.replaceDefaultNumber(rowData['parent_activity_id']),
+                "parent_activity_title": util.replaceDefaultString(util.decodeSpecialChars(rowData['parent_activity_title'])),
+                "parent_activity_datetime_start_expected": util.replaceDefaultDatetime(rowData['parent_activity_datetime_start_expected']),
+                "parent_activity_datetime_end_expected": (util.replaceDefaultString(rowData['parent_activity_datetime_end_differed']) !== '') ? util.replaceDefaultDatetime(rowData['parent_activity_datetime_end_differed']) : util.replaceDefaultDatetime(rowData['parent_activity_datetime_end_expected']), //parentActivityEndDiffered,
+                "parent_activity_type_id": util.replaceDefaultNumber(rowData['parent_activity_type_id']),
+                "parent_activity_type_name": util.replaceDefaultString(rowData['parent_activity_type_name']),
+                "parent_activity_type_category_id": util.replaceDefaultNumber(rowData['parent_activity_type_category_id']),
+                "parent_activity_type_category_name": util.replaceDefaultString(rowData['parent_activity_type_category_name']),
+                "activity_participant_count": util.replaceZero(rowData['participant_count']),
+                "account_id": util.replaceZero(rowData['account_id']),
+                "account_name": util.replaceDefaultString(rowData['account_name']),
+                "form_id": util.replaceZero(rowData['form_id']),
+                "form_transaction_id": util.replaceZero(rowData['form_transaction_id']),
+                "operating_asset_id": util.replaceZero(rowData['operating_asset_id']),
+                "operating_asset_first_name": util.replaceDefaultString(rowData['operating_asset_first_name']),
+                "operating_asset_last_name": util.replaceDefaultString(rowData['operating_asset_last_name']),
+                "activity_sub_type_id": util.replaceDefaultNumber(rowData['activity_sub_type_id']),
+                "activity_sub_type_name": util.replaceDefaultString(rowData['activity_sub_type_name']),
+                "asset_first_name": util.replaceDefaultString(rowData['asset_first_name']),
+                "asset_last_name": util.replaceDefaultString(rowData['asset_last_name']),
+                "asset_image_path": util.replaceDefaultString(rowData['asset_image_path']),
+                "asset_type_id": util.replaceDefaultNumber(rowData['asset_type_id']),
+                "asset_type_name": util.replaceDefaultString(rowData['asset_type_name']),
+                "asset_type_category_id": util.replaceDefaultNumber(rowData['asset_type_category_id']),
+                "asset_type_category_name": util.replaceDefaultString(rowData['activity_sub_type_name']),
+                "operating_asset_image_path":util.replaceDefaultString(rowData['operating_asset_image_path']),
+                "operating_asset_type_id":util.replaceDefaultNumber(rowData['operating_asset_type_id']),
+                "operating_asset_type_name":util.replaceDefaultString(rowData['operating_asset_type_name']),
+                "operating_asset_type_category_id":util.replaceDefaultNumber(rowData['operating_asset_type_category_id']),
+                "operating_asset_type_category_name":util.replaceDefaultString(rowData['operating_asset_type_category_name'])
+            };
+            responseData.push(rowDataArr);
+        }, this);
+        callback(false, responseData);
+    };
+    
     this.getActivityInlineCollection = function (request, callback) {
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
@@ -466,8 +539,6 @@ function ActivityListingService(objCollection) {
         }
 
     };
-
-
 
     var formatActivityInlineCollection = function (data, collection, callback) {
 
