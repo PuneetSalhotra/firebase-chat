@@ -52,7 +52,7 @@ if (mode === 'prod') {
     config.iosPushMode = 'prod';    // currently shouuld be in dev
 }
 
-config.platformApplicationIosDev = 'arn:aws:sns:us-east-1:430506864995:app/APNS_SANDBOX/deskerIOS';
+config.platformApplicationIosDev = 'arn:aws:sns:us-east-1:430506864995:app/APNS_VOIP_SANDBOX/VOIPios';
 config.platformApplicationIosProd = "AC66cabb9ae7db92bbf7e6113ff2eeabad";
 config.platformApplicationAndroid = "arn:aws:sns:us-east-1:430506864995:app/GCM/DeskerCoAndroid";
 //config.platformApplicationAndroid = "arn:aws:sns:us-east-1:430506864995:app/GCM/deskerAndroid";
