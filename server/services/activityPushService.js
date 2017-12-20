@@ -183,7 +183,7 @@ function ActivityPushService() {
                         objectCollection.forEachAsync(pushReceivers, function (next, rowData) {
                             objectCollection.cacheWrapper.getAssetMap(rowData.assetId, function (err, assetMap) {
                                 //console.log(rowData.assetId, ' is asset for which we are about to send push');
-                                global.logger.write('debug', rowData.assetId + ' is asset for which we are about to send push',{},request)
+                                global.logger.write('debug', rowData.assetId + ' is asset for which we are about to send push',{},request);
                                 if (Object.keys(assetMap).length > 0) {
                                     getAssetBadgeCount(request, objectCollection, assetMap.asset_id, assetMap.organization_id, function (err, badgeCount) {
                                         //console.log(badgeCount, ' is badge count obtained from db');
