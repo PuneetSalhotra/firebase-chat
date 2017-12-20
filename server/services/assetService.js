@@ -266,14 +266,6 @@ function AssetService(objectCollection) {
             'user_asset_access_role_name': util.replaceDefaultString(row['user_asset_access_role_name']),
             'user_asset_access_level_id': util.replaceDefaultNumber(row['user_asset_access_level_id']),
             'user_asset_access_level_name': util.replaceDefaultString(row['user_asset_access_level_name']),
-            'operating_asset_id': util.replaceDefaultNumber(row['operating_asset_id']),
-            'operating_asset_first_name': util.replaceDefaultString(row['operating_asset_first_name']),
-            'operating_asset_last_name': util.replaceDefaultString(row['operating_asset_last_name']),
-            'operating_asset_image_path': util.replaceDefaultString(row['operating_asset_image_path']),
-            'operating_asset_type_id': util.replaceDefaultNumber(row['operating_asset_type_id']),
-            'operating_asset_type_name': util.replaceDefaultString(row['operating_asset_type_name']),
-            'operating_asset_type_category_id': util.replaceDefaultNumber(row['operating_asset_type_category_id']),
-            'operating_asset_type_category_name': util.replaceDefaultString(row['operating_asset_type_category_name']),
             'activity_id': util.replaceDefaultNumber(row['activity_id']),
             'activity_title': util.replaceDefaultString(row['activity_title']),
             'activity_type_id': util.replaceDefaultNumber(row['activity_type_id']),
@@ -302,9 +294,6 @@ function AssetService(objectCollection) {
             'account_type_name': util.replaceDefaultString(row['account_type_name']),
             'account_type_category_id': util.replaceDefaultNumber(row['account_type_category_id']),
             'account_type_category_name': util.replaceDefaultString(row['account_type_category_name']),
-            'account_location_latitude': util.replaceDefaultString(row['account_location_latitude']),
-            'account_location_longitude': util.replaceDefaultString(row['account_location_longitude']),
-            'account_address': util.replaceDefaultString(row['account_address']),
             'organization_id': util.replaceDefaultNumber(row['organization_id']),
             'organization_name': util.replaceDefaultString(row['organization_name']),
             'organization_image_path': util.replaceDefaultString(row['organization_image_path']),
@@ -315,6 +304,7 @@ function AssetService(objectCollection) {
             'workforce_view_map_enabled': util.replaceDefaultNumber(row['workforce_view_map_enabled']),
             'log_asset_id': util.replaceDefaultNumber(row['log_asset_id']),
             'log_asset_first_name': util.replaceDefaultString(row['log_asset_first_name']),
+            'log_asset_last_name': util.replaceDefaultString(row['log_asset_first_name']),
             'asset_last_name': util.replaceDefaultString(row['asset_last_name']),
             'log_asset_image_path': util.replaceDefaultString(row['log_asset_image_path']),
             'log_datetime': util.replaceDefaultDatetime(row['log_datetime']),
@@ -1099,13 +1089,13 @@ function AssetService(objectCollection) {
     };
 
 
-
     this.alterAssetStatus = function (request, callback) {
         var dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
         
-        if(request.asset_assigned_status_id > 0) {
-            //Session Status
+        if(request.asset_clocked_status_id > 0 || request.asset_session_status_id > 0){
+        
+        //Session Status
         this.getAssetDetails(request, (err, data, statuscode)=>{
                 
             var x = JSON.parse(JSON.stringify(data));
@@ -1120,6 +1110,9 @@ function AssetService(objectCollection) {
             console.log('requestAssetSessionStatusId : ' + requestAssetSessionStatusId);
             console.log('retrievedAssetSessionStatusId : ' + retrievedAssetSessionStatusId);
             
+            console.log('requestAssetStatusId Clocked : ' + requestAssetStatusId);
+            console.log('retrievedAssetStatusId Clocked : ' + retrievedAssetStatusId);
+            
             request['first_name'] = x.data.asset_first_name;
             request['last_name'] = x.data.asset_last_name;
             request['workforce_name'] = x.data.workforce_name;
@@ -1127,10 +1120,11 @@ function AssetService(objectCollection) {
             request['organization_name'] = x.data.organization_name;
             
             //Session Storage
-            if(requestAssetSessionStatusId === 8 || requestAssetSessionStatusId === 9) {
+            if(request.asset_clocked_status_id > 0) {
+                    if(requestAssetSessionStatusId === 8 || requestAssetSessionStatusId === 9) {
                 if(retrievedAssetSessionStatusId === 10) {
                     //MySQL Insert
-                    this.mySqlInsertForAlterAssetStatus(request, callback);
+                    //this.mySqlInsertForAlterAssetStatus(request, callback);
                 } else {
                     if(requestAssetSessionStatusId !== retrievedAssetSessionStatusId) {
                         //update log
@@ -1143,7 +1137,7 @@ function AssetService(objectCollection) {
                     global.logger.writeSession(request);
                     
                     //MySQL Insert
-                    this.mySqlInsertForAlterAssetStatus(request, callback);
+                    //this.mySqlInsertForAlterAssetStatus(request, callback);
                     }
                 }
             } else if(requestAssetSessionStatusId === 10) {
@@ -1157,16 +1151,18 @@ function AssetService(objectCollection) {
                     global.logger.writeSession(request);
                     
                     //MySQL Insert
-                    this.mySqlInsertForAlterAssetStatus(request, callback);
+                    //this.mySqlInsertForAlterAssetStatus(request, callback);
+                }
             }
             
-            //==================================
+            
+            //==========================================================================================================
             //Clock Status Storage
-            if(requestAssetStatusId === 1 || requestAssetStatusId === 3 || requestAssetStatusId === 4){    
+            if(request.asset_session_status_id > 0) {
+                   if(requestAssetStatusId === 1 || requestAssetStatusId === 3 || requestAssetStatusId === 4){    
                 if( retrievedAssetStatusId === 2) {
-                    //console.log('In if');
                     //MySql Insert
-                    this.mySqlInsertForAlterAssetStatus(request, callback);
+                    //this.mySqlInsertForAlterAssetStatus(request, callback);
                     
                 } else {
                     if(retrievedAssetStatusId !== requestAssetStatusId) {
@@ -1180,7 +1176,7 @@ function AssetService(objectCollection) {
                         global.logger.writeSession(request);
                     
                         //MySQL Insert
-                        this.mySqlInsertForAlterAssetStatus(request, callback);
+                       //this.mySqlInsertForAlterAssetStatus(request, callback);
                     }
                 }
             } else if(requestAssetStatusId === 2) {
@@ -1193,65 +1189,17 @@ function AssetService(objectCollection) {
                     global.logger.writeSession(request);
                     
                     //MySQL Insert
-                    this.mySqlInsertForAlterAssetStatus(request, callback);
+                    //this.mySqlInsertForAlterAssetStatus(request, callback);
                 }
+            }
+         //MySQL Insert
+         this.mySqlInsertForAlterAssetStatus(request, callback);           
         });
-        }
-        
-            //Clocked Status
-            /*this.getAssetDetails(request, (err, data, statuscode)=>{
-            
-                var x = JSON.parse(JSON.stringify(data));
-                var retrievedAssetStatusId = util.replaceDefaultNumber(x.data.asset_status_id);
-                var requestAssetStatusId = util.replaceDefaultNumber(request.asset_clocked_status_id);
-                var retrievedAssetStatusDateTime = util.replaceDefaultDatetime(x.data.asset_status_datetime);
-                
-                request['first_name'] = x.data.asset_first_name;
-                request['last_name'] = x.data.asset_last_name;
-                request['workforce_name'] = x.data.workforce_name;
-                request['account_name'] = x.data.account_name;
-                request['organization_name'] = x.data.organization_name;
-                
-                //console.log('asset_status_id : ' , x.data.asset_status_id);
-                //console.log('request.asset_clocked_status_id : ' , request.asset_clocked_status_id);
-                
-            if(requestAssetStatusId === 1 || requestAssetStatusId === 3 || requestAssetStatusId === 4){    
-                if( retrievedAssetStatusId === 2) {
-                    //console.log('In if');
-                    //MySql Insert
-                    this.mySqlInsertForAlterAssetStatus(request, callback);
-                    
-                } else {
-                    if(retrievedAssetStatusId != requestAssetStatusId) {
-                        //console.log('In else');
-                        var ms = util.differenceDatetimes(dateTimeLog, retrievedAssetStatusDateTime);
-                        var hours = (ms * 0.001)/3600;
-                        //console.log('dateTimeLog : ' + dateTimeLog)
-                        //console.log('retrievedAssetStatusDateTime : ' + retrievedAssetStatusDateTime)
-                        //console.log('Hours : ' + Math.round(hours));
-                        request['hours'] = Math.round(hours);
-                        global.logger.writeSession(request);
-                    
-                        //MySQL Insert
-                        this.mySqlInsertForAlterAssetStatus(request, callback);
-                    }
-                }
-            } else if(requestAssetStatusId === 2) {
-                    var ms = util.differenceDatetimes(dateTimeLog, retrievedAssetStatusDateTime);
-                    var hours = (ms * 0.001)/3600;
-                    //console.log('dateTimeLog : ' + dateTimeLog)
-                    //console.log('retrievedAssetStatusDateTime : ' + retrievedAssetStatusDateTime)
-                    //console.log('Hours : ' + Math.round(hours));
-                    request['hours'] = Math.round(hours);
-                    global.logger.writeSession(request);
-                    
-                    //MySQL Insert
-                    this.mySqlInsertForAlterAssetStatus(request, callback);
-                }
-                
-            }); */
-                     
-        };
+       } else {
+            //MySQL Insert
+            this.mySqlInsertForAlterAssetStatus(request, callback);        
+       }
+       };
         
     this.mySqlInsertForAlterAssetStatus = function(request,callback) {
         assetListUpdateStatus(request, request.asset_id, function (err, data) {
@@ -1267,9 +1215,9 @@ function AssetService(objectCollection) {
                          callback(err, {}, -9998);
                     }
                 });
-    }
+    };
 
-    this.alterAssetAssignedStatus = function (request, callback) {
+    /*this.alterAssetAssignedStatus = function (request, callback) {
         var dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
         assetListUpdateStatus(request, request.asset_id, function (err, data) {
@@ -1304,7 +1252,7 @@ function AssetService(objectCollection) {
             }
         });
 
-    };
+    }; 
 
     this.alterAssetLampStatus = function (request, callback) {
         var dateTimeLog = util.getCurrentUTCTime();
@@ -1341,7 +1289,7 @@ function AssetService(objectCollection) {
             }
         });
 
-    };
+    };*/
     
     //PAM
     this.removeAsset = function (request, callback) {
@@ -1579,7 +1527,7 @@ function AssetService(objectCollection) {
             db.executeQuery(0, queryString, request, function (err, assetData) {
                 if (err === false) {
                     assetListHistoryInsert(request, assetData[0]['asset_id'], request.organization_id, 0, dateTimeLog, function (err, data) {});
-                    callback(false, {"asset_id" : assetData[0]['asset_id']});
+                    callback(false, {"asset_id" : assetData[0]['asset_id']}, 200);
                 } else {
                     // some thing is wrong and have to be dealt
                     callback(true, err, -9999);

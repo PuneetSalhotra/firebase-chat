@@ -240,11 +240,27 @@ function ActivityUpdateService(objectCollection) {
     var assetActivityListUpdateCover = function (request, callback) {
         var paramsArr = new Array();
         var queryString = '';
+        var dbCall = '';
         var coverJson = JSON.parse(request.activity_cover_data);
         activityCommonService.getAllParticipants(request, function (err, participantsData) {
-            if (err === false && participantsData.length > 0) {
+             if (err === false && participantsData.length > 0) {
                 participantsData.forEach(function (rowData, index) {
-                    paramsArr = new Array(
+                    if(coverJson.hasOwnProperty('start_date')) {
+                        dbCall = 'ds_v1_activity_asset_mapping_update_calendar_cover';
+                        paramsArr = new Array(
+                            request.activity_id,
+                            rowData.asset_id,
+                            request.organization_id,
+                            coverJson.title.new,
+                            coverJson.description.new,
+                            coverJson.start_date.new,
+                            coverJson.duedate.new,
+                            rowData.asset_id,
+                            request.datetime_log
+                            );
+                    } else {
+                         dbCall ='ds_v1_activity_asset_mapping_update';
+                         paramsArr = new Array(
                             request.activity_id,
                             rowData.asset_id,
                             request.organization_id,
@@ -254,7 +270,10 @@ function ActivityUpdateService(objectCollection) {
                             rowData.asset_id,
                             request.datetime_log
                             );
-                    queryString = util.getQueryString('ds_v1_activity_asset_mapping_update', paramsArr);
+                        }
+                    
+                    //queryString = util.getQueryString('ds_v1_activity_asset_mapping_update', paramsArr);
+                    queryString = util.getQueryString(dbCall, paramsArr);
                     if (queryString != '') {
                         db.executeQuery(0, queryString, request, function (err, data) {
                             if (err === false) {

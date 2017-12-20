@@ -14,7 +14,7 @@ function ActivityTimelineService(objectCollection) {
     this.addTimelineTransaction = function (request, callback) {
 
         var logDatetime = util.getCurrentUTCTime();
-        request['datetime_log'] = logDatetime;
+        request['datetime_log'] = logDatetime;        
         var activityTypeCategoryId = Number(request.activity_type_category_id);
         var activityStreamTypeId = Number(request.activity_stream_type_id);
         activityCommonService.updateAssetLocation(request, function (err, data) {});
@@ -247,7 +247,7 @@ function ActivityTimelineService(objectCollection) {
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     if (err === false) {
-                        formatActivityTimelineList(data, 0, function (err, responseData) {
+                        formatAssetTimelineList(data, function (err, responseData) {
                             if (err === false) {
                                 callback(false, {data: responseData}, 200);
                             } else {
@@ -290,6 +290,50 @@ function ActivityTimelineService(objectCollection) {
             rowDataArr.organization_id = util.replaceDefaultNumber(rowData['organization_id']);
             rowDataArr.organization_name = util.replaceDefaultString(rowData['organization_name']);
             rowDataArr.datetime_log = util.replaceDefaultDatetime(rowData['log_datetime']);
+            responseData.push(rowDataArr);
+            next();
+        }).then(function () {
+            callback(false, responseData);
+        });
+
+    };
+    
+    //PAM
+    var formatAssetTimelineList = function (data, callback) {
+        var responseData = new Array();
+        forEachAsync(data, function (next, rowData) {
+            var rowDataArr = {};
+            rowDataArr.activity_id = util.replaceDefaultNumber(rowData['activity_id']);
+            rowDataArr.activity_type_id = util.replaceDefaultNumber(rowData['activity_type_id']);
+            rowDataArr.activity_type_category_id = util.replaceDefaultNumber(rowData['activity_type_category_id']);
+            rowDataArr.timeline_transaction_id = util.replaceDefaultNumber(rowData['timeline_transaction_id']);
+            rowDataArr.timeline_transaction_datetime = util.replaceDefaultDatetime(rowData['timeline_transaction_datetime']);
+            rowDataArr.timeline_stream_type_id = util.replaceDefaultNumber(rowData['timeline_stream_type_id']);
+            rowDataArr.timeline_stream_type_name = util.replaceDefaultString(rowData['timeline_stream_type_name']);
+            rowDataArr.asset_id = util.replaceDefaultNumber(rowData['asset_id']);
+            rowDataArr.asset_first_name = util.replaceDefaultString(rowData['asset_first_name']);
+            rowDataArr.asset_last_name = util.replaceDefaultString(rowData['asset_last_name']);
+            rowDataArr.asset_image_path = util.replaceDefaultString(rowData['asset_image_path']);
+            rowDataArr.workforce_id = util.replaceDefaultNumber(rowData['workforce_id']);
+            rowDataArr.workforce_name = util.replaceDefaultString(rowData['workforce_name']);
+            rowDataArr.account_id = util.replaceDefaultNumber(rowData['account_id']);
+            rowDataArr.account_name = util.replaceDefaultString(rowData['account_name']);
+            rowDataArr.organization_id = util.replaceDefaultNumber(rowData['organization_id']);
+            rowDataArr.organization_name = util.replaceDefaultString(rowData['organization_name']);
+            rowDataArr.datetime_log = util.replaceDefaultDatetime(rowData['log_datetime']);
+            rowDataArr.message_unique_id = rowData['log_message_unique_id'];
+            rowDataArr.activity_timeline_text = '';
+            rowDataArr.activity_timeline_url = '';
+            rowDataArr.activity_timeline_collection = {};
+            rowDataArr.activity_timeline_url_title ='';
+            rowDataArr.log_message_unique_id = util.replaceDefaultNumber(rowData['log_message_unique_id']);
+            rowDataArr.log_retry = util.replaceDefaultNumber(rowData['log_retry']);
+            rowDataArr.log_offline = util.replaceDefaultNumber(rowData['log_offline']);
+            rowDataArr.log_asset_id = util.replaceDefaultNumber(rowData['log_asset_id']);
+            rowDataArr.log_asset_name = util.replaceDefaultString(rowData['log_asset_name']);
+            rowDataArr.log_asset_image_path = util.replaceDefaultString(rowData['log_asset_image_path']);
+            rowDataArr.log_datetime = util.replaceDefaultDatetime(rowData['log_datetime']);
+            
             responseData.push(rowDataArr);
             next();
         }).then(function () {

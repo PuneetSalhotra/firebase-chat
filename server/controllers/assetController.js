@@ -245,7 +245,7 @@ function AssetController(objCollection) {
 
     });
    
-    app.put('/' + global.config.version + '/asset/cover/assigned_status/alter', function (req, res) {
+    /*app.put('/' + global.config.version + '/asset/cover/assigned_status/alter', function (req, res) {
         req.body['module'] = 'asset';
         assetService.alterAssetAssignedStatus(req.body, function (err, data, statusCode) {
             if (err === false) {
@@ -258,8 +258,8 @@ function AssetController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
-
-    });
+    
+    }); 
     
     app.put('/' + global.config.version + '/asset/cover/lamp/alter', function (req, res) {
         req.body['module'] = 'asset';
@@ -275,7 +275,7 @@ function AssetController(objCollection) {
             }
         });
 
-    });
+    });*/
     
     //PAM
     app.post('/' + global.config.version + '/asset_mapping/access/account/list', function (req, res) {
@@ -355,7 +355,7 @@ function AssetController(objCollection) {
     });
     
     //PAM
-    app.put('/' + global.config.version + '/asset/status/alter', function (req, res) {
+    app.put('/' + global.config.version + '/asset/state/alter', function (req, res) {
           assetService.removeAsset(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response   

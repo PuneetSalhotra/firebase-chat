@@ -954,6 +954,25 @@ function ActivityService(objectCollection) {
                 case 34: //Time Card 
                     activityStreamTypeId = 1502;
                     break;
+                //PAM
+                case 36:    //Menu Item
+                    activityStreamTypeId = 19004;
+                    break;
+                case 37:    //Reservation
+                    activityStreamTypeId = 18004;
+                    break;
+                /*case 38:    //Item Order
+                    activityStreamTypeId = 21001;
+                    break;
+                case 39:    //Inventory
+                    activityStreamTypeId = 20001;
+                    break;*/
+                case 40:    //Payment
+                    activityStreamTypeId = 22007;
+                    break;
+                case 41:    //Event
+                    activityStreamTypeId = 17004;
+                    break;        
                 default:
                     activityStreamTypeId = 11;   //by default so that we know
                     //console.log('adding streamtype id 11');
