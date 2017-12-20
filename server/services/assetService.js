@@ -156,6 +156,39 @@ function AssetService(objectCollection) {
         }
 
     };
+    
+    
+    //BETA
+    this.getMeetingRoomAssets = function (request, callback) {
+        var paramsArr = new Array();
+        var queryString = '';
+        paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.asset_type_category_id,
+                request.page_start,
+                util.replaceQueryLimit(request.page_limit)
+                );
+        queryString = util.getQueryString('ds_v1_asset_list_select_asset_category', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (err === false) {
+                    //console.log(data);
+                    formatAssetAccountDataLevel(data, function (err, finalData) {
+                        if (err === false) {
+                            callback(false, {data: finalData}, 200);
+                        }
+                    });
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, false, -9999);
+                    return;
+                }
+            });
+        }
+
+    };
 
 
     var formatPhoneNumberAssets = function (rows, callback) {
@@ -503,6 +536,7 @@ function AssetService(objectCollection) {
         var encToken = uuid.v1();
 
         var proceedLinking = function (proceedLinkingCallback) {
+            
             updateAssetLinkStatus(request, request.asset_id, encToken, dateTimeLog, function (err, data) {
                 if (err === false) {
                     var responseArr = {
@@ -517,10 +551,14 @@ function AssetService(objectCollection) {
                         "asset_push_arn": request.asset_push_arn,
                         "asset_auth_token": encToken
                     };
+                    console.log('1')
+                    
                     updateAssetLinkStatus(request, request.operating_asset_id, encToken, dateTimeLog, function (err, data) {
+                        console.log('2')
                         assetListHistoryInsert(request, request.operating_asset_id, request.organization_id, 201, dateTimeLog, function (err, data) {
-
+                        console.log('3')
                             cacheWrapper.getAssetParity(request.operating_asset_id, function (err, reply) {  // retriving asset parity for operating asset id
+                                console.log('4')
                                 if (!err) {
                                     authTokenCollection.asset_id = request.operating_asset_id;
                                     if (reply === 0) {    // setting asset parity to 0
@@ -533,6 +571,7 @@ function AssetService(objectCollection) {
                                     cacheWrapper.setTokenAuth(request.operating_asset_id, JSON.stringify(authTokenCollection), function (err, reply) {
                                         if (!err) {
                                             //global.logger.write("auth token is set in redis for operating asset id", request, 'asset', 'trace');
+                                            callingNextFunction();
                                         } else {
                                             proceedLinkingCallback(false, responseArr, -7998);
                                         }
@@ -544,7 +583,9 @@ function AssetService(objectCollection) {
                         });
 
                     });
-                    assetListHistoryInsert(request, request.asset_id, request.organization_id, 201, dateTimeLog, function (err, data) {
+                    
+                    function callingNextFunction() {
+                        assetListHistoryInsert(request, request.asset_id, request.organization_id, 201, dateTimeLog, function (err, data) {
                         if (err === false) {
                             activityCommonService.assetTimelineTransactionInsert(request, {}, 1001, function (err, data) { });
                             cacheWrapper.getAssetParity(request.asset_id, function (err, reply) {   // setting asset parity for desk asset id 
@@ -573,7 +614,8 @@ function AssetService(objectCollection) {
                             proceedLinkingCallback(err, false, -3201);
                         }
                     });
-
+                    } 
+                    
                 } else {
                     // some thing is wrong and have to be dealt                    
                     proceedLinkingCallback(err, false, -9998);
