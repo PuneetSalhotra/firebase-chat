@@ -5,8 +5,9 @@
 function ActivityPushService() {
     var getPushString = function (request, objectCollection, senderName, callback) {
         var pushString = {};
-        var activityTypeCategoryId = Number(request.activity_type_category_id);
         var extraData = {};
+        
+        var activityTypeCategoryId = Number(request.activity_type_category_id);        
         objectCollection.activityCommonService.getActivityDetails(request, 0, function (err, activityData) {
             if (err === false) {
                 var activityTitle = activityData[0]['activity_title'];
