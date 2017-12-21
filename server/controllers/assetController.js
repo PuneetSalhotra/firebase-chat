@@ -399,5 +399,19 @@ function AssetController(objCollection) {
         });
     });
     
+    //BETA
+    app.post('/' + global.config.version + '/asset/meeting_room/access/workforce/list', function (req, res) {
+        assetService.getMeetingRoomAssets(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+
+            } else {
+                //console.log('did not get proper rseponse');
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
 }
 module.exports = AssetController;

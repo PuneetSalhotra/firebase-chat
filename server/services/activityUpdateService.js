@@ -51,6 +51,19 @@ function ActivityUpdateService(objectCollection) {
                     request.datetime_log
                     );
             queryString = util.getQueryString('ds_v1_activity_list_update_calender_cover', paramsArr);
+        } else if(coverJson.hasOwnProperty('activity_completion_percentage')) {
+            paramsArr = new Array(
+                    request.activity_id,
+                    request.organization_id,
+                    coverJson.title.new,
+                    coverJson.description.new,
+                    coverJson.duedate.new,
+                    coverJson.activity_completion_percentage.new,
+                    request.asset_id,
+                    request.datetime_log
+                    );
+
+            queryString = util.getQueryString('ds_v1_1_activity_list_update', paramsArr);
         } else {
             paramsArr = new Array(
                     request.activity_id,
@@ -255,6 +268,19 @@ function ActivityUpdateService(objectCollection) {
                             coverJson.description.new,
                             coverJson.start_date.new,
                             coverJson.duedate.new,
+                            rowData.asset_id,
+                            request.datetime_log
+                            );
+                    } else if(coverJson.hasOwnProperty('activity_completion_percentage')) {
+                         dbCall ='ds_v1_1_activity_asset_mapping_update';
+                         paramsArr = new Array(
+                            request.activity_id,
+                            rowData.asset_id,
+                            request.organization_id,
+                            coverJson.title.new,
+                            coverJson.description.new,
+                            coverJson.duedate.new,
+                            coverJson.activity_completion_percentage.new,
                             rowData.asset_id,
                             request.datetime_log
                             );
@@ -608,9 +634,9 @@ function ActivityUpdateService(objectCollection) {
                         case 38:    //Item Order
                             activityStreamTypeId = 21003;
                             break;
-                        /*case 39:    //Inventory
-                            activityStreamTypeId = 20001;
-                            break;*/
+                        //case 39:    //Inventory
+                          //  activityStreamTypeId = 20001;
+                            //break;
                         case 40:    //Payment
                             activityStreamTypeId = 22006;
                             break;
@@ -639,7 +665,7 @@ function ActivityUpdateService(objectCollection) {
                     //assetActivityListUpdateSubTaskCover(request, function (err, data) {}); facing some issues here, handle post alpha
                     activityPushService.sendPush(request, objectCollection, 0, function () {});
 
-                });
+                }); 
 
                 callback(false, {}, 200);
 
@@ -653,7 +679,7 @@ function ActivityUpdateService(objectCollection) {
             }
         });
         // call resource ranking...
-
+        
     };
 
     //PAM
