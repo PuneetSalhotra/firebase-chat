@@ -9,24 +9,30 @@ var AwsSns = function () {
     var sns = new aws.SNS();
 
     this.publish = function (message, badgeCount, targetArn) {
-        var GCMjson = {data:{title:"", message: "", timestamp:""}}
-        GCMjson.data.title = "'"+message.title+"'";
-        GCMjson.data.message = "'"+message.description+"'";
+        var GCMjson = {data: {title: "", message: "", timestamp: ""}}
+        GCMjson.data.title = "'" + message.title + "'";
+        GCMjson.data.message = "'" + message.description + "'";
         GCMjson.data.timestamp = "''";
-        
+
+        var aps = {
+            'badge': badgeCount,
+            'sound': 'default',
+            'alert': message.title + message.description,
+            'content-available': 1
+        }
+
+        if (message.hasOwnProperty('extra_data')) {
+            GCMjson.data.type = message.extra_data.type;
+            GCMjson.data.call_data = message.extra_data.call_data;
+            aps.call_data = message.extra_data.call_data;
+        }
+
         var params = {
             MessageStructure: 'json',
             Message: JSON.stringify({
                 'default': message.title + message.description,
                 'GCM': JSON.stringify(GCMjson),
-                APNS_SANDBOX: JSON.stringify({
-                    aps: {
-                        'badge': badgeCount,
-                        'sound': 'default',
-                        'alert': message.title + message.description,
-                        'content-available': 1                        
-                    }
-                })
+                APNS_VOIP_SANDBOX: JSON.stringify({aps})
             }),
             TargetArn: targetArn
         };

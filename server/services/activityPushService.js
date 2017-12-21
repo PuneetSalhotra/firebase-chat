@@ -6,9 +6,11 @@ function ActivityPushService() {
     var getPushString = function (request, objectCollection, senderName, callback) {
         var pushString = {};
         var activityTypeCategoryId = Number(request.activity_type_category_id);
+        var extraData = {};
         objectCollection.activityCommonService.getActivityDetails(request, 0, function (err, activityData) {
             if (err === false) {
                 var activityTitle = activityData[0]['activity_title'];
+                var activityInlineJson = JSON.parse(activityData[0]['activity_inline_data']);
                 switch (activityTypeCategoryId) {
                     case 1: //Task List                        
                         break;
@@ -95,8 +97,16 @@ function ActivityPushService() {
                             case '/0.1/activity/status/alter':
                                 break;
                             case '/0.1/activity/participant/access/set':
-                                pushString.title = senderName;
-                                pushString.description = 'You missed a call at ' + objectCollection.util.getFormatedLogTime(activityData[0]['activity_datetime_start_expected']);
+                                pushString.title = "Audio call";
+                                pushString.description = 'Call from ' + activityInlineJson.owner_details.operating_asset_first_name;
+                                extraData.type = 1;
+                                extraData.call_data = {
+                                    meeting_id:activityInlineJson.meeting_id,
+                                    caller_asset_id: activityInlineJson.owner_details.asset_id,
+                                    caller_name: senderName,
+                                    activity_id: request.activity_id
+                                };
+                                pushString.extra_data = extraData;
                                 break;
                         }
                         ;
