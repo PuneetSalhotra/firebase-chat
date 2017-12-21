@@ -551,14 +551,10 @@ function AssetService(objectCollection) {
                         "asset_push_arn": request.asset_push_arn,
                         "asset_auth_token": encToken
                     };
-                    console.log('1')
-                    
+                                        
                     updateAssetLinkStatus(request, request.operating_asset_id, encToken, dateTimeLog, function (err, data) {
-                        console.log('2')
                         assetListHistoryInsert(request, request.operating_asset_id, request.organization_id, 201, dateTimeLog, function (err, data) {
-                        console.log('3')
                             cacheWrapper.getAssetParity(request.operating_asset_id, function (err, reply) {  // retriving asset parity for operating asset id
-                                console.log('4')
                                 if (!err) {
                                     authTokenCollection.asset_id = request.operating_asset_id;
                                     if (reply === 0) {    // setting asset parity to 0
