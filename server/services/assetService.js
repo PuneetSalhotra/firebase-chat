@@ -1418,7 +1418,6 @@ function AssetService(objectCollection) {
 
     //PAM
     this.assetStatsOnDutyTotal = function (request, callback) {
-        var responseCollection = {};
         var paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
@@ -1426,55 +1425,71 @@ function AssetService(objectCollection) {
                 request.asset_type_category_id
                 );
 
-        var queryString = util.getQueryString('ds_v1_asset_list_select_count', paramsArr);
+        var queryString = util.getQueryString('ds_v1_1_asset_list_select_count', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, totalCount) {
                 if (err === false) {
-                    var count = totalCount[0].total_count;
-                    responseCollection.total_count = totalCount[0].total_count;
-                    console.log('totalCount[0].total_count : ' + totalCount[0].total_count)
-                    console.log('Count returned1 : ' + JSON.stringify(totalCount));
+                    console.log('totalCount[0].total_count : ' + totalCount)
+                                       
+                    if (totalCount.length > 0) {
 
-                    var paramsArr = new Array(
-                            request.organization_id,
-                            request.account_id,
-                            request.asset_type_category_id,
-                            request.asset_status_id,
-                            request.page_start,
-                            request.page_limit
-                            );
+                            var responseTotalData = new Array();
+                            forEachAsync(totalCount, function (next, rowData) {
+                               var rowDataArr = {};
+                               rowDataArr.total_count = util.replaceDefaultNumber(rowData['total_count']);
+                               rowDataArr.asset_type_name = util.replaceDefaultString(rowData['asset_type_name']);
+                               rowDataArr.asset_type_id = util.replaceDefaultString(rowData['asset_type_id']);
+                               responseTotalData.push(rowDataArr);
+                                next();
+                             }).then(function () {
+                                    
+                                         var paramsArr = new Array(
+                                                    request.organization_id,
+                                                    request.account_id,
+                                                    request.asset_type_category_id,
+                                                    request.asset_status_id,
+                                                    request.page_start,
+                                                    request.page_limit
+                                                    );
 
-                    var queryString = util.getQueryString('ds_v1_asset_list_select_status_count', paramsArr);
-                    if (queryString != '') {
-                        db.executeQuery(1, queryString, request, function (err, totalCount) {
-                            if (err === false) {
-                                console.log('Count returned2 : ' + JSON.stringify(totalCount));
-                                console.log('totalCount.length : ' + totalCount.length);
-                                if (totalCount.length > 0) {
+                                        var queryString = util.getQueryString('ds_v1_asset_list_select_status_count', paramsArr);
+                                        if (queryString != '') {
+                                            db.executeQuery(1, queryString, request, function (err, totalCount) {
+                                                if (err === false) {
+                                                    console.log('Count returned2 : ' + JSON.stringify(totalCount));
+                                                    console.log('totalCount.length : ' + totalCount.length);
+                                                    if (totalCount.length > 0) {
 
-                                    var responseData = new Array();
-                                    forEachAsync(totalCount, function (next, rowData) {
-                                        var rowDataArr = {};
-                                        rowDataArr.total_count = util.replaceDefaultNumber(rowData['total_count']);
-                                        rowDataArr.asset_type_name = util.replaceDefaultString(rowData['asset_type_name']);
-                                        responseData.push(rowDataArr);
-                                        next();
-                                    }).then(function () {
-                                        callback(false, {"total_count": count, responseData}, 200);
-                                    });
-                                } else {
-                                    callback(false, {"total_count": count, "responseData": []}, 200);
-                                }
-                            } else {
-                                callback(true, err, -9998);
-                            }
-                        });
+                                                        var responseData = new Array();
+                                                        forEachAsync(totalCount, function (next, rowData) {
+                                                            var rowDataArr = {};
+                                                            rowDataArr.total_count = util.replaceDefaultNumber(rowData['total_count']);
+                                                            rowDataArr.asset_type_name = util.replaceDefaultString(rowData['asset_type_name']);
+                                                            rowDataArr.asset_type_id = util.replaceDefaultString(rowData['asset_type_id']);
+                                                            responseData.push(rowDataArr);
+                                                            next();
+                                                        }).then(function () {
+                                                            callback(false, {responseTotalData, responseData}, 200);
+                                                        });
+                                                    } else {
+                                                        callback(false, {"responseTotalData": [], "responseData": []}, 200);
+                                                    }
+                                                } else {
+                                                    callback(true, err, -9998);
+                                                }
+                                            });
+                                        } else {
+                                            callback(true, err, -9998);
+                                        }
+                });
+                    } else {
+                        callback(false, {"responseTotalData": [], "responseData": []}, 200);
                     }
-                } else {
-                    callback(true, err, -9998);
                 }
             });
-        }
+        } else {
+            callback(true, 'Error', -9998);
+            }
     };
 
     //PAM
