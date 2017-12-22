@@ -13,7 +13,7 @@ function ActivityListingService(objCollection) {
         var queryString = '';
         if (request.hasOwnProperty('activity_type_category_id') && Number(request.device_os_id) === 5) {
             switch(Number(request.activity_type_category_id)){
-                case 15: //Video Conference
+                case 15: //Video Conference BETA
                     paramsArr = new Array(
                          request.asset_id,
                          request.organization_id,
@@ -618,7 +618,7 @@ function ActivityListingService(objCollection) {
 
     };
     
-    
+    //BETA
     this.getVideoConfSchedule = function (request, callback) {
 
         var paramsArr = new Array(
@@ -742,7 +742,12 @@ function ActivityListingService(objCollection) {
                 "operating_asset_first_name": util.replaceDefaultString(rowData['operating_asset_first_name']),
                 "operating_asset_last_name": util.replaceDefaultString(rowData['operating_asset_last_name']),
                 "activity_sub_type_id": util.replaceDefaultNumber(rowData['activity_sub_type_id']),
-                "activity_sub_type_name": util.replaceDefaultString(rowData['activity_sub_type_name'])
+                "activity_sub_type_name": util.replaceDefaultString(rowData['activity_sub_type_name']),
+                //BETA
+                "activity_lead_asset_id": util.replaceDefaultNumber(rowData['activity_lead_asset_id']),
+                "activity_lead_asset_first_name": util.replaceDefaultString(rowData['activity_lead_asset_first_name']),
+                "activity_lead_asset_last_name": util.replaceDefaultString(rowData['activity_lead_asset_last_name']),
+                "activity_lead_asset_image_path": util.replaceDefaultString(rowData['activity_lead_asset_image_path'])
             };
             responseData.push(rowDataArr);
         }, this);
