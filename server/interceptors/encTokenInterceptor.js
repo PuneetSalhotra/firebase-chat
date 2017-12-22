@@ -48,7 +48,7 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                         //req.body['module'] = 'asset';
                         //global.logger.write('request', '', req.body, req.body);
                         next();
-                        break;                   
+                        break;
                     default:
                         if (req.body.hasOwnProperty("activity_id")) {
                             req.body['module'] = 'activity';
@@ -59,7 +59,15 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                                 req.body['module'] = 'asset';
                             }
                         }
-                        console.log('Module : ' + req.body['module'])
+                        
+                        //Bharat Requirement
+                        if(req.body.url.includes('/' + global.config.version + '/send/email?')){
+                            console.log('Inside If');
+                            next();
+                            return;
+                        }
+                            
+                        console.log('Module : ' + req.body['module']);
                         cacheWrapper.getTokenAuth(req.body.asset_id, function (err, encToken) {
                             if (err) {
                                 console.log("redis token Checking error:");
