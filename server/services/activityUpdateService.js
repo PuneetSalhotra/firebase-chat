@@ -139,6 +139,74 @@ function ActivityUpdateService(objectCollection) {
          callback(false, true);
          */
     };
+    
+    //BETA
+    var activityAlterOwner = function (request, callback) {
+        var paramsArr = new Array();
+        var queryString = '';
+        paramsArr = new Array(
+                    request.activity_id,
+                    request.owner_asset_id,
+                    request.organization_id,
+                    request.activity_inline_data,
+                    request.flag,
+                    request.asset_id,
+                    request.datetime_log
+                    );
+        queryString = util.getQueryString('ds_v1_activity_list_update_owner', paramsArr);
+
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                if (err === false) {
+                    callback(false, true);
+                    return;
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(true, false);
+                    //console.log(err);
+                    return;
+                }
+            });
+        }
+    };
+    
+    
+    //BETA
+    var assetActivityListUpdateOwner = function (request, callback) {
+        var paramsArr = new Array();
+        var queryString = '';
+        activityCommonService.getAllParticipants(request, function (err, participantsData) {
+             if (err === false && participantsData.length > 0) {
+                participantsData.forEach(function (rowData, index) {
+                    paramsArr = new Array(
+                            request.activity_id,
+                            rowData.asset_id,
+                            request.owner_asset_id,
+                            request.organization_id,
+                            request.activity_inline_data,
+                            request.flag,
+                            request.asset_id,
+                            request.datetime_log
+                            );     
+      
+                    queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_owner', paramsArr);
+                    if (queryString != '') {
+                        db.executeQuery(0, queryString, request, function (err, data) {
+                            if (err === false) {
+                                //callback(true, false);
+                            } else {
+                                // some thing is wrong and have to be dealt
+                                //callback(true, false);
+                            }
+                        });
+                    }
+                }, this);
+                callback(false, true);
+            } else {
+                callback(true, false);
+            }
+        });
+    };
 
     //PAM
     var activityListUpdateChannel = function (request, callback) {
@@ -674,6 +742,40 @@ function ActivityUpdateService(objectCollection) {
 
                 }
 
+            } else {
+                callback(err, {}, -9999);
+            }
+        });
+        // call resource ranking...
+        
+    };
+    
+    //BETA
+    this.alterActivityOwner = function (request, callback) {
+
+        var logDatetime = util.getCurrentUTCTime();
+        request['datetime_log'] = logDatetime;
+        var activityTypeCategoryId = Number(request.activity_type_category_id);
+        activityCommonService.updateAssetLocation(request, function (err, data) {});
+        activityAlterOwner(request, function (err, data) {
+            if (err === false) {
+                activityCommonService.activityListHistoryInsert(request, 409, function (err, result) {});
+                assetActivityListUpdateOwner(request, function (err, data) {
+                    var activityStreamTypeId = 406;
+                    
+                    activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) { });
+                    activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) { });
+
+                    //updating log differential datetime for only this asset
+                    activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) {});
+
+                    activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) { });
+                    //assetActivityListUpdateSubTaskCover(request, function (err, data) {}); facing some issues here, handle post alpha
+                    activityPushService.sendPush(request, objectCollection, 0, function () {});
+
+                }); 
+
+                callback(false, {}, 200);
             } else {
                 callback(err, {}, -9999);
             }
