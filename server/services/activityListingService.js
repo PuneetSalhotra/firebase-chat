@@ -103,6 +103,7 @@ function ActivityListingService(objCollection) {
 
     };
     
+    //PAM
     var formatActivityAccountListing = function (data, callback) {
         var responseData = new Array();
         data.forEach(function (rowData, index) {
@@ -119,9 +120,9 @@ function ActivityListingService(objCollection) {
                 "activity_sub_type_name": util.replaceDefaultString(rowData['activity_sub_type_name']),
                 "activity_datetime_created": util.replaceDefaultDatetime(rowData['activity_datetime_created']),
                 "activity_datetime_start_expected": util.replaceDefaultDatetime(rowData['activity_datetime_start_expected']),
-                "activity_datetime_end_expected": util.replaceDefaultString(rowData['activity_datetime_end_expected']),
-                "activity_datetime_end_deferred": util.replaceDefaultString(rowData['activity_datetime_end_deferred']),
-                "activity_datetime_end_estimated": util.replaceDefaultString(rowData['activity_datetime_end_estimated']),
+                "activity_datetime_end_expected": util.replaceDefaultDatetime(rowData['activity_datetime_end_expected']),
+                "activity_datetime_end_deferred": util.replaceDefaultDatetime(rowData['activity_datetime_end_deferred']),
+                "activity_datetime_end_estimated": util.replaceDefaultDatetime(rowData['activity_datetime_end_estimated']),
                 "activity_datetime_closed":util.replaceDefaultDatetime(rowData['activity_datetime_closed']),
                 "activity_datetime_last_updated":util.replaceDefaultDatetime(rowData['activity_datetime_last_updated']),
                 "activity_status_id": util.replaceDefaultNumber(rowData['activity_status_id']),
@@ -135,7 +136,7 @@ function ActivityListingService(objCollection) {
                 "activity_participant_count": util.replaceZero(rowData['participant_count']),
                 "activity_owner_asset_id": util.replaceDefaultNumber(rowData['activity_owner_asset_id']),
                 "activity_owner_asset_first_name": util.replaceDefaultString(rowData['activity_owner_asset_first_name']),
-                "activity_owner_asset_last_name": util.replaceDefaultNumber(rowData['activity_owner_asset_last_name']),
+                "activity_owner_asset_last_name": util.replaceDefaultString(rowData['activity_owner_asset_last_name']),
                 "activity_owner_asset_image_path": util.replaceDefaultString(rowData['activity_owner_asset_image_path']),
                 "activity_owner_asset_type_id":util.replaceDefaultNumber(rowData['activity_owner_asset_type_id']),
                 "activity_owner_asset_type_name":util.replaceDefaultString(rowData['activity_owner_asset_type_name']),
@@ -744,10 +745,10 @@ function ActivityListingService(objCollection) {
                 "activity_sub_type_id": util.replaceDefaultNumber(rowData['activity_sub_type_id']),
                 "activity_sub_type_name": util.replaceDefaultString(rowData['activity_sub_type_name']),
                 //BETA
-                "activity_lead_asset_id": util.replaceDefaultNumber(rowData['activity_lead_asset_id']),
-                "activity_lead_asset_first_name": util.replaceDefaultString(rowData['activity_lead_asset_first_name']),
-                "activity_lead_asset_last_name": util.replaceDefaultString(rowData['activity_lead_asset_last_name']),
-                "activity_lead_asset_image_path": util.replaceDefaultString(rowData['activity_lead_asset_image_path'])
+                "activity_creator_asset_id": util.replaceDefaultNumber(rowData['activity_lead_asset_id']),
+                "activity_creator_asset_first_name": util.replaceDefaultString(rowData['activity_lead_asset_first_name']),
+                "activity_creator_asset_last_name": util.replaceDefaultString(rowData['activity_lead_asset_last_name']),
+                "activity_creator_asset_image_path": util.replaceDefaultString(rowData['activity_lead_asset_image_path'])
             };
             responseData.push(rowDataArr);
         }, this);
