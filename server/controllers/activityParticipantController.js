@@ -242,7 +242,7 @@ function ActivityParticipantController(objCollection) {
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
 
-        var proceedParticipantAccessReset = function () {
+        var proceedParticipantTimestampReset = function () {
             var event = {
                 name: "updateParticipantAccess",
                 service: "activityParticipantService",
@@ -280,7 +280,7 @@ function ActivityParticipantController(objCollection) {
                         res.send(responseWrapper.getResponse(false, {}, -7998,req.body));
                     } else {
                         if (status) {     // proceed
-                            proceedParticipantAccessReset();
+                            proceedParticipantTimestampReset();
                         } else {  // this is a duplicate hit,
                             res.send(responseWrapper.getResponse(false, {}, 200,req.body));
                         }
@@ -288,7 +288,7 @@ function ActivityParticipantController(objCollection) {
                 });
 
             } else if (deviceOsId === 5) {
-                proceedParticipantAccessReset();
+                proceedParticipantTimestampReset();
 
             } else {
                 res.send(responseWrapper.getResponse(false, {}, -3304,req.body));

@@ -651,57 +651,47 @@ function ActivityParticipantService(objectCollection) {
     };
     
     //BETA
-    this.updateParticipantTimestamp = async function(request) {
+    this.updateParticipantTimestamp = function(request, callback) {
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         
-        console.log(1)
         //Update the collaborator joining timestamp
-        try {
-            var x = await updateTimeStamp(request);
-        } catch(exception) {
-            console.log('Exception : ' + exception)
-        }
-        
-        console.log(3)
-        if(x === false) {
-            console.log(4)
+        updateTimeStamp(request, function(err, data){
+            if(err === false) {
             //Insert update collaborator joining timestamp log in history
-            activityCommonService.assetActivityListHistoryInsert(request, request.asset_id, 504, function (err, restult) {});
+            activityCommonService.assetActivityListHistoryInsert(request, request.target_asset_id, 504, function (err, restult) {});
             
             //Update the asset_datetime_last_seen of the current collaborator
             activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
             
             //Add timeline entry in asset timeline
-            activityCommonService.assetTimelineTransactionInsert(request, participantData, 1609, function (err, data) { });
-        }
-        console.log(5)
+            activityCommonService.assetTimelineTransactionInsert(request, {}, 1609, function (err, data) { });
+            }
+            
+        });
     };
     
-    var updateTimeStamp = function (request) {
-        return new Promise ((resolve, reject)=>{
-            console.log(2)
+    //BETA
+    var updateTimeStamp = function (request, callback) {
             var paramsArr = new Array(
                 request.activity_id,
-                request.asset_id,
+                request.target_asset_id,
                 request.organization_id,
                 request.joining_datetime,
                 request.asset_id,
                 request.datetime_log
                 );
         var queryString = util.getQueryString("ds_v1_activity_asset_mapping_update_joining_datetime", paramsArr);
-
         if (queryString !== '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
-                    resolve(false);
+                    callback(false, true);
                 } else {
                     global.logger.write('serverError','' + err, request);
-                    reject(err);                
+                    callback(true, err);                
                 }
             });
-            }
-        });
+        }
     };
 
     var isParticipantAlreadyAssigned = function (assetCollection, activityId, request, callback) {
