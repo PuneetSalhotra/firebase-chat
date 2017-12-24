@@ -92,6 +92,15 @@ function ActivityController(objCollection) {
                                 }
                             });
                             break;
+                        case 10: //FILE and TASK LIST BETA
+                            addActivity(req.body, function (err, activityId) {
+                                if (err === false) {
+                                    res.send(responseWrapper.getResponse(false, {activity_id: activityId, message_unique_id: req.body.message_unique_id}, 200, req.body));
+                                } else {
+                                    res.send(responseWrapper.getResponse(false, {activity_id: 0, message_unique_id: req.body.message_unique_id}, -7998, req.body));
+                                }
+                            });
+                            break
                         default:
                             //console.log('generating activity id via default condition');
                             global.logger.write('debug','generating activity id via default condition',{},req.body);
@@ -201,6 +210,7 @@ function ActivityController(objCollection) {
     app.put('/' + global.config.version + '/activity/status/alter', function (req, res) {
         var assetMessageCounter = 0;
         var deviceOsId = 0;
+        var activityData = {activity_id: req.body.activity_id, message_unique_id: req.body.message_unique_id}; //BETA
         if (req.body.hasOwnProperty('asset_message_counter'))
             assetMessageCounter = Number(req.body.asset_message_counter);
         if (req.body.hasOwnProperty('device_os_id'))
@@ -236,7 +246,7 @@ function ActivityController(objCollection) {
                             }
                         }
                 });
-            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+            res.send(responseWrapper.getResponse(false, activityData, 200,req.body));
             return;
         };
         if (util.hasValidGenericId(req.body, 'activity_type_category_id')) {
@@ -245,29 +255,29 @@ function ActivityController(objCollection) {
                     if ((util.hasValidGenericId(req.body, 'asset_message_counter')) && deviceOsId !== 5) {
                         cacheWrapper.checkAssetParity(req.body.asset_id, (assetMessageCounter), function (err, status) {
                             if (err) {
-                                res.send(responseWrapper.getResponse(false, {}, -7998,req.body));
+                                res.send(responseWrapper.getResponse(false, activityData, -7998,req.body));
                             } else {
                                 if (status) {     // proceed
                                     proceedActivityStatusAlter();
                                 } else {  // this is a duplicate hit,
-                                    res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                                    res.send(responseWrapper.getResponse(false, activityData, 200,req.body));
                                 }
                             }
                         });
                     } else if (deviceOsId === 5) {
                         proceedActivityStatusAlter();
                     } else {
-                        res.send(responseWrapper.getResponse(false, {}, -3304,req.body));
+                        res.send(responseWrapper.getResponse(false, activityData, -3304,req.body));
                     }
                 } else {
-                    res.send(responseWrapper.getResponse(false, {}, -3306,req.body));
+                    res.send(responseWrapper.getResponse(false, activityData, -3306,req.body));
                 }
 
             } else {
-                res.send(responseWrapper.getResponse(false, {}, -3301,req.body));
+                res.send(responseWrapper.getResponse(false, activityData, -3301,req.body));
             }
         } else {
-            res.send(responseWrapper.getResponse(false, {}, -3303,req.body));
+            res.send(responseWrapper.getResponse(false, activityData, -3303,req.body));
             return;
         }
 
