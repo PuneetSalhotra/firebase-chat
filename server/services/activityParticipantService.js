@@ -586,7 +586,7 @@ function ActivityParticipantService(objectCollection) {
             }
         });
     };
-
+    
     var addParticipant = function (request, participantData, newRecordStatus, callback) {
         var fieldId = 0;
         if (participantData.hasOwnProperty('field_id')) {
@@ -645,6 +645,50 @@ function ActivityParticipantService(objectCollection) {
                     callback(false, true);
                 } else {
                     callback(err, false);
+                }
+            });
+        }
+    };
+    
+    //BETA
+    this.updateParticipantTimestamp = function(request, callback) {
+        var logDatetime = util.getCurrentUTCTime();
+        request['datetime_log'] = logDatetime;
+        
+        //Update the collaborator joining timestamp
+        updateTimeStamp(request, function(err, data){
+            if(err === false) {
+            //Insert update collaborator joining timestamp log in history
+            activityCommonService.assetActivityListHistoryInsert(request, request.target_asset_id, 504, function (err, restult) {});
+            
+            //Update the asset_datetime_last_seen of the current collaborator
+            activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
+            
+            //Add timeline entry in asset timeline
+            activityCommonService.assetTimelineTransactionInsert(request, {}, 1609, function (err, data) { });
+            }
+            
+        });
+    };
+    
+    //BETA
+    var updateTimeStamp = function (request, callback) {
+            var paramsArr = new Array(
+                request.activity_id,
+                request.target_asset_id,
+                request.organization_id,
+                request.joining_datetime,
+                request.asset_id,
+                request.datetime_log
+                );
+        var queryString = util.getQueryString("ds_v1_activity_asset_mapping_update_joining_datetime", paramsArr);
+        if (queryString !== '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                if (err === false) {
+                    callback(false, true);
+                } else {
+                    global.logger.write('serverError','' + err, request);
+                    callback(true, err);                
                 }
             });
         }

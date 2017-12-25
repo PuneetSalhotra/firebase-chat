@@ -13,7 +13,7 @@ function ActivityListingService(objCollection) {
         var queryString = '';
         if (request.hasOwnProperty('activity_type_category_id') && Number(request.device_os_id) === 5) {
             switch(Number(request.activity_type_category_id)){
-                case 15: //Video Conference
+                case 15: //Video Conference BETA
                     paramsArr = new Array(
                          request.asset_id,
                          request.organization_id,
@@ -103,6 +103,7 @@ function ActivityListingService(objCollection) {
 
     };
     
+    //PAM
     var formatActivityAccountListing = function (data, callback) {
         var responseData = new Array();
         data.forEach(function (rowData, index) {
@@ -119,9 +120,9 @@ function ActivityListingService(objCollection) {
                 "activity_sub_type_name": util.replaceDefaultString(rowData['activity_sub_type_name']),
                 "activity_datetime_created": util.replaceDefaultDatetime(rowData['activity_datetime_created']),
                 "activity_datetime_start_expected": util.replaceDefaultDatetime(rowData['activity_datetime_start_expected']),
-                "activity_datetime_end_expected": util.replaceDefaultString(rowData['activity_datetime_end_expected']),
-                "activity_datetime_end_deferred": util.replaceDefaultString(rowData['activity_datetime_end_deferred']),
-                "activity_datetime_end_estimated": util.replaceDefaultString(rowData['activity_datetime_end_estimated']),
+                "activity_datetime_end_expected": util.replaceDefaultDatetime(rowData['activity_datetime_end_expected']),
+                "activity_datetime_end_deferred": util.replaceDefaultDatetime(rowData['activity_datetime_end_deferred']),
+                "activity_datetime_end_estimated": util.replaceDefaultDatetime(rowData['activity_datetime_end_estimated']),
                 "activity_datetime_closed":util.replaceDefaultDatetime(rowData['activity_datetime_closed']),
                 "activity_datetime_last_updated":util.replaceDefaultDatetime(rowData['activity_datetime_last_updated']),
                 "activity_status_id": util.replaceDefaultNumber(rowData['activity_status_id']),
@@ -135,7 +136,7 @@ function ActivityListingService(objCollection) {
                 "activity_participant_count": util.replaceZero(rowData['participant_count']),
                 "activity_owner_asset_id": util.replaceDefaultNumber(rowData['activity_owner_asset_id']),
                 "activity_owner_asset_first_name": util.replaceDefaultString(rowData['activity_owner_asset_first_name']),
-                "activity_owner_asset_last_name": util.replaceDefaultNumber(rowData['activity_owner_asset_last_name']),
+                "activity_owner_asset_last_name": util.replaceDefaultString(rowData['activity_owner_asset_last_name']),
                 "activity_owner_asset_image_path": util.replaceDefaultString(rowData['activity_owner_asset_image_path']),
                 "activity_owner_asset_type_id":util.replaceDefaultNumber(rowData['activity_owner_asset_type_id']),
                 "activity_owner_asset_type_name":util.replaceDefaultString(rowData['activity_owner_asset_type_name']),
@@ -618,7 +619,7 @@ function ActivityListingService(objCollection) {
 
     };
     
-    
+    //BETA
     this.getVideoConfSchedule = function (request, callback) {
 
         var paramsArr = new Array(
@@ -627,9 +628,9 @@ function ActivityListingService(objCollection) {
                 request.account_id,
                 request.workforce_id,
                 request.activity_type_category_id,
-                0,//is_status,
-                0,//is_sort,
-                0,//is_search,
+                request.is_status,
+                request.is_sort,
+                request.is_search,
                 request.search_string,
                 request.start_datetime,
                 request.end_datetime,
@@ -742,7 +743,12 @@ function ActivityListingService(objCollection) {
                 "operating_asset_first_name": util.replaceDefaultString(rowData['operating_asset_first_name']),
                 "operating_asset_last_name": util.replaceDefaultString(rowData['operating_asset_last_name']),
                 "activity_sub_type_id": util.replaceDefaultNumber(rowData['activity_sub_type_id']),
-                "activity_sub_type_name": util.replaceDefaultString(rowData['activity_sub_type_name'])
+                "activity_sub_type_name": util.replaceDefaultString(rowData['activity_sub_type_name']),
+                //BETA
+                "activity_creator_asset_id": util.replaceDefaultNumber(rowData['activity_lead_asset_id']),
+                "activity_creator_asset_first_name": util.replaceDefaultString(rowData['activity_lead_asset_first_name']),
+                "activity_creator_asset_last_name": util.replaceDefaultString(rowData['activity_lead_asset_last_name']),
+                "activity_creator_asset_image_path": util.replaceDefaultString(rowData['activity_lead_asset_image_path'])
             };
             responseData.push(rowDataArr);
         }, this);

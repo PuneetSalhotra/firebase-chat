@@ -106,8 +106,12 @@ function ActivityCommonService(db, util, forEachAsync) {
                 assetCollection.organization_id,
                 request.datetime_log
                 );
-        // ds_v1_activity_asset_mapping_update_last_updated_datetime ---> updates activity_datetime_last_updated, asset_datetime_last_differential, asset_unread_updates_count
-        queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_last_updated_datetime', paramsArr);
+        if(request.activity_status_type_id == 74 && request.activity_type_category_id == 28){
+            queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_last_updated_dt_unrd_reset', paramsArr);
+        } else {
+            // ds_v1_activity_asset_mapping_update_last_updated_datetime ---> updates activity_datetime_last_updated, asset_datetime_last_differential, asset_unread_updates_count
+            queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_last_updated_datetime', paramsArr);
+        }        
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false)
