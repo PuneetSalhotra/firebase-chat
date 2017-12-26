@@ -2,6 +2,8 @@
  * author: Sri Sai Venkatesh
  */
 
+mode = 'dev';
+
 var Logger = require("/var/www/html/node/Bharat/server/utils/logger");
 logger = new Logger();
 
@@ -10,8 +12,6 @@ config.version = '0.1';
 config.servicePort = 3000;
 config.sms_mode = 1;    //  2: bulkSMS  |   3: Sinfini
 config.whitelist = ['http://mydesk.desker.co', 'https://mydesk.desker.co', 'http://127.0.0.1','http://localhost'];
-
-var mode = 'dev';
 
 if (mode === 'dev') {
     config.masterIp = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
