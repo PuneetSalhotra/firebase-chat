@@ -39,6 +39,22 @@ function ActivityUpdateService(objectCollection) {
         var coverJson = JSON.parse(request.activity_cover_data);
         var paramsArr = new Array();
         var queryString = '';
+        /*if(coverJson.hasOwnProperty('activity_owner_asset_id')) {
+            paramsArr = new Array(
+                    request.activity_id,
+                    request.organization_id,
+                    coverJson.title.new,
+                    coverJson.description.new,
+                    coverJson.duedate.new,
+                    coverJson.activity_owner_asset_id.new,
+                    request.activity_inline_data,
+                    request.flag,
+                    request.asset_id,
+                    request.datetime_log
+                    );
+            queryString = util.getQueryString('ds_v1_activity_list_update_owner_data', paramsArr);
+        } else */
+            
         if (coverJson.hasOwnProperty('start_date')) {
             paramsArr = new Array(
                     request.activity_id,
@@ -326,6 +342,23 @@ function ActivityUpdateService(objectCollection) {
         activityCommonService.getAllParticipants(request, function (err, participantsData) {
              if (err === false && participantsData.length > 0) {
                 participantsData.forEach(function (rowData, index) {
+                    /*if(coverJson.hasOwnProperty('activity_owner_asset_id')) {
+                        dbCall ='ds_v1_activity_asset_mapping_update_owner_data';
+                        paramsArr = new Array(
+                                request.activity_id,
+                                rowData.asset_id,
+                                request.organization_id,
+                                coverJson.title.new,
+                                coverJson.description.new,
+                                coverJson.duedate.new,
+                                coverJson.activity_owner_asset_id.new,
+                                request.activity_inline_data,
+                                request.flag,
+                                request.asset_id,
+                                request.datetime_log
+                                );
+                    } else */
+                        
                     if(coverJson.hasOwnProperty('start_date')) {
                         dbCall = 'ds_v1_activity_asset_mapping_update_calendar_cover';
                         paramsArr = new Array(
@@ -336,7 +369,7 @@ function ActivityUpdateService(objectCollection) {
                             coverJson.description.new,
                             coverJson.start_date.new,
                             coverJson.duedate.new,
-                            rowData.asset_id,
+                            request.asset_id,
                             request.datetime_log
                             );
                     } else if(coverJson.hasOwnProperty('activity_completion_percentage')) {
@@ -349,7 +382,7 @@ function ActivityUpdateService(objectCollection) {
                             coverJson.description.new,
                             coverJson.duedate.new,
                             coverJson.activity_completion_percentage.new,
-                            rowData.asset_id,
+                            request.asset_id,
                             request.datetime_log
                             );
                     } else {
@@ -361,7 +394,7 @@ function ActivityUpdateService(objectCollection) {
                             coverJson.title.new,
                             coverJson.description.new,
                             coverJson.duedate.new,
-                            rowData.asset_id,
+                            request.asset_id,
                             request.datetime_log
                             );
                         }
@@ -757,6 +790,26 @@ function ActivityUpdateService(objectCollection) {
         request['datetime_log'] = logDatetime;
         var activityTypeCategoryId = Number(request.activity_type_category_id);
         activityCommonService.updateAssetLocation(request, function (err, data) {});
+        
+        var paramsArr1 = new Array(
+                                request.activity_id,
+                                request.owner_asset_id,
+                                request.workforce_id,
+                                request.account_id,
+                                request.organization_id,
+                                27, //request.participant_access_id,
+                                request.message_unique_id,
+                                request.flag_retry,
+                                request.flag_offline,
+                                request.asset_id,
+                                request.datetime_log,
+                                0 //Field Id
+                                );
+        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_insert_asset_assign_appr', paramsArr1);
+        if (queryString !== '') {
+               db.executeQuery(0, queryString, request, function (err, data) {});
+        } 
+                          
         activityAlterOwner(request, function (err, data) {
             if (err === false) {
                 activityCommonService.activityListHistoryInsert(request, 409, function (err, result) {});
