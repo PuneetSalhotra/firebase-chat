@@ -657,6 +657,38 @@ function ActivityListingService(objCollection) {
 
     };
 
+    //BETA
+    this.getOptimumMeetingRoom = function (request, callback) {
+
+        var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.meeting_workforce_id,
+                request.participant_count,
+                request.start_datetime,
+                request.end_datetime
+                );
+        var queryString = util.getQueryString('ds_v1_asset_list_select_meeting_room', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (err === false) {
+                    formatActivityListing(data, function (err, finalData) {
+                        if (err === false) {
+                            callback(false, {data: finalData}, 200);
+                        }
+                    });
+                    return;
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, false, -9999);
+                    return;
+                }
+            });
+        }
+
+    };
+    
     var formatActivityInlineCollection = function (data, collection, callback) {
 
         var responseData = new Array();
