@@ -22,7 +22,7 @@ function AccountService(objectCollection) {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (data.length > 0) {
                     //console.log(data);
-                    assetService.formatAssetCoverData(data, function (error, data) {
+                    formatAssetCoverData(data, function (error, data) {
                         if (error === false)
                             callback(false, {data: data}, 200);
                     });
@@ -46,7 +46,7 @@ function AccountService(objectCollection) {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (data.length > 0) {
                     //console.log(data);
-                    assetService.formatAssetAccountDataLevel(data, function (error, data) {
+                    formatAssetAccountDataLevel(data, function (error, data) {
                         if (error === false)
                             callback(false, {data: data}, 200);
                     });
