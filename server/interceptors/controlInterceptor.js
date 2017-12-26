@@ -13,6 +13,7 @@ var AssetConfigController = require('../controllers/assetConfigController');
 var ActivityTimelineController = require('../controllers/activityTimelineController');
 var FormConfigController = require('../controllers/formConfigController');
 var WidgetController = require('../controllers/widgetController');
+var LogController = require('../controllers/logController'); //BETA
 //var FormConfigController = require('../controllers/formConfigController');
 //var FormDataController = require('../controllers/formDataController');
 //var LinkController = require('../controllers/linkController');
@@ -33,6 +34,7 @@ function ControlInterceptor(objCollection) {
     new ActivityTimelineController(objCollection);
     new FormConfigController(objCollection);
     new WidgetController(objCollection);
+    new LogController(objCollection);
     //new FormConfigController(app, log, cacheWrapper, queueWrapper);
     //new FormDataController(app, log, cacheWrapper, queueWrapper);
     //new LinkController(app, log, cacheWrapper, queueWrapper);
