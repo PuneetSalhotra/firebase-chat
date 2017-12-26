@@ -4,7 +4,6 @@
  */
 
 var AssetService = require("../services/assetService");
-var ActivityCommonService = require("../services/activityCommonService");
 
 function AssetController(objCollection) {
 
