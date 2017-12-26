@@ -86,8 +86,7 @@ function AssetService(objectCollection) {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (data.length > 0) {
                     //console.log(data);
-                    //formatAssetData(data[0], function (error, data) {
-                    this.formatAssetCoverData(data, function (error, data) {
+                    formatAssetData(data, function (error, data) {
                         if (error === false)
                             callback(false, {data: data}, 200);
                     });
@@ -342,46 +341,6 @@ function AssetService(objectCollection) {
             callback(false, responseArr);
         });
     };
-
-    var formatAssetData = function (row, callback) {
-
-        var rowData = {
-            'asset_id': util.replaceDefaultNumber(row['asset_id']),
-            'operating_asset_id': util.replaceDefaultNumber(row['operating_asset_id']),
-            'asset_first_name': util.replaceDefaultString(row['asset_first_name']),
-            'asset_last_name': util.replaceDefaultString(row['asset_last_name']),
-            'operating_asset_first_name': util.replaceDefaultString(row['operating_asset_first_name']),
-            'operating_asset_last_name': util.replaceDefaultString(row['operating_asset_last_name']),
-            'asset_email_id': util.replaceDefaultString(row['asset_email_id']),
-            'asset_phone_number': util.replaceDefaultNumber(row['operating_asset_phone_number']),
-            'asset_phone_country_code': util.replaceDefaultNumber(row['operating_asset_phone_country_code']),
-            'asset_timezone_id': util.replaceDefaultNumber(row['asset_timezone_id']),
-            'asset_timezone_offset': util.replaceDefaultString(row['asset_timezone_offset']),
-            'asset_last_seen_location_latitude': util.replaceDefaultString(row['asset_last_location_latitude']),
-            'asset_last_seen_location_longitude': util.replaceDefaultString(row['asset_last_location_longitude']),
-            'asset_last_seen_location_gps_accuracy': util.replaceDefaultString(row['asset_last_location_gps_accuracy']),
-            'asset_image_path': util.replaceDefaultString(row['asset_image_path']),
-            'workforce_id': util.replaceDefaultNumber(row['workforce_id']),
-            'workforce_name': util.replaceDefaultString(row['workforce_name']),
-            'account_id': util.replaceDefaultNumber(row['account_id']),
-            'account_name': util.replaceDefaultString(row['account_name']),
-            'organization_name': util.replaceDefaultString(row['organization_name']),
-            'organization_id': util.replaceDefaultNumber(row['organization_id']),
-            'asset_status_id': util.replaceDefaultNumber(row['asset_status_id']),
-            'asset_status_name': util.replaceDefaultString(row['asset_status_name']),
-            //Added for log session Storage
-            'asset_session_status_id': util.replaceDefaultNumber(row['asset_session_status_id']),
-            'asset_session_status_name': util.replaceDefaultString(row['asset_session_status_name']),
-            'asset_session_status_datetime': util.replaceDefaultDatetime(row['asset_session_status_datetime']),
-            'asset_status_datetime': util.replaceDefaultDatetime(row['asset_status_datetime']),
-            'asset_assigned_status_id': util.replaceDefaultNumber(row['asset_assigned_status_id']),
-            'asset_assigned_status_name': util.replaceDefaultString(row['asset_assigned_status_name']),
-            'asset_assigned_status_datetime': util.replaceDefaultDatetime(row['asset_assigned_status_datetime'])
-        };
-
-        callback(false, rowData);
-    };
-
     //PAM
     var formatAssetAccountDataLevel = function (data, callback) {
         var responseArr = new Array();
@@ -495,6 +454,50 @@ function AssetService(objectCollection) {
             callback(false, responseArr);
         });
     };
+    
+    var formatAssetData = function (rowArray, callback) {        
+        
+            var rowData = {
+                'asset_id': util.replaceDefaultNumber(rowArray[0]['asset_id']),
+                'operating_asset_id': util.replaceDefaultNumber(rowArray[0]['operating_asset_id']),
+                'asset_first_name': util.replaceDefaultString(rowArray[0]['asset_first_name']),
+                'asset_last_name': util.replaceDefaultString(rowArray[0]['asset_last_name']),
+                'operating_asset_first_name': util.replaceDefaultString(rowArray[0]['operating_asset_first_name']),
+                'operating_asset_last_name': util.replaceDefaultString(rowArray[0]['operating_asset_last_name']),
+                'asset_email_id': util.replaceDefaultString(rowArray[0]['asset_email_id']),
+                'asset_phone_number': util.replaceDefaultNumber(rowArray[0]['operating_asset_phone_number']),
+                'asset_phone_country_code': util.replaceDefaultNumber(rowArray[0]['operating_asset_phone_country_code']),
+                'asset_timezone_id': util.replaceDefaultNumber(rowArray[0]['asset_timezone_id']),
+                'asset_timezone_offset': util.replaceDefaultString(rowArray[0]['asset_timezone_offset']),
+                'asset_last_seen_location_latitude': util.replaceDefaultString(rowArray[0]['asset_last_location_latitude']),
+                'asset_last_seen_location_longitude': util.replaceDefaultString(rowArray[0]['asset_last_location_longitude']),
+                'asset_last_seen_location_gps_accuracy': util.replaceDefaultString(rowArray[0]['asset_last_location_gps_accuracy']),
+                'asset_image_path': util.replaceDefaultString(rowArray[0]['asset_image_path']),
+                'workforce_id': util.replaceDefaultNumber(rowArray[0]['workforce_id']),
+                'workforce_name': util.replaceDefaultString(rowArray[0]['workforce_name']),
+                'account_id': util.replaceDefaultNumber(rowArray[0]['account_id']),
+                'account_name': util.replaceDefaultString(rowArray[0]['account_name']),
+                'organization_name': util.replaceDefaultString(rowArray[0]['organization_name']),
+                'organization_id': util.replaceDefaultNumber(rowArray[0]['organization_id']),
+                'asset_status_id': util.replaceDefaultNumber(rowArray[0]['asset_status_id']),
+                'asset_status_name': util.replaceDefaultString(rowArray[0]['asset_status_name']),
+                'asset_last_location_gps_enabled': util.replaceDefaultNumber(rowArray[0]['asset_last_location_gps_enabled']),
+                'asset_last_location_address': util.replaceDefaultString(rowArray[0]['asset_last_location_address']),
+                'asset_last_location_datetime': util.replaceDefaultDatetime(rowArray[0]['asset_last_location_datetime']),
+                'asset_session_status_id': util.replaceDefaultNumber(rowArray[0]['asset_session_status_id']),
+                'asset_session_status_name': util.replaceDefaultString(rowArray[0]['asset_session_status_name']),
+                'asset_session_status_datetime': util.replaceDefaultDatetime(rowArray[0]['asset_session_status_datetime']),
+                //'asset_status_id': util.replaceDefaultNumber(rowArray[0]['asset_status_id']),
+                //'asset_status_name': util.replaceDefaultString(rowArray[0]['asset_status_name']),
+                'asset_status_datetime': util.replaceDefaultDatetime(rowArray[0]['asset_status_datetime']),
+                'asset_assigned_status_id': util.replaceDefaultNumber(rowArray[0]['asset_assigned_status_id']),
+                'asset_assigned_status_name': util.replaceDefaultString(rowArray[0]['asset_assigned_status_name']),
+                'asset_assigned_status_datetime': util.replaceDefaultDatetime(rowArray[0]['asset_assigned_status_datetime'])
+            };
+           
+        callback(false, rowData);
+    };
+
 
     this.checkAssetPasscode = function (request, callback) {
         var verificationCode = util.cleanPhoneNumber(request.verification_passcode);
@@ -1153,7 +1156,7 @@ function AssetService(objectCollection) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
-                    formatAssetCoverData(data, function (err, finalData) {
+                    this.formatAssetCoverData(data, function (err, finalData) {
                         callback(false, finalData, 200);
                     });
                     //console.log(data);
