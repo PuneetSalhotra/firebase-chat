@@ -13,7 +13,6 @@ config.whitelist = ['http://mydesk.desker.co', 'https://mydesk.desker.co', 'http
 
 var mode = 'dev';
 
-
 if (mode === 'dev') {
     config.masterIp = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
     config.slave1Ip = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
