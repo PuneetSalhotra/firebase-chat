@@ -4,7 +4,6 @@
  */
 
 var AssetService = require("../services/assetService");
-var ActivityCommonService = require("../services/activityCommonService");
 
 function AssetController(objCollection) {
 
@@ -355,7 +354,7 @@ function AssetController(objCollection) {
     });
     
     //PAM
-    app.put('/' + global.config.version + '/asset/state/alter', function (req, res) {
+    app.put('/' + global.config.version + '/asset/status/alter', function (req, res) {
           assetService.removeAsset(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response   
