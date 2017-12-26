@@ -17,81 +17,80 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                 var bundleTransactionId = uuid.v1();
                 req.body.bundle_transaction_id = bundleTransactionId;
                 req.body.url = req.url;
-                switch (req.url) {
-                    /*
-                     case '/time/value':
-                     global.logger.write('', req.body, 'device', 'request');
-                     next();
-                     break;
-                     */
-                    case '/0.1/asset/passcode/alter':
-                        req.body['module'] = 'device';
-                        global.logger.write('request', '', req.body, req.body);
-                        next();
-                        break;
-                    case '/0.1/asset/passcode/check':
-                        req.body['module'] = 'device';
-                        global.logger.write('request', '', req.body, req.body);
-                        next();
-                        break;
-                    case '/0.1/asset/link/set':
-                        req.body['module'] = 'asset';
-                        global.logger.write('request', '', req.body, req.body);
-                        next();
-                        break;
-                    case '/0.1/pam/asset/cover/alter/clockin':
-                        req.body['module'] = 'asset';
-                        global.logger.write('request', '', req.body, req.body);
-                        next();
-                        break;
-                    case '/0.1/send/email':
-                        //req.body['module'] = 'asset';
-                        //global.logger.write('request', '', req.body, req.body);
-                        next();
-                        break;
-                    default:
-                        if (req.body.hasOwnProperty("activity_id")) {
-                            req.body['module'] = 'activity';
-                        } else {
-                            if (req.body.url.includes('activity')) {
+                if (req.body.url.includes("/0.1/account/")) {
+                    global.logger.write('request', '', req.body, req.body);
+                    global.logger.write('info', 'bypassing enc token checking as request is from account', {}, req.body);
+                    next();
+                } else {
+
+                    switch (req.url) {
+                        /*
+                         case '/time/value':
+                         global.logger.write('', req.body, 'device', 'request');
+                         next();
+                         break;
+                         */
+                        case '/0.1/asset/passcode/alter':
+                            req.body['module'] = 'device';
+                            global.logger.write('request', '', req.body, req.body);
+                            next();
+                            break;
+                        case '/0.1/asset/passcode/check':
+                            req.body['module'] = 'device';
+                            global.logger.write('request', '', req.body, req.body);
+                            next();
+                            break;
+                        case '/0.1/asset/link/set':
+                            req.body['module'] = 'asset';
+                            global.logger.write('request', '', req.body, req.body);
+                            next();
+                            break;
+                        case '/0.1/pam/asset/cover/alter/clockin':
+                            req.body['module'] = 'asset';
+                            global.logger.write('request', '', req.body, req.body);
+                            next();
+                            break;
+                        case '/0.1/send/email':
+                            //req.body['module'] = 'asset';
+                            //global.logger.write('request', '', req.body, req.body);
+                            next();
+                            break;
+                        default:
+                            if (req.body.hasOwnProperty("activity_id")) {
                                 req.body['module'] = 'activity';
                             } else {
-                                req.body['module'] = 'asset';
-                            }
-                        }
-                        
-                        //Bharat Requirement
-                        if(req.body.url.includes('/' + global.config.version + '/send/email?')){
-                            console.log('Inside If');
-                            next();
-                            return;
-                        }
-                            
-                        console.log('Module : ' + req.body['module']);
-                        cacheWrapper.getTokenAuth(req.body.asset_id, function (err, encToken) {
-                            if (err) {
-                                console.log("redis token Checking error:");
-                                global.logger.write('appError', 'Redis token Checking error', err, req.body);
-                                res.send(responseWrapper.getResponse(null, {}, -7998, req.body));
-                                return;
-                            } else {
-                                console.log(encToken);
-                                if (encToken === req.body.asset_token_auth) {
-                                    console.log("successfully redis encToken checking is done");
-                                    global.logger.write('debug', 'successfully redis encToken checking is done', {},req.body);
-                                    next();
+                                if (req.body.url.includes('activity')) {
+                                    req.body['module'] = 'activity';
                                 } else {
-                                    console.log('redis encToken checking failed : ' + err);
-                                    global.logger.write('serverError', 'Redis encToken checking failed', {}, req.body);
-                                    res.send(responseWrapper.getResponse(null, {}, -3204, req.body));
-                                    return;
+                                    req.body['module'] = 'asset';
                                 }
                             }
+                            console.log('Module : ' + req.body['module'])
+                            cacheWrapper.getTokenAuth(req.body.asset_id, function (err, encToken) {
+                                if (err) {
+                                    console.log("redis token Checking error:");
+                                    global.logger.write('appError', 'Redis token Checking error', err, req.body);
+                                    res.send(responseWrapper.getResponse(null, {}, -7998, req.body));
+                                    return;
+                                } else {
+                                    console.log(encToken);
+                                    if (encToken === req.body.asset_token_auth) {
+                                        console.log("successfully redis encToken checking is done");
+                                        global.logger.write('debug', 'successfully redis encToken checking is done', {}, req.body);
+                                        next();
+                                    } else {
+                                        console.log('redis encToken checking failed : ' + err);
+                                        global.logger.write('serverError', 'Redis encToken checking failed', {}, req.body);
+                                        res.send(responseWrapper.getResponse(null, {}, -3204, req.body));
+                                        return;
+                                    }
+                                }
 
-                        });
+                            });
 
-                        break;
-                } //switch
+                            break;
+                    } //switch
+                }   //else
             } //else
         }) //getServiceId
     }) //app.use
