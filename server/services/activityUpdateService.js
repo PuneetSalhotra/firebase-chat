@@ -790,8 +790,14 @@ function ActivityUpdateService(objectCollection) {
         request['datetime_log'] = logDatetime;
         var activityTypeCategoryId = Number(request.activity_type_category_id);
         activityCommonService.updateAssetLocation(request, function (err, data) {});
-        
-        var paramsArr1 = new Array(
+                         
+        activityAlterOwner(request, function (err, data) {
+            if (err === false) {
+                activityCommonService.activityListHistoryInsert(request, 409, function (err, result) {});
+                assetActivityListUpdateOwner(request, function (err, data) {
+                    var activityStreamTypeId = 406;
+                    
+                    var paramsArr1 = new Array(
                                 request.activity_id,
                                 request.owner_asset_id,
                                 request.workforce_id,
@@ -805,18 +811,13 @@ function ActivityUpdateService(objectCollection) {
                                 request.datetime_log,
                                 0 //Field Id
                                 );
-        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_insert_asset_assign_appr', paramsArr1);
-        if (queryString !== '') {
-               db.executeQuery(0, queryString, request, function (err, data) {});
-        } 
-                          
-        activityAlterOwner(request, function (err, data) {
-            if (err === false) {
-                activityCommonService.activityListHistoryInsert(request, 409, function (err, result) {});
-                assetActivityListUpdateOwner(request, function (err, data) {
-                    var activityStreamTypeId = 406;
+            var queryString = util.getQueryString('ds_v1_activity_asset_mapping_insert_asset_assign_appr', paramsArr1);
+            if (queryString !== '') {
+                    db.executeQuery(0, queryString, request, function (err, data) {});
+                }
                     
                     activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) { });
+                    
                     activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) { });
 
                     //updating log differential datetime for only this asset
