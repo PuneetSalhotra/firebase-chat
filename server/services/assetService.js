@@ -86,7 +86,7 @@ function AssetService(objectCollection) {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (data.length > 0) {
                     //console.log(data);
-                    this.formatAssetCoverData(data, function (error, data) {
+                    formatAssetCoverData(data, function (error, data) {
                         if (error === false)
                             callback(false, {data: data}, 200);
                     });
@@ -142,7 +142,7 @@ function AssetService(objectCollection) {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
                     //console.log(data);
-                    this.formatAssetAccountDataLevel(data, function (err, finalData) {
+                    formatAssetAccountDataLevel(data, function (err, finalData) {
                         if (err === false) {
                             callback(false, {data: finalData}, 200);
                         }
@@ -342,7 +342,7 @@ function AssetService(objectCollection) {
         });
     };
     //PAM
-    this.formatAssetAccountDataLevel = function (data, callback) {
+    var formatAssetAccountDataLevel = function (data, callback) {
         var responseArr = new Array();
         forEachAsync(data, function (next, row) {
             var rowData = {
@@ -408,7 +408,7 @@ function AssetService(objectCollection) {
         });
     };
 
-    this.formatAssetCoverData = function (rowArray, callback) {
+    var formatAssetCoverData = function (rowArray, callback) {
         var responseArr = new Array();
         objectCollection.forEachAsync(rowArray, function (next, row) {
             var rowData = {
