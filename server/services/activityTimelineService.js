@@ -747,19 +747,21 @@ function ActivityTimelineService(objectCollection) {
                     '', //IN p_entity_date_1 DATE                                   9
                     '', //IN p_entity_datetime_1 DATETIME                           10
                     '', //IN p_entity_tinyint_1 TINYINT(4)                          11
-                    '', //IN p_entity_bigint_1 BIGINT(20)                           12
-                    '', //IN p_entity_double_1 DOUBLE(16,4),                        13
-                    '', //IN p_entity_decimal_1 DECIMAL(14,2)                       14
-                    '', //IN p_entity_decimal_2 DECIMAL(14,8)                       15
-                    '', //IN p_entity_decimal_3 DECIMAL(14,8)                       16
-                    '', //IN p_entity_text_1 VARCHAR(1200)                          17
-                    '', //IN p_entity_text_2 VARCHAR(4800)                          18
-                    '', //IN p_location_latitude DECIMAL(12,8)                      19
-                    '', // IN p_location_longitude DECIMAL(12,8)                    20
-                    '', //IN p_location_gps_accuracy DOUBLE(16,4)                   21
-                    '', //IN p_location_gps_enabled TINYINT(1)                      22
-                    '', //IN p_location_address VARCHAR(300)                        23
-                    '' //IN p_location_datetime DATETIME                            24
+                    '', //IN p_entity_tinyint_2 TINYINT(4)                          12 BETA
+                    '', //IN p_entity_bigint_1 BIGINT(20)                           13
+                    '', //IN p_entity_double_1 DOUBLE(16,4),                        14
+                    '', //IN p_entity_decimal_1 DECIMAL(14,2)                       15
+                    '', //IN p_entity_decimal_2 DECIMAL(14,8)                       16
+                    '', //IN p_entity_decimal_3 DECIMAL(14,8)                       17
+                    '', //IN p_entity_text_1 VARCHAR(1200)                          18
+                    '', //IN p_entity_text_2 VARCHAR(4800)                          19
+                    '', //IN p_entity_text_3 VARCHAR(100)                           20 BETA
+                    '', //IN p_location_latitude DECIMAL(12,8)                      21
+                    '', // IN p_location_longitude DECIMAL(12,8)                    22
+                    '', //IN p_location_gps_accuracy DOUBLE(16,4)                   23
+                    '', //IN p_location_gps_enabled TINYINT(1)                      24
+                    '', //IN p_location_address VARCHAR(300)                        25
+                    '' //IN p_location_datetime DATETIME                            26
                     );
 
             var dataTypeId = Number(row.field_data_type_id);
@@ -877,7 +879,8 @@ function ActivityTimelineService(objectCollection) {
             params.push(request.track_gps_datetime);                            // IN p_transaction_datetime DATETIME
             params.push(request.datetime_log);                                  // IN p_log_datetime DATETIME
 
-            var queryString = util.getQueryString('ds_v1_activity_form_transaction_insert', params);
+            //var queryString = util.getQueryString('ds_v1_activity_form_transaction_insert', params);
+            var queryString = util.getQueryString('ds_v1_1_activity_form_transaction_insert', params); //BETA
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     next();
