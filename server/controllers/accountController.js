@@ -71,7 +71,9 @@ function AccountController(objCollection) {
     });
 
     app.put('/' + global.config.version + '/account/cover/update/forwarding-address', function (req, res) {
-        accountService.updateAccountForwardingAddress(req.body, function (err, data, statusCode) {
+        try {
+            JSON.parse(req.body.account_forwarding_address);
+            accountService.updateAccountForwardingAddress(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response   
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
@@ -81,10 +83,17 @@ function AccountController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
+        } catch (exeption) {
+            res.send(responseWrapper.getResponse(false, {}, -3308, req.body));
+            return;
+        }
+        
     });
 
     app.put('/' + global.config.version + '/account/cover/update/phone', function (req, res) {
-        accountService.updateAccountPhone(req.body, function (err, data, statusCode) {
+        try{
+            JSON.parse(req.body.account_phone_number_collection);
+            accountService.updateAccountPhone(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response   
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
@@ -94,6 +103,11 @@ function AccountController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
+        } catch (exeption) {
+            res.send(responseWrapper.getResponse(false, {}, -3308, req.body));
+            return;
+        }
+        
     });
 
 

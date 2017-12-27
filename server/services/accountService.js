@@ -156,7 +156,7 @@ function AccountService(objectCollection) {
                 logDatetime,
                 request.asset_id
                 );
-        var queryString = util.getQueryString('ds_p1_account_list_update_forwarding_address', paramsArr);
+        var queryString = util.getQueryString('ds_p1_account_list_update_user_phone_number', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (!err) {
