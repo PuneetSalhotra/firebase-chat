@@ -23,7 +23,7 @@ function AccountController(objCollection) {
             }
         });
     });
-    
+
     app.post('/' + global.config.version + '/account/asset/access/desk-mapping/list', function (req, res) {
         accountService.getDeskMappingAssets(req.body, function (err, data, statusCode) {
             if (err === false) {
@@ -37,6 +37,67 @@ function AccountController(objCollection) {
         });
     });
 
+    app.put('/' + global.config.version + '/account/cover/update/email', function (req, res) {
+        accountService.updateAccountEmail(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response   
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                //console.log('did not get proper rseponse');
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
 
-};
+    app.put('/' + global.config.version + '/account/cover/update/mailing-address', function (req, res) {
+        try {
+            JSON.parse(req.body.mailing_address_collection);
+            accountService.updateAccountMailingAddress(req.body, function (err, data, statusCode) {
+                if (err === false) {
+                    // got positive response   
+                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                } else {
+                    //console.log('did not get proper rseponse');
+                    data = {};
+                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                }
+            });
+        } catch (exeption) {
+            res.send(responseWrapper.getResponse(false, {}, -3308, req.body));
+            return;
+        }
+
+    });
+
+    app.put('/' + global.config.version + '/account/cover/update/forwarding-address', function (req, res) {
+        accountService.updateAccountForwardingAddress(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response   
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                //console.log('did not get proper rseponse');
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+
+    app.put('/' + global.config.version + '/account/cover/update/phone', function (req, res) {
+        accountService.updateAccountPhone(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response   
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                //console.log('did not get proper rseponse');
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+
+
+
+}
+;
 module.exports = AccountController;

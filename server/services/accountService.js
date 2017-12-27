@@ -6,7 +6,7 @@ function AccountService(objectCollection) {
 
     var db = objectCollection.db;
     var util = objectCollection.util;
-    var forEachAsync = objectCollection.forEachAsync;    
+    var forEachAsync = objectCollection.forEachAsync;
     //var cacheWrapper = objectCollection.cacheWrapper;
     //var activityCommonService = objectCollection.activityCommonService;
 
@@ -37,7 +37,7 @@ function AccountService(objectCollection) {
         var paramsArr = new Array(
                 request.organization_id,
                 request.asset_id,
-                5,// static value
+                5, // static value
                 request.page_start,
                 request.page_limit
                 );
@@ -56,8 +56,121 @@ function AccountService(objectCollection) {
             });
         }
     };
+
+    this.updateAccountEmail = function (request, callback) {
+
+        var logDatetime = util.getCurrentUTCTime();
+        request['datetime_log'] = logDatetime;
+
+        var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.user_id,
+                request.user_name,
+                request.user_password,
+                request.user_customer_type,
+                request.user_role_flag,
+                request.user_status_flag,
+                request.user_currency_code,
+                request.user_vat_rate,
+                logDatetime,
+                request.asset_id
+                );
+        var queryString = util.getQueryString('ds_p1_account_list_update_user_details', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                if (!err) {
+                    callback(false, {data: data}, 200);
+                    accountListHistoryInsert(request, 1003, function () {});
+                } else {
+                    callback(false, {}, -9998);
+                }
+            });
+        }
+    };
+
+    this.updateAccountMailingAddress = function (request, callback) {
+
+        var logDatetime = util.getCurrentUTCTime();
+        request['datetime_log'] = logDatetime;
+
+        var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.mailing_address_collection,
+                request.mailing_postbox_id,
+                request.mailing_postbox_name,
+                logDatetime,
+                request.asset_id
+                );
+        var queryString = util.getQueryString('ds_p1_account_list_update_mailing_address', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                if (!err) {
+                    callback(false, {data: data}, 200);
+                    accountListHistoryInsert(request, 1003, function () {});
+                } else {
+                    callback(false, {}, -9998);
+                }
+            });
+        }
+    };
+
+    this.updateAccountForwardingAddress = function (request, callback) {
+
+        var logDatetime = util.getCurrentUTCTime();
+        request['datetime_log'] = logDatetime;
+
+        var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.account_address,
+                request.account_forwarding_address,
+                logDatetime,
+                request.asset_id
+                );
+        var queryString = util.getQueryString('ds_p1_account_list_update_forwarding_address', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                if (!err) {
+                    callback(false, {data: data}, 200);
+                    accountListHistoryInsert(request, 1003, function () {});
+                } else {
+                    callback(false, {}, -9998);
+                }
+            });
+        }
+    };
     
-        var formatAssetCoverData = function (rowArray, callback) {
+    this.updateAccountPhone = function (request, callback) {
+
+        var logDatetime = util.getCurrentUTCTime();
+        request['datetime_log'] = logDatetime;
+
+        var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.account_address,
+                request.account_forwarding_address,
+                logDatetime,
+                request.asset_id
+                );
+        var queryString = util.getQueryString('ds_p1_account_list_update_forwarding_address', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                if (!err) {
+                    callback(false, {data: data}, 200);
+                    accountListHistoryInsert(request, 1003, function () {});
+                } else {
+                    callback(false, {}, -9998);
+                }
+            });
+        }
+    };
+
+
+
+    var formatAssetCoverData = function (rowArray, callback) {
         var responseArr = new Array();
         objectCollection.forEachAsync(rowArray, function (next, row) {
             var rowData = {
@@ -103,7 +216,7 @@ function AccountService(objectCollection) {
             callback(false, responseArr);
         });
     };
-    
+
     var formatAssetAccountDataLevel = function (data, callback) {
         var responseArr = new Array();
         forEachAsync(data, function (next, row) {
@@ -170,8 +283,26 @@ function AccountService(objectCollection) {
         });
     };
 
+    var accountListHistoryInsert = function (request, updateTypeId, callback) {
+        var paramsArr = new Array(
+                request.account_id,
+                request.organization_id,
+                updateTypeId,
+                request.datetime_log // server log date time
+                );
 
-
+        var queryString = util.getQueryString('ds_p1_account_list_history_insert', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                if (err === false) {
+                    callback(false, true);
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, false);
+                }
+            });
+        }
+    };
 }
 ;
 
