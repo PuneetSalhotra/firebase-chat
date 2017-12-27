@@ -174,7 +174,7 @@ function AssetService(objectCollection) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
-                    //console.log(data);formatAssetData
+                    //console.log(data);
                     formatMeetingRoomAssetData(data, function (err, finalData) {
                         if (err === false) {
                             callback(false, {data: finalData}, 200);
@@ -408,7 +408,7 @@ function AssetService(objectCollection) {
         });
     };
 
-    var formatAssetCoverData = function (rowArray, callback) {
+    this.formatAssetCoverData = function (rowArray, callback) {
         var responseArr = new Array();
         objectCollection.forEachAsync(rowArray, function (next, row) {
             var rowData = {

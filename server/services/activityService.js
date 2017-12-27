@@ -826,6 +826,7 @@ function ActivityService(objectCollection) {
                                     util.replaceDefaultDate(finalFormTransactionData[keyValue].data_entity_date_1),
                                     util.replaceDefaultDatetime(finalFormTransactionData[keyValue].data_entity_datetime_1),
                                     finalFormTransactionData[keyValue].data_entity_tinyint_1,
+                                    finalFormTransactionData[keyValue].data_entity_tinyint_2, //BETA
                                     finalFormTransactionData[keyValue].data_entity_bigint_1,
                                     finalFormTransactionData[keyValue].data_entity_double_1,
                                     finalFormTransactionData[keyValue].data_entity_decimal_1,
@@ -833,6 +834,7 @@ function ActivityService(objectCollection) {
                                     finalFormTransactionData[keyValue].data_entity_decimal_3,
                                     finalFormTransactionData[keyValue].data_entity_text_1,
                                     '', //  p_entity_text_2 VARCHAR(4800)
+                                    '', //  p_entity_text_3 VARCHAR(100) BETA
                                     request.track_latitude,
                                     request.track_longitude,
                                     request.track_gps_accuracy,
@@ -853,7 +855,8 @@ function ActivityService(objectCollection) {
                                     util.replaceDefaultDatetime(finalFormTransactionData[keyValue].form_transaction_datetime),
                                     request.datetime_log
                                     );
-                            var queryString = util.getQueryString('ds_v1_activity_form_transaction_analytics_insert', paramsArr);
+                            //var queryString = util.getQueryString('ds_v1_activity_form_transaction_analytics_insert', paramsArr);
+                            var queryString = util.getQueryString('ds_v1_1_activity_form_transaction_analytics_insert', paramsArr);//BETA
                             if (queryString != '') {
                                 db.executeQuery(0, queryString, request, function (err, data) {
                                     next();
