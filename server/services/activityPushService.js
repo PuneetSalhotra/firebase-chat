@@ -71,6 +71,10 @@ function ActivityPushService() {
                                 break;
                             case '/0.1/activity/status/alter':
                                 break;
+                            case '/0.1/activity/owner/alter':
+                                pushString.title = senderName;
+                                pushString.description = 'Folder: ' + activityTitle + ' owner is changed';
+                                break;
                             case '/0.1/activity/participant/access/set':
                                 pushString.title = senderName;
                                 pushString.description = 'Folder: ' + activityTitle + ' has been shared to collaborate';
