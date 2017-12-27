@@ -220,6 +220,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         var entityText1 = "";
         var entityText2 = "";
         var entityText3 = "";
+        var activityTimelineCollection = {}; //BETA
         var retryFlag = 0;
         var formTransactionId = 0;
         var dataTypeId = 0;
@@ -331,6 +332,11 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityText1 = "";
                 entityText2 = request.activity_timeline_text;
                 break;
+            case 325:   // Add Participant Collection for taskList BETA
+                activityTimelineCollection = request.activity_timeline_collection;
+                entityText1 = "";
+                entityText2 = request.activity_timeline_text;
+                break;
             default:
                 entityTypeId = 0;
                 entityText1 = "";
@@ -350,6 +356,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityText1, // entity text 1
                 entityText2, // entity text 2
                 entityText3, //Beta
+                activityTimelineCollection, //BETA
                 request.track_latitude,
                 request.track_longitude,
                 formTransactionId, //form_transaction_id
@@ -375,7 +382,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 request.track_gps_datetime,
                 request.datetime_log
                 );
-        var queryString = util.getQueryString("ds_v1_1_asset_timeline_transaction_insert", paramsArr);
+        var queryString = util.getQueryString("ds_v1_2_asset_timeline_transaction_insert", paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false)
@@ -402,6 +409,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         var entityText1 = "";
         var entityText2 = "";
         var entityText3 = ""; //Beta
+        var activityTimelineCollection = {}; //BETA
         var retryFlag = 0;
         var formTransactionId = 0;
         var dataTypeId = 0;
@@ -513,6 +521,11 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityText1 = "";
                 entityText2 = request.activity_timeline_text;
                 break;
+            case 325:   // Add Participant Collection for taskList
+                activityTimelineCollection = request.activity_timeline_collection;
+                entityText1 = "";
+                entityText2 = request.activity_timeline_text;
+                break;
             default:
                 entityTypeId = 0;
                 entityText1 = "";
@@ -532,6 +545,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityText1, // entity text 1
                 entityText2, // entity text 2
                 entityText3, //Beta
+                activityTimelineCollection, //BETA
                 request.track_latitude,
                 request.track_longitude,
                 formTransactionId, //form_transaction_id
@@ -558,7 +572,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 request.datetime_log
                 );
         //Beta
-        var queryString = util.getQueryString("ds_v1_1_activity_timeline_transaction_insert", paramsArr);
+        var queryString = util.getQueryString("ds_v1_2_activity_timeline_transaction_insert", paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false)

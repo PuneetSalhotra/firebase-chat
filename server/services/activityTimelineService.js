@@ -369,7 +369,7 @@ function ActivityTimelineService(objectCollection) {
             rowDataArr.activity_timeline_url = '';
             rowDataArr.activity_timeline_collection = {};
             rowDataArr.activity_timeline_url_title ='';
-
+            rowDataArr.data_entity_inline = rowData['data_entity_inline_data'] || {};
 
             //Added for Beta
             rowDataArr.activity_timeline_url_title = util.replaceDefaultString(rowData['data_entity_text_3']);
