@@ -150,8 +150,9 @@ function AccountService(objectCollection) {
         var paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
-                request.account_address,
-                request.account_forwarding_address,
+                request.account_phone_country_code,
+                request.account_phone_number,
+                request.account_phone_number_collection,
                 logDatetime,
                 request.asset_id
                 );
