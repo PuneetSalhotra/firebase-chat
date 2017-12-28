@@ -109,8 +109,19 @@ function AccountController(objCollection) {
         }
         
     });
-
-
+    
+    app.post('/' + global.config.version + '/account/access/list', function (req, res) {
+        accountService.retrieveAccountList(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response   
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                //console.log('did not get proper rseponse');
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
 
 }
 ;

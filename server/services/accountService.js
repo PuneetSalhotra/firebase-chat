@@ -56,6 +56,28 @@ function AccountService(objectCollection) {
             });
         }
     };
+    
+    this.retrieveAccountList = function (request, callback) {
+        var paramsArr = new Array(
+                request.account_id
+                //request.page_start,
+                //request.page_limit
+                );
+        var queryString = util.getQueryString('ds_p1_account_list_select', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (data.length > 0) {
+                    //console.log(data);
+                    formatAccountAccessList(data, function (error, data) {
+                        if (error === false)
+                            callback(false, {data: data}, 200);
+                    });
+                } else {
+                    callback(false, {}, 200);
+                }
+            });
+        }
+    };
 
     this.updateAccountEmail = function (request, callback) {
 
@@ -270,7 +292,6 @@ function AccountService(objectCollection) {
                 'log_asset_id': util.replaceDefaultNumber(row['log_asset_id']),
                 'log_asset_first_name': util.replaceDefaultString(row['log_asset_first_name']),
                 'log_asset_last_name': util.replaceDefaultString(row['log_asset_first_name']),
-                'asset_last_name': util.replaceDefaultString(row['asset_last_name']),
                 'log_asset_image_path': util.replaceDefaultString(row['log_asset_image_path']),
                 'log_datetime': util.replaceDefaultDatetime(row['log_datetime']),
                 'log_state': util.replaceDefaultNumber(row['log_state']),
@@ -278,6 +299,76 @@ function AccountService(objectCollection) {
                 'update_sequence_id': util.replaceDefaultNumber(row['update_sequence_id'])
             };
             responseArr.push(rowData);
+            next();
+        }).then(() => {
+            callback(false, responseArr);
+        });
+    };
+    
+    var formatAccountAccessList = function (data, callback) {
+        var responseArr = new Array();
+        forEachAsync(data, function (next, rowData) {
+            var row = {
+                "account_id": util.replaceDefaultNumber(rowData['account_id']),
+                "account_name": util.replaceDefaultString(rowData['account_name']),
+                "account_image_path": util.replaceDefaultString(rowData['account_image_path']),
+                "account_phone_country_code": util.replaceDefaultString(rowData['account_phone_country_code']),
+                "account_phone_number": util.replaceDefaultString(rowData['account_phone_number']),
+                "account_email": util.replaceDefaultString(rowData['account_email']),
+                "account_address": util.replaceDefaultString(rowData['account_address']),
+                "account_location_latitude": util.replaceDefaultString(rowData['account_location_latitude']),
+                "account_location_longitude": util.replaceDefaultString(rowData['account_location_longitude']),
+                "account_contact_person": util.replaceDefaultString(rowData['account_contact_person']),
+                "account_fax_country_code": util.replaceDefaultString(rowData['account_fax_country_code']),
+                "account_fax_phone_number": util.replaceDefaultString(rowData['account_fax_phone_number']),
+                "account_contact_phone_country_code": util.replaceDefaultString(rowData['account_contact_phone_country_code']),
+                "account_contact_phone_number": util.replaceDefaultString(rowData['account_contact_phone_number']),
+                "account_contact_email": util.replaceDefaultString(rowData['account_contact_email']),
+                "account_type_id": util.replaceDefaultNumber(rowData['account_type_id']),
+                "account_type_name": util.replaceDefaultString(rowData['account_type_name']),
+                "account_type_category_id": util.replaceDefaultNumber(rowData['account_type_category_id']),
+                "account_type_category_name": util.replaceDefaultString(rowData['account_type_category_name']),
+                "organization_id": util.replaceDefaultNumber(rowData['organization_id']),
+                "organization_name": util.replaceDefaultString(rowData['organization_name']),
+                "organization_image_path": util.replaceDefaultString(rowData['organization_image_path']),
+                "organization_type_id": util.replaceDefaultNumber(rowData['organization_type_id']),
+                "organization_type_name": util.replaceDefaultString(rowData['organization_type_name']),
+                "organization_type_category_id": util.replaceDefaultNumber(rowData['organization_type_category_id']),
+                "organization_type_category_name": util.replaceDefaultString(rowData['activity_id']),
+                "manager_asset_id": util.replaceDefaultNumber(rowData['manager_asset_id']),
+                "manager_asset_first_name": util.replaceDefaultString(rowData['manager_asset_first_name']),
+                "manager_asset_last_name": util.replaceDefaultString(rowData['manager_asset_last_name']),
+                "manager_asset_image_path": util.replaceDefaultString(rowData['manager_asset_image_path']),
+                "manager_asset_type_id": util.replaceDefaultNumber(rowData['manager_asset_type_id']),
+                "manager_asset_type_name": util.replaceDefaultString(rowData['manager_asset_type_name']),
+                "manager_asset_type_category_id": util.replaceDefaultNumber(rowData['manager_asset_type_category_id']),
+                "manager_asset_type_category_name": util.replaceDefaultString(rowData['manager_asset_type_category_name']),
+                "log_asset_id": util.replaceDefaultNumber(rowData['log_asset_id']),
+                "log_asset_first_name": util.replaceDefaultString(rowData['log_asset_first_name']),
+                "log_asset_last_name": util.replaceDefaultString(rowData['log_asset_last_name']),
+                "log_asset_image_path": util.replaceDefaultString(rowData['log_asset_image_path']),
+                "log_datetime": util.replaceDefaultDatetime(rowData['log_datetime']),
+                "log_state": util.replaceDefaultNumber(rowData['log_state']),
+                "log_active": util.replaceDefaultNumber(rowData['log_active']),
+                "timecard_session_time_out": util.replaceDefaultNumber(rowData['timecard_session_time_out']),
+                "payroll_cycle_type_id": util.replaceDefaultNumber(rowData['payroll_cycle_type_id']),
+                "payroll_cycle_type_name": util.replaceDefaultString(rowData['payroll_cycle_type_name']),
+                "payroll_cycle_start_date": util.replaceDefaultDatetime(rowData['payroll_cycle_start_date']),
+                "account_mail_user_id": util.replaceDefaultNumber(rowData['account_mail_user_id']),
+                "account_mail_user_name": util.replaceDefaultString(rowData['account_mail_user_name']),
+                "account_mail_user_password": util.replaceDefaultString(rowData['account_mail_user_password']),
+                "account_mail_user_phone_number": JSON.parse(util.replaceDefaultString(rowData['account_mail_user_phone_number']) || "{}"),
+                "account_mail_user_currency_code": util.replaceDefaultString(rowData['account_mail_user_currency_code']),
+                "account_mail_user_role_flag": util.replaceDefaultNumber(rowData['account_mail_user_role_flag']),
+                "account_mail_user_customer_type": util.replaceDefaultString(rowData['account_mail_user_customer_type']),
+                "account_mail_user_status_flag": util.replaceDefaultNumber(rowData['account_mail_user_status_flag']),
+                "account_mail_forwarding_address": JSON.parse(util.replaceDefaultString(rowData['account_mail_forwarding_address'])  || "{}"),
+                "account_mail_mailing_address": JSON.parse(util.replaceDefaultString(rowData['account_mail_mailing_address'])  || "{}"),
+                "account_mail_postbox_id": util.replaceDefaultNumber(rowData['account_mail_postbox_id']),
+                "account_mail_postbox_name": util.replaceDefaultString(rowData['account_mail_postbox_name']),
+                "account_mail_user_vat_rate": util.replaceDefaultNumber(rowData['account_mail_user_vat_rate'])
+            };
+            responseArr.push(row);
             next();
         }).then(() => {
             callback(false, responseArr);
