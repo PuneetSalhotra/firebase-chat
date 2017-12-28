@@ -220,7 +220,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         var entityText1 = "";
         var entityText2 = "";
         var entityText3 = "";
-        var activityTimelineCollection = {}; //BETA
+        var activityTimelineCollection = "{}"; //BETA
         var retryFlag = 0;
         var formTransactionId = 0;
         var dataTypeId = 0;
@@ -344,7 +344,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 break;
         }
         ;
-
+        
         var paramsArr = new Array(
                 request.activity_id,
                 assetId,
@@ -409,7 +409,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         var entityText1 = "";
         var entityText2 = "";
         var entityText3 = ""; //Beta
-        var activityTimelineCollection = {}; //BETA
+        var activityTimelineCollection = "{}"; //BETA
         var retryFlag = 0;
         var formTransactionId = 0;
         var dataTypeId = 0;
