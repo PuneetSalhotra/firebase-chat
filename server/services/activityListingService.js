@@ -118,6 +118,8 @@ function ActivityListingService(objCollection) {
                     request.is_status,
                     request.is_due_date,
                     request.is_sort,
+                    request.is_search,
+                    request.search_string,
                     request.flag,
                     request.start_datetime,
                     request.end_datetime,
