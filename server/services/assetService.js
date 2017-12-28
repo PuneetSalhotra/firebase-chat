@@ -1470,8 +1470,13 @@ function AssetService(objectCollection) {
                     }
                 });
 
-            } else {
-                callback(err, {}, -9998);
+            }else {
+                if(resp === 'wrongPasscode') {
+                    callback(err, {}, -3701);
+                }else {
+                    callback(err, {}, -9998);
+                }
+                
             }
         });
     };
@@ -1506,9 +1511,13 @@ function AssetService(objectCollection) {
             db.executeQuery(1, queryString, request, function (err, assetId) {
                 if (err === false) {
                     //console.log('Asset Id : ' + JSON.stringify(assetId[0]));
-                    response.asset_id = assetId[0].asset_id;
-                    response.asset_encryption_token_id = assetId[0].asset_encryption_token_id;
-                    callback(false, response);
+                    if(assetId.length>0) {
+                        response.asset_id = assetId[0].asset_id;
+                        response.asset_encryption_token_id = assetId[0].asset_encryption_token_id;
+                        callback(false, response);
+                    } else {
+                        callback(true, 'wrongPasscode');
+                    }
                 } else {
                     callback(true, err);
                 }
