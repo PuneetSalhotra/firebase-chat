@@ -16,7 +16,7 @@ function ActivityController(objCollection) {
     var app = objCollection.app;
     var util = objCollection.util;
 
-    var assetService = new AssetService(objCollection.db, objCollection.util, objCollection.cacheWrapper, activityCommonService);
+    var assetService = new AssetService(objCollection);
 
     app.post('/' + global.config.version + '/activity/add', function (req, res) {
         var deviceOsId = 0;
@@ -100,7 +100,15 @@ function ActivityController(objCollection) {
                                     res.send(responseWrapper.getResponse(false, {activity_id: 0, message_unique_id: req.body.message_unique_id}, -7998, req.body));
                                 }
                             });
-                            break
+                            break;
+                        case 42: //Enquiry PAM
+                             addActivity(req.body, function (err, activityId) {
+                                if (err === false) {
+                                    res.send(responseWrapper.getResponse(false, {activity_id: activityId}, 200, req.body));
+                                } else {
+                                    res.send(responseWrapper.getResponse(false, {activity_id: 0}, -7998, req.body));
+                                }
+                            });
                         default:
                             //console.log('generating activity id via default condition');
                             global.logger.write('debug','generating activity id via default condition',{},req.body);

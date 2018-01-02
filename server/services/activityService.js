@@ -123,6 +123,11 @@ function ActivityService(objectCollection) {
                         case 41:    //Event
                             activityStreamTypeId = 17001;
                             break;
+                        case 42: //PAM Enquiry
+                            activityStreamTypeId = 1801;
+                            var inlineJson = JSON.parse(request.activity_inline_data);
+                            util.sendSmsMvaayoo('Dear Sir/Madam, Our executive will contact you soon.', inlineJson.country_code, inlineJson.phone_number, function(err,res){});
+                            break;
                         default:
                             activityStreamTypeId = 1;   //by default so that we know
                             //console.log('adding streamtype id 1');
@@ -152,21 +157,6 @@ function ActivityService(objectCollection) {
                             });
                             callback(false, activityData, 200);
                             
-                            /*if (request.hasOwnProperty('device_os_id')) {
-                                if (Number(request.device_os_id) !== 5) {
-                                    //incr the asset_message_counter                        
-                                    cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
-                                        if (err) {
-                                            //console.log("error in setting in asset parity");
-                                            global.logger.write('serverError','error in setting in asset parity' + err, request)
-                                        } else
-                                            //console.log("asset parity is set successfully")
-                                            global.logger.write('debug','asset parity is set successfully', request)
-
-                                    });
-                                }
-                            }*/
-
                             cacheWrapper.setMessageUniqueIdLookup(request.message_unique_id, request.activity_id, function (err, status) {
                                 if (err) {
                                     //console.log("error in setting in message unique id look up");
@@ -253,6 +243,7 @@ function ActivityService(objectCollection) {
         var activityChannelCategoryId = 0;
         var activityStatusId = 0;
         var activityFormId = 0;
+        var expiryDateTime = "";
         if (request.hasOwnProperty('activity_channel_id'))
             activityChannelId = request.activity_channel_id;
         if (request.hasOwnProperty('activity_channel_category_id'))
@@ -277,6 +268,11 @@ function ActivityService(objectCollection) {
                     if(err === false) {
                         console.log('activitySubTypeName : ' + data);
                         activitySubTypeName = data;
+                        expiryDateTime = util.addUnitsToDateTime(request.track_gps_datetime,1,'hours');
+                        var inlineJson = JSON.parse(request.activity_inline_data);
+                        util.sendSmsMvaayoo('Dear Member, your reservation is confirmed. Reservation Code:'+data+'. Please check in before '+expiryDateTime, inlineJson.country_code, inlineJson.phone_number, function(err,res){
+                            console.log(err,'\n',res);
+                        });
                         return resolve();
                        } else {
                            generateUniqueCode();
@@ -592,6 +588,7 @@ function ActivityService(objectCollection) {
         paramsArr.push(request.track_longitude); 
         paramsArr.push(activitySubTypeId);
         paramsArr.push(activitySubTypeName); //PAM
+        paramsArr.push(expiryDateTime); //PAM
                 
         var queryString = util.getQueryString('ds_v1_activity_list_insert_pam', paramsArr);
         if (queryString !== '') {
