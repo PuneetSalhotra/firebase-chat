@@ -82,20 +82,6 @@ function ActivityParticipantService(objectCollection) {
                 if (err === false) {
                     if (index === maxIndex) {
                         updateParticipantCount(request.activity_id, request.organization_id, request, function (err, data) { });                        
-                        /*if (request.hasOwnProperty('device_os_id')) {
-                            if (Number(request.device_os_id) !== 5) {
-                                //incr the asset_message_counter                        
-                                cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
-                                    if (err) {
-                                        //console.log("error in setting in asset parity");
-                                        global.logger.write('serverError','error in setting in asset parity', request)
-                                    } else
-                                        //console.log("asset parity is set successfully")
-                                        global.logger.write('debug','asset parity is set successfully', request)
-                                });
-                            }
-                        }
-                        }*/
                     }
                 } else {
                     //console.log("something is not wright in adding a participant");
@@ -249,21 +235,7 @@ function ActivityParticipantService(objectCollection) {
                 if (maxIndex === index) {
                     updateParticipantCount(request.activity_id, request.organization_id, request, function (err, data) { });
                     activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
-                    /*if (request.hasOwnProperty('device_os_id')) {
-                        if (Number(request.device_os_id) !== 5) {
-                            //incr the asset_message_counter                        
-                            cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
-                                if (err) {
-                                    //console.log("error in setting in asset parity");
-                                } else
-                                global.logger.write('serverError','error in setting in asset parity' + err, request)
-                                    //console.log("asset parity is set successfully")
-                                    global.logger.write('debug','asset parity is set successfully', request)
-                            });
-                        }
-                    }
-                    }*/
-                }
+              }
             } else {
                 //console.log("something is not wright in adding a participant");
                 global.logger.write('serverError','something is not wright in adding a participant', {},request)
