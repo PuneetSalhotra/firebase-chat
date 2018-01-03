@@ -109,6 +109,7 @@ function ActivityController(objCollection) {
                                     res.send(responseWrapper.getResponse(false, {activity_id: 0}, -7998, req.body));
                                 }
                             });
+                            break;
                         default:
                             //console.log('generating activity id via default condition');
                             global.logger.write('debug','generating activity id via default condition',{},req.body);

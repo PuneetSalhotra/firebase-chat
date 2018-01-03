@@ -271,7 +271,7 @@ function ActivityService(objectCollection) {
                         expiryDateTime = util.addUnitsToDateTime(request.track_gps_datetime,1,'hours');
                         var inlineJson = JSON.parse(request.activity_inline_data);
                         util.sendSmsMvaayoo('Dear Member, your reservation is confirmed. Reservation Code:'+data+'. Please check in before '+expiryDateTime, inlineJson.country_code, inlineJson.phone_number, function(err,res){
-                            console.log(err,'\n',res);
+                            //console.log(err,'\n',res);
                         });
                         return resolve();
                        } else {
