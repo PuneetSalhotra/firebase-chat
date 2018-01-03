@@ -243,7 +243,7 @@ function ActivityService(objectCollection) {
         var activityChannelCategoryId = 0;
         var activityStatusId = 0;
         var activityFormId = 0;
-        var expiryDateTime = "";
+        //var expiryDateTime = "";
         if (request.hasOwnProperty('activity_channel_id'))
             activityChannelId = request.activity_channel_id;
         if (request.hasOwnProperty('activity_channel_category_id'))
@@ -258,6 +258,7 @@ function ActivityService(objectCollection) {
         
         //PAM
         var activitySubTypeName = (request.hasOwnProperty('activity_sub_type_name')) ? request.activity_sub_type_name : '';
+        var expiryDateTime = (request.hasOwnProperty('expiry_datetime')) ? request.expiry_datetime : '';
         
         new Promise((resolve, reject)=>{
             if(activityTypeCategoryId === 37) { //PAM
@@ -268,8 +269,8 @@ function ActivityService(objectCollection) {
                     if(err === false) {
                         console.log('activitySubTypeName : ' + data);
                         activitySubTypeName = data;
-                        expiryDateTime = util.addUnitsToDateTime(request.track_gps_datetime,1,'hours');
-                        var inlineJson = JSON.parse(request.activity_inline_data);
+                        //expiryDateTime = util.addUnitsToDateTime(request.track_gps_datetime,1,'hours');
+                        //var inlineJson = JSON.parse(request.activity_inline_data);
                         util.sendSmsMvaayoo('Dear Member, your reservation is confirmed. Reservation Code:'+data+'. Please check in before '+expiryDateTime, inlineJson.country_code, inlineJson.phone_number, function(err,res){
                             //console.log(err,'\n',res);
                         });

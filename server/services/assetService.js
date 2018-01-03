@@ -80,7 +80,6 @@ function AssetService(objectCollection) {
                 request.organization_id,
                 request.asset_id
                 );
-
         var queryString = util.getQueryString('ds_v1_asset_list_select', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
@@ -394,7 +393,6 @@ function AssetService(objectCollection) {
                 'log_asset_id': util.replaceDefaultNumber(row['log_asset_id']),
                 'log_asset_first_name': util.replaceDefaultString(row['log_asset_first_name']),
                 'log_asset_last_name': util.replaceDefaultString(row['log_asset_first_name']),
-                'asset_last_name': util.replaceDefaultString(row['asset_last_name']),
                 'log_asset_image_path': util.replaceDefaultString(row['log_asset_image_path']),
                 'log_datetime': util.replaceDefaultDatetime(row['log_datetime']),
                 'log_state': util.replaceDefaultNumber(row['log_state']),
@@ -408,7 +406,7 @@ function AssetService(objectCollection) {
         });
     };
 
-    this.formatAssetCoverData = function (rowArray, callback) {
+    var formatAssetCoverData = function (rowArray, callback) {
         var responseArr = new Array();
         objectCollection.forEachAsync(rowArray, function (next, row) {
             var rowData = {
@@ -882,7 +880,7 @@ function AssetService(objectCollection) {
 
     this.addAsset = function (request, callback) {
         var responseDataCollection = {};
-
+        
         //check if phone number and cc of the new contact exist in the activity type id ...
         checkIfContactAssetExist(request, function (err, contactAssetData) {
             if (err === false) {
@@ -1156,7 +1154,7 @@ function AssetService(objectCollection) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
-                    this.formatAssetCoverData(data, function (err, finalData) {
+                    formatAssetCoverData(data, function (err, finalData) {
                         callback(false, finalData, 200);
                     });
                     //console.log(data);

@@ -101,7 +101,7 @@ function ActivityController(objCollection) {
                                 }
                             });
                             break;
-                        case 42: //Enquiry PAM
+                        /*case 42: //Enquiry PAM
                              addActivity(req.body, function (err, activityId) {
                                 if (err === false) {
                                     res.send(responseWrapper.getResponse(false, {activity_id: activityId}, 200, req.body));
@@ -109,7 +109,7 @@ function ActivityController(objCollection) {
                                     res.send(responseWrapper.getResponse(false, {activity_id: 0}, -7998, req.body));
                                 }
                             });
-                            break;
+                            break;*/
                         default:
                             //console.log('generating activity id via default condition');
                             global.logger.write('debug','generating activity id via default condition',{},req.body);

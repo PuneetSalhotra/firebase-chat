@@ -15,6 +15,7 @@ var FormConfigController = require('../controllers/formConfigController');
 var WidgetController = require('../controllers/widgetController');
 var AccountController = require('../controllers/accountController');
 var LogController = require('../controllers/logController'); //BETA
+var PamController = require('../controllers/pamController'); //PAM
 //var FormConfigController = require('../controllers/formConfigController');
 //var FormDataController = require('../controllers/formDataController');
 //var LinkController = require('../controllers/linkController');
@@ -37,6 +38,7 @@ function ControlInterceptor(objCollection) {
     new WidgetController(objCollection);
     new AccountController(objCollection);
     new LogController(objCollection);
+    new PamController(objCollection);
     //new FormConfigController(app, log, cacheWrapper, queueWrapper);
     //new FormDataController(app, log, cacheWrapper, queueWrapper);
     //new LinkController(app, log, cacheWrapper, queueWrapper);
