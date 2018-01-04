@@ -261,7 +261,10 @@ function ActivityListingService(objCollection) {
                 "log_datetime": util.replaceDefaultDatetime(rowData['asset_datetime_last_differential']),
                 "log_state": util.replaceDefaultNumber(rowData['log_state']),
                 "log_active": util.replaceDefaultNumber(rowData['log_active']),
-                "update_sequence_id": util.replaceDefaultNumber(rowData['log_asset_image_path'])
+                "update_sequence_id": util.replaceDefaultNumber(rowData['log_asset_image_path']),
+                "activity_creator_operating_asset_id": util.replaceDefaultNumber(rowData['activity_creator_operating_asset_id']),
+                "activity_creator_operating_asset_first_name":util.replaceDefaultString(rowData['activity_creator_operating_asset_first_name']),
+                "activity_creator_operating_asset_last_name":util.replaceDefaultString(rowData['activity_creator_operating_asset_last_name'])
             };
             responseData.push(rowDataArr);
         }, this);
@@ -824,7 +827,10 @@ function ActivityListingService(objCollection) {
                 "activity_creator_asset_id": util.replaceDefaultNumber(rowData['activity_lead_asset_id']),
                 "activity_creator_asset_first_name": util.replaceDefaultString(rowData['activity_lead_asset_first_name']),
                 "activity_creator_asset_last_name": util.replaceDefaultString(rowData['activity_lead_asset_last_name']),
-                "activity_creator_asset_image_path": util.replaceDefaultString(rowData['activity_lead_asset_image_path'])
+                "activity_creator_asset_image_path": util.replaceDefaultString(rowData['activity_lead_asset_image_path']),
+                "activity_creator_operating_asset_id": util.replaceDefaultNumber(rowData['activity_creator_operating_asset_id']),
+                "activity_creator_operating_asset_first_name":util.replaceDefaultString(rowData['activity_creator_operating_asset_first_name']),
+                "activity_creator_operating_asset_last_name":util.replaceDefaultString(rowData['activity_creator_operating_asset_last_name'])
             };
             responseData.push(rowDataArr);
         }, this);
