@@ -311,10 +311,11 @@ function FormConfigService(objCollection) {
                 "log_asset_first_name": util.replaceDefaultString(util.decodeSpecialChars(rowData['log_asset_first_name'])),
                 "log_asset_last_name": util.replaceDefaultString(util.decodeSpecialChars(rowData['log_asset_last_name'])),
                 "log_asset_image_path": util.replaceDefaultString(util.decodeSpecialChars(rowData['log_asset_image_path'])),
+                "log_datetime": util.replaceDefaultDatetime(rowData['log_datetime']),
                 "log_state": util.replaceDefaultNumber(rowData['log_state']),
                 "log_active": util.replaceDefaultNumber(rowData['log_active']),
                 "update_sequence_id": util.replaceDefaultNumber(rowData['update_sequence_id'])
-            };
+          };
             responseData.push(rowDataArr);
         }, this);
         callback(false, responseData);
