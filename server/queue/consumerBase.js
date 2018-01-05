@@ -14,6 +14,7 @@ const kafkaClient = new kafka.Client(global.config.kafkaIP);
 const redisClient = redis.createClient(global.config.redisPort, global.config.redisIp);
 const cacheWrapper = new (require('../utils/cacheWrapper'))(redisClient);
 const sns = new AwsSns(); 
+const pubnubWrapper = new (require('../utils/pubnubWrapper'))(); //BETA
 
 class ConsumerBase {
     constructor(opts) {
@@ -32,7 +33,8 @@ class ConsumerBase {
             util,
             db,
             cacheWrapper,
-            sns
+            sns,
+            pubnubWrapper
         });
         this.kafkaConsumer.on('connect', this.onConnect.bind(this));
         this.kafkaConsumer.on('message', this.processMessage.bind(this));

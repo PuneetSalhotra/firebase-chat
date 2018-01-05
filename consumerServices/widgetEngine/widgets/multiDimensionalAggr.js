@@ -104,6 +104,13 @@ class MultiDimensionalAggrWidget extends WidgetBase {
                         widgetTrans2Id ? widgetTransactionSvc.updateMultiDimAggregate(widgetData[1]) : widgetTransactionSvc.createMultiDimAggregare(widgetData[1]),
                         widgetTrans3Id ? widgetTransactionSvc.updateMultiDimAggregate(widgetData[2]) : widgetTransactionSvc.createMultiDimAggregare(widgetData[2])
                     ];
+                    //Pubnub PUSH
+                    var msg = {};
+                    msg.type = "form_submited_show_widget_count";
+                    msg.form_id = widgetData[0].form_id;
+                    msg.widget_id = widgetData[0].widget_id;
+                    this.objCollection.pubnubWrapper.push(widgetData[0].organization_id,msg);
+                    ///////////////////////////////
                     return Promise.all(promises);
                 })
     }
