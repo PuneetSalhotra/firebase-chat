@@ -48,7 +48,7 @@ function AssetController(objCollection) {
 
     app.post('/' + global.config.version + '/asset/inline/collection', function (req, res) {
         assetService.getAssetDetails(req.body, function (err, data, statusCode) {
-
+        
             if (err === false) {
                 // got positive response    
 
@@ -215,7 +215,7 @@ function AssetController(objCollection) {
 
     app.post('/' + global.config.version + '/asset/status/collection', function (req, res) {
         assetService.getAssetDetails(req.body, function (err, data, statusCode) {
-            if (err === false) {
+           if (err === false) {
                 // got positive response    
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
 
