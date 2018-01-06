@@ -885,7 +885,25 @@ function ActivityCommonService(db, util, forEachAsync) {
             });
         }
     }; */
+                                                                                                                                                                                                                                                                                                                                                                                                                       
+this.getAssetDetails = function (request, callback) {
+        var paramsArr = new Array(
+                request.organization_id,
+                request.asset_id
+                );
+        var queryString = util.getQueryString('ds_v1_asset_list_select', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (data.length > 0) {
+                    //console.log(data[0].asset_session_status_id);
+                    callback(false, data[0].asset_session_status_id, 200);
+                } else {
+                    callback(true,false,200);
+                }
+            });
+        }
 
+    };
 }
 ;
 
