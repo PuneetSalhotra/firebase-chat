@@ -140,7 +140,11 @@ function ActivityService(objectCollection) {
                     global.logger.write('debug','streamtype id is: ' + activityStreamTypeId, {}, request);
                     assetActivityListInsertAddActivity(request, function (err, status) {
                         if (err === false) {
-
+                            if(activityTypeCategroyId === 10 && request.hasOwnProperty('owner_asset_id')) {
+                                    if(request.owner_asset_id !== request.asset_id){
+                                        activityPushService.sendPush(request, objectCollection, 0, function () {});
+                                    }
+                                }
                             // do the timeline transactions here..                    
 
                             activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
