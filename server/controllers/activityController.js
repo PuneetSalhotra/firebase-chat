@@ -17,6 +17,7 @@ function ActivityController(objCollection) {
     var util = objCollection.util;
 
     var assetService = new AssetService(objCollection);
+    var activityService = new ActivityService(objCollection); //PAM
 
     app.post('/' + global.config.version + '/activity/add', function (req, res) {
         var deviceOsId = 0;
@@ -110,6 +111,29 @@ function ActivityController(objCollection) {
                                 }
                             });
                             break;*/
+                        case 37: //Reservation PAM                   
+                            cacheWrapper.getActivityId(function (err, activityId) {
+                                   if (err) {
+                                        console.log(err);
+                                        global.logger.write('debug','',err,req.body);
+                                        callback(true, 0);
+                                        return;
+                                    } else { 
+                                        req.body.activity_id = activityId;
+                                    activityService.addActivity(req.body, function (err, data, statusCode) {
+                                         if (err === false) {
+                                             res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                                             return;
+                                         } else {
+                                             data = {};
+                                             res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                                             return;
+                                            }
+                                        });
+                                    }
+                                 });
+                            
+                            break;
                         default:
                             //console.log('generating activity id via default condition');
                             global.logger.write('debug','generating activity id via default condition',{},req.body);
@@ -185,7 +209,7 @@ function ActivityController(objCollection) {
                     service: "activityService",
                     method: "addActivity",
                     payload: req
-                };
+                    };
                 queueWrapper.raiseActivityEvent(event, activityId, (err, resp)=>{
                         if(err) {
                             //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
@@ -211,7 +235,7 @@ function ActivityController(objCollection) {
                 console.log("new activityId is : " + activityId);
                 global.logger.write('debug',"new activityId is :" + activityId,{},req);
                 callback(false, activityId);
-            }
+                }
 
         });
     };
@@ -291,22 +315,7 @@ function ActivityController(objCollection) {
         }
 
     });
-    
-    //PAM
-    /*app.post('/' + global.config.version + '/activity/account/list', function (req, res) {
-        activityCommonService.activityAccountListDiff(req.body, function (err, data, statusCode) {
-            if (err === false) {
-                // got positive response    
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
-
-            } else {
-                //console.log('did not get proper rseponse');
-                data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
-            }
-        });
-    });*/
-    
+ 
 }
 ;
 

@@ -11,11 +11,11 @@ function ActivityService(objectCollection) {
     var forEachAsync = objectCollection.forEachAsync;
     var queueWrapper = objectCollection.queueWrapper;
     var activityPushService = objectCollection.activityPushService;
-
+    var responseactivityData = {}
     this.addActivity = function (request, callback) {
 
         var logDatetime = util.getCurrentUTCTime();
-        var activityData = {activity_id: request.activity_id};
+        responseactivityData = {activity_id: request.activity_id};
         request['datetime_log'] = logDatetime;
         var activityTypeCategroyId = Number(request.activity_type_category_id);
 
@@ -159,7 +159,7 @@ function ActivityService(objectCollection) {
                             activityCommonService.assetActivityListHistoryInsert(request, activityAssetMappingAsset, 0, function (err, restult) {
 
                             });
-                            callback(false, activityData, 200);
+                            callback(false, responseactivityData, 200);
                             
                             cacheWrapper.setMessageUniqueIdLookup(request.message_unique_id, request.activity_id, function (err, status) {
                                 if (err) {
@@ -172,11 +172,11 @@ function ActivityService(objectCollection) {
                             return;
                         } else {
                             console.log("not inserted to asset activity list");
-                            callback(false, activityData, 200);
+                            callback(false, responseactivityData, 200);
                         }
                     });
                 } else {
-                    callback(err, activityData, -9999);
+                    callback(err, responseactivityData, -9999);
                     return;
                 }
             });
@@ -273,6 +273,7 @@ function ActivityService(objectCollection) {
                     if(err === false) {
                         console.log('activitySubTypeName : ' + data);
                         activitySubTypeName = data;
+                        responseactivityData.reservation_code = data;
                         //expiryDateTime = util.addUnitsToDateTime(request.track_gps_datetime,1,'hours');
                         var inlineJson = JSON.parse(request.activity_inline_data);
                         util.sendSmsMvaayoo('Dear Member, your reservation is confirmed. Reservation Code:'+data+'. Please check in before '+expiryDateTime, inlineJson.country_code, inlineJson.phone_number, function(err,res){

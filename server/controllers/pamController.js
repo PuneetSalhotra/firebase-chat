@@ -11,8 +11,9 @@ function PamController(objCollection) {
     var app = objCollection.app;
     var pamService = new PamService(objCollection);
 
-    app.post('/' + global.config.version + '/pam/identify/caller', function (req, res) {
-        pamService.identifyCaller(req.body, function (err, data, statusCode) {
+    //IVR Service
+    app.post('/' + global.config.version + '/pam/ivr', function (req, res) {
+        pamService.ivrService(req.body, function (err, data, statusCode) {
             if (err === false) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
@@ -22,21 +23,11 @@ function PamController(objCollection) {
         });
     });
     
-    /*app.post('/' + global.config.version + '/pam/calllog', function (req, res) {
-        pamService.getNonMembersCallLog(req.body, function (err, data, statusCode) {
+    //Send SMS
+    app.post('/' + global.config.version + '/pam/send/sms', function (req, res) {
+        pamService.sendSms(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
-            } else {
-                data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
-            }
-        });
-    });*/
-    
-    app.post('/' + global.config.version + '/pam/identify/caller_time', function (req, res) {
-        pamService.getCalledTime(req.body, function (err, data, statusCode) {
-            if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+               res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
@@ -55,18 +46,6 @@ function PamController(objCollection) {
         });
     });
     
-    /*app.post('/' + global.config.version + '/pam/generate/reservationcode', function (req, res) {
-        pamService.generatePasscode(req.body, function (err, data, statusCode) {
-            if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
-            } else {
-                data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
-            }
-        });
-    });*/
-    
-    //PAM
     app.post('/' + global.config.version + '/pam/asset_mapping/access/add', function (req, res) {
         pamService.assetAccessAdd(req.body, function (err, data, statusCode) {
             if (err === false) {
@@ -81,7 +60,6 @@ function PamController(objCollection) {
         });
     });
     
-    //PAM
     app.post('/' + global.config.version + '/pam/workforce/access/list', function (req, res) {
         pamService.getWorkforceDifferential(req.body, function (err, data, statusCode) {
             if (err === false) {

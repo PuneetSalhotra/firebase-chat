@@ -212,7 +212,7 @@ function Util() {
     };
     
     this.getCurrentYear = function () {
-        var now = moment().utc().format("YYYY");
+            var now = moment().utc().format("YYYY");
         return now;
     };
     
@@ -384,7 +384,19 @@ function Util() {
         var value = moment(timeString1, "YYYY-MM-DD HH:mm:ss").diff(moment(timeString2, "YYYY-MM-DD HH:mm:ss"));
         return value;
     };
-
+    
+    this.getDayStartDatetime = function() {
+        var dt = new Date(moment.utc().startOf('day').format("YYYY-MM-DD HH:mm:ss"));
+        var value = moment(dt.toUTCString(),'DD MMM YYYY HH:mm:ss Z').format("YYYY-MM-DD HH:mm:ss")
+        return value;
+    };
+    
+    this.getDayEndDatetime = function() {
+        var dt = new Date(moment.utc().endOf('day').format("YYYY-MM-DD HH:mm:ss"));
+        var value = moment(dt.toUTCString(),'DD MMM YYYY HH:mm:ss Z').format("YYYY-MM-DD HH:mm:ss")
+        return value;
+    };
+    
     this.cleanPhoneNumber = function (phone) {
 
         if (typeof phone === 'string') {
