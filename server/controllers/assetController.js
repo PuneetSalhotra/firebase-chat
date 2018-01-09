@@ -276,23 +276,6 @@ function AssetController(objCollection) {
 
     });*/
     
-    //PAM
-    app.post('/' + global.config.version + '/asset_mapping/access/account/list', function (req, res) {
-        assetService.getAssetAccessAccountLevelDifferential(req.body, function (err, data, statusCode) {
-
-            if (err === false) {
-                // got positive response    
-
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
-
-            } else {
-                //console.log('did not get proper rseponse');
-                data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
-            }
-        });
-    });
-    
     //PAM 
     app.put('/' + global.config.version + '/pam/asset/cover/alter/clockin', function (req, res) {
         assetService.assetClockIn(req.body, function (err, data, statusCode) {
