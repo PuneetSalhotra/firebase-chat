@@ -45,10 +45,12 @@ function PamService(objectCollection) {
                        }
                      } else {
                          response.reservation_available = -99;
+                         callback(false, response, 200);
                      }
                  });
                 } else {
                     response.called_before = -99;
+                    callback(false, response, 200);
                 }           
              } else{
                  callback(false, response, -9999);
@@ -159,10 +161,11 @@ function PamService(objectCollection) {
         console.log(util.getCurrentUTCTime())
         console.log(util.getDayStartDatetime());
         console.log(util.getDayEndDatetime());
+        
         var paramsArr1 = new Array(
                 351, //request.organization_id,
-                util.getDayStartDatetime(),
-                util.getDayEndDatetime()
+                util.addDays(util.getDayStartDatetime(),1),
+                util.addDays(util.getDayEndDatetime(),1)
                 );
         var queryString1 = util.getQueryString('ds_v1_activity_list_select_event_dt_between', paramsArr1);
         if (queryString1 != '') {
@@ -246,6 +249,134 @@ function PamService(objectCollection) {
             });
         }
     }
+    
+    this.getUserAccessDetails = function (request, callback) {
+        var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.element_asset_id,
+                request.asset_id,//user_asset_id,
+                request.page_start,
+                util.replaceQueryLimit(request.page_limit)
+                );
+        var queryString = util.getQueryString('ds_v1_asset_access_mapping_select_asset_access', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if(err === false){
+                   if (data.length > 0) {
+                    //console.log(data);
+                    formatAssetAccountDataLevel(data, function (err, finalData) {
+                        if (err === false) {
+                            callback(false, {data: finalData}, 200);
+                        }
+                    });                    
+                  } else {
+                    callback(false, {}, 200);
+                    } 
+                } else {
+                    callback(true, {}, -9999);
+                }  
+             });
+        }
+    };
+    
+    this.getAssetAccessAccountLevelDifferential = function (request, callback) {
+        var paramsArr = new Array();
+        var queryString = '';
+        paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.asset_id,
+                request.datetime_differential,
+                request.page_start,
+                util.replaceQueryLimit(request.page_limit)
+                );
+        queryString = util.getQueryString('ds_v1_asset_access_mapping_select_account_differential', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (err === false) {
+                    //console.log(data);
+                    formatAssetAccountDataLevel(data, function (err, finalData) {
+                        if (err === false) {
+                            callback(false, {data: finalData}, 200);
+                        }
+                    });
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, false, -9999);
+                    return;
+                }
+            });
+        }
+
+    };
+    
+    
+    var formatAssetAccountDataLevel = function (data, callback) {
+        var responseArr = new Array();
+        forEachAsync(data, function (next, row) {
+            var rowData = {
+                'user_mapping_id': util.replaceDefaultNumber(row['user_mapping_id']),
+                'user_asset_id': util.replaceDefaultNumber(row['user_asset_id']),
+                'user_asset_first_name': util.replaceDefaultString(row['user_asset_first_name']),
+                'user_asset_last_name': util.replaceDefaultString(row['user_asset_last_name']),
+                'user_asset_email_id': util.replaceDefaultString(row['user_asset_email_id']),
+                'user_asset_access_role_id': util.replaceDefaultNumber(row['user_asset_access_role_id']),
+                'user_asset_access_role_name': util.replaceDefaultString(row['user_asset_access_role_name']),
+                'user_asset_access_level_id': util.replaceDefaultNumber(row['user_asset_access_level_id']),
+                'user_asset_access_level_name': util.replaceDefaultString(row['user_asset_access_level_name']),
+                'activity_id': util.replaceDefaultNumber(row['activity_id']),
+                'activity_title': util.replaceDefaultString(row['activity_title']),
+                'activity_type_id': util.replaceDefaultNumber(row['activity_type_id']),
+                'activity_type_name': util.replaceDefaultString(row['activity_type_name']),
+                'activity_type_category_id': util.replaceDefaultNumber(row['activity_type_category_id']),
+                'activity_type_category_name': util.replaceDefaultString(row['activity_type_category_name']),
+                'asset_id': util.replaceDefaultNumber(row['asset_id']),
+                'asset_first_name': util.replaceDefaultString(row['asset_first_name']),
+                'asset_last_name': util.replaceDefaultString(row['asset_last_name']),
+                'asset_image_path': util.replaceDefaultString(row['asset_image_path']),
+                'asset_type_id': util.replaceDefaultNumber(row['asset_type_id']),
+                'asset_type_name': util.replaceDefaultString(row['asset_type_name']),
+                'asset_type_category_id': util.replaceDefaultNumber(row['asset_type_category_id']),
+                'asset_type_category_name': util.replaceDefaultString(row['asset_type_category_name']),
+                'workforce_id': util.replaceDefaultNumber(row['workforce_id']),
+                'workforce_name': util.replaceDefaultString(row['workforce_name']),
+                'workforce_image_path': util.replaceDefaultString(row['workforce_image_path']),
+                'workforce_type_id': util.replaceDefaultNumber(row['workforce_type_id']),
+                'workforce_type_name': util.replaceDefaultString(row['workforce_type_name']),
+                'workforce_type_category_id': util.replaceDefaultNumber(row['workforce_type_category_id']),
+                'workforce_type_category_name': util.replaceDefaultString(row['workforce_type_category_name']),
+                'account_id': util.replaceDefaultNumber(row['account_id']),
+                'account_name': util.replaceDefaultString(row['account_name']),
+                'account_image_path': util.replaceDefaultString(row['account_image_path']),
+                'account_type_id': util.replaceDefaultNumber(row['account_type_id']),
+                'account_type_name': util.replaceDefaultString(row['account_type_name']),
+                'account_type_category_id': util.replaceDefaultNumber(row['account_type_category_id']),
+                'account_type_category_name': util.replaceDefaultString(row['account_type_category_name']),
+                'organization_id': util.replaceDefaultNumber(row['organization_id']),
+                'organization_name': util.replaceDefaultString(row['organization_name']),
+                'organization_image_path': util.replaceDefaultString(row['organization_image_path']),
+                'organization_type_id': util.replaceDefaultNumber(row['organization_type_id']),
+                'organization_type_name': util.replaceDefaultString(row['organization_type_name']),
+                'organization_type_category_id': util.replaceDefaultNumber(row['organization_type_category_id']),
+                'organization_type_category_name': util.replaceDefaultString(row['organization_type_category_name']),
+                'workforce_view_map_enabled': util.replaceDefaultNumber(row['workforce_view_map_enabled']),
+                'log_asset_id': util.replaceDefaultNumber(row['log_asset_id']),
+                'log_asset_first_name': util.replaceDefaultString(row['log_asset_first_name']),
+                'log_asset_last_name': util.replaceDefaultString(row['log_asset_first_name']),
+                'log_asset_image_path': util.replaceDefaultString(row['log_asset_image_path']),
+                'log_datetime': util.replaceDefaultDatetime(row['log_datetime']),
+                'log_state': util.replaceDefaultNumber(row['log_state']),
+                'log_active': util.replaceDefaultNumber(row['log_active']),
+                'update_sequence_id': util.replaceDefaultNumber(row['update_sequence_id'])
+            };
+            responseArr.push(rowData);
+            next();
+        }).then(() => {
+            callback(false, responseArr);
+        });
+    };
 
 }
 ;

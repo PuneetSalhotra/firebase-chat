@@ -73,6 +73,29 @@ function PamController(objCollection) {
             }
         });
     });
+    
+    app.post('/' + global.config.version + '/pam/user/access/list', function (req, res) {
+        pamService.getUserAccessDetails(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    app.post('/' + global.config.version + '/asset_mapping/access/account/list', function (req, res) {
+        pamService.getAssetAccessAccountLevelDifferential(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
 
 }
 ;
