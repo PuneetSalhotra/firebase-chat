@@ -1661,6 +1661,26 @@ function AssetService(objectCollection) {
             });
         }
     }
+    
+    this.updateAssetCoverLocation = function(request, callback){
+        var dateTimeLog = util.getCurrentUTCTime();
+        request['datetime_log'] = dateTimeLog;
+        
+      activityCommonService.updateAssetLocation(request, function(err, resp){
+          if(err === false) {
+              request.asset_id = request.operating_asset_id;
+              activityCommonService.updateAssetLocation(request, function(err, resp){
+                  if(err === false) {
+                      callback(false, {}, 200);
+                  } else {
+                      callback(true, {}, -9998);
+                  }
+              });
+          } else {
+              callback(true, {}, -9998);
+          }
+      })   
+    }
 
     //PAM
     var formatAssetAccountListDiff = function (data, callback) {

@@ -243,6 +243,18 @@ function AssetController(objCollection) {
         });
 
     });
+    
+    app.put('/' + global.config.version + '/asset/cover/location/alter', function (req, res) {
+        assetService.updateAssetCoverLocation(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+
+    });
    
     /*app.put('/' + global.config.version + '/asset/cover/assigned_status/alter', function (req, res) {
         req.body['module'] = 'asset';
