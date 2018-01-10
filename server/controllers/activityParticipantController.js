@@ -51,7 +51,7 @@ function ActivityParticipantController(objCollection) {
                             global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);
                         } else {
                             if (req.hasOwnProperty('device_os_id')) {
-                                if (Number(req.device_os_id) !== 5) {
+                                if (Number(req.device_os_id) !== 5 || Number(req.device_os_id) !== 6) {
                                     //incr the asset_message_counter                        
                                     cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                         if (err) {
@@ -70,7 +70,7 @@ function ActivityParticipantController(objCollection) {
             return;
         };
         if (util.hasValidActivityId(req.body)) {
-            if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5) {
+            if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5 && deviceOsId !== 6) {
 
                 cacheWrapper.checkAssetParity(req.body.asset_id, Number(assetMessageCounter), function (err, status) {
                     if (err) {
@@ -85,7 +85,7 @@ function ActivityParticipantController(objCollection) {
                     }
                 });
 
-            } else if (deviceOsId === 5) {
+            } else if (deviceOsId === 5 || deviceOsId === 6) {
                 proceedParticipantAccessSet();
 
             } else {

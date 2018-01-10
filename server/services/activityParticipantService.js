@@ -653,6 +653,9 @@ function ActivityParticipantService(objectCollection) {
 
     var activityAssetMappingInsertParticipantAssign = function (request, participantData, callback) {
         var fieldId = 0;
+        var quantityUnitType = (request.hasOwnProperty('quantity_unit_type')) ? request.quantity_unit_type : '';
+        var quantityUnitValue = (request.hasOwnProperty('quantity_unit_value')) ? request.quantity_unit_value : -1;
+        
         if (participantData.hasOwnProperty('field_id')) {
             fieldId = participantData.field_id;
         }
@@ -668,9 +671,12 @@ function ActivityParticipantService(objectCollection) {
                 request.flag_offline,
                 request.asset_id,
                 request.datetime_log,
-                fieldId
+                fieldId,
+                quantityUnitType,
+                quantityUnitValue
                 );
-        var queryString = util.getQueryString("ds_v1_activity_asset_mapping_insert_asset_assign_appr", paramsArr);
+        var queryString = util.getQueryString("ds_v1_activity_asset_mapping_insert_asset_assign_appr_ingre", paramsArr);
+        //var queryString = util.getQueryString("ds_v1_activity_asset_mapping_insert_asset_assign_appr", paramsArr);
 
         if (queryString !== '') {
 
