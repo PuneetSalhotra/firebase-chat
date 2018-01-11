@@ -526,6 +526,12 @@ function ActivityParticipantService(objectCollection) {
                         }
 
                     }
+                    
+                    //PAM
+                    if(activityTypeCategoryId == 39) {
+                        assignUnassignParticipantPam(request, participantData,1,function(err, resp){}); //1 for assign
+                    }
+                    
                     activityCommonService.assetActivityListHistoryInsert(request, participantData.asset_id, 0, function (err, restult) {
 
                     });
@@ -555,6 +561,12 @@ function ActivityParticipantService(objectCollection) {
                                 global.logger.write('debug','either documnent or a file', {},request)
                             }
                         }
+                        
+                        //PAM
+                    if(activityTypeCategoryId == 39) {
+                        assignUnassignParticipantPam(request, participantData, 1, function(err, resp){}); //1 for assign
+                    }
+                    
                     });
                     callback(false, true);
                 } else {
@@ -563,6 +575,82 @@ function ActivityParticipantService(objectCollection) {
             });
         }
     };
+    
+    var assignUnassignParticipantPam = function(request, participantData, status, callback) {
+        updateActivityListOwnerLeadPam(request, participantData, status, function(err, data){
+                            if(err === false) { //You will get it from participant collection
+                                if(participantData.asset_category_id == 32 || 
+                                        participantData.asset_category_id == 33 || 
+                                            participantData.asset_category_id == 34 ||
+                                                participantData.asset_category_id == 35
+                                        ) {
+                                            activityCommonService.activityListHistoryInsert(request,409, function(){});
+                                        }
+                                else if(participantData.asset_category_id == 41) {
+                                    activityCommonService.activityListHistoryInsert(request,410, function(){});
+                                }
+                            }
+                                
+                        })
+                        
+                        activityCommonService.getAllParticipants(request, function(err, participantsData){
+                            if(err === false) {
+                                    if(participantsData.length > 0){
+                                            if(status === 0) {
+                                                participantData.asset_id = 0;
+                                               }
+                                            participantsData.forEach(function (rowData, index) {
+                                                    
+                                                    paramsArr = new Array(
+                                                            request.activity_id,
+                                                            rowData['asset_id'], 
+                                                            participantData.asset_id, //have to take from participant collection
+                                                            request.organization_id,
+                                                            request.activity_type_category_id,
+                                                            participantData.asset_category_id, // have to take from participant collection
+                                                            0, //request.flag
+                                                            request.asset_id,
+                                                            request.datetime_log
+                                                            );
+                                                    queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_owner_lead_pam', paramsArr);
+                                                    db.executeQuery(0, queryString, request, function (error, queryResponse) { });
+                                                }, this);
+                                            callback(false, true);
+                                }
+                            }
+                            
+                        });
+    };
+    
+    var updateActivityListOwnerLeadPam = function(request, participantCollection, status, callback) {
+        var flag = (status === 1) ? 1 : 0;
+        var paramsArr = new Array(
+                request.activity_id,
+                participantCollection.asset_id,
+                request.organization_id,
+                request.activity_type_category_id,
+                participantCollection.asset_category_id,
+                flag, //unassign = 0 and assign 1
+                request.asset_id,
+                request.datetime_log
+                );
+        var queryString = util.getQueryString("ds_v1_activity_list_update_owner_lead_pam", paramsArr);
+        if (queryString != '') {
+
+            db.executeQuery(0, queryString, request, function (err, data) {
+                if (err === false)
+                {
+                    callback(false, true);
+                    return;
+                } else {
+                    callback(err, false);
+                    //console.log(err);
+                    global.logger.write('serverError','',err, request)
+                    return;
+                }
+            });
+        }
+    }
     
     //BETA
     this.updateParticipantTimestamp = function(request, callback) {
@@ -858,6 +946,10 @@ function ActivityParticipantService(objectCollection) {
                                 });
                             }
                         }
+                        //PAM
+                    if(activityTypeCategoryId == 39) {
+                        assignUnassignParticipantPam(request, participantData,0,function(err, resp){}); //1 for unassign
+                    }
                     }
                 });
 

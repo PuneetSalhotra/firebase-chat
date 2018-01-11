@@ -24,6 +24,7 @@ function AssetConfigService() {
                     data.forEach(function (rowData, index) {                        
                         rowData.log_asset_first_name = util.replaceDefaultString(rowData.log_asset_first_name);
                         rowData.log_asset_last_name = util.replaceDefaultString(rowData.log_asset_last_name);
+                        rowData.log_datetime = util.replaceDefaultDatetime(rowData.log_datetime);
                     }, this);
                     callback(false, {data: data}, 200);
                     return;
