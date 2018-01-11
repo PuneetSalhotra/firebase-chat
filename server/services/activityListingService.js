@@ -147,6 +147,40 @@ function ActivityListingService(objCollection) {
 
     };
     
+    //BETA
+    this.getAllProjects = function (request, callback) {
+        var paramsArr = new Array();
+        var queryString = '';
+        paramsArr = new Array(
+                    request.asset_id,
+                    request.parent_activity_id,
+                    request.organization_id,
+                    request.sub_task_category_type_id,
+                    request.activity_sub_type_id,
+                    request.page_start,
+                    util.replaceQueryLimit(request.page_limit)
+                    );
+        queryString = util.getQueryString('ds_v1_1_activity_asset_mapping_select_asset_sub_tasks', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                //console.log(data);
+                if (err === false) {
+                    formatActivityAccountListing(data, function (err, finalData) {
+                        if (err === false) {
+                            callback(false, {data: finalData}, 200);
+                        }
+                    });
+                    return;
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, false, -9998);
+                    return;
+                }
+            });
+        }
+
+    };
+    
     //PAM
     var formatActivityAccountListing = function (data, callback) {
         var responseData = new Array();
