@@ -357,6 +357,11 @@ function ActivityTimelineService(objectCollection) {
             rowDataArr.asset_first_name = util.replaceDefaultString(rowData['asset_first_name']);
             rowDataArr.asset_last_name = util.replaceDefaultString(rowData['asset_last_name']);
             rowDataArr.asset_image_path = util.replaceDefaultString(rowData['asset_image_path']);
+            //BETA
+            rowDataArr.operating_asset_id = util.replaceDefaultNumber(rowData['operating_asset_id']);
+            rowDataArr.operating_asset_first_name = util.replaceDefaultString(rowData['operating_asset_first_name']);
+            rowDataArr.operating_asset_last_name = util.replaceDefaultString(rowData['operating_asset_last_name']);
+            rowDataArr.operating_asset_image_path = util.replaceDefaultString(rowData['operating_asset_image_path']);
             rowDataArr.workforce_id = util.replaceDefaultNumber(rowData['workforce_id']);
             rowDataArr.workforce_name = util.replaceDefaultString(rowData['workforce_name']);
             rowDataArr.account_id = util.replaceDefaultNumber(rowData['account_id']);
