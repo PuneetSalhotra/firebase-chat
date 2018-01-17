@@ -386,8 +386,10 @@ function Util() {
     };
     
     this.getDayStartDatetime = function() {
-        var dt = new Date(moment.utc().startOf('day').format("YYYY-MM-DD HH:mm:ss"));
-        var value = moment(dt.toUTCString(),'DD MMM YYYY HH:mm:ss Z').format("YYYY-MM-DD HH:mm:ss")
+        /*var dt = new Date(moment.utc().startOf('day').format("YYYY-MM-DD HH:mm:ss"));
+        var value = moment(dt.toUTCString(),'DD MMM YYYY HH:mm:ss Z').format("YYYY-MM-DD HH:mm:ss")*/
+        var value = moment.utc().startOf('day').toDate();
+        console.log('Value :', value);
         return value;
     };
     
@@ -396,6 +398,28 @@ function Util() {
         var value = moment(dt.toUTCString(),'DD MMM YYYY HH:mm:ss Z').format("YYYY-MM-DD HH:mm:ss")
         return value;
     };
+    
+    this.getUniqueValuesOfArray = function(arr) {
+        return Array.from(new Set(arr));
+    }
+    
+    this.getMinValueOfArray = function(arr) {
+        return Math.min(arr);
+    }
+    
+    this.getMaxValueOfArray = function(arr) {
+        return Math.max(arr);
+    }
+    
+    this.getFrequency = function(element, arr) {
+        var cnt=0;
+        arr.forEach(function(item, index){ 
+            if(element == item) {
+                cnt++;
+            }                                                                                       
+           })
+        return cnt;
+    }
     
     this.cleanPhoneNumber = function (phone) {
 

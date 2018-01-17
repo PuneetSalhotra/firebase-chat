@@ -10,11 +10,20 @@ function PamController(objCollection) {
     var responseWrapper = objCollection.responseWrapper;
     var app = objCollection.app;
     var pamService = new PamService(objCollection);
+    var util = objCollection.util;
 
     //IVR Service
     app.post('/' + global.config.version + '/pam/ivr', function (req, res) {
         pamService.ivrService(req.body, function (err, data, statusCode) {
             if (err === false) {
+                var text = 'Dear Customer, Please call us back after <> to check if there are any reservation slots available.';
+                console.log('DATA : ', data);
+                if(data.called_before === 'true' && data.reservation_available === 'false') {
+                    util.sendSmsMvaayoo(text, req.country_code, req.phone_number, function(err,res){});
+                } else if(data.called_before === 'false' && data.reservation_available === 'false') {
+                    util.sendSmsMvaayoo(text, req.country_code, req.phone_number, function(err,res){});
+                }
+                
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 data = {};
@@ -96,7 +105,28 @@ function PamController(objCollection) {
             }
         });
     });
-
+    
+    app.post('/' + global.config.version + '/indegredient/menu/inventory_check', function (req, res) {
+        pamService.getMenuItemIngredients(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    app.put('/' + global.config.version + '/update/operating_asset/details', function (req, res) {
+        pamService.updateOperatingAssetDetails(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
 }
 ;
 module.exports = PamController;
