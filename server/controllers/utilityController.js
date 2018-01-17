@@ -44,6 +44,30 @@ function UtilityController(objCollection) {
         }
         });
     });
- 
+    
+    //Twilio
+    app.post('/' + global.config.version + '/twilio/getPhoneNumbers', function (req, res) {
+        util.getPhoneNumbers(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    //Twilio
+    app.post('/' + global.config.version + '/twilio/purchaseNumber', function (req, res) {
+        util.purchaseNumber(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+        
 }
 module.exports = UtilityController;

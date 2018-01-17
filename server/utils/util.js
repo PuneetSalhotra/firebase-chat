@@ -126,6 +126,36 @@ function Util() {
         });
     };
     
+    this.getPhoneNumbers = function(request, callback){
+        var accountSid = 'ACbe16c5becf34df577de71b253fa3ffe4';
+        var authToken = "73ec15bf2eecd3ead2650d4d6768b8cd";
+        var client = new twilio.RestClient(accountSid, authToken);
+        
+        var country = request.country;
+	var areaCode = request.area_code;
+	//console.log(country,'/n', areaCode);
+	
+	client.availablePhoneNumbers(country).local.list({
+  		areaCode: areaCode
+	}, function(err, data) {
+			(data.available_phone_numbers.length > 0) ? callback(false, data, 200) : callback(false, [], 200);
+	});
+    }
+    
+    this.purchaseNumber = function(request, callback){
+        var accountSid = 'ACbe16c5becf34df577de71b253fa3ffe4';
+        var authToken = "73ec15bf2eecd3ead2650d4d6768b8cd";
+        var client = new twilio.RestClient(accountSid, authToken);
+        
+        var phoneNumber = request.phone_number;
+
+	client.incomingPhoneNumbers.create({
+            phoneNumber: phoneNumber
+  	}, function(err, purchasedNumber) {
+                (err) ? callback(false, err.message, -3401): callback(false, purchasedNumber, 200);
+                });
+    }
+    
     this.sendSMS = function (messageString, countryCode, phoneNumber, callback) {
         if (countryCode == 91) {
             var sms_mode = global.config.sms_mode;
