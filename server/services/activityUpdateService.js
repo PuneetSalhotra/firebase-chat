@@ -253,6 +253,30 @@ function ActivityUpdateService(objectCollection) {
             });
         }
     };
+    
+    //PAM
+    function activityListUpdateSubtype(request){
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array();
+            var queryString = '';
+            paramsArr = new Array(
+                    request.organization_id,
+                    request.account_id,
+                    request.workforce_id,
+                    request.activity_id,
+                    request.activity_sub_type_id,
+                    request.activity_sub_type_name,
+                    request.asset_id,
+                    request.datetime_log
+                    );
+            queryString = util.getQueryString('ds_v1_activity_list_update_sub_type', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err === false) ? resolve() : reject(err);
+                });
+            }
+        });        
+    };
 
     var updateActivityTitle = function (request, newActivityTitle, callback) {
 
@@ -452,6 +476,45 @@ function ActivityUpdateService(objectCollection) {
                 callback(true, false);
             }
         });
+    };
+    
+    //PAM
+    function assetActivityListUpdateSubtype(request){
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array();
+            var queryString = '';
+            activityCommonService.getAllParticipants(request, function (err, participantsData) {
+                if (err === false && participantsData.length > 0) {
+                    participantsData.forEach(function (rowData, index) {
+                        paramsArr = new Array(
+                                request.organization_id,
+                                request.account_id,
+                                request.workforce_id,
+                                request.activity_id,
+                                rowData.asset_id,
+                                request.activity_sub_type_id,
+                                request.activity_sub_type_name,
+                                request.asset_id,
+                                request.datetime_log
+                                );
+                        queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_sub_type', paramsArr);
+                        if (queryString != '') {
+                            db.executeQuery(0, queryString, request, function (err, data) {
+                                if (err === false) {
+                                    //callback(true, false);
+                                } else {
+                                    // some thing is wrong and have to be dealt
+                                    //callback(true, false);
+                                }
+                            });
+                        }
+                    }, this);
+                    resolve();
+                } else {
+                    reject(err);
+                }
+            });
+        })        
     };
 
     //assetActivityListUpdateSubTaskCover
@@ -882,19 +945,12 @@ function ActivityUpdateService(objectCollection) {
                             //console.log('adding streamtype id 1506');
                             global.logger.write('debug', 'adding streamtype id 1', {}, request)
                             break;
-                    }
-                    ;
+                    };
 
                     activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) { });
                     activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) { });
                     activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {});
-
-                    //updating log differential datetime for only this asset
                     activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) { });
-
-                    //assetActivityListUpdateSubTaskCover(request, function (err, data) {}); facing some issues here, handle post alpha
-                    activityPushService.sendPush(request, objectCollection, 0, function () {});
-
                 });
 
                 callback(false, {}, 200);
@@ -903,8 +959,32 @@ function ActivityUpdateService(objectCollection) {
                 callback(err, {}, -9999);
             }
         });
-
-    };
+    }
+        
+    //PAM
+    this.alterCoverSubTypeActivity = function (request, callback) {
+        var logDatetime = util.getCurrentUTCTime();
+        request['datetime_log'] = logDatetime;
+        var activityTypeCategoryId = Number(request.activity_type_category_id);
+        activityCommonService.updateAssetLocation(request, function (err, data) {});
+        activityListUpdateSubtype(request).then(()=>{
+                activityCommonService.activityListHistoryInsert(request, 411, function (err, result) {});
+                assetActivityListUpdateSubtype(request).then(()=>{
+                    switch (activityTypeCategoryId) {
+                        case 38: //Reservation
+                            activityStreamTypeId = 21005;
+                            break;                        
+                    };
+                    activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) { });
+                    activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) { });
+                    activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {});       
+                    activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) { });
+                });       
+                callback(false, {}, 200);
+            }).catch(()=>{
+                callback(false, {}, -9999);
+            })
+  };
 
     var getCoWorkerActivityId = function (request, callback) {
         var paramsArr = new Array(
