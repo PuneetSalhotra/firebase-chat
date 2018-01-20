@@ -904,6 +904,136 @@ this.getAssetDetails = function (request, callback) {
         }
 
     };
+    
+    //PAM
+    this.inventoryCheck = function (request, activityId, callback) {
+        var paramsArr = new Array();
+        var responseArray = new Array();
+        var queryString = '';
+        paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                activityId,
+                request.asset_type_category_id || 41,
+                request.page_start || 0,
+                util.replaceQueryLimit(request.page_limit)
+                );
+        queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_participants_category', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (err === false) {
+                    //console.log('DAta in inventory check : ', data);
+                    if(data.length > 0) {
+                        var ingredients = new Array();
+                        forEachAsync(data, function (next, x) {
+                        var items = {
+                                'ingredient_asset_id':x.asset_id,
+                                'channel_activity_type_category_id': x.channel_activity_type_category_id,
+                                'activity_sub_type_id' : x.activity_sub_type_id
+                            };
+                            
+                            ingredients.push(items);
+                            next();
+                        }).then(()=>{
+                            if(ingredients.length > 0) {
+                                    ingredients = util.getUniqueValuesOfArray(ingredients);
+                                    //console.log('Ingredients : ')
+                                    //console.log(ingredients);
+                                    //console.log('=============================')
+                                    var stationIdArrays = new Array();
+                                    var tempArray = new Array();
+                                    forEachAsync(ingredients, function (next, x) {
+                                        getArrayOfStationIds(request, x).then((data)=>{ 
+                                                data = util.getUniqueValuesOfArray(data);
+                                                stationIdArrays.push(data);
+                                                tempArray = tempArray.concat(data);
+                                                next();
+                                            });
+                                            
+                                    }).then(()=>{
+                                        console.log('stationIdArrays: ', stationIdArrays);
+                                        //console.log(tempArray);
+                                        tempArray.forEach(function(item, index){
+                                            //console.log('util.getFrequency(item'+item+',tempArray) : ' , util.getFrequency(item, tempArray))
+                                            //console.log('stationIdArrays.length : ', stationIdArrays.length)
+                                            if(util.getFrequency(item, tempArray) == stationIdArrays.length) {
+                                                responseArray.push(item);
+                                            }
+                                        });
+                                        
+                                        (responseArray.length > 0) ? callback(false, true, tempArray) : callback(false, false, tempArray);
+                                       });
+                                    
+                                    }
+                                 });
+                                            
+            }                                                                
+               } else {
+                    callback(err, false, -9999);
+                    return;
+                }
+            });
+        }
+    };
+    
+    
+    function getArrayOfStationIds (request, ingredients) {
+        return new Promise((resolve, reject)=>{
+            var response = new Array();
+            var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                0, //request.station_asset_id,
+                ingredients.ingredient_asset_id,//request.ingredient_asset_id,
+                ingredients.channel_activity_type_category_id,
+                ingredients.activity_sub_type_id,
+                request.page_start || 0,
+                util.replaceQueryLimit(request.page_limit)
+                );
+            var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_inventory_check', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    if(err === false){
+                        //console.log('DATA : ', data);
+                        if(data.length > 0 ) {
+                                forEachAsync(data, function (next, x) {
+                                    response.push(x.activity_owner_asset_id);
+                                    next();
+                                }).then(()=>{
+                                    resolve(response);
+                                })
+                        } else { resolve([]);}                                                
+                    } else {
+                        reject(err);
+                    }                      
+                });
+            }
+        
+    })
+    }
+    
+    //PAM
+    this.pamAssetListUpdateOperatingAsset = function(request) {
+         return new Promise((resolve, reject)=>{
+             var paramsArr = new Array(
+                request.work_station_asset_id,
+                request.workforce_id,
+                request.account_id,
+                request.organization_id,
+                request.asset_id,
+                request.asset_id,
+                request.datetime_log
+                );
+
+        var queryString = util.getQueryString('ds_v1_asset_list_update_operating_asset', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                (err === false) ? resolve(true) : reject(err);
+            });
+            }
+         })
+    };
 }
 ;
 
