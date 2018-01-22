@@ -33,11 +33,19 @@ var consume = function () {
                     switch (messageCollection.log) {
                         case 'log':
                             console.log('LOG');
-                            cassandraInterceptor.logData(messageCollection);
+                            cassandraInterceptor.logData(messageCollection, function(err, resp){
+                                if(err === false) {
+                                    deleteSQSMessage(deletMesageHandle);
+                                }
+                            });
                             break;
                         case 'session':
                             console.log('SESSION');
-                            cassandraInterceptor.logSessionData(messageCollection);
+                            cassandraInterceptor.logSessionData(messageCollection, function(err, resp){
+                                if(err === false) {
+                                    deleteSQSMessage(deletMesageHandle);
+                                }
+                            });
                             break;
                     }
                     ;
@@ -45,17 +53,7 @@ var consume = function () {
                     console.log(e);
                 }
 
-                params = {
-                    QueueUrl: global.config.SQSqueueUrl,
-                    ReceiptHandle: deletMesageHandle
-                };
-                sqs.deleteMessage(params, function (err, data) {
-                    if (err) {
-                        console.log(err);
-                    } else {
-                        //console.log(data);
-                    }
-                });
+                
             } else {
                 //console.log("no new message yet!!");
             }
@@ -63,4 +61,26 @@ var consume = function () {
     });
 };
 
-setInterval(consume, 1000);
+function deleteSQSMessage(deletMesageHandle) {
+    params = { 
+               QueueUrl: global.config.SQSqueueUrl, 
+               ReceiptHandle: deletMesageHandle 
+             };
+             
+    sqs.deleteMessage(params, function (err, data) {
+        (err)? console.log(err) : console.log(data); 
+    });
+}
+
+function checkingCassandraInstance() {
+    cassandraWrapper.isConnected('log', function(err, resp){
+        if(err === false) {
+            consume();
+        } else {
+            console.log('Cassandra is Down!');
+        }
+    })
+}
+
+//setInterval(consume, 1000);
+setInterval(checkingCassandraInstance, 1000);
