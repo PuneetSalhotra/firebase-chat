@@ -127,6 +127,30 @@ function PamController(objCollection) {
             }
         });
     });
+
+     app.put('/' + global.config.version + '/activity/mintime_station/access/set', function (req, res) {
+        pamService.stationAssignAlter(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    app.put('/' + global.config.version + '/pam/bulk/status/alter', function (req, res) {
+        pamService.bulkStatusAlter(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+           
 }
 ;
 module.exports = PamController;
