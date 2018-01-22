@@ -62,7 +62,7 @@ var executeQuery = function (flag, queryString, request, callback) {
     try {
         conPool.getConnection(function (err, conn) {
             if (err) {
-                console.log('ERROR WHILE GETTING CONNECTON');
+                console.log('ERROR WHILE GETTING CONNECTON : ', err);
                 global.logger.write('serverError','ERROR WHILE GETTING CONNECTON', err, request);
                 callback(err, false);
                 return;
@@ -71,7 +71,7 @@ var executeQuery = function (flag, queryString, request, callback) {
                     if (!err) {   
                         console.log(queryString);
                         global.logger.write('debug',queryString, {},request);
-                        conn.release();
+                        conn.release();                        
                         callback(false, rows[0]);
                         return;
                     } else {

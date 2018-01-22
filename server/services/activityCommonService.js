@@ -213,7 +213,7 @@ function ActivityCommonService(db, util, forEachAsync) {
     };
 
     this.assetTimelineTransactionInsert = function (request, participantData, streamTypeId, callback) {
-        console.log('vnk streamTypeId : ', streamTypeId);
+        //console.log('vnk streamTypeId : ', streamTypeId);
         var assetId = request.asset_id;
         var organizationId = request.organization_id;
         var accountId = request.account_id;
@@ -403,7 +403,7 @@ function ActivityCommonService(db, util, forEachAsync) {
     };
 
     this.activityTimelineTransactionInsert = function (request, participantData, streamTypeId, callback) {
-        console.log('vnk streamTypeId : ', streamTypeId);
+        //console.log('vnk streamTypeId : ', streamTypeId);
         var assetId = request.asset_id;
         var organizationId = request.organization_id;
         var accountId = request.account_id;
@@ -969,7 +969,9 @@ this.getAssetDetails = function (request, callback) {
                                     }
                                  });
                                             
-            }                                                                
+            } else {
+                callback(false, false, responseArray)
+            }                                                        
                } else {
                     callback(err, false, -9999);
                     return;

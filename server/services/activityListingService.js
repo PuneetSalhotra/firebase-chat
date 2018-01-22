@@ -661,7 +661,7 @@ function ActivityListingService(objCollection) {
         var queryString = util.getQueryString('ds_p1_activity_list_select_contacts', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
-                if (err === false) {
+                if (err === false) {                    
                     formatActivityListing(data, function (err, finalData) {
                         if (err === false) {
                             callback(false, {data: finalData}, 200);

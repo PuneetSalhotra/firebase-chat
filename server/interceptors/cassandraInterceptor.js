@@ -287,7 +287,7 @@ function CassandraInterceptor(util, cassandraWrapper) {
             query += ",";
             query += (messageCollection.request.hasOwnProperty("service_id")) ? util.replaceDefaultNumber(messageCollection.request.service_id) : 0;
             query += ",";
-            query += (messageCollection.request.hasOwnProperty("bundle_transaction_id")) ? messageCollection.request.bundle_transaction_id : "''";
+            query += (messageCollection.request.hasOwnProperty("bundle_transaction_id")) ? messageCollection.request.bundle_transaction_id : 0;
             query += ",";
             query += transactionId;
             query += ",";
@@ -379,7 +379,7 @@ function CassandraInterceptor(util, cassandraWrapper) {
         assetQuery += ",";
         assetQuery += (messageCollection.request.hasOwnProperty("service_id")) ? util.replaceDefaultNumber(messageCollection.request.service_id) : 0;
         assetQuery += ",";
-        assetQuery += (messageCollection.request.hasOwnProperty("bundle_transaction_id")) ? messageCollection.request.bundle_transaction_id : "''";
+        assetQuery += (messageCollection.request.hasOwnProperty("bundle_transaction_id")) ? messageCollection.request.bundle_transaction_id : 0;
         assetQuery += ",";
         assetQuery += transactionId;
         assetQuery += ",";

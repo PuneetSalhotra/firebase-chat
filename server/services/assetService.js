@@ -4,6 +4,7 @@
 
 var uuid = require('uuid');
 var AwsSns = require('../utils/snsWrapper');
+var AwsSss = require('../utils/s3Wrapper');
 
 function AssetService(objectCollection) {
 
@@ -12,6 +13,7 @@ function AssetService(objectCollection) {
     var cacheWrapper = objectCollection.cacheWrapper;
     var activityCommonService = objectCollection.activityCommonService;
     var sns = new AwsSns();
+    var sss = new AwsSss();
     //PAM
     var forEachAsync = objectCollection.forEachAsync;
 
@@ -1163,7 +1165,7 @@ function AssetService(objectCollection) {
             });
         }
     };
-
+    
     var assetListUpdateLampStatus = function (request, assetId, callback) {
 
         var paramsArr = new Array(
@@ -1452,10 +1454,19 @@ function AssetService(objectCollection) {
         request['datetime_log'] = dateTimeLog;
         request['asset_assigned_status_id'] = 0;
         request['asset_session_status_id'] = 0;
+        if(!request.hasOwnProperty('work_station_asset_id')) {
+            request.work_station_asset_id = 0;
+        }
 
         global.logger.writeSession(request.body);
         assetListUpdateStatus(request, request.asset_id, function (err, data) {
             if (err === false) {
+                request.asset_id = 0;
+                if(request.work_station_asset_id != 0) {
+                    activityCommonService.pamAssetListUpdateOperatingAsset(request).then(()=>{
+                        assetListHistoryInsert(request, request.work_station_asset_id, request.organization_id, 211, dateTimeLog, function (err, data) {});
+                    });                    
+                }
                 callback(request.asset_id, {}, 200);
             } else {
                 callback(err, {}, -9998);
@@ -1653,6 +1664,19 @@ function AssetService(objectCollection) {
             db.executeQuery(0, queryString, request, function (err, assetData) {
                 if (err === false) {
                     assetListHistoryInsert(request, assetData[0]['asset_id'], request.organization_id, 0, dateTimeLog, function (err, data) {});
+                    request.ingredient_asset_id = assetData[0]['asset_id'];
+                    sss.createAssetBucket(request, function(){});
+                    
+                    if(assetData[0].asset_type_category_id == 41) {
+                        retrieveAccountWorkforces(request).then((data)=>{
+                            forEachAsync(data, function (next, x) {
+                                    createActivityTypeForAllWorkforces(request, x).then(()=>{
+                                        workForceActivityTypeHistoryInsert(request).then(()=>{})
+                                        next();
+                                     })
+                            }).then(()=>{});
+                        });
+                    }
                     callback(false, {"asset_id": assetData[0]['asset_id']}, 200);
                 } else {
                     // some thing is wrong and have to be dealt
@@ -1662,6 +1686,63 @@ function AssetService(objectCollection) {
         }
     }
     
+    function retrieveAccountWorkforces(request) {
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                0,
+                50
+                );
+            var queryString = util.getQueryString('ds_v1_workforce_list_select_account', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data) : reject(err);
+                });
+            }
+        });
+    }
+    
+    function createActivityTypeForAllWorkforces(request, workforceId) {
+        return new Promise((resolve, reject)=>{
+           var paramsArr = new Array(
+                request.asset_first_name,
+                request.asset_description,
+                request.activity_type_category_id,
+                workforceId,
+                request.account_id,
+                request.organization_id,
+                request.ingredient_asset_id,
+                41, //asset_type_category_id
+                request.asset_id,
+                request.datetime_log
+                );
+            var queryString = util.getQueryString('ds_v1_workforce_activity_type_mapping_insert', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data) : reject(err);
+                });
+            }
+        });
+    }
+    
+    function workForceActivityTypeHistoryInsert(request) {
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                request.activity_id,
+                request.organization_id,
+                0, //update type id
+                request.datetime_log
+                );
+            var queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_history_insert', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data) : reject(err);
+                });
+            }
+        });
+    }
+        
     this.updateAssetCoverLocation = function(request, callback){
         var dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
@@ -1752,6 +1833,16 @@ function AssetService(objectCollection) {
             rowDataArr.organization_type_name = util.replaceDefaultString(rowData['organization_type_name']);
             rowDataArr.organization_type_category_id = util.replaceDefaultNumber(rowData['organization_type_category_id']);
             rowDataArr.organization_type_category_name = util.replaceDefaultString(rowData['organization_type_category_name']);
+            
+            rowDataArr.operating_asset_id = util.replaceDefaultNumber(rowData['operating_asset_id']);
+            rowDataArr.operating_asset_first_name = util.replaceDefaultString(rowData['operating_asset_first_name']);
+            rowDataArr.operating_asset_last_name = util.replaceDefaultString(rowData['operating_asset_last_name']);
+            rowDataArr.operating_asset_image_path = util.replaceDefaultString(rowData['operating_asset_image_path']);
+            rowDataArr.operating_asset_type_id = util.replaceDefaultNumber(rowData['operating_asset_type_id']);
+            rowDataArr.operating_asset_type_name = util.replaceDefaultString(rowData['operating_asset_type_name']);
+            rowDataArr.operating_asset_type_category_id = util.replaceDefaultNumber(rowData['operating_asset_type_category_id']);
+            rowDataArr.operating_asset_type_category_name = util.replaceDefaultString(rowData['operating_asset_type_category_name']);
+            
             rowDataArr.log_asset_id = util.replaceDefaultNumber(rowData['log_asset_id']);
             rowDataArr.log_asset_first_name = util.replaceDefaultString(rowData['log_asset_first_name']);
             rowDataArr.log_asset_last_name = util.replaceDefaultString(rowData['log_asset_last_name']);

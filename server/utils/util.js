@@ -156,6 +156,25 @@ function Util() {
                 });
     }
     
+    this.twilioMakeCall = function(request, callback){
+        var accountSid = 'ACbe16c5becf34df577de71b253fa3ffe4';
+        var authToken = "73ec15bf2eecd3ead2650d4d6768b8cd";
+        const client = require('twilio')(accountSid, authToken);
+        toNumber = request.country_code + request.to_phone_number;
+        client.calls.create(
+          {
+            url: 'http://demo.twilio.com/docs/voice.xml',
+            //to: '+919966626954',
+            //from: '+15107094638',
+            to: toNumber,
+            from: request.from_phone_number
+          },
+          (err, call) => {
+              (err) ? callback(false, err.message, -3401): callback(false, call, 200);          
+          }
+        );
+    }
+        
     this.sendSMS = function (messageString, countryCode, phoneNumber, callback) {
         if (countryCode == 91) {
             var sms_mode = global.config.sms_mode;
@@ -416,16 +435,26 @@ function Util() {
     };
     
     this.getDayStartDatetime = function() {
-        /*var dt = new Date(moment.utc().startOf('day').format("YYYY-MM-DD HH:mm:ss"));
-        var value = moment(dt.toUTCString(),'DD MMM YYYY HH:mm:ss Z').format("YYYY-MM-DD HH:mm:ss")*/
-        var value = moment.utc().startOf('day').toDate();
-        console.log('Value :', value);
+        
+        var d = new Date();
+        var n = d.getTimezoneOffset();
+        
+        console.log('n : ', n);
+
+        console.log('asdf : ', moment().startOf(this.getCurrentDate));
+        var dt = new Date(moment.utc().startOf('day').format("YYYY-MM-DD HH:mm:ss"));
+        console.log('dt :', dt.toUTCString());
+        var value = moment(dt.toUTCString(),'DD MMM YYYY HH:mm:ss Z').format("YYYY-MM-DD HH:mm:ss")
+        //console.log('one : ', this.replaceDefaultDatetime(moment.utc().startOf('day').toDate()))
+        console.log('Nani : ', value);
         return value;
     };
     
     this.getDayEndDatetime = function() {
         var dt = new Date(moment.utc().endOf('day').format("YYYY-MM-DD HH:mm:ss"));
-        var value = moment(dt.toUTCString(),'DD MMM YYYY HH:mm:ss Z').format("YYYY-MM-DD HH:mm:ss")
+        console.log(dt)
+        var value = moment(dt.toUTCString(),'DD MMM YYYY HH:mm:ss').format("YYYY-MM-DD HH:mm:ss")
+        //console.log('two : ', this.replaceDefaultDatetime(moment.utc().endOf('day').toDate()))
         return value;
     };
     

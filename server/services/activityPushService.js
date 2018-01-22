@@ -221,8 +221,6 @@ function ActivityPushService() {
                                         global.logger.write('debug', badgeCount + ' is badge count obtained from db', {},request)
                                         global.logger.write('debug', pushStringObj + objectCollection.util.replaceOne(badgeCount) + assetMap.asset_push_arn, {},request)
                                         switch(rowData.pushType) {
-                                            case 'sns': objectCollection.sns.publish(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn);
-                                                        break;
                                             case 'pub':console.log('pubnubMsg :', pubnubMsg); 
                                                        if(pubnubMsg.activity_type_category_id != 0) {
                                                             pubnubMsg.organization_id = rowData.organizationId;
@@ -230,6 +228,8 @@ function ActivityPushService() {
                                                             console.log('PubNub Message : ', pubnubMsg);
                                                             pubnubWrapper.push(rowData.organizationId,pubnubMsg);
                                                         }
+                                                        //break;
+                                            case 'sns': objectCollection.sns.publish(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn);
                                                         break;
                                         }                                        
                                     }.bind(this));
