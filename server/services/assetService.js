@@ -581,7 +581,11 @@ function AssetService(objectCollection) {
                 } else {
                     // send international sms                    
                     //global.logger.write('came inside else case', request, 'device', 'trace');
-                }
+                    util.sendInternationalSMS(smsString,countryCode, phoneNumber, function (error, data) {
+                        if(error)
+                            global.logger.write('trace', data, error, request)
+                    });
+                    }
                 break;
             case 2: //send call 
                 util.makeCall(smsString, countryCode, phoneNumber, function (error, data) {

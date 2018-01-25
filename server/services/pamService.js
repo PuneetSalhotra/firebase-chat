@@ -165,8 +165,8 @@ function PamService(objectCollection) {
         
         var paramsArr1 = new Array(
                 351, //request.organization_id,
-                util.addDays(util.getDayStartDatetime(),1),
-                util.addDays(util.getDayEndDatetime(),1)
+                util.addDays(util.getDayStartDatetime()),
+                util.addDays(util.getDayEndDatetime())
                 );
         var queryString1 = util.getQueryString('ds_v1_activity_list_select_event_dt_between', paramsArr1);
         if (queryString1 != '') {
@@ -564,13 +564,11 @@ function PamService(objectCollection) {
         request['datetime_log'] = logDatetime;
         
         pamAssetListUpdateOperatingAsset(request).then(()=>{
-            pamAssetListHistoryInsert(request, 212).then(()=>{
-                callback(false, {}, 200);
+            pamAssetListHistoryInsert(request, 212).then(()=>{ });
+            callback(false, {}, 200);           
             }).catch(()=>{
                 callback(false, {}, -9999);
-            });
-        });
-        
+            });        
     }
         
     function pamAssetListUpdateOperatingAsset(request) {
@@ -588,7 +586,7 @@ function PamService(objectCollection) {
         var queryString = util.getQueryString('ds_v1_asset_list_update_operating_asset', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
-                (err === false) ? resolve(true) : reject(err);
+                (err === false) ? resolve() : reject(err);
             });
             }
          })
@@ -606,7 +604,7 @@ function PamService(objectCollection) {
         var queryString = util.getQueryString('ds_v1_asset_list_history_insert', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
-              (err === false) ?  resolve(true) : reject(err);
+              (err === false) ?  resolve() : reject(err);
                 });
             }
         });

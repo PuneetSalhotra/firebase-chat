@@ -109,7 +109,7 @@ function Util() {
         var client = new twilio.RestClient(accountSid, authToken);
         client.messages.create({
             body: messageString,
-            to: countryCode + '' + phoneNumber, // Text this number
+            to: '+'+countryCode + '' + phoneNumber, // Text this number
             from: '+1 810-637-5928' // From a valid Twilio number
         }, function (err, message) {
             var res = {};
@@ -120,9 +120,13 @@ function Util() {
                 res['status'] = 0;
                 res['message'] = "Message not sent";
             }
-            if (err)
+            console.log(res);
+            if (err) {
+                console.log('err : ', err);
                 callback(err, false);
-            callback(false, res);
+            } else {
+                callback(false, res);
+            }        
         });
     };
     
@@ -132,11 +136,11 @@ function Util() {
         var client = new twilio.RestClient(accountSid, authToken);
         
         var country = request.country;
-	var areaCode = request.area_code;
+	//var areaCode = request.area_code;
 	//console.log(country,'/n', areaCode);
 	
 	client.availablePhoneNumbers(country).local.list({
-  		areaCode: areaCode
+  		//areaCode: areaCode
 	}, function(err, data) {
 			(data.available_phone_numbers.length > 0) ? callback(false, data, 200) : callback(false, [], 200);
 	});
@@ -281,6 +285,23 @@ function Util() {
         var dateTimeString = year + "-" + month + "-" + dateVal + " " + hours + ":" + min + ":" + sec;
         return dateTimeString;
     };
+    
+    this.getcurrentTimeInMilliSecs = function () {
+        var date = new Date();
+        var year = date.getFullYear();
+        
+        var month = date.getMonth();
+        month++;
+        month = (month < 10 ? '0' : '') + month;
+        
+        var dateVal = date.getDate();
+        var hours = date.getHours();
+        var min = date.getMinutes();
+        var sec = date.getSeconds();
+        var ms = date.getMilliseconds();
+        var dateTimeString = year + month + dateVal + "-" + hours + min + sec + ms;
+        return dateTimeString;
+    };
 
     this.getQueryString = function (callName, paramsArr) {
         var queryString = "CALL " + callName + "(";
@@ -320,9 +341,10 @@ function Util() {
     };
 
     this.replaceDefaultNumber = function (value) {
-        if (value === undefined || value === null || value === '')
-            return Number(-1);
-        else
+        console.log('VALUE : ', typeof value);
+        if (value === undefined || value === null || value === '' || isNaN(value))
+            return Number(-1);        
+        else           
             return Number(value);
     };
 
@@ -435,26 +457,12 @@ function Util() {
     };
     
     this.getDayStartDatetime = function() {
-        
-        var d = new Date();
-        var n = d.getTimezoneOffset();
-        
-        console.log('n : ', n);
-
-        console.log('asdf : ', moment().startOf(this.getCurrentDate));
-        var dt = new Date(moment.utc().startOf('day').format("YYYY-MM-DD HH:mm:ss"));
-        console.log('dt :', dt.toUTCString());
-        var value = moment(dt.toUTCString(),'DD MMM YYYY HH:mm:ss Z').format("YYYY-MM-DD HH:mm:ss")
-        //console.log('one : ', this.replaceDefaultDatetime(moment.utc().startOf('day').toDate()))
-        console.log('Nani : ', value);
+        var value = moment().startOf('day').utcOffset("-05:30").format('YYYY-MM-DD HH:mm:ss');
         return value;
     };
     
     this.getDayEndDatetime = function() {
-        var dt = new Date(moment.utc().endOf('day').format("YYYY-MM-DD HH:mm:ss"));
-        console.log(dt)
-        var value = moment(dt.toUTCString(),'DD MMM YYYY HH:mm:ss').format("YYYY-MM-DD HH:mm:ss")
-        //console.log('two : ', this.replaceDefaultDatetime(moment.utc().endOf('day').toDate()))
+        var value = moment().endOf('day').utcOffset("-05:30").format('YYYY-MM-DD HH:mm:ss');
         return value;
     };
     

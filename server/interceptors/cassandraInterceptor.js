@@ -287,7 +287,7 @@ function CassandraInterceptor(util, cassandraWrapper) {
             query += ",";
             query += (messageCollection.request.hasOwnProperty("service_id")) ? util.replaceDefaultNumber(messageCollection.request.service_id) : 0;
             query += ",";
-            query += (messageCollection.request.hasOwnProperty("bundle_transaction_id")) ? messageCollection.request.bundle_transaction_id : 0;
+            query += (messageCollection.request.hasOwnProperty("bundle_transaction_id")) ? messageCollection.request.bundle_transaction_id : transactionId;
             query += ",";
             query += transactionId;
             query += ",";
@@ -333,7 +333,7 @@ function CassandraInterceptor(util, cassandraWrapper) {
             query += ",";
             query += (sourceMap[messageCollection.request.device_os_id]) ? "'" + sourceMap[messageCollection.request.device_os_id] + "'" : "'NA'";
             query += ");";
-
+console.log('Query transactionsbyactivity : ', query)
             cassandraWrapper.executeQuery(messageCollection, query, function (err, data) {
                 if (!err) {
                     callback(false, true);
@@ -379,7 +379,7 @@ function CassandraInterceptor(util, cassandraWrapper) {
         assetQuery += ",";
         assetQuery += (messageCollection.request.hasOwnProperty("service_id")) ? util.replaceDefaultNumber(messageCollection.request.service_id) : 0;
         assetQuery += ",";
-        assetQuery += (messageCollection.request.hasOwnProperty("bundle_transaction_id")) ? messageCollection.request.bundle_transaction_id : 0;
+        assetQuery += (messageCollection.request.hasOwnProperty("bundle_transaction_id")) ? messageCollection.request.bundle_transaction_id : transactionId;
         assetQuery += ",";
         assetQuery += transactionId;
         assetQuery += ",";
@@ -425,7 +425,7 @@ function CassandraInterceptor(util, cassandraWrapper) {
         assetQuery += ",";
         assetQuery += (sourceMap[messageCollection.request.device_os_id]) ? "'" + sourceMap[messageCollection.request.device_os_id] + "'" : "'NA'";
         assetQuery += ");";
-
+console.log('Query transactionsbyactivity : ', assetQuery)
         cassandraWrapper.executeQuery(messageCollection, assetQuery, function (err, data) {
             if (!err) {
                 callback(false, true);
