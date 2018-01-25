@@ -84,3 +84,5 @@ function checkingCassandraInstance() {
 
 //setInterval(consume, 1000);
 setInterval(checkingCassandraInstance, 1000);
+
+module.exports = checkingCassandraInstance;

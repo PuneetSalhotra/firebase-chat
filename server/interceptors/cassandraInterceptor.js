@@ -31,7 +31,8 @@ function CassandraInterceptor(util, cassandraWrapper) {
         var logTimestamp = util.getCurrentUTCTime();
         var logDate = util.getCurrentDate();
 
-        switch (messageCollection.request.module) {
+        var module = messageCollection.hasOwnProperty("request") ? messageCollection.request.module : '';
+        switch (module) {
 
             case 'device':
                 console.log('Module : Device');
