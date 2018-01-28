@@ -459,7 +459,8 @@ function AssetService(objectCollection) {
                 'asset_status_datetime': util.replaceDefaultDatetime(rowArray[0]['asset_status_datetime']),
                 'asset_assigned_status_id': util.replaceDefaultNumber(rowArray[0]['asset_assigned_status_id']),
                 'asset_assigned_status_name': util.replaceDefaultString(rowArray[0]['asset_assigned_status_name']),
-                'asset_assigned_status_datetime': util.replaceDefaultDatetime(rowArray[0]['asset_assigned_status_datetime'])
+                'asset_assigned_status_datetime': util.replaceDefaultDatetime(rowArray[0]['asset_assigned_status_datetime']),
+                'asset_storage_url': util.replaceDefaultString(rowArray[0]['asset_storage_url'])
             };
            
         callback(false, rowData);
