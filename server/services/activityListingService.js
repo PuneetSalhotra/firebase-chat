@@ -602,9 +602,10 @@ function ActivityListingService(objCollection) {
         var paramsArr = new Array(
                 request.organization_id,
                 request.activity_id,
-                0
-                );
-        var queryString = util.getQueryString('ds_v1_activity_list_select_project_status_counts', paramsArr);
+                request.datetime_log// previously 0
+                );        
+        //var queryString = util.getQueryString('ds_v1_activity_list_select_project_status_counts', paramsArr);
+        var queryString = util.getQueryString('ds_p1_activity_list_select_project_status_counts', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
