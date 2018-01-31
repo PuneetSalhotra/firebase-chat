@@ -29,7 +29,7 @@ function AssetService(objectCollection) {
         //verification_method (0 - NA, 1 - SMS; 2 - Call; 3 - Email)
         if (verificationMethod === 1 || verificationMethod === 2 || verificationMethod === 3) {
             var paramsArr = new Array(
-                    organizationId,
+                    0, //organizationId,
                     phoneNumber,
                     countryCode
                     );
@@ -180,7 +180,14 @@ function AssetService(objectCollection) {
                 'account_id': util.replaceDefaultNumber(rowData['account_id']),
                 'account_name': util.replaceDefaultString(rowData['account_name']),
                 'organization_name': util.replaceDefaultString(rowData['organization_name']),
-                'organization_id': util.replaceDefaultNumber(rowData['organization_id'])
+                'organization_id': util.replaceDefaultNumber(rowData['organization_id']),
+                'asset_gender_id' : util.replaceDefaultNumber(rowData['asset_gender_id']), 
+                'asset_gender_name' : util.replaceDefaultString(rowData['asset_gender_name']), 
+                'operating_asset_gender_id' : util.replaceDefaultNumber(rowData['operating_asset_gender_id']), 
+                'operating_asset_gender_name' : util.replaceDefaultString(rowData['operating_asset_gender_name']), 
+                'asset_storage_bucket_name' : util.replaceDefaultString(rowData['asset_storage_bucket_name']), 
+                'asset_storage_url' : util.replaceDefaultString(rowData['asset_storage_url'])
+
             };
             data.push(rowDataArr);
 
@@ -460,7 +467,8 @@ function AssetService(objectCollection) {
                 'asset_assigned_status_id': util.replaceDefaultNumber(rowArray[0]['asset_assigned_status_id']),
                 'asset_assigned_status_name': util.replaceDefaultString(rowArray[0]['asset_assigned_status_name']),
                 'asset_assigned_status_datetime': util.replaceDefaultDatetime(rowArray[0]['asset_assigned_status_datetime']),
-                'asset_storage_url': util.replaceDefaultString(rowArray[0]['asset_storage_url'])
+                'asset_storage_url': util.replaceDefaultString(rowArray[0]['asset_storage_url']),
+                'asset_storage_bucket_name': util.replaceDefaultString(rowArray[0]['asset_storage_bucket_name'])
             };
            
         callback(false, rowData);
@@ -486,7 +494,7 @@ function AssetService(objectCollection) {
                     break;
                 case 2:
                     paramsArr = new Array(
-                            request.organization_id,
+                            0, //request.organization_id,
                             request.asset_phone_number,
                             request.asset_phone_country_code
                             );
@@ -509,13 +517,12 @@ function AssetService(objectCollection) {
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     if (err === false) {
-                        // got data now parse it..                    
+                        // got data now parse it..                          
                         if (data.length > 0) {
                             var dbVerifyCode = 0;
                             verificationType === 3 ? dbVerifyCode = util.replaceDefaultNumber(data[0].asset_email_password) : dbVerifyCode = util.replaceDefaultNumber(data[0].asset_phone_passcode);
                             //asset_password_expiry_datetime --> for email
-                            //asset_passcode_expiry_datetime --> for asset
-
+                            //asset_passcode_expiry_datetime --> for asset                            
                             if (dbVerifyCode === verificationCode) {
                                 //do time check here..
                                 formatPhoneNumberAssets(data, function (error, fromatedData) {
@@ -1155,10 +1162,12 @@ function AssetService(objectCollection) {
                 request.track_gps_status,
                 request.track_gps_location,
                 request.asset_id,
-                request.datetime_log
+                request.datetime_log,
+                request.logout_datetime
                 );
 
-        var queryString = util.getQueryString('ds_v1_asset_list_update_status_all', paramsArr);
+        //var queryString = util.getQueryString('ds_v1_asset_list_update_status_all', paramsArr);
+        var queryString = util.getQueryString('ds_v1_1_asset_list_update_status_all', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, assetData) {
                 if (err === false) {
