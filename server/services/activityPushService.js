@@ -140,6 +140,8 @@ function ActivityPushService() {
                             case '/0.1/activity/participant/access/set':
                                 pushString.title = senderName;
                                 pushString.description = 'Meeting: ' + activityTitle + ' has been scheduled at ' + (activityData[0]['activity_datetime_start_expected']);
+                                extraData.type = 2;
+                                pushString.extra_data = extraData;
                                 break;
                         }
                         ;
