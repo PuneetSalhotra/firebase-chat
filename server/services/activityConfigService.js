@@ -117,7 +117,9 @@ function ActivityConfigService(db, util) {
                 'log_datetime': util.replaceDefaultDatetime(rowData['log_datetime']),
                 'log_asset_first_name': util.replaceDefaultString(rowData['log_asset_first_name']),
                 'log_asset_last_name': util.replaceDefaultString(rowData['log_asset_last_name']),
-                'log_asset_id': util.replaceDefaultNumber(rowData['log_asset_id'])
+                'log_asset_id': util.replaceDefaultNumber(rowData['log_asset_id']),
+                'asset_id': util.replaceDefaultNumber(rowData['asset_id']),
+                'asset_type_category_id': util.replaceDefaultNumber(rowData['asset_type_category_id'])
             };
             responseData.push(rowDataArr);
         }, this);
