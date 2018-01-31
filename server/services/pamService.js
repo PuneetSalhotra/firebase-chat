@@ -7,7 +7,7 @@ function PamService(objectCollection) {
     var db = objectCollection.db;
     var util = objectCollection.util;
     var forEachAsync = objectCollection.forEachAsync;
-    //var cacheWrapper = objectCollection.cacheWrapper;
+    var cacheWrapper = objectCollection.cacheWrapper;
     var queueWrapper = objectCollection.queueWrapper;
     var activityCommonService = objectCollection.activityCommonService;
           
@@ -17,14 +17,22 @@ function PamService(objectCollection) {
         
         var response = {};
         var threshold = 50;
-        response.member = '';
+        response.member = 0;
+        response.member_name = '';
         response.called_before = '';
         response.event_id = 0;
         response.reservation_available = '';
         response.next_possible_reservation_time = '';
         
         identifyCaller(request, function(err, data){
-            (err === false) ? response.member = data : response.member = -99;
+            if(err === false){
+                if(data !== 0) {
+                    response.member = data.asset_id;
+                    response.member_name = data.asset_first_name;
+                }   
+            } else {
+                response.member = -99;
+            }
          });
            
         getCalledTime(request, function(err, data){
@@ -149,8 +157,8 @@ function PamService(objectCollection) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if(err === false) {
-                    //console.log(data);
-                    (data.length > 0) ? callback(false, data[0].asset_id) : callback(false,0);
+                    console.log(data);
+                    (data.length > 0) ? callback(false, data[0]) : callback(false,0);
                 } else {
                     callback(true, err);
                 }                
@@ -653,7 +661,7 @@ function PamService(objectCollection) {
                           .then((data)=>{
                               resolve(data);
                         });                                    
-                    } else { resolve('No Station Ids');}
+                    } else { reject('No Station Ids');}
                 } else { reject(err); }
              });
          });
@@ -1153,6 +1161,65 @@ function PamService(objectCollection) {
         });      
     };
 //Alter Activity Status===============================================================
+
+ this.checkingReservationCode = function(request, callback){
+     response = {};
+     getCalledTime(request, function(err, data){
+             if(err === false){
+                if(data.length > 0){
+                   request.activity_parent_id = data[0].activity_id;
+                   response.event_id = request.activity_parent_id;
+                   activityCommonService.checkingUniqueCode(request, request.reservation_code, function(err, resp){
+                      if(err === false){
+                          callback(true, 'Invalid Reservation Code', -991)
+                      } else {
+                           response.reservation_id = resp[0].activity_id;
+                           
+                           getMemberAssetId(request. resp[0].activity_id).then((result)=>{ 
+                               response.asset_id = result[0].asset_id;
+                               cacheWrapper.getTokenAuth(result[0].asset_id, function(err, resp){
+                                   if(resp !== false) {
+                                       response.asset_auth_token = resp;
+                                       callback(false, response, 200);
+                                   } else {
+                                       callback(false, response, 200);
+                                   }
+                               })                               
+                           }).catch(()=>{
+                               callback(true, {}, -9999);
+                           })
+                      }
+                   });
+               } else {
+                   callback(true, 'No events available', -992);
+               }
+           } else {
+               callback(true,{}, -9999);
+           }
+       })
+ }
+ 
+ function getMemberAssetId(request, activityId) {
+     return new Promise(()=>{
+        var paramsArr = new Array();
+        var queryString = '';
+        paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                activityId,
+                30, //request.asset_type_category_id
+                0,
+                1
+                );
+        queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_participants_category', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                (err === false) ? resolve(data) : reject(err);                    
+                });
+            } 
+     })   
+        
+   }
      
 }
 ;

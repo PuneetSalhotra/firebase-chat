@@ -133,7 +133,6 @@ function PamController(objCollection) {
             if (err === false) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
@@ -150,7 +149,15 @@ function PamController(objCollection) {
         });
     });
     
-           
+    app.post('/' + global.config.version + '/pam/reservation_code/check', function (req, res) {
+        pamService.checkingReservationCode(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });       
 }
 ;
 module.exports = PamController;
