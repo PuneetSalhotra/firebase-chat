@@ -91,7 +91,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 } else {
                     callback(true, false);
                     //console.log(err);
-                    global.logger.write('serverError','',err, request)
+                    global.logger.write('serverError', '', err, request)
                     return;
                 }
             });
@@ -106,10 +106,10 @@ function ActivityCommonService(db, util, forEachAsync) {
                 assetCollection.organization_id,
                 request.datetime_log
                 );
-        if((request.activity_status_type_id == 74 && request.activity_type_category_id == 28) ||
-            (request.activity_status_type_id == 37 && request.activity_type_category_id == 14) ||
-            (request.activity_status_type_id == 41 && request.activity_type_category_id == 15)) {
-                queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_last_updated_dt_unrd_reset', paramsArr);
+        if ((request.activity_status_type_id == 74 && request.activity_type_category_id == 28) ||
+                (request.activity_status_type_id == 37 && request.activity_type_category_id == 14) ||
+                (request.activity_status_type_id == 41 && request.activity_type_category_id == 15)) {
+            queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_last_updated_dt_unrd_reset', paramsArr);
         } else {
             // ds_v1_activity_asset_mapping_update_last_updated_datetime ---> updates activity_datetime_last_updated, asset_datetime_last_differential, asset_unread_updates_count
             queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_last_updated_datetime', paramsArr);
@@ -129,7 +129,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
     };
 
-    this.updateActivityLogLastUpdatedDatetime = function (request, assetId, callback) { 
+    this.updateActivityLogLastUpdatedDatetime = function (request, assetId, callback) {
 
         function updateAssetsLogDatetime(assetData) {
             assetData.forEach(function (assetInfo, index) {
@@ -142,7 +142,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 updateActivityLogLastUpdatedDatetimeAsset(request, assetCollection, function (err, data) {
                     if (err !== false) {
                         //console.log(err);
-                        global.logger.write('serverError','',err, request)
+                        global.logger.write('serverError', '', err, request)
                     }
                 });
             }, this);
@@ -230,7 +230,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         if (Number(request.device_os_id) === 5)
             retryFlag = 1;
 
-            entityText3 = (request.hasOwnProperty('activity_timeline_title')) ? request.activity_timeline_title : "";
+        entityText3 = (request.hasOwnProperty('activity_timeline_title')) ? request.activity_timeline_title : "";
 
         if (request.hasOwnProperty('activity_type_category_id')) {
             var activityTypeCategoryId = Number(request.activity_type_category_id);
@@ -346,7 +346,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 break;
         }
         ;
-        
+
         var paramsArr = new Array(
                 request.activity_id,
                 assetId,
@@ -394,7 +394,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError','',err, request)
+                    global.logger.write('serverError', '', err, request)
                     return;
                 }
             });
@@ -584,7 +584,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError','',err, request)
+                    global.logger.write('serverError', '', err, request)
                     return;
                 }
             });
@@ -592,10 +592,10 @@ function ActivityCommonService(db, util, forEachAsync) {
     };
 
     this.resetAssetUnreadCount = function (request, activityId, callback) {
-        if(activityId === 0) {
+        if (activityId === 0) {
             activityId = request.activity_id;
         }
-                
+
         var paramsArr = new Array(
                 activityId,
                 request.asset_id,
@@ -693,31 +693,34 @@ function ActivityCommonService(db, util, forEachAsync) {
     };
 
     this.updateAssetLocation = function (request, callback) {
-        var paramsArr = new Array(
-                request.organization_id,
-                request.asset_id,
-                request.track_latitude,
-                request.track_longitude,
-                request.track_gps_accuracy,
-                request.track_gps_status,
-                request.track_gps_location,
-                request.track_gps_datetime,
-                request.asset_id,
-                request.datetime_log
-                );
-        var queryString = util.getQueryString('ds_v1_asset_list_update_location', paramsArr);
-        if (queryString != '') {
-            db.executeQuery(0, queryString, request, function (err, data) {
-                if (err === false) {
-                    callback(false, data);
-                } else {
-                    // some thing is wrong and have to be dealt
-                    callback(err, false);
-                }
-            });
+        if (request.track_latitude !== '0.0000' || request.track_latitude !== '0.0') {
+            var paramsArr = new Array(
+                    request.organization_id,
+                    request.asset_id,
+                    request.track_latitude,
+                    request.track_longitude,
+                    request.track_gps_accuracy,
+                    request.track_gps_status,
+                    request.track_gps_location,
+                    request.track_gps_datetime,
+                    request.asset_id,
+                    request.datetime_log
+                    );
+            var queryString = util.getQueryString('ds_v1_asset_list_update_location', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    if (err === false) {
+                        callback(false, data);
+                    } else {
+                        // some thing is wrong and have to be dealt
+                        callback(err, false);
+                    }
+                });
+            }
         }
+
     };
-    
+
     this.formatFormDataCollection = function (data, callback) {
         var responseData = new Array();
         forEachAsync(data, function (next, rowData) {
@@ -755,7 +758,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 if (err) {
                     //console.log(err);
                     //console.log('error occured');
-                    global.logger.write('serverError','error occurred', err, rowData)
+                    global.logger.write('serverError', 'error occurred', err, rowData)
                 }
                 rowDataArr.field_value = fieldValue;
                 responseData.push(rowDataArr);
@@ -765,7 +768,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             callback(false, responseData);
         });
     };
-    
+
     var getFieldValue = function (rowData, callback) {
         var fieldValue;
         var dataTypeId = Number(rowData['data_type_id']);
@@ -852,7 +855,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 fieldValue = util.replaceDefaultNumber(rowData['data_entity_tinyint_1']);
             default:
                 //console.log('came into default for data type id: ' + dataTypeId);
-                global.logger.write('debug','asset parity is set successfully', {},rowData)
+                global.logger.write('debug', 'asset parity is set successfully', {}, rowData)
                 fieldValue = ''
                 break;
         }
@@ -861,32 +864,32 @@ function ActivityCommonService(db, util, forEachAsync) {
 
         callback(false, fieldValue);
     };
-    
+
     //PAM
     /*this.activityAccountListDiff = function(request, callback) {
-        var paramsArr = new Array(
-                request.organization_id,
-                request.account_id,
-                request.asset_id,
-                request.datetime_differential,
-                request.page_start,
-                util.replaceQueryLimit(request.page_limit)
-                );
+     var paramsArr = new Array(
+     request.organization_id,
+     request.account_id,
+     request.asset_id,
+     request.datetime_differential,
+     request.page_start,
+     util.replaceQueryLimit(request.page_limit)
+     );
+     
+     var queryString = util.getQueryString('ds_v1_activity_list_select_account_differential', paramsArr);
+     if (queryString != '') {
+     db.executeQuery(1, queryString, request, function (err, data) {
+     if (err === false) {
+     console.log('DATA : ' + data);
+     callback(false, data, 200);
+     } else {
+     callback(true, err, -9998);
+     }
+     });
+     }
+     }; */
 
-        var queryString = util.getQueryString('ds_v1_activity_list_select_account_differential', paramsArr);
-        if (queryString != '') {
-            db.executeQuery(1, queryString, request, function (err, data) {
-                if (err === false) {
-                   console.log('DATA : ' + data);
-                   callback(false, data, 200);
-                } else {
-                    callback(true, err, -9998);
-                }
-            });
-        }
-    }; */
-                                                                                                                                                                                                                                                                                                                                                                                                                       
-this.getAssetDetails = function (request, callback) {
+    this.getAssetDetails = function (request, callback) {
         var paramsArr = new Array(
                 request.organization_id,
                 request.asset_id
@@ -898,7 +901,7 @@ this.getAssetDetails = function (request, callback) {
                     //console.log(data[0].asset_session_status_id);
                     callback(false, data[0].asset_session_status_id, 200);
                 } else {
-                    callback(true,false,200);
+                    callback(true, false, 200);
                 }
             });
         }
