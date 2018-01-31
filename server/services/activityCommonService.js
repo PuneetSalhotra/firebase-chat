@@ -1038,6 +1038,29 @@ this.getAssetDetails = function (request, callback) {
             }
          })
     };
+    
+    //PAM
+    this.checkingUniqueCode = function(request, code, callback) {
+        var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                code,
+                request.activity_parent_id
+                );
+
+        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_existing_reserv_code', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                //console.log('data.length :' + data.length);                
+                console.log('data : ', data);
+                if (data.length > 0) {
+                    callback(true, data);
+                } else {
+                    callback(false, code);
+                }
+            });
+        }        
+    };
 }
 ;
 
