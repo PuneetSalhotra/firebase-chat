@@ -216,29 +216,6 @@ function ActivityService(objectCollection) {
         });
     };
     
-    //PAM
-    var checkingUniqueCode = function(request, code, callback) {
-        var paramsArr = new Array(
-                request.organization_id,
-                request.account_id,
-                code,
-                request.activity_parent_id
-                );
-
-        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_existing_reserv_code', paramsArr);
-        if (queryString != '') {
-            db.executeQuery(1, queryString, request, function (err, data) {
-                //console.log('data.length :' + data.length);
-                if (data.length > 0) {
-                    callback(true, false);
-                } else {
-                    callback(false, code);
-                }
-            });
-        }
-        
-    };
-
     var activityListInsert = function (request, callback) {
         var paramsArr = new Array();
         var activityInlineData = JSON.parse(request.activity_inline_data);
@@ -269,7 +246,7 @@ function ActivityService(objectCollection) {
                 var reserveCode;
                 function generateUniqueCode() {
                     reserveCode = util.randomInt(1111,9999).toString();
-                    checkingUniqueCode(request,reserveCode, (err, data)=>{
+                    activityCommonService.checkingUniqueCode(request,reserveCode, (err, data)=>{
                     if(err === false) {
                         console.log('activitySubTypeName : ' + data);
                         activitySubTypeName = data;
