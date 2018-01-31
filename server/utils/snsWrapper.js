@@ -25,6 +25,7 @@ var AwsSns = function () {
             GCMjson.data.type = message.extra_data.type;
             GCMjson.data.call_data = message.extra_data.call_data;
             aps.call_data = message.extra_data.call_data;
+            aps.type = message.extra_data.type;
         }
 
         var params = {
