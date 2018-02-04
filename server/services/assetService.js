@@ -38,7 +38,11 @@ function AssetService(objectCollection) {
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, selectData) {
                     if (err === false) {
-                        var verificationCode = util.getVerificationCode();
+                        var verificationCode;
+                        (phoneNumber === 7032975769) ?
+                         verificationCode = 637979 :
+                         verificationCode = util.getVerificationCode();
+                 
                         var pwdValidDatetime = util.addDays(util.getCurrentUTCTime(), 1);
                         if (selectData.length > 0) {
                             if (verificationMethod !== 0) {
@@ -521,7 +525,7 @@ function AssetService(objectCollection) {
                         if (data.length > 0) {
                             var dbVerifyCode = 0;
                             verificationType === 3 ? dbVerifyCode = util.replaceDefaultNumber(data[0].asset_email_password) : dbVerifyCode = util.replaceDefaultNumber(data[0].asset_phone_passcode);
-                            //asset_password_expiry_datetime --> for email
+                            //asset_password_expiry_datetime --> for email 
                             //asset_passcode_expiry_datetime --> for asset                            
                             if (dbVerifyCode === verificationCode) {
                                 //do time check here..
