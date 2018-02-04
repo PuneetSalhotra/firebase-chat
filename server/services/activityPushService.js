@@ -138,9 +138,17 @@ function ActivityPushService() {
                             case '/0.1/activity/status/alter':
                                 break;
                             case '/0.1/activity/participant/access/set':
-                                pushString.title = senderName;
-                                pushString.description = 'Meeting: ' + activityTitle + ' has been scheduled at ' + (activityData[0]['activity_datetime_start_expected']);
+                                //console.log('activityInlineJson : ', activityInlineJson)
+                                pushString.title = "Video call";
+                                //pushString.description = 'Meeting: ' + activityTitle + ' has been scheduled at ' + (activityData[0]['activity_datetime_start_expected']);
+                                pushString.description = 'Video Call from ' + activityInlineJson.owner_details.operating_asset_first_name;
                                 extraData.type = 2;
+                                extraData.call_data = {
+                                    meeting_id:activityInlineJson.meeting_id,
+                                    caller_asset_id: activityInlineJson.owner_details.asset_id,
+                                    caller_name: senderName,
+                                    activity_id: request.activity_id
+                                };
                                 pushString.extra_data = extraData;
                                 break;
                         }
