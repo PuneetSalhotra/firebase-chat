@@ -780,10 +780,12 @@ function ActivityTimelineService(objectCollection) {
                     params[10] = row.field_value;
                     break;
                 case 5:     //Number
-                    params[12] = row.field_value;
+                    //params[12] = row.field_value;
+                    params[13] = row.field_value;
                     break;
                 case 6:     //Decimal
-                    params[13] = row.field_value;
+                    //params[13] = row.field_value;
+                    params[14] = row.field_value;
                     break;
                 case 7:     //Scale (0 to 100)
                 case 8:     //Scale (0 to 5)
@@ -797,73 +799,74 @@ function ActivityTimelineService(objectCollection) {
                 case 14:    //Reference - Room
                 case 15:    //Reference - Desk
                 case 16:    //Reference - Assistant
-                    params[12] = row.field_value;
+                    //params[12] = row.field_value;
+                    params[13] = row.field_value;
                     break;
                 case 17:    //Location
                     var location = row.field_value.split('|');
-                    params[15] = location[0];
-                    params[16] = location[1];
+                    params[16] = location[0];
+                    params[17] = location[1];
                     break;
                 case 18:    //Money with currency name
                     var money = row.field_value.split('|');
-                    params[14] = money[0];
-                    params[17] = money[1];
+                    params[15] = money[0];
+                    params[18] = money[1];
                     break;
                 case 19:    //Short Text
-                    params[17] = row.field_value;
-                    break;
-                case 20:    //Long Text
                     params[18] = row.field_value;
                     break;
+                case 20:    //Long Text
+                    params[19] = row.field_value;
+                    break;
                 case 21:    //Label
-                    params[17] = row.field_value;
+                    params[18] = row.field_value;
                     break;
                 case 22:    //Email ID
-                    params[17] = row.field_value;
+                    params[18] = row.field_value;
                     break;
                 case 23:    //Phone Number with Country Code
                     var phone = row.field_value.split('|');
-                    params[12] = phone[0];  //country code
-                    params[17] = phone[1];  //phone number
+                    params[13] = phone[0];  //country code
+                    params[18] = phone[1];  //phone number
                     break;
                 case 24:    //Gallery Image
                 case 25:    //Camera Front Image
                 case 26:    //Video Attachment
-                    params[17] = row.field_value;
+                    params[18] = row.field_value;
                     break;
                 case 27:    //General Signature with asset reference
                 case 28:    //General Picnature with asset reference
                     var signatureData = row.field_value.split('|');
-                    params[17] = signatureData[0];  //image path
-                    params[12] = signatureData[1];  // asset reference
+                    params[18] = signatureData[0];  //image path
+                    params[13] = signatureData[1];  // asset reference
                     params[11] = signatureData[1];  // accepted /rejected flag
                     break;
                 case 29:    //Coworker Signature with asset reference
                 case 30:    //Coworker Picnature with asset reference
                     approvalFields.push(row.field_id);
                     var signatureData = row.field_value.split('|');
-                    params[17] = signatureData[0];  //image path
-                    params[12] = signatureData[1];  // asset reference
+                    params[18] = signatureData[0];  //image path
+                    params[13] = signatureData[1];  // asset reference
                     params[11] = signatureData[1];  // accepted /rejected flag
                     break;
                 case 31:    //Cloud Document Link
-                    params[17] = row.field_value;
+                    params[18] = row.field_value;
                     break;
                 case 32:    //PDF Document
-                    params[17] = row.field_value;
+                    params[18] = row.field_value;
                     break;
                 case 33:    //Single Selection List
-                    params[17] = row.field_value;
+                    params[18] = row.field_value;
                     break;
                 case 34:    //Multi Selection List
-                    params[17] = row.field_value;
+                    params[18] = row.field_value;
                     break;
                 case 35:    //QR Code
                 case 36:    //Barcode
-                    params[17] = row.field_value;
+                    params[18] = row.field_value;
                     break;
                 case 38:    //Audio Attachment
-                    params[17] = row.field_value;
+                    params[18] = row.field_value;
                     break;
                 case 39:    //Flag
                     params[11] = row.field_value;
