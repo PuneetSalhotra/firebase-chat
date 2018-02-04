@@ -55,15 +55,17 @@ class FrequencyDistributionWidget extends WidgetBase {
             const widgetTransId = result[0] ? result[0].idWidgetTransaction : undefined;
             widgetData.widget_transaction_id = widgetTransId;
             console.log("NEW COUNT: "+widgetData.count+"; "+"EXISTING COUNT: "+result[0].valueInteger)
-            if(widgetTransId  && widgetData.count != result[0].valueInteger) {
-                //Pubnub PUSH
-                this.objCollection.pubnubWrapper.push(organizationId,msg);
-                return widgetTransactionSvc.updateFrequencyDistribution(widgetData);
-            } else {
-                //Pubnub PUSH
-                this.objCollection.pubnubWrapper.push(organizationId,msg);
-                return widgetTransactionSvc.createFrequencyDistribution(widgetData);
-            } 
+            if(widgetData.count != result[0].valueInteger){
+                if(widgetTransId > 0) {
+                    //Pubnub PUSH
+                    this.objCollection.pubnubWrapper.push(organizationId,msg);
+                    return widgetTransactionSvc.updateFrequencyDistribution(widgetData);
+                } else {
+                    //Pubnub PUSH
+                    this.objCollection.pubnubWrapper.push(organizationId,msg);
+                    return widgetTransactionSvc.createFrequencyDistribution(widgetData);
+                }
+            }             
         }) 
     }
 
