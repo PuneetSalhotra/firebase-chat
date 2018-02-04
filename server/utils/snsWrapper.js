@@ -33,7 +33,7 @@ var AwsSns = function () {
             Message: JSON.stringify({
                 'default': message.title + message.description,
                 'GCM': JSON.stringify(GCMjson),
-                APNS_VOIP_SANDBOX: JSON.stringify({aps})
+                APNS_VOIP: JSON.stringify({aps})
             }),
             TargetArn: targetArn
         };
@@ -53,9 +53,9 @@ var AwsSns = function () {
                 platformApplicationArn = global.config.platformApplicationAndroid;
                 break;
             case 2:// ios
-                if (global.config.iosPushMode == 'dev')
-                    platformApplicationArn = global.config.platformApplicationIosDev;
-                else
+                //if (global.config.iosPushMode == 'dev')
+                    //platformApplicationArn = global.config.platformApplicationIosDev;
+                //else
                     platformApplicationArn = global.config.platformApplicationIosProd;
                 break;
             case 3:// windows
