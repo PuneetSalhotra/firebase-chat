@@ -46,6 +46,12 @@ function UtilityController(objCollection) {
         });
     });
     
+    //VNK webhook
+    app.get('/' + global.config.version + '/vnk', function (req, res) {
+        console.log('Request : ', req.body);
+        res.send(responseWrapper.getResponse('', {}, 200, req.body));        
+    });
+    
      app.post('/' + global.config.version + '/asset/bucket/add', function (req, res) {
         sss.createAssetBucket(req.body,function (err, data, statusCode) {
         if (err === false) {

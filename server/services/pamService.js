@@ -45,12 +45,15 @@ function PamService(objectCollection) {
                        (data.length > 0) ? ((data[0].reservation_count < threshold) ? response.reservation_available ='true' : response.reservation_available = 'false') : response.reservation_available = -99;
                        
                        if(response.called_before == 'false' && response.reservation_available == 'true') {
-                          if(logDatetime <= util.addUnitsToDateTime(data[0].activity_datetime_start_expected,1,'hours')) {
+                          /*if(logDatetime <= util.addUnitsToDateTime(data[0].activity_datetime_start_expected,1,'hours')) {
                                response.next_possible_reservation_time = util.addUnitsToDateTime(logDatetime,1,'hours');
                            } else {
                                response.next_possible_reservation_time = '1970-01-01 00:00:00';
-                           }
+                           }*/
+                          response.next_possible_reservation_time = util.addUnitsToDateTime(logDatetime,1,'hours');
                           callback(false, response, 200);
+                       } else {
+                           callback(false, response, 200);
                        }
                      } else {
                          response.reservation_available = -99;
