@@ -38,7 +38,7 @@ function AccountController(objCollection) {
         });
     });
 
-    app.put('/' + global.config.version + '/account/cover/update/email', function (req, res) {
+    app.put('/' + global.config.version + '/account/cover/update/email', function (req, res){
         accountService.updateAccountEmail(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response   

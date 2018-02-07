@@ -167,7 +167,8 @@ function Util() {
         toNumber = request.country_code + request.to_phone_number;
         client.calls.create(
           {
-            url: 'http://demo.twilio.com/docs/voice.xml',
+            url: 'http://demo.twilio.com/docs/voice.xml', 
+            //url: 'https://api.desker.co/serverDownInfo.xml',
             //to: '+919966626954',
             //from: '+15107094638',
             to: toNumber,

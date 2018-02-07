@@ -983,6 +983,8 @@ this.getAssetDetails = function (request, callback) {
     
     function getArrayOfStationIds (request, ingredients) {
         return new Promise((resolve, reject)=>{
+            var qty = request.hasOwnProperty('item_quantity') ? request.item_quantity : 1;
+            qty *= ingredients.activity_sub_type_id;
             var response = new Array();
             var paramsArr = new Array(
                 request.organization_id,
@@ -991,7 +993,7 @@ this.getAssetDetails = function (request, callback) {
                 0, //request.station_asset_id,
                 ingredients.ingredient_asset_id,//request.ingredient_asset_id,
                 ingredients.channel_activity_type_category_id,
-                ingredients.activity_sub_type_id,
+                qty,
                 request.page_start || 0,
                 util.replaceQueryLimit(request.page_limit)
                 );

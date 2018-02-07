@@ -47,9 +47,20 @@ function UtilityController(objCollection) {
     });
     
     //VNK webhook
-    app.get('/' + global.config.version + '/vnk', function (req, res) {
+    app.post('/' + global.config.version + '/vnk', function (req, res) {
         console.log('Request : ', req.body);
-        res.send(responseWrapper.getResponse('', {}, 200, req.body));        
+        req.body.country_code = '91';
+        req.body.to_phone_number = '9966626954';
+        req.body.from_phone_number = '+15107094638';
+        
+        util.twilioMakeCall(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
     });
     
      app.post('/' + global.config.version + '/asset/bucket/add', function (req, res) {
