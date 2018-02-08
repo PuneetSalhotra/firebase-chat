@@ -26,13 +26,13 @@ var consume = function () {
 
                 var deletMesageHandle = data['Messages'][0].ReceiptHandle;
                 //console.log("messge body is: "+ data['Messages'][0].Body);
-                try {
+                //try {
                     var body = data['Messages'][0].Body;
                     var messageCollection = JSON.parse(body);
                     //console.log(messageCollection);
                     switch (messageCollection.log) {
                         case 'log':
-                            console.log('LOG');
+                            console.lo777('LOG');
                             cassandraInterceptor.logData(messageCollection, function(err, resp){
                                 if(err === false) {
                                     deleteSQSMessage(deletMesageHandle);
@@ -49,9 +49,9 @@ var consume = function () {
                             break;
                     }
                     ;
-                } catch (e) {
+                /*} catch (e) {
                     console.log(e);
-                }
+                }*/
 
                 
             } else {
@@ -82,7 +82,24 @@ function checkingCassandraInstance() {
     })
 }
 
+
+process.on('uncaughtException', (err) => {
+  console.log(`process.on(uncaughtException): ${err}\n`);
+  throw new Error('uncaughtException');
+});
+
+process.on('error', (err) => {
+  console.log(`process.on(error): ${err}\n`);
+  throw new Error('error');
+});
+
 //setInterval(consume, 1000);
 setInterval(checkingCassandraInstance, 1000);
+
+var http = require('http')
+http.createServer((req, res)=>{
+    res.write('I am Alive nani kalyan');
+    res.end();
+}).listen(1111)
 
 module.exports = checkingCassandraInstance;

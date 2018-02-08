@@ -240,6 +240,7 @@ function ActivityService(objectCollection) {
         //PAM
         var activitySubTypeName = (request.hasOwnProperty('activity_sub_type_name')) ? request.activity_sub_type_name : '';
         var expiryDateTime = (request.hasOwnProperty('expiry_datetime')) ? request.expiry_datetime : '';
+        var itemOrderCount = (request.hasOwnProperty('item_order_count')) ? request.item_order_count : '0';
         
         new Promise((resolve, reject)=>{
             if(activityTypeCategoryId === 37) { //PAM
@@ -543,7 +544,7 @@ function ActivityService(objectCollection) {
                         request.activity_title,
                         request.activity_description,
                         (request.activity_inline_data),
-                        "",
+                        itemOrderCount, //"",PAM
                         0,
                         request.activity_datetime_start,
                         request.activity_datetime_end,
