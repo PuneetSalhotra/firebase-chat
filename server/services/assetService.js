@@ -1473,17 +1473,18 @@ function AssetService(objectCollection) {
         request['datetime_log'] = dateTimeLog;
         request['asset_assigned_status_id'] = 0;
         request['asset_session_status_id'] = 0;
-        if(!request.hasOwnProperty('work_station_asset_id')) {
-            request.work_station_asset_id = 0;
+        if(!request.hasOwnProperty('workstation_asset_id')) {
+            request.workstation_asset_id = 0;
         }
 
+        console.log('assetClockOut : \n', request);
         global.logger.writeSession(request.body);
         assetListUpdateStatus(request, request.asset_id, function (err, data) {
             if (err === false) {
-                request.asset_id = 0;
-                if(request.work_station_asset_id != 0) {
+                //request.asset_id = 0;
+                if(request.workstation_asset_id != 0) {
                     activityCommonService.pamAssetListUpdateOperatingAsset(request).then(()=>{
-                        assetListHistoryInsert(request, request.work_station_asset_id, request.organization_id, 211, dateTimeLog, function (err, data) {});
+                        assetListHistoryInsert(request, request.workstation_asset_id, request.organization_id, 211, dateTimeLog, function (err, data) {});
                     });                    
                 }
                 callback(request.asset_id, {}, 200);

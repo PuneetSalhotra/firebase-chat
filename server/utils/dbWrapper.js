@@ -77,7 +77,7 @@ var executeQuery = function (flag, queryString, request, callback) {
                     } else {
                         console.log('SOME ERROR IN QUERY | ', queryString);
                         global.logger.write('serverError',queryString, err, request);
-                        //console.log(err);
+                        console.log(err);
                         conn.release();
                         callback(err, false);
                     }

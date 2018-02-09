@@ -427,10 +427,10 @@ function PamService(objectCollection) {
                                 method: "alterActivityStatus",
                                 payload: request
                               };
-                              queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp)=>{});                       
+                              queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp)=>{});
                              }
-                          
-                        resolve(resp);
+                            
+                          resolve(resp);
                         } else {
                           reject(err);
                       }
@@ -1171,15 +1171,29 @@ function PamService(objectCollection) {
              if(err === false){
                 if(data.length > 0){
                    request.activity_parent_id = data[0].activity_id;
-                   response.event_id = request.activity_parent_id;
+                   response.event_activity_id = request.activity_parent_id;
                    activityCommonService.checkingUniqueCode(request, request.reservation_code, function(err, resp){
                       if(err === false){
                           callback(true, 'Invalid Reservation Code', -991)
                       } else {
-                           response.reservation_id = resp[0].activity_id;
+                           response.reservation_activity_id = resp[0].activity_id;
                            
-                           getMemberAssetId(request. resp[0].activity_id).then((result)=>{ 
+                           getMemberAssetId(request, resp[0].activity_id).then((result)=>{ 
                                response.asset_id = result[0].asset_id;
+                               response.asset_first_name = result[0].asset_first_name;
+                               
+                               response.asset_image_path = util.replaceDefaultString(resp[0].asset_image_path);
+                               response.activity_status_type_id = (resp[0].activity_status_type_id) ? resp[0].activity_status_type_id : 0;
+                               response.activity_status_type_name = util.replaceDefaultString(resp[0].activity_status_type_name);
+                               
+                               if(response.activity_status_type_id == 0 || response.activity_status_type_id == 95) {
+                                   request.activity_status_type_id = 97;
+                                   getActivityStatusId(request, response.reservation_activity_id).then((res)=>{});
+                               } else if (response.activity_status_type_id == 97) {
+                                   request.activity_status_type_id = 98;
+                                   getActivityStatusId(request, response.reservation_activity_id).then((res)=>{});
+                               }                             
+                               
                                cacheWrapper.getTokenAuth(result[0].asset_id, function(err, resp){
                                    if(resp !== false) {
                                        response.asset_auth_token = resp;
@@ -1203,7 +1217,7 @@ function PamService(objectCollection) {
  }
  
  function getMemberAssetId(request, activityId) {
-     return new Promise(()=>{
+     return new Promise((resolve, reject)=>{
         var paramsArr = new Array();
         var queryString = '';
         paramsArr = new Array(
@@ -1217,12 +1231,52 @@ function PamService(objectCollection) {
         queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_participants_category', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
+                console.log('getMemberAssetId data: ', data);
                 (err === false) ? resolve(data) : reject(err);                    
                 });
             } 
      })   
         
    }
+   
+  this.itemOrderWsCheck = function(request, callback) {
+        var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.item_activity_id,
+                request.asset_type_category_id,
+                0,
+                1
+                );
+
+        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_participants_category', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if(err === false) {
+                    console.log('data : ', data);
+                    if (data.length > 0) {
+                        callback(true, data, 200);
+                    } else {
+                        //then assign
+                        request.activity_id = request.item_activity_id;
+                        request.activity_type_category_id = 38;
+                        var event = {
+                            name: "assignParticipnt",
+                            service: "activityParticipantService",
+                            method: "assignCoworker",
+                            payload: request
+                        };
+                        console.log('Request before the queuewrapper : ', request);
+                        queueWrapper.raiseActivityEvent(event, request.item_activity_id, (err, resp)=>{});
+
+                        callback(false, {}, 200);
+                    }
+                } else {
+                    callback(true, {}, -9999);
+                }                
+            });
+        }        
+    };
      
 }
 ;

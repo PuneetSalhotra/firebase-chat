@@ -157,7 +157,17 @@ function PamController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
-    });       
+    });
+    
+    app.post('/' + global.config.version + '/pam/item_order/workstation/check', function (req, res) {
+        pamService.itemOrderWsCheck(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
 }
 ;
 module.exports = PamController;

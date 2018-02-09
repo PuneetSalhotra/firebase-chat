@@ -1023,11 +1023,11 @@ this.getAssetDetails = function (request, callback) {
     this.pamAssetListUpdateOperatingAsset = function(request) {
          return new Promise((resolve, reject)=>{
              var paramsArr = new Array(
-                request.work_station_asset_id,
+                request.workstation_asset_id,
                 request.workforce_id,
                 request.account_id,
                 request.organization_id,
-                request.asset_id,
+                0, //request.asset_id,
                 request.asset_id,
                 request.datetime_log
                 );

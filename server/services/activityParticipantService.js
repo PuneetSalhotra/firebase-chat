@@ -528,7 +528,7 @@ function ActivityParticipantService(objectCollection) {
                     }
                     
                     //PAM
-                    if(activityTypeCategoryId == 39) {
+                    if(activityTypeCategoryId == 39 || activityTypeCategoryId == 38) {
                         assignUnassignParticipantPam(request, participantData,1,function(err, resp){}); //1 for assign
                     }
                     
@@ -563,7 +563,7 @@ function ActivityParticipantService(objectCollection) {
                         }
                         
                         //PAM
-                    if(activityTypeCategoryId == 39) {
+                    if(activityTypeCategoryId == 39 || activityTypeCategoryId == 38) {
                         assignUnassignParticipantPam(request, participantData, 1, function(err, resp){}); //1 for assign
                     }
                     
@@ -947,7 +947,7 @@ function ActivityParticipantService(objectCollection) {
                             }
                         }
                         //PAM
-                    if(activityTypeCategoryId == 39) {
+                    if(activityTypeCategoryId == 39 || activityTypeCategoryId == 38) {
                         assignUnassignParticipantPam(request, participantData,0,function(err, resp){}); //1 for unassign
                     }
                     }
