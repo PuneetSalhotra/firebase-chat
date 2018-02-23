@@ -22,6 +22,15 @@ function ActivityTimelineService(objectCollection) {
             var formDataJson = JSON.parse(request.activity_timeline_collection);
             request.form_id = formDataJson[0]['form_id'];
             console.log('form id extracted from json is: ' + formDataJson[0]['form_id']);
+            var lastObject = formDataJson[formDataJson.length - 1]
+            console.log('Last object : ', lastObject)
+            if (lastObject.hasOwnProperty('field_value')) {
+                console.log('Has the field value in the last object')
+                //remote Analytics
+                if(request.form_id == 325) {
+                    monthlySummaryTransInsert(request).then(()=>{});
+                }
+            }
             // add form entries
             addFormEntries(request, function (err, approvalFieldsArr) {
                 if (err === false) {
@@ -40,7 +49,7 @@ function ActivityTimelineService(objectCollection) {
           activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
             if(err) {
 
-            } else {
+            } else {               
               activityPushService.sendPush(request, objectCollection, 0, function () {});
               activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) { });
 
@@ -52,7 +61,113 @@ function ActivityTimelineService(objectCollection) {
         }
         callback(false, {}, 200);
     };
+    
+    
+    //MONTHLY Remote Analytics
+    //Insert into monthly summary table
+    function monthlySummaryTransInsert(request){
+        return new Promise((resolve, reject)=>{
+            var dateTimeLog = util.getCurrentUTCTime();
+            request['datetime_log'] = dateTimeLog;
 
+            var avgHours;
+            var occupiedDesks;
+            var countDesks;
+            var noOfDesks;
+            getFormTransTimeCardsStats(request).then((data)=>{
+                request.viewee_workforce_id = request.workforce_id;
+                activityCommonService.getOccupiedDeskCounts(request, function(err, result){
+                        if(err === false) {
+                            occupiedDesks = result[0].occupied_desks;
+                            if(occupiedDesks == 0){
+                              avgHours = 0;
+                            } else {                        
+                              avgHours = data[0].totalHours/result[0].occupied_desks;
+                            }
+
+                            request.flag = 11;
+                            request.viewee_asset_id = request.asset_id;
+                            request.viewee_operating_asset_id = request.operating_asset_id;                           
+                            
+                            activityCommonService.assetAccessCounts(request, function(err, resp){
+                                if(err === false) {
+                                    countDesks = resp[0].countDesks;
+                                    (occupiedDesks > countDesks) ? noOfDesks = occupiedDesks : noOfDesks = countDesks; 
+                                    //insert
+                                    var paramsArr = new Array(
+                                        1,                         //request.monthly_summary_id,
+                                        request.asset_id,
+                                        request.workforce_id, 
+                                        request.account_id, 
+                                        request.organization_id, 
+                                        util.getStartDayOfMonth(),  //entity_date_1,    //Monthly Month start Date
+                                        "",                         //entity_datetime_1, 
+                                        "",                         //entity_tinyint_1, 
+                                        noOfDesks,                  //entity_bigint_1, //number of desks
+                                        avgHours,                   //entity_double_1, //average hours
+                                        data[0].assetHours,         //entity_decimal_1, //total number of hours for a asset
+                                        "",                         //entity_decimal_2,
+                                        "",                         //entity_decimal_3, 
+                                        data[0].totalHours,         //entity_text_1, 
+                                        "",                         //entity_text_2
+                                        request.track_latitude, 
+                                        request.track_longitude, 
+                                        request.track_gps_accuracy, 
+                                        request.track_gps_status, 
+                                        request.track_gps_location, 
+                                        request.track_gps_datetime, 
+                                        request.device_manufacturer_name, 
+                                        request.device_model_name, 
+                                        request.device_os_id, 
+                                        request.device_os_name, 
+                                        request.device_os_version, 
+                                        request.app_version, 
+                                        request.api_version, 
+                                        request.asset_id, 
+                                        request.message_unique_id, 
+                                        request.flag_retry, 
+                                        request.flag_offline, 
+                                        request.track_gps_datetime, 
+                                        request.datetime_log
+                                    );
+                                    var queryString = util.getQueryString('ds_v1_asset_monthly_summary_transaction_insert', paramsArr);
+                                    if (queryString != '') {
+                                       db.executeQuery(0, queryString, request, function (err, data) {
+                                            (err === false) ? resolve(data) :reject(err);
+                                            });
+                                        }
+                                } else{
+                                   //Some error -9999 
+                                }
+                            });
+                        }                        
+              });
+            })             
+           })      
+    }
+    
+    
+    
+    //Get total hours of a employee or all employees in an organization
+    function getFormTransTimeCardsStats(request){
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                request.asset_id,
+                request.organization_id,
+                util.getStartDateTimeOfMonth(),
+                util.getEndDateTimeOfMonth()
+                );
+            var queryString = util.getQueryString('ds_v1_activity_form_transaction_select_timecard_stats', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    console.log('getFormTransTimeCardsStats : \n', data, "\n");
+                    (err === false) ? resolve(data) : reject(err);
+                    });
+                }
+        });        
+    }
+    //////////////////////////////////////////////////////////
+    
     this.addTimelineComment = function (request, callback) {
         activityCommonService.updateAssetLocation(request, function (err, data) {});
         var logDatetime = util.getCurrentUTCTime();

@@ -1,6 +1,7 @@
 /*
  * author: Nani Kalyan V
  */
+var fs = require('fs');
 
 function PamService(objectCollection) {
 
@@ -16,64 +17,120 @@ function PamService(objectCollection) {
         request['datetime_log'] = logDatetime; 
         
         var response = {};
-        var threshold = 50;
+        var threshold = 0;
+        var eventStartDateTime;
+        var reservationCreatedDateTime;
         response.member = 0;
         response.member_name = '';
         response.called_before = '';
         response.event_id = 0;
         response.reservation_available = '';
         response.next_possible_reservation_time = '';
+        response.reservation_id = 0;
         
+        fs.readFile('/home/nani/Desker-vnk-API/Bharat/server/utils/pamConfig.txt', function(err, data){
+            if(err) {
+             console.log(err)   
+            } else{
+             threshold = Number(data.toString());
+            }
+        });
+
         identifyCaller(request, function(err, data){
             if(err === false){
                 if(data !== 0) {
                     response.member = data.asset_id;
                     response.member_name = data.asset_first_name;
-                }   
+                    
+                    getCalledTime(request, function(err, data){
+                        if(err === false){
+                           if(data.length > 0) {
+                              eventStartDateTime = util.replaceDefaultDatetime(data[0].activity_datetime_start_expected);
+                              
+                              (eventStartDateTime >= logDatetime) ? response.called_before = 'true' : response.called_before = 'false';
+                              response.event_id = data[0].activity_id;                   
+                              getReservationsCount(data[0].activity_id, function(err,data){
+                                if(err === false){
+                                  (data.length > 0) ? ((data[0].reservation_count < threshold) ? response.reservation_available ='true' : response.reservation_available = 'false') : response.reservation_available = -99;
+
+                                  //SMS Logic
+                                  var nextAvailableDateTime;
+                                  (response.called_before == 'true')?
+                                       nextAvailableDateTime = util.addUnitsToDateTime(eventStartDateTime,6.5,'hours') :
+                                       nextAvailableDateTime = util.addUnitsToDateTime(logDatetime,6.5,'hours');
+
+                                  if(response.reservation_available == 'false') {
+var text = "Dear "+response.member_name+" , Currently, there are no tables available for reservation. Please call us back after " + nextAvailableDateTime;
+text+= " to check if there are any tables available for reservation."
+                                           console.log('SMS text : \n', text + "\n");
+                                           util.sendSmsMvaayoo(text, request.country_code, request.phone_number, function(err,res){});
+                                   }
+                                   ////////////////////
+
+                                   if(response.called_before == 'false' && response.reservation_available == 'true') {
+                                     if(logDatetime <= util.addUnitsToDateTime(data[0].activity_datetime_start_expected,1,'hours')) {
+                                          response.next_possible_reservation_time = util.addUnitsToDateTime(logDatetime,1,'hours');
+                                      } else {
+                                          response.next_possible_reservation_time = '1970-01-01 00:00:00';
+                                      }
+                                     
+                                     getReservationDetails(response.event_id, response.member).then((resp)=>{
+                                           if (resp.length > 0 ) {
+                                               response.reservation_id = resp[0].activity_id;
+                                               reservationCreatedDateTime = util.replaceDefaultDatetime(resp[0].activity_datetime_created);
+                                                                                      
+                                               (Math.sign(util.differenceDatetimes(eventStartDateTime ,reservationCreatedDateTime)) === 1) ? 
+                                                   expiryDateTime = util.addUnitsToDateTime(eventStartDateTime,6.5,'hours') :
+                                                   expiryDateTime = util.addUnitsToDateTime(reservationCreatedDateTime,6.5,'hours');
+                                           
+                                                expiryDateTime = util.getDatetimewithAmPm(expiryDateTime);
+                                            
+                                               console.log('Expiry DAte time : ', expiryDateTime);
+var smsText = "Dear "+response.member_name+" , Your reservation for today is confirmed. Please use the following reservation code " + resp[0].activity_sub_type_name;
+smsText+= " . Note that this reservation code is only valid till "+expiryDateTime+" .";                                      
+                                               console.log('smsText : ', smsText);
+                                               util.sendSmsMvaayoo(smsText, request.country_code, request.phone_number, function(err,res){
+                                                   if(err) {
+                                                       console.log('Error in sending sms : ', err);
+                                                   } else {
+                                                       console.log('Message status : ', res);
+                                                   }
+                                               });
+                                           }
+                                           callback(false, response, 200);
+                                      }).catch((err)=>{
+                                            console.log('In Catch : ', err);
+                                            callback(false, response, 200);
+                                      })                   
+                                  } else {
+                                      callback(false, response, 200);
+                                  }
+                                } else {
+                                    response.reservation_available = -99;
+                                    callback(false, response, 200);
+                                }
+                            });
+                           } else {
+                               response.called_before = -99;
+                               callback(false, response, 200);
+                           }           
+                        } else{
+                            callback(false, response, -9999);
+                        }
+                   });
+                } else {
+                    callback(false, response, 200);
+                } 
             } else {
                 response.member = -99;
+                callback(false, response, -9999);
             }
-         });
-           
-        getCalledTime(request, function(err, data){
-             if(err === false){
-                if(data.length > 0) {
-                   (data[0].activity_datetime_start_expected >= logDatetime) ? response.called_before = 'true' : response.called_before = 'false';
-                   response.event_id = data[0].activity_id;
-                   getReservationsCount(data[0].activity_id, function(err,data){
-                     if(err === false){
-                       (data.length > 0) ? ((data[0].reservation_count < threshold) ? response.reservation_available ='true' : response.reservation_available = 'false') : response.reservation_available = -99;
-                       
-                       if(response.called_before == 'false' && response.reservation_available == 'true') {
-                          /*if(logDatetime <= util.addUnitsToDateTime(data[0].activity_datetime_start_expected,1,'hours')) {
-                               response.next_possible_reservation_time = util.addUnitsToDateTime(logDatetime,1,'hours');
-                           } else {
-                               response.next_possible_reservation_time = '1970-01-01 00:00:00';
-                           }*/
-                          response.next_possible_reservation_time = util.addUnitsToDateTime(logDatetime,1,'hours');
-                          callback(false, response, 200);
-                       } else {
-                           callback(false, response, 200);
-                       }
-                     } else {
-                         response.reservation_available = -99;
-                         callback(false, response, 200);
-                     }
-                 });
-                } else {
-                    response.called_before = -99;
-                    callback(false, response, 200);
-                }           
-             } else{
-                 callback(false, response, -9999);
-             }
-             
-        });
+         });         
+        
      }
      
      this.sendSms = function(request, callback) {
-         //util.sendSmsMvaayoo(request.text, request.country_code, request.phone_number, function(err,res){
-          util.sendSmsBulk(request.text, request.country_code, request.phone_number, function(err,res){
+         util.sendSmsMvaayoo(request.text, request.country_code, request.phone_number, function(err,res){
                 console.log(err,'\n',res);
                 callback(false, {}, 200);
          });
@@ -160,7 +217,7 @@ function PamService(objectCollection) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if(err === false) {
-                    console.log(data);
+                    //console.log(data);
                     (data.length > 0) ? callback(false, data[0]) : callback(false,0);
                 } else {
                     callback(true, err);
@@ -202,6 +259,25 @@ function PamService(objectCollection) {
               }
             );
         }
+    };
+    
+    function getReservationDetails(eventActivityId, memberAssetId) {
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                351, //request.organization_id,
+                452, //request.account_id,
+                eventActivityId,
+                memberAssetId
+                );
+            var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_reservation', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, eventActivityId, function (err, data) {
+                    console.log('Reservation Details :', data);
+                    (err === false)? resolve(data) : reject(err);
+                  }
+                );
+            }
+        });        
     };
     
     this.generatePasscode = function (request, callback) {
@@ -334,7 +410,7 @@ function PamService(objectCollection) {
             //console.log(activityId);
             activityCommonService.inventoryCheck(request, activityId, function(err, resp, stationIds){
             if(err === false) {
-                    //if(resp === true) {
+                    //if(resp === true) {                    
                         response.push({menu_activity_id:activityId, status:resp})
                         globalStationIds.push({menu_activity_id:activityId, status:resp, station_ids: stationIds});
                     //}
@@ -1187,11 +1263,15 @@ function PamService(objectCollection) {
                                response.activity_status_type_name = util.replaceDefaultString(resp[0].activity_status_type_name);
                                
                                if(response.activity_status_type_id == 0 || response.activity_status_type_id == 95) {
-                                   request.activity_status_type_id = 97;
-                                   getActivityStatusId(request, response.reservation_activity_id).then((res)=>{});
+                                   if(request.app_code == 1) {
+                                       request.activity_status_type_id = 97;
+                                       getActivityStatusId(request, response.reservation_activity_id).then((res)=>{});
+                                   }
                                } else if (response.activity_status_type_id == 97) {
-                                   request.activity_status_type_id = 98;
-                                   getActivityStatusId(request, response.reservation_activity_id).then((res)=>{});
+                                   if(request.app_code == 2) {
+                                       request.activity_status_type_id = 98;
+                                       getActivityStatusId(request, response.reservation_activity_id).then((res)=>{});
+                                   }                                   
                                }                             
                                
                                cacheWrapper.getTokenAuth(result[0].asset_id, function(err, resp){
@@ -1255,7 +1335,7 @@ function PamService(objectCollection) {
                 if(err === false) {
                     console.log('data : ', data);
                     if (data.length > 0) {
-                        callback(true, data, 200);
+                        callback(true, data[0], 200);
                     } else {
                         //then assign
                         request.activity_id = request.item_activity_id;
@@ -1267,9 +1347,12 @@ function PamService(objectCollection) {
                             payload: request
                         };
                         console.log('Request before the queuewrapper : ', request);
-                        queueWrapper.raiseActivityEvent(event, request.item_activity_id, (err, resp)=>{});
-
-                        callback(false, {}, 200);
+                        //queueWrapper.raiseActivityEvent(event, request.item_activity_id, (err, resp)=>{});
+                        var response = {};
+                        response.asset_id = Number(request.station_asset_id);
+                        response.activity_status_type_id = 102;
+                        response.activity_status_type_name = "Ordered";
+                        callback(false, response, 200);
                     }
                 } else {
                     callback(true, {}, -9999);

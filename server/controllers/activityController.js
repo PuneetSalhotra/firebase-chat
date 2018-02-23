@@ -315,6 +315,7 @@ function ActivityController(objCollection) {
         }
 
     });
+      
  
 }
 ;

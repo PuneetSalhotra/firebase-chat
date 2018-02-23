@@ -266,13 +266,33 @@ function Util() {
     };
     
     this.getCurrentYear = function () {
-            var now = moment().utc().format("YYYY");
+        var now = moment().utc().format("YYYY");
         return now;
     };
     
     this.getCurrentUTCTimestamp = function () {
         var now = moment().utc().valueOf();
         return now;
+    };
+    
+    this.getStartDayOfMonth = function () {
+        var value = moment().startOf('month').format("YYYY-MM-DD");
+        return value;
+    };
+    
+    this.getStartDayOfWeek = function () {
+        var value = moment().startOf('week').add(1, 'days').format("YYYY-MM-DD");
+        return value;
+    };
+    
+    this.getStartDateTimeOfMonth = function () {
+        var value = moment().startOf('month').format("YYYY-MM-DD HH:mm:ss");
+        return value;
+    };
+    
+    this.getEndDateTimeOfMonth = function () {
+        var value = moment().endOf('month').format("YYYY-MM-DD HH:mm:ss");
+        return value;
     };
 
     this.getcurrentTime = function () {
@@ -435,6 +455,11 @@ function Util() {
         var value = moment(timeString).valueOf();
         return value;
     };
+    
+    this.getDatetimewithAmPm = function(timeString) {
+        var value = moment(timeString).format("YYYY-MM-DD HH:mmA");
+        return value;
+    }
 
     this.addDays = function (timeString, days) {
         var value = moment(timeString, "YYYY-MM-DD HH:mm:ss").add(days, 'days').format("YYYY-MM-DD HH:mm:ss");
@@ -452,7 +477,8 @@ function Util() {
     };
 
     this.differenceDatetimes = function (timeString1, timeString2) {
-
+console.log('timeString1 : ', timeString1)
+console.log('timeString2 : ', timeString2)
         var value = moment(timeString1, "YYYY-MM-DD HH:mm:ss").diff(moment(timeString2, "YYYY-MM-DD HH:mm:ss"));
         return value;
     };

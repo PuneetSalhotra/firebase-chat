@@ -1878,7 +1878,121 @@ function AssetService(objectCollection) {
             callback(false, responseData);
         });
     };
+    
+   this.assetRatingAccessCounts = function(request, callback) {
+       if(request.flag == 1) {
+           var response = {};
+           var A1, A2, A3;
+           var X;
+           
+           var D1, D2;
+           var E1, E2;
+           var Y;
+           
+           var F1, F3;
+           var G1, G3;
+           var Z;
+           
+           activityCommonService.getOccupiedDeskCounts(request, function(err, data){
+               if(err === false) {
+                   A1 = data[0].occupied_desks; //Total number of Desks
+                   
+                   request.flag = 0;
+                   activityCommonService.assetAccessCounts(request, function(err, resp){
+                       if(err === false) {
+                           A2 = resp[0].totalOrgHours;   //Total Organization Hours
+                           A3 = resp[0].totalAssetHours; //Total Employee Hours
+                           
+                           console.log('A1 :', A1);
+                           console.log('A2 :', A2);
+                           console.log('A3 :', A3);
+                           
+                           (A1 == 0 || A2 == 0) ? X = -1: X =  ((A3 / (A2/A1)) * 100);
+                           
+                           console.log('Work Presence : '+ X);
+                           global.logger.write('debug', 'Work Presence : '+ X, {}, request);
+                           
+                           
+                           D1 = resp[0].countAllVoice;
+                           D2 = resp[0].countMissedVoice;
+                           
+                           E1 = resp[0].countAllVideo;
+                           E2 = resp[0].countMissedVideo;
+                           
+                           console.log('D1 :', D1);
+                           console.log('D2 :', D2);
+                           console.log('E1 :', E1);
+                           console.log('E2 :', E2);
+                           
+                           ((D1 + E1) == 0) ? Y = -1: Y = ((((D1 + E1) - (D2 + E2)) / (D1 + E1)) * 100);
+                                                      
+                           console.log('Communication Aptitude : ' + Y);
+                           global.logger.write('debug', 'Communication Aptitude : ' + Y, {}, request);
+                           
+                           F1 = resp[0].countCreatedTasks;
+                           F3 = resp[0].countCompletedTasks;
+                           
+                           G1 = resp[0].countCreatedProjects;
+                           G3 = resp[0].countCompletedProjects;
+                           
+                           console.log('F1 :', F1);
+                           console.log('F3 :', F3);
+                           console.log('G1 :', G1);
+                           console.log('G3 :', G3);
+                           
+                           ((F1 + G1) == 0) ? Z = -1 : Z = (((F3 + G3) / (F1 + G1)) * 100);
+                                                      
+                           console.log('Productivity : ' + Z);
+                           global.logger.write('debug', 'Productivity : ' + Z, {}, request);
+                           
+                           var rating;
+                           (X == -1 || Y == -1 || Z == -1) ? rating = -1 : rating = (((12/70) * X) + ((34/70) * Y) + ((24/70) * Z));
+                           
+                           console.log('Rating : ' + rating);
+                           global.logger.write('debug', 'Rating : ' + rating, {}, request);
+                           response.asset_id = request.viewee_asset_id;
+                           response.work_presence = X;
+                           response.communication_aptitude = Y;
+                           response.productivity = Z;
+                           response.rating = rating;
+                           
+                           callback(false, response, 200);
+                       } else {
+                           callback(true, {}, -9999)
+                       }
+                           
+                   });
+
+                } else {
+                    callback(true, {}, -9999)
+                }
+           })          
+       } else {
+           activityCommonService.assetAccessCounts(request, function(err, data){
+               if(err === false){
+                   switch(Number(request.flag)) {
+                       case 0 : data[0].averageResposeTimePostit = data[0].averageResposeTimePostit/60;
+                                data[0].averageResposeTimeInmail = data[0].averageResposeTimeInmail/60;
+                            
+                       case 11: data[0].avergaeOrgHours = data[0].avergaeOrgHours/3600;
+                                data[0].totalAssetHours = data[0].totalAssetHours/3600;
+                                data[0].totalOrgHours = data[0].totalOrgHours/3600;
+                                break;
+                       case 21: data[0].averageResposeTimePostit = data[0].averageResposeTimePostit/60;
+                                break;
+                       case 71: data[0].averageResposeTimeInmail = data[0].averageResposeTimeInmail/60;
+                                break                           
+                   }
+                                      
+                   data[0].asset_id = request.viewee_asset_id;
+                   callback(false, data, 200);
+               } else {
+                   callback(true, {}, -9999)
+               }
+           })
+       }
+   } 
+                    
 }
-;
 
 module.exports = AssetService;

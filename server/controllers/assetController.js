@@ -407,5 +407,18 @@ function AssetController(objCollection) {
             }
         });
     });
+    
+    //BETA Remote Analytics
+    app.post('/' + global.config.version + '/asset/access/counts', function (req, res) {
+        assetService.assetRatingAccessCounts(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
 }
 module.exports = AssetController;

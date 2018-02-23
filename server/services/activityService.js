@@ -254,9 +254,9 @@ function ActivityService(objectCollection) {
                         responseactivityData.reservation_code = data;
                         //expiryDateTime = util.addUnitsToDateTime(request.track_gps_datetime,1,'hours');
                         var inlineJson = JSON.parse(request.activity_inline_data);
-                        util.sendSmsMvaayoo('Dear Member, your reservation is confirmed. Reservation Code:'+data+'. Please check in before '+expiryDateTime, inlineJson.country_code, inlineJson.phone_number, function(err,res){
-                            //console.log(err,'\n',res);
-                        });
+                        var smsText = "Dear " + response.member_name + ",Your reservation for today is confirmed. Please use the following reservation code " + data;
+                        smsText+= "Note that this reservation code is only valid till  "+  expiryDateTime + ".";
+                        util.sendSmsMvaayoo(smsText, inlineJson.country_code, inlineJson.phone_number, function(err,res){});
                         return resolve();
                        } else {
                            generateUniqueCode();
@@ -978,6 +978,13 @@ function ActivityService(objectCollection) {
                     }
                 }
                 
+                //Remote Analytics
+                if(activityTypeCategroyId == 28 || activityTypeCategroyId == 8) {
+                    if(request.activity_status_type_id == 74 || request.activity_status_type_id == 19) {
+                        avgTotRespTimePostItsInmailsSummaryInsert(request).then(()=>{});
+                    }                        
+                }
+                
                 assetActivityListUpdateStatus(request, activityStatusId, activityStatusTypeId, function (err, data) {
 
                 });
@@ -1025,22 +1032,8 @@ function ActivityService(objectCollection) {
                         queueWrapper.raiseFormWidgetEvent(event, request.activity_id);
 
                     });
-                }
-
-                /*if (request.hasOwnProperty('device_os_id')) {
-                    if (Number(request.device_os_id) !== 5) {
-                        //incr the asset_message_counter                        
-                        cacheWrapper.setAssetParity(request.asset_id, request.asset_message_counter, function (err, status) {
-                            if (err) {
-                                //console.log("error in setting in asset parity");
-                                global.logger.write('serverError','error in setting in asset parity - ' + err, request)
-                            } else
-                                //console.log("asset parity is set successfully")
-                                global.logger.write('debug','asset parity is set successfully', request)
-
-                        });
-                    }
-                }*/
+                }               
+                
                 callback(false, {}, 200);
                 return;
             } else {
@@ -1051,11 +1044,105 @@ function ActivityService(objectCollection) {
         });
     };
     
-    /*this.nanikalyan = function(request, callback) {
-        itemOrderAlterStatus(request).then(()=>{
-            
-        })
-    }*/
+    //Remote Analytics    Weekly
+    function avgTotRespTimePostItsInmailsSummaryInsert(request) {
+        return new Promise((resolve, reject)=>{
+            var creationDate;
+            request.weekly_summary_id = (request.activity_type_category_id == 28) ? 1 : 2;
+
+            activityCommonService.getActivityDetails(request, 0 , function(err, data){
+                if(err === false) {
+                    creationDate = util.replaceDefaultDatetime(data[0].activity_datetime_start_expected);
+                    assetWeeklySummaryTrans(request, creationDate).then((result)=>{
+                        if(result.length > 0) {
+                            request.entity_bigint_1 = result[0].data_entity_bigint_1 + 1;
+                            request.entity_text_1 = Number(result[0].data_entity_text_1); //total duration of time
+                            request.entity_text_1 += (util.differenceDatetimes(request.datetime_log, creationDate))/1000;
+                            request.entity_double_1 = (request.entity_text_1)/request.entity_bigint_1;  //avg response time;
+                        } else {                        
+                            request.entity_bigint_1 = 1;
+                            request.entity_text_1 = (util.differenceDatetimes(request.datetime_log, creationDate))/1000; //postit creation_datetime - logdatetime 
+                            request.entity_double_1 = request.entity_text_1; //Average REsponse time                                          
+                        }
+
+                        avgTotRespTimeSummaryInsert(request).then(()=>{
+                            resolve(); 
+                        })
+                    })                
+                } else {
+                    reject(err)
+                }
+            })
+        });
+        
+    }
+    
+    //get the current total number of hours to respond and current number of post its / inmails
+    function assetWeeklySummaryTrans(request, creationDatetime){
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                request.asset_id,
+                request.operating_asset_id,
+                request.organization_id,
+                request.weekly_summary_id,
+                util.getFormatedLogDate(creationDatetime)
+                );
+            var queryString = util.getQueryString('ds_p1_asset_weekly_summary_transaction_select', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    //console.log('assetWeeklySummaryTrans : \n', data, "\n");
+                    (err === false) ? resolve(data) :reject(err);
+                    });
+                }
+        });
+    }
+    
+    function avgTotRespTimeSummaryInsert(request){
+        return new Promise((resolve, reject)=>{            
+            var paramsArr = new Array(
+                request.weekly_summary_id,
+                request.asset_id, 
+                request.workforce_id, 
+                request.account_id, 
+                request.organization_id, 
+                util.getStartDayOfWeek(), //entity_date_1, //WEEK
+                request.entity_datetime_1, 
+                request.entity_tinyint_1, 
+                request.entity_bigint_1, 
+                request.entity_double_1, 
+                request.entity_decimal_1, 
+                request.entity_decimal_2, 
+                request.entity_decimal_3, 
+                request.entity_text_1,  //request.asset_frist_name
+                request.entity_text_2,  //request.asset_last_name
+                request.track_latitude, 
+                request.track_longitude, 
+                request.track_gps_accuracy, 
+                request.track_gps_enabled, 
+                request.track_gps_location, 
+                request.location_datetime, 
+                request.device_manufacturer_name, 
+                request.device_model_name, 
+                request.device_os_id, 
+                request.device_os_name, 
+                request.device_os_version, 
+                request.device_app_version, 
+                request.device_api_version, 
+                request.asset_id, 
+                request.message_unique_id, 
+                request.flag_retry, 
+                request.falg_retry_offline, 
+                request.transaction_datetime, 
+                request.datetime_log           
+                );
+            var queryString = util.getQueryString('ds_v1_asset_weekly_summary_transaction_insert', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {                    
+                    (err === false) ? resolve(data) :reject(err);
+                    });
+                }
+        });
+    }
     
     function itemOrderAlterStatus(request) {
         return new Promise((resolve, reject)=>{

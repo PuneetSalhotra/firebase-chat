@@ -924,7 +924,7 @@ this.getAssetDetails = function (request, callback) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
-                    //console.log('DAta in inventory check : ', data);
+                    console.log('DAta in inventory check : ', data);
                     if(data.length > 0) {
                         var ingredients = new Array();
                         forEachAsync(data, function (next, x) {
@@ -943,7 +943,7 @@ this.getAssetDetails = function (request, callback) {
                                     //console.log(ingredients);
                                     //console.log('=============================')
                                     var stationIdArrays = new Array();
-                                    var tempArray = new Array();
+                                    var tempArray = new Array();                                    
                                     forEachAsync(ingredients, function (next, x) {
                                         getArrayOfStationIds(request, x).then((data)=>{ 
                                                 data = util.getUniqueValuesOfArray(data);
@@ -954,7 +954,7 @@ this.getAssetDetails = function (request, callback) {
                                             
                                     }).then(()=>{
                                         console.log('stationIdArrays: ', stationIdArrays);
-                                        //console.log(tempArray);
+                                        console.log('TempArray: ', tempArray);
                                         tempArray.forEach(function(item, index){
                                             //console.log('util.getFrequency(item'+item+',tempArray) : ' , util.getFrequency(item, tempArray))
                                             //console.log('stationIdArrays.length : ', stationIdArrays.length)
@@ -984,13 +984,14 @@ this.getAssetDetails = function (request, callback) {
     function getArrayOfStationIds (request, ingredients) {
         return new Promise((resolve, reject)=>{
             var qty = request.hasOwnProperty('item_quantity') ? request.item_quantity : 1;
-            qty *= ingredients.activity_sub_type_id;
-            var response = new Array();
+            qty *= ingredients.activity_sub_type_id;            
+            var stationAssetId = request.hasOwnProperty('station_asset_id') ? request.station_asset_id : 0;
+            var response = new Array();            
             var paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
-                0, //request.station_asset_id,
+                stationAssetId,
                 ingredients.ingredient_asset_id,//request.ingredient_asset_id,
                 ingredients.channel_activity_type_category_id,
                 qty,
@@ -1062,6 +1063,50 @@ this.getAssetDetails = function (request, callback) {
                 }
             });
         }        
+    };
+    
+    this.assetAccessCounts = function(request, callback){
+        var paramsArr = new Array(
+                request.viewee_asset_id,
+                request.viewee_operating_asset_id,
+                request.viewee_workforce_id,
+                request.account_id,
+                request.organization_id,
+                util.getStartDayOfWeek(),
+                util.getStartDayOfMonth(),
+                request.flag
+                );
+        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_analytic_counts', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                console.log('DAta : ', data);
+                if (err === false) {
+                    if(data.length > 0){
+                        callback(false, data);                                                
+                    } else {
+                      callback(false, '');
+                    }
+                } else {
+                    callback(true, err);
+                }
+            });
+        }
+    } 
+           
+    //Get total count of desks occupied
+    this.getOccupiedDeskCounts = function(request, callback){
+            var paramsArr = new Array(
+                request.viewee_workforce_id,
+                request.account_id,
+                request.organization_id                
+                );
+            var queryString = util.getQueryString('ds_v1_asset_list_select_occupied_desks_count', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    console.log('getOccupiedDeskCounts : ', data);
+                    (err === false) ? callback(false, data) :callback(true, err);
+                    });
+                }        
     };
 }
 ;
