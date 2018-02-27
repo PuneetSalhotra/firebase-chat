@@ -970,7 +970,7 @@ this.getAssetDetails = function (request, callback) {
                                  });
                                             
             } else {
-                callback(false, false, responseArray)
+                callback(false, true, responseArray)
             }                                                        
                } else {
                     callback(err, false, -9999);
