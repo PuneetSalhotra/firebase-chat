@@ -10,7 +10,7 @@ function PamController(objCollection) {
     var responseWrapper = objCollection.responseWrapper;
     var app = objCollection.app;
     var pamService = new PamService(objCollection);
-    var util = objCollection.util;
+    var util = objCollection.util;    
 
     //IVR Service
     app.post('/' + global.config.version + '/pam/ivr', function (req, res) {

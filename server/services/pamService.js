@@ -40,7 +40,7 @@ function PamService(objectCollection) {
             if(err === false){
                 if(data !== 0) {
                     response.member = data.asset_id;
-                    response.member_name = data.asset_first_name;
+                    response.member_name = data.asset_first_name;}
                     
                     getCalledTime(request, function(err, data){
                         if(err === false){
@@ -118,9 +118,9 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                             callback(false, response, -9999);
                         }
                    });
-                } else {
+                /*} else {
                     callback(false, response, 200);
-                } 
+                } */
             } else {
                 response.member = -99;
                 callback(false, response, -9999);
@@ -226,25 +226,49 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
         }
     };
     
-    var getCalledTime = function (request, callback) {
-        console.log(util.getCurrentUTCTime());
-        console.log(util.getDayStartDatetime());
-        console.log(util.getDayEndDatetime());
-        
-        var paramsArr1 = new Array(
-                351, //request.organization_id,
-                util.addDays(util.getDayStartDatetime()),
-                util.addDays(util.getDayEndDatetime())
-                );
-        var queryString1 = util.getQueryString('ds_v1_activity_list_select_event_dt_between', paramsArr1);
-        if (queryString1 != '') {
-            db.executeQuery(1, queryString1, request, function (err, data) {
-               console.log('getCalledTime :', data);
-               (err === false) ? callback(false, data) : callback(true, err); 
-            });
-        }
+    var getCalledTime = function (request, callback) {        
+        getEventDatetime(request).then((resp)=>{
+            if(resp.length > 0) {
+                callback(false, resp);
+            } else {
+                console.log(util.getCurrentUTCTime());
+                console.log(util.getDayStartDatetime());
+                console.log(util.getDayEndDatetime());
+
+                var paramsArr1 = new Array(
+                        351, //request.organization_id,
+                        util.addDays(util.getDayStartDatetime(),1),
+                        util.addDays(util.getDayEndDatetime(),1)
+                        );
+                var queryString1 = util.getQueryString('ds_v1_activity_list_select_event_dt_between', paramsArr1);
+                if (queryString1 != '') {
+                    db.executeQuery(1, queryString1, request, function (err, data) {
+                       console.log('getCalledTime :', data);
+                       (err === false) ? callback(false, data) : callback(true, err); 
+                    });
+                }
+            }
+        }).catch((err)=>{
+            callback(true, err);
+        })        
     };
-    
+
+     function getEventDatetime (request){
+        return new Promise((resolve, reject)=>{
+            var paramsArr1 = new Array(
+                351, //request.organization_id,
+                452, //request.account_id,
+                request.datetime_log
+                );
+            var queryString1 = util.getQueryString('ds_v1_activity_list_select_event_datetime', paramsArr1);
+            if (queryString1 != '') {
+                db.executeQuery(1, queryString1, request, function (err, data) {
+                   console.log('getEventDatetime :', data);
+                   (err === false) ? resolve(data) : reject(err);
+                });
+            }
+        })        
+    };
     
     var getReservationsCount = function (eventActivityId, callback) {
         var paramsArr = new Array(
@@ -1243,6 +1267,12 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
 
  this.checkingReservationCode = function(request, callback){
      response = {};
+     if(request.hasOwnProperty('track_gps_datetime')){
+         request.datetime_log = request.track_gps_datetime;
+     }  else {
+         var logDatetime = util.getCurrentUTCTime();        
+         request['datetime_log'] = logDatetime;
+     }
      getCalledTime(request, function(err, data){
              if(err === false){
                 if(data.length > 0){
@@ -1346,13 +1376,20 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                             method: "assignCoworker",
                             payload: request
                         };
-                        console.log('Request before the queuewrapper : ', request);
-                        //queueWrapper.raiseActivityEvent(event, request.item_activity_id, (err, resp)=>{});
+                        //console.log('Request before the queuewrapper : ', request);
+                        queueWrapper.raiseActivityEvent(event, request.item_activity_id, (err, resp)=>{});
+                        
                         var response = {};
-                        response.asset_id = Number(request.station_asset_id);
-                        response.activity_status_type_id = 102;
-                        response.activity_status_type_name = "Ordered";
-                        callback(false, response, 200);
+                        activityCommonService.getActivityDetails(request, 0, function(err, data){
+                            if(err == false) {
+                                response.asset_id = Number(request.station_asset_id);
+                                response.activity_status_type_id = data[0].activity_status_type_id;
+                                response.activity_status_type_name = data[0].activity_status_type_name;
+                                callback(false, response, 200);
+                            } else {
+                                callback(false, err, -9999);
+                            }
+                        });               
                     }
                 } else {
                     callback(true, {}, -9999);
