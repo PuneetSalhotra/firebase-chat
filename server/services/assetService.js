@@ -1185,6 +1185,36 @@ function AssetService(objectCollection) {
         }
     };
     
+    //PAM
+    function assetListUpdateStatusPush(request, assetId){
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                assetId,
+                request.organization_id,
+                request.asset_clocked_status_id,
+                request.asset_assigned_status_id,
+                request.asset_session_status_id,
+                request.track_gps_datetime,
+                request.track_latitude,
+                request.track_longitude,
+                request.track_gps_accuracy,
+                request.track_gps_status,
+                request.track_gps_location,
+                request.asset_id,
+                request.datetime_log,
+                request.logout_datetime,
+                request.push_notification_id,
+                request.asset_push_arn
+                );
+        var queryString = util.getQueryString('ds_v1_asset_list_update_clocked_status_push', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, assetData) {
+                (err === false)? resolve(false) : reject(err);
+              });
+            }
+        });        
+    };
+    
     var assetListUpdateLampStatus = function (request, assetId, callback) {
 
         var paramsArr = new Array(
@@ -1444,7 +1474,20 @@ function AssetService(objectCollection) {
                 request['asset_session_status_id'] = 0;
 
                 global.logger.writeSession(request.body);
-                assetListUpdateStatus(request, resp.asset_id, function (err, data) {});
+                             
+                sns.createPlatformEndPoint(Number(request.device_os_id), request.asset_token_push, function (err, endPointArn) {
+                if (!err) {
+                    //console.log('success in creating platform end point : ' + endPointArn);
+                    global.logger.write('debug', 'success in creating platform end point', {}, request);
+                    request.push_notification_id = request.asset_token_push;
+                    request.asset_push_arn = endPointArn;
+                    assetListUpdateStatusPush(request, resp.asset_id).then(()=>{});
+                } else {
+                    console.log('problem in creating platform end point');
+                    global.logger.write('serverError', 'problem in creating platform end point', err, request);                    
+                    }
+                });          
+                
                 cacheWrapper.getAssetParity(resp.asset_id, (err, data) => {
                     if (err === false) {
                         response.asset_id = resp.asset_id;
@@ -1479,19 +1522,19 @@ function AssetService(objectCollection) {
 
         console.log('assetClockOut : \n', request);
         global.logger.writeSession(request.body);
-        assetListUpdateStatus(request, request.asset_id, function (err, data) {
-            if (err === false) {
-                //request.asset_id = 0;
-                if(request.workstation_asset_id != 0) {
+        
+        request.push_notification_id = '';
+        request.asset_push_arn = '';
+        assetListUpdateStatusPush(request, request.asset_id).then(()=>{
+            if(request.workstation_asset_id != 0) {
                     activityCommonService.pamAssetListUpdateOperatingAsset(request).then(()=>{
                         assetListHistoryInsert(request, request.workstation_asset_id, request.organization_id, 211, dateTimeLog, function (err, data) {});
                     });                    
-                }
-                callback(request.asset_id, {}, 200);
-            } else {
-                callback(err, {}, -9998);
             }
-        });
+            callback(request.asset_id, {}, 200);
+        }).catch((err)=>{
+            callback(err, {}, -9998);
+        });      
     };
 
     //PAM
