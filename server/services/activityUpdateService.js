@@ -887,9 +887,12 @@ function ActivityUpdateService(objectCollection) {
                                 request.flag_offline,
                                 request.asset_id,
                                 request.datetime_log,
-                                0 //Field Id
+                                0, //Field Id
+                                '',
+                                -1
                                 );
-                var queryString1 = util.getQueryString('ds_v1_activity_asset_mapping_insert_asset_assign_appr', paramsArr1);
+                var queryString1 = util.getQueryString('ds_v1_activity_asset_mapping_insert_asset_assign_appr_ingre', paramsArr1);
+                //var queryString1 = util.getQueryString('ds_v1_activity_asset_mapping_insert_asset_assign_appr', paramsArr1);
                 if (queryString1 !== '') {
                         db.executeQuery(0, queryString1, request, function (err, data) {
                             //if(err === false) {
