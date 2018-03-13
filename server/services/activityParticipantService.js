@@ -771,6 +771,21 @@ function ActivityParticipantService(objectCollection) {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false)
                 {
+                    //PAM
+                    if(request.activity_type_category_id == 37 && participantData.asset_category_id == 30) {
+                        console.log('data[0].dateTimeEndEstimatedActivity : ' + data[0].dateTimeEndEstimatedActivity);
+                        var expDatetime = util.replaceDefaultDatetime(data[0].dateTimeEndEstimatedActivity);
+                        expDatetime = util.addUnitsToDateTime(expDatetime,6.5,'hours');
+                        console.log('EXP DATE : ' + expDatetime);
+                        
+                        if(expDatetime == "Invalid date"){
+                            expDatetime = "1970-01-01 00:00:00";
+                        }                        
+                        var smsText = "Dear " + data[0].firstNameAsset + " , Your reservation for today is confirmed. Please use the following reservation code " + data[0].nameActivitySubType;
+                        smsText+= " . Note that this reservation code is only valid till "+ expDatetime + " .";
+                        console.log('SMS text : \n', smsText);
+                        util.sendSmsMvaayoo(smsText, data[0].countryCode, data[0].phoneNumber, function(err,res){});
+                    }                  
                     callback(false, true);
                     return;
                 } else {
