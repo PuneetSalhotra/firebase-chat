@@ -1265,7 +1265,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
     };
 //Alter Activity Status===============================================================
 
- this.checkingReservationCode = function(request, callback){
+    this.checkingReservationCode = function(request, callback){
      response = {};
      if(request.hasOwnProperty('track_gps_datetime')){
          request.datetime_log = request.track_gps_datetime;
@@ -1284,37 +1284,45 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                       } else {
                            response.reservation_activity_id = resp[0].activity_id;
                            
-                           getMemberAssetId(request, resp[0].activity_id).then((result)=>{ 
-                               response.asset_id = result[0].asset_id;
-                               response.asset_first_name = result[0].asset_first_name;
-                               
-                               response.asset_image_path = util.replaceDefaultString(resp[0].asset_image_path);
-                               response.activity_status_type_id = (resp[0].activity_status_type_id) ? resp[0].activity_status_type_id : 0;
-                               response.activity_status_type_name = util.replaceDefaultString(resp[0].activity_status_type_name);
-                               
-                               if(response.activity_status_type_id == 0 || response.activity_status_type_id == 95) {
-                                   if(request.app_code == 1) {
-                                       request.activity_status_type_id = 97;
-                                       getActivityStatusId(request, response.reservation_activity_id).then((res)=>{});
-                                   }
-                               } else if (response.activity_status_type_id == 97) {
-                                   if(request.app_code == 2) {
-                                       request.activity_status_type_id = 98;
-                                       getActivityStatusId(request, response.reservation_activity_id).then((res)=>{});
-                                   }                                   
-                               }                             
-                               
-                               cacheWrapper.getTokenAuth(result[0].asset_id, function(err, resp){
-                                   if(resp !== false) {
-                                       response.asset_auth_token = resp;
-                                       callback(false, response, 200);
-                                   } else {
-                                       callback(false, response, 200);
-                                   }
-                               })                               
-                           }).catch(()=>{
-                               callback(true, {}, -9999);
-                           })
+                           //Checking Expiry datetime
+                           var expirtyDatetime = util.replaceDefaultDatetime(resp[0].activity_datetime_end_estimated);
+                           if((Math.sign(util.differenceDatetimes(util.getCurrentUTCTime(),expirtyDatetime)) === -1) && (request.app_code == 1)) {
+                                   response.expiry_datetime = expirtyDatetime;
+                                   response.message = "Reservation Code Expired";
+                                   callback(true, response, -993);                               
+                           } else {
+                                getMemberAssetId(request, resp[0].activity_id).then((result)=>{ 
+                                response.asset_id = result[0].asset_id;
+                                response.asset_first_name = result[0].asset_first_name;
+
+                                response.asset_image_path = util.replaceDefaultString(resp[0].asset_image_path);
+                                response.activity_status_type_id = (resp[0].activity_status_type_id) ? resp[0].activity_status_type_id : 0;
+                                response.activity_status_type_name = util.replaceDefaultString(resp[0].activity_status_type_name);
+
+                                if(response.activity_status_type_id == 0 || response.activity_status_type_id == 95) {
+                                    if(request.app_code == 1) {
+                                        request.activity_status_type_id = 97;
+                                        getActivityStatusId(request, response.reservation_activity_id).then((res)=>{});
+                                    }
+                                } else if (response.activity_status_type_id == 97) {
+                                    if(request.app_code == 2) {
+                                        request.activity_status_type_id = 98;
+                                        getActivityStatusId(request, response.reservation_activity_id).then((res)=>{});
+                                    }                                   
+                                }                             
+
+                                cacheWrapper.getTokenAuth(result[0].asset_id, function(err, resp){
+                                    if(resp !== false) {
+                                        response.asset_auth_token = resp;
+                                        callback(false, response, 200);
+                                    } else {
+                                        callback(false, response, 200);
+                                    }
+                                })                               
+                            }).catch(()=>{
+                                callback(true, {}, -9999);
+                            })
+                           }
                       }
                    });
                } else {
