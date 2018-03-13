@@ -213,6 +213,19 @@ function ActivityPushService() {
             });
         }
     };
+    
+    this.pamSendPush = function(request, data, objectCollection, callback){
+        var pushStringObj = {};
+        pushStringObj.order_id = request.activity_id;
+        pushStringObj.order_name = request.activity_title;
+        pushStringObj.status_type_id = 0;        
+        pushStringObj.station_category_id = request.activity_channel_category_id;        
+        
+        data.forEach(function(arn, index){            
+            console.log(arn);
+            objectCollection.sns.pamPublish(pushStringObj, 1, arn);
+        });        
+    };
 
     this.sendPush = function (request, objectCollection, pushAssetId, callback) {
         var proceedSendPush = function (pushReceivers, senderName) {            

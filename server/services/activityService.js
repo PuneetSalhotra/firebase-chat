@@ -242,6 +242,8 @@ function ActivityService(objectCollection) {
         var expiryDateTime = (request.hasOwnProperty('expiry_datetime')) ? request.expiry_datetime : '';
         var itemOrderCount = (request.hasOwnProperty('item_order_count')) ? request.item_order_count : '0';
         
+        if(activityTypeCategoryId === 38){ sendPushPam(request).then(()=>{}); }
+        
         new Promise((resolve, reject)=>{
             if(activityTypeCategoryId === 37) { //PAM
                 var reserveCode;
@@ -252,12 +254,17 @@ function ActivityService(objectCollection) {
                         console.log('activitySubTypeName : ' + data);
                         activitySubTypeName = data;
                         responseactivityData.reservation_code = data;
-                        //expiryDateTime = util.addUnitsToDateTime(request.track_gps_datetime,1,'hours');
-                        var inlineJson = JSON.parse(request.activity_inline_data);
-                        var smsText = "Dear " + response.member_name + ",Your reservation for today is confirmed. Please use the following reservation code " + data;
-                        smsText+= "Note that this reservation code is only valid till  "+  expiryDateTime + ".";
-                        util.sendSmsMvaayoo(smsText, inlineJson.country_code, inlineJson.phone_number, function(err,res){});
-                        return resolve();
+                        activityCommonService.getActivityDetails(request, request.activity_parent_id, function(err, resp){
+                            if(err === false) {
+                                var eventStartDateTime = util.replaceDefaultDatetime(resp[0].activity_datetime_start_expected);                                                                                                
+                                (Math.sign(util.differenceDatetimes(eventStartDateTime ,request.datetime_log)) === 1) ? 
+                                                   expiryDateTime = util.addUnitsToDateTime(eventStartDateTime,6.5,'hours') :
+                                                   expiryDateTime = util.addUnitsToDateTime(request.datetime_log,6.5,'hours');                                           
+                                return resolve();
+                            } else {
+                                return resolve();
+                            }
+                        })                        
                        } else {
                            generateUniqueCode();
                         }
@@ -592,8 +599,11 @@ function ActivityService(objectCollection) {
                                 request.flag_offline,
                                 request.asset_id,
                                 request.datetime_log,
-                                0 //Field Id
+                                0, //Field Id
+                                '',
+                                -1
                                 );
+                        //var queryString = util.getQueryString('ds_v1_activity_asset_mapping_insert_asset_assign_appr_ingre', paramsArr1);
                         var queryString = util.getQueryString('ds_v1_activity_asset_mapping_insert_asset_assign_appr', paramsArr1);
                         if (queryString !== '') {
                                 db.executeQuery(0, queryString, request, function (err, data) {
@@ -620,7 +630,37 @@ function ActivityService(objectCollection) {
         }
         });
     };
-
+    
+    function sendPushPam(request){
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                0,
+                request.activity_channel_category_id,
+                0,
+                50
+                );
+        var queryString = util.getQueryString('ds_v1_asset_list_select_category', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, pushArns) {
+                if(err === false){
+                    var data = new Array();                    
+                    forEachAsync(pushArns, function(next, rowData){                      
+                      if(rowData.asset_push_arn != null) {
+                          data.push(rowData.asset_push_arn);
+                      }
+                      next();
+                    }).then(()=>{                        
+                        activityPushService.pamSendPush(request, data, objectCollection, function(err, resp){});
+                        resolve();
+                    })
+                }
+              });
+            }            
+        })
+    };
+    
     var assetActivityListInsertAddActivity = function (request, callback) {
 
         var activityInlineData = JSON.parse(request.activity_inline_data);
@@ -985,6 +1025,24 @@ function ActivityService(objectCollection) {
                     }                        
                 }
                 
+                //TaskList Analytics
+                if(activityTypeCategroyId == 10 || request.activity_sub_type_id == 1) {
+                    switch(Number(request.activity_status_type_id)) {
+                        case 26://Closed 
+                                 updateFlagOntime(request).then(()=>{});
+                                 break;
+                        case 130://Accepted 
+                                 //updateFlagOntime(request).then(()=>{});
+                                 break;
+                        case 134: //Certified
+                                 updateFlagQuality(request).then(()=>{});
+                                 break;
+                        case 135: //Not Certified
+                                 //updateFlagOntime(request).then(()=>{});
+                                 break;
+                    }                         
+                }
+                
                 assetActivityListUpdateStatus(request, activityStatusId, activityStatusTypeId, function (err, data) {
 
                 });
@@ -1043,6 +1101,59 @@ function ActivityService(objectCollection) {
 
         });
     };
+    
+    function updateFlagOntime(request){
+        return new Promise((resolve, reject)=>{
+            activityCommonService.getActivityDetails(request, 0, function(err, data){
+                if(err === false) {
+                    var dueDate = util.replaceDefaultDatetime(data[0].activity_datetime_end_expected);
+                    if(util.getCurrentDate() <= dueDate) {
+                        var paramsArr = new Array(
+                        request.activity_id,
+                        request.organization_id,
+                        1, //activity_flag_delivery_ontime,
+                        request.asset_id,
+                        request.datetime_log                
+                        );
+                        var queryString = util.getQueryString('ds_v1_activity_list_update_flag_ontime', paramsArr);
+                        if (queryString != '') {
+                            db.executeQuery(0, queryString, request, function (err, data) {
+                                (err === false) ? resolve(data) : reject(err);
+                            });
+                        }
+                    }                    
+                } else {
+                    reject(err)
+                }
+            })
+            
+        });
+    }
+    
+    function updateFlagQuality(request){
+        return new Promise((resolve, reject)=>{
+            activityCommonService.getActivityDetails(request, 0, function(err, data){
+                if(err === false) {
+                    var dueDate = util.replaceDefaultDatetime(data[0].activity_datetime_end_expected);
+                    if(util.getCurrentDate() <= dueDate) {
+                            var paramsArr = new Array(
+                            request.activity_id,
+                            request.organization_id,
+                            1, //activity_flag_delivery_quality,
+                            request.asset_id,
+                            request.datetime_log
+                            );
+                            var queryString = util.getQueryString('ds_p1_activity_list_update_flag_quality', paramsArr);
+                            if (queryString != '') {
+                                db.executeQuery(0, queryString, request, function (err, data) {
+                                    (err === false) ? resolve(data) : reject(err);
+                                });
+                            }
+                    }
+                }
+            });    
+        });
+    }
     
     //Remote Analytics    Weekly
     function avgTotRespTimePostItsInmailsSummaryInsert(request) {
