@@ -127,6 +127,20 @@ function PamController(objCollection) {
             }
         });
     });
+    
+    app.post('/' + global.config.version + '/pam/reservation/set', function (req, res) {
+        /*
+        pamService.setTableReservation(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+        */
+       res.send(responseWrapper.getResponse(false, {}, 200, req.body));
+    });
 }
 ;
 module.exports = PamController;
