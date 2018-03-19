@@ -91,7 +91,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 } else {
                     callback(true, false);
                     //console.log(err);
-                    global.logger.write('serverError', '', err, request)
+                    global.logger.write('serverError','',err, request)
                     return;
                 }
             });
