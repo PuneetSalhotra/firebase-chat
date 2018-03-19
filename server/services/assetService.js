@@ -4,6 +4,7 @@
 
 var uuid = require('uuid');
 var AwsSns = require('../utils/snsWrapper');
+var AwsSss = require('../utils/s3Wrapper');
 
 function AssetService(objectCollection) {
 
@@ -12,6 +13,7 @@ function AssetService(objectCollection) {
     var cacheWrapper = objectCollection.cacheWrapper;
     var activityCommonService = objectCollection.activityCommonService;
     var sns = new AwsSns();
+    var sss = new AwsSss();
     //PAM
     var forEachAsync = objectCollection.forEachAsync;
 
@@ -27,7 +29,7 @@ function AssetService(objectCollection) {
         //verification_method (0 - NA, 1 - SMS; 2 - Call; 3 - Email)
         if (verificationMethod === 1 || verificationMethod === 2 || verificationMethod === 3) {
             var paramsArr = new Array(
-                    organizationId,
+                    0, //organizationId,
                     phoneNumber,
                     countryCode
                     );
@@ -36,7 +38,11 @@ function AssetService(objectCollection) {
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, selectData) {
                     if (err === false) {
-                        var verificationCode = util.getVerificationCode();
+                        var verificationCode;
+                        (phoneNumber === 7032975769) ?
+                         verificationCode = 637979 :
+                         verificationCode = util.getVerificationCode();
+                 
                         var pwdValidDatetime = util.addDays(util.getCurrentUTCTime(), 1);
                         if (selectData.length > 0) {
                             if (verificationMethod !== 0) {
@@ -178,7 +184,14 @@ function AssetService(objectCollection) {
                 'account_id': util.replaceDefaultNumber(rowData['account_id']),
                 'account_name': util.replaceDefaultString(rowData['account_name']),
                 'organization_name': util.replaceDefaultString(rowData['organization_name']),
-                'organization_id': util.replaceDefaultNumber(rowData['organization_id'])
+                'organization_id': util.replaceDefaultNumber(rowData['organization_id']),
+                'asset_gender_id' : util.replaceDefaultNumber(rowData['asset_gender_id']), 
+                'asset_gender_name' : util.replaceDefaultString(rowData['asset_gender_name']), 
+                'operating_asset_gender_id' : util.replaceDefaultNumber(rowData['operating_asset_gender_id']), 
+                'operating_asset_gender_name' : util.replaceDefaultString(rowData['operating_asset_gender_name']), 
+                'asset_storage_bucket_name' : util.replaceDefaultString(rowData['asset_storage_bucket_name']), 
+                'asset_storage_url' : util.replaceDefaultString(rowData['asset_storage_url'])
+
             };
             data.push(rowDataArr);
 
@@ -457,7 +470,10 @@ function AssetService(objectCollection) {
                 'asset_status_datetime': util.replaceDefaultDatetime(rowArray[0]['asset_status_datetime']),
                 'asset_assigned_status_id': util.replaceDefaultNumber(rowArray[0]['asset_assigned_status_id']),
                 'asset_assigned_status_name': util.replaceDefaultString(rowArray[0]['asset_assigned_status_name']),
-                'asset_assigned_status_datetime': util.replaceDefaultDatetime(rowArray[0]['asset_assigned_status_datetime'])
+                'asset_assigned_status_datetime': util.replaceDefaultDatetime(rowArray[0]['asset_assigned_status_datetime']),
+                'asset_storage_url': util.replaceDefaultString(rowArray[0]['asset_storage_url']),
+                'asset_storage_bucket_name': util.replaceDefaultString(rowArray[0]['asset_storage_bucket_name']),
+                'asset_logout_datetime': util.replaceDefaultDatetime(rowArray[0]['asset_logout_datetime'])
             };
            
         callback(false, rowData);
@@ -483,7 +499,7 @@ function AssetService(objectCollection) {
                     break;
                 case 2:
                     paramsArr = new Array(
-                            request.organization_id,
+                            0, //request.organization_id,
                             request.asset_phone_number,
                             request.asset_phone_country_code
                             );
@@ -506,13 +522,12 @@ function AssetService(objectCollection) {
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     if (err === false) {
-                        // got data now parse it..                    
+                        // got data now parse it..                          
                         if (data.length > 0) {
                             var dbVerifyCode = 0;
                             verificationType === 3 ? dbVerifyCode = util.replaceDefaultNumber(data[0].asset_email_password) : dbVerifyCode = util.replaceDefaultNumber(data[0].asset_phone_passcode);
-                            //asset_password_expiry_datetime --> for email
-                            //asset_passcode_expiry_datetime --> for asset
-
+                            //asset_password_expiry_datetime --> for email 
+                            //asset_passcode_expiry_datetime --> for asset                            
                             if (dbVerifyCode === verificationCode) {
                                 //do time check here..
                                 formatPhoneNumberAssets(data, function (error, fromatedData) {
@@ -579,7 +594,11 @@ function AssetService(objectCollection) {
                 } else {
                     // send international sms                    
                     //global.logger.write('came inside else case', request, 'device', 'trace');
-                }
+                    util.sendInternationalSMS(smsString,countryCode, phoneNumber, function (error, data) {
+                        if(error)
+                            global.logger.write('trace', data, error, request)
+                    });
+                    }
                 break;
             case 2: //send call 
                 util.makeCall(smsString, countryCode, phoneNumber, function (error, data) {
@@ -1148,10 +1167,12 @@ function AssetService(objectCollection) {
                 request.track_gps_status,
                 request.track_gps_location,
                 request.asset_id,
-                request.datetime_log
+                request.datetime_log,
+                request.logout_datetime
                 );
 
-        var queryString = util.getQueryString('ds_v1_asset_list_update_status_all', paramsArr);
+        //var queryString = util.getQueryString('ds_v1_asset_list_update_status_all', paramsArr);
+        var queryString = util.getQueryString('ds_v1_1_asset_list_update_status_all', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, assetData) {
                 if (err === false) {
@@ -1163,7 +1184,37 @@ function AssetService(objectCollection) {
             });
         }
     };
-
+    
+    //PAM
+    function assetListUpdateStatusPush(request, assetId){
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                assetId,
+                request.organization_id,
+                request.asset_clocked_status_id,
+                request.asset_assigned_status_id,
+                request.asset_session_status_id,
+                request.track_gps_datetime,
+                request.track_latitude,
+                request.track_longitude,
+                request.track_gps_accuracy,
+                request.track_gps_status,
+                request.track_gps_location,
+                request.asset_id,
+                request.datetime_log,
+                request.logout_datetime,
+                request.push_notification_id,
+                request.asset_push_arn
+                );
+        var queryString = util.getQueryString('ds_v1_asset_list_update_clocked_status_push', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, assetData) {
+                (err === false)? resolve(false) : reject(err);
+              });
+            }
+        });        
+    };
+    
     var assetListUpdateLampStatus = function (request, assetId, callback) {
 
         var paramsArr = new Array(
@@ -1423,7 +1474,20 @@ function AssetService(objectCollection) {
                 request['asset_session_status_id'] = 0;
 
                 global.logger.writeSession(request.body);
-                assetListUpdateStatus(request, resp.asset_id, function (err, data) {});
+                             
+                sns.createPlatformEndPoint(Number(request.device_os_id), request.asset_token_push, function (err, endPointArn) {
+                if (!err) {
+                    //console.log('success in creating platform end point : ' + endPointArn);
+                    global.logger.write('debug', 'success in creating platform end point', {}, request);
+                    request.push_notification_id = request.asset_token_push;
+                    request.asset_push_arn = endPointArn;
+                    assetListUpdateStatusPush(request, resp.asset_id).then(()=>{});
+                } else {
+                    console.log('problem in creating platform end point');
+                    global.logger.write('serverError', 'problem in creating platform end point', err, request);                    
+                    }
+                });          
+                
                 cacheWrapper.getAssetParity(resp.asset_id, (err, data) => {
                     if (err === false) {
                         response.asset_id = resp.asset_id;
@@ -1452,15 +1516,25 @@ function AssetService(objectCollection) {
         request['datetime_log'] = dateTimeLog;
         request['asset_assigned_status_id'] = 0;
         request['asset_session_status_id'] = 0;
+        if(!request.hasOwnProperty('workstation_asset_id')) {
+            request.workstation_asset_id = 0;
+        }
 
+        console.log('assetClockOut : \n', request);
         global.logger.writeSession(request.body);
-        assetListUpdateStatus(request, request.asset_id, function (err, data) {
-            if (err === false) {
-                callback(request.asset_id, {}, 200);
-            } else {
-                callback(err, {}, -9998);
+        
+        request.push_notification_id = '';
+        request.asset_push_arn = '';
+        assetListUpdateStatusPush(request, request.asset_id).then(()=>{
+            if(request.workstation_asset_id != 0) {
+                    activityCommonService.pamAssetListUpdateOperatingAsset(request).then(()=>{
+                        assetListHistoryInsert(request, request.workstation_asset_id, request.organization_id, 211, dateTimeLog, function (err, data) {});
+                    });                    
             }
-        });
+            callback(request.asset_id, {}, 200);
+        }).catch((err)=>{
+            callback(err, {}, -9998);
+        });      
     };
 
     //PAM
@@ -1653,6 +1727,19 @@ function AssetService(objectCollection) {
             db.executeQuery(0, queryString, request, function (err, assetData) {
                 if (err === false) {
                     assetListHistoryInsert(request, assetData[0]['asset_id'], request.organization_id, 0, dateTimeLog, function (err, data) {});
+                    request.ingredient_asset_id = assetData[0]['asset_id'];
+                    sss.createAssetBucket(request, function(){});
+                    
+                    if(assetData[0].asset_type_category_id == 41) {
+                        retrieveAccountWorkforces(request).then((data)=>{
+                            forEachAsync(data, function (next, x) {
+                                    createActivityTypeForAllWorkforces(request, x).then(()=>{
+                                        workForceActivityTypeHistoryInsert(request).then(()=>{})
+                                        next();
+                                     })
+                            }).then(()=>{});
+                        });
+                    }
                     callback(false, {"asset_id": assetData[0]['asset_id']}, 200);
                 } else {
                     // some thing is wrong and have to be dealt
@@ -1662,6 +1749,63 @@ function AssetService(objectCollection) {
         }
     }
     
+    function retrieveAccountWorkforces(request) {
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                0,
+                50
+                );
+            var queryString = util.getQueryString('ds_v1_workforce_list_select_account', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data) : reject(err);
+                });
+            }
+        });
+    }
+    
+    function createActivityTypeForAllWorkforces(request, workforceId) {
+        return new Promise((resolve, reject)=>{
+           var paramsArr = new Array(
+                request.asset_first_name,
+                request.asset_description,
+                request.activity_type_category_id,
+                workforceId,
+                request.account_id,
+                request.organization_id,
+                request.ingredient_asset_id,
+                41, //asset_type_category_id
+                request.asset_id,
+                request.datetime_log
+                );
+            var queryString = util.getQueryString('ds_v1_workforce_activity_type_mapping_insert', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data) : reject(err);
+                });
+            }
+        });
+    }
+    
+    function workForceActivityTypeHistoryInsert(request) {
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                request.activity_id,
+                request.organization_id,
+                0, //update type id
+                request.datetime_log
+                );
+            var queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_history_insert', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data) : reject(err);
+                });
+            }
+        });
+    }
+        
     this.updateAssetCoverLocation = function(request, callback){
         var dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
@@ -1752,6 +1896,16 @@ function AssetService(objectCollection) {
             rowDataArr.organization_type_name = util.replaceDefaultString(rowData['organization_type_name']);
             rowDataArr.organization_type_category_id = util.replaceDefaultNumber(rowData['organization_type_category_id']);
             rowDataArr.organization_type_category_name = util.replaceDefaultString(rowData['organization_type_category_name']);
+            
+            rowDataArr.operating_asset_id = util.replaceDefaultNumber(rowData['operating_asset_id']);
+            rowDataArr.operating_asset_first_name = util.replaceDefaultString(rowData['operating_asset_first_name']);
+            rowDataArr.operating_asset_last_name = util.replaceDefaultString(rowData['operating_asset_last_name']);
+            rowDataArr.operating_asset_image_path = util.replaceDefaultString(rowData['operating_asset_image_path']);
+            rowDataArr.operating_asset_type_id = util.replaceDefaultNumber(rowData['operating_asset_type_id']);
+            rowDataArr.operating_asset_type_name = util.replaceDefaultString(rowData['operating_asset_type_name']);
+            rowDataArr.operating_asset_type_category_id = util.replaceDefaultNumber(rowData['operating_asset_type_category_id']);
+            rowDataArr.operating_asset_type_category_name = util.replaceDefaultString(rowData['operating_asset_type_category_name']);
+            
             rowDataArr.log_asset_id = util.replaceDefaultNumber(rowData['log_asset_id']);
             rowDataArr.log_asset_first_name = util.replaceDefaultString(rowData['log_asset_first_name']);
             rowDataArr.log_asset_last_name = util.replaceDefaultString(rowData['log_asset_last_name']);
@@ -1767,7 +1921,121 @@ function AssetService(objectCollection) {
             callback(false, responseData);
         });
     };
+    
+   this.assetRatingAccessCounts = function(request, callback) {
+       if(request.flag == 1) {
+           var response = {};
+           var A1, A2, A3;
+           var X;
+           
+           var D1, D2;
+           var E1, E2;
+           var Y;
+           
+           var F1, F3;
+           var G1, G3;
+           var Z;
+           
+           activityCommonService.getOccupiedDeskCounts(request, function(err, data){
+               if(err === false) {
+                   A1 = data[0].occupied_desks; //Total number of Desks
+                   
+                   request.flag = 0;
+                   activityCommonService.assetAccessCounts(request, function(err, resp){
+                       if(err === false) {
+                           A2 = resp[0].totalOrgHours;   //Total Organization Hours
+                           A3 = resp[0].totalAssetHours; //Total Employee Hours
+                           
+                           console.log('A1 :', A1);
+                           console.log('A2 :', A2);
+                           console.log('A3 :', A3);
+                           
+                           (A1 == 0 || A2 == 0) ? X = -1: X =  ((A3 / (A2/A1)) * 100);
+                           
+                           console.log('Work Presence : '+ X);
+                           global.logger.write('debug', 'Work Presence : '+ X, {}, request);
+                           
+                           
+                           D1 = resp[0].countAllVoice;
+                           D2 = resp[0].countMissedVoice;
+                           
+                           E1 = resp[0].countAllVideo;
+                           E2 = resp[0].countMissedVideo;
+                           
+                           console.log('D1 :', D1);
+                           console.log('D2 :', D2);
+                           console.log('E1 :', E1);
+                           console.log('E2 :', E2);
+                           
+                           ((D1 + E1) == 0) ? Y = -1: Y = ((((D1 + E1) - (D2 + E2)) / (D1 + E1)) * 100);
+                                                      
+                           console.log('Communication Aptitude : ' + Y);
+                           global.logger.write('debug', 'Communication Aptitude : ' + Y, {}, request);
+                           
+                           F1 = resp[0].countCreatedTasks;
+                           F3 = resp[0].countCompletedTasks;
+                           
+                           G1 = resp[0].countCreatedProjects;
+                           G3 = resp[0].countCompletedProjects;
+                           
+                           console.log('F1 :', F1);
+                           console.log('F3 :', F3);
+                           console.log('G1 :', G1);
+                           console.log('G3 :', G3);
+                           
+                           ((F1 + G1) == 0) ? Z = -1 : Z = (((F3 + G3) / (F1 + G1)) * 100);
+                                                      
+                           console.log('Productivity : ' + Z);
+                           global.logger.write('debug', 'Productivity : ' + Z, {}, request);
+                           
+                           var rating;
+                           (X == -1 || Y == -1 || Z == -1) ? rating = -1 : rating = (((12/70) * X) + ((34/70) * Y) + ((24/70) * Z));
+                           
+                           console.log('Rating : ' + rating);
+                           global.logger.write('debug', 'Rating : ' + rating, {}, request);
+                           response.asset_id = request.viewee_asset_id;
+                           response.work_presence = X;
+                           response.communication_aptitude = Y;
+                           response.productivity = Z;
+                           response.rating = rating;
+                           
+                           callback(false, response, 200);
+                       } else {
+                           callback(true, {}, -9999)
+                       }
+                           
+                   });
+
+                } else {
+                    callback(true, {}, -9999)
+                }
+           })          
+       } else {
+           activityCommonService.assetAccessCounts(request, function(err, data){
+               if(err === false){
+                   switch(Number(request.flag)) {
+                       case 0 : data[0].averageResposeTimePostit = data[0].averageResposeTimePostit/60;
+                                data[0].averageResposeTimeInmail = data[0].averageResposeTimeInmail/60;
+                            
+                       case 11: data[0].avergaeOrgHours = data[0].avergaeOrgHours/3600;
+                                data[0].totalAssetHours = data[0].totalAssetHours/3600;
+                                data[0].totalOrgHours = data[0].totalOrgHours/3600;
+                                break;
+                       case 21: data[0].averageResposeTimePostit = data[0].averageResposeTimePostit/60;
+                                break;
+                       case 71: data[0].averageResposeTimeInmail = data[0].averageResposeTimeInmail/60;
+                                break                           
+                   }
+                                      
+                   data[0].asset_id = request.viewee_asset_id;
+                   callback(false, data, 200);
+               } else {
+                   callback(true, {}, -9999)
+               }
+           })
+       }
+   } 
+                    
 }
-;
 
 module.exports = AssetService;

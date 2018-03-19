@@ -26,36 +26,34 @@ var consume = function () {
 
                 var deletMesageHandle = data['Messages'][0].ReceiptHandle;
                 //console.log("messge body is: "+ data['Messages'][0].Body);
-                try {
+                //try {
                     var body = data['Messages'][0].Body;
                     var messageCollection = JSON.parse(body);
                     //console.log(messageCollection);
                     switch (messageCollection.log) {
                         case 'log':
-                            console.log('LOG');
-                            cassandraInterceptor.logData(messageCollection);
+                            console.lo777('LOG');
+                            cassandraInterceptor.logData(messageCollection, function(err, resp){
+                                if(err === false) {
+                                    deleteSQSMessage(deletMesageHandle);
+                                }
+                            });
                             break;
                         case 'session':
                             console.log('SESSION');
-                            cassandraInterceptor.logSessionData(messageCollection);
+                            cassandraInterceptor.logSessionData(messageCollection, function(err, resp){
+                                if(err === false) {
+                                    deleteSQSMessage(deletMesageHandle);
+                                }
+                            });
                             break;
                     }
                     ;
-                } catch (e) {
+                /*} catch (e) {
                     console.log(e);
-                }
+                }*/
 
-                params = {
-                    QueueUrl: global.config.SQSqueueUrl,
-                    ReceiptHandle: deletMesageHandle
-                };
-                sqs.deleteMessage(params, function (err, data) {
-                    if (err) {
-                        console.log(err);
-                    } else {
-                        //console.log(data);
-                    }
-                });
+                
             } else {
                 //console.log("no new message yet!!");
             }
@@ -63,4 +61,45 @@ var consume = function () {
     });
 };
 
-setInterval(consume, 1000);
+function deleteSQSMessage(deletMesageHandle) {
+    params = { 
+               QueueUrl: global.config.SQSqueueUrl, 
+               ReceiptHandle: deletMesageHandle 
+             };
+             
+    sqs.deleteMessage(params, function (err, data) {
+        (err)? console.log(err) : console.log(data); 
+    });
+}
+
+function checkingCassandraInstance() {
+    cassandraWrapper.isConnected('log', function(err, resp){
+        if(err === false) {
+            consume();
+        } else {
+            console.log('Cassandra is Down!');
+        }
+    })
+}
+
+
+process.on('uncaughtException', (err) => {
+  console.log(`process.on(uncaughtException): ${err}\n`);
+  throw new Error('uncaughtException');
+});
+
+process.on('error', (err) => {
+  console.log(`process.on(error): ${err}\n`);
+  throw new Error('error');
+});
+
+//setInterval(consume, 1000);
+setInterval(checkingCassandraInstance, 1000);
+
+var http = require('http')
+http.createServer((req, res)=>{
+    res.write('I am Alive nani kalyan');
+    res.end();
+}).listen(1111)
+
+module.exports = checkingCassandraInstance;

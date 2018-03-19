@@ -213,6 +213,7 @@ function ActivityCommonService(db, util, forEachAsync) {
     };
 
     this.assetTimelineTransactionInsert = function (request, participantData, streamTypeId, callback) {
+        //console.log('vnk streamTypeId : ', streamTypeId);
         var assetId = request.asset_id;
         var organizationId = request.organization_id;
         var accountId = request.account_id;
@@ -402,6 +403,7 @@ function ActivityCommonService(db, util, forEachAsync) {
     };
 
     this.activityTimelineTransactionInsert = function (request, participantData, streamTypeId, callback) {
+        //console.log('vnk streamTypeId : ', streamTypeId);
         var assetId = request.asset_id;
         var organizationId = request.organization_id;
         var accountId = request.account_id;
@@ -906,6 +908,208 @@ function ActivityCommonService(db, util, forEachAsync) {
             });
         }
 
+    };
+    
+    //PAM
+    this.inventoryCheck = function (request, activityId, callback) {
+        var paramsArr = new Array();
+        var responseArray = new Array();
+        var queryString = '';
+        paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                activityId,
+                request.asset_type_category_id || 41,
+                request.page_start || 0,
+                util.replaceQueryLimit(request.page_limit)
+                );
+        queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_participants_category', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (err === false) {
+                    console.log('DAta in inventory check : ', data);
+                    if(data.length > 0) {
+                        var ingredients = new Array();
+                        forEachAsync(data, function (next, x) {
+                        var items = {
+                                'ingredient_asset_id':x.asset_id,
+                                'channel_activity_type_category_id': x.channel_activity_type_category_id,
+                                'activity_sub_type_id' : x.activity_sub_type_id
+                            };
+                            
+                            ingredients.push(items);
+                            next();
+                        }).then(()=>{
+                            if(ingredients.length > 0) {
+                                    ingredients = util.getUniqueValuesOfArray(ingredients);
+                                    //console.log('Ingredients : ')
+                                    //console.log(ingredients);
+                                    //console.log('=============================')
+                                    var stationIdArrays = new Array();
+                                    var tempArray = new Array();                                    
+                                    forEachAsync(ingredients, function (next, x) {
+                                        getArrayOfStationIds(request, x).then((data)=>{ 
+                                                data = util.getUniqueValuesOfArray(data);
+                                                stationIdArrays.push(data);
+                                                tempArray = tempArray.concat(data);
+                                                next();
+                                            });
+                                            
+                                    }).then(()=>{
+                                        console.log('stationIdArrays: ', stationIdArrays);
+                                        console.log('TempArray: ', tempArray);
+                                        tempArray.forEach(function(item, index){
+                                            //console.log('util.getFrequency(item'+item+',tempArray) : ' , util.getFrequency(item, tempArray))
+                                            //console.log('stationIdArrays.length : ', stationIdArrays.length)
+                                            if(util.getFrequency(item, tempArray) == stationIdArrays.length) {
+                                                responseArray.push(item);
+                                            }
+                                        });
+                                        
+                                        (responseArray.length > 0) ? callback(false, true, responseArray) : callback(false, false, responseArray);
+                                       });
+                                    
+                                    }
+                                 });
+                                            
+            } else {
+                callback(false, true, responseArray)
+            }                                                        
+               } else {
+                    callback(err, false, -9999);
+                    return;
+                }
+            });
+        }
+    };
+    
+    
+    function getArrayOfStationIds (request, ingredients) {
+        return new Promise((resolve, reject)=>{
+            var qty = request.hasOwnProperty('item_quantity') ? request.item_quantity : 1;
+            qty *= ingredients.activity_sub_type_id;            
+            var stationAssetId = request.hasOwnProperty('station_asset_id') ? request.station_asset_id : 0;
+            var response = new Array();            
+            var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                stationAssetId,
+                ingredients.ingredient_asset_id,//request.ingredient_asset_id,
+                ingredients.channel_activity_type_category_id,
+                qty,
+                request.page_start || 0,
+                util.replaceQueryLimit(request.page_limit)
+                );
+            var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_inventory_check', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    if(err === false){
+                        //console.log('DATA : ', data);
+                        if(data.length > 0 ) {
+                                forEachAsync(data, function (next, x) {
+                                    response.push(x.activity_owner_asset_id);
+                                    next();
+                                }).then(()=>{
+                                    resolve(response);
+                                })
+                        } else { resolve([]);}                                                
+                    } else {
+                        reject(err);
+                    }                      
+                });
+            }
+        
+    })
+    }
+    
+    //PAM
+    this.pamAssetListUpdateOperatingAsset = function(request) {
+         return new Promise((resolve, reject)=>{
+             var paramsArr = new Array(
+                request.workstation_asset_id,
+                request.workforce_id,
+                request.account_id,
+                request.organization_id,
+                0, //request.asset_id,
+                request.asset_id,
+                request.datetime_log
+                );
+
+        var queryString = util.getQueryString('ds_v1_asset_list_update_operating_asset', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                (err === false) ? resolve(true) : reject(err);
+            });
+            }
+         })
+    };
+    
+    //PAM
+    this.checkingUniqueCode = function(request, code, callback) {
+        var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                code,
+                request.activity_parent_id
+                );
+
+        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_existing_reserv_code', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                //console.log('data.length :' + data.length);                
+                console.log('data : ', data);
+                if (data.length > 0) {
+                    callback(true, data);
+                } else {
+                    callback(false, code);
+                }
+            });
+        }        
+    };
+    
+    this.assetAccessCounts = function(request, callback){
+        var paramsArr = new Array(
+                request.viewee_asset_id,
+                request.viewee_operating_asset_id,
+                request.viewee_workforce_id,
+                request.account_id,
+                request.organization_id,
+                util.getStartDayOfWeek(),
+                util.getStartDayOfMonth(),
+                request.flag
+                );
+        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_analytic_counts', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                console.log('DAta : ', data);
+                if (err === false) {
+                    if(data.length > 0){
+                        callback(false, data);                                                
+                    } else {
+                      callback(false, '');
+                    }
+                } else {
+                    callback(true, err);
+                }
+            });
+        }
+    } 
+           
+    //Get total count of desks occupied
+    this.getOccupiedDeskCounts = function(request, callback){
+            var paramsArr = new Array(
+                request.viewee_workforce_id,
+                request.account_id,
+                request.organization_id                
+                );
+            var queryString = util.getQueryString('ds_v1_asset_list_select_occupied_desks_count', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    console.log('getOccupiedDeskCounts : ', data);
+                    (err === false) ? callback(false, data) :callback(true, err);
+                    });
+                }        
     };
 }
 ;

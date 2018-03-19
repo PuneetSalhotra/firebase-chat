@@ -9,6 +9,7 @@ function AccountController(objCollection) {
 
     var responseWrapper = objCollection.responseWrapper;
     var app = objCollection.app;
+    var util = objCollection.util;
     var accountService = new AccountService(objCollection);
 
     app.post('/' + global.config.version + '/account/access/admin-asset/list', function (req, res) {
@@ -37,7 +38,7 @@ function AccountController(objCollection) {
         });
     });
 
-    app.put('/' + global.config.version + '/account/cover/update/email', function (req, res) {
+    app.put('/' + global.config.version + '/account/cover/update/email', function (req, res){
         accountService.updateAccountEmail(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response   
@@ -117,6 +118,42 @@ function AccountController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper rseponse');
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    //Twilio
+    app.post('/' + global.config.version + '/account/twilio/getPhoneNumbers', function (req, res) {
+        util.getPhoneNumbers(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    //Twilio
+    app.post('/' + global.config.version + '/account/twilio/purchaseNumber', function (req, res) {
+        util.purchaseNumber(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    //Twilio
+    app.post('/' + global.config.version + '/account/twilio/makeCall', function (req, res) {
+        util.twilioMakeCall(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }

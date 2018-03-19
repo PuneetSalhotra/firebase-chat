@@ -138,8 +138,18 @@ function ActivityPushService() {
                             case '/0.1/activity/status/alter':
                                 break;
                             case '/0.1/activity/participant/access/set':
-                                pushString.title = senderName;
-                                pushString.description = 'Meeting: ' + activityTitle + ' has been scheduled at ' + (activityData[0]['activity_datetime_start_expected']);
+                                //console.log('activityInlineJson : ', activityInlineJson)
+                                pushString.title = "Video call";
+                                //pushString.description = 'Meeting: ' + activityTitle + ' has been scheduled at ' + (activityData[0]['activity_datetime_start_expected']);
+                                pushString.description = 'Video Call from ' + activityInlineJson.owner_details.operating_asset_first_name;
+                                extraData.type = 2;
+                                extraData.call_data = {
+                                    meeting_id:activityInlineJson.meeting_id,
+                                    caller_asset_id: activityInlineJson.owner_details.asset_id,
+                                    caller_name: senderName,
+                                    activity_id: request.activity_id
+                                };
+                                pushString.extra_data = extraData;
                                 break;
                         }
                         ;
@@ -203,6 +213,19 @@ function ActivityPushService() {
             });
         }
     };
+    
+    this.pamSendPush = function(request, data, objectCollection, callback){
+        var pushStringObj = {};
+        pushStringObj.order_id = request.activity_id;
+        pushStringObj.order_name = request.activity_title;
+        pushStringObj.status_type_id = 0;        
+        pushStringObj.station_category_id = request.activity_channel_category_id;        
+        
+        data.forEach(function(arn, index){            
+            console.log(arn);
+            objectCollection.sns.pamPublish(pushStringObj, 1, arn);
+        });        
+    };
 
     this.sendPush = function (request, objectCollection, pushAssetId, callback) {
         var proceedSendPush = function (pushReceivers, senderName) {            
@@ -221,8 +244,6 @@ function ActivityPushService() {
                                         global.logger.write('debug', badgeCount + ' is badge count obtained from db', {},request)
                                         global.logger.write('debug', pushStringObj + objectCollection.util.replaceOne(badgeCount) + assetMap.asset_push_arn, {},request)
                                         switch(rowData.pushType) {
-                                            case 'sns': objectCollection.sns.publish(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn);
-                                                        break;
                                             case 'pub':console.log('pubnubMsg :', pubnubMsg); 
                                                        if(pubnubMsg.activity_type_category_id != 0) {
                                                             pubnubMsg.organization_id = rowData.organizationId;
@@ -230,6 +251,8 @@ function ActivityPushService() {
                                                             console.log('PubNub Message : ', pubnubMsg);
                                                             pubnubWrapper.push(rowData.organizationId,pubnubMsg);
                                                         }
+                                                        //break;
+                                            case 'sns': objectCollection.sns.publish(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn);
                                                         break;
                                         }                                        
                                     }.bind(this));

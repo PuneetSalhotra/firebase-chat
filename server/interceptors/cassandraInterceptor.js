@@ -27,23 +27,24 @@ function CassandraInterceptor(util, cassandraWrapper) {
     };
 
 
-    this.logData = function (messageCollection) {
+    this.logData = function (messageCollection, callback) {
         var logTimestamp = util.getCurrentUTCTime();
         var logDate = util.getCurrentDate();
 
-        switch (messageCollection.request.module) {
+        var module = messageCollection.hasOwnProperty("request") ? messageCollection.request.module : '';
+        switch (module) {
 
             case 'device':
                 console.log('Module : Device');
-                deviceTransactionInsert(messageCollection, logDate, logTimestamp, function () {});
+                deviceTransactionInsert(messageCollection, logDate, logTimestamp, callback);
                 break;
             case 'activity':
                 console.log('Module : Activity');
-                activityTransactionInsert(1, messageCollection, logDate, logTimestamp, function () {});
+                activityTransactionInsert(1, messageCollection, logDate, logTimestamp, callback);
                 break;
             case 'asset':
                 console.log('Module : Asset');
-                activityTransactionInsert(0, messageCollection, logDate, logTimestamp, function () {});
+                activityTransactionInsert(0, messageCollection, logDate, logTimestamp, callback);
                 break;
             default:
                 console.log('No Such Module exists : \n' + messageCollection.request + '\n\n');
@@ -287,7 +288,7 @@ function CassandraInterceptor(util, cassandraWrapper) {
             query += ",";
             query += (messageCollection.request.hasOwnProperty("service_id")) ? util.replaceDefaultNumber(messageCollection.request.service_id) : 0;
             query += ",";
-            query += (messageCollection.request.hasOwnProperty("bundle_transaction_id")) ? messageCollection.request.bundle_transaction_id : "''";
+            query += (messageCollection.request.hasOwnProperty("bundle_transaction_id")) ? messageCollection.request.bundle_transaction_id : transactionId;
             query += ",";
             query += transactionId;
             query += ",";
@@ -333,7 +334,7 @@ function CassandraInterceptor(util, cassandraWrapper) {
             query += ",";
             query += (sourceMap[messageCollection.request.device_os_id]) ? "'" + sourceMap[messageCollection.request.device_os_id] + "'" : "'NA'";
             query += ");";
-
+console.log('Query transactionsbyactivity : ', query)
             cassandraWrapper.executeQuery(messageCollection, query, function (err, data) {
                 if (!err) {
                     callback(false, true);
@@ -379,7 +380,7 @@ function CassandraInterceptor(util, cassandraWrapper) {
         assetQuery += ",";
         assetQuery += (messageCollection.request.hasOwnProperty("service_id")) ? util.replaceDefaultNumber(messageCollection.request.service_id) : 0;
         assetQuery += ",";
-        assetQuery += (messageCollection.request.hasOwnProperty("bundle_transaction_id")) ? messageCollection.request.bundle_transaction_id : "''";
+        assetQuery += (messageCollection.request.hasOwnProperty("bundle_transaction_id")) ? messageCollection.request.bundle_transaction_id : transactionId;
         assetQuery += ",";
         assetQuery += transactionId;
         assetQuery += ",";
@@ -425,7 +426,7 @@ function CassandraInterceptor(util, cassandraWrapper) {
         assetQuery += ",";
         assetQuery += (sourceMap[messageCollection.request.device_os_id]) ? "'" + sourceMap[messageCollection.request.device_os_id] + "'" : "'NA'";
         assetQuery += ");";
-
+console.log('Query transactionsbyactivity : ', assetQuery)
         cassandraWrapper.executeQuery(messageCollection, assetQuery, function (err, data) {
             if (!err) {
                 callback(false, true);
@@ -438,7 +439,7 @@ function CassandraInterceptor(util, cassandraWrapper) {
     };
     
     
-    this.logSessionData = function (messageCollection) {
+    this.logSessionData = function (messageCollection, callback) {
         var logTimestamp = util.getCurrentUTCTime();
         var logDate = util.getCurrentDate();
         var Id = uuid.v1();
@@ -446,17 +447,17 @@ function CassandraInterceptor(util, cassandraWrapper) {
         console.log('In logSessioData Function messageCollection : \n' + JSON.stringify(messageCollection));
         console.log('messageCollection.request.asset_clocked_status_id :' + messageCollection.request.asset_clocked_status_id)
         if(messageCollection.request.asset_assigned_status_id > 0) {
-            sessionsByAsset(messageCollection, Id,'sessions_by_asset',function(){});
-            sessionsByAsset(messageCollection, Id,'sessions_by_workforce',function(){});
-            sessionsByAsset(messageCollection, Id,'sessions_by_account',function(){});
-            sessionsByAsset(messageCollection, Id,'sessions_by_organization',function(){});
+            sessionsByAsset(messageCollection, Id,'sessions_by_asset',callback);
+            sessionsByAsset(messageCollection, Id,'sessions_by_workforce',callback);
+            sessionsByAsset(messageCollection, Id,'sessions_by_account',callback);
+            sessionsByAsset(messageCollection, Id,'sessions_by_organization',callback);
         } 
         
         if(messageCollection.request.asset_clocked_status_id > 0) {
-            sessionsByWorkHours(messageCollection, Id,'workhrs_by_asset',function(){});
-            sessionsByWorkHours(messageCollection, Id,'workhrs_by_workforce',function(){})
-            sessionsByWorkHours(messageCollection, Id,'workhrs_by_account',function(){})
-            sessionsByWorkHours(messageCollection, Id,'workhrs_by_organization',function(){})
+            sessionsByWorkHours(messageCollection, Id,'workhrs_by_asset',callback);
+            sessionsByWorkHours(messageCollection, Id,'workhrs_by_workforce',callback)
+            sessionsByWorkHours(messageCollection, Id,'workhrs_by_account',callback)
+            sessionsByWorkHours(messageCollection, Id,'workhrs_by_organization',callback)
         }
         
         if(messageCollection.request.asset_session_status_id > 0) {

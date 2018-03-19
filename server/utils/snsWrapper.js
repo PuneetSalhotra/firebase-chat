@@ -25,6 +25,7 @@ var AwsSns = function () {
             GCMjson.data.type = message.extra_data.type;
             GCMjson.data.call_data = message.extra_data.call_data;
             aps.call_data = message.extra_data.call_data;
+            aps.type = message.extra_data.type;
         }
 
         var params = {
@@ -32,7 +33,7 @@ var AwsSns = function () {
             Message: JSON.stringify({
                 'default': message.title + message.description,
                 'GCM': JSON.stringify(GCMjson),
-                APNS_VOIP_SANDBOX: JSON.stringify({aps})
+                APNS_VOIP: JSON.stringify({aps})
             }),
             TargetArn: targetArn
         };
@@ -41,6 +42,32 @@ var AwsSns = function () {
                 console.log(err); // an error occurred
             else
                 console.log(data);           // successful response
+        });
+    };
+    
+    this.pamPublish = function (message, badgeCount, targetArn) {
+        var aps = {
+            'badge': badgeCount,
+            'sound': 'default',
+            'order_id': message.order_id,
+            'order_name': message.order_name,
+            'status_type_id': 0,
+            'station_category_id': message.activity_channel_category_id
+        }
+
+        var params = {
+            MessageStructure: 'json',
+            Message: JSON.stringify({
+                'default': message.order_id + message.order_name,                
+                APNS_VOIP: JSON.stringify({aps})
+            }),
+            TargetArn: targetArn
+        };
+        sns.publish(params, function (err, data) {
+            if (err)
+                console.log(err); // an error occurred
+            else
+                console.log('Notification Sent : ' , data);           // successful response
         });
     };
 
@@ -52,9 +79,9 @@ var AwsSns = function () {
                 platformApplicationArn = global.config.platformApplicationAndroid;
                 break;
             case 2:// ios
-                if (global.config.iosPushMode == 'dev')
-                    platformApplicationArn = global.config.platformApplicationIosDev;
-                else
+                //if (global.config.iosPushMode == 'dev')
+                    //platformApplicationArn = global.config.platformApplicationIosDev;
+                //else
                     platformApplicationArn = global.config.platformApplicationIosProd;
                 break;
             case 3:// windows

@@ -6,6 +6,7 @@
 var ActivityService = require("../services/activityService");
 //var ActivityCommonService = require("../services/activityCommonService");
 var AssetService = require("../services/assetService");
+var fs = require('fs');
 
 function ActivityController(objCollection) {
 
@@ -132,6 +133,24 @@ function ActivityController(objCollection) {
                                         });
                                     }
                                  });
+                            
+                            break;
+                        case 41: //Event Creating PAM
+                            fs.readFile('/var/node/Bharat/server/utils/pamConfig.txt', function(err, data){
+                                if(err) {
+                                 console.log(err)   
+                                } else{
+                                    threshold = Number(data.toString());
+                                    req.body.activity_sub_type_id = threshold;                                    
+                                    addActivity(req.body, function (err, activityId) {
+                                           if (err === false) {
+                                               res.send(responseWrapper.getResponse(false, {activity_id: activityId}, 200, req.body));
+                                           } else {
+                                               res.send(responseWrapper.getResponse(false, {activity_id: 0}, -7998, req.body));
+                                           }
+                                    });
+                                }
+                            });
                             
                             break;
                         default:
@@ -315,6 +334,7 @@ function ActivityController(objCollection) {
         }
 
     });
+      
  
 }
 ;

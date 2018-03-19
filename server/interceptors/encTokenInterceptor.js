@@ -50,9 +50,17 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                             global.logger.write('request', '', req.body, req.body);
                             next();
                             break;
+                        case '/0.1/asset/status/collection':
+                            req.body['module'] = 'asset';
+                            global.logger.write('request', '', req.body, req.body);
+                            next();
+                            break;
                         case '/0.1/send/email':
                             //req.body['module'] = 'asset';
                             //global.logger.write('request', '', req.body, req.body);
+                            next();
+                            break;
+                        case '/0.1/vnk':                            
                             next();
                             break;
                         default:

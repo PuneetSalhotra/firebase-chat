@@ -22,6 +22,15 @@ function ActivityTimelineService(objectCollection) {
             var formDataJson = JSON.parse(request.activity_timeline_collection);
             request.form_id = formDataJson[0]['form_id'];
             console.log('form id extracted from json is: ' + formDataJson[0]['form_id']);
+            var lastObject = formDataJson[formDataJson.length - 1]
+            console.log('Last object : ', lastObject)
+            if (lastObject.hasOwnProperty('field_value')) {
+                console.log('Has the field value in the last object')
+                //remote Analytics
+                if(request.form_id == 325) {
+                    monthlySummaryTransInsert(request).then(()=>{});
+                }
+            }
             // add form entries
             addFormEntries(request, function (err, approvalFieldsArr) {
                 if (err === false) {
@@ -40,7 +49,7 @@ function ActivityTimelineService(objectCollection) {
           activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
             if(err) {
 
-            } else {
+            } else {               
               activityPushService.sendPush(request, objectCollection, 0, function () {});
               activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) { });
 
@@ -52,7 +61,113 @@ function ActivityTimelineService(objectCollection) {
         }
         callback(false, {}, 200);
     };
+    
+    
+    //MONTHLY Remote Analytics
+    //Insert into monthly summary table
+    function monthlySummaryTransInsert(request){
+        return new Promise((resolve, reject)=>{
+            var dateTimeLog = util.getCurrentUTCTime();
+            request['datetime_log'] = dateTimeLog;
 
+            var avgHours;
+            var occupiedDesks;
+            var countDesks;
+            var noOfDesks;
+            getFormTransTimeCardsStats(request).then((data)=>{
+                request.viewee_workforce_id = request.workforce_id;
+                activityCommonService.getOccupiedDeskCounts(request, function(err, result){
+                        if(err === false) {
+                            occupiedDesks = result[0].occupied_desks;
+                            if(occupiedDesks == 0){
+                              avgHours = 0;
+                            } else {                        
+                              avgHours = data[0].totalHours/result[0].occupied_desks;
+                            }
+
+                            request.flag = 11;
+                            request.viewee_asset_id = request.asset_id;
+                            request.viewee_operating_asset_id = request.operating_asset_id;                           
+                            
+                            activityCommonService.assetAccessCounts(request, function(err, resp){
+                                if(err === false) {
+                                    countDesks = resp[0].countDesks;
+                                    (occupiedDesks > countDesks) ? noOfDesks = occupiedDesks : noOfDesks = countDesks; 
+                                    //insert
+                                    var paramsArr = new Array(
+                                        1,                         //request.monthly_summary_id,
+                                        request.asset_id,
+                                        request.workforce_id, 
+                                        request.account_id, 
+                                        request.organization_id, 
+                                        util.getStartDayOfMonth(),  //entity_date_1,    //Monthly Month start Date
+                                        "",                         //entity_datetime_1, 
+                                        "",                         //entity_tinyint_1, 
+                                        noOfDesks,                  //entity_bigint_1, //number of desks
+                                        avgHours,                   //entity_double_1, //average hours
+                                        data[0].assetHours,         //entity_decimal_1, //total number of hours for a asset
+                                        "",                         //entity_decimal_2,
+                                        "",                         //entity_decimal_3, 
+                                        data[0].totalHours,         //entity_text_1, 
+                                        "",                         //entity_text_2
+                                        request.track_latitude, 
+                                        request.track_longitude, 
+                                        request.track_gps_accuracy, 
+                                        request.track_gps_status, 
+                                        request.track_gps_location, 
+                                        request.track_gps_datetime, 
+                                        request.device_manufacturer_name, 
+                                        request.device_model_name, 
+                                        request.device_os_id, 
+                                        request.device_os_name, 
+                                        request.device_os_version, 
+                                        request.app_version, 
+                                        request.api_version, 
+                                        request.asset_id, 
+                                        request.message_unique_id, 
+                                        request.flag_retry, 
+                                        request.flag_offline, 
+                                        request.track_gps_datetime, 
+                                        request.datetime_log
+                                    );
+                                    var queryString = util.getQueryString('ds_v1_asset_monthly_summary_transaction_insert', paramsArr);
+                                    if (queryString != '') {
+                                       db.executeQuery(0, queryString, request, function (err, data) {
+                                            (err === false) ? resolve(data) :reject(err);
+                                            });
+                                        }
+                                } else{
+                                   //Some error -9999 
+                                }
+                            });
+                        }                        
+              });
+            })             
+           })      
+    }
+    
+    
+    
+    //Get total hours of a employee or all employees in an organization
+    function getFormTransTimeCardsStats(request){
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                request.asset_id,
+                request.organization_id,
+                util.getStartDateTimeOfMonth(),
+                util.getEndDateTimeOfMonth()
+                );
+            var queryString = util.getQueryString('ds_v1_activity_form_transaction_select_timecard_stats', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    console.log('getFormTransTimeCardsStats : \n', data, "\n");
+                    (err === false) ? resolve(data) : reject(err);
+                    });
+                }
+        });        
+    }
+    //////////////////////////////////////////////////////////
+    
     this.addTimelineComment = function (request, callback) {
         activityCommonService.updateAssetLocation(request, function (err, data) {});
         var logDatetime = util.getCurrentUTCTime();
@@ -780,10 +895,12 @@ function ActivityTimelineService(objectCollection) {
                     params[10] = row.field_value;
                     break;
                 case 5:     //Number
-                    params[12] = row.field_value;
+                    //params[12] = row.field_value;
+                    params[13] = row.field_value;
                     break;
                 case 6:     //Decimal
-                    params[13] = row.field_value;
+                    //params[13] = row.field_value;
+                    params[14] = row.field_value;
                     break;
                 case 7:     //Scale (0 to 100)
                 case 8:     //Scale (0 to 5)
@@ -797,73 +914,74 @@ function ActivityTimelineService(objectCollection) {
                 case 14:    //Reference - Room
                 case 15:    //Reference - Desk
                 case 16:    //Reference - Assistant
-                    params[12] = row.field_value;
+                    //params[12] = row.field_value;
+                    params[13] = row.field_value;
                     break;
                 case 17:    //Location
                     var location = row.field_value.split('|');
-                    params[15] = location[0];
-                    params[16] = location[1];
+                    params[16] = location[0];
+                    params[17] = location[1];
                     break;
                 case 18:    //Money with currency name
                     var money = row.field_value.split('|');
-                    params[14] = money[0];
-                    params[17] = money[1];
+                    params[15] = money[0];
+                    params[18] = money[1];
                     break;
                 case 19:    //Short Text
-                    params[17] = row.field_value;
-                    break;
-                case 20:    //Long Text
                     params[18] = row.field_value;
                     break;
+                case 20:    //Long Text
+                    params[19] = row.field_value;
+                    break;
                 case 21:    //Label
-                    params[17] = row.field_value;
+                    params[18] = row.field_value;
                     break;
                 case 22:    //Email ID
-                    params[17] = row.field_value;
+                    params[18] = row.field_value;
                     break;
                 case 23:    //Phone Number with Country Code
                     var phone = row.field_value.split('|');
-                    params[12] = phone[0];  //country code
-                    params[17] = phone[1];  //phone number
+                    params[13] = phone[0];  //country code
+                    params[18] = phone[1];  //phone number
                     break;
                 case 24:    //Gallery Image
                 case 25:    //Camera Front Image
                 case 26:    //Video Attachment
-                    params[17] = row.field_value;
+                    params[18] = row.field_value;
                     break;
                 case 27:    //General Signature with asset reference
                 case 28:    //General Picnature with asset reference
                     var signatureData = row.field_value.split('|');
-                    params[17] = signatureData[0];  //image path
-                    params[12] = signatureData[1];  // asset reference
+                    params[18] = signatureData[0];  //image path
+                    params[13] = signatureData[1];  // asset reference
                     params[11] = signatureData[1];  // accepted /rejected flag
                     break;
                 case 29:    //Coworker Signature with asset reference
                 case 30:    //Coworker Picnature with asset reference
                     approvalFields.push(row.field_id);
                     var signatureData = row.field_value.split('|');
-                    params[17] = signatureData[0];  //image path
-                    params[12] = signatureData[1];  // asset reference
+                    params[18] = signatureData[0];  //image path
+                    params[13] = signatureData[1];  // asset reference
                     params[11] = signatureData[1];  // accepted /rejected flag
                     break;
                 case 31:    //Cloud Document Link
-                    params[17] = row.field_value;
+                    params[18] = row.field_value;
                     break;
                 case 32:    //PDF Document
-                    params[17] = row.field_value;
+                    params[18] = row.field_value;
                     break;
                 case 33:    //Single Selection List
-                    params[17] = row.field_value;
+                    params[18] = row.field_value;
                     break;
                 case 34:    //Multi Selection List
-                    params[17] = row.field_value;
+                    params[18] = row.field_value;
                     break;
                 case 35:    //QR Code
                 case 36:    //Barcode
-                    params[17] = row.field_value;
+                    params[18] = row.field_value;
                     break;
                 case 38:    //Audio Attachment
-                    params[17] = row.field_value;
+                    params[18] = row.field_value;
                     break;
                 case 39:    //Flag
                     params[11] = row.field_value;

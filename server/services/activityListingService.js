@@ -306,7 +306,10 @@ function ActivityListingService(objCollection) {
                 "update_sequence_id": util.replaceDefaultNumber(rowData['log_asset_image_path']),
                 "activity_creator_operating_asset_id": util.replaceDefaultNumber(rowData['activity_creator_operating_asset_id']),
                 "activity_creator_operating_asset_first_name":util.replaceDefaultString(rowData['activity_creator_operating_asset_first_name']),
-                "activity_creator_operating_asset_last_name":util.replaceDefaultString(rowData['activity_creator_operating_asset_last_name'])
+                "activity_creator_operating_asset_last_name":util.replaceDefaultString(rowData['activity_creator_operating_asset_last_name']),
+                "activity_creator_asset_id": util.replaceDefaultNumber(rowData['activity_creator_asset_id']),
+                "activity_creator_asset_first_name": util.replaceDefaultString(rowData['activity_creator_asset_first_name']),
+                "activity_creator_asset_last_name": util.replaceDefaultString(rowData['activity_creator_asset_last_name'])
             };
             responseData.push(rowDataArr);
         }, this);
@@ -602,9 +605,10 @@ function ActivityListingService(objCollection) {
         var paramsArr = new Array(
                 request.organization_id,
                 request.activity_id,
-                0
-                );
-        var queryString = util.getQueryString('ds_v1_activity_list_select_project_status_counts', paramsArr);
+                request.datetime_log// previously 0
+                );        
+        //var queryString = util.getQueryString('ds_v1_activity_list_select_project_status_counts', paramsArr);
+        var queryString = util.getQueryString('ds_p1_activity_list_select_project_status_counts', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
@@ -626,8 +630,8 @@ function ActivityListingService(objCollection) {
         var paramsArr = new Array(
                 request.organization_id,
                 request.asset_id,
-                request.datetime_start,
-                request.datetime_end
+                request.datetime_start, //00:00:00
+                request.datetime_end // 23:59:59
                 );
         var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_asset_open_payroll_activity', paramsArr);
         if (queryString != '') {
@@ -661,7 +665,7 @@ function ActivityListingService(objCollection) {
         var queryString = util.getQueryString('ds_p1_activity_list_select_contacts', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
-                if (err === false) {
+                if (err === false) {                    
                     formatActivityListing(data, function (err, finalData) {
                         if (err === false) {
                             callback(false, {data: finalData}, 200);
@@ -777,6 +781,60 @@ function ActivityListingService(objCollection) {
         }
 
     };
+    
+    this.getAllPendingCounts = function(request, callback){
+        var taskCnt;
+        var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.asset_id,
+                request.activity_type_category_id,
+                request.activity_sub_type_id,
+                util.getCurrentUTCTime()
+                );
+        var queryString = util.getQueryString('ds_p1_activity_asset_maaping_select_task_pending_count', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (err === false) {
+                        console.log('Data of pending count : ', data);
+                        (data.length > 0 )? taskCnt = data[0].count:taskCnt = 0;
+                        getCatGrpCts(request).then((resp)=>{
+                                resp.push({count: taskCnt, activity_type_category_id: 101, activity_type_category_name: 'Task'});
+                                callback(false, resp, 200);
+                        }).catch((err)=>{
+                            console.log(err);
+                            callback(err, false, -9999);
+                        })
+                    } else {
+                    callback(err, false, -9999);
+                }
+            });
+        }
+    }
+    
+    function getCatGrpCts(request){
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+            request.asset_id,
+            request.workforce_id,
+            request.account_id,
+            request.organization_id                        
+            );            
+            var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_asst_act_cat_grp_counts', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, resp) {
+                if (err === false) {
+                    console.log('Data of group counts : ', resp);
+                    return resolve(resp);
+                } else {
+                    return reject(err);
+                }
+            });
+           }            
+        });
+        
+    }
     
     var formatActivityInlineCollection = function (data, collection, callback) {
 

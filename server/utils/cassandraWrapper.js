@@ -21,6 +21,43 @@ function CassandraWrapper() {
         console.log(exception);
     }
 
+    this.isConnected = function(log, callback){
+        var connectionResource;
+        switch (log) {
+            case 'session':
+                switch (global.mode) {
+                    case 'prod':
+                        connectionResource = sessionClientProd;
+                        break;
+                    case 'dev':
+                        connectionResource = sessionClientDev;
+                        break;
+                }
+                break;
+            case 'log':
+                switch (global.mode) {
+                    case 'prod':
+                        connectionResource = logClientProd;
+                        break;
+                    case 'dev':
+                        connectionResource = logClientDev;
+                        break;
+                }
+                break;
+            }
+           
+        connectionResource.connect(function(err, resp){
+		if(err){
+			console.log('err : ', err);
+                        callback(true, false);
+		} else {
+			console.log('Connected')
+                        callback(false, false);
+		}
+	});
+            
+    };
+    
     this.executeQuery = function (messageCollection, query, callback) {
         var connectionResource;
         switch (messageCollection.log) {
@@ -44,8 +81,8 @@ function CassandraWrapper() {
                         break;
                 }
                 break;
-        }
-        connectionResource.execute(query, function (err, result) {
+            }
+        connectionResource.execute(query, { prepare: true }, function (err, result) {
             if (!err) {
                 //console.log(" - query success | " + query);
                 console.log('Success');
