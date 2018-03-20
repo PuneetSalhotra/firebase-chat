@@ -936,6 +936,66 @@ function ActivityListingService(objCollection) {
         }, this);
         callback(false, responseData);
     };
+    
+    this.getLatestPayrollActivity = function (request, callback) {
+        var paramsArr = new Array(
+                request.organization_id,
+                request.asset_id
+                );
+        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_latest_payroll_activity', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (err === false) {
+                    formatActivityListing(data, function (err, finalData) {
+                        if (err === false) {
+                            callback(false, {data: finalData}, 200);
+                        }
+                    });
+                    return;
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, false, -9999);
+                    return;
+                }
+            });
+        }
+
+    }; 
+    
+    this.searchActivityByCategory = function (request, callback) {
+        var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.asset_id,
+                request.activity_type_category_id,
+                request.activity_sub_type_id,   // 0 if activity_type_category_id is not 10
+                request.flag_filter,    // p_flter_flag = 0 - all	// p_flter_flag = 1 - unread	// p_flter_flag = 2 - completed	// p_flter_flag = 3 - past due	// p_flter_flag = 4 - search
+                request.search_string,
+                request.datetime_differential,
+                request.flag_sort,
+                request.page_start,
+                util.replaceQueryLimit(request.page_limit)
+                );
+        var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_project_task_filter', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (err === false) {
+                    formatActivityListing(data, function (err, finalData) {
+                        if (err === false) {
+                            callback(false, {data: finalData}, 200);
+                        }
+                    });
+                    return;
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, false, -9999);
+                    return;
+                }
+            });
+        }
+
+    };
 
 }
 ;

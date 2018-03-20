@@ -264,6 +264,31 @@ function ActivityListingController(objCollection) {
             }
         });
     });
+    
+    //Get the count of all Folders, mail, video calls etc
+    app.post('/' + global.config.version + '/activity/access/asset/payroll/list', function (req, res) {
+        activityListingService.getLatestPayrollActivity(req.body, function (err, data, statusCode) {        
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    //
+    app.post('/' + global.config.version + '/activity/access/asset/category/search', function (req, res) {
+        activityListingService.searchActivityByCategory(req.body, function (err, data, statusCode) {        
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
 }
 
 module.exports = ActivityListingController;
