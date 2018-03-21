@@ -60,9 +60,6 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                             //global.logger.write('request', '', req.body, req.body);
                             next();
                             break;
-                        case '/0.1/vnk':                            
-                            next();
-                            break;
                         default:
                             if (req.body.hasOwnProperty("activity_id")) {
                                 req.body['module'] = 'activity';
@@ -74,6 +71,7 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                                 }
                             }
                             console.log('Module : ' + req.body['module'])
+                                                    
                             cacheWrapper.getTokenAuth(req.body.asset_id, function (err, encToken) {
                                 if (err) {
                                     console.log("redis token Checking error:");

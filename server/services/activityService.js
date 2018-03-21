@@ -242,7 +242,13 @@ function ActivityService(objectCollection) {
         var expiryDateTime = (request.hasOwnProperty('expiry_datetime')) ? request.expiry_datetime : '';
         var itemOrderCount = (request.hasOwnProperty('item_order_count')) ? request.item_order_count : '0';
         
-        if(activityTypeCategoryId === 38){ sendPushPam(request).then(()=>{}); }
+        console.log('activityTypeCategoryId : ', activityTypeCategoryId);
+        console.log('activityTypeCategoryId type : ', typeof activityTypeCategoryId);
+        
+        if(activityTypeCategoryId === 38){
+            console.log('Inside sendPush');
+            sendPushPam(request).then(()=>{}); 
+        }
         
         new Promise((resolve, reject)=>{
             if(activityTypeCategoryId === 37) { //PAM
@@ -651,8 +657,14 @@ function ActivityService(objectCollection) {
                           data.push(rowData.asset_push_arn);
                       }
                       next();
-                    }).then(()=>{                        
-                        activityPushService.pamSendPush(request, data, objectCollection, function(err, resp){});
+                    }).then(()=>{
+                        console.log('ARNS : ', data);
+                        if(data.length>0) {
+                            activityPushService.pamSendPush(request, data, objectCollection, function(err, resp){});
+                        } else {
+                            console.log('No arns');
+                        }
+                        
                         resolve();
                     })
                 }

@@ -32,7 +32,7 @@ var consume = function () {
                     //console.log(messageCollection);
                     switch (messageCollection.log) {
                         case 'log':
-                            console.lo777('LOG');
+                            console.log('LOG');
                             cassandraInterceptor.logData(messageCollection, function(err, resp){
                                 if(err === false) {
                                     deleteSQSMessage(deletMesageHandle);
@@ -85,7 +85,7 @@ function checkingCassandraInstance() {
 
 process.on('uncaughtException', (err) => {
   console.log(`process.on(uncaughtException): ${err}\n`);
-  throw new Error('uncaughtException');
+  //throw new Error('uncaughtException');
 });
 
 process.on('error', (err) => {
@@ -98,8 +98,8 @@ setInterval(checkingCassandraInstance, 1000);
 
 var http = require('http')
 http.createServer((req, res)=>{
-    res.write('I am Alive nani kalyan');
+    res.write('I am Alive');
     res.end();
 }).listen(1111)
 
-module.exports = checkingCassandraInstance;
+//module.exports = checkingCassandraInstance;
