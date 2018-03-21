@@ -6,6 +6,7 @@ var moment = require('moment');
 var request = require("request");
 var twilio = require('twilio');
 var nodemailer = require('nodemailer');
+var tz = require('moment-timezone');
 
 function Util() {
 
@@ -254,6 +255,11 @@ function Util() {
         var now = moment().utc().format("YYYY-MM-DD HH:mm:ss");
         return now;
     };
+    
+    this.getCurrentISTTime = function () {
+        var now = moment().tz('Asia/Kolkata').format("YYYY-MM-DD HH:mm:ss");
+        return now;
+    };
 
     this.getCurrentDate = function () {
         var now = moment().utc().format("YYYY-MM-DD");
@@ -459,10 +465,10 @@ function Util() {
     this.getDatetimewithAmPm = function(timeString) {
         var value = moment(timeString).format("YYYY-MM-DD HH:mmA");
         return value;
-    }
+    };
 
     this.addDays = function (timeString, days) {
-        var value = moment(timeString, "YYYY-MM-DD HH:mm:ss").add(days, 'days').format("YYYY-MM-DD HH:mm:ss");
+        var value = moment(timeString, "YYYY-MM-DD HH:mm:ss").add(days, 'days').format("YYYY-MM-DD HH:mm:ss");        
         return value;
     };
 
@@ -477,8 +483,6 @@ function Util() {
     };
 
     this.differenceDatetimes = function (timeString1, timeString2) {
-console.log('timeString1 : ', timeString1)
-console.log('timeString2 : ', timeString2)
         var value = moment(timeString1, "YYYY-MM-DD HH:mm:ss").diff(moment(timeString2, "YYYY-MM-DD HH:mm:ss"));
         return value;
     };
@@ -490,6 +494,16 @@ console.log('timeString2 : ', timeString2)
     
     this.getDayEndDatetime = function() {
         var value = moment().endOf('day').utcOffset("-05:30").format('YYYY-MM-DD HH:mm:ss');
+        return value;
+    };
+    
+    this.getDayStartDatetimeIST = function() {
+        var value = moment().tz('Asia/Kolkata').startOf('day').format('YYYY-MM-DD HH:mm:ss');
+        return value;
+    };
+    
+    this.getDayEndDatetimeIST = function() {
+        var value = moment().tz('Asia/Kolkata').endOf('day').format('YYYY-MM-DD HH:mm:ss');
         return value;
     };
     

@@ -1065,6 +1065,27 @@ this.getAssetDetails = function (request, callback) {
         }        
     };
     
+    //PAM
+    var checkingSixDgtUniqueCode = function(request, code, callback) {
+        var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                code                
+                );
+
+        var queryString = util.getQueryString('ds_v1_asset_list_passcode_check', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {                
+                console.log('data : ', data);
+                if (data.length > 0) {
+                    callback(true, data);
+                } else {
+                    callback(false, code);
+                }
+            });
+        }        
+    };
+    
     this.assetAccessCounts = function(request, callback){
         var paramsArr = new Array(
                 request.viewee_asset_id,
@@ -1107,6 +1128,16 @@ this.getAssetDetails = function (request, callback) {
                     (err === false) ? callback(false, data) :callback(true, err);
                     });
                 }        
+    };
+    
+    this.generateUniqueCode = function(request, callback) {
+          function generateCode() {
+                var phoneCode = util.randomInt(111111,999999).toString();                
+                checkingSixDgtUniqueCode(request,phoneCode, (err, data)=>{
+                    (err === false) ? callback(false, data) : generateCode();                    
+                });
+            }
+            generateCode();
     };
 }
 ;
