@@ -68,7 +68,8 @@ function ActivityParticipantService(objectCollection) {
                 'log_active': util.replaceDefaultNumber(rowData['log_active']),
                 "operating_asset_id": util.replaceZero(rowData['operating_asset_id']),
                 "operating_asset_first_name": util.replaceDefaultString(rowData['operating_asset_first_name']),
-                "operating_asset_last_name": util.replaceDefaultString(rowData['operating_asset_last_name'])
+                "operating_asset_last_name": util.replaceDefaultString(rowData['operating_asset_last_name']),
+                "activity_creator_operating_asset_first_name": util.replaceDefaultString(rowData['activity_creator_operating_asset_first_name'])
             };
             responseData.push(rowDataArr);
         }, this);
@@ -839,7 +840,7 @@ function ActivityParticipantService(objectCollection) {
                 request.organization_id,
                 request.asset_id,
                 request.datetime_log
-
+                        
                 );
         var queryString = util.getQueryString("ds_v1_activity_asset_mapping_update_asset_unassign", paramsArr);
 
@@ -937,7 +938,7 @@ function ActivityParticipantService(objectCollection) {
     };
 
     var unassignAssetFromActivity = function (request, participantData, callback) {
-        var fieldId = 0;
+        var fieldId = 0;        
         if (participantData.hasOwnProperty('field_id')) {
             fieldId = participantData.field_id;
         }
