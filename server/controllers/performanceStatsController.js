@@ -68,6 +68,17 @@ function PerformanceStatsController(objCollection) {
             }
         });
     });
+    
+    // To Get inmail performance
+    app.post('/' + global.config.version + '/asset/access/inmail/count', function (req, res) {
+        performanceStatsService.retrieveInmailCnt(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
 }
 ;
 module.exports = PerformanceStatsController;

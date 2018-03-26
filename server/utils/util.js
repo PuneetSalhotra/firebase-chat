@@ -286,8 +286,18 @@ function Util() {
         return value;
     };
     
+    this.getStartDayOfPrevMonth = function () {
+        var value = moment().startOf('month').subtract(1, 'month').format("YYYY-MM-DD");
+        return value;
+    };
+    
     this.getStartDayOfWeek = function () {
         var value = moment().startOf('week').add(1, 'days').format("YYYY-MM-DD");
+        return value;
+    };
+    
+    this.getStartDayOfPrevWeek = function () {
+        var value = moment().startOf('week').add(1, 'days').subtract(7, 'days').format("YYYY-MM-DD");
         return value;
     };
     
@@ -367,8 +377,7 @@ function Util() {
         return messageUniqueId;
     };
 
-    this.replaceDefaultNumber = function (value) {
-        console.log('VALUE : ', typeof value);
+    this.replaceDefaultNumber = function (value) {        
         if (value === undefined || value === null || value === '' || isNaN(value))
             return Number(-1);        
         else           

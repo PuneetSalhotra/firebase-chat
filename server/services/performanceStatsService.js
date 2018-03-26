@@ -121,8 +121,26 @@ function PerformanceStatsService(objectCollection) {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err === false) ? callback(false, data, 200) : callback(true, err, -9999);
                 });
-            }        
-    };   
+            }
+    };
+    
+    this.retrieveInmailCnt = function(request, callback){
+        var paramsArr = new Array(
+                request.asset_id,
+                request.operating_asset_id,
+                request.organization_id,
+                util.getStartDayOfPrevWeek(), //request.previous_week_date,
+                util.getStartDayOfWeek(), //request.current_week_date,
+                util.getStartDayOfPrevMonth(), //request.previous_month_date,
+                util.getStartDayOfMonth() //request.current_month_date
+                );
+            var queryString = util.getQueryString('ds_p1_asset_montly_summary_transaction_select_inmail_counts', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err === false) ? callback(false, data, 200) : callback(true, err, -9999);
+                });
+            }
+    };
     
    
 };
