@@ -405,5 +405,22 @@ function AssetController(objCollection) {
         });
     });
     
+    app.put('/' + global.config.version + '/asset/cover/notification/set', function (req, res) {
+
+        assetService.updateAssetPushToken(req.body, function (err, data, statusCode) {
+
+            if (err === false) {
+                // got positive response  
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                return;
+            } else {
+                //console.log('did not get proper rseponse');
+                data = {}
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+
+    });
+    
 }
 module.exports = AssetController;
