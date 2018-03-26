@@ -335,6 +335,15 @@ function ActivityController(objCollection) {
 
     });
       
+   app.post('/' + global.config.version + '/activity/inmail/resp_req/set', function (req, res) {
+        activityService.inmailResReqSet(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
  
 }
 ;

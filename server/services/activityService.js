@@ -233,14 +233,14 @@ function ActivityService(objectCollection) {
             activityStatusId = request.activity_status_id;
         if (request.hasOwnProperty('activity_form_id'))
             activityFormId = request.activity_form_id;
-        
+                
         //BETA
         var activitySubTypeId = (request.hasOwnProperty('activity_sub_type_id')) ? request.activity_sub_type_id : 0;
         
         //PAM
         var activitySubTypeName = (request.hasOwnProperty('activity_sub_type_name')) ? request.activity_sub_type_name : '';
         var expiryDateTime = (request.hasOwnProperty('expiry_datetime')) ? request.expiry_datetime : '';
-        var itemOrderCount = (request.hasOwnProperty('item_order_count')) ? request.item_order_count : '0';
+        var itemOrderCount = (request.hasOwnProperty('item_order_count')) ? request.item_order_count : '0';        
         
         console.log('activityTypeCategoryId : ', activityTypeCategoryId);
         console.log('activityTypeCategoryId type : ', typeof activityTypeCategoryId);
@@ -591,7 +591,7 @@ function ActivityService(objectCollection) {
         if (queryString !== '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
-                    //BETA        
+                    //BETA                            
                     if(activityTypeCategoryId === 10 && (request.asset_id !== ownerAssetID)) {
                         var paramsArr1 = new Array(
                                 request.activity_id,
@@ -599,15 +599,15 @@ function ActivityService(objectCollection) {
                                 request.workforce_id,
                                 request.account_id,
                                 request.organization_id,
-                                29, //request.participant_access_id,
+                                26, //request.participant_access_id,
                                 request.message_unique_id,
                                 request.flag_retry,
                                 request.flag_offline,
                                 request.asset_id,
                                 request.datetime_log,
-                                0, //Field Id
-                                '',
-                                -1
+                                0 //Field Id
+                                //'',
+                                //-1
                                 );
                         //var queryString = util.getQueryString('ds_v1_activity_asset_mapping_insert_asset_assign_appr_ingre', paramsArr1);
                         var queryString = util.getQueryString('ds_v1_activity_asset_mapping_insert_asset_assign_appr', paramsArr1);
@@ -924,6 +924,7 @@ function ActivityService(objectCollection) {
         var activityStatusId = Number(request.activity_status_id);
         var activityStatusTypeId = Number(request.activity_status_type_id);
         var activityTypeCategoryId = Number(request.activity_type_category_id);
+        var assetParticipantAccessId = Number(request.asset_participant_access_id);
 
         if (request.hasOwnProperty('activity_type_category_id')) {
             var activityTypeCategroyId = Number(request.activity_type_category_id);
@@ -1052,7 +1053,14 @@ function ActivityService(objectCollection) {
                         case 135: //Not Certified
                                  //updateFlagOntime(request).then(()=>{});
                                  break;
-                    }                         
+                    }          
+                }
+                
+                //Inmail response < 24 hours
+                if(activityTypeCategoryId === 8 && assetParticipantAccessId === 19) { //18 Sender //19 Receiver
+                    respReqinMail(request).then(()=>{
+                        inMailMonthlySummaryTransInsert(request).then(()=>{});                        
+                    });
                 }
                 
                 assetActivityListUpdateStatus(request, activityStatusId, activityStatusTypeId, function (err, data) {
@@ -1112,6 +1120,124 @@ function ActivityService(objectCollection) {
             }
 
         });
+    };
+    
+    function respReqinMail(request){
+        return new Promise((resolve, reject)=>{            
+            var activityFlagResponseRequired;
+            var diff;
+            
+            activityCommonService.getActivityDetails(request, 0, function(err, resp){
+                if(err === false) {
+                    
+                    //console.log('request.datetime_log : ',request.datetime_log);
+                    //console.log('resp[0].activity_datetime_end_expected : ', util.replaceDefaultDatetime(resp[0].activity_datetime_end_expected));
+                    
+                    //diff will be in milli seconds
+                    diff = util.differenceDatetimes(request.datetime_log ,util.replaceDefaultDatetime(resp[0].activity_datetime_end_expected));
+                    diff = diff / 3600000;
+                    diff = Number(diff);
+                    (diff <= 24) ? activityFlagResponseRequired = 1 : activityFlagResponseRequired = 0;
+                    
+                    //console.log('DIFF : ', typeof diff);
+                    //console.log('activityFlagResponseRequired : ', activityFlagResponseRequired);
+                    
+                    var paramsArr = new Array(
+                        request.organization_id,
+                        request.account_id,
+                        request.workforce_id,
+                        request.activity_id,
+                        request.asset_id,
+                        activityFlagResponseRequired,
+                        request.datetime_log
+                    );
+                    var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_inmail_response', paramsArr);
+                        if (queryString !== '') {
+                            db.executeQuery(0, queryString, request, function (err, data) {
+                                if(err === false) {                                    
+                                    return resolve(false, true);                                  
+                                } else {
+                                    return reject(err, false);                                    
+                                    }
+                                });
+                        }
+                    
+                } else {
+                    reject(err);
+                }
+            });        
+        });
+    };
+    
+    //For inMails
+    function inMailMonthlySummaryTransInsert(request){
+        return new Promise((resolve, reject)=>{
+            activityCommonService.getInmailCounts(request, function(err, data){
+                if(err === false) {
+                    var percent = 0;
+                    if(Number(data[0].countToBeRespondedInmails) !== 0){
+                        percent = (data[0].countOntimeRespondedInmails/data[0].countToBeRespondedInmails) * 100;
+                    }
+                    
+                    request.weekly_summary_id = 3;
+                    request.entity_bigint_1 = data[0].countOntimeRespondedInmails;   //entity_bigint_1, //ontimecount
+                    request.entity_double_1 = data[0].countReceivedInmails;          //entity_double_1, //total count
+                    request.entity_decimal_1 = percent;                               //entity_decimal_1, //percentage
+                    request.entity_decimal_2 = data[0].countToBeRespondedInmails;     //entity_decimal_2, //toberesponsded                    
+                    request.entity_text_1 = data[0].totalHours;                      //entity_text_1, 
+                    
+                    //insert
+                    var paramsArr = new Array(
+                            10,                         //request.monthly_summary_id,
+                            request.asset_id,
+                            request.workforce_id, 
+                            request.account_id, 
+                            request.organization_id, 
+                            util.getStartDayOfMonth(),             //entity_date_1,    //Monthly Month start Date
+                            "",                                    //entity_datetime_1, 
+                            "",                                    //entity_tinyint_1, 
+                            request.entity_bigint_1,               //entity_bigint_1, //ontimecount
+                            request.entity_double_1,               //entity_double_1, //total count
+                            request.entity_decimal_1,              //entity_decimal_1, //percentage
+                            request.entity_decimal_2,              //entity_decimal_2, //toberesponsded
+                            "",                                    //entity_decimal_3, 
+                            request.entity_text_1,                 //entity_text_1, 
+                            "",                                    //entity_text_2
+                            request.track_latitude, 
+                            request.track_longitude, 
+                            request.track_gps_accuracy, 
+                            request.track_gps_status, 
+                            request.track_gps_location, 
+                            request.track_gps_datetime, 
+                            request.device_manufacturer_name, 
+                            request.device_model_name, 
+                            request.device_os_id, 
+                            request.device_os_name, 
+                            request.device_os_version, 
+                            request.app_version, 
+                            request.api_version, 
+                            request.asset_id, 
+                            request.message_unique_id, 
+                            request.flag_retry, 
+                            request.flag_offline, 
+                            request.track_gps_datetime, 
+                            request.datetime_log
+                            );
+                        var queryString = util.getQueryString('ds_v1_asset_monthly_summary_transaction_insert', paramsArr);
+                                if (queryString != '') {
+                                    db.executeQuery(0, queryString, request, function (err, data) {
+                                    if(err === false){
+                                       //Inserting the Response Rate
+                                       avgTotRespTimeSummaryInsert(request).then(()=>{});
+                                       resolve(data)
+                                    } else {
+                                       reject(err); 
+                                    }
+                                    });
+                                }
+                }
+            });    
+        });            
     };
     
     function updateFlagOntime(request){
@@ -1195,10 +1321,10 @@ function ActivityService(objectCollection) {
                 } else {
                     reject(err)
                 }
-            })
+            });
         });
         
-    }
+    };
     
     //get the current total number of hours to respond and current number of post its / inmails
     function assetWeeklySummaryTrans(request, creationDatetime){
@@ -1497,8 +1623,32 @@ function ActivityService(objectCollection) {
                     }
                 });
             }
-        })
+        });
     }
+    
+    this.inmailResReqSet = function(request, callback) {
+        var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.activity_id,
+                request.asset_id,
+                request.activity_flag_response_required,
+                util.getCurrentUTCTime()
+                                );
+                var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_inmail_response_req_flag', paramsArr);
+                    if (queryString !== '') {
+                        db.executeQuery(0, queryString, request, function (err, data) {
+                        if (err === false) {
+                            callback(false, {}, 200);
+                            return;
+                        } else {
+                            callback(true, err, -9999);
+                            return;
+                            }
+                       });
+                    }
+    };
 
 }
 ;
