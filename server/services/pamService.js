@@ -50,7 +50,7 @@ function PamService(objectCollection) {
                 txt += " Email me at pam@puddingandmink.com to get further details. -PAM";
                 
                     console.log('SMS text : \n', txt);
-                    util.sendSmsMvaayoo(txt, request.country_code, request.phone_number, function(err,res){
+                    util.pamSendSmsMvaayoo(txt, request.country_code, request.phone_number, function(err,res){
                         if(err === false) {
                             console.log('Message Sent! : ', res);
                         } else {
@@ -81,7 +81,7 @@ function PamService(objectCollection) {
 var text = "Dear "+response.member_name+" , Currently, there are no tables available for reservation. Please call us back after " + nextAvailableDateTime;
 text+= " to check if there are any tables available for reservation.";
                                            console.log('SMS text : \n', text + "\n");
-                                           util.sendSmsMvaayoo(text, request.country_code, request.phone_number, function(err,res){});
+                                           util.pamSendSmsMvaayoo(text, request.country_code, request.phone_number, function(err,res){});
                                    }
                                    ////////////////////
 
@@ -108,7 +108,7 @@ text+= " to check if there are any tables available for reservation.";
 /*var smsText = "Dear "+response.member_name+" , Your reservation for today is confirmed. Please use the following reservation code " + resp[0].activity_sub_type_name;
 smsText+= " . Note that this reservation code is only valid till "+expiryDateTime+" .";                                      
                                               console.log('smsText : ', smsText);
-                                              util.sendSmsMvaayoo(smsText, request.country_code, request.phone_number, function(err,res){
+                                              util.pamSendSmsMvaayoo(smsText, request.country_code, request.phone_number, function(err,res){
                                                    if(err) {
                                                        console.log('Error in sending sms : ', err);
                                                    } else {
@@ -164,7 +164,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
      }
      
      this.sendSms = function(request, callback) {
-         util.sendSmsMvaayoo(request.text, request.country_code, request.phone_number, function(err,res){
+         util.pamSendSmsMvaayoo(request.text, request.country_code, request.phone_number, function(err,res){
                 console.log(err,'\n',res);
                 callback(false, {}, 200);
          });
@@ -1554,7 +1554,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                              text += " PS - I will be forced to release the table block if no one shows up before "+expiryDatetime+" . -PAM";
 
                              console.log('SMS text : \n', text);
-                             util.sendSmsMvaayoo(text, request.country_code, request.phone_number, function(err,res){
+                             util.pamSendSmsMvaayoo(text, request.country_code, request.phone_number, function(err,res){
                                     if(err === false) {
                                          console.log('Message sent!');
                                      }

@@ -126,7 +126,7 @@ function ActivityService(objectCollection) {
                         case 42: //PAM Enquiry
                             activityStreamTypeId = 1801;
                             var inlineJson = JSON.parse(request.activity_inline_data);
-                            util.sendSmsMvaayoo('Dear Sir/Madam, Our executive will contact you soon.', inlineJson.country_code, inlineJson.phone_number, function(err,res){});
+                            util.pamSendSmsMvaayoo('Dear Sir/Madam, Our executive will contact you soon.', inlineJson.country_code, inlineJson.phone_number, function(err,res){});
                             break;
                         default:
                             activityStreamTypeId = 1;   //by default so that we know

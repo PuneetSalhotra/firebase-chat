@@ -64,6 +64,25 @@ function Util() {
             callback(false, res);
         });
     };
+    
+    this.pamSendSmsMvaayoo = function (messageString, countryCode, phoneNumber, callback) {
+        messageString = encodeURI(messageString);
+        var url = "http://api.mvaayoo.com/mvaayooapi/MessageCompose?user=junaid.m@grene.in:greneapple&senderID=PUDMNK&receipientno=" + countryCode + "" + phoneNumber + "&dcs=0&msgtxt=" + messageString + "&state=4";
+
+        request(url, function (error, response, body) {
+            var res = {};
+            if (typeof body != 'undefined' && body.indexOf('Status=0') > -1) {
+                res['status'] = 1;
+                res['message'] = "Message sent";
+            } else {
+                res['status'] = 0;
+                res['message'] = "Message not sent";
+            }
+            if (error)
+                callback(error, false);
+            callback(false, res);
+        });
+    };
 
     this.sendSmsBulk = function (messageString, countryCode, phoneNumber, callback) {
         messageString = encodeURI(messageString);

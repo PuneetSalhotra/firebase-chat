@@ -785,7 +785,7 @@ function ActivityParticipantService(objectCollection) {
                         var smsText = "Dear " + data[0].firstNameAsset + " , Your reservation for today is confirmed. Please use the following reservation code " + data[0].nameActivitySubType;
                         smsText+= " . Note that this reservation code is only valid till "+ expDatetime + " .";
                         console.log('SMS text : \n', smsText);
-                        util.sendSmsMvaayoo(smsText, data[0].countryCode, data[0].phoneNumber, function(err,res){});
+                        util.pamSendSmsMvaayoo(smsText, data[0].countryCode, data[0].phoneNumber, function(err,res){});
                     }                  
                     callback(false, true);
                     return;
