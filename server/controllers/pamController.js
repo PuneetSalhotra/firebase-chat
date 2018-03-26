@@ -167,23 +167,69 @@ function PamController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
-
     });
-
+    
     app.post('/' + global.config.version + '/pam/reservation/set', function (req, res) {
-        /*
-         pamService.setTableReservation(req.body, function (err, data, statusCode) {
-         if (err === false) {
-         res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
-         } else {
-         data = {};
-         res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
-         }
-         });
-         */
-        res.send(responseWrapper.getResponse(false, {}, 200, req.body));
+        pamService.reservationSet(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
     });
-
+    
+    app.put('/' + global.config.version + '/pam/passcode/reset', function (req, res) {
+        pamService.updatePhonePasscode(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    app.put('/' + global.config.version + '/pam/asset/details/alter', function (req, res) {
+        pamService.assetListUpdate(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    //PAM
+    app.post('/' + global.config.version + '/asset/add', function (req, res) {
+        pamService.assetAddForPAM(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    app.put('/' + global.config.version + '/pam/inventory/quantity/alter', function (req, res) {
+        pamService.updateInvtQty(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    app.put('/' + global.config.version + '/pam/activity/title/alter', function (req, res) {
+        pamService.updateTitleDesc(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
 }
 ;
 module.exports = PamController;

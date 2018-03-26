@@ -32,6 +32,15 @@ function CassandraInterceptor(util, cassandraWrapper) {
         var logDate = util.getCurrentDate();
 
         var module = messageCollection.hasOwnProperty("request") ? messageCollection.request.module : '';
+        
+        /*if(messageCollection.hasOwnProperty("request")) {
+            module = messageCollection.request.module;
+        } else if(messageCollection.hasOwnProperty("object")){
+            module = messageCollection.object.module;
+        } else {
+            module = '';
+        }*/
+        
         switch (module) {
 
             case 'device':
@@ -47,6 +56,7 @@ function CassandraInterceptor(util, cassandraWrapper) {
                 activityTransactionInsert(0, messageCollection, logDate, logTimestamp, callback);
                 break;
             default:
+                //console.log('messageCollection : ', messageCollection);
                 console.log('No Such Module exists : \n' + messageCollection.request + '\n\n');
         }
     };
