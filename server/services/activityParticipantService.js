@@ -100,6 +100,10 @@ function ActivityParticipantService(objectCollection) {
                         if (err === false) {
                             //console.log("participant successfully added");
                             global.logger.write('debug','participant successfully added', {},request)
+                            //check participant is active in last 48 hrs or not
+                            if(activityTypeCategroyId === 8 || activityTypeCategroyId === 28 || (activityTypeCategroyId === 10 && request.activity_sub_type_id === 1)){
+                                activityPushService.sendSMSNotification(request, objectCollection, participantData.asset_id, function () {});
+                            }
                             var nextIndex = index + 1;
                             if (nextIndex <= maxIndex) {
                                 loopAddParticipant(participantCollection, nextIndex, maxIndex);
@@ -222,6 +226,7 @@ function ActivityParticipantService(objectCollection) {
         }
 
         var logDatetime = util.getCurrentUTCTime();
+        var sendSMSNotification = 0;
         request['datetime_log'] = logDatetime;
         request['activity_streamtype_id'] = activityStreamTypeId;
         activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });

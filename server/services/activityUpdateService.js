@@ -911,6 +911,7 @@ function ActivityUpdateService(objectCollection) {
                                                activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) { });
                                                 //assetActivityListUpdateSubTaskCover(request, function (err, data) {}); facing some issues here, handle post alpha
                                                activityPushService.sendPush(request, objectCollection, 0, function () {});
+                                               activityPushService.sendSMSNotification(request, objectCollection, request.owner_asset_id, function () {});
                                            })
                                             callback(false, {}, 200);
                                         }

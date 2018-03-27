@@ -901,7 +901,8 @@ function ActivityCommonService(db, util, forEachAsync) {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (data.length > 0) {
                     //console.log(data[0].asset_session_status_id);
-                    callback(false, data[0].asset_session_status_id, 200);
+                    //callback(false, data[0].asset_session_status_id, 200);
+                    callback(false, data[0], 200);
                 } else {
                     callback(true, false, 200);
                 }

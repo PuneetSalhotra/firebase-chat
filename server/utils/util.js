@@ -484,7 +484,8 @@ function Util() {
 
     this.differenceDatetimes = function (timeString1, timeString2) {
         var value = moment(timeString1, "YYYY-MM-DD HH:mm:ss").diff(moment(timeString2, "YYYY-MM-DD HH:mm:ss"));
-        return value;
+        return moment.duration(value)._data;
+        //return value;
     };
     
     this.getDayStartDatetime = function() {
