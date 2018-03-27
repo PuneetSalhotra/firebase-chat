@@ -789,6 +789,7 @@ function ActivityListingService(objCollection) {
                 request.account_id,
                 request.workforce_id,
                 request.asset_id,
+                request.operating_asset_id,
                 request.activity_type_category_id,
                 request.activity_sub_type_id,
                 util.getCurrentUTCTime()
@@ -866,6 +867,27 @@ function ActivityListingService(objCollection) {
     var formatActivityListing = function (data, callback) {
         var responseData = new Array();
         data.forEach(function (rowData, index) {
+                var activityCreatorAssetId;
+                var activityCreatorAssetFirstName;
+                var activityCreatorAssetLastName;
+                var activityCreatorAssetImagePath;                
+                
+                (util.replaceDefaultNumber(rowData['activity_creator_asset_id']) == 0) ?
+                    activityCreatorAssetId = util.replaceDefaultNumber(rowData['activity_lead_asset_id']) :                
+                    activityCreatorAssetId = util.replaceDefaultNumber(rowData['activity_creator_asset_id']);
+            
+                (util.replaceDefaultString(rowData['activity_creator_asset_first_name']) == "") ?
+                    activityCreatorAssetFirstName = util.replaceDefaultString(rowData['activity_lead_asset_first_name']) :                
+                    activityCreatorAssetFirstName = util.replaceDefaultString(rowData['activity_creator_asset_first_name']);
+            
+                (util.replaceDefaultString(rowData['activity_creator_asset_last_name']) == "") ?
+                    activityCreatorAssetLastName = util.replaceDefaultString(rowData['activity_lead_asset_last_name']) :                
+                    activityCreatorAssetLastName = util.replaceDefaultString(rowData['activity_creator_asset_last_name']);
+            
+                (util.replaceDefaultString(rowData['activity_creator_asset_image_path']) == "") ?
+                    activityCreatorAssetImagePath = util.replaceDefaultString(rowData['activity_lead_asset_image_path']) :                
+                    activityCreatorAssetImagePath = util.replaceDefaultString(rowData['activity_creator_asset_image_path']);            
+            
             var rowDataArr = {
                 "activity_id": util.replaceDefaultNumber(rowData['activity_id']),
                 "activity_title": util.replaceDefaultString(util.ucfirst(util.decodeSpecialChars(rowData['activity_title']))),
@@ -924,10 +946,14 @@ function ActivityListingService(objCollection) {
                 "activity_sub_type_id": util.replaceDefaultNumber(rowData['activity_sub_type_id']),
                 "activity_sub_type_name": util.replaceDefaultString(rowData['activity_sub_type_name']),
                 //BETA
-                "activity_creator_asset_id": util.replaceDefaultNumber(rowData['activity_lead_asset_id']),
-                "activity_creator_asset_first_name": util.replaceDefaultString(rowData['activity_lead_asset_first_name']),
-                "activity_creator_asset_last_name": util.replaceDefaultString(rowData['activity_lead_asset_last_name']),
-                "activity_creator_asset_image_path": util.replaceDefaultString(rowData['activity_lead_asset_image_path']),
+                //"activity_creator_asset_id": util.replaceDefaultNumber(rowData['activity_lead_asset_id']),
+                //"activity_creator_asset_first_name": util.replaceDefaultString(rowData['activity_lead_asset_first_name']),
+                //"activity_creator_asset_last_name": util.replaceDefaultString(rowData['activity_lead_asset_last_name']),
+                //"activity_creator_asset_image_path": util.replaceDefaultString(rowData['activity_lead_asset_image_path']),
+                "activity_creator_asset_id": activityCreatorAssetId,
+                "activity_creator_asset_first_name": activityCreatorAssetFirstName,
+                "activity_creator_asset_last_name": activityCreatorAssetLastName,
+                "activity_creator_asset_image_path": activityCreatorAssetImagePath,
                 "activity_creator_operating_asset_id": util.replaceDefaultNumber(rowData['activity_creator_operating_asset_id']),
                 "activity_creator_operating_asset_first_name":util.replaceDefaultString(rowData['activity_creator_operating_asset_first_name']),
                 "activity_creator_operating_asset_last_name":util.replaceDefaultString(rowData['activity_creator_operating_asset_last_name']),
@@ -995,6 +1021,7 @@ function ActivityListingService(objCollection) {
                 request.account_id,
                 request.workforce_id,
                 request.asset_id,
+                request.operating_asset_id,
                 request.activity_type_category_id,
                 request.activity_sub_type_id,   // 0 if activity_type_category_id is not 10
                 request.flag_filter,    // p_flter_flag = 0 - all	// p_flter_flag = 1 - unread	// p_flter_flag = 2 - completed	// p_flter_flag = 3 - past due	// p_flter_flag = 4 - search
