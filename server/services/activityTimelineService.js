@@ -43,6 +43,12 @@ function ActivityTimelineService(objectCollection) {
         } else {
             request.form_id = 0;
         }
+        try{
+            var formDataJson = JSON.parse(request.activity_timeline_collection);
+        }catch(exception){
+            console.log(exception);
+        }
+        
         var isAddToTimeline = true;
         if (request.hasOwnProperty('flag_timeline_entry'))
             isAddToTimeline = (Number(request.flag_timeline_entry)) > 0 ? true : false;
@@ -57,20 +63,26 @@ function ActivityTimelineService(objectCollection) {
                     //updating log differential datetime for only this asset
                     activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) { });
                     activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) { });
-                    //if(request.hasOwnProperty('activity_timeline_collection'))
-                    if (formDataJson.asset_reference.length > 0) {
-                        forEachAsync(formDataJson.asset_reference, function (next, rowData) {
-                            switch (Number(request.activity_type_category_id)) {
-                                case 10:
-                                case 11:
-                                    activityPushService.sendSMSNotification(request, objectCollection, rowData.asset_id, function () {});
-                                    break;
-                            }
-                            next();
-                        }).then(function () {
+                    if (formDataJson.hasOwnProperty('asset_reference')) {
+                        if (formDataJson.asset_reference.length > 0) {
+                            forEachAsync(formDataJson.asset_reference, function (next, rowData) {
+                                switch (Number(request.activity_type_category_id)) {
+                                    case 10:
+                                    case 11:
+                                        activityPushService.sendSMSNotification(request, objectCollection, rowData.asset_id, function () {});
+                                        break;
+                                }
+                                next();
+                            }).then(function () {
 
-                        });
+                            });
+                        }
                     }
+                    else{
+                        console.log('asset_reference is not availale')
+                    }
+                    
+
                 }
             });
         }

@@ -3,7 +3,7 @@
  */
 const pubnubWrapper = new (require('../utils/pubnubWrapper'))(); //BETA
 
-function ActivityPushService() {
+function ActivityPushService(objectCollection) {
     var getPushString = function (request, objectCollection, senderName, callback) {
         var pushString = {};
         var extraData = {};
@@ -359,12 +359,12 @@ function ActivityPushService() {
         });
     };
 
-    var sendSMSNotification = function (request, objectCollection, pushAssetId, callback) {
-        var reqobj = {};
+    this.sendSMSNotification = function (request, objectCollection, pushAssetId, callback) {
+        var reqobj = {};        
         //getting asset deatails of the reciever
         reqobj = {organization_id: request.organization_id, asset_id: pushAssetId};
         objectCollection.activityCommonService.getAssetDetails(reqobj, function (err, RecieverData, resp) {
-            var diffDatetime = objectCollection.activityCommonService.util.differenceDatetimes(request.datetime_log, objectCollection.activityCommonService.util.replaceDefaultDatetime(RecieverData.asset_status_datetime));
+            var diffDatetime = objectCollection.util.differenceDatetimes(request.datetime_log, objectCollection.util.replaceDefaultDatetime(RecieverData.asset_status_datetime));
             if (diffDatetime.years > 0 || diffDatetime.months > 0 || diffDatetime.days >= 2) {
                 // send an sms notification
                 // getting asset details of log asset id
@@ -372,8 +372,8 @@ function ActivityPushService() {
                 objectCollection.activityCommonService.getAssetDetails(reqobj, function (err, senderData, resp) {
                     var senderName = senderData['operating_asset_first_name'] + ' ' + senderData['operating_asset_last_name'];
                     getPushString(request, objectCollection, senderName, function (err, pushStringObj, pubnubMsg, smsString) {
-                        objectCollection.util.sendSmsMvaayoo(smsString, RecieverData.asset_phone_country_code, RecieverData.asset_phone_number, function () {
-
+                       	objectCollection.util.sendSmsMvaayoo(smsString, RecieverData.operating_asset_phone_country_code, RecieverData.operating_asset_phone_number, function () {
+                            
                         });
                     }.bind(this));
                 });
