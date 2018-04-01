@@ -10,7 +10,7 @@ function PamController(objCollection) {
     var responseWrapper = objCollection.responseWrapper;
     var app = objCollection.app;
     var pamService = new PamService(objCollection);
-    var util = objCollection.util;
+    var util = objCollection.util;    
 
     //IVR Service
     app.post('/' + global.config.version + '/pam/ivr', function (req, res) {
@@ -251,6 +251,28 @@ function PamController(objCollection) {
             }
         });
     });
+    
+    app.put('/' + global.config.version + '/pam/activity/status_cancel/alter', function (req, res) {
+        pamService.cancelItem(req.body, function (err, data, statusCode) {
+            if (err === false) {    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {                
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    app.put('/' + global.config.version + '/pam/activity/status_preparing/alter', function (req, res) {
+        pamService.preparingItem(req.body, function (err, data, statusCode) {
+            if (err === false) {    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {                
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });  
     
 }
 ;

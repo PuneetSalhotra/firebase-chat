@@ -58,6 +58,21 @@ function PamService(objectCollection) {
                         }
                         
                     });
+                /*cacheWrapper.getActivityId(function (err, activityId) {
+                    if (err) {
+                        console.log(err);                        
+                    } else {
+                        request['activity_id'] = activityId;
+                        var event = {
+                            name: "addActivity",
+                            service: "activityService",
+                            method: "addActivity",
+                            payload: request
+                            };
+                        queueWrapper.raiseActivityEvent(event, activityId, (err, resp)=>{});
+                        console.log("new activityId is : " + activityId);                        
+                        }
+                    }); */               
                 }
                     
                     getCalledTime(request, function(err, data){
@@ -1077,7 +1092,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
         }
     };
     
-        var activityAssetMappingInsertParticipantAssign = function (request, participantData, callback) {
+    var activityAssetMappingInsertParticipantAssign = function (request, participantData, callback) {
         var fieldId = 0;
         var quantityUnitType = (request.hasOwnProperty('quantity_unit_type')) ? request.quantity_unit_type : '';
         var quantityUnitValue = (request.hasOwnProperty('quantity_unit_value')) ? request.quantity_unit_value : -1;
@@ -1981,12 +1996,21 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
     
     //PAM
     this.assetClockOut = function (request, callback) {
-        var dateTimeLog = util.getCurrentUTCTime();
+        console.log('Before assetClockOut : \n', request);
+        
+        var dateTimeLog = util.getCurrentUTCTime();        
         request['datetime_log'] = dateTimeLog;
         request['asset_assigned_status_id'] = 0;
         request['asset_session_status_id'] = 0;
+        
+        var assetID;
+        
         if(!request.hasOwnProperty('workstation_asset_id')) {
             request.workstation_asset_id = 0;
+        }
+        
+        if(!request.hasOwnProperty('target_asset_id')) {
+            request.target_asset_id = 0;
         }
 
         console.log('assetClockOut : \n', request);
@@ -1994,16 +2018,19 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
         
         request.push_notification_id = '';
         request.asset_push_arn = '';
-        assetListUpdateStatusPush(request, request.asset_id).then(()=>{
-            if(request.workstation_asset_id != 0) {
-                    activityCommonService.pamAssetListUpdateOperatingAsset(request).then(()=>{
-                        assetListHistoryInsert(request, request.workstation_asset_id, request.organization_id, 211, dateTimeLog, function (err, data) {});
-                    });                    
-            }
-            callback(request.asset_id, {}, 200);
-        }).catch((err)=>{
-            callback(err, {}, -9998);
-        });      
+        
+        (request.target_asset_id > 0) ? assetID = request.target_asset_id : assetID = request.asset_id;
+            
+        assetListUpdateStatusPush(request, assetID).then(()=>{
+                if(request.workstation_asset_id != 0) {
+                        activityCommonService.pamAssetListUpdateOperatingAsset(request).then(()=>{
+                            assetListHistoryInsert(request, request.workstation_asset_id, request.organization_id, 211, dateTimeLog, function (err, data) {});
+                        });
+                }
+                callback(request.asset_id, {}, 200);
+            }).catch((err)=>{
+                callback(err, {}, -9998);
+            });              
     };
      
     //PAM
@@ -2061,6 +2088,206 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
               });
             }
         });        
+    };
+    
+    this.cancelItem = function(request, callback){
+        var dateTimeLog = util.getCurrentUTCTime();
+        request['datetime_log'] = dateTimeLog;
+        
+        var activityStatusId;
+        var activityStatusTypeId;
+        var response = {};
+        
+        var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.activity_id,
+                request.activity_status_id,
+                request.activity_status_type_id,
+                request.asset_id,
+                request.datetime_log
+                );
+            var queryString = util.getQueryString('ds_v1_activity_list_update_status_cancel', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, resp) {
+                    if (err === false) {
+                        activityCommonService.getActivityDetails(request, 0, function(err, data){
+                            if(err === false){
+                                activityStatusId = data[0].activity_status_id;
+                                activityStatusTypeId = data[0].activity_status_type_id;
+                                
+                                response.activity_status_id = activityStatusId;
+                                response.activity_status_type_id = activityStatusTypeId;
+                                response.activity_status_type_name = data[0].activity_status_type_name;
+                                
+                                if(activityStatusTypeId == 126) {
+                                    activityCommonService.getAllParticipants(request, function(err, participantData){
+                                        if(err === false){
+                                            forEachAsync(participantData, function (next, x) {
+                                                updateStatusCancel(request, x.asset_id, activityStatusId, activityStatusTypeId).then(()=>{
+                                                    next();
+                                                });                                    
+                                                }).then(()=>{
+                                                    callback(false,response, 200);
+                                                    return;
+                                                });
+                                        } else {
+                                            callback(true, err, -9999);
+                                            return;
+                                        }  
+                                    });
+                                } else {
+                                    callback(false,response, 200);
+                                    return;
+                                }               
+                                
+                            } else {
+                                callback(true, err, -9999);
+                                return;
+                            }
+                        });                
+                    } else {                    
+                        callback(true, err, -9999);
+                    }
+                });
+            }        
+    };
+    
+    
+    function updateStatusCancel(request, assetId, activityStatusId, activityStatusTypeId){
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.activity_id,
+                assetId, //p_asset_id
+                activityStatusId,
+                activityStatusTypeId,
+                request.asset_id, //log_asset_id
+                request.datetime_log
+                );
+            var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_status_cancel', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, resp) {
+                    (err === false)? resolve() : reject(err);
+                });
+            }
+        });
+    };
+    
+    this.preparingItem = function(request, callback){
+        var dateTimeLog = util.getCurrentUTCTime();
+        request['datetime_log'] = dateTimeLog;
+        var response = {};
+        
+        var paramsArr = new Array(
+                request.activity_id,
+                request.station_asset_id,            
+                request.activity_status_id,
+                request.activity_status_type_id,
+                request.organization_id,
+                request.asset_id,
+                request.datetime_log
+                );
+        var queryString = util.getQueryString('ds_v1_activity_list_update_status_station', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, resp) {
+                    if (err === false) {
+                        activityCommonService.getActivityDetails(request, 0, function(err, data){
+                            if(err === false){                     
+                                
+                                response.activity_status_id = util.replaceDefaultNumber(data[0].activity_status_id);
+                                response.activity_status_name = util.replaceDefaultString(data[0].activity_status_name);
+                                response.activity_status_type_id = util.replaceDefaultNumber(data[0].activity_status_type_id);
+                                response.activity_status_type_name = util.replaceDefaultString(data[0].activity_status_type_name);
+                                response.activity_owner_asset_id = util.replaceDefaultNumber(data[0].activity_owner_asset_id);
+                                response.activity_owner_asset_first_name = util.replaceDefaultString(data[0].activity_owner_asset_first_name);
+                                response.activity_owner_asset_type_category_id = util.replaceDefaultNumber(data[0].activity_owner_asset_type_category_id);
+                                
+                                if((response.activity_owner_asset_id == request.station_asset_id) && (response.activity_status_type_id == 125)) {
+                                    var x = {};
+                                    x.asset_id = request.station_asset_id;
+                                    x.workforce_id = request.workforce_id;
+                                    x.account_id = request.account_id;
+                                    x.organization_id = request.organization_id;
+                                    x.access_role_id = 122;
+                                    x.message_unique_id = request.message_unique_id;
+                                    
+                                    ////////////////////
+                                    activityAssetMappingInsertParticipantAssign(request, x, function(err, resp){
+                                        if(err === false){
+                                            ///////////////////////
+                                            activityCommonService.getAllParticipants(request, function(err, participantData){
+                                                if(err === false){
+                                                    forEachAsync(participantData, function (next, x) {
+                                                        updateStatusPreparing(request, x.asset_id, response.activity_status_id, response.activity_status_type_id).then(()=>{
+                                                            next();
+                                                        });                                    
+                                                        }).then(()=>{
+                                                            callback(false,response, 200);
+                                                            return;
+                                                        });
+                                                } else {
+                                                    callback(true, err, -9999);
+                                                    return;
+                                                }  
+                                            });
+                                            ///////////////////
+                                        } else {
+                                            callback(true, err, -9999);
+                                            return;
+                                        }
+                                    });
+                                    ///////////////////                                 
+                                    
+                                } else {
+                                    callback(false,response, 200);
+                                    return;
+                                }
+                                
+                            } else {
+                                callback(true, err, -9999);
+                                return;
+                            }
+                        });                
+                    } else {                    
+                        callback(true, err, -9999);
+                    }
+                });
+            }
+    };
+    
+    function updateStatusPreparing(request, assetId, activityStatusId, activityStatusTypeId){
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                request.activity_id,
+                assetId, //p_asset_id
+                request.station_asset_id,
+                activityStatusId,
+                activityStatusTypeId,
+                request.organization_id,
+                request.asset_id, //log_asset_id
+                request.datetime_log
+                );
+            var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_status_station', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, resp) {
+                    (err === false)? resolve() : reject(err);
+                });
+            }
+        });
+    };
+    
+    this.nanikalyan = function(request, callback) {
+      activityCommonService.getActivityDetails(request, 0 , function(err, data){
+            if(err === false){
+                console.log('DAta : ', data);              
+            } else {
+                console.log('Error : ', err);
+            }
+      });
     };
     
 }
