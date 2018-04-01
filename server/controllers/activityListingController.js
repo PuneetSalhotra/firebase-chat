@@ -265,6 +265,30 @@ function ActivityListingController(objCollection) {
         });
     });
     
+    //Get the count of tasks 
+    app.post('/' + global.config.version + '/asset/access/pending_task/count', function (req, res) {
+        activityListingService.pendingInmailCount(req.body, function (err, data, statusCode) {        
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    //Get the overall ToDo tasks where I am not collaborator (BAck ward compatability)
+    app.post('/' + global.config.version + '/asset/access/task/list', function (req, res) {
+        activityListingService.getTasks(req.body, function (err, data, statusCode) {        
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
     //Get the count of all Folders, mail, video calls etc
     app.post('/' + global.config.version + '/activity/access/asset/payroll/list', function (req, res) {
         activityListingService.getLatestPayrollActivity(req.body, function (err, data, statusCode) {        
