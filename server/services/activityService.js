@@ -1027,6 +1027,10 @@ function ActivityService(objectCollection) {
                 if(activityTypeCategroyId == 38) {
                     switch(Number(request.activity_status_type_id)) {
                         case 105: itemOrderAlterStatus(request).then(()=>{});
+                                  updateStatusDateTimes(request).then(()=>{});
+                                  break;
+                        case 106: 
+                        case 125: updateStatusDateTimes(request).then(()=>{});
                                   break;
                     }
                 }
@@ -1122,6 +1126,63 @@ function ActivityService(objectCollection) {
         });
     };
     
+    function updateStatusDateTimes(request) {
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.activity_id,
+                request.activity_status_type_id,
+                request.asset_id,
+                request.datetime_log
+                );
+            var queryString = util.getQueryString('ds_v1_activity_list_update_order_status_datetime', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, resp) {
+                    if (err === false) {
+                        activityCommonService.getAllParticipants(request, function(err, participantData){
+                            if(err === false){
+                                forEachAsync(participantData, function (next, x) {
+                                    updateStatusDttmsParticipants(request, x.asset_id).then(()=>{
+                                        next();
+                                    });                                    
+                                    }).then(()=>{
+                                        resolve();
+                                    });
+                            } else {
+                                reject(err);
+                            }                            
+                        });
+                    } else {                    
+                        callback(err, false);
+                    }
+                });
+            }
+        });
+        
+    };
+    
+    function updateStatusDttmsParticipants(request, assetId){
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.activity_id,
+                assetId, //p_asset_id
+                request.activity_status_type_id,
+                request.asset_id, //log_asset_id
+                request.datetime_log
+                );
+            var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_order_status_datetime', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, resp) {
+                    (err === false)? resolve() : reject(err);
+                });
+            }
+        });
+    }
+    
+    
     function respReqinMail(request){
         return new Promise((resolve, reject)=>{            
             var activityFlagResponseRequired;
@@ -1134,7 +1195,7 @@ function ActivityService(objectCollection) {
                     //console.log('resp[0].activity_datetime_end_expected : ', util.replaceDefaultDatetime(resp[0].activity_datetime_end_expected));
                     
                     //diff will be in milli seconds
-                    diff = util.differenceDatetimes(request.datetime_log ,util.replaceDefaultDatetime(resp[0].activity_datetime_end_expected));
+                    diff = util.differenceDatetimes(request.datetime_log ,util.replaceDefaultDatetime(resp[0].activity_datetime_end_expected));                    
                     diff = diff / 3600000;
                     diff = Number(diff);
                     (diff <= 24) ? activityFlagResponseRequired = 1 : activityFlagResponseRequired = 0;
