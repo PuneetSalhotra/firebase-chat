@@ -289,7 +289,7 @@ function AssetController(objCollection) {
     });*/
     
     //PAM 
-    app.put('/' + global.config.version + '/pam/asset/cover/alter/clockin', function (req, res) {
+    /*app.put('/' + global.config.version + '/pam/asset/cover/alter/clockin', function (req, res) {
         assetService.assetClockIn(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response    
@@ -316,7 +316,7 @@ function AssetController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
-    });
+    });*/
     
     //PAM
     app.post('/' + global.config.version + '/pam/asset_type/stats/onduty_total', function (req, res) {

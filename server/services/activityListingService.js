@@ -930,12 +930,39 @@ function ActivityListingService(objCollection) {
                 "activity_creator_asset_image_path": util.replaceDefaultString(rowData['activity_lead_asset_image_path']),
                 "activity_creator_operating_asset_id": util.replaceDefaultNumber(rowData['activity_creator_operating_asset_id']),
                 "activity_creator_operating_asset_first_name":util.replaceDefaultString(rowData['activity_creator_operating_asset_first_name']),
-                "activity_creator_operating_asset_last_name":util.replaceDefaultString(rowData['activity_creator_operating_asset_last_name'])
+                "activity_creator_operating_asset_last_name":util.replaceDefaultString(rowData['activity_creator_operating_asset_last_name']),
+                //Response Required Flag
+                "activity_flag_delivery_ontime":util.replaceDefaultNumber(rowData['activity_flag_delivery_ontime']),
+                "activity_flag_delivery_quality":util.replaceDefaultNumber(rowData['activity_flag_delivery_quality']),
+                "activity_flag_response_required":util.replaceDefaultNumber(rowData['activity_flag_response_required']),
+                "activity_flag_response_ontime":util.replaceDefaultNumber(rowData['activity_flag_response_ontime'])                 
             };
             responseData.push(rowDataArr);
         }, this);
         callback(false, responseData);
     };
+    
+    this.getAssetTasksInProjCount = function(request, callback) {
+        var paramsArr = new Array(                
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.asset_id,
+                request.project_activity_id,
+                request.activity_type_category_id,
+                request.activity_sub_type_id                
+                );
+        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_project_sub_task_ount', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (err === false) {
+                    callback(false, data, 200);
+                } else {                    
+                    callback(true, err, -9999);
+                }
+            });
+        }
+    }
     
     this.getLatestPayrollActivity = function (request, callback) {
         var paramsArr = new Array(

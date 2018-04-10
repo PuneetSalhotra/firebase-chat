@@ -1186,8 +1186,8 @@ function AssetService(objectCollection) {
     };
 
     //PAM
-    function assetListUpdateStatusPush(request, assetId) {
-        return new Promise((resolve, reject) => {
+    /*function assetListUpdateStatusPush(request, assetId){
+        return new Promise((resolve, reject)=>{
             var paramsArr = new Array(
                     assetId,
                     request.organization_id,
@@ -1212,10 +1212,9 @@ function AssetService(objectCollection) {
                     (err === false) ? resolve(false) : reject(err);
                 });
             }
-        });
-    }
-    ;
-
+        });        
+    };*/
+    
     var assetListUpdateLampStatus = function (request, assetId, callback) {
 
         var paramsArr = new Array(
@@ -1464,7 +1463,7 @@ function AssetService(objectCollection) {
     };
 
     //PAM
-    this.assetClockIn = function (request, callback) {
+    /*this.assetClockIn = function (request, callback) {
         var dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
         var response = {};
@@ -1495,7 +1494,22 @@ function AssetService(objectCollection) {
                         response.asset_id = resp.asset_id;
                         response.asset_message_counter = data;
                         response.asset_encryption_token_id = resp.asset_encryption_token_id;
-                        callback(false, response, 200);
+                        
+                        pamGetEmpStations(request).then((data)=>{
+                            if(data.length > 0) {                
+                                forEachAsync(data, function (next, row) {                    
+                                    pamAssetListUpdateOperatingAsset(request, row.asset_id, 0).then(()=>{
+                                        pamAssetListHistoryInsert(request, 40, row.asset_id).then(()=>{ 
+                                            next();
+                                            });
+                                        });                        
+                                })
+                            } 
+                          }).then(()=>{
+                              callback(false, response, 200);
+                          }).catch((err)=>{
+                              callback(true, err, -9999);
+                          });                        
                     } else {
                         callback(false, {}, -7998);
                     }
@@ -1564,7 +1578,7 @@ function AssetService(objectCollection) {
                 }
             });
         }
-    };
+    };*/
 
     //PAM
     this.assetStatsOnDutyTotal = function (request, callback) {

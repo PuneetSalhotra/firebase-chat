@@ -289,6 +289,17 @@ function ActivityListingController(objCollection) {
         });
     });
     
+    //Get the count of all tasks of an asset in a project
+        app.post('/' + global.config.version + '/asset/tasks_project/access/counts/list', function (req, res) {
+        activityListingService.getAssetTasksInProjCount(req.body, function (err, data, statusCode) {        
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
 }
 
 module.exports = ActivityListingController;

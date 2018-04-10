@@ -3,6 +3,7 @@
  */
 var fs = require('fs');
 var uuid = require('uuid');
+var AwsSns = require('../utils/snsWrapper');
 
 function PamService(objectCollection) {
 
@@ -12,6 +13,7 @@ function PamService(objectCollection) {
     var cacheWrapper = objectCollection.cacheWrapper;
     var queueWrapper = objectCollection.queueWrapper;
     var activityCommonService = objectCollection.activityCommonService;
+    var sns = new AwsSns();
           
     this.ivrService = function(request, callback) {
         var logDatetime = util.getCurrentUTCTime();
@@ -45,11 +47,17 @@ function PamService(objectCollection) {
                 } else {
                     //Send Sms                    
             var txt = "Thank you for calling in today. As i was mentioning on the call, to become a member you need to be recommended by one of our existing members.";
-                txt += " As i was mentioning on the call, to become a member you need to be recommended by one of our existing members.";
                 txt += " Email me at pam@puddingandmink.com to get further details. -PAM";
                 
-                    console.log('SMS text : \n', txt + "\n");
-                    util.sendSmsMvaayoo(txt, request.country_code, request.phone_number, function(err,res){});
+                    console.log('SMS text : \n', txt);
+                    util.pamSendSmsMvaayoo(txt, request.country_code, request.phone_number, function(err,res){
+                        if(err === false) {
+                            console.log('Message Sent! : ', res);
+                        } else {
+                            console.log('Error in sending SMS : ', err);
+                        }
+                        
+                    });
                 }
                     
                     getCalledTime(request, function(err, data){
@@ -73,11 +81,11 @@ function PamService(objectCollection) {
 var text = "Dear "+response.member_name+" , Currently, there are no tables available for reservation. Please call us back after " + nextAvailableDateTime;
 text+= " to check if there are any tables available for reservation.";
                                            console.log('SMS text : \n', text + "\n");
-                                           util.sendSmsMvaayoo(text, request.country_code, request.phone_number, function(err,res){});
+                                           util.pamSendSmsMvaayoo(text, request.country_code, request.phone_number, function(err,res){});
                                    }
                                    ////////////////////
 
-                                   if(response.called_before == 'false' && response.reservation_available == 'true') {
+                                   //if(response.called_before == 'false' && response.reservation_available == 'true') {
                                      if(logDatetime <= util.addUnitsToDateTime(data[0].activity_datetime_start_expected,1,'hours')) {
                                           response.next_possible_reservation_time = util.addUnitsToDateTime(logDatetime,1,'hours');
                                       } else {
@@ -100,7 +108,7 @@ text+= " to check if there are any tables available for reservation.";
 /*var smsText = "Dear "+response.member_name+" , Your reservation for today is confirmed. Please use the following reservation code " + resp[0].activity_sub_type_name;
 smsText+= " . Note that this reservation code is only valid till "+expiryDateTime+" .";                                      
                                               console.log('smsText : ', smsText);
-                                              util.sendSmsMvaayoo(smsText, request.country_code, request.phone_number, function(err,res){
+                                              util.pamSendSmsMvaayoo(smsText, request.country_code, request.phone_number, function(err,res){
                                                    if(err) {
                                                        console.log('Error in sending sms : ', err);
                                                    } else {
@@ -114,7 +122,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
 
                                             activityCommonService.getActivityDetails(request, 0, function(err, data){
                                                 if(err === false) {
-                                                    console.log('Activity Details : ' , data);
+                                                    //console.log('Activity Details : ' , data);
                                                     var inlineJson = JSON.parse(data[0].activity_inline_data);
                                                     request.no_of_guests = util.replaceDefaultNumber(inlineJson.party_size);
                                                     sendSmsCode(request).then(()=>{});
@@ -128,9 +136,9 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                                             console.log('In Catch : ', err);
                                             callback(false, response, 200);
                                       })                   
-                                  } else {
+                                  /*} else {
                                       callback(false, response, 200);
-                                  }
+                                  }*/
                                 } else {
                                     response.reservation_available = -99;
                                     callback(false, response, 200);
@@ -156,7 +164,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
      }
      
      this.sendSms = function(request, callback) {
-         util.sendSmsMvaayoo(request.text, request.country_code, request.phone_number, function(err,res){
+         util.pamSendSmsMvaayoo(request.text, request.country_code, request.phone_number, function(err,res){
                 console.log(err,'\n',res);
                 callback(false, {}, 200);
          });
@@ -1546,7 +1554,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                              text += " PS - I will be forced to release the table block if no one shows up before "+expiryDatetime+" . -PAM";
 
                              console.log('SMS text : \n', text);
-                             util.sendSmsMvaayoo(text, request.country_code, request.phone_number, function(err,res){
+                             util.pamSendSmsMvaayoo(text, request.country_code, request.phone_number, function(err,res){
                                     if(err === false) {
                                          console.log('Message sent!');
                                      }
@@ -1867,7 +1875,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                     activityCommonService.getAllParticipants(request, function(err, participantData){
                         if(err === false){
                             forEachAsync(participantData, function (next, row) {
-                                updateActQuantity(request, row.asset_id).then(()=>{                                    
+                                updateActInline(request, row.asset_id).then(()=>{                                    
                                     next();
                                 });                                   
                             }).then(() => {
@@ -1885,7 +1893,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
     }
     }
     
-    function updateActQuantity(request, participantAssetId) {
+    function updateActInline(request, participantAssetId) {
         return new Promise((resolve, reject)=>{
              var paramsArr = new Array(
                 request.activity_id,
@@ -1904,8 +1912,157 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
             });
         }
         });
-    };  
+    };
+    
+    //PAM
+    this.assetClockIn = function (request, callback) {
+        var dateTimeLog = util.getCurrentUTCTime();
+        request['datetime_log'] = dateTimeLog;
+        var response = {};
+        var assetId;
+
+        assetListSelectPasscode(request, function (err, resp) {
+            if (err === false) {
+                request['asset_assigned_status_id'] = 0;
+                request['asset_session_status_id'] = 0;
+
+                global.logger.writeSession(request.body);
+                             
+                sns.createPlatformEndPoint(Number(request.device_os_id), request.asset_token_push, function (err, endPointArn) {
+                if (!err) {
+                    //console.log('success in creating platform end point : ' + endPointArn);
+                    global.logger.write('debug', 'success in creating platform end point', {}, request);
+                    request.push_notification_id = request.asset_token_push;
+                    request.asset_push_arn = endPointArn;
+                    assetListUpdateStatusPush(request, resp.asset_id).then(()=>{});
+                } else {
+                    console.log('problem in creating platform end point');
+                    global.logger.write('serverError', 'problem in creating platform end point', err, request);                    
+                    }
+                });          
+                
+                cacheWrapper.getAssetParity(resp.asset_id, (err, data) => {
+                    if (err === false) {
+                        response.asset_id = resp.asset_id;
+                        response.asset_message_counter = data;
+                        response.asset_encryption_token_id = resp.asset_encryption_token_id;
+                        
+                        request.asset_id = response.asset_id;
+                        pamGetEmpStations(request).then((data)=>{
+                            if(data.length > 0) { 
+                                forEachAsync(data, function (next, row) {
+                                    assetId = row.asset_id;
+                                    pamAssetListUpdateOperatingAsset(request, assetId, 0).then(()=>{
+                                        pamAssetListHistoryInsert(request, 40, assetId).then(()=>{});
+                                            next();
+                                    });                                       
+                                });
+                            } 
+                          }).then(()=>{
+                              callback(false, response, 200);
+                          }).catch((err)=>{
+                              callback(true, err, -9999);
+                          });                        
+                    } else {
+                        callback(false, {}, -7998);
+                    }
+                });
+
+            }else {
+                if(resp === 'wrongPasscode') {
+                    callback(err, {}, -3701);
+                }else {
+                    callback(err, {}, -9998);
+                }
+                
+            }
+        });
+    };
+    
+    //PAM
+    this.assetClockOut = function (request, callback) {
+        var dateTimeLog = util.getCurrentUTCTime();
+        request['datetime_log'] = dateTimeLog;
+        request['asset_assigned_status_id'] = 0;
+        request['asset_session_status_id'] = 0;
+        if(!request.hasOwnProperty('workstation_asset_id')) {
+            request.workstation_asset_id = 0;
+        }
+
+        console.log('assetClockOut : \n', request);
+        global.logger.writeSession(request.body);
+        
+        request.push_notification_id = '';
+        request.asset_push_arn = '';
+        assetListUpdateStatusPush(request, request.asset_id).then(()=>{
+            if(request.workstation_asset_id != 0) {
+                    activityCommonService.pamAssetListUpdateOperatingAsset(request).then(()=>{
+                        assetListHistoryInsert(request, request.workstation_asset_id, request.organization_id, 211, dateTimeLog, function (err, data) {});
+                    });                    
+            }
+            callback(request.asset_id, {}, 200);
+        }).catch((err)=>{
+            callback(err, {}, -9998);
+        });      
+    };
      
+    //PAM
+    var assetListSelectPasscode = function (request, callback) {
+        var response = {};
+        var paramsArr = new Array(
+                request.organization_id,
+                request.passcode
+                );
+
+        var queryString = util.getQueryString('ds_v1_asset_list_select_passcode', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, assetId) {
+                if (err === false) {
+                    //console.log('Asset Id : ' + JSON.stringify(assetId[0]));
+                    if(assetId.length>0) {
+                        response.asset_id = assetId[0].asset_id;
+                        response.asset_encryption_token_id = assetId[0].asset_encryption_token_id;
+                        callback(false, response);
+                    } else {
+                        callback(true, 'wrongPasscode');
+                    }
+                } else {
+                    callback(true, err);
+                }
+            });
+        }
+    };
+    
+    //PAM
+    function assetListUpdateStatusPush(request, assetId){
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                assetId,
+                request.organization_id,
+                request.asset_clocked_status_id,
+                request.asset_assigned_status_id,
+                request.asset_session_status_id,
+                request.track_gps_datetime,
+                request.track_latitude,
+                request.track_longitude,
+                request.track_gps_accuracy,
+                request.track_gps_status,
+                request.track_gps_location,
+                request.asset_id,
+                request.datetime_log,
+                request.logout_datetime,
+                request.push_notification_id,
+                request.asset_push_arn
+                );
+        var queryString = util.getQueryString('ds_v1_asset_list_update_clocked_status_push', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, assetData) {
+                (err === false)? resolve(false) : reject(err);
+              });
+            }
+        });        
+    };
+    
 }
 ;
 

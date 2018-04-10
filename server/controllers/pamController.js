@@ -230,6 +230,28 @@ function PamController(objCollection) {
         });
     });
     
+    app.put('/' + global.config.version + '/pam/asset/cover/alter/clockin', function (req, res) {
+        pamService.assetClockIn(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {                
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    app.put('/' + global.config.version + '/pam/asset/cover/alter/clockout', function (req, res) {
+        pamService.assetClockOut(req.body, function (err, data, statusCode) {
+            if (err === false) {    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {                
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
 }
 ;
 module.exports = PamController;

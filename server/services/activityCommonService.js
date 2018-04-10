@@ -1143,6 +1143,23 @@ function ActivityCommonService(db, util, forEachAsync) {
             }
             generateCode();
     };
+    
+    this.getInmailCounts = function(request, callback){
+            var paramsArr = new Array(
+                request.organization_id,
+                request.activity_type_category_id,
+                request.asset_id,
+                util.getStartDateTimeOfMonth(),
+                util.getEndDateTimeOfMonth()
+                );
+            var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_inmail_counts', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? callback(false, data) : callback(true, err);
+                });
+        }
+    };
+    
 }
 ;
 
