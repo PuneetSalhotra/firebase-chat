@@ -488,6 +488,7 @@ function ActivityService(objectCollection) {
                         );
                 break;
             case 10:
+            case 11:
                 var ownerAssetID;
                 if(request.hasOwnProperty('owner_asset_id')) {
                       ownerAssetID = request.owner_asset_id;
