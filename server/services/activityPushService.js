@@ -88,7 +88,10 @@ function ActivityPushService(objectCollection) {
                             case '/0.1/activity/timeline/entry/add':
                                 pushString.title = senderName;
                                 pushString.description = 'Has added an update to - ' + activityTitle;
-                                smsString = ' ' + senderName + ' has assigned a task named ' + activityTitle + ' to you. You can respond by logging into the desker app. Download Link:  app.desker.co';
+                                if (Number(request.activity_sub_type_id) === 1)
+                                    smsString = ' ' + senderName + ' has mentioned you in a task named ' + activityTitle + '. You can respond by logging into the desker app. Download Link:  app.desker.co';
+                                else
+                                    smsString = ' ' + senderName + ' has mentioned you in a file named ' + activityTitle + '. You can respond by logging into the desker app. Download Link:  app.desker.co';
                                 break;
                             case '/0.1/activity/status/alter':
                                 msg.activity_type_category_id = 0;
@@ -113,6 +116,7 @@ function ActivityPushService(objectCollection) {
                     case 11:    // Project
                         switch (request.url) {
                             case '/0.1/activity/timeline/entry/add':
+                                smsString = ' ' + senderName + ' has mentioned you in a project named ' + activityTitle + '. You can respond by logging into the desker app. Download Link:  app.desker.co';
                                 break;
                             case '/0.1/activity/status/alter':
                                 break;
@@ -272,6 +276,12 @@ function ActivityPushService(objectCollection) {
                                                 //break;
                                             case 'sns':
                                                 objectCollection.sns.publish(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn);
+                                                if (pubnubMsg.activity_type_category_id != 0) {
+                                                    pubnubMsg.organization_id = rowData.organizationId;
+                                                    pubnubMsg.desk_asset_id = rowData.assetId;
+                                                    console.log('PubNub Message : ', pubnubMsg);
+                                                    pubnubWrapper.push(rowData.organizationId, pubnubMsg);
+                                                }
                                                 break;
                                         }
                                     }.bind(this));
@@ -360,7 +370,7 @@ function ActivityPushService(objectCollection) {
     };
 
     this.sendSMSNotification = function (request, objectCollection, pushAssetId, callback) {
-        var reqobj = {};        
+        var reqobj = {};
         //getting asset deatails of the reciever
         reqobj = {organization_id: request.organization_id, asset_id: pushAssetId};
         objectCollection.activityCommonService.getAssetDetails(reqobj, function (err, RecieverData, resp) {
@@ -372,8 +382,8 @@ function ActivityPushService(objectCollection) {
                 objectCollection.activityCommonService.getAssetDetails(reqobj, function (err, senderData, resp) {
                     var senderName = senderData['operating_asset_first_name'] + ' ' + senderData['operating_asset_last_name'];
                     getPushString(request, objectCollection, senderName, function (err, pushStringObj, pubnubMsg, smsString) {
-                       	objectCollection.util.sendSmsMvaayoo(smsString, RecieverData.operating_asset_phone_country_code, RecieverData.operating_asset_phone_number, function () {
-                            
+                        objectCollection.util.sendSmsMvaayoo(smsString, RecieverData.operating_asset_phone_country_code, RecieverData.operating_asset_phone_number, function () {
+
                         });
                     }.bind(this));
                 });

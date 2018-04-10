@@ -189,10 +189,11 @@ function ActivityService(objectCollection) {
     var updateMailInlineJson = function (request, callback) {
         var mailJson = JSON.parse(request.activity_inline_data);
         var finalJson = {};
-        forEachAsync(Object.keys(mailJson), function (next, mailData) {
-            if (mailJson[mailData] !== null && typeof mailJson[mailData] === 'object') {
+        forEachAsync(Object.keys(mailJson), function (next, mailData, index) {
+            if (index === 'activity_reference') {
+            //if (mailJson[mailData] !== null && typeof mailJson[mailData] === 'object') {
                 var tempRefernceArr = new Array();
-                forEachAsync(mailJson[mailData], function (next, referenceData, index) {
+                forEachAsync(mailJson[mailData], function (next, referenceData) {
                     activityCommonService.getActivityDetails(request, Number(referenceData.activity_id), function (err, activityData) {
                         if (err === false) {
                             referenceData.organization_id = activityData[0]['organization_id'];

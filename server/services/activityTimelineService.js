@@ -1,6 +1,7 @@
 /*
  * author: Sri Sai Venkatesh
  */
+const pubnubWrapper = new (require('../utils/pubnubWrapper'))(); //BETA
 
 function ActivityTimelineService(objectCollection) {
 
@@ -43,12 +44,12 @@ function ActivityTimelineService(objectCollection) {
         } else {
             request.form_id = 0;
         }
-        try{
+        try {
             var formDataJson = JSON.parse(request.activity_timeline_collection);
-        }catch(exception){
+        } catch (exception) {
             console.log(exception);
         }
-        
+
         var isAddToTimeline = true;
         if (request.hasOwnProperty('flag_timeline_entry'))
             isAddToTimeline = (Number(request.flag_timeline_entry)) > 0 ? true : false;
@@ -77,11 +78,10 @@ function ActivityTimelineService(objectCollection) {
 
                             });
                         }
-                    }
-                    else{
+                    } else {
                         console.log('asset_reference is not availale')
                     }
-                    
+
 
                 }
             });
@@ -333,7 +333,15 @@ function ActivityTimelineService(objectCollection) {
     this.retrieveTimelineList = function (request, callback) {
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
-
+        if (Number(request.device_os_id) != 5) {
+            var pubnubMsg = {};
+            pubnubMsg.type = 'activity_unread';
+            pubnubMsg.organization_id = request.organization_id;
+            pubnubMsg.desk_asset_id = request.asset_id;
+            pubnubMsg.activity_type_category_id = request.activity_type_category_id || 0;
+            console.log('PubNub Message : ', pubnubMsg);
+            pubnubWrapper.push(request.asset_id, pubnubMsg);
+        }
         activityCommonService.resetAssetUnreadCount(request, 0, function (err, data) {});
         activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
         var activityTypeCategoryId = util.replaceZero(request.activity_type_category_id);
