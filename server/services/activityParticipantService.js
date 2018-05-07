@@ -94,13 +94,17 @@ function ActivityParticipantService(objectCollection) {
         var iterateAddParticipant = function (participantCollection, index, maxIndex, callback) {
 
             var participantData = participantCollection[index];
-            isParticipantAlreadyAssigned(participantData, request.activity_id, request, function (err, alreadyAssignedStatus, newRecordStatus) {
+            activityCommonService.isParticipantAlreadyAssigned(participantData, request.activity_id, request, function (err, alreadyAssignedStatus, newRecordStatus) {
                 if ((err === false) && (!alreadyAssignedStatus)) {
                     //proceed and add a participant
                     addParticipant(request, participantData, newRecordStatus, function (err, data) {
                         if (err === false) {
                             //console.log("participant successfully added");
                             global.logger.write('debug','participant successfully added', {},request)
+                            //check participant is active in last 48 hrs or not
+                            if(activityTypeCategroyId === 8 || activityTypeCategroyId === 28 || (activityTypeCategroyId === 10 && request.activity_sub_type_id === 1)){
+                                activityPushService.sendSMSNotification(request, objectCollection, participantData.asset_id, function () {});
+                            }
                             var nextIndex = index + 1;
                             if (nextIndex <= maxIndex) {
                                 loopAddParticipant(participantCollection, nextIndex, maxIndex);
@@ -223,6 +227,7 @@ function ActivityParticipantService(objectCollection) {
         }
 
         var logDatetime = util.getCurrentUTCTime();
+        var sendSMSNotification = 0;
         request['datetime_log'] = logDatetime;
         request['activity_streamtype_id'] = activityStreamTypeId;
         activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
@@ -700,50 +705,7 @@ function ActivityParticipantService(objectCollection) {
                 }
             });
         }
-    };
-
-    var isParticipantAlreadyAssigned = function (assetCollection, activityId, request, callback) {
-        var fieldId = 0;
-        if (assetCollection.hasOwnProperty('field_id')) {
-            fieldId = assetCollection.field_id;
-        }
-        var paramsArr = new Array(
-                activityId,
-                assetCollection.asset_id,
-                assetCollection.organization_id,
-                fieldId
-                );
-        var queryString = util.getQueryString("ds_v1_activity_asset_mapping_select_check_participant_appr", paramsArr);
-
-        if (queryString != '') {
-            db.executeQuery(1, queryString, request, function (err, data) {
-                if (err === false)
-                {
-                    //var queryStatus = (data.length > 0) ? (data[0]['log_state']< 3)?true:false : false;
-                    var queryStatus = false;
-                    var newRecordFalg = false;
-                    if (data.length > 0) {
-                        if (data[0]['log_state'] < 3) {
-                            queryStatus = true;
-                        } else {
-                            queryStatus = false;
-                            newRecordFalg = false;
-                        }
-                    } else {
-                        queryStatus = false;
-                        newRecordFalg = true;
-                    }
-                    callback(false, queryStatus, newRecordFalg);
-                    return;
-                } else {
-                    callback(err, false);
-                    //console.log(err);
-                    global.logger.write('serverError','' + err, request)
-                    return;
-                }
-            });
-        }
-    };
+    };   
 
     var activityAssetMappingInsertParticipantAssign = function (request, participantData, callback) {
         var fieldId = 0;

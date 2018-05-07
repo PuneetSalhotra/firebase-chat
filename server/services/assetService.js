@@ -1187,34 +1187,34 @@ function AssetService(objectCollection) {
 
     //PAM
     /*function assetListUpdateStatusPush(request, assetId){
-        return new Promise((resolve, reject)=>{
-            var paramsArr = new Array(
-                    assetId,
-                    request.organization_id,
-                    request.asset_clocked_status_id,
-                    request.asset_assigned_status_id,
-                    request.asset_session_status_id,
-                    request.track_gps_datetime,
-                    request.track_latitude,
-                    request.track_longitude,
-                    request.track_gps_accuracy,
-                    request.track_gps_status,
-                    request.track_gps_location,
-                    request.asset_id,
-                    request.datetime_log,
-                    request.logout_datetime,
-                    request.push_notification_id,
-                    request.asset_push_arn
-                    );
-            var queryString = util.getQueryString('ds_v1_asset_list_update_clocked_status_push', paramsArr);
-            if (queryString != '') {
-                db.executeQuery(0, queryString, request, function (err, assetData) {
-                    (err === false) ? resolve(false) : reject(err);
-                });
-            }
-        });        
-    };*/
-    
+     return new Promise((resolve, reject)=>{
+     var paramsArr = new Array(
+     assetId,
+     request.organization_id,
+     request.asset_clocked_status_id,
+     request.asset_assigned_status_id,
+     request.asset_session_status_id,
+     request.track_gps_datetime,
+     request.track_latitude,
+     request.track_longitude,
+     request.track_gps_accuracy,
+     request.track_gps_status,
+     request.track_gps_location,
+     request.asset_id,
+     request.datetime_log,
+     request.logout_datetime,
+     request.push_notification_id,
+     request.asset_push_arn
+     );
+     var queryString = util.getQueryString('ds_v1_asset_list_update_clocked_status_push', paramsArr);
+     if (queryString != '') {
+     db.executeQuery(0, queryString, request, function (err, assetData) {
+     (err === false) ? resolve(false) : reject(err);
+     });
+     }
+     });        
+     };*/
+
     var assetListUpdateLampStatus = function (request, assetId, callback) {
 
         var paramsArr = new Array(
@@ -1464,121 +1464,121 @@ function AssetService(objectCollection) {
 
     //PAM
     /*this.assetClockIn = function (request, callback) {
-        var dateTimeLog = util.getCurrentUTCTime();
-        request['datetime_log'] = dateTimeLog;
-        var response = {};
-
-        assetListSelectPasscode(request, function (err, resp) {
-            if (err === false) {
-                request['asset_assigned_status_id'] = 0;
-                request['asset_session_status_id'] = 0;
-
-                global.logger.writeSession(request.body);
-
-                sns.createPlatformEndPoint(Number(request.device_os_id), request.asset_token_push, function (err, endPointArn) {
-                    if (!err) {
-                        //console.log('success in creating platform end point : ' + endPointArn);
-                        global.logger.write('debug', 'success in creating platform end point', {}, request);
-                        request.push_notification_id = request.asset_token_push;
-                        request.asset_push_arn = endPointArn;
-                        assetListUpdateStatusPush(request, resp.asset_id).then(() => {
-                        });
-                    } else {
-                        console.log('problem in creating platform end point');
-                        global.logger.write('serverError', 'problem in creating platform end point', err, request);
-                    }
-                });
-
-                cacheWrapper.getAssetParity(resp.asset_id, (err, data) => {
-                    if (err === false) {
-                        response.asset_id = resp.asset_id;
-                        response.asset_message_counter = data;
-                        response.asset_encryption_token_id = resp.asset_encryption_token_id;
-                        
-                        pamGetEmpStations(request).then((data)=>{
-                            if(data.length > 0) {                
-                                forEachAsync(data, function (next, row) {                    
-                                    pamAssetListUpdateOperatingAsset(request, row.asset_id, 0).then(()=>{
-                                        pamAssetListHistoryInsert(request, 40, row.asset_id).then(()=>{ 
-                                            next();
-                                            });
-                                        });                        
-                                })
-                            } 
-                          }).then(()=>{
-                              callback(false, response, 200);
-                          }).catch((err)=>{
-                              callback(true, err, -9999);
-                          });                        
-                    } else {
-                        callback(false, {}, -7998);
-                    }
-                });
-
-            } else {
-                if (resp === 'wrongPasscode') {
-                    callback(err, {}, -3701);
-                } else {
-                    callback(err, {}, -9998);
-                }
-
-            }
-        });
-    };
-
-    //PAM
-    this.assetClockOut = function (request, callback) {
-        var dateTimeLog = util.getCurrentUTCTime();
-        request['datetime_log'] = dateTimeLog;
-        request['asset_assigned_status_id'] = 0;
-        request['asset_session_status_id'] = 0;
-        if (!request.hasOwnProperty('workstation_asset_id')) {
-            request.workstation_asset_id = 0;
-        }
-
-        console.log('assetClockOut : \n', request);
-        global.logger.writeSession(request.body);
-
-        request.push_notification_id = '';
-        request.asset_push_arn = '';
-        assetListUpdateStatusPush(request, request.asset_id).then(() => {
-            if (request.workstation_asset_id != 0) {
-                activityCommonService.pamAssetListUpdateOperatingAsset(request).then(() => {
-                    assetListHistoryInsert(request, request.workstation_asset_id, request.organization_id, 211, dateTimeLog, function (err, data) {});
-                });
-            }
-            callback(request.asset_id, {}, 200);
-        }).catch((err) => {
-            callback(err, {}, -9998);
-        });
-    };
-
-    //PAM
-    var assetListSelectPasscode = function (request, callback) {
-        var response = {};
-        var paramsArr = new Array(
-                request.organization_id,
-                request.passcode
-                );
-
-        var queryString = util.getQueryString('ds_v1_asset_list_select_passcode', paramsArr);
-        if (queryString != '') {
-            db.executeQuery(1, queryString, request, function (err, assetId) {
-                if (err === false) {
-                    //console.log('Asset Id : ' + JSON.stringify(assetId[0]));
-                    if (assetId.length > 0) {
-                        response.asset_id = assetId[0].asset_id;
-                        response.asset_encryption_token_id = assetId[0].asset_encryption_token_id;
-                        callback(false, response);
-                    } else {
-                        callback(true, 'wrongPasscode');
-                    }
-                } else {
-                    callback(true, err);
-                }
-            });
-        }
-    };*/
+     var dateTimeLog = util.getCurrentUTCTime();
+     request['datetime_log'] = dateTimeLog;
+     var response = {};
+     
+     assetListSelectPasscode(request, function (err, resp) {
+     if (err === false) {
+     request['asset_assigned_status_id'] = 0;
+     request['asset_session_status_id'] = 0;
+     
+     global.logger.writeSession(request.body);
+     
+     sns.createPlatformEndPoint(Number(request.device_os_id), request.asset_token_push, function (err, endPointArn) {
+     if (!err) {
+     //console.log('success in creating platform end point : ' + endPointArn);
+     global.logger.write('debug', 'success in creating platform end point', {}, request);
+     request.push_notification_id = request.asset_token_push;
+     request.asset_push_arn = endPointArn;
+     assetListUpdateStatusPush(request, resp.asset_id).then(() => {
+     });
+     } else {
+     console.log('problem in creating platform end point');
+     global.logger.write('serverError', 'problem in creating platform end point', err, request);
+     }
+     });
+     
+     cacheWrapper.getAssetParity(resp.asset_id, (err, data) => {
+     if (err === false) {
+     response.asset_id = resp.asset_id;
+     response.asset_message_counter = data;
+     response.asset_encryption_token_id = resp.asset_encryption_token_id;
+     
+     pamGetEmpStations(request).then((data)=>{
+     if(data.length > 0) {                
+     forEachAsync(data, function (next, row) {                    
+     pamAssetListUpdateOperatingAsset(request, row.asset_id, 0).then(()=>{
+     pamAssetListHistoryInsert(request, 40, row.asset_id).then(()=>{ 
+     next();
+     });
+     });                        
+     })
+     } 
+     }).then(()=>{
+     callback(false, response, 200);
+     }).catch((err)=>{
+     callback(true, err, -9999);
+     });                        
+     } else {
+     callback(false, {}, -7998);
+     }
+     });
+     
+     } else {
+     if (resp === 'wrongPasscode') {
+     callback(err, {}, -3701);
+     } else {
+     callback(err, {}, -9998);
+     }
+     
+     }
+     });
+     };
+     
+     //PAM
+     this.assetClockOut = function (request, callback) {
+     var dateTimeLog = util.getCurrentUTCTime();
+     request['datetime_log'] = dateTimeLog;
+     request['asset_assigned_status_id'] = 0;
+     request['asset_session_status_id'] = 0;
+     if (!request.hasOwnProperty('workstation_asset_id')) {
+     request.workstation_asset_id = 0;
+     }
+     
+     console.log('assetClockOut : \n', request);
+     global.logger.writeSession(request.body);
+     
+     request.push_notification_id = '';
+     request.asset_push_arn = '';
+     assetListUpdateStatusPush(request, request.asset_id).then(() => {
+     if (request.workstation_asset_id != 0) {
+     activityCommonService.pamAssetListUpdateOperatingAsset(request).then(() => {
+     assetListHistoryInsert(request, request.workstation_asset_id, request.organization_id, 211, dateTimeLog, function (err, data) {});
+     });
+     }
+     callback(request.asset_id, {}, 200);
+     }).catch((err) => {
+     callback(err, {}, -9998);
+     });
+     };
+     
+     //PAM
+     var assetListSelectPasscode = function (request, callback) {
+     var response = {};
+     var paramsArr = new Array(
+     request.organization_id,
+     request.passcode
+     );
+     
+     var queryString = util.getQueryString('ds_v1_asset_list_select_passcode', paramsArr);
+     if (queryString != '') {
+     db.executeQuery(1, queryString, request, function (err, assetId) {
+     if (err === false) {
+     //console.log('Asset Id : ' + JSON.stringify(assetId[0]));
+     if (assetId.length > 0) {
+     response.asset_id = assetId[0].asset_id;
+     response.asset_encryption_token_id = assetId[0].asset_encryption_token_id;
+     callback(false, response);
+     } else {
+     callback(true, 'wrongPasscode');
+     }
+     } else {
+     callback(true, err);
+     }
+     });
+     }
+     };*/
 
     //PAM
     this.assetStatsOnDutyTotal = function (request, callback) {
@@ -1935,8 +1935,63 @@ function AssetService(objectCollection) {
                 }
             })
         }
-    }
+    };
 
+  
+    this.getAverageAssetOwnerRating = function (request, callback) { 
+        var response = {};
+        var collection = {};
+        collection.flag_filter = 1;
+        collection.asset_id = request.asset_id;
+        collection.operating_asset_id = request.operating_asset_id;
+        collection.datetime_start = util.getStartDayOfWeek();
+        collection.datetime_end = util.getEndDayOfWeek(); // getting weekly data
+        activityCommonService.getAssetAverageRating(request, collection).then((weeklyAssetAverageRating) => {
+            response.weekly = {
+                activity_rating_creator_specification: util.replaceDefaultNumber(weeklyAssetAverageRating[0].activity_rating_creator_specification),
+                activity_rating_creator_decision: util.replaceDefaultNumber(weeklyAssetAverageRating[0].activity_rating_creator_decision),
+                activity_rating_creator_planning: util.replaceDefaultNumber(weeklyAssetAverageRating[0].activity_rating_creator_planning)
+            };
+            collection.datetime_start = util.getStartDateTimeOfMonth();
+            collection.datetime_end = util.getEndDateTimeOfMonth();
+            activityCommonService.getAssetAverageRating(request, collection).then((monthlyAssetAverageRating) => {
+                response.monthly = {
+                    activity_rating_creator_specification: util.replaceDefaultNumber(monthlyAssetAverageRating[0].activity_rating_creator_specification),
+                    activity_rating_creator_decision: util.replaceDefaultNumber(monthlyAssetAverageRating[0].activity_rating_creator_decision),
+                    activity_rating_creator_planning: util.replaceDefaultNumber(monthlyAssetAverageRating[0].activity_rating_creator_planning)
+                };
+                callback(false, response, 200);
+            });
+        });
+    };
+    
+    
+    this.getAverageAssetLeadRating = function (request, callback) { 
+        var response = {};
+        var collection = {};
+        collection.flag_filter = 0;
+        collection.asset_id = request.asset_id;
+        collection.operating_asset_id = request.operating_asset_id;
+        collection.datetime_start = util.getStartDayOfWeek();
+        collection.datetime_end = util.getEndDayOfWeek(); // getting weekly data
+        activityCommonService.getAssetAverageRating(request, collection).then((weeklyAssetAverageRating) => {
+            response.weekly = {
+                activity_rating_lead_completion: util.replaceDefaultNumber(weeklyAssetAverageRating[0].activity_rating_lead_completion),
+                activity_rating_lead_ownership: util.replaceDefaultNumber(weeklyAssetAverageRating[0].activity_rating_lead_ownership),
+                activity_rating_lead_timeliness: util.replaceDefaultNumber(weeklyAssetAverageRating[0].activity_rating_lead_timeliness)
+            };
+            collection.datetime_start = util.getStartDateTimeOfMonth();
+            collection.datetime_end = util.getEndDateTimeOfMonth();
+            activityCommonService.getAssetAverageRating(request, collection).then((monthlyAssetAverageRating) => {
+                response.monthly = {
+                    activity_rating_lead_completion: util.replaceDefaultNumber(monthlyAssetAverageRating[0].activity_rating_lead_completion),
+                    activity_rating_lead_ownership: util.replaceDefaultNumber(monthlyAssetAverageRating[0].activity_rating_lead_ownership),
+                    activity_rating_lead_timeliness: util.replaceDefaultNumber(monthlyAssetAverageRating[0].activity_rating_lead_timeliness)
+                };
+                callback(false, response, 200);
+            });
+        });
+    };
     this.updateAssetPushToken = function (request, callback) {
         var dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
@@ -1972,7 +2027,7 @@ function AssetService(objectCollection) {
             function callingNextFunction() {
                 assetListHistoryInsert(request, request.asset_id, request.organization_id, 201, dateTimeLog, function (err, data) {
                     if (err === false) {
-                        authTokenCollection.asset_id = request.asset_id;                        
+                        authTokenCollection.asset_id = request.asset_id;
                         cacheWrapper.setTokenAuth(request.asset_id, JSON.stringify(authTokenCollection), function (err, reply) {
                             if (!err) {
                                 callback(false, responseArr, 200);
@@ -1988,7 +2043,7 @@ function AssetService(objectCollection) {
                 });
             }
         }
-        
+
         if (request.hasOwnProperty('asset_token_push') && request.asset_token_push !== '' && request.asset_token_push !== null) {
             sns.createPlatformEndPoint(Number(request.device_os_id), request.asset_token_push, function (err, endPointArn) {
                 if (!err) {
