@@ -24,10 +24,14 @@ if (mode === 'dev') {
 
     config.redisIp = '127.0.0.1';
     config.redisPort = 6379;
+    
+    config.kafkaMsgUniqueIdValue = 'read';
 
-    //config.kafkaIP = "34.192.228.175:2181";
-    config.kafkaIP = 'localhost:2181';
+    config.kafkaIPOne = {kafkaHost: 'kafka1:9092'};
+    config.kafkaIPTwo = {kafkaHost: 'kafka1:9093'};
+    config.kafkaIPThree = {kafkaHost: 'kafka1:9094'};
     config.kafkaActivitiesTopic = 'desker-activities';
+    //config.kafkaActivitiesTopic = 'desker-test';
     config.kafkaFormWidgetTopic = 'desker-form-widgets';
     config.iosPushMode = 'dev';
 }
@@ -46,8 +50,11 @@ if (mode === 'prod') {
     config.redisIp = 'rediscluster1.apppnf.ng.0001.use1.cache.amazonaws.com';
     config.redisPort = 6379;
 
-    config.kafkaIP = 'localhost:2181';
+    config.kafkaIPOne = {kafkaHost: 'kafka1:9092'};
+    config.kafkaIPTwo = {kafkaHost: 'kafka1:9093'};
+    config.kafkaIPThree = {kafkaHost: 'kafka1:9094'};
     config.kafkaActivitiesTopic = 'desker-activities';
+    //config.kafkaActivitiesTopic = 'desker-test';
     config.kafkaFormWidgetTopic = 'desker-form-widgets';
     config.iosPushMode = 'prod';    // currently shouuld be in dev
 }
