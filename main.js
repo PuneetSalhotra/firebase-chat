@@ -18,6 +18,8 @@ var bodyParser = require('body-parser');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
+var kafkaIps = [global.config.kafkaIPOne,global.config.kafkaIPTwo,global.config.kafkaIPThree];
+var cnt = 0;
 var Util = require('./server/utils/util');
 var db = require("./server/utils/dbWrapper");
 var ResponseWrapper = require('./server/utils/responseWrapper');
@@ -26,7 +28,8 @@ var EncTokenInterceptor = require('./server/interceptors/encTokenInterceptor');
 var ControlInterceptor = require('./server/interceptors/controlInterceptor');
 var kafka = require('kafka-node');
 var KafkaProducer = kafka.Producer;
-var kafkaClient = new kafka.Client(global.config.kafkaIP);
+//var kafkaClient = new kafka.Client(global.config.kafkaIP);
+//var kafkaClient = new kafka.KafkaClient(global.config.kafkaIPOne,global.config.kafkaIPTwo,global.config.kafkaIPThree);
 var redis = require('redis');   //using elasticache as redis
 var redisClient = redis.createClient(global.config.redisPort, global.config.redisIp);
 var CacheWrapper = require('./server/utils/cacheWrapper');
@@ -35,8 +38,18 @@ var QueueWrapper = require('./server/queue/queueWrapper');
 var forEachAsync = require('forEachAsync').forEachAsync;
 var ActivityCommonService = require("./server/services/activityCommonService");
 redisClient.on('connect', function () {
+    connectToKafkaBroker(cnt);
+});
+
+redisClient.on('error', function (error) {
+    console.log(error);
+});
+
+function connectToKafkaBroker(cnt){
     console.log("redis is connected");
+    var kafkaClient = new kafka.KafkaClient({kafkaHost: '127.0.0.1:9092', requestTimeout: 30000});
     var kafkaProducer = new KafkaProducer(kafkaClient);
+    
     new Promise((resolve, reject) => {
         if (kafkaProducer.ready)
             return resolve();
@@ -66,11 +79,17 @@ redisClient.on('connect', function () {
     });
 
     kafkaProducer.on('error', function (error) {
-        console.log(error);
+        console.log(error);        
+        if(error.code === 'ECONNREFUSED') {            
+            (cnt == 2) ? cnt = 0: cnt++;
+            console.log('cnt : ', cnt);
+            connectToKafkaBroker(cnt);
+        }
     });
-
-});
-
-redisClient.on('error', function (error) {
-    console.log(error);
-});
+    
+    kafkaProducer.on('brokersChanged', function (error) {
+        console.log('brokersChanged : ', error);
+    });
+    
+    
+}

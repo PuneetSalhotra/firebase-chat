@@ -143,6 +143,7 @@ function ActivityService(objectCollection) {
                             if(activityTypeCategroyId === 10 && request.hasOwnProperty('owner_asset_id')) {
                                     if(request.owner_asset_id !== request.asset_id){
                                         activityPushService.sendPush(request, objectCollection, 0, function () {});
+                                        activityCommonService.updateParticipantCount(request.activity_id, request.organization_id, request, function (err, data) { });
                                     }
                                 }
                             // do the timeline transactions here..                    
@@ -241,20 +242,17 @@ function ActivityService(objectCollection) {
         var activitySubTypeName = (request.hasOwnProperty('activity_sub_type_name')) ? request.activity_sub_type_name : '';
         var expiryDateTime = (request.hasOwnProperty('expiry_datetime')) ? request.expiry_datetime : '';
         var itemOrderCount = (request.hasOwnProperty('item_order_count')) ? request.item_order_count : '0';        
-        
-        console.log('activityTypeCategoryId : ', activityTypeCategoryId);
-        console.log('activityTypeCategoryId type : ', typeof activityTypeCategoryId);
-        
+             
         if(activityTypeCategoryId === 38){
             console.log('Inside sendPush');
             sendPushPam(request).then(()=>{}); 
         }
         
-        new Promise((resolve, reject)=>{
-            if(activityTypeCategoryId === 37) { //PAM
+        new Promise((resolve, reject)=>{            
+            if(activityTypeCategoryId === 37 && !request.hasOwnProperty('member_code')) { //PAM
                 var reserveCode;
                 function generateUniqueCode() {
-                    reserveCode = util.randomInt(1111,9999).toString();
+                    reserveCode = util.randomInt(5001,9999).toString();
                     activityCommonService.checkingUniqueCode(request,reserveCode, (err, data)=>{
                     if(err === false) {
                         console.log('activitySubTypeName : ' + data);
@@ -277,9 +275,24 @@ function ActivityService(objectCollection) {
                     });
                 }
                generateUniqueCode(); 
-            } else {
-                return resolve();
-            }
+            } else if(activityTypeCategoryId === 37 && request.hasOwnProperty('member_code')) {
+                    activitySubTypeName = request.member_code;
+                    responseactivityData.reservation_code = request.member_code;
+                    activityCommonService.getActivityDetails(request, request.activity_parent_id, function(err, resp){
+                                if(err === false) {
+                                    var eventStartDateTime = util.replaceDefaultDatetime(resp[0].activity_datetime_start_expected);                                                                                                
+                                    (Math.sign(util.differenceDatetimes(eventStartDateTime ,request.datetime_log)) === 1) ? 
+                                                       expiryDateTime = util.addUnitsToDateTime(eventStartDateTime,6.5,'hours') :
+                                                       expiryDateTime = util.addUnitsToDateTime(request.datetime_log,6.5,'hours');                                           
+                                    return resolve();
+                                } else {
+                                    return resolve();
+                                }
+                            });
+                } else {
+                    return resolve();
+                }                
+            
         }).then(()=>{
           switch (activityTypeCategoryId) {
             case 2:    // notepad
@@ -613,7 +626,7 @@ function ActivityService(objectCollection) {
                         var queryString = util.getQueryString('ds_v1_activity_asset_mapping_insert_asset_assign_appr', paramsArr1);
                         if (queryString !== '') {
                                 db.executeQuery(0, queryString, request, function (err, data) {
-                                if (err === false) {
+                                if (err === false) {                                    
                                     callback(false, true);
                                     return;
                                 } else {
@@ -1128,11 +1141,13 @@ function ActivityService(objectCollection) {
     
     function updateStatusDateTimes(request) {
         return new Promise((resolve, reject)=>{
+            var servedAtBar = (request.hasOwnProperty('served_at_bar'))? request.served_at_bar : 0;            
             var paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.activity_id,
                 request.activity_status_type_id,
+                servedAtBar,
                 request.asset_id,
                 request.datetime_log
                 );
@@ -1143,7 +1158,7 @@ function ActivityService(objectCollection) {
                         activityCommonService.getAllParticipants(request, function(err, participantData){
                             if(err === false){
                                 forEachAsync(participantData, function (next, x) {
-                                    updateStatusDttmsParticipants(request, x.asset_id).then(()=>{
+                                    updateStatusDttmsParticipants(request, x.asset_id, servedAtBar).then(()=>{
                                         next();
                                     });                                    
                                     }).then(()=>{
@@ -1162,7 +1177,7 @@ function ActivityService(objectCollection) {
         
     };
     
-    function updateStatusDttmsParticipants(request, assetId){
+    function updateStatusDttmsParticipants(request, assetId, servedAtBar){
         return new Promise((resolve, reject)=>{
             var paramsArr = new Array(
                 request.organization_id,
@@ -1170,6 +1185,7 @@ function ActivityService(objectCollection) {
                 request.activity_id,
                 assetId, //p_asset_id
                 request.activity_status_type_id,
+                servedAtBar,
                 request.asset_id, //log_asset_id
                 request.datetime_log
                 );

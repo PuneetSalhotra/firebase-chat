@@ -10,7 +10,10 @@ function PamController(objCollection) {
     var responseWrapper = objCollection.responseWrapper;
     var app = objCollection.app;
     var pamService = new PamService(objCollection);
-    var util = objCollection.util;    
+    var util = objCollection.util;
+    var cacheWrapper = objCollection.cacheWrapper;
+    
+    var queueWrapper = objCollection.queueWrapper;
 
     //IVR Service
     app.post('/' + global.config.version + '/pam/ivr', function (req, res) {
@@ -274,6 +277,70 @@ function PamController(objCollection) {
         });
     });  
     
+    app.put('/' + global.config.version + '/pam/cover/inline/alter', function (req, res) {
+        pamService.coverInlineAlter(req.body, function (err, data, statusCode) {
+            if (err === false) {    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {                
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    app.post('/' + global.config.version + '/pam/get/event/details', function (req, res) {
+        pamService.getEventDetails(req.body, function (err, data, statusCode) {
+            if (err === false) {    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {                
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    app.post('/' + global.config.version + '/pam/member/passcode/send', function (req, res) {
+        pamService.sendMemberPassCode(req.body, function (err, data, statusCode) {
+            if (err === false) {    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {                
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    app.put('/' + global.config.version + '/pam/activity/status_pay/alter', function (req, res) {
+        pamService.paymentStatusAlter(req.body, function (err, data, statusCode) {
+            if (err === false) {    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {                
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    
+    app.post('/' + global.config.version + '/nani/kalyan/set', function (req, res) {
+        cacheWrapper.setKafkaMessageUniqueId('deskeractivities_0_77', 'read', function(err, resp){
+            if(err === false) {
+                console.log('Created ' + resp);            
+            } else {
+                console.log('Not created : ' + err);
+            }
+        })
+    });
+    
+    app.post('/' + global.config.version + '/nani/kalyan/get', function (req, res) {
+        cacheWrapper.getKafkaMessageUniqueId('deskeractivities_0_78',function(err, resp){
+            if(err === false) {
+                console.log('Retrieved value ' + resp);
+            } else {
+                console.log('Not created : ' + err);
+            }
+        });
+    });
 }
 ;
 module.exports = PamController;

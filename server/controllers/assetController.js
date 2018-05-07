@@ -334,21 +334,6 @@ function AssetController(objCollection) {
     });
     
     //PAM
-    app.post('/' + global.config.version + '/asset/access/account/list', function (req, res) {
-        assetService.assetAccountListDiff(req.body, function (err, data, statusCode) {
-            if (err === false) {
-                // got positive response    
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
-
-            } else {
-                //console.log('did not get proper rseponse');
-                data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
-            }
-        });
-    });
-    
-    //PAM
     app.put('/' + global.config.version + '/asset/status/alter', function (req, res) {
           assetService.removeAsset(req.body, function (err, data, statusCode) {
             if (err === false) {

@@ -229,14 +229,19 @@ function ActivityParticipantService(objectCollection) {
         var index = 0;
         var activityParticipantCollection = JSON.parse(request.activity_participant_collection);
         var maxIndex = activityParticipantCollection.length - 1;
-        //var maxIndex = request.activity_participant_collection.length - 1;        
-        iterateAddParticipant(activityParticipantCollection, index, maxIndex, function (err, data) {
+        //var maxIndex = request.activity_participant_collection.length - 1;                
+        iterateAddParticipant(activityParticipantCollection, index, maxIndex, function (err, data) {            
+            if(activityTypeCategroyId == 37) {                    
+                    var newRequest = Object.assign({}, request);
+                    activityCommonService.sendSmsCodeParticipant(newRequest, function(err, data){});
+                }
+                
             if (err === false && data === true) {
-                //callback(false, {}, 200);
+                //callback(false, {}, 200);                
                 if (maxIndex === index) {
                     updateParticipantCount(request.activity_id, request.organization_id, request, function (err, data) { });
                     activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
-              }
+                }                
             } else {
                 //console.log("something is not wright in adding a participant");
                 global.logger.write('serverError','something is not wright in adding a participant', {},request)
@@ -773,10 +778,10 @@ function ActivityParticipantService(objectCollection) {
                 if (err === false)
                 {
                     //PAM
-                    if(request.activity_type_category_id == 37 && participantData.asset_category_id == 30) {
+                    /*if(request.activity_type_category_id == 37 && participantData.asset_category_id == 30) {
                         console.log('data[0].dateTimeEndEstimatedActivity : ' + data[0].dateTimeEndEstimatedActivity);
                         var expDatetime = util.replaceDefaultDatetime(data[0].dateTimeEndEstimatedActivity);
-                        expDatetime = util.addUnitsToDateTime(expDatetime,6.5,'hours');
+                        //expDatetime = util.addUnitsToDateTime(expDatetime,6.5,'hours');
                         console.log('EXP DATE : ' + expDatetime);
                         
                         if(expDatetime == "Invalid date"){
@@ -786,7 +791,7 @@ function ActivityParticipantService(objectCollection) {
                         smsText+= " . Note that this reservation code is only valid till "+ expDatetime + " .";
                         console.log('SMS text : \n', smsText);
                         util.pamSendSmsMvaayoo(smsText, data[0].countryCode, data[0].phoneNumber, function(err,res){});
-                    }                  
+                    }*/                  
                     callback(false, true);
                     return;
                 } else {

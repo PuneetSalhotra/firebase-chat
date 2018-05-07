@@ -68,7 +68,9 @@ function ActivityController(objCollection) {
                                     res.send(responseWrapper.getResponse(false, {activity_id: activityId}, 200,req.body));
                                     return;
                                 } else {
-                                    res.send(responseWrapper.getResponse(false, {activity_id: 0}, -7998,req.body));
+                                    (activityId === 0 ) ? 
+                                        res.send(responseWrapper.getResponse(false, {activity_id: 0}, -7998,req.body)):
+                                        res.send(responseWrapper.getResponse(false, {activity_id: 0}, -5998,req.body));                                            
                                     return;
                                 }
                             });
@@ -88,7 +90,9 @@ function ActivityController(objCollection) {
                                         if (err === false) {
                                             res.send(responseWrapper.getResponse(false, {activity_id: activityId, form_transaction_id: formTransactionId}, 200,req.body));
                                         } else {
-                                            res.send(responseWrapper.getResponse(false, {activity_id: 0}, -7998,req.body));
+                                            (activityId === 0 ) ?
+                                                res.send(responseWrapper.getResponse(false, {activity_id: 0}, -7998,req.body)):
+                                                res.send(responseWrapper.getResponse(false, {activity_id: 0}, -5998,req.body));
                                         }
                                     });
                                 }
@@ -99,19 +103,12 @@ function ActivityController(objCollection) {
                                 if (err === false) {
                                     res.send(responseWrapper.getResponse(false, {activity_id: activityId, message_unique_id: req.body.message_unique_id}, 200, req.body));
                                 } else {
-                                    res.send(responseWrapper.getResponse(false, {activity_id: 0, message_unique_id: req.body.message_unique_id}, -7998, req.body));
+                                    (activityId === 0 ) ?
+                                        res.send(responseWrapper.getResponse(false, {activity_id: 0, message_unique_id: req.body.message_unique_id}, -7998, req.body)):
+                                        res.send(responseWrapper.getResponse(false, {activity_id: 0, message_unique_id: req.body.message_unique_id}, -5998, req.body));
                                 }
                             });
                             break;
-                        /*case 42: //Enquiry PAM
-                             addActivity(req.body, function (err, activityId) {
-                                if (err === false) {
-                                    res.send(responseWrapper.getResponse(false, {activity_id: activityId}, 200, req.body));
-                                } else {
-                                    res.send(responseWrapper.getResponse(false, {activity_id: 0}, -7998, req.body));
-                                }
-                            });
-                            break;*/
                         case 37: //Reservation PAM                   
                             cacheWrapper.getActivityId(function (err, activityId) {
                                    if (err) {
@@ -120,6 +117,7 @@ function ActivityController(objCollection) {
                                         callback(true, 0);
                                         return;
                                     } else { 
+                                        console.log('Request Parameters : ' + req.body);
                                         req.body.activity_id = activityId;
                                     activityService.addActivity(req.body, function (err, data, statusCode) {
                                          if (err === false) {
@@ -146,7 +144,9 @@ function ActivityController(objCollection) {
                                            if (err === false) {
                                                res.send(responseWrapper.getResponse(false, {activity_id: activityId}, 200, req.body));
                                            } else {
-                                               res.send(responseWrapper.getResponse(false, {activity_id: 0}, -7998, req.body));
+                                               (activityId === 0 ) ?
+                                               res.send(responseWrapper.getResponse(false, {activity_id: 0}, -7998, req.body)):
+                                               res.send(responseWrapper.getResponse(false, {activity_id: 0}, -5998, req.body));
                                            }
                                     });
                                 }
@@ -160,7 +160,9 @@ function ActivityController(objCollection) {
                                 if (err === false) {
                                     res.send(responseWrapper.getResponse(false, {activity_id: activityId}, 200, req.body));
                                 } else {
-                                    res.send(responseWrapper.getResponse(false, {activity_id: 0}, -7998, req.body));
+                                    (activityId === 0 ) ?
+                                        res.send(responseWrapper.getResponse(false, {activity_id: 0}, -7998, req.body)):
+                                        res.send(responseWrapper.getResponse(false, {activity_id: 0}, -5998, req.body));
                                 }
                             });
                             break;
@@ -232,7 +234,9 @@ function ActivityController(objCollection) {
                 queueWrapper.raiseActivityEvent(event, activityId, (err, resp)=>{
                         if(err) {
                             //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                            global.logger.write('serverError','Error in queueWrapper raiseActivityEvent',resp,req);
+                            //global.logger.write('serverError','Error in queueWrapper raiseActivityEvent',resp,req);
+                            callback(true, 1);
+                            
                         } else {
                             if (req.hasOwnProperty('device_os_id')) {
                                 if (Number(req.device_os_id) !== 5) {
@@ -248,12 +252,15 @@ function ActivityController(objCollection) {
                                     });
                                 }
                             }
+                            console.log("new activityId is : " + activityId);
+                            global.logger.write('debug',"new activityId is :" + activityId,{},req);
+                            callback(false, activityId);
                         }
                 });
                 
-                console.log("new activityId is : " + activityId);
+                /*console.log("new activityId is : " + activityId);
                 global.logger.write('debug',"new activityId is :" + activityId,{},req);
-                callback(false, activityId);
+                callback(false, activityId);*/
                 }
 
         });
@@ -280,7 +287,9 @@ function ActivityController(objCollection) {
             queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp)=>{
                         if(err) {
                             //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                            global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req.body);
+                            //global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req.body);
+                            res.send(responseWrapper.getResponse(true, activityData, -5999,req.body));
+                            throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                         } else {
                             if (req.hasOwnProperty('device_os_id')) {
                                 if (Number(req.device_os_id) !== 5) {
@@ -296,10 +305,11 @@ function ActivityController(objCollection) {
                                     });
                                 }
                             }
+                            res.send(responseWrapper.getResponse(false, activityData, 200,req.body));
                         }
                 });
-            res.send(responseWrapper.getResponse(false, activityData, 200,req.body));
-            return;
+            //res.send(responseWrapper.getResponse(false, activityData, 200,req.body));
+            //return;
         };
         if (util.hasValidGenericId(req.body, 'activity_type_category_id')) {
             if (util.hasValidGenericId(req.body, 'activity_id')) {

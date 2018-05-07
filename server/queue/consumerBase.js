@@ -20,6 +20,7 @@ class ConsumerBase {
     constructor(opts) {
         this.partition = opts.partition || 0;
         this.topic = opts.topic;
+        
         this.kafkaConsumer = new KafkaConsumer(kafkaClient,
             [{topic: this.topic, partition: this.partition}],
             {
@@ -36,6 +37,7 @@ class ConsumerBase {
             sns,
             pubnubWrapper
         });
+        
         this.kafkaConsumer.on('connect', this.onConnect.bind(this));
         this.kafkaConsumer.on('message', this.processMessage.bind(this));
         this.kafkaConsumer.on('error', this.onError.bind(this));

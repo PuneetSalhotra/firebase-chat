@@ -1159,6 +1159,202 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
     };
     
+    this.sendSmsCodeParticipant = function(request, callback){
+            var reservationCode;
+            var expiryDatetime;
+            var tableNames = "";
+            var noOfGuests = 0;
+            var cnt = 0;
+            
+            var memberName;
+            var countryCode;
+            var phoneNumber;                      
+       
+            var participantData = JSON.parse(request.activity_participant_collection);
+                    forEachAsync(participantData, function (next, row) {
+                        cnt++;                                              
+                        if(row.asset_category_id == 30){
+                            pamGetActivityDetails(request).then((resp)=>{                               
+                                reservationCode = resp[0].activity_sub_type_name;
+                                expiryDatetime = util.replaceDefaultDatetime(resp[0].activity_datetime_end_estimated);
+                                
+                                request.work_station_asset_id = row.asset_id;
+                                pamGetAssetDetails(request).then((data)=>{                                        
+                                    phoneNumber = util.replaceDefaultNumber(data[0].asset_phone_number);
+                                    countryCode = util.replaceDefaultNumber(data[0].asset_phone_country_code);
+                                    memberName = util.replaceDefaultString(data[0].asset_first_name);
+                                    next();
+                                });                            
+                            });                           
+                                                     
+                        } else if(row.asset_category_id == 31){
+                                request.work_station_asset_id = row.asset_id;
+                                    pamGetAssetDetails(request).then((data)=>{
+                                        tableNames += data[0].asset_first_name + "-";
+                                        
+                                        console.log('data[0].asset_inline_data : ' , data[0].asset_inline_data);
+                                        var inlineJson = JSON.parse(data[0].asset_inline_data);
+                                        noOfGuests += util.replaceDefaultNumber(inlineJson.element_cover_capacity);
+                                        next();
+                                    });
+                                                              
+                        } else {
+                            next();
+                        }                       
+                        
+                    }).then(() => {
+                         noOfGuests--;
+                         var text;
+                         console.log('memberName : ', memberName);
+                         console.log('countryCode: ', countryCode);
+                         console.log('phoneNumber : ', phoneNumber);
+                         
+                         var expiryDateTime = util.addUnitsToDateTime(util.replaceDefaultDatetime(request.event_start_datetime),5.5,'hours');
+                         expiryDateTime = util.getDatewithndrdth(expiryDateTime);
+                         
+                         if(request.hasOwnProperty('reserv_at_item_order')) {
+                            text = "Dear "+memberName+","+" Your code was used to make an order a few minutes ago.";
+                             text += " If you are not at Pudding & Mink right now, please whatsapp / call us at 916309386175 immediately. Pudding & Mink";
+                         } else {
+                            text = "Dear "+memberName+","+" I have reserved table number "+tableNames+" for your group tonight, your reservation code is "+reservationCode+".";
+                             text += " Feel free to forward this message to your other "+noOfGuests+" guests, they can use the same code to enter.";
+                             text += " Remember the entry is only from the parking garage @ Radisson Blu Banjara Hills. Looking forward to hosting your group on ";
+                             text += expiryDateTime + ".";
+                             //text += " PS - I will be forced to release the table block if no one shows up before "+expiryDatetime+"."+" -PAM";
+                             text += " Pudding & Mink";                             
+                         }
+                         console.log('SMS text : \n', text);
+                         util.pamSendSmsMvaayoo(text, countryCode, phoneNumber, function(err,res){
+                                if(err === false) {
+                                    console.log('Message sent!',res);
+                                 }
+                         });
+                         util.pamSendSmsMvaayoo(text, 91, 6309386175, function(err,res){
+                                if(err === false) {
+                                    console.log('Message sent to Admin!', res);
+                                }                                     
+                             });
+                         return callback(false, 200);
+                         });                             
+                
+   };
+   
+   function pamGetAssetDetails(request) {
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                351, //request.organization_id,
+                request.work_station_asset_id
+                );
+            var queryString = util.getQueryString('ds_v1_asset_list_select', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {                    
+                    (err === false)? resolve(data) : reject(err);
+                });
+            }
+        });
+    };
+    
+    function pamGetActivityDetails(request){
+        return new Promise((resolve, reject)=>{
+            var paramsArr;
+            paramsArr = new Array(
+                        request.activity_id,
+                        request.organization_id
+                        );
+
+            var queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false)? resolve(data) : reject(err);
+                });
+            }
+        });        
+    };
+    
+    this.updateParticipantCount = function (activityId, organizationId, request, callback) {
+        var paramsArr = new Array(
+                activityId,
+                organizationId
+                );
+        var queryString = util.getQueryString("ds_v1_activity_asset_mapping_select_participant_count", paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (err === false)
+                {
+                    var participantCount = data[0].participant_count;
+                    console.log('participant count retrieved from query is: ' + participantCount);
+                    global.logger.write('debug','participant count retrieved from query is: ' + participantCount, request)
+                    paramsArr = new Array(
+                            activityId,
+                            organizationId,
+                            participantCount
+                            );
+                    queryString = util.getQueryString("ds_v1_1_activity_list_update_participant_count", paramsArr);
+                    if (queryString != '') {
+                        db.executeQuery(0, queryString, request, function (err, data) {
+                            if (err === false)
+                            {
+                                getAllParticipantsforTasks(request).then((participantsData)=>{                                   
+                                    if (participantsData.length > 0) {
+                                        participantsData.forEach(function (rowData, index) {
+                                            paramsArr = new Array(
+                                                    activityId,
+                                                    rowData.asset_id,
+                                                    request.organization_id,
+                                                    participantCount,
+                                                    request.datetime_log
+                                                    );
+                                            queryString = util.getQueryString('ds_v1_1_activity_asset_mapping_update_participant_count', paramsArr);
+                                            if (queryString != '') {
+                                                db.executeQuery(0, queryString, request, function (err, data) {
+                                                    (err === false) ? callback(true, false) : callback(true, false);                                                    
+                                                });
+                                            }
+                                        });
+                                        
+                                        callback(false, true);
+                                    } else {
+                                        callback(true, false);
+                                    }                                    
+                                });
+                                
+                                callback(false, true);
+                                return;
+                            } else {
+                                callback(err, false);
+                                //console.log(err);
+                                global.logger.write('serverError','' + err, request)
+                                return;
+                            }
+                        });
+                    }
+                } else {
+                    callback(err, false);
+                    //console.log(err);
+                    global.logger.write('serverError','' + err, request)
+                    return;
+                }
+            });
+        }
+    };
+    
+    function getAllParticipantsforTasks(request){
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                request.activity_id,
+                request.organization_id,
+                0,
+                50
+                );
+            var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_participants', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data) : reject(err);
+                });
+            }
+        });        
+    };
+    
 }
 ;
 

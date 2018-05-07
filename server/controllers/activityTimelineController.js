@@ -35,7 +35,9 @@ function ActivityTimelineController(objCollection) {
             queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp)=>{
                         if(err) {
                             //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                            global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);
+                            //global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);                            
+                            res.send(responseWrapper.getResponse(true, {}, -5999,req.body));
+                            throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                         } else {
                             if (req.hasOwnProperty('device_os_id')) {
                                 if (Number(req.device_os_id) !== 5) {
@@ -51,13 +53,18 @@ function ActivityTimelineController(objCollection) {
                                     });
                                 }
                             }
+                            if (formTransactionId > 0)
+                                res.send(responseWrapper.getResponse(false, {form_transaction_id: formTransactionId}, 200,req.body));
+                            else
+                                res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                            return;
                         }
                 });
-            if (formTransactionId > 0)
+            /*if (formTransactionId > 0)
                 res.send(responseWrapper.getResponse(false, {form_transaction_id: formTransactionId}, 200,req.body));
             else
                 res.send(responseWrapper.getResponse(false, {}, 200,req.body));
-            return;
+            return;*/
         };
         if (req.body.hasOwnProperty('activity_stream_type_id') && req.body.activity_stream_type_id > 0) {
             if (util.hasValidActivityId(req.body)) {
@@ -166,7 +173,9 @@ function ActivityTimelineController(objCollection) {
             queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp)=>{
                         if(err) {
                             //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                            global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);
+                            //global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);
+                            res.send(responseWrapper.getResponse(true, {}, -5998,req.body));
+                            throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                         } else {
                             if (req.hasOwnProperty('device_os_id')) {
                                 if (Number(req.device_os_id) !== 5) {
@@ -182,10 +191,12 @@ function ActivityTimelineController(objCollection) {
                                     });
                                 }
                             }
+                            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                            return;
                         }
                 });
-            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
-            return;
+            //res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+            //return;
         };
         if (util.hasValidActivityId(req.body)) {
             if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5) {
