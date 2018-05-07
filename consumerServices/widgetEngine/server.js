@@ -26,8 +26,4 @@ if (cluster.isMaster) {
     };
     new WidgetEngineConsumer(options);
     
-    http.createServer((req, res) => {
-        res.writeHead(200);
-        res.end('I am alive\n');
-  }).listen(2222);
 }
