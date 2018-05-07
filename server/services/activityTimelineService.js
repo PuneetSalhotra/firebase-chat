@@ -342,7 +342,9 @@ function ActivityTimelineService(objectCollection) {
             console.log('PubNub Message : ', pubnubMsg);
             pubnubWrapper.push(request.asset_id, pubnubMsg);
         }
-        activityCommonService.resetAssetUnreadCount(request, 0, function (err, data) {});
+        if(Number(request.activity_type_category_id) !== 8){
+            activityCommonService.resetAssetUnreadCount(request, 0, function (err, data) {});
+        }      
         activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
         var activityTypeCategoryId = util.replaceZero(request.activity_type_category_id);
         if (activityTypeCategoryId > 0) {

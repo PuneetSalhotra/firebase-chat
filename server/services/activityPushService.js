@@ -326,6 +326,7 @@ function ActivityPushService(objectCollection) {
                                     switch (data.asset_session_status_id) {
                                         case 8:
                                             pushReceivers.push({assetId: rowData['asset_id'], organizationId: rowData['organization_id'], pushType: 'sns'});
+                                            pushReceivers.push({assetId: rowData['asset_id'], organizationId: rowData['organization_id'], pushType: 'pub'});
                                             break;
                                         case 9 :
                                             pushReceivers.push({assetId: rowData['asset_id'], organizationId: rowData['organization_id'], pushType: 'pub'});
@@ -349,6 +350,7 @@ function ActivityPushService(objectCollection) {
                                     switch (data.asset_session_status_id) {
                                         case 8:
                                             pushReceivers.push({assetId: rowData['asset_id'], organizationId: rowData['organization_id'], pushType: 'sns'});
+                                            pushReceivers.push({assetId: rowData['asset_id'], organizationId: rowData['organization_id'], pushType: 'pub'});
                                             break;
                                         case 9 :
                                             pushReceivers.push({assetId: rowData['asset_id'], organizationId: rowData['organization_id'], pushType: 'pub'});

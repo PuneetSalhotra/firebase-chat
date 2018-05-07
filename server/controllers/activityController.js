@@ -344,6 +344,26 @@ function ActivityController(objCollection) {
             }
         });
     });
+    
+    app.put('/' + global.config.version + '/activity/access/owner_rating/set', function (req, res) {
+        activityService.updateOwnerRating(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    app.put('/' + global.config.version + '/activity/access/lead_rating/set', function (req, res) {
+        activityService.updateLeadRating(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
  
 }
 ;

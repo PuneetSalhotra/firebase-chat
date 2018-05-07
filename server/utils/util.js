@@ -315,6 +315,11 @@ function Util() {
         return value;
     };
     
+    this.getEndDayOfWeek = function () {
+        var value = moment().endOf('week').format("YYYY-MM-DD");
+        return value;
+    };
+    
     this.getStartDayOfPrevWeek = function () {
         var value = moment().startOf('week').add(1, 'days').subtract(7, 'days').format("YYYY-MM-DD");
         return value;

@@ -91,7 +91,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 } else {
                     callback(true, false);
                     //console.log(err);
-                    global.logger.write('serverError','',err, request)
+                    global.logger.write('serverError', '', err, request)
                     return;
                 }
             });
@@ -910,7 +910,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
 
     };
-    
+
     //PAM
     this.inventoryCheck = function (request, activityId, callback) {
         var paramsArr = new Array();
@@ -929,125 +929,127 @@ function ActivityCommonService(db, util, forEachAsync) {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
                     console.log('DAta in inventory check : ', data);
-                    if(data.length > 0) {
+                    if (data.length > 0) {
                         var ingredients = new Array();
                         forEachAsync(data, function (next, x) {
-                        var items = {
-                                'ingredient_asset_id':x.asset_id,
+                            var items = {
+                                'ingredient_asset_id': x.asset_id,
                                 'channel_activity_type_category_id': x.channel_activity_type_category_id,
-                                'activity_sub_type_id' : x.activity_sub_type_id
+                                'activity_sub_type_id': x.activity_sub_type_id
                             };
-                            
+
                             ingredients.push(items);
                             next();
-                        }).then(()=>{
-                            if(ingredients.length > 0) {
-                                    ingredients = util.getUniqueValuesOfArray(ingredients);
-                                    //console.log('Ingredients : ')
-                                    //console.log(ingredients);
-                                    //console.log('=============================')
-                                    var stationIdArrays = new Array();
-                                    var tempArray = new Array();                                    
-                                    forEachAsync(ingredients, function (next, x) {
-                                        getArrayOfStationIds(request, x).then((data)=>{ 
-                                                data = util.getUniqueValuesOfArray(data);
-                                                stationIdArrays.push(data);
-                                                tempArray = tempArray.concat(data);
-                                                next();
-                                            });
-                                            
-                                    }).then(()=>{
-                                        console.log('stationIdArrays: ', stationIdArrays);
-                                        console.log('TempArray: ', tempArray);
-                                        tempArray.forEach(function(item, index){
-                                            //console.log('util.getFrequency(item'+item+',tempArray) : ' , util.getFrequency(item, tempArray))
-                                            //console.log('stationIdArrays.length : ', stationIdArrays.length)
-                                            if(util.getFrequency(item, tempArray) == stationIdArrays.length) {
-                                                responseArray.push(item);
-                                            }
-                                        });
-                                        
-                                        (responseArray.length > 0) ? callback(false, true, responseArray) : callback(false, false, responseArray);
-                                       });
-                                    
-                                    }
-                                 });
-                                            
-            } else {
-                callback(false, true, responseArray)
-            }                                                        
-               } else {
+                        }).then(() => {
+                            if (ingredients.length > 0) {
+                                ingredients = util.getUniqueValuesOfArray(ingredients);
+                                //console.log('Ingredients : ')
+                                //console.log(ingredients);
+                                //console.log('=============================')
+                                var stationIdArrays = new Array();
+                                var tempArray = new Array();
+                                forEachAsync(ingredients, function (next, x) {
+                                    getArrayOfStationIds(request, x).then((data) => {
+                                        data = util.getUniqueValuesOfArray(data);
+                                        stationIdArrays.push(data);
+                                        tempArray = tempArray.concat(data);
+                                        next();
+                                    });
+
+                                }).then(() => {
+                                    console.log('stationIdArrays: ', stationIdArrays);
+                                    console.log('TempArray: ', tempArray);
+                                    tempArray.forEach(function (item, index) {
+                                        //console.log('util.getFrequency(item'+item+',tempArray) : ' , util.getFrequency(item, tempArray))
+                                        //console.log('stationIdArrays.length : ', stationIdArrays.length)
+                                        if (util.getFrequency(item, tempArray) == stationIdArrays.length) {
+                                            responseArray.push(item);
+                                        }
+                                    });
+
+                                    (responseArray.length > 0) ? callback(false, true, responseArray) : callback(false, false, responseArray);
+                                });
+
+                            }
+                        });
+
+                    } else {
+                        callback(false, true, responseArray)
+                    }
+                } else {
                     callback(err, false, -9999);
                     return;
                 }
             });
         }
     };
-    
-    
-    function getArrayOfStationIds (request, ingredients) {
-        return new Promise((resolve, reject)=>{
+
+
+    function getArrayOfStationIds(request, ingredients) {
+        return new Promise((resolve, reject) => {
             var qty = request.hasOwnProperty('item_quantity') ? request.item_quantity : 1;
-            qty *= ingredients.activity_sub_type_id;            
+            qty *= ingredients.activity_sub_type_id;
             var stationAssetId = request.hasOwnProperty('station_asset_id') ? request.station_asset_id : 0;
-            var response = new Array();            
+            var response = new Array();
             var paramsArr = new Array(
-                request.organization_id,
-                request.account_id,
-                request.workforce_id,
-                stationAssetId,
-                ingredients.ingredient_asset_id,//request.ingredient_asset_id,
-                ingredients.channel_activity_type_category_id,
-                qty,
-                request.page_start || 0,
-                util.replaceQueryLimit(request.page_limit)
-                );
+                    request.organization_id,
+                    request.account_id,
+                    request.workforce_id,
+                    stationAssetId,
+                    ingredients.ingredient_asset_id, //request.ingredient_asset_id,
+                    ingredients.channel_activity_type_category_id,
+                    qty,
+                    request.page_start || 0,
+                    util.replaceQueryLimit(request.page_limit)
+                    );
             var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_inventory_check', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
-                    if(err === false){
+                    if (err === false) {
                         //console.log('DATA : ', data);
-                        if(data.length > 0 ) {
-                                forEachAsync(data, function (next, x) {
-                                    response.push(x.activity_owner_asset_id);
-                                    next();
-                                }).then(()=>{
-                                    resolve(response);
-                                })
-                        } else { resolve([]);}                                                
+                        if (data.length > 0) {
+                            forEachAsync(data, function (next, x) {
+                                response.push(x.activity_owner_asset_id);
+                                next();
+                            }).then(() => {
+                                resolve(response);
+                            })
+                        } else {
+                            resolve([]);
+                        }
                     } else {
                         reject(err);
-                    }                      
+                    }
                 });
             }
-        
-    })
-    }
-    
-    //PAM
-    this.pamAssetListUpdateOperatingAsset = function(request) {
-         return new Promise((resolve, reject)=>{
-             var paramsArr = new Array(
-                request.workstation_asset_id,
-                request.workforce_id,
-                request.account_id,
-                request.organization_id,
-                0, //request.asset_id,
-                request.asset_id,
-                request.datetime_log
-                );
 
-        var queryString = util.getQueryString('ds_v1_asset_list_update_operating_asset', paramsArr);
-        if (queryString != '') {
-            db.executeQuery(0, queryString, request, function (err, data) {
-                (err === false) ? resolve(true) : reject(err);
-            });
-            }
-         })
-    };
-    
+        })
+    }
+
     //PAM
-    this.checkingUniqueCode = function(request, code, callback) {
+    this.pamAssetListUpdateOperatingAsset = function (request) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                    request.workstation_asset_id,
+                    request.workforce_id,
+                    request.account_id,
+                    request.organization_id,
+                    0, //request.asset_id,
+                    request.asset_id,
+                    request.datetime_log
+                    );
+
+            var queryString = util.getQueryString('ds_v1_asset_list_update_operating_asset', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err === false) ? resolve(true) : reject(err);
+                });
+            }
+        })
+    };
+
+    //PAM
+    this.checkingUniqueCode = function (request, code, callback) {
         var paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
@@ -1066,20 +1068,20 @@ function ActivityCommonService(db, util, forEachAsync) {
                     callback(false, code);
                 }
             });
-        }        
+        }
     };
-    
+
     //PAM
-    var checkingSixDgtUniqueCode = function(request, code, callback) {
+    var checkingSixDgtUniqueCode = function (request, code, callback) {
         var paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
-                code                
+                code
                 );
 
         var queryString = util.getQueryString('ds_v1_asset_list_passcode_check', paramsArr);
         if (queryString != '') {
-            db.executeQuery(1, queryString, request, function (err, data) {                
+            db.executeQuery(1, queryString, request, function (err, data) {
                 console.log('data : ', data);
                 if (data.length > 0) {
                     callback(true, data);
@@ -1087,10 +1089,10 @@ function ActivityCommonService(db, util, forEachAsync) {
                     callback(false, code);
                 }
             });
-        }        
+        }
     };
-    
-    this.assetAccessCounts = function(request, callback){
+
+    this.assetAccessCounts = function (request, callback) {
         var paramsArr = new Array(
                 request.viewee_asset_id,
                 request.viewee_operating_asset_id,
@@ -1106,60 +1108,315 @@ function ActivityCommonService(db, util, forEachAsync) {
             db.executeQuery(1, queryString, request, function (err, data) {
                 console.log('DAta : ', data);
                 if (err === false) {
-                    if(data.length > 0){
-                        callback(false, data);                                                
+                    if (data.length > 0) {
+                        callback(false, data);
                     } else {
-                      callback(false, '');
+                        callback(false, '');
                     }
                 } else {
                     callback(true, err);
                 }
             });
         }
-    } 
-           
+    }
+
     //Get total count of desks occupied
-    this.getOccupiedDeskCounts = function(request, callback){
-            var paramsArr = new Array(
+    this.getOccupiedDeskCounts = function (request, callback) {
+        var paramsArr = new Array(
                 request.viewee_workforce_id,
                 request.account_id,
-                request.organization_id                
+                request.organization_id
                 );
-            var queryString = util.getQueryString('ds_v1_asset_list_select_occupied_desks_count', paramsArr);
-            if (queryString != '') {
-                db.executeQuery(1, queryString, request, function (err, data) {
-                    console.log('getOccupiedDeskCounts : ', data);
-                    (err === false) ? callback(false, data) :callback(true, err);
-                    });
-                }        
+        var queryString = util.getQueryString('ds_v1_asset_list_select_occupied_desks_count', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                console.log('getOccupiedDeskCounts : ', data);
+                (err === false) ? callback(false, data) : callback(true, err);
+            });
+        }
     };
-    
-    this.generateUniqueCode = function(request, callback) {
-          function generateCode() {
-                var phoneCode = util.randomInt(111111,999999).toString();                
-                checkingSixDgtUniqueCode(request,phoneCode, (err, data)=>{
-                    (err === false) ? callback(false, data) : generateCode();                    
-                });
-            }
-            generateCode();
+
+    this.generateUniqueCode = function (request, callback) {
+        function generateCode() {
+            var phoneCode = util.randomInt(111111, 999999).toString();
+            checkingSixDgtUniqueCode(request, phoneCode, (err, data) => {
+                (err === false) ? callback(false, data) : generateCode();
+            });
+        }
+        generateCode();
     };
-    
-    this.getInmailCounts = function(request, callback){
-            var paramsArr = new Array(
+
+    this.getInmailCounts = function (request, callback) {
+        var paramsArr = new Array(
                 request.organization_id,
                 request.activity_type_category_id,
                 request.asset_id,
                 util.getStartDateTimeOfMonth(),
                 util.getEndDateTimeOfMonth()
                 );
-            var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_inmail_counts', paramsArr);
-            if (queryString != '') {
-                db.executeQuery(1, queryString, request, function (err, data) {
-                    (err === false) ? callback(false, data) : callback(true, err);
-                });
+        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_inmail_counts', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                (err === false) ? callback(false, data) : callback(true, err);
+            });
         }
     };
+
+    this.updateLeadAssignedDatetime = function (request, assetId, callback) {
+        var paramsArr = new Array(
+                request.activity_id,
+                request.organization_id,
+                request.assetId,
+                request.datetime_log
+                );
+        var queryString = util.getQueryString('ds_p1_activity_list_update_datetime_lead_assigned', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                if (err === false) {
+                    // proceed with activity asset mapping
+                    queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_datetime_lead_assigned', paramsArr);
+                    db.executeQuery(0, queryString, request, function (err, data) {
+                        if (err === false) {
+                            callback(false, true);
+                        } else {
+                            callback(err, false);
+                        }
+                    });
+                } else {
+                    callback(err, false);
+                }
+            });
+        }
+    };
+
+    this.updateLeadStatus = function (request, flag, callback) {
+        var paramsArr = new Array(
+                request.activity_id,
+                request.asset_id,
+                request.organization_id,
+                flag,
+                request.asset_id,
+                request.datetime_log
+                );
+        var queryString = util.getQueryString('ds_p1_activity_list_update_flag_lead_status', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                if (err === false) {
+                    // proceed with activity asset mapping
+                    queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_flag_lead_status', paramsArr);
+                    db.executeQuery(0, queryString, request, function (err, data) {
+                        if (err === false) {
+                            callback(false, true);
+                        } else {
+                            callback(err, false);
+                        }
+                    });
+                } else {
+                    callback(err, false);
+                }
+            });
+        }
+    };
+
+    this.updateOwnerStatus = function (request, flag, callback) {
+        var paramsArr = new Array(
+                request.activity_id,
+                request.organization_id,
+                flag,
+                request.asset_id,
+                request.datetime_log
+                );
+        var queryString = util.getQueryString('ds_p1_activity_list_update_flag_creator_status', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                if (err === false) {
+                    // proceed with activity asset mapping
+                    queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_flag_creator_status', paramsArr);
+                    db.executeQuery(0, queryString, request, function (err, data) {
+                        if (err === false) {
+                            callback(false, true);
+                        } else {
+                            callback(err, false);
+                        }
+                    });
+                } else {
+                    callback(err, false);
+                }
+            });
+        }
+    };
+
+
+    this.isParticipantAlreadyAssigned = function (assetCollection, activityId, request, callback) {
+        var fieldId = 0;
+        if (assetCollection.hasOwnProperty('field_id')) {
+            fieldId = assetCollection.field_id;
+        }
+        var paramsArr = new Array(
+                activityId,
+                assetCollection.asset_id,
+                assetCollection.organization_id,
+                fieldId
+                );
+        var queryString = util.getQueryString("ds_v1_activity_asset_mapping_select_check_participant_appr", paramsArr);
+
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (err === false)
+                {
+                    //var queryStatus = (data.length > 0) ? (data[0]['log_state']< 3)?true:false : false;
+                    var queryStatus = false;
+                    var newRecordFalg = false;
+                    if (data.length > 0) {
+                        if (data[0]['log_state'] < 3) {
+                            queryStatus = true;
+                        } else {
+                            queryStatus = false;
+                            newRecordFalg = false;
+                        }
+                    } else {
+                        queryStatus = false;
+                        newRecordFalg = true;
+                    }
+                    callback(false, queryStatus, newRecordFalg);
+                    return;
+                } else {
+                    callback(err, false, false);
+                    //console.log(err);
+                    global.logger.write('serverError', '' + err, request)
+                    return;
+                }
+            });
+        }
+    };
+
+    this.weeklySummaryInsert = function (request, collection) {
+        
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                    collection.summary_id,
+                    collection.asset_id,
+                    request.workforce_id,
+                    request.account_id,
+                    request.organization_id,
+                    util.getStartDayOfWeek(), //entity_date_1, //WEEK
+                    util.getStartDayOfWeek(),
+                    collection.entity_tinyint_1 || 0,
+                    collection.entity_bigint_1 || 0,
+                    collection.entity_double_1 || 0,
+                    collection.entity_decimal_1 || 0,
+                    collection.entity_decimal_2 || 0,
+                    collection.entity_decimal_3 || 0,
+                    collection.entity_text_1 || '', //request.asset_frist_name
+                    collection.entity_text_2 || '', //request.asset_last_name
+                    request.track_latitude,
+                    request.track_longitude,
+                    request.track_gps_accuracy,
+                    request.track_gps_enabled,
+                    request.track_gps_location,
+                    request.track_gps_datetime || request.datetime_log,
+                    request.device_manufacturer_name,
+                    request.device_model_name,
+                    request.device_os_id,
+                    request.device_os_name,
+                    request.device_os_version,
+                    request.device_app_version,
+                    request.device_api_version,
+                    request.asset_id,
+                    request.message_unique_id,
+                    request.flag_retry,
+                    request.falg_retry_offline,
+                    request.track_gps_datetime || request.datetime_log,
+                    request.datetime_log
+                    );
+            var queryString = util.getQueryString('ds_v1_asset_weekly_summary_transaction_insert', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data) : reject(err);
+                });
+            }
+        });
+    }
+
+        this.monthlySummaryInsert = function (request, collection) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                    collection.summary_id, //request.monthly_summary_id,
+                    collection.asset_id,
+                    request.workforce_id,
+                    request.account_id,
+                    request.organization_id,
+                    util.getStartDayOfMonth(), //entity_date_1,    //Monthly Month start Date
+                    util.getStartDayOfMonth(),
+                    collection.entity_tinyint_1 || 0,
+                    collection.entity_bigint_1 || 0,
+                    collection.entity_double_1 || 0,
+                    collection.entity_decimal_1 || 0,
+                    collection.entity_decimal_2 || 0,
+                    collection.entity_decimal_3 || 0,
+                    collection.entity_text_1 || '', //request.asset_frist_name
+                    collection.entity_text_2 || '', //request.asset_last_name
+                    request.track_latitude,
+                    request.track_longitude,
+                    request.track_gps_accuracy,
+                    request.track_gps_status,
+                    request.track_gps_location,
+                    request.track_gps_datetime || request.datetime_log,
+                    request.device_manufacturer_name,
+                    request.device_model_name,
+                    request.device_os_id,
+                    request.device_os_name,
+                    request.device_os_version,
+                    request.app_version,
+                    request.api_version,
+                    request.asset_id,
+                    request.message_unique_id,
+                    request.flag_retry,
+                    request.flag_offline,
+                    request.track_gps_datetime || request.datetime_log,
+                    request.datetime_log
+                    );
+            var queryString = util.getQueryString('ds_v1_asset_monthly_summary_transaction_insert', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    if (err === false) {
+                        resolve(data)
+                    } else {
+                        reject(err);
+                    }
+                });
+            }
+
+
+        });
+    }
+    ;
     
+    this.getAssetAverageRating = function(request, collection) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                    request.organization_id,
+                    request.account_id,
+                    request.workforce_id,
+                    collection.asset_id,
+                    collection.operating_asset_id,
+                    collection.flag_filter,
+                    collection.datetime_start,
+                    collection.datetime_end
+                    );
+            var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_rating_average', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    if (err === false) {
+                        (data.length > 0) ? resolve(data) : resolve(err);
+                    } else {
+                        reject(err);
+                    }
+                });
+            }
+        });
+    }
+
 }
 ;
 

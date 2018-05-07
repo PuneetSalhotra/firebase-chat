@@ -69,6 +69,21 @@ function ActivityListingController(objCollection) {
         });
     });
     
+    app.post('/' + global.config.version + '/activity/cover/collection/v1', function (req, res) {
+        activityListingService.getActivityCoverCollectionV1(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                console.log('did not get proper response');
+                global.logger.write('response','did not get proper response',err,req.body);
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    
     app.post('/' + global.config.version + '/activity/coworker/access/organization/list', function (req, res) {
         activityListingService.getCoworkers(req.body, function (err, data, statusCode) {
             if (err === false) {
@@ -82,7 +97,7 @@ function ActivityListingController(objCollection) {
             }
         });
     });
-
+    /*
     app.post('/' + global.config.version + '/activity/contact/access/asset/list', function (req, res) {
         activityListingService.getSharedContacts(req.body, function (err, data, statusCode) {
             if (err === false) {
@@ -96,7 +111,7 @@ function ActivityListingController(objCollection) {
             }
         });
     });
-
+    */
 
     app.post('/' + global.config.version + '/activity/access/asset/search', function (req, res) {
         activityListingService.searchActivityByType(req.body, function (err, data, statusCode) {
@@ -115,6 +130,20 @@ function ActivityListingController(objCollection) {
 
     app.post('/' + global.config.version + '/activity/contact/access/asset/search', function (req, res) {
         activityListingService.searchSharedContacts(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                console.log('did not get proper response');
+                global.logger.write('response','did not get proper response',err,req.body);
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    app.post('/' + global.config.version + '/activity/contact/access/asset/list', function (req, res) {
+        activityListingService.listContacts(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response    
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
@@ -264,6 +293,65 @@ function ActivityListingController(objCollection) {
             }
         });
     });
+    //badge count service
+    app.post('/' + global.config.version + '/asset/access/counts/list/V1', function (req, res) {
+        activityListingService.getAllPendingCountsV1(req.body, function (err, data, statusCode) {        
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    
+    //Get the counts on task lists (explicitly for task list)
+    app.post('/' + global.config.version + '/asset/access/tasklist/counts/list', function (req, res) {
+        activityListingService.getTaskListCounts(req.body, function (err, data, statusCode) {        
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    //Get the count of tasks     
+    app.post('/' + global.config.version + '/asset/access/pending_task/count', function (req, res) {
+        activityListingService.pendingInmailCount(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+	});
+    });
+
+    //Get the overall ToDo tasks where I am not collaborator (BAck ward compatability)
+    app.post('/' + global.config.version + '/asset/access/task/list', function (req, res) {
+        activityListingService.getTasks(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+	});
+    });   
+    
+    app.post('/' + global.config.version + '/asset/access/task/list/v1', function (req, res) {
+        activityListingService.getTasksV1(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+	});
+    });    
+    
     
     //Get the count of all Folders, mail, video calls etc
     app.post('/' + global.config.version + '/activity/access/asset/payroll/list', function (req, res) {
