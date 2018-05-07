@@ -1570,6 +1570,236 @@ function ActivityCommonService(db, util, forEachAsync) {
             });
         }
     };
+
+    this.updateLeadAssignedDatetime = function (request, assetId, callback) {
+        var paramsArr = new Array(
+                request.activity_id,
+                request.organization_id,
+                request.assetId,
+                request.datetime_log
+                );
+        var queryString = util.getQueryString('ds_p1_activity_list_update_datetime_lead_assigned', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                if (err === false) {
+                    // proceed with activity asset mapping
+                    queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_datetime_lead_assigned', paramsArr);
+                    db.executeQuery(0, queryString, request, function (err, data) {
+                        if (err === false) {
+                            callback(false, true);
+                        } else {
+                            callback(err, false);
+                        }
+                    });
+                } else {
+                    callback(err, false);
+                }
+            });
+        }
+    };
+
+    this.updateLeadStatus = function (request, flag, callback) {
+        var paramsArr = new Array(
+                request.activity_id,
+                request.asset_id,
+                request.organization_id,
+                flag,
+                request.asset_id,
+                request.datetime_log
+                );
+        var queryString = util.getQueryString('ds_p1_activity_list_update_flag_lead_status', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                if (err === false) {
+                    // proceed with activity asset mapping
+                    queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_flag_lead_status', paramsArr);
+                    db.executeQuery(0, queryString, request, function (err, data) {
+                        if (err === false) {
+                            callback(false, true);
+                        } else {
+                            callback(err, false);
+                        }
+                    });
+                } else {
+                    callback(err, false);
+                }
+            });
+        }
+    };
+
+    this.updateOwnerStatus = function (request, flag, callback) {
+        var paramsArr = new Array(
+                request.activity_id,
+                request.organization_id,
+                flag,
+                request.asset_id,
+                request.datetime_log
+                );
+        var queryString = util.getQueryString('ds_p1_activity_list_update_flag_creator_status', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                if (err === false) {
+                    // proceed with activity asset mapping
+                    queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_flag_creator_status', paramsArr);
+                    db.executeQuery(0, queryString, request, function (err, data) {
+                        if (err === false) {
+                            callback(false, true);
+                        } else {
+                            callback(err, false);
+                        }
+                    });
+                } else {
+                    callback(err, false);
+                }
+            });
+        }
+    };
+
+
+    this.isParticipantAlreadyAssigned = function (assetCollection, activityId, request, callback) {
+        var fieldId = 0;
+        if (assetCollection.hasOwnProperty('field_id')) {
+            fieldId = assetCollection.field_id;
+        }
+        var paramsArr = new Array(
+                activityId,
+                assetCollection.asset_id,
+                assetCollection.organization_id,
+                fieldId
+                );
+        var queryString = util.getQueryString("ds_v1_activity_asset_mapping_select_check_participant_appr", paramsArr);
+
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (err === false)
+                {
+                    //var queryStatus = (data.length > 0) ? (data[0]['log_state']< 3)?true:false : false;
+                    var queryStatus = false;
+                    var newRecordFalg = false;
+                    if (data.length > 0) {
+                        if (data[0]['log_state'] < 3) {
+                            queryStatus = true;
+                        } else {
+                            queryStatus = false;
+                            newRecordFalg = false;
+                        }
+                    } else {
+                        queryStatus = false;
+                        newRecordFalg = true;
+                    }
+                    callback(false, queryStatus, newRecordFalg);
+                    return;
+                } else {
+                    callback(err, false, false);
+                    //console.log(err);
+                    global.logger.write('serverError', '' + err, request)
+                    return;
+                }
+            });
+        }
+    };
+
+    this.weeklySummaryInsert = function (request, collection) {
+        
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                    collection.summary_id,
+                    collection.asset_id,
+                    request.workforce_id,
+                    request.account_id,
+                    request.organization_id,
+                    util.getStartDayOfWeek(), //entity_date_1, //WEEK
+                    util.getStartDayOfWeek(),
+                    collection.entity_tinyint_1 || 0,
+                    collection.entity_bigint_1 || 0,
+                    collection.entity_double_1 || 0,
+                    collection.entity_decimal_1 || 0,
+                    collection.entity_decimal_2 || 0,
+                    collection.entity_decimal_3 || 0,
+                    collection.entity_text_1 || '', //request.asset_frist_name
+                    collection.entity_text_2 || '', //request.asset_last_name
+                    request.track_latitude,
+                    request.track_longitude,
+                    request.track_gps_accuracy,
+                    request.track_gps_enabled,
+                    request.track_gps_location,
+                    request.track_gps_datetime || request.datetime_log,
+                    request.device_manufacturer_name,
+                    request.device_model_name,
+                    request.device_os_id,
+                    request.device_os_name,
+                    request.device_os_version,
+                    request.device_app_version,
+                    request.device_api_version,
+                    request.asset_id,
+                    request.message_unique_id,
+                    request.flag_retry,
+                    request.falg_retry_offline,
+                    request.track_gps_datetime || request.datetime_log,
+                    request.datetime_log
+                    );
+            var queryString = util.getQueryString('ds_v1_asset_weekly_summary_transaction_insert', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data) : reject(err);
+                });
+            }
+        });
+    }
+
+        this.monthlySummaryInsert = function (request, collection) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                    collection.summary_id, //request.monthly_summary_id,
+                    collection.asset_id,
+                    request.workforce_id,
+                    request.account_id,
+                    request.organization_id,
+                    util.getStartDayOfMonth(), //entity_date_1,    //Monthly Month start Date
+                    util.getStartDayOfMonth(),
+                    collection.entity_tinyint_1 || 0,
+                    collection.entity_bigint_1 || 0,
+                    collection.entity_double_1 || 0,
+                    collection.entity_decimal_1 || 0,
+                    collection.entity_decimal_2 || 0,
+                    collection.entity_decimal_3 || 0,
+                    collection.entity_text_1 || '', //request.asset_frist_name
+                    collection.entity_text_2 || '', //request.asset_last_name
+                    request.track_latitude,
+                    request.track_longitude,
+                    request.track_gps_accuracy,
+                    request.track_gps_status,
+                    request.track_gps_location,
+                    request.track_gps_datetime || request.datetime_log,
+                    request.device_manufacturer_name,
+                    request.device_model_name,
+                    request.device_os_id,
+                    request.device_os_name,
+                    request.device_os_version,
+                    request.app_version,
+                    request.api_version,
+                    request.asset_id,
+                    request.message_unique_id,
+                    request.flag_retry,
+                    request.flag_offline,
+                    request.track_gps_datetime || request.datetime_log,
+                    request.datetime_log
+                    );
+            var queryString = util.getQueryString('ds_v1_asset_monthly_summary_transaction_insert', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    if (err === false) {
+                        resolve(data)
+                    } else {
+                        reject(err);
+                    }
+                });
+            }
+
+
+        });
+    }
+    ;
     
     function getAllParticipantsforTasks(request){
         return new Promise((resolve, reject)=>{

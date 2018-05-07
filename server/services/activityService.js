@@ -718,7 +718,7 @@ function ActivityService(objectCollection) {
                             return;
                         }
 
-                    } else {
+                    } else {                        
                         // some thing is wrong and have to be dealt
                         callback(err, false);
                         return;
