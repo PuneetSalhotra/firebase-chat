@@ -77,7 +77,7 @@ var Consumer = function () {
                  if(err === false) {
                         console.log('data : ', data);
                         console.log('kafkaMsgId : ', kafkaMsgId);
-                        if(data != kafkaMsgId) {
+                        if(data < kafkaMsgId) {
                                 console.log(message.value);
 
                                 try {

@@ -75,7 +75,9 @@ var Consumer = function () {
             //Checking the kafkaMessage is already processed or not by looking into Redis
             cacheWrapper.getKafkaMessageUniqueId(message.topic + '_' + message.partition, function(err, data){
                  if(err === false) {
-                        if(data != kafkaMsgId) {
+                        console.log('data : ' + data);
+                        console.log('kafkaMsgId : ' + kafkaMsgId);
+                        if(data < kafkaMsgId) {
                                 console.log(message.value);
 
                                 try {
