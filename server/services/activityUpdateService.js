@@ -827,8 +827,7 @@ function ActivityUpdateService(objectCollection) {
 
                     //});
                     //assetActivityListUpdateSubTaskCover(request, function (err, data) {}); facing some issues here, handle post alpha
-                    activityPushService.sendPush(request, objectCollection, 0, function () {});
-                     activityPushService.sendSMSNotification(request, objectCollection, request.owner_asset_id, function () {});
+                    activityPushService.sendPush(request, objectCollection, 0, function () {});                     
                     if (request.hasOwnProperty('activity_parent_id')) {
                         if (util.hasValidGenericId(request, 'activity_parent_id')) {
                             activityCommonService.getActivityDetails(request, Number(request.activity_parent_id), function (err, activityData) {
