@@ -220,10 +220,11 @@ function ActivityService(objectCollection) {
                                                                         device_os_id: request.device_os_id
                                                                     }
                                                                 };
-                                                                queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp) => {
+                                                                queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
                                                                     if (err) {
                                                                         //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                                                                        global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent", err, req);
+                                                                        //global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent", err, request);
+                                                                        throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                                                                     }
                                                                 });
                                                             }

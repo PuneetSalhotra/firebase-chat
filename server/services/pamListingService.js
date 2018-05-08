@@ -44,7 +44,10 @@ function PamListingService(objectCollection) {
                     'activity_status_id': util.replaceDefaultNumber(row['activity_status_id']),
                     'activity_status_name': util.replaceDefaultString(row['activity_status_name']),
                     'activity_priority_enabled': util.replaceDefaultNumber(row['activity_priority_enabled']),
-                    'activity_inline_data': JSON.parse(util.replaceDefaultString(row['activity_inline_data']))
+                    'activity_inline_data': JSON.parse(util.replaceDefaultString(row['activity_inline_data'])),
+                    'activity_datetime_start_expected' : util.replaceDefaultDatetime(row['activity_datetime_start_expected']),
+                    'activity_sub_type_name' : util.replaceDefaultString(row['activity_sub_type_name']),
+                    'parent_activity_title' : util.replaceDefaultString(row['parent_activity_title'])
                 };
                 responseArr.push(rowData);
                 next();
