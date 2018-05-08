@@ -47,7 +47,7 @@ redisClient.on('error', function (error) {
 
 function connectToKafkaBroker(cnt){
     console.log("redis is connected");
-    var kafkaClient = new kafka.KafkaClient({kafkaHost: '127.0.0.1:9092', requestTimeout: 30000});
+    var kafkaClient = new kafka.KafkaClient(kafkaIps[cnt]);
     var kafkaProducer = new KafkaProducer(kafkaClient);
     
     new Promise((resolve, reject) => {
