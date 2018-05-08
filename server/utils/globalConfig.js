@@ -7,7 +7,7 @@ var Logger = require("./logger");
 logger = new Logger();
 
 config = {};
-config.version = '0.1';
+config.version = 'r1';
 config.servicePort = 3000;
 config.sms_mode = 1;    //  2: bulkSMS  |   3: Sinfini
 config.whitelist = ['http://mydesk.desker.co', 'https://mydesk.desker.co', 'http://127.0.0.1','http://localhost'];
@@ -41,9 +41,9 @@ if (mode === 'prod') {
     config.slave1Ip = 'readreplica1.citeodhwc7z9.us-east-1.rds.amazonaws.com';
     config.slave2Ip = 'readreplica2.citeodhwc7z9.us-east-1.rds.amazonaws.com';
 
-    config.dbUser = 'sravan';
+    config.dbUser = 'apiuser';
     config.database = 'desker';
-    config.dbPassword = 'sravandbaccess2';
+    config.dbPassword = 'apidbuser';
 
     config.conLimit = 10;
 
@@ -51,8 +51,8 @@ if (mode === 'prod') {
     config.redisPort = 6379;
 
     config.kafkaIPOne = {kafkaHost: 'kafka1:9092'};
-    config.kafkaIPTwo = {kafkaHost: 'kafka1:9093'};
-    config.kafkaIPThree = {kafkaHost: 'kafka1:9094'};
+    config.kafkaIPTwo = {kafkaHost: 'kafka2:9092'};
+    config.kafkaIPThree = {kafkaHost: 'kafka3:9092'};
     config.kafkaActivitiesTopic = 'desker-activities';
     //config.kafkaActivitiesTopic = 'desker-test';
     config.kafkaFormWidgetTopic = 'desker-form-widgets';

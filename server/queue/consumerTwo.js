@@ -73,7 +73,7 @@ var Consumer = function () {
             console.log('kafkaMsgId : ' + kafkaMsgId);
             
             //Checking the kafkaMessage is already processed or not by looking into Redis
-            cacheWrapper.getKafkaMessageUniqueId(message.partition, function(err, data){
+            cacheWrapper.getKafkaMessageUniqueId(message.topic + '_' + message.partition, function(err, data){
                  if(err === false) {
                         if(data != kafkaMsgId) {
                                 console.log(message.value);
@@ -169,7 +169,7 @@ var Consumer = function () {
     function setkafkaMsgId(message, kafkaMsgId) {
         return new Promise((resolve, reject)=>{            
             //Setting the processed KafkaMessageUniqueId in the Redis
-            cacheWrapper.setKafkaMessageUniqueId(message.partition, kafkaMsgId, (err, data)=>{
+            cacheWrapper.setKafkaMessageUniqueId(message.topic + '_' + message.partition, kafkaMsgId, (err, data)=>{
                 if(err === false) {
                     console.log('Successfully set the Kafka message Unique Id in Redis');
                     resolve();
