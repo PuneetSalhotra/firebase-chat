@@ -18,7 +18,7 @@ if (mode === 'dev') {
     config.slave2Ip = 'readreplica2.citeodhwc7z9.us-east-1.rds.amazonaws.com';
 
     config.dbUser = 'apiuser';
-    config.database = 'desker';
+    config.database = 'desker';// desker_staging
     config.dbPassword = 'apidbuser';
     config.conLimit = 10;
 

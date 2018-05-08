@@ -25,6 +25,8 @@
     "kafka-node": "",
     "forEachAsync": "",
     "aws-sdk": "",
+    "pubnub": "",
+    "moment-timezone": "",
     "cassandra-driver": ""
   }
 }
