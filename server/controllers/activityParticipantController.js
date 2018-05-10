@@ -13,6 +13,8 @@ function ActivityParticipantController(objCollection) {
     var queueWrapper = objCollection.queueWrapper;
     var app = objCollection.app;
     var util = objCollection.util;
+    
+    var activityCommonService = objCollection.activityCommonService;
 
     var participantService = new ParticipantService(objCollection);
 
@@ -37,6 +39,22 @@ function ActivityParticipantController(objCollection) {
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
 
+        var productId;
+        
+        if(!req.body.hasOwnProperty('product_id')) {
+            productId = 1;
+        } else {
+            productId = req.body.product_id;
+        }
+        
+        if(productId == 2) {
+            activityCommonService.getActivityDetails(req.body, 0, function(err, data){
+                var x = data[0].activity_type_category_id;                
+                console.log('X : ', data[0].activity_type_category_id);                
+                req.body.activity_type_category_id = x;
+            });
+        }
+        
         var proceedParticipantAccessSet = function () {
             var event = {
                 name: "assignParticipnt",
@@ -48,7 +66,9 @@ function ActivityParticipantController(objCollection) {
             queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp)=>{
                         if(err) {
                             //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                            global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);
+                            //global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);
+                            res.send(responseWrapper.getResponse(true, {}, -5998,req.body));
+                            throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                         } else {
                             if (req.hasOwnProperty('device_os_id')) {
                                 if (Number(req.device_os_id) !== 5 || Number(req.device_os_id) !== 6) {
@@ -64,10 +84,12 @@ function ActivityParticipantController(objCollection) {
                                     });
                                 }
                             }
+                            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                            return;
                         }
                 });
-            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
-            return;
+            //res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+            //return;
         };
         if (util.hasValidActivityId(req.body)) {
             if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5 && deviceOsId !== 6) {
@@ -86,7 +108,17 @@ function ActivityParticipantController(objCollection) {
                 });
 
             } else if (deviceOsId === 5 || deviceOsId === 6) {
-                proceedParticipantAccessSet();
+                if(productId == 2) {
+                    activityCommonService.getActivityDetails(req.body, 0, function(err, data){
+                        var x = data[0].activity_type_category_id;                
+                        console.log('X : ', data[0].activity_type_category_id);
+                        req.body.activity_type_category_id = x;
+                        
+                        proceedParticipantAccessSet();
+                    });
+                } else {
+                    proceedParticipantAccessSet();
+                }
 
             } else {
                 res.send(responseWrapper.getResponse(false, {}, -3304,req.body));
@@ -114,7 +146,9 @@ function ActivityParticipantController(objCollection) {
             queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp)=>{
                         if(err) {
                             //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                            global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);
+                            //global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);
+                            res.send(responseWrapper.getResponse(false, {}, -5998,req.body));
+                            throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                         } else {
                             if (req.hasOwnProperty('device_os_id')) {
                                 if (Number(req.device_os_id) !== 5) {
@@ -130,10 +164,12 @@ function ActivityParticipantController(objCollection) {
                                     });
                                 }
                             }
+                            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                            return;
                         }
                 });
-            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
-            return;
+            //res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+            //return;
         };
         try {
             JSON.parse(req.body.activity_participant_collection);
@@ -186,7 +222,9 @@ function ActivityParticipantController(objCollection) {
             queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp)=>{
                         if(err) {
                             //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                            global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);
+                            //global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);
+                            res.send(responseWrapper.getResponse(false, {}, -5999,req.body));
+                            throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                         } else {
                             if (req.hasOwnProperty('device_os_id')) {
                                 if (Number(req.device_os_id) !== 5) {
@@ -202,6 +240,8 @@ function ActivityParticipantController(objCollection) {
                                     });
                                 }
                             }
+                            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                            return;
                         }
                 });
             res.send(responseWrapper.getResponse(false, {}, 200,req.body));
@@ -252,7 +292,9 @@ function ActivityParticipantController(objCollection) {
             queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp)=>{
                         if(err) {
                             //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                            global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);
+                            //global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);
+                            res.send(responseWrapper.getResponse(false, {}, -5998,req.body));
+                            throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                         } else {
                             if (req.hasOwnProperty('device_os_id')) {
                                 if (Number(req.device_os_id) !== 5) {
@@ -268,10 +310,12 @@ function ActivityParticipantController(objCollection) {
                                     });
                                 }
                             }
+                            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                            return;
                         }
                 });
-            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
-            return;
+            //res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+            //return;
         };
         if (util.hasValidActivityId(req.body)) {
             if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5) {

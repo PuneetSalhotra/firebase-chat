@@ -149,6 +149,30 @@ function CacheWrapper(client) {
             }
         });
     };
+    
+    this.setKafkaMessageUniqueId = function (messageUniqueId, value, callback) {
+        client.hset('kafka_message_unique_id', messageUniqueId, value, function (err, reply) {
+            if (err) {
+                console.log(err);
+                callback(true, err);
+                return;
+            } else {                
+                callback(false, reply);
+                return;
+            }
+        });
+    };
+    
+    this.getKafkaMessageUniqueId = function (partition, callback) {
+        client.hget('kafka_message_unique_id', partition, function (err, reply) {
+            if(err) {
+                callback(true, err);
+            } else {
+                callback(false, reply);
+            }
+        });
+    };
+    
 
 }
 

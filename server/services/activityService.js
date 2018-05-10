@@ -138,12 +138,12 @@ function ActivityService(objectCollection) {
                     global.logger.write('debug', 'streamtype id is: ' + activityStreamTypeId, {}, request);
                     assetActivityListInsertAddActivity(request, function (err, status) {
                         if (err === false) {
-                            if (activityTypeCategroyId === 10 && request.hasOwnProperty('owner_asset_id')) {
-                                if (request.owner_asset_id !== request.asset_id) {
-                                    activityPushService.sendPush(request, objectCollection, 0, function () {});
-                                    activityPushService.sendSMSNotification(request, objectCollection, request.owner_asset_id, function () {});
-                                }
-                            }
+                            if(activityTypeCategroyId === 10 && request.hasOwnProperty('owner_asset_id')) {
+                                    if(request.owner_asset_id !== request.asset_id){
+                                        activityPushService.sendPush(request, objectCollection, 0, function () {});
+                                        activityCommonService.updateParticipantCount(request.activity_id, request.organization_id, request, function (err, data) { });
+                                    }
+                                }                            
                             // do the timeline transactions here..                    
 
                             activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
@@ -220,10 +220,11 @@ function ActivityService(objectCollection) {
                                                                         device_os_id: request.device_os_id
                                                                     }
                                                                 };
-                                                                queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp) => {
+                                                                queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
                                                                     if (err) {
                                                                         //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                                                                        global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent", err, req);
+                                                                        //global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent", err, request);
+                                                                        throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                                                                     }
                                                                 });
                                                             }
@@ -315,401 +316,410 @@ function ActivityService(objectCollection) {
         //PAM
         var activitySubTypeName = (request.hasOwnProperty('activity_sub_type_name')) ? request.activity_sub_type_name : '';
         var expiryDateTime = (request.hasOwnProperty('expiry_datetime')) ? request.expiry_datetime : '';
-        var itemOrderCount = (request.hasOwnProperty('item_order_count')) ? request.item_order_count : '0';
-        console.log('activityTypeCategoryId : ', activityTypeCategoryId);
-        console.log('activityTypeCategoryId type : ', typeof activityTypeCategoryId);
-        if (activityTypeCategoryId === 38) {
+        var itemOrderCount = (request.hasOwnProperty('item_order_count')) ? request.item_order_count : '0';        
+             
+        if(activityTypeCategoryId === 38){
             console.log('Inside sendPush');
             sendPushPam(request).then(() => {
             });
         }
-
-        new Promise((resolve, reject) => {
-            if (activityTypeCategoryId === 37) { //PAM
+        
+        new Promise((resolve, reject)=>{            
+            if(activityTypeCategoryId === 37 && !request.hasOwnProperty('member_code')) { //PAM
                 var reserveCode;
                 function generateUniqueCode() {
-                    reserveCode = util.randomInt(1111, 9999).toString();
-                    activityCommonService.checkingUniqueCode(request, reserveCode, (err, data) => {
-                        if (err === false) {
-                            console.log('activitySubTypeName : ' + data);
-                            activitySubTypeName = data;
-                            responseactivityData.reservation_code = data;
-                            activityCommonService.getActivityDetails(request, request.activity_parent_id, function (err, resp) {
-                                if (err === false) {
-                                    var eventStartDateTime = util.replaceDefaultDatetime(resp[0].activity_datetime_start_expected);
-                                    (Math.sign(util.differenceDatetimes(eventStartDateTime, request.datetime_log)) === 1) ?
-                                            expiryDateTime = util.addUnitsToDateTime(eventStartDateTime, 6.5, 'hours') :
-                                            expiryDateTime = util.addUnitsToDateTime(request.datetime_log, 6.5, 'hours');
+                    reserveCode = util.randomInt(5001,9999).toString();
+                    activityCommonService.checkingUniqueCode(request,reserveCode, (err, data)=>{
+                    if(err === false) {
+                        console.log('activitySubTypeName : ' + data);
+                        activitySubTypeName = data;
+                        responseactivityData.reservation_code = data;
+                        activityCommonService.getActivityDetails(request, request.activity_parent_id, function(err, resp){
+                            if(err === false) {
+                                var eventStartDateTime = util.replaceDefaultDatetime(resp[0].activity_datetime_start_expected);                                                                                                
+                                (Math.sign(util.differenceDatetimes(eventStartDateTime ,request.datetime_log)) === 1) ? 
+                                                   expiryDateTime = util.addUnitsToDateTime(eventStartDateTime,6.5,'hours') :
+                                                   expiryDateTime = util.addUnitsToDateTime(request.datetime_log,6.5,'hours');                                           
+                                return resolve();
+                            } else {
+                                return resolve();
+                            }
+                        })                        
+                       } else {
+                           generateUniqueCode();
+                        }
+                    });
+                }
+               generateUniqueCode(); 
+            } else if(activityTypeCategoryId === 37 && request.hasOwnProperty('member_code')) {
+                    activitySubTypeName = request.member_code;
+                    responseactivityData.reservation_code = request.member_code;
+                    activityCommonService.getActivityDetails(request, request.activity_parent_id, function(err, resp){
+                                if(err === false) {
+                                    var eventStartDateTime = util.replaceDefaultDatetime(resp[0].activity_datetime_start_expected);                                                                                                
+                                    (Math.sign(util.differenceDatetimes(eventStartDateTime ,request.datetime_log)) === 1) ? 
+                                                       expiryDateTime = util.addUnitsToDateTime(eventStartDateTime,6.5,'hours') :
+                                                       expiryDateTime = util.addUnitsToDateTime(request.datetime_log,6.5,'hours');                                           
                                     return resolve();
                                 } else {
                                     return resolve();
                                 }
-                            })
-                        } else {
-                            generateUniqueCode();
-                        }
-                    });
+                            });
+                } else {
+                    return resolve();
+                }                
+            
+        }).then(()=>{
+          switch (activityTypeCategoryId) {
+            case 2:    // notepad
+                /*
+                 * 
+                 * 
+                 * 
+                 IN p_channel_activity_id BIGINT(20), IN p_channel_activity_type_category_id TINYINT(4)
+                 */
+                paramsArr = new Array(
+                        request.activity_id,
+                        request.activity_title,
+                        request.activity_description,
+                        (request.activity_inline_data),
+                        "",
+                        0,
+                        request.activity_datetime_start,
+                        request.activity_datetime_end,
+                        activityStatusId,
+                        request.activity_type_id,
+                        request.activity_parent_id,
+                        activityInlineData.asset_id,
+                        activityInlineData.workforce_id,
+                        activityInlineData.account_id,
+                        activityInlineData.organization_id,
+                        request.message_unique_id, //request.asset_id + new Date().getTime() + getRandomInt(), //message unique id
+                        request.flag_retry,
+                        request.flag_offline,
+                        request.asset_id,
+                        request.datetime_log, // server log date time   
+                        activityFormId,
+                        0,
+                        activityChannelId,
+                        activityChannelCategoryId
+                        );
+                break;
+            case 3: // plant activity            
+            case 4:    // id card            
+                paramsArr = new Array(
+                        request.activity_id,
+                        request.activity_title,
+                        request.activity_description,
+                        (request.activity_inline_data),
+                        "",
+                        0,
+                        request.activity_datetime_start,
+                        request.activity_datetime_end,
+                        activityStatusId,
+                        request.activity_type_id,
+                        request.activity_parent_id,
+                        activityInlineData.employee_asset_id,
+                        activityInlineData.employee_workforce_id,
+                        activityInlineData.employee_account_id,
+                        activityInlineData.employee_organization_id,
+                        request.message_unique_id, //request.asset_id + new Date().getTime() + getRandomInt(), //message unique id
+                        request.flag_retry,
+                        request.flag_offline,
+                        request.asset_id,
+                        request.datetime_log, // server log date time   
+                        activityFormId,
+                        0,
+                        activityChannelId,
+                        activityChannelCategoryId
+                        );
+                break;
+            case 5: // coworker card
+                paramsArr = new Array(
+                        request.activity_id,
+                        request.activity_title,
+                        request.activity_description,
+                        (request.activity_inline_data),
+                        "",
+                        0,
+                        request.activity_datetime_start,
+                        request.activity_datetime_end,
+                        activityStatusId,
+                        request.activity_type_id,
+                        request.activity_parent_id,
+                        activityInlineData.contact_asset_id,
+                        activityInlineData.contact_workforce_id,
+                        activityInlineData.contact_account_id,
+                        activityInlineData.contact_organization_id,
+                        request.message_unique_id, //request.asset_id + new Date().getTime() + getRandomInt(), //message unique id
+                        request.flag_retry,
+                        request.flag_offline,
+                        request.asset_id,
+                        request.datetime_log, // server log date time   
+                        activityFormId,
+                        0,
+                        activityChannelId,
+                        activityChannelCategoryId
+                        );
+                break;
+            case 29:    // contact supplier
+            case 6:    // contact customer
+                paramsArr = new Array(
+                        request.activity_id,
+                        request.activity_title,
+                        request.activity_description,
+                        (request.activity_inline_data),
+                        "",
+                        activityInlineData.contact_asset_id, //contact asset id
+                        request.activity_datetime_start,
+                        request.activity_datetime_end,
+                        activityStatusId,
+                        request.activity_type_id,
+                        request.activity_parent_id,
+                        request.asset_id,
+                        request.workforce_id,
+                        request.account_id,
+                        request.organization_id,
+                        request.message_unique_id, //request.asset_id + new Date().getTime() + getRandomInt(), //message unique id
+                        request.flag_retry,
+                        request.flag_offline,
+                        request.asset_id,
+                        request.datetime_log, // server log date time   
+                        activityFormId,
+                        0,
+                        activityChannelId,
+                        activityChannelCategoryId
+                        );
+                break;
+            case 8: // mail
+                paramsArr = new Array(
+                        request.activity_id,
+                        request.activity_title,
+                        request.activity_description,
+                        (request.activity_inline_data),
+                        "",
+                        0,
+                        request.activity_datetime_start,
+                        request.activity_datetime_end,
+                        activityStatusId,
+                        request.activity_type_id,
+                        request.activity_parent_id,
+                        request.asset_id,
+                        request.workforce_id,
+                        request.account_id,
+                        request.organization_id,
+                        request.message_unique_id, //request.asset_id + new Date().getTime() + getRandomInt(), //message unique id
+                        request.flag_retry,
+                        request.flag_offline,
+                        request.asset_id,
+                        request.datetime_log, // server log date time   
+                        activityFormId,
+                        0,
+                        activityChannelId,
+                        activityChannelCategoryId
+                        );
+                break;
+            case 9:// form
+                paramsArr = new Array(
+                        request.activity_id,
+                        request.activity_title,
+                        request.activity_description,
+                        (request.activity_inline_data),
+                        "",
+                        0,
+                        request.activity_datetime_start,
+                        request.activity_datetime_end,
+                        activityStatusId,
+                        request.activity_type_id,
+                        request.activity_parent_id,
+                        request.asset_id,
+                        request.workforce_id,
+                        request.account_id,
+                        request.organization_id,
+                        request.message_unique_id, //request.asset_id + new Date().getTime() + getRandomInt(), //message unique id
+                        request.flag_retry,
+                        request.flag_offline,
+                        request.asset_id,
+                        request.datetime_log, // server log date time   
+                        activityFormId,
+                        request.form_transaction_id,
+                        activityChannelId,
+                        activityChannelCategoryId
+                        );
+                break;
+            case 28:    //post it
+                paramsArr = new Array(
+                        request.activity_id,
+                        request.activity_title,
+                        request.activity_description,
+                        (request.activity_inline_data),
+                        "",
+                        0,
+                        request.activity_datetime_start,
+                        request.activity_datetime_end,
+                        activityStatusId,
+                        request.activity_type_id,
+                        request.activity_parent_id,
+                        request.asset_id,
+                        request.workforce_id,
+                        request.account_id,
+                        request.organization_id,
+                        request.message_unique_id, //request.asset_id + new Date().getTime() + getRandomInt(), //message unique id
+                        request.flag_retry,
+                        request.flag_offline,
+                        request.asset_id,
+                        request.datetime_log, // server log date time   
+                        activityFormId,
+                        0,
+                        activityChannelId,
+                        activityChannelCategoryId
+                        );
+                break;
+            case 10:
+                var ownerAssetID;
+                if(request.hasOwnProperty('owner_asset_id')) {
+                      ownerAssetID = request.owner_asset_id;
+                } else {
+                      ownerAssetID = request.asset_id;
                 }
-                generateUniqueCode();
-            } else {
-                return resolve();
-            }
-        }).then(() => {
-            switch (activityTypeCategoryId) {
-                case 2:    // notepad
-                    /*
-                     * 
-                     * 
-                     * 
-                     IN p_channel_activity_id BIGINT(20), IN p_channel_activity_type_category_id TINYINT(4)
-                     */
-                    paramsArr = new Array(
-                            request.activity_id,
-                            request.activity_title,
-                            request.activity_description,
-                            (request.activity_inline_data),
-                            "",
-                            0,
-                            request.activity_datetime_start,
-                            request.activity_datetime_end,
-                            activityStatusId,
-                            request.activity_type_id,
-                            request.activity_parent_id,
-                            activityInlineData.asset_id,
-                            activityInlineData.workforce_id,
-                            activityInlineData.account_id,
-                            activityInlineData.organization_id,
-                            request.message_unique_id, //request.asset_id + new Date().getTime() + getRandomInt(), //message unique id
-                            request.flag_retry,
-                            request.flag_offline,
-                            request.asset_id,
-                            request.datetime_log, // server log date time   
-                            activityFormId,
-                            0,
-                            activityChannelId,
-                            activityChannelCategoryId
-                            );
-                    break;
-                case 3: // plant activity            
-                case 4:    // id card            
-                    paramsArr = new Array(
-                            request.activity_id,
-                            request.activity_title,
-                            request.activity_description,
-                            (request.activity_inline_data),
-                            "",
-                            0,
-                            request.activity_datetime_start,
-                            request.activity_datetime_end,
-                            activityStatusId,
-                            request.activity_type_id,
-                            request.activity_parent_id,
-                            activityInlineData.employee_asset_id,
-                            activityInlineData.employee_workforce_id,
-                            activityInlineData.employee_account_id,
-                            activityInlineData.employee_organization_id,
-                            request.message_unique_id, //request.asset_id + new Date().getTime() + getRandomInt(), //message unique id
-                            request.flag_retry,
-                            request.flag_offline,
-                            activityInlineData.employee_asset_id, // adding the employee asset as log asset but not the bot
-                            request.datetime_log, // server log date time   
-                            activityFormId,
-                            0,
-                            activityChannelId,
-                            activityChannelCategoryId
-                            );
-                    break;
-                case 5: // coworker card
-                    paramsArr = new Array(
-                            request.activity_id,
-                            request.activity_title,
-                            request.activity_description,
-                            (request.activity_inline_data),
-                            "",
-                            0,
-                            request.activity_datetime_start,
-                            request.activity_datetime_end,
-                            activityStatusId,
-                            request.activity_type_id,
-                            request.activity_parent_id,
-                            activityInlineData.contact_asset_id,
-                            activityInlineData.contact_workforce_id,
-                            activityInlineData.contact_account_id,
-                            activityInlineData.contact_organization_id,
-                            request.message_unique_id, //request.asset_id + new Date().getTime() + getRandomInt(), //message unique id
-                            request.flag_retry,
-                            request.flag_offline,
-                            request.asset_id,
-                            request.datetime_log, // server log date time   
-                            activityFormId,
-                            0,
-                            activityChannelId,
-                            activityChannelCategoryId
-                            );
-                    break;
-                case 29:    // contact supplier
-                case 6:    // contact customer
-                case 43:    // other contact card
-                    paramsArr = new Array(
-                            request.activity_id,
-                            request.activity_title,
-                            request.activity_description,
-                            (request.activity_inline_data),
-                            "",
-                            activityInlineData.contact_asset_id, //contact asset id
-                            request.activity_datetime_start,
-                            request.activity_datetime_end,
-                            activityStatusId,
-                            request.activity_type_id,
-                            request.activity_parent_id,
-                            request.asset_id,
-                            request.workforce_id,
-                            request.account_id,
-                            request.organization_id,
-                            request.message_unique_id, //request.asset_id + new Date().getTime() + getRandomInt(), //message unique id
-                            request.flag_retry,
-                            request.flag_offline,
-                            request.asset_id,
-                            request.datetime_log, // server log date time   
-                            activityFormId,
-                            0,
-                            activityChannelId,
-                            activityChannelCategoryId
-                            );
-                    break;
-                case 8: // mail
-                    paramsArr = new Array(
-                            request.activity_id,
-                            request.activity_title,
-                            request.activity_description,
-                            (request.activity_inline_data),
-                            "",
-                            0,
-                            request.activity_datetime_start,
-                            request.activity_datetime_end,
-                            activityStatusId,
-                            request.activity_type_id,
-                            request.activity_parent_id,
-                            request.asset_id,
-                            request.workforce_id,
-                            request.account_id,
-                            request.organization_id,
-                            request.message_unique_id, //request.asset_id + new Date().getTime() + getRandomInt(), //message unique id
-                            request.flag_retry,
-                            request.flag_offline,
-                            request.asset_id,
-                            request.datetime_log, // server log date time   
-                            activityFormId,
-                            0,
-                            activityChannelId,
-                            activityChannelCategoryId
-                            );
-                    break;
-                case 9:// form
-                    paramsArr = new Array(
-                            request.activity_id,
-                            request.activity_title,
-                            request.activity_description,
-                            (request.activity_inline_data),
-                            "",
-                            0,
-                            request.activity_datetime_start,
-                            request.activity_datetime_end,
-                            activityStatusId,
-                            request.activity_type_id,
-                            request.activity_parent_id,
-                            request.asset_id,
-                            request.workforce_id,
-                            request.account_id,
-                            request.organization_id,
-                            request.message_unique_id, //request.asset_id + new Date().getTime() + getRandomInt(), //message unique id
-                            request.flag_retry,
-                            request.flag_offline,
-                            request.asset_id,
-                            request.datetime_log, // server log date time   
-                            activityFormId,
-                            request.form_transaction_id,
-                            activityChannelId,
-                            activityChannelCategoryId
-                            );
-                    break;
-                case 28:    //post it
-                    paramsArr = new Array(
-                            request.activity_id,
-                            request.activity_title,
-                            request.activity_description,
-                            (request.activity_inline_data),
-                            "",
-                            0,
-                            request.activity_datetime_start,
-                            request.activity_datetime_end,
-                            activityStatusId,
-                            request.activity_type_id,
-                            request.activity_parent_id,
-                            request.asset_id,
-                            request.workforce_id,
-                            request.account_id,
-                            request.organization_id,
-                            request.message_unique_id, //request.asset_id + new Date().getTime() + getRandomInt(), //message unique id
-                            request.flag_retry,
-                            request.flag_offline,
-                            request.asset_id,
-                            request.datetime_log, // server log date time   
-                            activityFormId,
-                            0,
-                            activityChannelId,
-                            activityChannelCategoryId
-                            );
-                    break;
-                case 10:
-                case 11:
-                    var ownerAssetID;
-                    if (request.hasOwnProperty('owner_asset_id')) {
-                        if (Number(request.owner_asset_id) > 0)
-                            ownerAssetID = request.owner_asset_id;
-                        else
-                            ownerAssetID = request.asset_id;
-                    } else {
-                        ownerAssetID = request.asset_id;
-                    }
-
-                    paramsArr = new Array(
-                            request.activity_id,
-                            request.activity_title,
-                            request.activity_description,
-                            (request.activity_inline_data),
-                            "",
-                            0,
-                            request.activity_datetime_start,
-                            request.activity_datetime_end,
-                            activityStatusId,
-                            request.activity_type_id,
-                            request.activity_parent_id,
-                            ownerAssetID,
-                            request.workforce_id,
-                            request.account_id,
-                            request.organization_id,
-                            request.message_unique_id, //request.asset_id + new Date().getTime() + getRandomInt(), //message unique id
-                            request.flag_retry,
-                            request.flag_offline,
-                            request.asset_id,
-                            request.datetime_log, // server log date time   
-                            activityFormId,
-                            0,
-                            activityChannelId,
-                            activityChannelCategoryId
-                            );
-                    break;
-                    //PAM
-                case 37:
-                    activitySubTypeId = 0;
-                    paramsArr = new Array(
-                            request.activity_id,
-                            request.activity_title,
-                            request.activity_description,
-                            (request.activity_inline_data),
-                            "",
-                            0,
-                            request.activity_datetime_start,
-                            request.activity_datetime_end,
-                            activityStatusId,
-                            request.activity_type_id,
-                            request.activity_parent_id,
-                            request.asset_id,
-                            request.workforce_id,
-                            request.account_id,
-                            request.organization_id,
-                            request.message_unique_id, //request.asset_id + new Date().getTime() + getRandomInt(), //message unique id
-                            request.flag_retry,
-                            request.flag_offline,
-                            request.asset_id,
-                            request.datetime_log, // server log date time   
-                            activityFormId,
-                            0,
-                            activityChannelId,
-                            activityChannelCategoryId
-                            );
-                    break;
-                default:
-                    paramsArr = new Array(
-                            request.activity_id,
-                            request.activity_title,
-                            request.activity_description,
-                            (request.activity_inline_data),
-                            itemOrderCount, //"",PAM
-                            0,
-                            request.activity_datetime_start,
-                            request.activity_datetime_end,
-                            activityStatusId,
-                            request.activity_type_id,
-                            request.activity_parent_id,
-                            request.asset_id,
-                            request.workforce_id,
-                            request.account_id,
-                            request.organization_id,
-                            request.message_unique_id, //request.asset_id + new Date().getTime() + getRandomInt(), //message unique id
-                            request.flag_retry,
-                            request.flag_offline,
-                            request.asset_id,
-                            request.datetime_log, // server log date time   
-                            activityFormId,
-                            0,
-                            activityChannelId,
-                            activityChannelCategoryId
-                            );
-                    break;
-            }
-            ;
-            paramsArr.push(request.track_latitude);
-            paramsArr.push(request.track_longitude);
-            paramsArr.push(activitySubTypeId);
-            paramsArr.push(activitySubTypeName); //PAM
-            paramsArr.push(expiryDateTime); //PAM
-
-            var queryString = util.getQueryString('ds_v1_activity_list_insert_pam', paramsArr);
-            if (queryString !== '') {
-                db.executeQuery(0, queryString, request, function (err, data) {
-                    if (err === false) {
-                        //BETA                            
-                        if ((activityTypeCategoryId === 10 || activityTypeCategoryId === 11) && (request.asset_id !== ownerAssetID)) {
-                            var paramsArr1 = new Array(
-                                    request.activity_id,
-                                    request.asset_id,
-                                    request.workforce_id,
-                                    request.account_id,
-                                    request.organization_id,
-                                    26, //request.participant_access_id,
-                                    request.message_unique_id,
-                                    request.flag_retry,
-                                    request.flag_offline,
-                                    request.asset_id,
-                                    request.datetime_log,
-                                    0 //Field Id
-                                    //'',
-                                    //-1
-                                    );
-                            //var queryString = util.getQueryString('ds_v1_activity_asset_mapping_insert_asset_assign_appr_ingre', paramsArr1);
-                            var queryString = util.getQueryString('ds_v1_activity_asset_mapping_insert_asset_assign_appr', paramsArr1);
-                            if (queryString !== '') {
+                
+                paramsArr = new Array(
+                        request.activity_id,
+                        request.activity_title,
+                        request.activity_description,
+                        (request.activity_inline_data),
+                        "",
+                        0,
+                        request.activity_datetime_start,
+                        request.activity_datetime_end,
+                        activityStatusId,
+                        request.activity_type_id,
+                        request.activity_parent_id,
+                        ownerAssetID,
+                        request.workforce_id,
+                        request.account_id,
+                        request.organization_id,
+                        request.message_unique_id, //request.asset_id + new Date().getTime() + getRandomInt(), //message unique id
+                        request.flag_retry,
+                        request.flag_offline,
+                        request.asset_id,
+                        request.datetime_log, // server log date time   
+                        activityFormId,
+                        0,
+                        activityChannelId,
+                        activityChannelCategoryId
+                        );
+               break;
+            //PAM
+            case 37:
+                activitySubTypeId = 0;
+                paramsArr = new Array(
+                        request.activity_id,
+                        request.activity_title,
+                        request.activity_description,
+                        (request.activity_inline_data),
+                        "",
+                        0,
+                        request.activity_datetime_start,
+                        request.activity_datetime_end,
+                        activityStatusId,
+                        request.activity_type_id,
+                        request.activity_parent_id,
+                        request.asset_id,
+                        request.workforce_id,
+                        request.account_id,
+                        request.organization_id,
+                        request.message_unique_id, //request.asset_id + new Date().getTime() + getRandomInt(), //message unique id
+                        request.flag_retry,
+                        request.flag_offline,
+                        request.asset_id,
+                        request.datetime_log, // server log date time   
+                        activityFormId,
+                        0,
+                        activityChannelId,
+                        activityChannelCategoryId
+                        );
+                break;
+            default:
+                paramsArr = new Array(
+                        request.activity_id,
+                        request.activity_title,
+                        request.activity_description,
+                        (request.activity_inline_data),
+                        itemOrderCount, //"",PAM
+                        0,
+                        request.activity_datetime_start,
+                        request.activity_datetime_end,
+                        activityStatusId,
+                        request.activity_type_id,
+                        request.activity_parent_id,
+                        request.asset_id,
+                        request.workforce_id,
+                        request.account_id,
+                        request.organization_id,
+                        request.message_unique_id, //request.asset_id + new Date().getTime() + getRandomInt(), //message unique id
+                        request.flag_retry,
+                        request.flag_offline,
+                        request.asset_id,
+                        request.datetime_log, // server log date time   
+                        activityFormId,
+                        0,
+                        activityChannelId,
+                        activityChannelCategoryId
+                        );
+                break;
+        }
+        ;
+        paramsArr.push(request.track_latitude);
+        paramsArr.push(request.track_longitude); 
+        paramsArr.push(activitySubTypeId);
+        paramsArr.push(activitySubTypeName); //PAM
+        paramsArr.push(expiryDateTime); //PAM
+                
+        var queryString = util.getQueryString('ds_v1_activity_list_insert_pam', paramsArr);
+        if (queryString !== '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                if (err === false) {
+                    //BETA                            
+                    if ((activityTypeCategoryId === 10 || activityTypeCategoryId === 11) && (request.asset_id !== ownerAssetID)) {
+                        var paramsArr1 = new Array(
+                                request.activity_id,
+                                request.asset_id,
+                                request.workforce_id,
+                                request.account_id,
+                                request.organization_id,
+                                26, //request.participant_access_id,
+                                request.message_unique_id,
+                                request.flag_retry,
+                                request.flag_offline,
+                                request.asset_id,
+                                request.datetime_log,
+                                0 //Field Id
+                                //'',
+                                //-1
+                                );
+                        //var queryString = util.getQueryString('ds_v1_activity_asset_mapping_insert_asset_assign_appr_ingre', paramsArr1);
+                        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_insert_asset_assign_appr', paramsArr1);
+                        if (queryString !== '') {
                                 db.executeQuery(0, queryString, request, function (err, data) {
-                                    if (err === false) {
-                                        activityCommonService.updateLeadAssignedDatetime(request, request.asset_id, function (err, data) {
+                                if (err === false) {
+                                     activityCommonService.updateLeadAssignedDatetime(request, request.asset_id, function (err, data) {
 
                                         });
-                                        callback(false, true);
-                                        return;
-                                    } else {
-                                        callback(err, false);
-                                        return;
+                                    callback(false, true);
+                                    return;
+                                } else {
+                                    callback(err, false);
+                                    return;
                                     }
-                                });
-                            }
-                        } else {
+                              });
+                          }
+                          } else {
                             callback(false, true);
                             return;
                         }
 
-                    } else {
+                    } else {                        
                         // some thing is wrong and have to be dealt
                         callback(err, false);
                         return;
@@ -718,6 +728,10 @@ function ActivityService(objectCollection) {
             }
         });
     };
+     
+                    
+                    
+            
     function sendPushPam(request) {
         return new Promise((resolve, reject) => {
             var paramsArr = new Array(
@@ -1096,12 +1110,14 @@ function ActivityService(objectCollection) {
         activityListUpdateStatus(request, function (err, data) {
             if (err === false) {
                 //PAM
-                if (activityTypeCategroyId == 38) {
-                    switch (Number(request.activity_status_type_id)) {
-                        case 105:
-                            itemOrderAlterStatus(request).then(() => {
-                            });
-                            break;
+                if(activityTypeCategroyId == 38) {
+                    switch(Number(request.activity_status_type_id)) {
+                        case 105: itemOrderAlterStatus(request).then(()=>{});
+                                  updateStatusDateTimes(request).then(()=>{});
+                                  break;
+                        case 106: 
+                        case 125: updateStatusDateTimes(request).then(()=>{});
+                                  break;
                     }
                 }
 
@@ -1239,8 +1255,69 @@ function ActivityService(objectCollection) {
 
         });
     };
-    function respReqinMail(request) {
-        return new Promise((resolve, reject) => {
+    
+    function updateStatusDateTimes(request) {
+        return new Promise((resolve, reject)=>{
+            var servedAtBar = (request.hasOwnProperty('served_at_bar'))? request.served_at_bar : 0;            
+            var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.activity_id,
+                request.activity_status_type_id,
+                servedAtBar,
+                request.asset_id,
+                request.datetime_log
+                );
+            var queryString = util.getQueryString('ds_v1_activity_list_update_order_status_datetime', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, resp) {
+                    if (err === false) {
+                        activityCommonService.getAllParticipants(request, function(err, participantData){
+                            if(err === false){
+                                forEachAsync(participantData, function (next, x) {
+                                    updateStatusDttmsParticipants(request, x.asset_id, servedAtBar).then(()=>{
+                                        next();
+                                    });                                    
+                                    }).then(()=>{
+                                        resolve();
+                                    });
+                            } else {
+                                reject(err);
+                            }                            
+                        });
+                    } else {                    
+                        callback(err, false);
+                    }
+                });
+            }
+        });
+        
+    };
+    
+    function updateStatusDttmsParticipants(request, assetId, servedAtBar){
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.activity_id,
+                assetId, //p_asset_id
+                request.activity_status_type_id,
+                servedAtBar,
+                request.asset_id, //log_asset_id
+                request.datetime_log
+                );
+            var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_order_status_datetime', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, resp) {
+                    (err === false)? resolve() : reject(err);
+                });
+            }
+        });
+    }
+    
+    
+    function respReqinMail(request){
+        return new Promise((resolve, reject)=>{            
             var activityFlagResponseRequired;
             var diff;
             activityCommonService.getActivityDetails(request, 0, function (err, resp) {
@@ -1250,7 +1327,7 @@ function ActivityService(objectCollection) {
                     //console.log('resp[0].activity_datetime_end_expected : ', util.replaceDefaultDatetime(resp[0].activity_datetime_end_expected));
 
                     //diff will be in milli seconds
-                    diff = util.differenceDatetimes(request.datetime_log, util.replaceDefaultDatetime(resp[0].activity_datetime_end_expected));
+                    diff = util.differenceDatetimes(request.datetime_log ,util.replaceDefaultDatetime(resp[0].activity_datetime_end_expected));                    
                     diff = diff / 3600000;
                     diff = Number(diff);
                     (diff <= 24) ? activityFlagResponseRequired = 1 : activityFlagResponseRequired = 0;

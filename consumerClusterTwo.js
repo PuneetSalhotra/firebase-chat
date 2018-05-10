@@ -1,6 +1,3 @@
-/**
- * author: SBK
- */
 var cluster = require('cluster');
 const http = require('http');
 var numCPUs = require('os').cpus().length;
@@ -18,12 +15,7 @@ if (cluster.isMaster) {
         console.log('Starting a new worker');
         cluster.fork();
     });
-} else {  
-    var WidgetEngineConsumer = require("./consumer.js");
-    var options = {
-        partition: Number(process.argv[2]),
-        topic: 'desker-form-widgets'
-    };
-    new WidgetEngineConsumer(options);
-    
+} else {    
+    var Consumer = require("./server/queue/consumerTwo.js");
+    new Consumer();   
 }

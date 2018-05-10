@@ -1,1 +1,8 @@
 node_modules
+/server/pam/com
+cluster.js
+consumerCluster.js
+consumerClusterOne.js
+consumerClusterTwo.js
+consumerClusterThree.js
+

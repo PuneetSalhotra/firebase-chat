@@ -16,7 +16,7 @@ var forEachAsync = require('forEachAsync').forEachAsync;
 var ActivityCommonService = require("../services/activityCommonService");
 var ActivityPushService = require("../services/activityPushService");
 
-var Consumer = function (partitionId) {
+var Consumer = function () {
 
     var serviceObjectCollection = {};
     var util = new Util();
@@ -26,10 +26,12 @@ var Consumer = function (partitionId) {
     var activityCommonService = new ActivityCommonService(db, util, forEachAsync);
     var activityPushService = new ActivityPushService();
     
+    console.log('global.config.kafkaIPTwo : ', global.config.kafkaIPTwo.kafkaHost);
+    
     const options = {
-      groupId: 'test-node-group',
+      groupId: 'desker-activities-consumer-group',
       autoCommit: true,      
-      kafkaHost: '192.168.43.11:9092',
+      kafkaHost: global.config.kafkaIPTwo.kafkaHost,
       sessionTimeout: 15000,
       protocol: ['roundrobin'],
       fromOffset: 'earliest'  

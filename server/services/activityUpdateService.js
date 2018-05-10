@@ -727,13 +727,15 @@ function ActivityUpdateService(objectCollection) {
 
                                 queueWrapper.raiseActivityEvent(event, data.activity_id, (err, resp) => {
                                     if (err) {
-                                        //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                                        global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent", err, request);
+                                        console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
+                                        //global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent", err, request);
+                                        //res.send(responseWrapper.getResponse(false, {}, -5999,req.body));
+                                        throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                                     } else {
                                     }
                                 });
                             } catch (exception) {
-                                console.log('Exception vnk : ' + exception);
+                                console.log('Exception : ' + exception);
                                 //res.send(responseWrapper.getResponse(false, {}, -3308,request.body));
                                 return;
                             }

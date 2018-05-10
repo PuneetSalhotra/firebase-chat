@@ -17,6 +17,7 @@ var AccountController = require('../controllers/accountController');
 var LogController = require('../controllers/logController'); //BETA
 var PamController = require('../controllers/pamController'); //PAM
 var PerformanceStatsController = require('../controllers/performanceStatsController');
+var PamListingController = require('../controllers/pamListingController'); //PAM
 //var FormConfigController = require('../controllers/formConfigController');
 //var FormDataController = require('../controllers/formDataController');
 //var LinkController = require('../controllers/linkController');
@@ -41,6 +42,7 @@ function ControlInterceptor(objCollection) {
     new LogController(objCollection);
     new PamController(objCollection);
     new PerformanceStatsController(objCollection);
+    new PamListingController(objCollection);
     //new FormConfigController(app, log, cacheWrapper, queueWrapper);
     //new FormDataController(app, log, cacheWrapper, queueWrapper);
     //new LinkController(app, log, cacheWrapper, queueWrapper);

@@ -66,9 +66,11 @@ function Util() {
     };
     
     this.pamSendSmsMvaayoo = function (messageString, countryCode, phoneNumber, callback) {
-        messageString = encodeURI(messageString);
+        //messageString = encodeURI(messageString);
+        messageString = encodeURIComponent(messageString);
         var url = "http://api.mvaayoo.com/mvaayooapi/MessageCompose?user=junaid.m@grene.in:greneapple&senderID=PUDMNK&receipientno=" + countryCode + "" + phoneNumber + "&dcs=0&msgtxt=" + messageString + "&state=4";
-
+        console.log('URL : ', url);
+        
         request(url, function (error, response, body) {
             var res = {};
             if (typeof body != 'undefined' && body.indexOf('Status=0') > -1) {
@@ -496,10 +498,15 @@ function Util() {
     };
     
     this.getDatetimewithAmPm = function(timeString) {
-        var value = moment(timeString).format("YYYY-MM-DD HH:mmA");
+        var value = moment(timeString).format("YYYY-MM-DD hh:mm A");
         return value;
     };
 
+    this.getDatewithndrdth = function(timeString) {
+        var value = moment(timeString).format("MMM Do");
+        return value;
+    };
+    
     this.addDays = function (timeString, days) {
         var value = moment(timeString, "YYYY-MM-DD HH:mm:ss").add(days, 'days').format("YYYY-MM-DD HH:mm:ss");        
         return value;
@@ -517,8 +524,12 @@ function Util() {
 
     this.differenceDatetimes = function (timeString1, timeString2) {
         var value = moment(timeString1, "YYYY-MM-DD HH:mm:ss").diff(moment(timeString2, "YYYY-MM-DD HH:mm:ss"));
+        return value;        
+    };
+    
+    this.differenceDatetime = function (timeString1, timeString2) {
+        var value = moment(timeString1, "YYYY-MM-DD HH:mm:ss").diff(moment(timeString2, "YYYY-MM-DD HH:mm:ss"));
         return moment.duration(value)._data;
-        //return value;
     };
     
     this.getDayStartDatetime = function() {
@@ -538,6 +549,15 @@ function Util() {
     
     this.getDayEndDatetimeIST = function() {
         var value = moment().tz('Asia/Kolkata').endOf('day').format('YYYY-MM-DD HH:mm:ss');
+        return value;
+    };
+    
+    this.isDateBetween = function(startDt, endDt, compareDt) {
+        var compareDate = moment(compareDt, "YYYY-MM-DD HH:mm:ss");
+        var startDate   = moment(startDt, "YYYY-MM-DD HH:mm:ss");
+        var endDate     = moment(endDt, "YYYY-MM-DD HH:mm:ss");
+
+        var value = compareDate.isBetween(startDate, endDate);
         return value;
     };
     
