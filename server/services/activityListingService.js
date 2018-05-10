@@ -108,26 +108,40 @@ function ActivityListingService(objCollection) {
     this.getAllFolders = function (request, callback) {
         var paramsArr = new Array();
         var queryString = '';
-        paramsArr = new Array(
-                request.asset_id,
-                request.organization_id,
-                request.account_id,
-                request.workforce_id,
-                request.activity_type_category_id,
-                request.activity_sub_type_id,
-                request.is_unread,
-                request.is_status,
-                request.is_due_date,
-                request.is_sort,
-                request.is_search,  //1 for searching
-                request.search_string,
-                request.flag,
-                request.start_datetime,
-                request.end_datetime,
-                request.page_start,
-                util.replaceQueryLimit(request.page_limit)
-                );
-        queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_folders_all', paramsArr);
+        var activityTypeCategoryId = Number(request.activity_type_category_id) || 0;
+        if (activityTypeCategoryId === 28) {
+            paramsArr = new Array(
+                    request.asset_id,
+                    request.organization_id,
+                    request.account_id,
+                    request.workforce_id,
+                    request.search_string,
+                    request.page_start,
+                    util.replaceQueryLimit(request.page_limit)
+                    );
+            queryString = util.getQueryString('ds_p1_activity_asset_mapping_search_postit', paramsArr);
+        } else {
+            paramsArr = new Array(
+                    request.asset_id,
+                    request.organization_id,
+                    request.account_id,
+                    request.workforce_id,
+                    activityTypeCategoryId,
+                    request.activity_sub_type_id,
+                    request.is_unread,
+                    request.is_status,
+                    request.is_due_date,
+                    request.is_sort,
+                    request.is_search, //1 for searching
+                    request.search_string,
+                    request.flag,
+                    request.start_datetime,
+                    request.end_datetime,
+                    request.page_start,
+                    util.replaceQueryLimit(request.page_limit)
+                    );
+            queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_folders_all', paramsArr);
+        }
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log(data);
