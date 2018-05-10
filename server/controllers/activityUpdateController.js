@@ -12,6 +12,7 @@ function ActivityUpdateController(objCollection) {
     var queueWrapper = objCollection.queueWrapper;
     var app = objCollection.app;
     var util = objCollection.util;
+    var forEachAsync = objCollection.forEachAsync;
 
     app.put('/' + global.config.version + '/activity/inline/alter', function (req, res) {
         var deviceOsId = 0;
@@ -226,11 +227,14 @@ function ActivityUpdateController(objCollection) {
     
     //Added by V Nani Kalyan
     app.put('/' + global.config.version + '/activity/unread/count/reset', function (req, res) {
+        var cnt = 0;
         var deviceOsId = 0;
+        var activityArray = JSON.parse(req.body.activity_id_array);
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
-
-        var proceedUnreadUpdate = function () {
+       
+        var proceedUnreadUpdate = function (activityId) {
+            req.body.activity_id = activityId;
             var event = {
                 name: "resetUnreadUpdateCount",
                 service: "activityUpdateService",
@@ -238,7 +242,7 @@ function ActivityUpdateController(objCollection) {
                 payload: req.body
             };
 
-            queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp)=>{
+            queueWrapper.raiseActivityEvent(event, activityId, (err, resp)=>{
                         if(err) {
                             //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
                             //global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);
@@ -259,7 +263,10 @@ function ActivityUpdateController(objCollection) {
                                     });
                                 }
                             }
-                            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                            cnt++;
+                            if(cnt == activityArray.length) {
+                                 res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                            }                       
                         }
                 });
             //res.send(responseWrapper.getResponse(false, {}, 200,req.body));
@@ -272,7 +279,11 @@ function ActivityUpdateController(objCollection) {
                         res.send(responseWrapper.getResponse(false, {}, -7998,req.body));
                     } else {
                         if (status) {     // proceed
-                            proceedUnreadUpdate();
+                            forEachAsync(activityArray, function (next, activityId) {
+                                console.log(activityId);
+                                proceedUnreadUpdate(activityId);
+                                next();
+                            });
                         } else {  // this is a duplicate hit,
                             res.send(responseWrapper.getResponse(false, {}, 200,req.body));
                         }
@@ -280,8 +291,11 @@ function ActivityUpdateController(objCollection) {
                 });
 
             } else if (deviceOsId === 5) {
-                proceedUnreadUpdate();
-
+                forEachAsync(activityArray, function (next, activityId) {
+                                console.log(activityId);
+                                proceedUnreadUpdate(activityId);
+                                next();
+                            });
             } else {
                 res.send(responseWrapper.getResponse(false, {}, -3304,req.body));
             }

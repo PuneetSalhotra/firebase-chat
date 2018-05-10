@@ -1329,12 +1329,14 @@ function ActivityUpdateService(objectCollection) {
         request['datetime_log'] = logDatetime;
         //var activityTypeCategoryId = Number(request.activity_type_category_id);
 
-        var activityArray = JSON.parse(request.activity_id_array);
+        activityCommonService.resetAssetUnreadCount(request, request.activity_id, function (err, data) {});
+        
+        /*var activityArray = JSON.parse(request.activity_id_array);
         forEachAsync(activityArray, function (next, activityId) {
             activityCommonService.resetAssetUnreadCount(request, activityId, function (err, data) {});
             //console.log(activityId);
             next();
-        });
+        }); */
     };
 
 }
