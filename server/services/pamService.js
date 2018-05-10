@@ -1506,7 +1506,8 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                 response.asset_id = data[0].asset_id;
                 response.asset_first_name = data[0].asset_first_name;
                 response.asset_last_name = data[0].asset_last_name;
-                response.asset_phone_passcode = data[0].asset_phone_passcode;
+                response.asset_phone_passcode = data[0].asset_phone_passcode;                
+                response.is_personal_code = 1;
             }
                 
             //Checking Reservation exists
@@ -1518,9 +1519,14 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                         response.asset_first_name = resp[0].asset_first_name;
                         response.asset_last_name = resp[0].asset_last_name;
                         response.reservation_activity_id = resp[0].activity_id;
+                        response.activity_status_type_id = resp[0].activity_status_type_id;
+                        response.activity_status_type_name = resp[0].activity_status_type_name;
+                        response.is_personal_code = 0;
                         
                         callback(false, response, 200); // CASE - 3  Not Member and reservation code exists
                     } else {
+                        response.activity_status_type_id = resp[0].activity_status_type_id;
+                        response.activity_status_type_name = resp[0].activity_status_type_name;
                         response.reservation_activity_id = resp[0].activity_id;
                         callback(false, response, 200); // CASE - 1  Member and reservation code exists
                     }
