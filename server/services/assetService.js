@@ -498,13 +498,20 @@ function AssetService(objectCollection) {
                     queryString = util.getQueryString('ds_v1_asset_list_select_operating_asset', paramsArr);
                     break;
                 case 2:
-                    paramsArr = new Array(
+                    /*paramsArr = new Array(
                             0, //request.organization_id,
                             request.asset_phone_number,
                             request.asset_phone_country_code
                             );
                     negResponseCode = -3202;
                     queryString = util.getQueryString('ds_v1_asset_list_select_phone_number', paramsArr);
+                    break;*/
+                    
+                    paramsArr = new Array(
+                            request.asset_id
+                            );
+                    negResponseCode = -3202;
+                    queryString = util.getQueryString('ds_p1_asset_list_select_asset', paramsArr);
                     break;
                 case 3:
                     paramsArr = new Array(

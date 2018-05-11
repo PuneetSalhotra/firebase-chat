@@ -30,32 +30,32 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                          next();
                          break;
                          */
-                        case '/0.1/asset/passcode/alter':
+                        case '/' + global.config.version + '/asset/passcode/alter':
                             req.body['module'] = 'device';
                             global.logger.write('request', '', req.body, req.body);
                             next();
                             break;
-                        case '/0.1/asset/passcode/check':
+                        case '/' + global.config.version + '/asset/passcode/check':
                             req.body['module'] = 'device';
                             global.logger.write('request', '', req.body, req.body);
                             next();
                             break;
-                        case '/0.1/asset/link/set':
+                        case '/' + global.config.version + '/asset/link/set':
                             req.body['module'] = 'asset';
                             global.logger.write('request', '', req.body, req.body);
                             next();
                             break;
-                        case '/0.1/pam/asset/cover/alter/clockin':
+                        case '/' + global.config.version + '/pam/asset/cover/alter/clockin':
                             req.body['module'] = 'asset';
                             global.logger.write('request', '', req.body, req.body);
                             next();
                             break;
-                        case '/0.1/asset/status/collection':
+                        case '/' + global.config.version + '/asset/status/collection':
                             req.body['module'] = 'asset';
                             global.logger.write('request', '', req.body, req.body);
                             next();
                             break;
-                        case '/0.1/send/email':
+                        case '/' + global.config.version + '/send/email':
                             //req.body['module'] = 'asset';
                             //global.logger.write('request', '', req.body, req.body);
                             next();
