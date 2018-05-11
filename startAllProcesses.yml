@@ -7,20 +7,20 @@ apps:
     exec_mode: cluster
   - name : "ConsumerOne"
     script   : ./consumerOne.js
-    error_file: ../consumerLoggerOne.txt
-    out_file: ../consumerLoggerOne.txt
+    error_file: ../consumersLogger.txt
+    out_file: ../consumersLogger.txt
     instances: 1
     exec_mode: fork
   - name : "ConsumerTwo"
     script   : ./consumerTwo.js
-    error_file: ../consumerLoggerTwo.txt
-    out_file: ../consumerLoggerTwo.txt
+    error_file: ../consumersLogger.txt
+    out_file: ../consumersLogger.txt
     instances: 1
     exec_mode: fork
   - name : "ConsumerThree"
     script   : ./consumerThree.js
-    error_file: ../consumerLoggerThree.txt
-    out_file: ../consumerLoggerThree.txt
+    error_file: ../consumersLogger.txt
+    out_file: ../consumersLogger.txt
     instances: 1
     exec_mode: fork
   - name : "SQSConsumer"

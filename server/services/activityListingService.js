@@ -1534,6 +1534,24 @@ function ActivityListingService(objCollection) {
         }
 
     };
+    
+    this.getOrganizationsOfANumber = function(request, callback) {
+        var paramsArr = new Array(
+                request.organization_id || 0,
+                request.phone_number,
+                request.country_code
+                );
+        var queryString = util.getQueryString('ds_p1_asset_list_select_phone_number_all', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (err === false) {
+                    callback(false, data);
+                } else {                    
+                    callback(err, false);
+                }
+            });
+        }
+    };
 
 }
 ;
