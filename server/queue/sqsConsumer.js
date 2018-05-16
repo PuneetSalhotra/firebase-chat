@@ -29,7 +29,7 @@ var consume = function () {
                 //try {
                     var body = data['Messages'][0].Body;
                     var messageCollection = JSON.parse(body);
-                    //console.log(messageCollection);
+                    console.log('messageCollection.environment :',messageCollection.environment);                                      
                     switch (messageCollection.log) {
                         case 'log':
                             console.log('LOG');
@@ -47,7 +47,7 @@ var consume = function () {
                                 }
                             });
                             break;
-                    }
+                    }                
                     ;
                 /*} catch (e) {
                     console.log(e);

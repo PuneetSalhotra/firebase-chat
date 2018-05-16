@@ -34,7 +34,8 @@ function AssetService(objectCollection) {
                     countryCode
                     );
 
-            var queryString = util.getQueryString('ds_v1_asset_list_select_phone_number', paramsArr);
+            //var queryString = util.getQueryString('ds_v1_asset_list_select_phone_number', paramsArr);
+            var queryString = util.getQueryString('ds_p1_asset_list_select_phone_number_all', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, selectData) {
                     if (err === false) {
@@ -47,12 +48,29 @@ function AssetService(objectCollection) {
                         if (selectData.length > 0) {
                             if (verificationMethod !== 0) {
 
-                                formatPhoneNumberAssets(selectData, function (error, data) {
+                                /*formatPhoneNumberAssets(selectData, function (error, data) {
                                     if (error === false)
                                         callback(false, {data: data}, 200);
-                                });
+                                });*/
+                                callback(false, {passcode: verificationCode}, 200);
+                                forEachAsync(selectData, function (next, rowData) {
+                                    paramsArr = new Array(
+                                        rowData.asset_id,
+                                        rowData.organization_id,
+                                        verificationCode,
+                                        pwdValidDatetime
+                                        );
+                                    var updateQueryString = util.getQueryString('ds_v1_asset_list_update_passcode', paramsArr);
+                                    db.executeQuery(0, updateQueryString, request, function (err, data) {
+                                        assetListHistoryInsert(request, rowData.asset_id, rowData.organization_id, 208, util.getCurrentUTCTime(), function (err, data) {
 
-                                paramsArr = new Array(
+                                        });
+                                        next();
+                                    });
+                                    
+                                });
+                                
+                                /*paramsArr = new Array(
                                         selectData[0]['asset_id'],
                                         selectData[0]['organization_id'],
                                         verificationCode,
@@ -63,12 +81,13 @@ function AssetService(objectCollection) {
                                     assetListHistoryInsert(request, selectData[0]['asset_id'], selectData[0]['organization_id'], 208, util.getCurrentUTCTime(), function (err, data) {
 
                                     });
-                                });
+                                });*/
 
                                 sendCallOrSms(verificationMethod, countryCode, phoneNumber, verificationCode, request);
                             }
                         } else {
-                            callback(false, {}, -3202);
+                            //callback(false, {}, -3202);
+                            callback(false, {passcode: verificationCode}, 200);
                         }
                     } else {
                         // some thing is wrong and have to be dealt                        

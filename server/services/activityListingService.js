@@ -1545,9 +1545,9 @@ function ActivityListingService(objCollection) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
-                    callback(false, data);
+                    callback(false, data,200);
                 } else {                    
-                    callback(err, false);
+                    callback(err, false,-9999);
                 }
             });
         }

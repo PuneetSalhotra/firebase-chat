@@ -45,6 +45,11 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                             global.logger.write('request', '', req.body, req.body);
                             next();
                             break;
+                        case '/' + global.config.version + '/asset/phonenumber/access/organization/list':
+                            req.body['module'] = 'asset';
+                            global.logger.write('request', '', req.body, req.body);
+                            next();
+                            break;                            
                         case '/' + global.config.version + '/pam/asset/cover/alter/clockin':
                             req.body['module'] = 'asset';
                             global.logger.write('request', '', req.body, req.body);

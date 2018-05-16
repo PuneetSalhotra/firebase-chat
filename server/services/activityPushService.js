@@ -29,11 +29,11 @@ function ActivityPushService(objectCollection) {
                     case 6: // External Contact Card - Customer
                     case 29:    //External Contact Card - Supplier
                         switch (request.url) {
-                            case '/0.1/activity/timeline/entry/add':
+                            case '/' + global.config.version + '/activity/timeline/entry/add':
                                 break;
-                            case '/0.1/activity/status/alter':
+                            case '/' + global.config.version + '/activity/status/alter':
                                 break;
-                            case '/0.1/activity/participant/access/set':
+                            case '/' + global.config.version + '/activity/participant/access/set':
                                 var activityInlineJson = JSON.parse(activityData[0]['activity_inline_data']);
                                 var contactName = activityInlineJson.contact_first_name + ' ' + activityInlineJson.contact_last_name;
                                 pushString.title = senderName;
@@ -44,17 +44,17 @@ function ActivityPushService(objectCollection) {
                         break;
                     case 8: // Mail
                         switch (request.url) {
-                            case '/0.1/activity/timeline/entry/add':
+                            case '/' + global.config.version + '/activity/timeline/entry/add':
                                 break;
-                            case '/0.1/activity/status/alter':
+                            case '/' + global.config.version + '/activity/status/alter':
                                 break;
-                            case '/0.1/activity/participant/access/set':
+                            case '/' + global.config.version + '/activity/participant/access/set':
                                 msg.activity_type_category_id = 8;
                                 pushString.title = senderName;
                                 pushString.description = 'Mail: ' + activityTitle;
                                 smsString = ' ' + senderName + ' has send an inmail to your inbox. You can respond by logging into the desker app. Download Link:  app.desker.co';
                                 break;
-                            case '/0.1/activity/owner/alter':
+                            case '/' + global.config.version + '/activity/owner/alter':
                                 pushString.title = senderName;
                                 pushString.description = 'Folder: ' + activityTitle + ' owner is changed';
                                 if (Number(request.activity_sub_type_id) === 1) {
@@ -66,11 +66,11 @@ function ActivityPushService(objectCollection) {
                         break;
                     case 9: // Form
                         switch (request.url) {
-                            case '/0.1/activity/timeline/entry/add':
+                            case '/' + global.config.version + '/activity/timeline/entry/add':
                                 break;
-                            case '/0.1/activity/status/alter':
+                            case '/' + global.config.version + '/activity/status/alter':
                                 break;
-                            case '/0.1/activity/participant/access/set':
+                            case '/' + global.config.version + '/activity/participant/access/set':
                                 msg.activity_type_category_id = 9;
                                 pushString.title = senderName;
                                 pushString.description = 'Form has been shared for approval';
@@ -81,11 +81,11 @@ function ActivityPushService(objectCollection) {
                     case 10:    // Folders
                         msg.activity_type_category_id = 10;
                         switch (request.url) {
-                            case '/0.1/activity/add':
+                            case '/' + global.config.version + '/activity/add':
                                 pushString.title = senderName;
                                 pushString.description = 'made you the owner of: ' + activityTitle;
                                 break;
-                            case '/0.1/activity/timeline/entry/add':
+                            case '/' + global.config.version + '/activity/timeline/entry/add':
                                 pushString.title = senderName;
                                 pushString.description = 'Has added an update to - ' + activityTitle;
                                 if (Number(request.activity_sub_type_id) === 1)
@@ -93,17 +93,17 @@ function ActivityPushService(objectCollection) {
                                 else
                                     smsString = ' ' + senderName + ' has mentioned you in a file named ' + activityTitle + '. You can respond by logging into the desker app. Download Link:  app.desker.co';
                                 break;
-                            case '/0.1/activity/status/alter':
+                            case '/' + global.config.version + '/activity/status/alter':
                                 msg.activity_type_category_id = 0;
                                 break;
-                            case '/0.1/activity/owner/alter':
+                            case '/' + global.config.version + '/activity/owner/alter':
                                 pushString.title = senderName;
                                 pushString.description = 'Folder: ' + activityTitle + ' owner is changed';
                                 if (Number(request.activity_sub_type_id) === 1) {
                                     smsString = ' ' + senderName + ' has assigned a task named ' + activityTitle + ' to you. You can respond by logging into the desker app. Download Link:  app.desker.co';
                                 }
                                 break;
-                            case '/0.1/activity/participant/access/set':
+                            case '/' + global.config.version + '/activity/participant/access/set':
                                 pushString.title = senderName;
                                 pushString.description = 'Folder: ' + activityTitle + ' has been shared to collaborate';
                                 if (Number(request.activity_sub_type_id) === 1) {
@@ -115,12 +115,12 @@ function ActivityPushService(objectCollection) {
                         break;
                     case 11:    // Project
                         switch (request.url) {
-                            case '/0.1/activity/timeline/entry/add':
+                            case '/' + global.config.version + '/activity/timeline/entry/add':
                                 smsString = ' ' + senderName + ' has mentioned you in a project named ' + activityTitle + '. You can respond by logging into the desker app. Download Link:  app.desker.co';
                                 break;
-                            case '/0.1/activity/status/alter':
+                            case '/' + global.config.version + '/activity/status/alter':
                                 break;
-                            case '/0.1/activity/participant/access/set':
+                            case '/' + global.config.version + '/activity/participant/access/set':
                                 msg.activity_type_category_id = 11;
                                 pushString.title = senderName;
                                 pushString.description = 'Project: ' + activityTitle + ' has been shared to collaborate';
@@ -130,11 +130,11 @@ function ActivityPushService(objectCollection) {
                         break;
                     case 14:    // Voice Call
                         switch (request.url) {
-                            case '/0.1/activity/timeline/entry/add':
+                            case '/' + global.config.version + '/activity/timeline/entry/add':
                                 break;
-                            case '/0.1/activity/status/alter':
+                            case '/' + global.config.version + '/activity/status/alter':
                                 break;
-                            case '/0.1/activity/participant/access/set':
+                            case '/' + global.config.version + '/activity/participant/access/set':
                                 pushString.title = "Audio call";
                                 pushString.description = 'Call from ' + activityInlineJson.owner_details.operating_asset_first_name;
                                 extraData.type = 1;
@@ -151,13 +151,13 @@ function ActivityPushService(objectCollection) {
                         break;
                     case 15:    // Video Conference
                         switch (request.url) {
-                            case '/0.1/activity/cover/alter':
+                            case '/' + global.config.version + '/activity/cover/alter':
                                 pushString.title = senderName;
                                 pushString.description = 'Meeting details has been updated for ' + activityTitle;
                                 break;
-                            case '/0.1/activity/status/alter':
+                            case '/' + global.config.version + '/activity/status/alter':
                                 break;
-                            case '/0.1/activity/participant/access/set':
+                            case '/' + global.config.version + '/activity/participant/access/set':
                                 //console.log('activityInlineJson : ', activityInlineJson)
                                 pushString.title = "Video call";
                                 //pushString.description = 'Meeting: ' + activityTitle + ' has been scheduled at ' + (activityData[0]['activity_datetime_start_expected']);
@@ -176,11 +176,11 @@ function ActivityPushService(objectCollection) {
                         break;
                     case 28:    // Remainder
                         switch (request.url) {
-                            case '/0.1/activity/timeline/entry/add':
+                            case '/' + global.config.version + '/activity/timeline/entry/add':
                                 break;
-                            case '/0.1/activity/status/alter':
+                            case '/' + global.config.version + '/activity/status/alter':
                                 break;
-                            case '/0.1/activity/participant/access/set':
+                            case '/' + global.config.version + '/activity/participant/access/set':
                                 msg.activity_type_category_id = 28;
                                 pushString.title = senderName;
                                 pushString.description = activityData[0]['activity_description'].substring(0, 100);
@@ -191,11 +191,11 @@ function ActivityPushService(objectCollection) {
                         break;
                     case 31:    //Calendar Event
                         switch (request.url) {
-                            case '/0.1/activity/timeline/entry/add':
+                            case '/' + global.config.version + '/activity/timeline/entry/add':
                                 break;
-                            case '/0.1/activity/status/alter':
+                            case '/' + global.config.version + '/activity/status/alter':
                                 break;
-                            case '/0.1/activity/participant/access/set':
+                            case '/' + global.config.version + '/activity/participant/access/set':
                                 pushString.title = senderName;
                                 pushString.description = 'Shared an Event to you - ' + activityTitle;
                                 break;

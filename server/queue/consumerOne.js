@@ -77,8 +77,9 @@ var Consumer = function () {
                 if(err === false) {
                         console.log('data : ' + data);
                         console.log('kafkaMsgId : ' + kafkaMsgId);
+                        console.log('Received message.offset : ' + message.offset);
                         
-                        if(data < kafkaMsgId) { //I think this should be greater than to current offset
+                        if(data < message.offset) { //I think this should be greater than to current offset
                                 console.log(message.value);
 
                                 try {
@@ -101,7 +102,7 @@ var Consumer = function () {
                                                 //Commit the offset
                                                 commitingOffset(message).then(()=>{}).catch((err)=>{ console.log(err);});
                                                 //Store the read kafak message ID in the redis
-                                                setkafkaMsgId(message, kafkaMsgId).then(()=>{}).catch((err)=>{ console.log(err);});
+                                                setkafkaMsgId(message).then(()=>{}).catch((err)=>{ console.log(err);});
                                             }
                                             });                                             
                                     } else {
@@ -114,7 +115,7 @@ var Consumer = function () {
                                                 commitingOffset(message).then(()=>{}).catch((err)=>{ console.log(err);});
                                                 
                                                 //Store the read kafak message ID in the redis
-                                                setkafkaMsgId(message, kafkaMsgId).then(()=>{}).catch((err)=>{ console.log(err);});
+                                                setkafkaMsgId(message).then(()=>{}).catch((err)=>{ console.log(err);});
                                             }
                                         });                    
                                     }
@@ -169,10 +170,10 @@ var Consumer = function () {
         });
     };
     
-    function setkafkaMsgId(message, kafkaMsgId) {
+    function setkafkaMsgId(message) {
         return new Promise((resolve, reject)=>{            
             //Setting the processed KafkaMessageUniqueId in the Redis
-            cacheWrapper.setKafkaMessageUniqueId(message.topic + '_' + message.partition, kafkaMsgId, (err, data)=>{
+            cacheWrapper.setKafkaMessageUniqueId(message.topic + '_' + message.partition, message.offset, (err, data)=>{
                 if(err === false) {
                     console.log('Successfully set the Kafka message Unique Id in Redis');
                     resolve();
