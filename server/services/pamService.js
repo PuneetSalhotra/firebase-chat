@@ -939,6 +939,25 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
       });          
     };
     
+    this.pamAssignParticipant = function(request, callback) {
+        var logDatetime = util.getCurrentUTCTime();
+        request['datetime_log'] = logDatetime;
+        
+        pamAssignCoworker(request, function(err, resp){
+               if(err === false) {
+                   request.activity_status_type_id = 103;
+                   getActivityStatusId(request, request.activity_id).then((data)=>{
+                       request.activity_status_id = data[0].activity_status_id;
+                       callback(false, true);
+                       /*pamAlterActivityStatus(request).then(()=>{                            
+                            callback(false, true);
+                       });*/
+                   });
+               } else {
+                   callback(true, false);
+               }
+           });
+    };
     
     //Add Paritipant ==============================================================
     var pamAssignCoworker = function (request, callback) { //Addparticipant Request
@@ -1064,6 +1083,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
     
     var isParticipantAlreadyAssigned = function (assetCollection, activityId, request, callback) {
         var fieldId = 0;
+        console.log('In isParticipantAlreadyAssigned - assetCollection : ', assetCollection);
         if (assetCollection.hasOwnProperty('field_id')) {
             fieldId = assetCollection.field_id;
         }
@@ -1107,8 +1127,11 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
     
     var activityAssetMappingInsertParticipantAssign = function (request, participantData, callback) {
         var fieldId = 0;
+        console.log('In function activityAssetMappingInsertParticipantAssign - participantData : ', participantData);
         var quantityUnitType = (request.hasOwnProperty('quantity_unit_type')) ? request.quantity_unit_type : '';
         var quantityUnitValue = (request.hasOwnProperty('quantity_unit_value')) ? request.quantity_unit_value : -1;
+        var optionId = (request.hasOwnProperty('option_id')) ? request.option_id : -1;
+        var optionName = (request.hasOwnProperty('option_name')) ? request.option_name : '';
         
         if (participantData.hasOwnProperty('field_id')) {
             fieldId = participantData.field_id;
@@ -1127,9 +1150,12 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                 request.datetime_log,
                 fieldId,
                 quantityUnitType,
-                quantityUnitValue
+                quantityUnitValue,
+                optionId,
+                optionName
                 );
-        var queryString = util.getQueryString("ds_v1_activity_asset_mapping_insert_asset_assign_appr_ingre", paramsArr);
+        var queryString = util.getQueryString("ds_v1_activity_asset_mapping_insert_asset_assign_pam", paramsArr);
+        //var queryString = util.getQueryString("ds_v1_activity_asset_mapping_insert_asset_assign_appr_ingre", paramsArr);
         //var queryString = util.getQueryString("ds_v1_activity_asset_mapping_insert_asset_assign_appr", paramsArr);
 
         if (queryString !== '') {

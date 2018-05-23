@@ -12,7 +12,6 @@ function PamController(objCollection) {
     var pamService = new PamService(objCollection);
     var util = objCollection.util;
     var cacheWrapper = objCollection.cacheWrapper;
-    
     var queueWrapper = objCollection.queueWrapper;
 
     //IVR Service
@@ -321,25 +320,74 @@ function PamController(objCollection) {
         });
     });
     
-    
-    app.post('/' + global.config.version + '/nani/kalyan/set', function (req, res) {
-        cacheWrapper.setKafkaMessageUniqueId('deskeractivities_0_77', 'read', function(err, resp){
-            if(err === false) {
-                console.log('Created ' + resp);            
+    app.post('/' + global.config.version + '/pam/activity/participant/access/set', function (req, res) {
+        var assetMessageCounter = 0;
+        var deviceOsId = 0;
+        if (req.body.hasOwnProperty('asset_message_counter'))
+            assetMessageCounter = Number(req.body.asset_message_counter);
+        if (req.body.hasOwnProperty('device_os_id'))
+            deviceOsId = Number(req.body.device_os_id);
+
+        var proceedParticipantAccessSet = function () {
+            var event = {
+                name: "pamAssignParticipnt",
+                service: "pamService",
+                method: "pamAssignParticipant",
+                payload: req.body
+            };
+
+            queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp)=>{
+                        if(err) {
+                            //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
+                            //global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);
+                            res.send(responseWrapper.getResponse(true, {}, -5998,req.body));
+                            throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+                        } else {
+                            if (req.hasOwnProperty('device_os_id')) {
+                                if (Number(req.device_os_id) !== 5 || Number(req.device_os_id) !== 6) {
+                                    //incr the asset_message_counter                        
+                                    cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
+                                        if (err) {
+                                            //console.log("error in setting in asset parity");
+                                            global.logger.write('serverError',"error in setting in asset parity",err,req.body);
+                                        } else
+                                            //console.log("asset parity is set successfully")
+                                            global.logger.write('debug',"asset parity is set successfully",{},req.body);
+
+                                    });
+                                }
+                            }
+                            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                            return;
+                        }
+                });
+            //res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+            //return;
+        };
+        if (util.hasValidActivityId(req.body)) {
+            if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5 && deviceOsId !== 6) {
+
+                cacheWrapper.checkAssetParity(req.body.asset_id, Number(assetMessageCounter), function (err, status) {
+                    if (err) {
+                        res.send(responseWrapper.getResponse(false, {}, -7998,req.body));
+                    } else {
+                        if (status) {     // proceed
+                            proceedParticipantAccessSet();
+
+                        } else {  // this is a duplicate hit,
+                            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                        }
+                    }
+                });
+
+            } else if (deviceOsId === 5 || deviceOsId === 6) {
+                proceedParticipantAccessSet();
             } else {
-                console.log('Not created : ' + err);
+                res.send(responseWrapper.getResponse(false, {}, -3304,req.body));
             }
-        })
-    });
-    
-    app.post('/' + global.config.version + '/nani/kalyan/get', function (req, res) {
-        cacheWrapper.getKafkaMessageUniqueId('deskeractivities_0_78',function(err, resp){
-            if(err === false) {
-                console.log('Retrieved value ' + resp);
-            } else {
-                console.log('Not created : ' + err);
-            }
-        });
+        } else {
+            res.send(responseWrapper.getResponse(false, {}, -3301,req.body));
+        }
     });
 }
 ;
