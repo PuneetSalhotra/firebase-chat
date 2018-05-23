@@ -9,6 +9,13 @@ logger = new Logger();
 config = {};
 config.version = 'r1';
 config.servicePort = 3000;
+
+config.consumerOne = 3200;
+config.consumerTwo = 3201;
+config.consumerThree = 3202;
+
+config.sqsConsumer = 3300;
+        
 config.sms_mode = 1;    //  2: bulkSMS  |   3: Sinfini
 config.whitelist = ['http://mydesk.desker.co', 'https://mydesk.desker.co', 'http://127.0.0.1','http://localhost'];
 

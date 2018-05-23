@@ -100,6 +100,6 @@ var http = require('http')
 http.createServer((req, res)=>{
     res.write('I am Alive');
     res.end();
-}).listen(1111)
+}).listen(global.config.sqsConsumer);
 
 //module.exports = checkingCassandraInstance;
