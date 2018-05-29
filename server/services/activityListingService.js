@@ -49,7 +49,8 @@ function ActivityListingService(objCollection) {
                     request.page_start,
                     util.replaceQueryLimit(request.page_limit)
                     );
-            queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_asset_differential', paramsArr);
+            //queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_asset_differential', paramsArr);
+            queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_asset_signup_differential', paramsArr);
         }
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
@@ -367,20 +368,23 @@ function ActivityListingService(objCollection) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
-                    var coverCollection = {};
-                    coverCollection.activity_title = util.replaceDefaultString(util.ucfirst(util.decodeSpecialChars(data[0]['activity_title'])));
-                    coverCollection.activity_datetime_start = util.replaceDefaultString(util.ucfirst(util.decodeSpecialChars(data[0]['activity_datetime_start_expected'])));
-                    coverCollection.activity_duedate = util.replaceDefaultString(data[0]['activity_datetime_end_expected']);
-                    coverCollection.activity_description = util.replaceDefaultString(util.decodeSpecialChars(data[0]['activity_description']));
-                    coverCollection.activity_completion_percentage = util.replaceDefaultString(data[0]['activity_completion_percentage']); //BETA
-                    formatActivityInlineCollection(data, coverCollection, function (err, responseData) {
-                        if (err === false) {
-                            callback(false, {data: responseData}, 200);
-                        } else {
-                            callback(false, {}, -9999)
-                        }
-                    });
-                    return;
+                    if(data.length > 0 ) {
+                        var coverCollection = {};
+                        coverCollection.activity_title = util.replaceDefaultString(util.ucfirst(util.decodeSpecialChars(data[0]['activity_title'])));
+                        coverCollection.activity_datetime_start = util.replaceDefaultString(util.ucfirst(util.decodeSpecialChars(data[0]['activity_datetime_start_expected'])));
+                        coverCollection.activity_duedate = util.replaceDefaultString(data[0]['activity_datetime_end_expected']);
+                        coverCollection.activity_description = util.replaceDefaultString(util.decodeSpecialChars(data[0]['activity_description']));
+                        coverCollection.activity_completion_percentage = util.replaceDefaultString(data[0]['activity_completion_percentage']); //BETA
+                        formatActivityInlineCollection(data, coverCollection, function (err, responseData) {
+                            if (err === false) {
+                                callback(false, {data: responseData}, 200);
+                            } else {
+                                callback(false, {}, -9999)
+                            }
+                        });
+                    } else {
+                        callback(false, {}, 200);
+                    }
                 } else {
                     // some thing is wrong and have to be dealt
                     callback(err, false, -9999);
