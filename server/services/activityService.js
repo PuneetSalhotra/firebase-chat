@@ -25,6 +25,9 @@ function ActivityService(objectCollection) {
                 if (err === false) {
                     request.activity_inline_data = updatedJson;
                     return resolve();
+                } else {
+                    callback(true, false);
+                    //return reject();
                 }
             });
             //kafkaProducer.on('ready', resolve);
@@ -143,7 +146,11 @@ function ActivityService(objectCollection) {
                                         activityPushService.sendPush(request, objectCollection, 0, function () {});
                                         activityCommonService.updateParticipantCount(request.activity_id, request.organization_id, request, function (err, data) { });
                                     }
-                                }                            
+                                }
+                                
+                            if(activityTypeCategroyId === 10 && Number(request.activity_sub_type_id) === 1) {
+                                updateTaskCreatedCnt(request).then(()=>{});
+                            }
                             // do the timeline transactions here..                    
 
                             activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
@@ -1676,8 +1683,11 @@ function ActivityService(objectCollection) {
                         //Here you have to write the logic
                         console.log('inventories data: ', data);
                         if (data.length > 0) {
-                            logic(ingredients.activity_sub_type_id, data).then((updatedInv) => {
+                            updatingInventoryQtys(ingredients.activity_sub_type_id, data).then((updatedInv) => {
                                 resolve(updatedInv)
+                            }).catch(()=>{
+                                console.log('Error occurred in performing the deductions of inventory quantity');
+                                reject('Error occurred in performing the deductions of inventory quantity');
                             });
                         } else {
                         }
@@ -1690,7 +1700,7 @@ function ActivityService(objectCollection) {
         })
     }
 
-    function logic(requiredQty, inventories) {
+    function updatingInventoryQtys(requiredQty, inventories) {
         return new Promise((resolve, reject) => {
             var x;
             var tempArray = new Array();
@@ -2114,6 +2124,31 @@ function ActivityService(objectCollection) {
             collection.entity_double_1 = percentage;
             activityCommonService.monthlySummaryInsert(request, collection).then((data) => {
                 callback(false, true);
+            });
+        });
+    };
+    
+    function updateTaskCreatedCnt(request) {
+        return new Promise((resolve, reject)=>{
+            activityCommonService.getAssetDetails(request, function (err, data){
+               if(err === false) {
+                    var paramsArr = new Array(
+                        request.organization_id,
+                        request.account_id,
+                        request.workforce_id,
+                        data.operating_asset_id
+                    );
+
+                    var queryString = util.getQueryString('ds_v1_asset_list_update_task_created_count', paramsArr);
+                    if (queryString != '') {
+                        db.executeQuery(0, queryString, request, function (err, data) {
+                            //global.logger.write(queryString, request, 'asset', 'trace');
+                            (err === false) ? resolve(): reject(err);
+                        });
+                    }
+               } else {
+                   reject(err);
+               }
             });
         });
     };
