@@ -47,7 +47,9 @@ function PamListingService(objectCollection) {
                     'activity_inline_data': JSON.parse(util.replaceDefaultString(row['activity_inline_data'])),
                     'activity_datetime_start_expected' : util.replaceDefaultDatetime(row['activity_datetime_start_expected']),
                     'activity_sub_type_name' : util.replaceDefaultString(row['activity_sub_type_name']),
-                    'parent_activity_title' : util.replaceDefaultString(row['parent_activity_title'])
+                    'parent_activity_title' : util.replaceDefaultString(row['parent_activity_title']),
+                    'channel_activity_id' : util.replaceDefaultNumber(row['channel_activity_id']),
+                    'channel_activity_type_category_id' : util.replaceDefaultString(row['channel_activity_type_category_id'])
                 };
                 responseArr.push(rowData);
                 next();
@@ -182,6 +184,10 @@ function PamListingService(objectCollection) {
         }).then(function () {
             callback(false, responseData);
         });
+    };
+    
+    this.eventReport = function(request, callback) {
+        callback(false,{}, 200);
     };
 }
 ;
