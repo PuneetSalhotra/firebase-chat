@@ -3,7 +3,8 @@ var Util = require('./util');
 var forEachAsync = require('forEachAsync').forEachAsync;
 
 var AwsSss = function () {
-    aws.config.loadFromPath('/var/node/Bharat/server/utils/configS3.json');
+    //aws.config.loadFromPath('/var/node/Bharat/server/utils/configS3.json');
+    aws.config.loadFromPath(`${__dirname}/configS3.json`);
     
     var s3 = new aws.S3();
     var util = new Util();

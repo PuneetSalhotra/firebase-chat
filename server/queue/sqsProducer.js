@@ -5,7 +5,8 @@
 var aws = require('aws-sdk');
 
 // Load your AWS credentials and try to instantiate the object.
-aws.config.loadFromPath('/var/www/html/node/Bharat/server/utils/config.json');
+//aws.config.loadFromPath('/var/www/html/node/Bharat/server/utils/config.json');
+aws.config.loadFromPath(`${__dirname}/../utils/config.json`);
 
 // Instantiate SQS.
 var sqs = new aws.SQS();

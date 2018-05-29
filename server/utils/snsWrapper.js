@@ -5,7 +5,8 @@
 var aws = require('aws-sdk');
 var AwsSns = function () {
     // Load your AWS credentials and try to instantiate the object.
-    aws.config.loadFromPath('/var/www/html/desker/NODEJS/desker_api_0.1/server/utils/config.json');
+    //aws.config.loadFromPath('/var/www/html/desker/NODEJS/desker_api_0.1/server/utils/config.json');
+    aws.config.loadFromPath(`${__dirname}/config.json`);
     var sns = new aws.SNS();
 
     this.publish = function (message, badgeCount, targetArn) {

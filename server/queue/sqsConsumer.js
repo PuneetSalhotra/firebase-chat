@@ -1,6 +1,7 @@
 require('../utils/globalConfig');
 var aws = require('aws-sdk');
-aws.config.loadFromPath('/var/www/html/node/Bharat/server/utils/config.json');
+//aws.config.loadFromPath('/var/www/html/node/Bharat/server/utils/config.json');
+aws.config.loadFromPath(`${__dirname}/../utils/config.json`);
 var CassandraWrapper = require('../utils/cassandraWrapper');
 var CassandraInterceptor = require('../interceptors/cassandraInterceptor');
 var Util = require('../utils/util');
