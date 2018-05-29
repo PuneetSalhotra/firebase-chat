@@ -492,7 +492,11 @@ function AssetService(objectCollection) {
             'asset_assigned_status_datetime': util.replaceDefaultDatetime(rowArray[0]['asset_assigned_status_datetime']),
             'asset_storage_url': util.replaceDefaultString(rowArray[0]['asset_storage_url']),
             'asset_storage_bucket_name': util.replaceDefaultString(rowArray[0]['asset_storage_bucket_name']),
-            'asset_logout_datetime': util.replaceDefaultDatetime(rowArray[0]['asset_logout_datetime'])
+            'asset_logout_datetime': util.replaceDefaultDatetime(rowArray[0]['asset_logout_datetime']),
+            
+            'asset_count_invite': util.replaceDefaultNumber(rowArray[0]['asset_count_invite']),
+            'asset_count_signup': util.replaceDefaultNumber(rowArray[0]['asset_count_signup']),
+            'asset_count_task_created': util.replaceDefaultNumber(rowArray[0]['asset_count_task_created'])
         };
 
         callback(false, rowData);
@@ -644,6 +648,9 @@ function AssetService(objectCollection) {
         var dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
         var encToken = uuid.v1();
+        var flag; //1 is prod and 0 is dev
+        
+        (request.hasOwnProperty('flag_dev')) ? flag = request.flag_dev : flag = 1;
 
         var proceedLinking = function (proceedLinkingCallback) {
 
@@ -731,12 +738,16 @@ function AssetService(objectCollection) {
             });
         }
         if (request.hasOwnProperty('asset_token_push') && request.asset_token_push !== '' && request.asset_token_push !== null) {
-            sns.createPlatformEndPoint(Number(request.device_os_id), request.asset_token_push, function (err, endPointArn) {
+            sns.createPlatformEndPoint(Number(request.device_os_id), request.asset_token_push, flag, function (err, endPointArn) {
                 if (!err) {
                     //console.log('success in creating platform end point');
                     global.logger.write('debug', 'success in creating platform end point', {}, request)
                     request.asset_push_arn = endPointArn;
                     proceedLinking(function (err, response, status) {
+                        if(status == 200) {
+                            updateSignUpCnt(request).then(()=>{});
+                        }
+                        
                         callback(err, response, status);
                     });
                 } else {
@@ -748,6 +759,10 @@ function AssetService(objectCollection) {
         } else {
             request.asset_push_arn = '';
             proceedLinking(function (err, response, status) {
+                if(status == 200) {
+                      updateSignUpCnt(request).then(()=>{});
+                }
+                
                 callback(err, response, status);
             });
         }
@@ -841,6 +856,25 @@ function AssetService(objectCollection) {
             });
         }
     };
+    
+    function updateSignUpCnt(request) {
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                   request.organization_id,
+                   request.account_id,
+                   request.workforce_id,
+                   request.operating_asset_id
+                   );
+
+           var queryString = util.getQueryString('ds_v1_asset_list_update_signup_count', paramsArr);
+           if (queryString != '') {
+               db.executeQuery(0, queryString, request, function (err, data) {
+                   //global.logger.write(queryString, request, 'asset', 'trace');
+                   (err === false) ? resolve(): reject(err);
+               });
+           }
+        });
+    }
 
 
     var updateAssetUnlink = function (request, assetId, encToken, dateTimeLog, callback) {
@@ -2071,7 +2105,7 @@ function AssetService(objectCollection) {
         }
 
         if (request.hasOwnProperty('asset_token_push') && request.asset_token_push !== '' && request.asset_token_push !== null) {
-            sns.createPlatformEndPoint(Number(request.device_os_id), request.asset_token_push, function (err, endPointArn) {
+            sns.createPlatformEndPoint(Number(request.device_os_id), request.asset_token_push, 1, function (err, endPointArn) { //flag 1 is prod and 0 is dev
                 if (!err) {
                     //console.log('success in creating platform end point');
                     global.logger.write('debug', 'success in creating platform end point', {}, request)
@@ -2087,6 +2121,26 @@ function AssetService(objectCollection) {
             });
         } else {
             callback(err, false, -9998);
+        }
+    };
+    
+    this.updateInviteCount = function(request, callback) {
+        var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.operating_asset_id
+                );
+        var queryString = util.getQueryString('ds_v1_asset_list_update_invite_count', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                if (err === false) {
+                    callback(false, {}, 200);
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(true, err, -9999);
+                }
+            });
         }
     };
 

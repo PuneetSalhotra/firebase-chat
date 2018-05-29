@@ -33,7 +33,8 @@ var AwsSns = function () {
             Message: JSON.stringify({
                 'default': message.title + message.description,
                 'GCM': JSON.stringify(GCMjson),
-                APNS_VOIP: JSON.stringify({aps})
+                APNS_VOIP: JSON.stringify({aps}),
+                APNS_VOIP_SANDBOX: JSON.stringify({aps})
             }),
             TargetArn: targetArn
         };
@@ -59,7 +60,8 @@ var AwsSns = function () {
             MessageStructure: 'json',
             Message: JSON.stringify({
                 'default': message.order_id + message.order_name,                
-                APNS_VOIP: JSON.stringify({aps})
+                APNS_VOIP: JSON.stringify({aps}),
+                APNS_VOIP_SANDBOX: JSON.stringify({aps})
             }),
             TargetArn: targetArn
         };
@@ -71,7 +73,7 @@ var AwsSns = function () {
         });
     };
 
-    this.createPlatformEndPoint = function (deviceOsId, pushToken, callback) {
+    this.createPlatformEndPoint = function (deviceOsId, pushToken, flag, callback) { //flag - 0 is Dev and 1 is Prod 
         var platformApplicationArn = '';
         //if (deviceOsId === 2) {
         switch (deviceOsId) {
@@ -79,10 +81,13 @@ var AwsSns = function () {
                 platformApplicationArn = global.config.platformApplicationAndroid;
                 break;
             case 2:// ios
-                //if (global.config.iosPushMode == 'dev')
-                    //platformApplicationArn = global.config.platformApplicationIosDev;
-                //else
+                if (flag == 0){
+                    console.log('Flag is 0. Creating IOS Dev');
+                    platformApplicationArn = global.config.platformApplicationIosDev;
+                } else {
+                    console.log('Flag is 1. Creating IOS Prod');
                     platformApplicationArn = global.config.platformApplicationIosProd;
+                }               
                 break;
             case 3:// windows
                 platformApplicationArn = global.config.platformApplicationWindows;

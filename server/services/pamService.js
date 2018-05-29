@@ -2042,7 +2042,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
 
                 global.logger.writeSession(request.body);
                              
-                sns.createPlatformEndPoint(Number(request.device_os_id), request.asset_token_push, function (err, endPointArn) {
+                sns.createPlatformEndPoint(Number(request.device_os_id), request.asset_token_push, 1, function (err, endPointArn) {
                 if (!err) {
                     //console.log('success in creating platform end point : ' + endPointArn);
                     global.logger.write('debug', 'success in creating platform end point', {}, request);

@@ -98,7 +98,11 @@ function ActivityPushService(objectCollection) {
                                 break;
                             case '/' + global.config.version + '/activity/owner/alter':
                                 pushString.title = senderName;
-                                pushString.description = 'Folder: ' + activityTitle + ' owner is changed';
+                                (Number(request.owner_asset_id)===0)? //means unassigning
+                                        pushString.description = 'Folder: ' + activityTitle + ' is unassigned':
+                                        pushString.description = 'Folder: ' + activityTitle + ' is assigned';
+                                
+                                //pushString.description = 'Folder: ' + activityTitle + ' owner is changed';
                                 if (Number(request.activity_sub_type_id) === 1) {
                                     smsString = ' ' + senderName + ' has assigned a task named ' + activityTitle + ' to you. You can respond by logging into the desker app. Download Link:  app.desker.co';
                                 }

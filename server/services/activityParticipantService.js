@@ -242,10 +242,11 @@ function ActivityParticipantService(objectCollection) {
                 }
                 
             if (err === false && data === true) {
-                //callback(false, {}, 200);                
+                //callback(false, {}, 200);
+                callback(false, true);
                 if (maxIndex === index) {
                     updateParticipantCount(request.activity_id, request.organization_id, request, function (err, data) { });
-                    activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
+                    activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });                    
                 }                
             } else {
                 //console.log("something is not wright in adding a participant");
