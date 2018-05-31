@@ -49,7 +49,8 @@ function PamListingService(objectCollection) {
                     'activity_sub_type_name' : util.replaceDefaultString(row['activity_sub_type_name']),
                     'parent_activity_title' : util.replaceDefaultString(row['parent_activity_title']),
                     'channel_activity_id' : util.replaceDefaultNumber(row['channel_activity_id']),
-                    'channel_activity_type_category_id' : util.replaceDefaultString(row['channel_activity_type_category_id'])
+                    'channel_activity_type_category_id' : util.replaceDefaultString(row['channel_activity_type_category_id']),
+                    'log_datetime' : util.replaceDefaultDatetime(row['log_datetime'])
                 };
                 responseArr.push(rowData);
                 next();

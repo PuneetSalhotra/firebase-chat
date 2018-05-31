@@ -27,6 +27,7 @@ if (mode === 'dev') {
 
     config.dbUser = 'apiuser';
     config.database = 'desker';// desker_staging
+    //config.database = 'desker_staging';
     config.dbPassword = 'apidbuser';
     config.conLimit = 10;
 
