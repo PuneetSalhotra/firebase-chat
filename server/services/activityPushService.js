@@ -9,7 +9,7 @@ function ActivityPushService(objectCollection) {
         var extraData = {};
         var msg = {}; //Pubnub Push String
         var smsString = '';
-        msg.type = 'activity_unread';
+        //msg.type = 'activity_unread';
         msg.activity_type_category_id = 0;
 
         var activityTypeCategoryId = Number(request.activity_type_category_id);
@@ -50,6 +50,7 @@ function ActivityPushService(objectCollection) {
                                 break;
                             case '/' + global.config.version + '/activity/participant/access/set':
                                 msg.activity_type_category_id = 8;
+                                msg.type = 'activity_unread';
                                 pushString.title = senderName;
                                 pushString.description = 'Mail: ' + activityTitle;
                                 smsString = ' ' + senderName + ' has send an inmail to your inbox. You can respond by logging into the desker app. Download Link:  app.desker.co';
@@ -61,6 +62,12 @@ function ActivityPushService(objectCollection) {
                                     smsString = ' ' + senderName + ' has assigned a task named ' + activityTitle + ' to you. You can respond by logging into the desker app. Download Link:  app.desker.co';
                                 }
                                 break;
+                            //Exclusive Pub Nub Pushes
+                            case '/' + global.config.version + '/activity/unread/count/reset':
+                                msg.activity_type_category_id = 8;
+                                msg.type = 'activity_read';                                
+                                break;
+                            //////////////////////////////
                         }
                         ;
                         break;
@@ -72,20 +79,26 @@ function ActivityPushService(objectCollection) {
                                 break;
                             case '/' + global.config.version + '/activity/participant/access/set':
                                 msg.activity_type_category_id = 9;
+                                msg.type = 'activity_unread';
                                 pushString.title = senderName;
                                 pushString.description = 'Form has been shared for approval';
                                 break;
                         }
                         ;
                         break;
-                    case 10:    // Folders
-                        msg.activity_type_category_id = 10;
+                    case 10:    // Folders                        
                         switch (request.url) {
                             case '/' + global.config.version + '/activity/add':
+                                msg.activity_type_category_id = 10;
+                                msg.type = 'activity_unread';
+                                
                                 pushString.title = senderName;
                                 pushString.description = 'made you the owner of: ' + activityTitle;
                                 break;
                             case '/' + global.config.version + '/activity/timeline/entry/add':
+                                msg.activity_type_category_id = 10;
+                                msg.type = 'activity_unread';
+                                
                                 pushString.title = senderName;
                                 pushString.description = 'Has added an update to - ' + activityTitle;
                                 if (Number(request.activity_sub_type_id) === 1)
@@ -93,10 +106,12 @@ function ActivityPushService(objectCollection) {
                                 else
                                     smsString = ' ' + senderName + ' has mentioned you in a file named ' + activityTitle + '. You can respond by logging into the desker app. Download Link:  app.desker.co';
                                 break;
-                            case '/' + global.config.version + '/activity/status/alter':
-                                msg.activity_type_category_id = 0;
+                            case '/' + global.config.version + '/activity/status/alter':                                
                                 break;
                             case '/' + global.config.version + '/activity/owner/alter':
+                                msg.activity_type_category_id = 10;
+                                msg.type = 'activity_unread';
+                                
                                 pushString.title = senderName;
                                 (Number(request.owner_asset_id)===0)? //means unassigning
                                         pushString.description = 'Folder: ' + activityTitle + ' is unassigned':
@@ -108,12 +123,26 @@ function ActivityPushService(objectCollection) {
                                 }
                                 break;
                             case '/' + global.config.version + '/activity/participant/access/set':
+                                msg.activity_type_category_id = 10;
+                                msg.type = 'activity_unread';
+                                
                                 pushString.title = senderName;
                                 pushString.description = 'Folder: ' + activityTitle + ' has been shared to collaborate';
                                 if (Number(request.activity_sub_type_id) === 1) {
                                     smsString = ' ' + senderName + ' has assigned a task named ' + activityTitle + ' to you. You can respond by logging into the desker app. Download Link:  app.desker.co';
                                 }
                                 break;
+                            //Exclusive Pub Nub Pushes
+                            case '/' + global.config.version + '/activity/unread/count/reset':
+                                msg.activity_type_category_id = 10;
+                                msg.type = 'activity_read';
+                                break;
+                            case '/' + global.config.version + '/activity/cover/alter':
+                                msg.activity_type_category_id = 10;
+                                msg.type = 'activity_duedate';
+                                break;
+                            //////////////////////////
+                                
                         }
                         ;
                         break;
@@ -126,9 +155,16 @@ function ActivityPushService(objectCollection) {
                                 break;
                             case '/' + global.config.version + '/activity/participant/access/set':
                                 msg.activity_type_category_id = 11;
+                                msg.type = 'activity_unread';
                                 pushString.title = senderName;
                                 pushString.description = 'Project: ' + activityTitle + ' has been shared to collaborate';
                                 break;
+                            //Exclusive Pub Nub Pushes
+                            case '/' + global.config.version + '/activity/cover/alter':
+                                msg.activity_type_category_id = 11;
+                                msg.type = 'activity_duedate';                                
+                                break;
+                            ////////////////////////////
                         }
                         ;
                         break;
@@ -186,6 +222,7 @@ function ActivityPushService(objectCollection) {
                                 break;
                             case '/' + global.config.version + '/activity/participant/access/set':
                                 msg.activity_type_category_id = 28;
+                                msg.type = 'activity_unread';
                                 pushString.title = senderName;
                                 pushString.description = activityData[0]['activity_description'].substring(0, 100);
                                 smsString = ' ' + senderName + ' has posted a sticky note on desk. You can respond by logging into the desker app. Download Link:  app.desker.co';
@@ -254,8 +291,10 @@ function ActivityPushService(objectCollection) {
 
     this.sendPush = function (request, objectCollection, pushAssetId, callback) {
         var proceedSendPush = function (pushReceivers, senderName) {
+            console.log('pushReceivers.length : ', pushReceivers.length);       
             if (pushReceivers.length > 0) {
                 getPushString(request, objectCollection, senderName, function (err, pushStringObj, pubnubMsg, smsString) {
+                    console.log('PubMSG : ' , pubnubMsg);
                     if (Object.keys(pushStringObj).length > 0) {
                         objectCollection.forEachAsync(pushReceivers, function (next, rowData) {
                             objectCollection.cacheWrapper.getAssetMap(rowData.assetId, function (err, assetMap) {
@@ -296,6 +335,30 @@ function ActivityPushService(objectCollection) {
                                         console.log('PubNub Message : ', pubnubMsg);
                                         pubnubWrapper.push(rowData.organizationId, pubnubMsg);
                                     }
+                                }
+                            });
+                            next();
+                        }).then(function () {
+                            callback(false, true);
+                        });
+                    } else if(Object.keys(pubnubMsg).length > 0) {
+                        objectCollection.forEachAsync(pushReceivers, function (next, rowData) {
+                            objectCollection.cacheWrapper.getAssetMap(rowData.assetId, function (err, assetMap) {
+                                console.log(rowData.assetId, ' is asset for which we are about to send push');
+                                //console.log('Asset Map : ', assetMap);
+                                global.logger.write('debug', rowData.assetId + ' is asset for which we are about to send push', {}, request);
+                                if (Object.keys(assetMap).length > 0) {                                    
+                                        switch (rowData.pushType) {
+                                            case 'pub':
+                                                console.log('pubnubMsg :', pubnubMsg);
+                                                if (pubnubMsg.activity_type_category_id != 0) {
+                                                    pubnubMsg.organization_id = rowData.organizationId;
+                                                    pubnubMsg.desk_asset_id = rowData.assetId;
+                                                    console.log('PubNub Message : ', pubnubMsg);
+                                                    pubnubWrapper.push(rowData.organizationId, pubnubMsg);
+                                                }
+                                                break;
+                                        }
                                 }
                             });
                             next();

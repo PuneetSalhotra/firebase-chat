@@ -828,7 +828,7 @@ function ActivityUpdateService(objectCollection) {
                     //activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {
 
                     //});
-                    //assetActivityListUpdateSubTaskCover(request, function (err, data) {}); facing some issues here, handle post alpha
+                    //assetActivityListUpdateSubTaskCover(request, function (err, data) {}); facing some issues here, handle post alpha                    
                     activityPushService.sendPush(request, objectCollection, 0, function () {});                     
                     if (request.hasOwnProperty('activity_parent_id')) {
                         if (util.hasValidGenericId(request, 'activity_parent_id')) {
@@ -1329,6 +1329,7 @@ function ActivityUpdateService(objectCollection) {
         //var activityTypeCategoryId = Number(request.activity_type_category_id);
 
         activityCommonService.resetAssetUnreadCount(request, request.activity_id, function (err, data) {});
+        activityPushService.sendPush(request, objectCollection, 0, function () {});
         callback(false, true);
         /*var activityArray = JSON.parse(request.activity_id_array);
         forEachAsync(activityArray, function (next, activityId) {
