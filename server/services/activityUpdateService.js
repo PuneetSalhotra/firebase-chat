@@ -1338,20 +1338,6 @@ function ActivityUpdateService(objectCollection) {
             next();
         }); */
     };
-    
-    this.alterIngredientSubTypeActivity = function (request, callback) {
-        var logDatetime = util.getCurrentUTCTime();
-        request['datetime_log'] = logDatetime;
-        
-        assetActivityListUpdateSubtype(request)
-                .then(()=>{})
-                .catch((err)=>{
-                    console.log('Error Occurred : ' + err);
-                });
-        activityCommonService.assetActivityListHistoryInsert(request, request.asset_id, 411, function(err, data){});
-        
-        callback(false, true);
-    };
 
 }
 ;

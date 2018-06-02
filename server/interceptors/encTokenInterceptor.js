@@ -17,9 +17,13 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                 var bundleTransactionId = uuid.v1();
                 req.body.bundle_transaction_id = bundleTransactionId;
                 req.body.url = req.url;
-                if (req.body.url.includes("/0.1/account/")) {
+                if (req.body.url.includes('/' + global.config.version + '/account/')) {
                     global.logger.write('request', '', req.body, req.body);
                     global.logger.write('info', 'bypassing enc token checking as request is from account', {}, req.body);
+                    next();
+                } else if (req.body.url.includes('/' + global.config.version + '/zoho/')) {
+                    global.logger.write('request', '', req.body, req.body);
+                    global.logger.write('info', 'bypassing enc token checking as request is for zoho services', {}, req.body);
                     next();
                 } else {
 
