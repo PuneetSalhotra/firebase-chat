@@ -1201,6 +1201,10 @@ function ActivityService(objectCollection) {
                     case 132:
                         activityCommonService.updateLeadStatus(request, 3, function (err, result) {});
                         activityCommonService.updateOwnerStatus(request, 3, function (err, result) {});
+                        
+                        getTaskAcceptanceStats(request, 5).then((acceptanceStats) => { // weekly and monthly stats here            
+                            acceptanceStatsSummaryInsert(request, acceptanceStats, {weekly: 8, monthly: 8}, function () {});
+                        });
                         break;
 
                 }
