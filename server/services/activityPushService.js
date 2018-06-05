@@ -295,6 +295,7 @@ function ActivityPushService(objectCollection) {
             if (pushReceivers.length > 0) {
                 getPushString(request, objectCollection, senderName, function (err, pushStringObj, pubnubMsg, smsString) {
                     console.log('PubMSG : ' , pubnubMsg);
+                    console.log('pushStringObj : ' , pushStringObj);
                     if (Object.keys(pushStringObj).length > 0) {
                         objectCollection.forEachAsync(pushReceivers, function (next, rowData) {
                             objectCollection.cacheWrapper.getAssetMap(rowData.assetId, function (err, assetMap) {
@@ -342,10 +343,11 @@ function ActivityPushService(objectCollection) {
                             callback(false, true);
                         });
                     } else if(Object.keys(pubnubMsg).length > 0) {
+                        console.log('Sending PubNub push Alone');
                         objectCollection.forEachAsync(pushReceivers, function (next, rowData) {
                             objectCollection.cacheWrapper.getAssetMap(rowData.assetId, function (err, assetMap) {
                                 console.log(rowData.assetId, ' is asset for which we are about to send push');
-                                //console.log('Asset Map : ', assetMap);
+                                console.log('Asset Map : ', assetMap);
                                 global.logger.write('debug', rowData.assetId + ' is asset for which we are about to send push', {}, request);
                                 if (Object.keys(assetMap).length > 0) {                                    
                                         switch (rowData.pushType) {

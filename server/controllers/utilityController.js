@@ -105,6 +105,6 @@ function UtilityController(objCollection) {
             
         res.send(responseWrapper.getResponse(false, {}, 200, req.body));
      });
-        
+    
 }
 module.exports = UtilityController;

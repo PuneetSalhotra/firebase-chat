@@ -1189,35 +1189,6 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
     };
 
-    this.updateLeadStatus = function (request, flag, callback) {
-        var paramsArr = new Array(
-                request.activity_id,
-                request.asset_id,
-                request.organization_id,
-                flag,
-                request.asset_id,
-                request.datetime_log
-                );
-        var queryString = util.getQueryString('ds_p1_activity_list_update_flag_lead_status', paramsArr);
-        if (queryString != '') {
-            db.executeQuery(0, queryString, request, function (err, data) {
-                if (err === false) {
-                    // proceed with activity asset mapping
-                    queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_flag_lead_status', paramsArr);
-                    db.executeQuery(0, queryString, request, function (err, data) {
-                        if (err === false) {
-                            callback(false, true);
-                        } else {
-                            callback(err, false);
-                        }
-                    });
-                } else {
-                    callback(err, false);
-                }
-            });
-        }
-    };
-
     this.updateOwnerStatus = function (request, flag, callback) {
         var paramsArr = new Array(
                 request.activity_id,
