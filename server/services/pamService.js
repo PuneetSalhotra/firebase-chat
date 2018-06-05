@@ -494,7 +494,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
         
         forEachAsync(activityArray, function (next, activityId) {
             //console.log(activityId);
-            activityCommonService.inventoryCheck(request, activityId, function(err, resp, stationIds){
+            /*activityCommonService.inventoryCheck(request, activityId, function(err, resp, stationIds){
             if(err === false) {
                     //if(resp === true) {                    
                         response.push({menu_activity_id:activityId, status:resp})
@@ -502,7 +502,20 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                     //}
                      next();
                   }
-               });
+               });*/
+            
+            activityCommonService.getActivityDetails(request, activityId, function(err, data){
+                if(err === false) {
+                    if(data.length > 0) {
+                        (data[0].activity_status_type_id == 91) ? response.push({menu_activity_id:activityId, status:true}) : response.push({menu_activity_id:activityId, status:false});
+                    } else {
+                        response.push({menu_activity_id:activityId, status:false})
+                    }                    
+                    next();
+                } else {
+                    next();
+                }
+            });
            }).then(()=>{
                if(request.is_check == 1 && request.is_status == 0 && request.is_assign ==0) {
                     callback(false, response, 200);
@@ -517,7 +530,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                         }).then(()=>{
                             callback(false, response, 200);
                     });
-                 } else if(request.is_check == 0 && request.is_status == 0 && request.is_assign == 0) {
+                 } //else if(request.is_check == 0 && request.is_status == 0 && request.is_assign == 0) {
                     /*var assignResponse = new Array();
                     forEachAsync(globalStationIds, function (next, index) {
                          console.log(globalStationIds)
@@ -535,7 +548,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                          console.log('assignResponse : ', assignResponse);
                         callback(false,assignResponse,200);
                      })          */
-                }
+                //}
             });
     } 
     
