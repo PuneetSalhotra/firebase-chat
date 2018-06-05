@@ -252,8 +252,8 @@ function ActivityListingService(objCollection) {
                 "parent_activity_type_category_name": util.replaceDefaultString(rowData['parent_activity_type_category_name']),
                 //"parent_activity_total_count": util.replaceZero(rowData['parent_activity_total_count']),
                 //"parent_activity_priority_count": util.replaceZero(rowData['parent_activity_priority_count']),
-                //"parent_activity_open_count": util.replaceZero(rowData['parent_activity_open_count']),
-                //"parent_activity_closed_count": util.replaceZero(rowData['parent_activity_closed_count']),
+                "parent_activity_open_count": util.replaceZero(rowData['parent_activity_open_count']),
+                "parent_activity_closed_count": util.replaceZero(rowData['parent_activity_closed_count']),
                 //"parent_activity_asset_participation_count": util.replaceZero(rowData['parent_activity_asset_participation_count']),
                 "asset_datetime_last_differential": util.replaceDefaultDatetime(rowData['asset_datetime_last_differential']),
                 "asset_datetime_last_seen": util.replaceDefaultDatetime(rowData['asset_datetime_last_seen']),
@@ -427,22 +427,40 @@ function ActivityListingService(objCollection) {
                             if (queryString != '') {
                                 db.executeQuery(1, queryString, request, function (err, statsData) {
                                     if (err === false) {
+                                        //console.log('statsData :', statsData);
                                         statsData.forEach(function (rowData, index) {
                                             switch (rowData.monthly_summary_id) {
                                                 case 8:     //Response rate of owned tasks 
-                                                    monthly_summary.owned_tasks_response = util.replaceDefaultNumber(rowData['entity_decimal_1']);
+                                                    monthly_summary.owned_tasks_response = util.replaceDefaultNumber(rowData['data_entity_decimal_1']);
                                                     break;
                                                 case 10:    //10	Response Rate - InMail
-                                                    monthly_summary.inmail_response_rate = util.replaceDefaultNumber(rowData['entity_decimal_1']);
+                                                    monthly_summary.inmail_response_rate = util.replaceDefaultNumber(rowData['data_entity_decimal_1']);
                                                     break;
                                                 case 12:    // 12	Completion rate - Lead
-                                                    monthly_summary.completion_rate = util.replaceDefaultNumber(rowData['entity_decimal_1']);
+                                                    monthly_summary.completion_rate = util.replaceDefaultNumber(rowData['data_entity_decimal_1']);
                                                     break;
                                             }
                                         }, this);
-                                        monthly_summary.average_value = (monthly_summary.owned_tasks_response + monthly_summary.inmail_response_rate + monthly_summary.completion_rate) / 3;
+                                        var denominator = 0;
+                                        
+                                        (monthly_summary.owned_tasks_response > 0)? denominator++: monthly_summary.owned_tasks_response = 0;
+                                        (monthly_summary.inmail_response_rate > 0)? denominator++: monthly_summary.inmail_response_rate = 0;
+                                        (monthly_summary.completion_rate > 0) ? denominator++ : monthly_summary.completion_rate = 0;
+                                                                               
+                                        
+                                        console.log('Denominator after processing : ' + denominator);
+                                        console.log('monthly_summary.owned_tasks_response : ' + monthly_summary.owned_tasks_response);
+                                        console.log('monthly_summary.inmail_response_rate : ' + monthly_summary.inmail_response_rate);
+                                        console.log('monthly_summary.completion_rate : ' + monthly_summary.completion_rate);
+                                        
+                                        if(denominator == 0) {
+                                            monthly_summary.average_value = -1;
+                                        } else {
+                                            monthly_summary.average_value = (monthly_summary.owned_tasks_response + monthly_summary.inmail_response_rate + monthly_summary.completion_rate) / denominator;
+                                        }
+                                        //monthly_summary.average_value = (monthly_summary.owned_tasks_response + monthly_summary.inmail_response_rate + monthly_summary.completion_rate) / 3;
                                         finalData[0].activity_inline_data.monthly_summary = monthly_summary
-                                        //console.log(finalData);
+                                        //console.log('finalData : ' + finalData);
                                         callback(false, {data: finalData}, 200);
                                     } else {
                                         callback(err, false, -9999);
