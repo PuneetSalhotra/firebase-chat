@@ -1166,47 +1166,76 @@ function ActivityService(objectCollection) {
                 switch (activityStatusTypeId) {
 
                     case 26:    //completed // flag value is 2
+                        activityCommonService.getActivityDetails(request, 0, function(err, resultData){
+                            if(err === false) {                                
+                                var newRequest = Object.assign({}, request);
+                                newRequest.asset_id = resultData[0].activity_owner_asset_id;
+                                
+                                getTaskAcceptanceStats(newRequest, 2).then((acceptanceStats) => { // weekly and monthly stats here    
+                                    acceptanceStatsSummaryInsert(newRequest, acceptanceStats, {weekly: 5, monthly: 12}, function () {});
+                                });
+                            }
+                        });
+                        
                         getTaskAcceptanceStats(request, 2).then((acceptanceStats) => { // weekly and monthly stats here    
                             acceptanceStatsSummaryInsert(request, acceptanceStats, {weekly: 5, monthly: 12}, function () {});
                         });
                         break;
 
                     case 130:// flag value is 1 //accepted
-
-                        activityCommonService.updateLeadStatus(request, 1, function (err, result) {});
-                        activityCommonService.updateOwnerStatus(request, 1, function (err, result) {});
-
-                        getTaskAcceptanceStats(request, 1).then((acceptanceStats) => { // weekly and monthly stats here   
-                            acceptanceStatsSummaryInsert(request, acceptanceStats, {weekly: 4, monthly: 11}, function () {});
-                        });
-                        getTaskAcceptanceStats(request, 5).then((acceptanceStats) => { // weekly and monthly stats here            
-                            acceptanceStatsSummaryInsert(request, acceptanceStats, {weekly: 8, monthly: 8}, function () {});
-                        });
-                        break;
-                        //rejected
-                    case 131:
-                        activityCommonService.updateLeadStatus(request, 2, function (err, result) {});
-                        activityCommonService.updateOwnerStatus(request, 2, function (err, result) {});
-                        getTaskAcceptanceStats(request, 3).then((acceptanceStats) => { // weekly and monthly stats here    
-                            acceptanceStatsSummaryInsert(request, acceptanceStats, {weekly: 6, monthly: 13}, function () {});
-                        });
-                        getTaskAcceptanceStats(request, 4).then((acceptanceStats) => { //there is a gray area here     
-                            acceptanceStatsSummaryInsert(request, acceptanceStats, {weekly: 7, monthly: 15}, function () {});
-                        });
-                        getTaskAcceptanceStats(request, 5).then((acceptanceStats) => { // weekly and monthly stats here     
-                            acceptanceStatsSummaryInsert(request, acceptanceStats, {weekly: 8, monthly: 8}, function () {});
+                        activityCommonService.updateLeadStatus(request, 1, function (err, result) {
+                            if(err === false) {
+                                activityCommonService.updateOwnerStatus(request, 1, function (err, result) {
+                                    if(err === false) {
+                                        getTaskAcceptanceStats(request, 1).then((acceptanceStats) => { // weekly and monthly stats here   
+                                            acceptanceStatsSummaryInsert(request, acceptanceStats, {weekly: 4, monthly: 11}, function () {});
+                                        });
+                                        
+                                        getTaskAcceptanceStats(request, 5).then((acceptanceStats) => { // weekly and monthly stats here            
+                                            acceptanceStatsSummaryInsert(request, acceptanceStats, {weekly: 8, monthly: 8}, function () {});
+                                        });
+                                    } else {}
+                                });
+                            } else {}
                         });
                         break;
-                        //discussion
-                    case 132:
-                        activityCommonService.updateLeadStatus(request, 3, function (err, result) {});
-                        activityCommonService.updateOwnerStatus(request, 3, function (err, result) {});
                         
-                        getTaskAcceptanceStats(request, 5).then((acceptanceStats) => { // weekly and monthly stats here            
-                            acceptanceStatsSummaryInsert(request, acceptanceStats, {weekly: 8, monthly: 8}, function () {});
+                    //rejected
+                    case 131:
+                        activityCommonService.updateLeadStatus(request, 2, function (err, result) {
+                            if(err === false) {
+                                activityCommonService.updateOwnerStatus(request, 2, function (err, result) {
+                                    if(err === false) {
+                                        getTaskAcceptanceStats(request, 3).then((acceptanceStats) => { // weekly and monthly stats here    
+                                            acceptanceStatsSummaryInsert(request, acceptanceStats, {weekly: 6, monthly: 13}, function () {});
+                                        });
+                                        getTaskAcceptanceStats(request, 4).then((acceptanceStats) => { //there is a gray area here     
+                                            acceptanceStatsSummaryInsert(request, acceptanceStats, {weekly: 7, monthly: 15}, function () {});
+                                        });
+                                        getTaskAcceptanceStats(request, 5).then((acceptanceStats) => { // weekly and monthly stats here     
+                                            acceptanceStatsSummaryInsert(request, acceptanceStats, {weekly: 8, monthly: 8}, function () {});
+                                        });
+                                    } else {}
+                                });
+                                
+                            } else {}
                         });
                         break;
-
+                        
+                    //discussion
+                    case 132:
+                        activityCommonService.updateLeadStatus(request, 3, function (err, result) {
+                            if(err === false) {
+                                activityCommonService.updateOwnerStatus(request, 3, function (err, result) {
+                                    if(err === false) {
+                                        getTaskAcceptanceStats(request, 5).then((acceptanceStats) => { // weekly and monthly stats here            
+                                            acceptanceStatsSummaryInsert(request, acceptanceStats, {weekly: 8, monthly: 8}, function () {});
+                                        });
+                                    } else {}
+                                });
+                            } else {}
+                        });                        
+                        break;
                 }
 
                 assetActivityListUpdateStatus(request, activityStatusId, activityStatusTypeId, function (err, data) {
