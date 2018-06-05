@@ -27,8 +27,9 @@ function AssetService(objectCollection) {
 
 
         //verification_method (0 - NA, 1 - SMS; 2 - Call; 3 - Email)
-        if (verificationMethod === 1 || verificationMethod === 2 || verificationMethod === 3) {
-            var paramsArr = new Array(
+        //if (verificationMethod === 1 || verificationMethod === 2 || verificationMethod === 3) {
+        if (verificationMethod === 1) {
+                var paramsArr = new Array(
                     0, //organizationId,
                     phoneNumber,
                     countryCode
@@ -40,9 +41,7 @@ function AssetService(objectCollection) {
                 db.executeQuery(1, queryString, request, function (err, selectData) {
                     if (err === false) {
                         var verificationCode;
-                        (phoneNumber === 7032975769) ?
-                                verificationCode = 637979 :
-                                verificationCode = util.getVerificationCode();
+                        (phoneNumber === 7032975769) ? verificationCode = 637979 : verificationCode = util.getVerificationCode();
 
                         var pwdValidDatetime = util.addDays(util.getCurrentUTCTime(), 1);
                         if (selectData.length > 0) {
@@ -95,6 +94,9 @@ function AssetService(objectCollection) {
                     }
                 });
             }
+        } else if(verificationMethod === 2) {
+            sendCallOrSms(verificationMethod, countryCode, phoneNumber, 1234, request);            
+            callback(false, {}, 200);
         } else {
             callback(false, {}, -3101);
         }
@@ -630,13 +632,35 @@ function AssetService(objectCollection) {
                     });
                 }
                 break;
-            case 2: //send call 
-                util.makeCall(smsString, countryCode, phoneNumber, function (error, data) {
-                    if (error)
-                        //console.log(error);
-                        //console.log(data);
-                        global.logger.write('trace', data, error, request)
-                })
+            case 2: //Make a call 
+                /*activityCommonService.getAssetDetails(request, function(err, resultData, statusCode){
+                        if(err === false) {
+                               console.log('resultData: ' , resultData);
+                               
+                               var code = resultData.asset_phone_passcode;
+                               
+                               var text = "Your passcode is " + code + " I repeat," + code + " Thank you.";
+                                util.makeCall(text, countryCode, phoneNumber, function (error, data) {
+                                    if (error)
+                                        //console.log(error);
+                                        //console.log(data);
+                                        global.logger.write('trace', data, error, request)
+                                })
+                        } else {
+                            
+                        }                        
+                    });*/
+                var passcode = request.passcode;
+                passcode = passcode.split("");
+                
+                var text = "Your passcode is " + passcode + " I repeat," + passcode + " Thank you.";
+                console.log('Text: ' + text);
+                                util.makeCall(text, countryCode, phoneNumber, function (error, data) {
+                                    if (error)
+                                        //console.log(error);
+                                        //console.log(data);
+                                        global.logger.write('trace', data, error, request)
+                                });
                 break;
             case 3: //email
                 break;
@@ -745,7 +769,8 @@ function AssetService(objectCollection) {
                     request.asset_push_arn = endPointArn;
                     proceedLinking(function (err, response, status) {
                         if(status == 200) {
-                            updateSignUpCnt(request).then(()=>{});
+                            updateSignUpCnt(request, request.asset_id).then(()=>{});
+                            updateSignUpCnt(request, request.operating_asset_id).then(()=>{});
                         }
                         
                         callback(err, response, status);
@@ -760,7 +785,8 @@ function AssetService(objectCollection) {
             request.asset_push_arn = '';
             proceedLinking(function (err, response, status) {
                 if(status == 200) {
-                      updateSignUpCnt(request).then(()=>{});
+                      updateSignUpCnt(request, request.asset_id).then(()=>{});
+                      updateSignUpCnt(request, request.operating_asset_id).then(()=>{});
                 }
                 
                 callback(err, response, status);
@@ -857,13 +883,13 @@ function AssetService(objectCollection) {
         }
     };
     
-    function updateSignUpCnt(request) {
+    function updateSignUpCnt(request, assetId) {
         return new Promise((resolve, reject)=>{
             var paramsArr = new Array(
                    request.organization_id,
                    request.account_id,
                    request.workforce_id,
-                   request.operating_asset_id
+                   assetId
                    );
 
            var queryString = util.getQueryString('ds_v1_asset_list_update_signup_count', paramsArr);
