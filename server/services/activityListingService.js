@@ -960,6 +960,8 @@ function ActivityListingService(objCollection) {
 
     this.getAllPendingCountsV1 = function (request, callback) {
         var taskCnt;
+        var responseArray = new Array();
+        
         var startDatetime = util.getCurrentDate() + " 00:00:00";
         var endDatetime = util.getCurrentDate() + " 23:59:59";
         var currentDatetime = util.getCurrentUTCTime();
@@ -986,15 +988,37 @@ function ActivityListingService(objCollection) {
                     console.log('Data of pending count : ', data);
                     (data.length > 0) ? taskCnt = data[0].count : taskCnt = 0;
                     getCatGrpCts(request).then((resp) => {
-                        resp.push({count: taskCnt, activity_type_category_id: 101, activity_type_category_name: 'Task'});
-                        getProjectBadgeCounts(request).then((response) => {
-                            (response.length > 0) ? resp.push({count: response[0].count || 0, activity_type_category_id: 11, activity_type_category_name: 'Project'}) : taskCnt = 0;
-                            //resp.push(response);                            
-                            callback(false, resp, 200);
-                        }).catch((err) => {
-                            console.log(err);
-                            callback(err, false, -9999);
-                        });
+                        
+                        forEachAsync(resp, (next, row)=>{                            
+                            if(row.activity_type_category_id == 11) {
+                                   projectCnt = row.count;                                   
+                               }
+                            next();
+                            }).then(()=>{                               
+                               forEachAsync(resp, (next, innerRow)=>{
+                                    if(innerRow.activity_type_category_id == 10) {
+                                           innerRow.count = innerRow.count + projectCnt;
+                                       }
+                                    
+                                    if(innerRow.activity_type_category_id != 11) {
+                                           responseArray.push(innerRow);
+                                       }
+                                       
+                                    next();
+                                    }).then(()=>{
+                                        responseArray.push({count: taskCnt, activity_type_category_id: 101, activity_type_category_name: 'Task'});
+                                        getProjectBadgeCounts(request).then((response) => {
+                                            (response.length > 0) ? responseArray.push({count: response[0].count || 0, activity_type_category_id: 11, activity_type_category_name: 'Project'}) : taskCnt = 0;
+                                            //resp.push(response);                            
+                                            callback(false, responseArray, 200);
+                                        }).catch((err) => {
+                                            console.log(err);
+                                            callback(err, false, -9999);
+                                        });
+                                    });                                    
+                            });
+                            
+                        
                     }).catch((err) => {
                         console.log(err);
                         callback(err, false, -9999);
@@ -1280,6 +1304,9 @@ function ActivityListingService(objCollection) {
     
     function getCatGrpCts(request){
         return new Promise((resolve, reject)=>{
+            var projectCnt = 0;
+            var responseArray = new Array();
+            
             var paramsArr = new Array(
                     request.asset_id,
                     request.workforce_id,
@@ -1292,6 +1319,26 @@ function ActivityListingService(objCollection) {
                     if (err === false) {
                         console.log('Data of group counts : ', resp);
                         return resolve(resp);
+                        /*forEachAsync(resp, (next, row)=>{                            
+                            if(row.activity_type_category_id == 11) {
+                                   projectCnt = row.count;                                   
+                               }
+                            next();
+                            }).then(()=>{                               
+                               forEachAsync(resp, (next, innerRow)=>{
+                                    if(innerRow.activity_type_category_id == 10) {
+                                           innerRow.count = innerRow.count + projectCnt;
+                                       }
+                                    
+                                    if(innerRow.activity_type_category_id != 11) {
+                                           responseArray.push(innerRow);
+                                       }
+                                       
+                                    next();
+                                    }).then(()=>{
+                                        return resolve(responseArray);
+                                    });                                    
+                            });*/                            
                     } else {
                         return reject(err);
                     }
