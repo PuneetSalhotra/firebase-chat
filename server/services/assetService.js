@@ -615,10 +615,11 @@ function AssetService(objectCollection) {
                             });
                             break;
                         case 3:// sinfini                                                        
+                            console.log('In send SmsSinfini');
                             util.sendSmsSinfini(smsString, countryCode, phoneNumber, function (error, data) {
                                 if (error)
-                                    //console.log(error);
-                                    //console.log(data);
+                                    console.log(error);
+                                    console.log(data);
                                     global.logger.write('trace', data, error, request)
                             });
                             break;
@@ -2151,23 +2152,33 @@ function AssetService(objectCollection) {
     };
     
     this.updateInviteCount = function(request, callback) {
-        var paramsArr = new Array(
+        updateInviteCountFn(request, request.asset_id).then(()=>{
+            updateInviteCountFn(request, request.operating_asset_id).then(()=>{
+                callback(false, {}, 200);
+            }).catch((err)=>{
+                callback(true, err, -9999);
+            });
+        }).catch((err)=>{
+            callback(true, err, -9999);
+        });        
+    };
+    
+    
+    function updateInviteCountFn(request, assetId) {
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
-                request.operating_asset_id
+                assetId
                 );
-        var queryString = util.getQueryString('ds_v1_asset_list_update_invite_count', paramsArr);
-        if (queryString != '') {
-            db.executeQuery(0, queryString, request, function (err, data) {
-                if (err === false) {
-                    callback(false, {}, 200);
-                } else {
-                    // some thing is wrong and have to be dealt
-                    callback(true, err, -9999);
-                }
-            });
-        }
+            var queryString = util.getQueryString('ds_v1_asset_list_update_invite_count', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err === false) ? resolve() : reject(err);                    
+                });
+            }
+        });        
     };
 
 }

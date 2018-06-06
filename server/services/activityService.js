@@ -149,7 +149,7 @@ function ActivityService(objectCollection) {
                                 }
                                 
                             if(activityTypeCategroyId === 10 && Number(request.activity_sub_type_id) === 1) {
-                                updateTaskCreatedCnt(request).then(()=>{});
+                                updateTaskCreatedCnt(request).then(()=>{});                                
                             }
                             // do the timeline transactions here..                    
 
@@ -2163,28 +2163,35 @@ function ActivityService(objectCollection) {
     
     function updateTaskCreatedCnt(request) {
         return new Promise((resolve, reject)=>{
+            updateTaskCreatedCntFn(request, request.asset_id).then(()=>{});
             activityCommonService.getAssetDetails(request, function (err, data){
                if(err === false) {
-                    var paramsArr = new Array(
-                        request.organization_id,
-                        request.account_id,
-                        request.workforce_id,
-                        data.operating_asset_id
-                    );
-
-                    var queryString = util.getQueryString('ds_v1_asset_list_update_task_created_count', paramsArr);
-                    if (queryString != '') {
-                        db.executeQuery(0, queryString, request, function (err, data) {
-                            //global.logger.write(queryString, request, 'asset', 'trace');
-                            (err === false) ? resolve(): reject(err);
-                        });
-                    }
-               } else {
-                   reject(err);
-               }
+                   updateTaskCreatedCntFn(request, data.operating_asset_id).then(()=>{});
+                   resolve();
+               }   
             });
         });
     };
+    
+    function updateTaskCreatedCntFn(request, assetId) {
+        return new Promise((resolve, reject)=>{
+                var paramsArr = new Array(
+                    request.organization_id,
+                    request.account_id,
+                    request.workforce_id,
+                    assetId
+                    );
+
+                var queryString = util.getQueryString('ds_v1_asset_list_update_task_created_count', paramsArr);
+                if (queryString != '') {
+                    db.executeQuery(0, queryString, request, function (err, data) {
+                        //global.logger.write(queryString, request, 'asset', 'trace');
+                        (err === false) ? resolve(): reject(err);
+                    });                
+               }
+            });
+    };
+    
 }
 ;
 module.exports = ActivityService;
