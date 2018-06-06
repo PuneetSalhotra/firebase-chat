@@ -185,6 +185,32 @@ function ZohoController(objCollection) {
         });
     });
 
+    //Zoho Payment Integration -- Update account Billing Details
+    app.put('/' + global.config.version + '/zoho/account/billing/update', function (req, res) {
+        zohoService.updateAcctBillingDetails(req.body, function (err, data, statusCode) {
+            if (err === false) {                
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                console.log('did not get proper response');
+                global.logger.write('response','did not get proper response',err,req.body);                
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    //Zoho Payment Integration -- Update account Billing asset
+    app.put('/' + global.config.version + '/zoho/asset/account/billing/update', function (req, res) {
+        zohoService.updateAssetBillingDetails(req.body, function (err, data, statusCode) {
+            if (err === false) {                
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                console.log('did not get proper response');
+                global.logger.write('response','did not get proper response',err,req.body);                
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
 }
 ;
 module.exports = ZohoController;
