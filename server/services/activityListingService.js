@@ -304,7 +304,7 @@ function ActivityListingService(objCollection) {
                 "organization_type_category_name": util.replaceDefaultString(rowData['organization_type_category_name']),
                 "form_transaction_id": util.replaceZero(rowData['form_transaction_id']),
                 "form_id": util.replaceZero(rowData['form_id']),
-                //"field_id": util.replaceDefaultNumber(rowData['field_id']),
+                "field_id": util.replaceDefaultNumber(rowData['field_id']),
                 //"activity_form_approval_status": util.replaceDefaultString(rowData['activity_form_approval_status']),
                 //"activity_form_approval_datetime": util.replaceDefaultDatetime(rowData['activity_form_approval_datetime']),
                 "channel_activity_id": util.replaceDefaultNumber(rowData['channel_activity_id']),
