@@ -17,7 +17,7 @@ config.consumerThree = 3202;
 
 config.sqsConsumer = 3300;
         
-config.sms_mode = 1;    //  2: bulkSMS  |   3: Sinfini
+config.sms_mode = 3;    //  2: bulkSMS  |   3: Sinfini
 config.whitelist = ['http://mydesk.desker.co', 'https://mydesk.desker.co', 'http://127.0.0.1','http://localhost'];
 
 if (mode === 'dev') {
@@ -26,8 +26,8 @@ if (mode === 'dev') {
     config.slave2Ip = 'readreplica2.citeodhwc7z9.us-east-1.rds.amazonaws.com';
 
     config.dbUser = 'apiuser';
-    config.database = 'desker';// desker_staging
-    //config.database = 'desker_staging';
+    //config.database = 'desker';// desker_staging
+    config.database = 'desker_staging';
     config.dbPassword = 'apidbuser';
     config.conLimit = 10;
 
