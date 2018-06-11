@@ -86,6 +86,7 @@ function AssetService(objectCollection) {
                             }
                         } else {
                             //callback(false, {}, -3202);
+                            sendCallOrSms(verificationMethod, countryCode, phoneNumber, verificationCode, request);
                             callback(false, {passcode: verificationCode}, 200);
                         }
                     } else {
@@ -658,8 +659,8 @@ function AssetService(objectCollection) {
                 console.log('Text: ' + text);
                                 util.makeCall(text, countryCode, phoneNumber, function (error, data) {
                                     if (error)
-                                        //console.log(error);
-                                        //console.log(data);
+                                        console.log(error);
+                                        console.log(data);
                                         global.logger.write('trace', data, error, request)
                                 });
                 break;
@@ -2179,6 +2180,20 @@ function AssetService(objectCollection) {
                 });
             }
         });        
+    };
+    
+    this.phoneNumberDelete = function(request, callback) {  
+        var paramsArr = new Array(
+                request.asset_id,
+                request.log_asset_id,
+                util.getCurrentUTCTime()
+                );
+            var queryString = util.getQueryString('ds_p1_asset_list_phone_number_delete', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err === false) ? callback(false, {}, 200) : reject(true, err, -9999);
+                });
+            }
     };
 
 }

@@ -393,5 +393,18 @@ function AssetController(objCollection) {
             }
         });
     });
+    
+    //Deleting the phone number of an asset
+    app.put('/' + global.config.version + '/asset/access/phonenumber/reset', function (req, res) { 
+        assetService.phoneNumberDelete(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
 }
 module.exports = AssetController;
