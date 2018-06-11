@@ -366,7 +366,26 @@ function AccountService(objectCollection) {
                 "account_mail_mailing_address": JSON.parse(util.replaceDefaultString(rowData['account_mail_mailing_address'])  || "{}"),
                 "account_mail_postbox_id": util.replaceDefaultNumber(rowData['account_mail_postbox_id']),
                 "account_mail_postbox_name": util.replaceDefaultString(rowData['account_mail_postbox_name']),
-                "account_mail_user_vat_rate": util.replaceDefaultNumber(rowData['account_mail_user_vat_rate'])
+                "account_mail_user_vat_rate": util.replaceDefaultNumber(rowData['account_mail_user_vat_rate']),
+                "account_billing_product_id": util.replaceDefaultNumber(rowData['account_billing_product_id']),
+                "account_billing_plan_id": util.replaceDefaultNumber(rowData['account_billing_plan_id']),
+                "account_billing_customer_id": util.replaceDefaultNumber(rowData['account_billing_customer_id']),
+                "account_billing_customer_email": util.replaceDefaultString(rowData['account_billing_customer_email']),
+                "account_billing_customer_billing_address": util.replaceDefaultString(rowData['account_billing_customer_billing_address']),
+                "account_billing_customer_currency": util.replaceDefaultString(rowData['account_billing_customer_currency']), 
+                "account_billing_subscription_id": util.replaceDefaultNumber(rowData['account_billing_subscription_id']),
+                "account_billing_subscription_status": util.replaceDefaultString(rowData['account_billing_subscription_status']),
+                "account_billing_subscription_date": util.replaceDefaultDatetime(rowData['account_billing_subscription_date']),
+                "account_billing_payment_status": util.replaceDefaultString(rowData['account_billing_payment_status']),
+                "account_billing_payment_gateway": util.replaceDefaultString(rowData['account_billing_payment_gateway']),
+                "account_billing_payment_due_date": util.replaceDefaultDatetime(rowData['account_billing_payment_due_date']),
+                "account_billing_trail_end_date": util.replaceDefaultDatetime(rowData['account_billing_trail_end_date']),
+                "account_billing_asset_id": util.replaceDefaultNumber(rowData['account_billing_asset_id']),
+                "account_billing_asset_first_name": util.replaceDefaultString(rowData['account_billing_asset_first_name']),
+                "account_billing_asset_last_name": util.replaceDefaultString(rowData['account_billing_asset_last_name']),
+                "account_billing_operating_asset_id": util.replaceDefaultNumber(rowData['account_billing_operating_asset_id']),
+                "account_billing_operating_asset_first_name": util.replaceDefaultString(rowData['account_billing_operating_asset_first_name']),
+                "account_billing_operating_asset_last_name": util.replaceDefaultString(rowData['account_billing_operating_asset_last_name'])
             };
             responseArr.push(row);
             next();
