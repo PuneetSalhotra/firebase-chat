@@ -107,10 +107,15 @@ function Util() {
 
     this.sendSmsSinfini = function (messageString, countryCode, phoneNumber, callback) {
         messageString = encodeURI(messageString);
-        var url = "http://api-alerts.solutionsinfini.com/v3/?method=sms&api_key=A85da7898dc8bd4d79fdd62cd6f5cc4ec&to=" + countryCode + "" + phoneNumber + "&sender=BLUFLK&format=json&message=" + messageString;
+        //var url = "http://api-alerts.solutionsinfini.com/v3/?method=sms&api_key=A85da7898dc8bd4d79fdd62cd6f5cc4ec&to=" + countryCode + "" + phoneNumber + "&sender=BLUFLK&format=json&message=" + messageString;
+        var url = "http://api-alerts.solutionsinfini.com/v3/?method=sms&api_key=A9113d0c40f299b66cdf5cf654bfc61b8&to=" + countryCode + "" + phoneNumber + "&sender=DESKER&format=json&message=" + messageString;
         console.log(url);
         request(url, function (error, response, body) {
             var foo = JSON.parse(body);
+            
+            console.log('error : ', error);            
+            console.log('body : ' , body);
+            
             var res = {};
             if (typeof foo != 'undefined' && foo.status === 1) {
                 res['status'] = 1;
