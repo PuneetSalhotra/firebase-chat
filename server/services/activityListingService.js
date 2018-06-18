@@ -961,6 +961,7 @@ function ActivityListingService(objCollection) {
     this.getAllPendingCountsV1 = function (request, callback) {
         var taskCnt;
         var responseArray = new Array();
+        var projectCnt = 0;
         
         var startDatetime = util.getCurrentDate() + " 00:00:00";
         var endDatetime = util.getCurrentDate() + " 23:59:59";
@@ -1304,9 +1305,6 @@ function ActivityListingService(objCollection) {
     
     function getCatGrpCts(request){
         return new Promise((resolve, reject)=>{
-            var projectCnt = 0;
-            var responseArray = new Array();
-            
             var paramsArr = new Array(
                     request.asset_id,
                     request.workforce_id,
@@ -1359,6 +1357,7 @@ function ActivityListingService(objCollection) {
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, resp) {
                     if (err === false) {
+                        console.log('Badge Counts : ', resp);
                         return resolve(resp);
                     } else {
                         return reject(err);
@@ -1513,7 +1512,8 @@ function ActivityListingService(objCollection) {
                 "activity_flag_rating_lead": util.replaceDefaultNumber(rowData['activity_rating_lead']),
                 "activity_rating_lead_ownership": util.replaceDefaultNumber(rowData['activity_rating_lead_ownership']),
                 "activity_rating_lead_completion": util.replaceDefaultNumber(rowData['activity_rating_lead_completion']),
-                "activity_rating_lead_timeliness": util.replaceDefaultNumber(rowData['activity_rating_lead_timeliness'])
+                "activity_rating_lead_timeliness": util.replaceDefaultNumber(rowData['activity_rating_lead_timeliness']),
+                "activity_flag_file_enabled":util.replaceDefaultNumber(rowData['activity_flag_file_enabled'])
 
             };
             responseData.push(rowDataArr);
