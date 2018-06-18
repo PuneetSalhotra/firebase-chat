@@ -134,7 +134,8 @@ function ActivityController(objCollection) {
                             
                             break;
                         case 41: //Event Creating PAM
-                            fs.readFile('/var/node/Bharat/server/utils/pamConfig.txt', function(err, data){
+                            //fs.readFile('/var/node/Bharat/server/utils/pamConfig.txt', function(err, data){
+                            fs.readFile(`${__dirname}/../utils/pamConfig.txt`, function(err, data){
                                 if(err) {
                                  console.log(err)   
                                 } else{
