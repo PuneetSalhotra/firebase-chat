@@ -342,9 +342,17 @@ function ActivityTimelineService(objectCollection) {
             console.log('PubNub Message : ', pubnubMsg);
             pubnubWrapper.push(request.asset_id, pubnubMsg);
         }
-        if(Number(request.activity_type_category_id) !== 8){
+        /*if(Number(request.activity_type_category_id) !== 8) {
             activityCommonService.resetAssetUnreadCount(request, 0, function (err, data) {});
-        }      
+        }*/
+        
+        switch(Number(request.activity_type_category_id)) {
+            case 8: break;
+            case 10: break;
+            case 11: break;
+            default: activityCommonService.resetAssetUnreadCount(request, 0, function (err, data) {});
+                     break;
+        }
         activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
         var activityTypeCategoryId = util.replaceZero(request.activity_type_category_id);
         if (activityTypeCategoryId > 0) {
