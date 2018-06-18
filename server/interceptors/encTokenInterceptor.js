@@ -79,9 +79,11 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                                     req.body['module'] = 'asset';
                                 }
                             }
-                            console.log('Module : ' + req.body['module'])
+                            console.log('Module : ' + req.body['module']);
+                            var asset_id = req.body.auth_asset_id || req.body.asset_id;
                                                     
-                            cacheWrapper.getTokenAuth(req.body.asset_id, function (err, encToken) {
+                            //cacheWrapper.getTokenAuth(req.body.asset_id, function (err, encToken) {
+                            cacheWrapper.getTokenAuth(asset_id, function (err, encToken) {
                                 if (err) {
                                     console.log("redis token Checking error:");
                                     global.logger.write('appError', 'Redis token Checking error', err, req.body);
