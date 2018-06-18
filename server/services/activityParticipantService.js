@@ -1009,6 +1009,20 @@ function ActivityParticipantService(objectCollection) {
         }
     };
 
+    this.addInviteeAsParticipantToIdCard = function(request, callback) {
+        var logDatetime = util.getCurrentUTCTime();
+        request['datetime_log'] = logDatetime;
+        
+        var activityParticipantCollection = JSON.parse(request.activity_participant_collection);
+        
+        activityAssetMappingInsertParticipantAssign(request, activityParticipantCollection[0], function(err, data) {
+            if(err === false) {                
+                callback(false, {}, 200);
+            } else {
+                callback(true, {}, -9999);
+            }
+        });
+    };    
 
 }
 ;
