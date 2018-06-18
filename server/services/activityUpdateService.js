@@ -1116,26 +1116,6 @@ function ActivityUpdateService(objectCollection) {
                 }
             });
         }
-    }
-
-    var getCoWorkerActivityId = function (request, callback) {
-        var paramsArr = new Array(
-                request.asset_id,
-                request.organization_id,
-                5// activityTypeCategoryId is 5 for coworker activity
-                //request.activity_type_category_id
-                );
-        var queryString = util.getQueryString('ds_v1_activity_list_select_category_contact', paramsArr);
-        if (queryString != '') {
-            db.executeQuery(1, queryString, request, function (err, coworkerData) {
-                if (err === false) {
-                    callback(false, coworkerData);
-                } else {
-                    // some thing is wrong and have to be dealt
-                    callback(err, false);
-                }
-            });
-        }
     };
 
     var assetListUpdate = function (request, callback) {
@@ -1337,6 +1317,23 @@ function ActivityUpdateService(objectCollection) {
             //console.log(activityId);
             next();
         }); */
+    };
+    
+    this.alterActivityFlagFileEnabled = function(request, callback) {
+      var paramsArr = new Array(
+                request.activity_id,
+                request.asset_id,
+                request.organization_id,
+                request.activity_flag_file_enabled,
+                util.getCurrentUTCTime()
+                );
+
+        var queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_flag_file_enabled', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                (err === false) ? callback(false, {}, 200): callback(true, err, -9999);
+            });
+        }  
     };
 
 }
