@@ -414,6 +414,35 @@ function AccountService(objectCollection) {
             });
         }
     };
+    
+    this.loggingCommunicationReq = function(request, callback) {
+        var paramsArr = new Array(
+                util.getCurrentUTCTime(),
+                JSON.stringify(request)
+                );
+
+        var queryString = util.getQueryString('ds_p1_communication_transaction_insert', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                (err === false) ? callback(false, {}, 200): callback(true, err, -9999);
+            });
+        }
+    };
+    
+    this.getLoggingCommunicationReq = function(request, callback) {
+        var paramsArr = new Array(
+                request.start_from,
+                request.limit_value
+                );
+
+        var queryString = util.getQueryString('ds_p1_communication_transaction_select', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                (err === false) ? callback(false, data, 200): callback(true, err, -9999);
+            });
+        }
+    };
+    
 }
 ;
 

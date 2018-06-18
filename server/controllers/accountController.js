@@ -159,6 +159,34 @@ function AccountController(objCollection) {
             }
         });
     });
+    
+    //Loggin Communication request Service -- Bharat asked on 15th June
+    app.post('/' + global.config.version + '/account/log/communication/request', function (req, res) {
+        accountService.loggingCommunicationReq(req.body, function (err, data, statusCode) {
+                (err === false) ?
+                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body)):                    
+                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body));                
+            });        
+    });
+    
+    
+    //Loggin Communication request Service -- Bharat asked on 15th June
+    app.get('/' + global.config.version + '/account/log/communication/request', function (req, res) {        
+        accountService.loggingCommunicationReq(req.query, function (err, data, statusCode) {
+                (err === false) ?
+                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body)):                    
+                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body));                
+            });        
+    });
+    
+    //Loggin Communication request Service -- Bharat asked on 16th June
+    app.post('/' + global.config.version + '/account/log/communication/request/list', function (req, res) {
+        accountService.getLoggingCommunicationReq(req.body, function (err, data, statusCode) {
+                (err === false) ?
+                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body)):                    
+                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body));                
+            });        
+    });
 
 }
 ;
