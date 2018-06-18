@@ -737,8 +737,6 @@ function ActivityService(objectCollection) {
     };
      
                     
-                    
-            
     function sendPushPam(request) {
         return new Promise((resolve, reject) => {
             var paramsArr = new Array(
@@ -868,9 +866,11 @@ function ActivityService(objectCollection) {
                 request.activity_id,
                 request.activity_status_id,
                 request.activity_status_type_id,
-                request.datetime_log
-                );
-        var queryString = util.getQueryString("ds_v1_activity_list_update_status", paramsArr);
+                request.datetime_log,
+                request.asset_id
+                );        
+        var queryString = util.getQueryString("ds_v1_1_activity_list_update_status", paramsArr);
+        //var queryString = util.getQueryString("ds_v1_activity_list_update_status", paramsArr);
         if (queryString != '') {
 
             db.executeQuery(0, queryString, request, function (err, data) {
@@ -1117,7 +1117,7 @@ function ActivityService(objectCollection) {
         activityListUpdateStatus(request, function (err, data) {
             if (err === false) {
                 //PAM
-                if(activityTypeCategroyId == 38) {
+                /*if(activityTypeCategroyId == 38) {
                     switch(Number(request.activity_status_type_id)) {
                         case 105: itemOrderAlterStatus(request).then(()=>{});
                                   updateStatusDateTimes(request).then(()=>{});
@@ -1126,7 +1126,7 @@ function ActivityService(objectCollection) {
                         case 125: updateStatusDateTimes(request).then(()=>{});
                                   break;
                     }
-                }
+                }*/
 
                 //Remote Analytics
                 if (activityTypeCategroyId == 28 || activityTypeCategroyId == 8) {
@@ -1191,7 +1191,7 @@ function ActivityService(objectCollection) {
                                             acceptanceStatsSummaryInsert(request, acceptanceStats, {weekly: 4, monthly: 11}, function () {});
                                         });
                                         
-                                        getTaskAcceptanceStats(request, 5).then((acceptanceStats) => { // weekly and monthly stats here            
+                                        getTaskAcceptanceStats(request, 6).then((acceptanceStats) => { // weekly and monthly stats here            
                                             acceptanceStatsSummaryInsert(request, acceptanceStats, {weekly: 8, monthly: 8}, function () {});
                                         });
                                     } else {}
@@ -1212,7 +1212,7 @@ function ActivityService(objectCollection) {
                                         getTaskAcceptanceStats(request, 4).then((acceptanceStats) => { //there is a gray area here     
                                             acceptanceStatsSummaryInsert(request, acceptanceStats, {weekly: 7, monthly: 15}, function () {});
                                         });
-                                        getTaskAcceptanceStats(request, 5).then((acceptanceStats) => { // weekly and monthly stats here     
+                                        getTaskAcceptanceStats(request, 6).then((acceptanceStats) => { // weekly and monthly stats here     
                                             acceptanceStatsSummaryInsert(request, acceptanceStats, {weekly: 8, monthly: 8}, function () {});
                                         });
                                     } else {}
@@ -1295,66 +1295,6 @@ function ActivityService(objectCollection) {
 
         });
     };
-    
-    function updateStatusDateTimes(request) {
-        return new Promise((resolve, reject)=>{
-            var servedAtBar = (request.hasOwnProperty('served_at_bar'))? request.served_at_bar : 0;            
-            var paramsArr = new Array(
-                request.organization_id,
-                request.account_id,
-                request.activity_id,
-                request.activity_status_type_id,
-                servedAtBar,
-                request.asset_id,
-                request.datetime_log
-                );
-            var queryString = util.getQueryString('ds_v1_activity_list_update_order_status_datetime', paramsArr);
-            if (queryString != '') {
-                db.executeQuery(0, queryString, request, function (err, resp) {
-                    if (err === false) {
-                        activityCommonService.getAllParticipants(request, function(err, participantData){
-                            if(err === false){
-                                forEachAsync(participantData, function (next, x) {
-                                    updateStatusDttmsParticipants(request, x.asset_id, servedAtBar).then(()=>{
-                                        next();
-                                    });                                    
-                                    }).then(()=>{
-                                        resolve();
-                                    });
-                            } else {
-                                reject(err);
-                            }                            
-                        });
-                    } else {                    
-                        callback(err, false);
-                    }
-                });
-            }
-        });
-        
-    };
-    
-    function updateStatusDttmsParticipants(request, assetId, servedAtBar){
-        return new Promise((resolve, reject)=>{
-            var paramsArr = new Array(
-                request.organization_id,
-                request.account_id,
-                request.activity_id,
-                assetId, //p_asset_id
-                request.activity_status_type_id,
-                servedAtBar,
-                request.asset_id, //log_asset_id
-                request.datetime_log
-                );
-            var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_order_status_datetime', paramsArr);
-            if (queryString != '') {
-                db.executeQuery(0, queryString, request, function (err, resp) {
-                    (err === false)? resolve() : reject(err);
-                });
-            }
-        });
-    }
-    
     
     function respReqinMail(request){
         return new Promise((resolve, reject)=>{            
@@ -1619,243 +1559,6 @@ function ActivityService(objectCollection) {
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err === false) ? resolve(data) : reject(err);
-                });
-            }
-        });
-    }
-
-    function itemOrderAlterStatus(request) {
-        return new Promise((resolve, reject) => {
-            //activityCommonService.getActivityDetails(request,0,function(err, data){
-            getItemOrderStation(request).then((data) => {
-                console.log('menu_activity_id : ', data[0].channel_activity_id);
-                console.log('station_id : ', data[0].asset_id);
-                request.menu_activity_id = data[0].channel_activity_id;
-                request.station_id = data[0].asset_id;
-                getAllIngrediants(request).then((ingredients) => {
-                    if (ingredients.length > 0) {
-                        console.log('Ingredients : ', ingredients)
-                        console.log('============================')
-                        forEachAsync(ingredients, function (next, row) {
-                            getAllInventoriesOfIngre(request, row).then((updatedInvs) => {
-                                console.log('===========================');
-                                console.log('Temp Array : ', updatedInvs);
-                                updateIngrInvQty(request, updatedInvs).then(() => {
-                                    updateIngrInvQtyAllParticipants(request, updatedInvs).then(() => {
-                                    });
-                                    next();
-                                });
-                            });
-                        });
-                    }
-                });
-            })
-        });
-    }
-
-    function getAllIngrediants(request) {
-        return new Promise((resolve, reject) => {
-            var paramsArr = new Array();
-            var queryString = '';
-            paramsArr = new Array(
-                    request.organization_id,
-                    request.account_id,
-                    request.menu_activity_id,
-                    41, //request.asset_type_category_id,
-                    request.page_start || 0,
-                    util.replaceQueryLimit(request.page_limit)
-                    );
-            queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_participants_category', paramsArr);
-            if (queryString != '') {
-                db.executeQuery(1, queryString, request, function (err, data) {
-                    if (err === false) {
-                        //console.log('DAta in ingredients : ', data);
-                        if (data.length > 0) {
-                            var ingredients = new Array();
-                            forEachAsync(data, function (next, x) {
-                                var items = {
-                                    'ingredient_asset_id': x.asset_id,
-                                    'channel_activity_type_category_id': x.channel_activity_type_category_id,
-                                    'activity_sub_type_id': x.activity_sub_type_id
-                                };
-                                ingredients.push(items);
-                                next();
-                            }).then(() => {
-                                if (ingredients.length > 0) {
-                                    ingredients = util.getUniqueValuesOfArray(ingredients);
-                                }
-                                resolve(ingredients);
-                            });
-                        }
-                    }
-                });
-            }
-        });
-    }
-
-    function getAllInventoriesOfIngre(request, ingredients) {
-        return new Promise((resolve, reject) => {
-            var inventories = new Array();
-            var requiredQuantity;
-            var inventoryQuantity;
-            var result;
-            console.log('ingredients.ingredient_asset_id : ', ingredients.ingredient_asset_id);
-            var paramsArr = new Array(
-                    request.organization_id,
-                    request.account_id,
-                    request.workforce_id,
-                    request.station_id,
-                    ingredients.ingredient_asset_id
-                    );
-            var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_inventory', paramsArr);
-            if (queryString != '') {
-                db.executeQuery(1, queryString, request, function (err, data) {
-                    if (err === false) {
-                        requiredQuantity = ingredients.activity_sub_type_id;
-                        inventoryQuantity = inventories.inventory_quantity_total_value;
-                        //Here you have to write the logic
-                        console.log('inventories data: ', data);
-                        if (data.length > 0) {
-                            updatingInventoryQtys(ingredients.activity_sub_type_id, data).then((updatedInv) => {
-                                resolve(updatedInv)
-                            }).catch(()=>{
-                                console.log('Error occurred in performing the deductions of inventory quantity');
-                                reject('Error occurred in performing the deductions of inventory quantity');
-                            });
-                        } else {
-                        }
-
-                    } else {
-                        reject(err);
-                    }
-                });
-            }
-        })
-    }
-
-    function updatingInventoryQtys(requiredQty, inventories) {
-        return new Promise((resolve, reject) => {
-            var x;
-            var tempArray = new Array();
-            console.log('ingredients.activity_sub_type_id : ', requiredQty);
-            forEachAsync(inventories, function (next, j) {
-                x = JSON.parse(j.activity_inline_data);
-                console.log('x : ', x.inventory_quantity_total_value);
-                if (Math.sign(x.inventory_quantity_total_value - requiredQty) === -1) {
-                    x.inventory_quantity_total_value = requiredQty - x.inventory_quantity_total_value;
-                    console.log('Demo purpose basically 0: ', x.inventory_quantity_total_value);
-                    requiredQty = x.inventory_quantity_total_value;
-                    x.inventory_quantity_total_value = 0;
-                    x.inventory_quantity = 0;
-                    j.activity_sub_type_id = 0;
-                    j.activity_inline_data = JSON.stringify(x);
-                    tempArray.push(j)
-                    next();
-                } else if (Math.sign(x.inventory_quantity_total_value - requiredQty) === 1) {
-                    x.inventory_quantity_total_value -= requiredQty;
-                    x.inventory_quantity = Math.ceil(x.inventory_quantity_total_value / x.inventory_quantity_unit_value);
-                    j.activity_sub_type_id = x.inventory_quantity_total_value;
-                    j.activity_inline_data = JSON.stringify(x);
-                    tempArray.push(j)
-                    return resolve(tempArray);
-                } else if (Math.sign(x.inventory_quantity_total_value - requiredQty) === 0) {
-                    x.inventory_quantity_total_value -= requiredQty;
-                    x.inventory_quantity = Math.ceil(x.inventory_quantity_total_value / x.inventory_quantity_unit_value);
-                    j.activity_sub_type_id = x.inventory_quantity_total_value;
-                    j.activity_inline_data = JSON.stringify(x);
-                    tempArray.push(j)
-                    return resolve(tempArray);
-                }
-            });
-        });
-    }
-
-    function updateIngrInvQty(request, updatedIngrInv) {
-        return new Promise((resolve, reject) => {
-            forEachAsync(updatedIngrInv, function (next, row) {
-                var paramsArr = new Array(
-                        row.activity_id, //menu_activity_id??
-                        request.organization_id,
-                        row.activity_inline_data, //request.activity_inline_data,
-                        row.activity_sub_type_id, //total_inventory_quantity,
-                        request.asset_id,
-                        request.datetime_log
-                        );
-                var queryString = util.getQueryString('ds_v1_activity_list_update_inventory', paramsArr);
-                if (queryString != '') {
-                    db.executeQuery(0, queryString, request, function (err, data) {
-                        if (err === false) {
-                            next();
-                        } else {
-                            reject(err);
-                        }
-                    });
-                }
-
-            }).then(() => {
-                resolve();
-            })
-
-        });
-    }
-
-    function updateIngrInvQtyAllParticipants(request, updatedIngrInv) {
-        return new Promise((resolve, reject) => {
-            forEachAsync(updatedIngrInv, function (nextR, row) {
-                var newRequest = {};
-                newRequest.activity_id = row.activity_id;
-                newRequest.organization_id = request.organization_id;
-                activityCommonService.getAllParticipants(newRequest, function (err, participantData) {
-                    if (err === false) {
-                        //console.log('participantData : ', participantData);
-
-                        forEachAsync(participantData, function (nextX, x) {
-                            var paramsArr = new Array(
-                                    row.activity_id, //menu_activity_id?
-                                    x.asset_id,
-                                    request.organization_id,
-                                    row.activity_inline_data,
-                                    row.activity_sub_type_id,
-                                    request.asset_id,
-                                    request.datetime_log
-                                    );
-                            var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_inventory', paramsArr);
-                            if (queryString != '') {
-                                db.executeQuery(0, queryString, request, function (err, inventories) {
-                                    if (err === false) {
-                                        nextX();
-                                    } else {
-                                        reject(err);
-                                    }
-                                });
-                            }
-                        }).then(() => {
-                            nextR();
-                        })
-                    }
-                    ;
-                });
-            }).then(() => {
-                resolve();
-            })
-        });
-    }
-
-    function getItemOrderStation(request) {
-        return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
-                    request.organization_id,
-                    request.account_id,
-                    request.activity_id
-                    );
-            var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_item_order_station', paramsArr);
-            if (queryString != '') {
-                db.executeQuery(1, queryString, request, function (err, data) {
-                    if (err === false) {
-                        (data.length > 0) ? resolve(data) : resolve(err);
-                    } else {
-                        reject(err);
-                    }
                 });
             }
         });

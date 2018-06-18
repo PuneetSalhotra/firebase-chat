@@ -117,6 +117,86 @@ function PamUpdateController(objCollection) {
         }
 
     });
+    
+    //Activity Status Alter
+    app.put('/' + global.config.version + '/pam/activity/status/alter', function (req, res) {
+        var assetMessageCounter = 0;
+        var deviceOsId = 0;
+        var activityData = {activity_id: req.body.activity_id, message_unique_id: req.body.message_unique_id}; //BETA
+        if (req.body.hasOwnProperty('asset_message_counter'))
+            assetMessageCounter = Number(req.body.asset_message_counter);
+        if (req.body.hasOwnProperty('device_os_id'))
+            deviceOsId = Number(req.body.device_os_id);
+        var activityTypeCategoryId = Number(req.body.activity_type_category_id);
+
+        var proceedActivityStatusAlter = function () {
+
+            var event = {
+                name: "pamAlterActivityStatus",
+                service: "pamUpdateService",
+                method: "alterActivityStatus",
+                payload: req.body
+            };
+            queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp)=>{
+                        if(err) {
+                            //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
+                            //global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req.body);
+                            res.send(responseWrapper.getResponse(true, activityData, -5999,req.body));
+                            throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+                        } else {
+                            if (req.hasOwnProperty('device_os_id')) {
+                                if (Number(req.device_os_id) !== 5) {
+                                    //incr the asset_message_counter                        
+                                    cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
+                                        if (err) {
+                                            //console.log("error in setting in asset parity");
+                                            global.logger.write('serverError',"error in setting in asset parity",err,req.body);
+                                        } else
+                                            //console.log("asset parity is set successfully")
+                                        global.logger.write('debug',"asset parity is set successfully",{},req.body);
+
+                                    });
+                                }
+                            }
+                            res.send(responseWrapper.getResponse(false, activityData, 200,req.body));
+                        }
+                });
+            //res.send(responseWrapper.getResponse(false, activityData, 200,req.body));
+            //return;
+        };
+        if (util.hasValidGenericId(req.body, 'activity_type_category_id')) {
+            if (util.hasValidGenericId(req.body, 'activity_id')) {
+                if (util.hasValidGenericId(req.body, 'activity_status_type_id')) {
+                    if ((util.hasValidGenericId(req.body, 'asset_message_counter')) && deviceOsId !== 5) {
+                        cacheWrapper.checkAssetParity(req.body.asset_id, (assetMessageCounter), function (err, status) {
+                            if (err) {
+                                res.send(responseWrapper.getResponse(false, activityData, -7998,req.body));
+                            } else {
+                                if (status) {     // proceed
+                                    proceedActivityStatusAlter();
+                                } else {  // this is a duplicate hit,
+                                    res.send(responseWrapper.getResponse(false, activityData, 200,req.body));
+                                }
+                            }
+                        });
+                    } else if (deviceOsId === 5) {
+                        proceedActivityStatusAlter();
+                    } else {
+                        res.send(responseWrapper.getResponse(false, activityData, -3304,req.body));
+                    }
+                } else {
+                    res.send(responseWrapper.getResponse(false, activityData, -3306,req.body));
+                }
+
+            } else {
+                res.send(responseWrapper.getResponse(false, activityData, -3301,req.body));
+            }
+        } else {
+            res.send(responseWrapper.getResponse(false, activityData, -3303,req.body));
+            return;
+        }
+
+    });
 }
 
 module.exports = PamUpdateController;
