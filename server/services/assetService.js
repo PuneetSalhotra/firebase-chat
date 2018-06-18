@@ -655,7 +655,8 @@ function AssetService(objectCollection) {
                 var passcode = request.passcode;
                 passcode = passcode.split("");
                 
-                var text = "Your passcode is " + passcode + " I repeat," + passcode + " Thank you.";
+                //var text = "Your passcode is " + passcode + " I repeat," + passcode + " Thank you.";
+                var text = "Your passcode for Desker App is, " + passcode + ". I repeat, your passcode for Desker App is, " + passcode + ". Thank you.";
                 console.log('Text: ' + text);
                                 util.makeCall(text, countryCode, phoneNumber, function (error, data) {
                                     if (error)
@@ -2192,6 +2193,23 @@ function AssetService(objectCollection) {
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err === false) ? callback(false, {}, 200) : reject(true, err, -9999);
+                });
+            }
+    };
+    
+    //Retrieving the unread count based on mobile number
+    this.unreadCntBasedOnMobileNumber = function(request, callback) {
+        var paramsArr = new Array(
+                request.operating_asset_phone_number,
+                request.operating_asset_phone_country_code,
+                request.sort_flag,
+                0,
+                50
+                );
+            var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_unread_counts_phone_number', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? callback(false, data, 200) : callback(true, err, -9999); 
                 });
             }
     };

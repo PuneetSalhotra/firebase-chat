@@ -406,5 +406,16 @@ function AssetController(objCollection) {
         });
     });
     
+    //Retrieving the unread count based on mobile number
+    app.post('/' + global.config.version + '/asset/access/phonenumber/unread_count', function (req, res) { 
+        assetService.unreadCntBasedOnMobileNumber(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {                
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
 }
 module.exports = AssetController;
