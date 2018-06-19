@@ -17,7 +17,10 @@ config.consumerThree = 3202;
 
 config.sqsConsumer = 3300;
         
-config.sms_mode = 3;    //  2: bulkSMS  |   3: Sinfini
+config.domestic_sms_mode = 3;    //  Domestic - 1: Mvaayo | 2: bulkSMS  |   3: Sinfini
+config.international_sms_mode = 1;    //  1: Twilio | 2: Nexmo
+config.phone_call = 1; // both Domestic and International 1: Nexmo | 2: Twilio
+
 config.whitelist = ['http://mydesk.desker.co', 'https://mydesk.desker.co', 'http://127.0.0.1','http://localhost'];
 
 if (mode === 'dev') {

@@ -7,6 +7,7 @@ var request = require("request");
 var twilio = require('twilio');
 var nodemailer = require('nodemailer');
 var tz = require('moment-timezone');
+const Nexmo = require('nexmo');
 
 function Util() {
 
@@ -130,7 +131,7 @@ function Util() {
         });
     };
 
-    this.sendInternationalSMS = function (messageString, countryCode, phoneNumber, callback) {
+    this.sendInternationalTwilioSMS = function (messageString, countryCode, phoneNumber, callback) {
         var accountSid = global.config.twilioAccountSid; // Your Account SID from www.twilio.com/console
         var authToken = global.config.twilioAuthToken; // Your Auth Token from www.twilio.com/console
         var client = new twilio.RestClient(accountSid, authToken);
@@ -155,6 +156,31 @@ function Util() {
                 callback(false, res);
             }        
         });
+    };
+    
+    this.sendInternationalNexmoSMS = function (messageString, countryCode, phoneNumber, callback) {
+        const nexmo = new Nexmo({
+            apiKey: global.config.nexmoAPIKey,
+            apiSecret: global.config.nexmoSecretKey
+          });
+          
+          const from = 'DESKER';
+          const to = '+' + countryCode + phoneNumber;
+          const text = messageString;
+          
+          console.log('To : ', to);
+          console.log('Text : ', text);          
+
+          nexmo.message.sendSms(from, to, text, (error, response) => {
+                if(error) {
+                  throw error;
+                } else if(response.messages[0].status != '0') {
+                  console.error(response);
+                  throw 'Nexmo returned back a non-zero status';
+                } else {
+                  console.log(response);
+                }
+          });
     };
     
     this.getPhoneNumbers = function(request, callback){
@@ -187,38 +213,51 @@ function Util() {
                 });
     }
     
-    this.twilioMakeCall = function(request, callback){
-        var accountSid = 'ACbe16c5becf34df577de71b253fa3ffe4';
-        var authToken = "73ec15bf2eecd3ead2650d4d6768b8cd";        
+    this.MakeCallTwilio = function(text, passcode, countryCode, phoneNumber, callback){
+        var accountSid = global.config.twilioAccountSid; // Your Account SID from www.twilio.com/console
+        var authToken = global.config.twilioAuthToken; // Your Auth Token from www.twilio.com/console
         const client = require('twilio')(accountSid, authToken);
-        toNumber = request.country_code + request.to_phone_number;
-        client.calls.create(
-          {
-            url: 'http://demo.twilio.com/docs/voice.xml', 
-            //url: 'https://api.desker.co/serverDownInfo.xml',            
-            //to: '+919966626954',
-            //from: '+15107094638',
-            to: toNumber,
-            from: request.from_phone_number            
-          },
-          (err, call) => {
-              (err) ? callback(false, err.message, -3401): callback(false, call, 200);          
-          }
-        );
-    }
+        var toNumber = '+'+countryCode + phoneNumber;
+        
+        var fs = require('fs');
+        var xmlText = "<?xml version='1.0' encoding='UTF-8'?>";
+        xmlText += "<Response>"
+        xmlText +="<Say voice='alice'>"+text+"</Say>"
+        xmlText += "</Response>"
+        
+        console.log('xmlText : ' + xmlText);
+        console.log('http://staging.api.desker.cloud/r0/account/voice_'+passcode);
+        //fs.writeFile('/api-efs/twiliovoicesxmlfiles/voice_'+passcode+'.xml', xmlText, function (err) {
+        fs.writeFile('/home/nani/Desktop/twiliovoicesxmlfiles/voice_'+passcode+'.xml', xmlText, function (err) {
+          if (err) {
+              throw err;
+          } else {
+              client.calls.create(
+                {
+                  url: 'http://staging.api.desker.cloud/r0/account/voice_'+passcode,
+                  to: toNumber,
+                  from: '+1 810-637-5928' // From a valid Twilio number                  
+                },
+                (err, call) => {
+                    (err) ? callback(false, err.message, -3401): callback(false, call, 200);          
+                }
+              );
+          }          
+        });        
+    };
         
     this.sendSMS = function (messageString, countryCode, phoneNumber, callback) {
         if (countryCode == 91) {
-            var sms_mode = global.config.sms_mode;
-            if (sms_mode == 1) {
+            var domestic_sms_mode = global.config.domestic_sms_mode;
+            if (domestic_sms_mode == 1) {
                 this.sendSmsMvaayoo(messageString, countryCode, phoneNumber, function (err, res) {
                     callback(err, res);
                 });
-            } else if (sms_mode == 2) {
+            } else if (domestic_sms_mode == 2) {
                 this.sendSmsBulk(messageString, countryCode, phoneNumber, function (err, res) {
                     callback(err, res);
                 });
-            } else if (sms_mode == 3) {
+            } else if (domestic_sms_mode == 3) {
                 this.sendSmsSinfini(messageString, countryCode, phoneNumber, function (err, res) {
                     callback(err, res);
                 });
@@ -230,7 +269,7 @@ function Util() {
         }
     };
 
-    this.makeCall = function (messageString, countryCode, phoneNumber, callback) {
+    this.makeCallNexmo = function (messageString, countryCode, phoneNumber, callback) {
         var requestData = {
             api_key: global.config.nexmoAPIKey,
             "api_secret": global.config.nexmoSecretKey,

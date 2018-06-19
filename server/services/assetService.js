@@ -598,7 +598,7 @@ function AssetService(objectCollection) {
                 //global.logger.write("sms string is " + smsString, request, 'trace'); // no third party api's in this case
                 if (countryCode === 91) {
                     // send local sms
-                    switch (global.config.sms_mode) {
+                    switch (global.config.domestic_sms_mode) {
                         case 1: // mvaayoo                        
                             util.sendSmsMvaayoo(smsString, countryCode, phoneNumber, function (error, data) {
                                 if (error)
@@ -628,45 +628,59 @@ function AssetService(objectCollection) {
                 } else {
                     // send international sms                    
                     //global.logger.write('came inside else case', request, 'device', 'trace');
-                    util.sendInternationalSMS(smsString, countryCode, phoneNumber, function (error, data) {
-                        if (error)
-                            global.logger.write('trace', data, error, request)
-                    });
+                    switch (global.config.international_sms_mode) {
+                        case 1: util.sendInternationalTwilioSMS(smsString, countryCode, phoneNumber, function (error, data) {
+                                    if (error)
+                                        global.logger.write('trace', data, error, request)
+                                });
+                                break;
+                                
+                        case 2: util.sendInternationalNexmoSMS(smsString, countryCode, phoneNumber, function (error, data) {
+                                    if (error)
+                                        global.logger.write('trace', data, error, request)
+                                });
+                                break;
+                    }
+                    
                 }
                 break;
             case 2: //Make a call 
-                /*activityCommonService.getAssetDetails(request, function(err, resultData, statusCode){
-                        if(err === false) {
-                               console.log('resultData: ' , resultData);
-                               
-                               var code = resultData.asset_phone_passcode;
-                               
-                               var text = "Your passcode is " + code + " I repeat," + code + " Thank you.";
-                                util.makeCall(text, countryCode, phoneNumber, function (error, data) {
-                                    if (error)
-                                        //console.log(error);
-                                        //console.log(data);
-                                        global.logger.write('trace', data, error, request)
-                                })
-                        } else {
+                switch (global.config.international_sms_mode) {
+                    case 1: //Nexmo
+                            console.log('Making Nexmo Call');
+                            var passcode = request.passcode;
+                            passcode = passcode.split("");
+
+                            var text = "Your passcode for Desker App is, " + passcode + ". I repeat, your passcode for Desker App is, " + passcode + ". Thank you.";
+                            console.log('Text: ' + text);
                             
-                        }                        
-                    });*/
-                var passcode = request.passcode;
-                passcode = passcode.split("");
-                
-                //var text = "Your passcode is " + passcode + " I repeat," + passcode + " Thank you.";
-                var text = "Your passcode for Desker App is, " + passcode + ". I repeat, your passcode for Desker App is, " + passcode + ". Thank you.";
-                console.log('Text: ' + text);
-                                util.makeCall(text, countryCode, phoneNumber, function (error, data) {
-                                    if (error)
-                                        console.log(error);
-                                        console.log(data);
-                                        global.logger.write('trace', data, error, request)
+                            util.makeCallNexmo(text, countryCode, phoneNumber, function (error, data) {
+                                if (error)
+                                    console.log(error);
+                                    console.log(data);
+                                    global.logger.write('trace', data, error, request)
                                 });
+                            break;
+                            
+                    case 2: //Twilio
+                            console.log('Making Twilio Call');
+                            var passcode = request.passcode;
+                            passcode = passcode.split("");
+
+                            //var text = "Your passcode is " + passcode + " I repeat," + passcode + " Thank you.";
+                            var text = "Your passcode for Desker App is, " + passcode + ". I repeat, your passcode for Desker App is, " + passcode + ". Thank you.";
+                            console.log('Text: ' + text);
+                                            util.MakeCallTwilio(text, request.passcode, countryCode, phoneNumber, function (error, data) {
+                                                if (error)
+                                                    console.log(error);
+                                                    console.log(data);
+                                                    global.logger.write('trace', data, error, request)
+                                            });
+                            break;
+                }                
                 break;
             case 3: //email
-                break;
+                    break;
 
         }
     };
