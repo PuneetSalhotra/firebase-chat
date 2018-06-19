@@ -184,8 +184,32 @@ function AccountController(objCollection) {
         accountService.getLoggingCommunicationReq(req.body, function (err, data, statusCode) {
                 (err === false) ?
                     res.send(responseWrapper.getResponse(err, data, statusCode, req.body)):                    
-                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body));                
+                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             });        
+    });
+    
+    //Voice XML for TWILIO
+    app.post('/' + global.config.version + '/account/voice*', function (req, res) {
+        console.log('VNK : ' , req.body);
+        var x = req.body.url;
+        x = x.split("/");
+        console.log('x[3] : ' + x[3]);
+        
+        var file = '/api-efs/twiliovoicesxmlfiles/' + x[3] + '.xml';
+        //var file = '/home/nani/Desktop/twiliovoicesxmlfiles/' + x[3] + '.xml';
+        console.log(file);
+        
+        var fs = require('fs');
+        
+        fs.readFile(file,function (err, data) {
+          if (err) {
+              res.send(responseWrapper.getResponse(err, x[3] + ".xml is not there.", -3401, req.body));
+          } else {
+              res.writeHead(200, {'Content-Type': 'text/xml'});
+              res.write(data);
+              res.end();
+          }
+      });        
     });
 
 }
