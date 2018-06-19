@@ -165,6 +165,7 @@ function ActivityService(objectCollection) {
                             activityCommonService.assetActivityListHistoryInsert(request, activityAssetMappingAsset, 0, function (err, restult) {
 
                             });
+                            updateProjectStatusCounts(request).then(() => {});
                             if (request.hasOwnProperty('activity_parent_id')) {
                                 if (util.hasValidGenericId(request, 'activity_parent_id')) {
                                     activityCommonService.getActivityDetails(request, Number(request.activity_parent_id), function (err, activityData) {
@@ -1256,6 +1257,7 @@ function ActivityService(objectCollection) {
                 activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {
 
                 });
+                updateProjectStatusCounts(request).then(() => {});
                 activityPushService.sendPush(request, objectCollection, 0, function () {});
                 if (activityTypeCategoryId === 9 && activityStatusTypeId === 23) {   //form and submitted state                    
                     duplicateFormTransactionData(request, function (err, data) {
@@ -1295,6 +1297,62 @@ function ActivityService(objectCollection) {
 
         });
     };
+    
+    function updateProjectStatusCounts(request) {
+        return new Promise((resolve, reject) => {
+            activityCommonService.getActivityDetails(request, 0, function (err, resp) { //If parent Id > 0 then only he is calling these calls
+               	if (err === false) {
+                    var parentActivityId = (Number(resp[0].parent_activity_id) > 0) ? resp[0].parent_activity_id : 0;
+                    if (parentActivityId > 0) {
+                        var paramsArr = new Array(
+                                request.organization_id,
+                                parentActivityId,
+                                request.datetime_log
+                                );
+                        var queryString = util.getQueryString('ds_p1_activity_list_select_project_status_counts', paramsArr);
+                        if (queryString != '') {
+                            db.executeQuery(1, queryString, request, function (err, countsData) {
+                                if (err === false) {
+                                    //resolve();
+                                    paramsArr = new Array(
+                                            parentActivityId,
+                                            request.organization_id,
+                                            countsData[0].countOpen,
+                                            countsData[0].countClosed,
+                                            request.asset_id,
+                                            request.datetime_log
+					);
+                                    queryString = util.getQueryString('ds_p1_activity_list_update_parent_task_counts', paramsArr);
+                                    if (queryString != '') {
+                                        db.executeQuery(0, queryString, request, function (err, data) {
+                                            if (err === false) {
+                                                queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_parent_task_counts', paramsArr);
+                                                if (queryString != '') {
+                                                    db.executeQuery(0, queryString, request, function (err, data) {
+                                                        (err === false) ?  resolve(): reject(err);
+                                                    });
+                                                }
+                                            } else {
+                                                reject(err);
+                                            }
+                                        });
+                                        }
+
+                                } else {
+                                    reject(err);
+                                }
+                            });
+                        }
+                    } else {
+                        resolve();
+                    }
+                } else {
+                    reject(err);
+                }
+            });
+        });
+    }
+    ;
     
     function respReqinMail(request){
         return new Promise((resolve, reject)=>{            
