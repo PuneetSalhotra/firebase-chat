@@ -695,7 +695,7 @@ function ActivityCommonService(db, util, forEachAsync) {
     };
 
     this.updateAssetLocation = function (request, callback) {
-        if (request.track_latitude !== '0.0000' || request.track_latitude !== '0.0') {
+        //if (request.track_latitude !== '0.0000' || request.track_latitude !== '0.0') {
             var paramsArr = new Array(
                     request.organization_id,
                     request.asset_id,
@@ -707,8 +707,9 @@ function ActivityCommonService(db, util, forEachAsync) {
                     request.track_gps_datetime,
                     request.asset_id,
                     request.datetime_log
-                    );
-            var queryString = util.getQueryString('ds_v1_asset_list_update_location', paramsArr);
+                    );            
+            var queryString = util.getQueryString('ds_v1_asset_list_update_location_v2', paramsArr);
+            //var queryString = util.getQueryString('ds_v1_asset_list_update_location', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     if (err === false) {
@@ -719,7 +720,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                     }
                 });
             }
-        }
+        //}
 
     };
 
