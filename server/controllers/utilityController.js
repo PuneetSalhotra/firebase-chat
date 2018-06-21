@@ -94,12 +94,15 @@ function UtilityController(objCollection) {
     app.post('/' + global.config.version + '/invite/send/sms', function (req, res) {
         var request = req.body;
         console.log('Request params : ', request);
-        var text = "Hey "+ request.receiver_name +" , "+request.sender_name+" has invited you to join the "+request.organization_name+" workforce as a coworker. ";
-            text += "Download the Desker App from the app store and use your mobile number to sign in into our new organisation.";
+        /*var text = "Hey "+ request.receiver_name +" , "+request.sender_name+" has invited you to join the "+request.organization_name+" workforce as a coworker. ";
+            text += "Download the Desker App from the app store and use your mobile number to sign in into our new organisation.";*/
+        
+        var text = "Hey "+ request.receiver_name +" , "+ request.sender_name+" has requested your participation in "+request.task_title+" using the Desker App, ";
+            text += "it's due by " + request.due_date + ". Download the App from http://desker.co/download.";
         
         console.log("sms Text : " + text);
         
-        util.sendSmsMvaayoo(text, request.country_code, request.phone_number, function(err,res){
+        util.sendSmsSinfini(text, request.country_code, request.phone_number, function(err,res){
                 console.log(err,'\n',res);                 
             });
             
