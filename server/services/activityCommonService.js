@@ -617,6 +617,39 @@ function ActivityCommonService(db, util, forEachAsync) {
             });
         }
     };
+    
+    this.responseRateUnreadCount = function (request, activityId, callback) {
+        if (activityId === 0) {
+            activityId = request.activity_id;
+        }
+        
+        var duration = util.differenceDatetimes(request.timeline_transaction_datetime, request.datetime_log);
+        console.log('Duration in Seconds : ', duration);
+
+        var paramsArr = new Array(
+                activityId,
+                request.asset_id,
+                request.workforce_id,
+                request.account_id,
+                request.organization_id,
+                request.timeline_transaction_id,
+                request.asset_id,
+                request.datetime_log, // server log date time
+                duration
+                );
+
+        var queryString = util.getQueryString('ds_p1_asset_update_transaction_insert', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                if (err === false) {
+                    callback(false, true);
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, false);
+                }
+            });
+        }
+    };
 
     this.updateAssetLastSeenDatetime = function (request, callback) {
         var paramsArr = new Array(
