@@ -4,6 +4,7 @@
  */
 
 var AccountService = require("../services/accountService");
+var fs = require('fs');
 
 function AccountController(objCollection) {
 
@@ -197,9 +198,7 @@ function AccountController(objCollection) {
         
         var file = '/api-efs/twiliovoicesxmlfiles/' + x[3] + '.xml';
         //var file = '/home/nani/Desktop/twiliovoicesxmlfiles/' + x[3] + '.xml';
-        console.log(file);
-        
-        var fs = require('fs');
+        console.log(file);               
         
         fs.readFile(file,function (err, data) {
           if (err) {
@@ -210,6 +209,41 @@ function AccountController(objCollection) {
               res.end();
           }
       });        
+    });
+    
+    
+    //Voice JSON for NEXMO
+    app.get('/' + global.config.version + '/account/nexmo/voice*', function (req, res) {
+        console.log('Request.query : ' , req.body);
+        var file = '/api-efs/nexmovoicesjsonfiles/' + req.query.file;
+        //var file = '/home/nani/Desktop/twiliovoicesxmlfiles/' + x[3] + '.xml';
+        console.log(file);       
+     
+        fs.readFile(file,function (err, data) {
+          if (err) {
+              res.send(responseWrapper.getResponse(err, file + " is not there.", -3501, req.body));
+          } else {
+              res.writeHead(200, {'Content-Type': 'application/json; charset=utf-8'});
+              res.write(data);
+              res.end();
+          }
+      });        
+    });
+    
+    //Webhook for NEXMO
+    app.post('/' + global.config.version + '/account/webhook/nexmo', function (req, res) {
+        console.log('Nexmo webhook req.body : ', req.body)
+        res.send(responseWrapper.getResponse(false, req.body, 200, req.body));        
+    });
+    
+    app.post('/' + global.config.version + '/account/make/nexmo/call', function (req, res) {
+        util.makeCallNexmo("asdf",91, 9966626954, function (err, data, statusCode) {
+        if (err === false) {
+          res.send(responseWrapper.getResponse(err, data, statusCode, req.body));          
+        } else {
+          res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+        }
+        });
     });
 
 }

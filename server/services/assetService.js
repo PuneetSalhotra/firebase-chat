@@ -5,8 +5,9 @@
 var uuid = require('uuid');
 var AwsSns = require('../utils/snsWrapper');
 var AwsSss = require('../utils/s3Wrapper');
+var fs = require('fs');
 
-function AssetService(objectCollection) {
+function AssetService(objectCollection) {   
 
     var db = objectCollection.db;
     var util = objectCollection.util;
@@ -589,6 +590,9 @@ function AssetService(objectCollection) {
     var sendCallOrSms = function (verificationMethod, countryCode, phoneNumber, verificationCode, request) {
 
         var smsString = util.getSMSString(verificationCode);
+        var domesticSmsMode = global.config.domestic_sms_mode;
+        var internationalSmsMode = global.config.international_sms_mode;
+        var phoneCall = global.config.phone_call;
         switch (verificationMethod) {
             case 0:
                 //global.logger.write('client chose only to retrive data', request, 'device', 'trace'); // no third party api's in this case
@@ -597,87 +601,105 @@ function AssetService(objectCollection) {
                 // send sms                
                 //global.logger.write("sms string is " + smsString, request, 'trace'); // no third party api's in this case
                 if (countryCode === 91) {
-                    // send local sms
-                    switch (global.config.domestic_sms_mode) {
-                        case 1: // mvaayoo                        
-                            util.sendSmsMvaayoo(smsString, countryCode, phoneNumber, function (error, data) {
-                                if (error)
-                                    //console.log(error);
-                                    //console.log(data);
-                                    global.logger.write('trace', data, error, request)
-                            });
-                            break;
-                        case 2: // bulk sms                            
-                            util.sendSmsBulk(smsString, countryCode, phoneNumber, function (error, data) {
-                                if (error)
-                                    //console.log(error);
-                                    //console.log(data);
-                                    global.logger.write('trace', data, error, request)
-                            });
-                            break;
-                        case 3:// sinfini                                                        
-                            console.log('In send SmsSinfini');
-                            util.sendSmsSinfini(smsString, countryCode, phoneNumber, function (error, data) {
-                                if (error)
-                                    console.log(error);
-                                    console.log(data);
-                                    global.logger.write('trace', data, error, request)
-                            });
-                            break;
-                    }
+                    fs.readFile(`${__dirname}/../utils/domesticSmsMode.txt`, function(err, data){
+                        (err)? console.log(err) : domesticSmsMode = Number(data.toString());                       
+                        
+                        // send local sms
+                        //switch (global.config.domestic_sms_mode) {
+                            switch (domesticSmsMode) {
+                                case 1: // mvaayoo                        
+                                    util.sendSmsMvaayoo(smsString, countryCode, phoneNumber, function (error, data) {
+                                        if (error)
+                                            //console.log(error);
+                                            //console.log(data);
+                                            global.logger.write('trace', data, error, request)
+                                    });
+                                    break;
+                                case 2: // bulk sms                            
+                                    util.sendSmsBulk(smsString, countryCode, phoneNumber, function (error, data) {
+                                        if (error)
+                                            //console.log(error);
+                                            //console.log(data);
+                                            global.logger.write('trace', data, error, request)
+                                    });
+                                    break;
+                                case 3:// sinfini                                                        
+                                    console.log('In send SmsSinfini');
+                                    util.sendSmsSinfini(smsString, countryCode, phoneNumber, function (error, data) {
+                                        if (error)
+                                            console.log(error);
+                                            console.log(data);
+                                            global.logger.write('trace', data, error, request)
+                                    });
+                                    break;
+                            }
+                     });
                 } else {
-                    // send international sms                    
-                    //global.logger.write('came inside else case', request, 'device', 'trace');
-                    switch (global.config.international_sms_mode) {
-                        case 1: util.sendInternationalTwilioSMS(smsString, countryCode, phoneNumber, function (error, data) {
-                                    if (error)
-                                        global.logger.write('trace', data, error, request)
-                                });
-                                break;
-                                
-                        case 2: util.sendInternationalNexmoSMS(smsString, countryCode, phoneNumber, function (error, data) {
-                                    if (error)
-                                        global.logger.write('trace', data, error, request)
-                                });
-                                break;
-                    }
+                    
+                    fs.readFile(`${__dirname}/../utils/internationalSmsMode.txt`, function(err, data){
+                        (err)? console.log(err) : internationalSmsMode = Number(data.toString());
+                        
+                        // send international sms                    
+                        //global.logger.write('came inside else case', request, 'device', 'trace');
+                        switch (internationalSmsMode) {
+                            case 1: util.sendInternationalTwilioSMS(smsString, countryCode, phoneNumber, function (error, data) {
+                                        if (error)
+                                            global.logger.write('trace', data, error, request)
+                                    });
+                                    break;
+
+                            case 2: util.sendInternationalNexmoSMS(smsString, countryCode, phoneNumber, function (error, data) {
+                                        if (error)
+                                            global.logger.write('trace', data, error, request)
+                                    });
+                                    break;
+                        }
+                    });                   
                     
                 }
                 break;
-            case 2: //Make a call 
-                switch (global.config.international_sms_mode) {
-                    case 1: //Nexmo
-                            console.log('Making Nexmo Call');
-                            var passcode = request.passcode;
-                            passcode = passcode.split("");
+            case 2: //Make a call                 
+                fs.readFile(`${__dirname}/../utils/phoneCall.txt`, function(err, data){
+                        (err)? console.log(err) : phoneCall = Number(data.toString());
+                        
+                     switch (phoneCall) {
+                        case 1: //Nexmo
+                                console.log('Making Nexmo Call');
+                                var passcode = request.passcode;
+                                passcode = passcode.split("");
+                                passcode = passcode.toString();
+                                passcode = passcode.replace(/,/g, " ");
 
-                            var text = "Your passcode for Desker App is, " + passcode + ". I repeat, your passcode for Desker App is, " + passcode + ". Thank you.";
-                            console.log('Text: ' + text);
-                            
-                            util.makeCallNexmo(text, countryCode, phoneNumber, function (error, data) {
-                                if (error)
-                                    console.log(error);
-                                    console.log(data);
-                                    global.logger.write('trace', data, error, request)
-                                });
-                            break;
-                            
-                    case 2: //Twilio
-                            console.log('Making Twilio Call');
-                            var passcode = request.passcode;
-                            passcode = passcode.split("");
+                                var text = "Your passcode for Desker App is, " + passcode + ". I repeat, your passcode for Desker App is, " + passcode + ". Thank you.";
+                                console.log('Text: ' + text);
 
-                            //var text = "Your passcode is " + passcode + " I repeat," + passcode + " Thank you.";
-                            var text = "Your passcode for Desker App is, " + passcode + ". I repeat, your passcode for Desker App is, " + passcode + ". Thank you.";
-                            console.log('Text: ' + text);
-                                            util.MakeCallTwilio(text, request.passcode, countryCode, phoneNumber, function (error, data) {
-                                                if (error)
-                                                    console.log(error);
-                                                    console.log(data);
-                                                    global.logger.write('trace', data, error, request)
-                                            });
-                            break;
-                }                
+                                util.makeCallNexmo(text, request.passcode, countryCode, phoneNumber, function (error, data) {
+                                    if (error)
+                                        console.log(error);
+                                        console.log(data);
+                                        global.logger.write('trace', data, error, request)
+                                    });
+                                break;
+
+                        case 2: //Twilio
+                                console.log('Making Twilio Call');
+                                var passcode = request.passcode;
+                                passcode = passcode.split("");
+
+                                //var text = "Your passcode is " + passcode + " I repeat," + passcode + " Thank you.";
+                                var text = "Your passcode for Desker App is, " + passcode + ". I repeat, your passcode for Desker App is, " + passcode + ". Thank you.";
+                                console.log('Text: ' + text);
+                                                util.MakeCallTwilio(text, request.passcode, countryCode, phoneNumber, function (error, data) {
+                                                    if (error)
+                                                        console.log(error);
+                                                        console.log(data);
+                                                        global.logger.write('trace', data, error, request)
+                                                });
+                                break;
+                    }
+                    
+                });
+                            
                 break;
             case 3: //email
                     break;

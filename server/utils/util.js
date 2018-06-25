@@ -8,6 +8,7 @@ var twilio = require('twilio');
 var nodemailer = require('nodemailer');
 var tz = require('moment-timezone');
 const Nexmo = require('nexmo');
+var fs = require('fs');
 
 function Util() {
 
@@ -218,8 +219,7 @@ function Util() {
         var authToken = global.config.twilioAuthToken; // Your Auth Token from www.twilio.com/console
         const client = require('twilio')(accountSid, authToken);
         var toNumber = '+'+countryCode + phoneNumber;
-        
-        var fs = require('fs');
+                
         var xmlText = "<?xml version='1.0' encoding='UTF-8'?>";
         xmlText += "<Response>"
         xmlText +="<Say voice='alice'>"+text+"</Say>"
@@ -269,7 +269,7 @@ function Util() {
         }
     };
 
-    this.makeCallNexmo = function (messageString, countryCode, phoneNumber, callback) {
+    /*this.makeCallNexmo = function (messageString, countryCode, phoneNumber, callback) {
         var requestData = {
             api_key: global.config.nexmoAPIKey,
             "api_secret": global.config.nexmoSecretKey,
@@ -299,8 +299,50 @@ function Util() {
                 callback(error, false);
             callback(false, res);
         });
-    };
+    };*/
 
+    this.makeCallNexmo = function (messageString, passcode, countryCode, phoneNumber, callback) {
+        const nexmo = new Nexmo({
+            apiKey: global.config.nexmoAPIKey,
+            apiSecret: global.config.nexmoSecretKey,
+            applicationId: global.config.nexmpAppliationId,
+            privateKey: "/home/nani/Downloads/private.key"
+        });
+                
+        var jsonText = '[{ "action": "talk", "voiceName": "Russell","text":"';
+        jsonText += messageString;
+        jsonText += '"}]';
+                
+        console.log('jsonText : ' + jsonText);
+        //console.log('http://staging.api.desker.cloud/r0/account/nexmo/voice_'+passcode);
+        //fs.writeFile('/api-efs/twiliovoicesxmlfiles/voice_'+passcode+'.xml', xmlText, function (err) {
+        fs.writeFile('/home/nani/Desktop/nexmovoicesjsonfiles/voice_'+passcode+'.json', jsonText, function (err) {
+          if (err) {
+              throw err;
+          } else {
+              nexmo.calls.create({
+                from: {
+                  type: 'phone',
+                  number: 123456789
+                },
+                to: [{
+                  type: 'phone',
+                  number: countryCode + "" + phoneNumber,
+                }],
+                answer_url: ['http://localhost:3000/r1/account/nexmo/voice_'+passcode+'.json?file=voice_'+passcode+'.json']
+              }, (error, response) => {
+                if (error) {
+                  console.error(error)
+                  callback(true, error, -3502);
+                } else {
+                  console.log(response);
+                  callback(false, response, 200);
+                }
+            });
+          }          
+        });
+    };
+        
     this.decodeSpecialChars = function (string) {
         if (typeof string === 'string') {
             string = string.replace(";sqt;", "'");

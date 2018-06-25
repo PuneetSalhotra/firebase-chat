@@ -80,6 +80,7 @@ config.twilioAccountSid = "AC66cabb9ae7db92bbf7e6113ff2eeabad";
 config.twilioAuthToken = "7d4f9ee9f8122d2a7129e13fdaefd919";
 config.nexmoAPIKey = "533696c3";
 config.nexmoSecretKey = "0c8aa63d";
+config.nexmpAppliationId = "33635cb2-5497-4d69-831e-dcb533449e84";
 
 config.smtp_host = 'retail.smtp.com';
 config.smtp_port = '2525';
