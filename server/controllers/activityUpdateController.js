@@ -234,7 +234,7 @@ function ActivityUpdateController(objCollection) {
             deviceOsId = Number(req.body.device_os_id);
        
         var proceedUnreadUpdate = function (activityId) {
-            req.body.activity_id = activityId;
+            req.body.activity_id = activityId; 
             var event = {
                 name: "resetUnreadUpdateCount",
                 service: "activityUpdateService",
@@ -268,9 +268,7 @@ function ActivityUpdateController(objCollection) {
                                  res.send(responseWrapper.getResponse(false, {}, 200,req.body));
                             }                       
                         }
-                });
-            //res.send(responseWrapper.getResponse(false, {}, 200,req.body));
-            //return;
+                }) ;            
         };
             
         if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5) {
@@ -278,10 +276,10 @@ function ActivityUpdateController(objCollection) {
                     if (err) {
                         res.send(responseWrapper.getResponse(false, {}, -7998,req.body));
                     } else {
-                        if (status) {     // proceed
-                            forEachAsync(activityArray, function (next, activityId) {
-                                console.log(activityId);
-                                proceedUnreadUpdate(activityId);
+                        if (status) {     // proceed                            
+                            forEachAsync(activityArray, function (next, rowData) {
+                                console.log(rowData);
+                                proceedUnreadUpdate(rowData);
                                 next();
                             });
                         } else {  // this is a duplicate hit,
@@ -291,9 +289,92 @@ function ActivityUpdateController(objCollection) {
                 });
 
             } else if (deviceOsId === 5) {
-                forEachAsync(activityArray, function (next, activityId) {
-                                console.log(activityId);
-                                proceedUnreadUpdate(activityId);
+                forEachAsync(activityArray, function (next, rowData) {
+                                console.log(rowData);
+                                proceedUnreadUpdate(rowData);
+                                next();
+                            });
+            } else {
+                res.send(responseWrapper.getResponse(false, {}, -3304,req.body));
+            }
+            
+        }); 
+        
+    //Added by V Nani Kalyan
+    app.put('/' + global.config.version + '/activity/unread/count/reset/v1', function (req, res) {
+        var cnt = 0;
+        var deviceOsId = 0;
+        try {
+            var activityArray = JSON.parse(req.body.activity_id_array);
+        } catch(exception ) {
+            res.send(responseWrapper.getResponse(false, {data: "Invalid Json format"}, -3308,req.body));
+            return;
+        }
+        
+        if (req.body.hasOwnProperty('device_os_id'))
+            deviceOsId = Number(req.body.device_os_id);
+       
+        var proceedUnreadUpdate = function (rowData) {
+            req.body.activity_id = rowData.activity_id; 
+            req.body.timeline_transaction_id = rowData.timeline_transaction_id;
+            req.body.timeline_transaction_datetime = rowData.timeline_transaction_datetime;
+            var event = {
+                name: "resetUnreadUpdateCount",
+                service: "activityUpdateService",
+                method: "resetUnreadUpdateCount",
+                payload: req.body
+            };
+
+            queueWrapper.raiseActivityEvent(event, rowData.activity_id, (err, resp)=>{
+                        if(err) {
+                            //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
+                            //global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);
+                            res.send(responseWrapper.getResponse(true, {}, -5999,req.body));
+                            throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+                        } else {
+                            if (req.hasOwnProperty('device_os_id')) {
+                                if (Number(req.device_os_id) !== 5) {
+                                    //incr the asset_message_counter                        
+                                    cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
+                                        if (err) {
+                                            //console.log("error in setting in asset parity");
+                                            global.logger.write('serverError',"error in setting in asset parity",err,req.body);
+                                        } else
+                                            //console.log("asset parity is set successfully")
+                                            global.logger.write('debug',"asset parity is set successfully",{},req.body);
+
+                                    });
+                                }
+                            }
+                            cnt++;
+                            if(cnt == activityArray.length) {
+                                 res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                            }                       
+                        }
+                }) ;            
+        };
+            
+        if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5) {
+                cacheWrapper.checkAssetParity(req.body.asset_id, Number(req.body.asset_message_counter), function (err, status) {
+                    if (err) {
+                        res.send(responseWrapper.getResponse(false, {}, -7998,req.body));
+                    } else {
+                        if (status) {     // proceed                            
+                            forEachAsync(activityArray, function (next, rowData) {
+                                console.log(rowData);
+                                proceedUnreadUpdate(rowData);
+                                next();
+                            });
+                        } else {  // this is a duplicate hit,
+                            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                        }
+                    }
+                });
+
+            } else if (deviceOsId === 5) {
+                forEachAsync(activityArray, function (next, rowData) {
+                                console.log(rowData);
+                                proceedUnreadUpdate(rowData);
                                 next();
                             });
             } else {
@@ -429,7 +510,7 @@ function ActivityUpdateController(objCollection) {
     });    
     
     //Setting or unsetting the activity_flag_file_enabled 
-    app.put('/' + global.config.version + '/activity/asset/file_enabled_flag/alter', function (req, res) {
+    /*app.put('/' + global.config.version + '/activity/asset/file_enabled_flag/alter', function (req, res) {
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
@@ -493,7 +574,7 @@ function ActivityUpdateController(objCollection) {
         } else {
             res.send(responseWrapper.getResponse(false, {}, -3301,req.body));
         }
-    });    
+    });*/
     
 }
 

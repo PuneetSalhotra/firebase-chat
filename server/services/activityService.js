@@ -165,6 +165,9 @@ function ActivityService(objectCollection) {
                             activityCommonService.assetActivityListHistoryInsert(request, activityAssetMappingAsset, 0, function (err, restult) {
 
                             });
+                            
+                            alterActivityFlagFileEnabled(request).then(()=>{});
+                            
                             updateProjectStatusCounts(request).then(() => {});
                             if (request.hasOwnProperty('activity_parent_id')) {
                                 if (util.hasValidGenericId(request, 'activity_parent_id')) {
@@ -737,7 +740,26 @@ function ActivityService(objectCollection) {
         });
     };
      
-                    
+    function alterActivityFlagFileEnabled(request) {
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                request.activity_id,
+                request.asset_id,
+                request.organization_id,
+                request.activity_flag_file_enabled || 0,
+                request.datetime_log
+                );
+
+        var queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_flag_file_enabled', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                (err === false) ? resolve(): reject(err);
+            });
+            }
+        });          
+    };  
+    
+    
     function sendPushPam(request) {
         return new Promise((resolve, reject) => {
             var paramsArr = new Array(

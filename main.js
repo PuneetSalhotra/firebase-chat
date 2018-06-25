@@ -74,7 +74,7 @@ function connectToKafkaBroker(cnt){
         };
         new EncTokenInterceptor(app, cacheWrapper, responseWrapper, util);
         new ControlInterceptor(objCollection);
-        server.listen(global.config.servicePort);
+        server.listen(global.config.servicePort);        
         console.log('server running at port ' + global.config.servicePort);
     });
 

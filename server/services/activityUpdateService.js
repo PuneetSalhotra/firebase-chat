@@ -1309,6 +1309,9 @@ function ActivityUpdateService(objectCollection) {
         //var activityTypeCategoryId = Number(request.activity_type_category_id);
 
         activityCommonService.resetAssetUnreadCount(request, request.activity_id, function (err, data) {});
+        
+        activityCommonService.responseRateUnreadCount(request, request.activity_id, function (err, data) {});
+        
         activityPushService.sendPush(request, objectCollection, 0, function () {});
         callback(false, true);
         /*var activityArray = JSON.parse(request.activity_id_array);
@@ -1319,7 +1322,7 @@ function ActivityUpdateService(objectCollection) {
         }); */
     };
     
-    this.alterActivityFlagFileEnabled = function(request, callback) {
+    /*this.alterActivityFlagFileEnabled = function(request, callback) {
       var paramsArr = new Array(
                 request.activity_id,
                 request.asset_id,
@@ -1334,7 +1337,7 @@ function ActivityUpdateService(objectCollection) {
                 (err === false) ? callback(false, {}, 200): callback(true, err, -9999);
             });
         }  
-    };
+    };*/
 
 }
 ;
