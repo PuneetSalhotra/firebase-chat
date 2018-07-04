@@ -97,8 +97,11 @@ function UtilityController(objCollection) {
         /*var text = "Hey "+ request.receiver_name +" , "+request.sender_name+" has invited you to join the "+request.organization_name+" workforce as a coworker. ";
             text += "Download the Desker App from the app store and use your mobile number to sign in into our new organisation.";*/
         
-        var text = "Hey "+ request.receiver_name +" , "+ request.sender_name+" has requested your participation in "+request.task_title+" using the Desker App, ";
-            text += "it's due by " + request.due_date + ". Download the App from http://desker.co/download.";
+        /*var text = "Hey "+ request.receiver_name +" , "+ request.sender_name+" has requested your participation in "+request.task_title+" using the Desker App, ";
+            text += "it's due by " + request.due_date + ". Download the App from http://desker.co/download.";*/
+            
+        var text = "Hi "+ request.receiver_name +" , "+ request.sender_name+" has requested your participation in "+request.task_title+" using the WorldDesk App, ";
+            text += "it's due by " + request.due_date + ". Download the app from https://worlddesk.desker.co/";
         
         console.log("sms Text : " + text);
         
