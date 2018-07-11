@@ -236,15 +236,20 @@ function AccountController(objCollection) {
         res.send(responseWrapper.getResponse(false, req.body, 200, req.body));        
     });
     
-    app.post('/' + global.config.version + '/account/make/nexmo/call', function (req, res) {
-        util.makeCallNexmo("asdf",91, 9966626954, function (err, data, statusCode) {
-        if (err === false) {
-          res.send(responseWrapper.getResponse(err, data, statusCode, req.body));          
-        } else {
-          res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
-        }
-        });
-    });
+    //Send SMS
+    app.post('/' + global.config.version + '/account/send/sms', function (req, res) {
+        var request = req.body;
+        console.log('Request params : ', request);
+                
+        /*var text = "Hey "+ request.receiver_name +" , "+ request.sender_name+" has requested your participation in "+request.task_title+" using the Desker App, ";
+            text += "it's due by " + request.due_date + ". Download the App from http://desker.co/download.";*/
+                       
+        util.sendSmsSinfini(request.message, request.country_code, request.phone_number, function(err,res){
+                console.log(err,'\n',res);                 
+            });
+            
+        res.send(responseWrapper.getResponse(false, {}, 200, req.body));
+     });
 
 }
 ;
