@@ -35,8 +35,8 @@ if (mode === 'dev') {
     config.conLimit = 10;
 
     config.redisIp = '127.0.0.1';
-    config.redisPort = 6379;
-    
+    config.redisPort = 6379;   
+   
     config.kafkaMsgUniqueIdValue = 'read';
 
     config.kafkaIPOne = {kafkaHost: 'kafka1:9092'};
@@ -73,6 +73,8 @@ if (mode === 'prod') {
 
 config.platformApplicationIosDev = 'arn:aws:sns:us-east-1:430506864995:app/APNS_VOIP_SANDBOX/VOIPios';
 config.platformApplicationIosProd = "arn:aws:sns:us-east-1:430506864995:app/APNS_VOIP/VOIPiosProd";
+config.platformApplicationIosDevGR = 'arn:aws:sns:us-east-1:430506864995:app/APNS_VOIP_SANDBOX/GRVOIPiosDev';
+config.platformApplicationIosProdGR = "arn:aws:sns:us-east-1:430506864995:app/APNS_VOIP/GRVOIPiosProd";
 //config.platformApplicationAndroid = "arn:aws:sns:us-east-1:430506864995:app/GCM/DeskerCoAndroid";
 config.platformApplicationAndroid = "arn:aws:sns:us-east-1:430506864995:app/GCM/deskerAndroid";
 config.platformApplicationWindows = 'arn:aws:sns:us-east-1:430506864995:app/WNS/deskerWindows';
