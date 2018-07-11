@@ -9,7 +9,7 @@ function AssetController(objCollection) {
 
     var responseWrapper = objCollection.responseWrapper;
     var app = objCollection.app;
-    var activityCommonService = objCollection.activityCommonService;
+    var activityCommonService = objCollection.activityCommonService;    
     var assetService = new AssetService(objCollection);
     app.put('/' + global.config.version + '/asset/passcode/alter', function (req, res) {
 
@@ -416,6 +416,6 @@ function AssetController(objCollection) {
             }
         });
     });
-    
+       
 }
 module.exports = AssetController;
