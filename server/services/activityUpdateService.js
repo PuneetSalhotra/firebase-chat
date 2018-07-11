@@ -1322,7 +1322,7 @@ function ActivityUpdateService(objectCollection) {
         }); */
     };
     
-    /*this.alterActivityFlagFileEnabled = function(request, callback) {
+    this.alterActivityFlagFileEnabled = function(request, callback) {
       var paramsArr = new Array(
                 request.activity_id,
                 request.asset_id,
@@ -1337,7 +1337,7 @@ function ActivityUpdateService(objectCollection) {
                 (err === false) ? callback(false, {}, 200): callback(true, err, -9999);
             });
         }  
-    };*/
+    };
 
 }
 ;

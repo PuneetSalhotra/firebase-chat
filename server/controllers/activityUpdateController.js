@@ -510,7 +510,7 @@ function ActivityUpdateController(objCollection) {
     });    
     
     //Setting or unsetting the activity_flag_file_enabled 
-    /*app.put('/' + global.config.version + '/activity/asset/file_enabled_flag/alter', function (req, res) {
+    app.put('/' + global.config.version + '/activity/asset/file_enabled_flag/alter', function (req, res) {
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
@@ -574,7 +574,7 @@ function ActivityUpdateController(objCollection) {
         } else {
             res.send(responseWrapper.getResponse(false, {}, -3301,req.body));
         }
-    });*/
+    });
     
 }
 
