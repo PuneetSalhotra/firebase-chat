@@ -13,6 +13,7 @@ function AssetService(objectCollection) {
     var util = objectCollection.util;
     var cacheWrapper = objectCollection.cacheWrapper;
     var activityCommonService = objectCollection.activityCommonService;
+    var queueWrapper = objectCollection.queueWrapper;
     var sns = new AwsSns();
     var sss = new AwsSss();
     //PAM
@@ -670,7 +671,12 @@ function AssetService(objectCollection) {
                                 passcode = passcode.toString();
                                 passcode = passcode.replace(/,/g, " ");
 
-                                var text = "Your passcode for Desker App is, " + passcode + ". I repeat, your passcode for Desker App is, " + passcode + ". Thank you.";
+                                //var text = "Your passcode for Desker App is, " + passcode + ". I repeat, your passcode for Desker App is, " + passcode + ". Thank you.";
+                                var text = "Your passcode for Desker App is, " + passcode;
+                                text += ". I repeat, your passcode for Desker App is, " + passcode;
+                                text += ". I repeat, your passcode for Desker App is, " + passcode;
+                                text += ". I repeat, your passcode for Desker App is, " + passcode;
+                                text += ". I repeat, your passcode for Desker App is, " + passcode;
                                 console.log('Text: ' + text);
 
                                 util.makeCallNexmo(text, request.passcode, countryCode, phoneNumber, function (error, data) {
@@ -687,7 +693,12 @@ function AssetService(objectCollection) {
                                 passcode = passcode.split("");
 
                                 //var text = "Your passcode is " + passcode + " I repeat," + passcode + " Thank you.";
-                                var text = "Your passcode for Desker App is, " + passcode + ". I repeat, your passcode for Desker App is, " + passcode + ". Thank you.";
+                                //var text = "Your passcode for Desker App is, " + passcode + ". I repeat, your passcode for Desker App is, " + passcode + ". Thank you.";
+                                var text = "Your passcode for Desker App is, " + passcode;
+                                text += ". I repeat, your passcode for Desker App is, " + passcode;
+                                text += ". I repeat, your passcode for Desker App is, " + passcode;
+                                text += ". I repeat, your passcode for Desker App is, " + passcode;
+                                text += ". I repeat, your passcode for Desker App is, " + passcode;
                                 console.log('Text: ' + text);
                                                 util.MakeCallTwilio(text, request.passcode, countryCode, phoneNumber, function (error, data) {
                                                     if (error)
@@ -712,8 +723,10 @@ function AssetService(objectCollection) {
         request['datetime_log'] = dateTimeLog;
         var encToken = uuid.v1();
         var flag; //1 is prod and 0 is dev
+        var flagAppAccount; //1 is Grene Robotics and 0 is BlueFlock
         
         (request.hasOwnProperty('flag_dev')) ? flag = request.flag_dev : flag = 1;
+        (request.hasOwnProperty('flag_app_account')) ? flagAppAccount = request.flag_app_account : flagAppAccount = 0;
 
         var proceedLinking = function (proceedLinkingCallback) {
 
@@ -801,15 +814,15 @@ function AssetService(objectCollection) {
             });
         }
         if (request.hasOwnProperty('asset_token_push') && request.asset_token_push !== '' && request.asset_token_push !== null) {
-            sns.createPlatformEndPoint(Number(request.device_os_id), request.asset_token_push, flag, function (err, endPointArn) {
+            sns.createPlatformEndPoint(Number(request.device_os_id), request.asset_token_push, flag, flagAppAccount, function (err, endPointArn) {
                 if (!err) {
                     //console.log('success in creating platform end point');
                     global.logger.write('debug', 'success in creating platform end point', {}, request)
                     request.asset_push_arn = endPointArn;
                     proceedLinking(function (err, response, status) {
                         if(status == 200) {
-                            updateSignUpCnt(request, request.asset_id).then(()=>{});
-                            updateSignUpCnt(request, request.operating_asset_id).then(()=>{});
+                            updateSignUpCnt(request, request.asset_id, 1).then(()=>{});
+                            updateSignUpCnt(request, request.operating_asset_id, 2).then(()=>{});
                         }
                         
                         callback(err, response, status);
@@ -824,8 +837,8 @@ function AssetService(objectCollection) {
             request.asset_push_arn = '';
             proceedLinking(function (err, response, status) {
                 if(status == 200) {
-                      updateSignUpCnt(request, request.asset_id).then(()=>{});
-                      updateSignUpCnt(request, request.operating_asset_id).then(()=>{});
+                      updateSignUpCnt(request, request.asset_id, 1).then(()=>{});
+                      updateSignUpCnt(request, request.operating_asset_id, 2).then(()=>{});
                 }
                 
                 callback(err, response, status);
@@ -922,22 +935,95 @@ function AssetService(objectCollection) {
         }
     };
     
-    function updateSignUpCnt(request, assetId) {
+    function updateSignUpCnt(request, assetId, whichAssetId) { //Asset_Id : 1 -- Operating_asset_id : 2
+        return new Promise((resolve, reject)=>{
+            if(whichAssetId == 2) {
+                activityCommonService.getAssetDetails(request, (err, data, statuscode) => {
+                    if(err === false) {
+                        console.log('Asset Signup count : ' , data.asset_count_signup);
+                        if(!data.asset_count_signup > 0) {
+                            assetListUpdateSignupCnt(request, assetId).then(()=>{});
+                        } else {
+                            //Create a Task in a given Project and add an update
+                            //Asset_id, operating_asset_name, organization_name, workforce_name
+                            console.log('Have to create a Task');
+                            var newRequest = {};
+
+                            newRequest.organization_id = 753;
+                            newRequest.account_id = 864;
+                            newRequest.workforce_id = 4576;
+                            newRequest.asset_id = 27008;
+                            newRequest.operating_asset_id = 27007;                            
+                            newRequest.activity_title = data.operating_asset_first_name + " has signed up";
+                            newRequest.activity_description = data.operating_asset_first_name + " has signed up";
+                            newRequest.activity_inline_data= "{}";
+                            newRequest.activity_datetime_start = util.getCurrentUTCTime();
+                            newRequest.activity_datetime_end = util.addUnitsToDateTime(util.getCurrentUTCTime(), 1, 'years');
+                            newRequest.activity_type_category_id = 10;
+                            newRequest.activity_sub_type_id = 1;
+                            newRequest.activity_type_id = 111328;
+                            newRequest.activity_access_role_id =26;
+                            newRequest.activity_parent_id = 93256;
+                            newRequest.url = "/add/activity/";
+                            //activity_status_id:83846
+                            //activity_status_type_id:17
+                            //activity_status_type_category_id:0
+                            
+                            newRequest.signedup_asset_id = data.asset_id;
+                            newRequest.signedup_asset_organization_name = data.organization_name;
+                            newRequest.signedup_asset_workforce_name = data.workforce_name;
+                            newRequest.signedup_asset_name = data.operating_asset_first_name || "";
+                            newRequest.signedup_asset_email_id = data.asset_email_id || "";
+                            newRequest.signedup_asset_phone_country_code = data.asset_phone_country_code;
+                            newRequest.signedup_asset_phone_number = data.asset_phone_number;                            
+                            
+                            cacheWrapper.getActivityId(function (err, activityId) {
+                                if (err) {
+                                    console.log(err);
+                                    //global.logger.write('debug','',err,req);                                    
+                                } else {
+                                    newRequest.activity_id = activityId;
+                                    var event = {
+                                        name: "addActivity",
+                                        service: "activityService",
+                                        method: "addActivity",
+                                        payload: newRequest
+                                        };
+                                    queueWrapper.raiseActivityEvent(event, activityId, (err, resp)=>{
+                                            if(err) {
+                                                console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
+                                                //global.logger.write('serverError','Error in queueWrapper raiseActivityEvent',resp,req);                                                
+                                            } else {                                                
+                                                console.log("new activityId is : " + activityId);
+                                                //global.logger.write('debug',"new activityId is :" + activityId,{}, newRequest);
+                                            }
+                                       });                                    
+                                    }
+                            });
+                        }                        
+                    }
+                });
+            } else {
+                assetListUpdateSignupCnt(request, assetId).then(()=>{});
+            }
+        });
+    };
+    
+    function assetListUpdateSignupCnt(request, assetId) {
         return new Promise((resolve, reject)=>{
             var paramsArr = new Array(
-                   request.organization_id,
-                   request.account_id,
-                   request.workforce_id,
-                   assetId
-                   );
-
-           var queryString = util.getQueryString('ds_v1_asset_list_update_signup_count', paramsArr);
-           if (queryString != '') {
-               db.executeQuery(0, queryString, request, function (err, data) {
-                   //global.logger.write(queryString, request, 'asset', 'trace');
-                   (err === false) ? resolve(): reject(err);
-               });
-           }
+                    request.organization_id,
+                    request.account_id,
+                    request.workforce_id,
+                    assetId
+                    );
+            var queryString = util.getQueryString('ds_v1_asset_list_update_signup_count', paramsArr);
+                if (queryString != '') {
+                    db.executeQuery(0, queryString, request, function (err, data) {
+                    //global.logger.write(queryString, request, 'asset', 'trace');
+                    (err === false) ? resolve(): reject(err);
+                });
+            }
         });
     }
 
