@@ -99,9 +99,28 @@ function UtilityController(objCollection) {
         
         /*var text = "Hey "+ request.receiver_name +" , "+ request.sender_name+" has requested your participation in "+request.task_title+" using the Desker App, ";
             text += "it's due by " + request.due_date + ". Download the App from http://desker.co/download.";*/
-            
-        var text = "Hi "+ request.receiver_name +" , "+ request.sender_name+" has requested your participation in "+request.task_title+" using the WorldDesk App, ";
+        var text;
+        
+        /*if(!request.hasOwnProperty("task_title")) {
+            text = "Hi "+ request.receiver_name +" , "+ request.sender_name+" has requested your participation in a task, ";
+            text += "You can access this task by downloading your WorldDesk App from https://worlddesk.desker.co/";
+        } else{            
+            text = "Hi "+ request.receiver_name +" , "+ request.sender_name+" has requested your participation in "+request.task_title+" using the WorldDesk App, ";
             text += "it's due by " + request.due_date + ". Download the app from https://worlddesk.desker.co/";
+        }*/
+        
+        if(!request.hasOwnProperty("task_title")) {
+            text = "Hi "+ request.receiver_name +" , "+ request.sender_name+" has requested your participation in a task, ";
+            text += "You can access this task by downloading your WorldDesk App from https://worlddesk.desker.co/";
+        } else if(request.hasOwnProperty("task_title")){
+            if(request.task_title != "") {
+                text = "Hi "+ request.receiver_name +" , "+ request.sender_name+" has requested your participation in "+request.task_title+" using the WorldDesk App, ";
+                text += "it's due by " + request.due_date + ". Download the app from https://worlddesk.desker.co/";
+            } else {
+                text = "Hi "+ request.receiver_name +" , "+ request.sender_name+" has requested your participation in a task, ";
+                text += "You can access this task by downloading your WorldDesk App from https://worlddesk.desker.co/";
+            }         
+        }
         
         console.log("sms Text : " + text);
         
