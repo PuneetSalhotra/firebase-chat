@@ -74,7 +74,7 @@ var AwsSns = function () {
         });
     };
 
-    this.createPlatformEndPoint = function (deviceOsId, pushToken, flag, callback) { //flag - 0 is Dev and 1 is Prod 
+    this.createPlatformEndPoint = function (deviceOsId, pushToken, flag, flagAppAccount, callback) { //flag - 0 is Dev and 1 is Prod 
         var platformApplicationArn = '';
         //if (deviceOsId === 2) {
         switch (deviceOsId) {
@@ -82,13 +82,23 @@ var AwsSns = function () {
                 platformApplicationArn = global.config.platformApplicationAndroid;
                 break;
             case 2:// ios
-                if (flag == 0){
-                    console.log('Flag is 0. Creating IOS Dev');
-                    platformApplicationArn = global.config.platformApplicationIosDev;
-                } else {
-                    console.log('Flag is 1. Creating IOS Prod');
-                    platformApplicationArn = global.config.platformApplicationIosProd;
-                }               
+                if(flagAppAccount == 0) { //BlueFlock
+                    if (flag == 0){
+                        console.log('Flag is 0. Creating IOS Dev for Blue flock Account');
+                        platformApplicationArn = global.config.platformApplicationIosDev;
+                    } else {
+                        console.log('Flag is 1. Creating IOS Prod for Blue flock Account');
+                        platformApplicationArn = global.config.platformApplicationIosProd;
+                    }
+                } else { //flagAppAccount == 1 i.e. Grene Robotics
+                    if (flag == 0){
+                        console.log('Flag is 0. Creating IOS Dev for Grene Robotics Account');
+                        platformApplicationArn = global.config.platformApplicationIosDevGR;
+                    } else {
+                        console.log('Flag is 1. Creating IOS Prod for Grene Robotics Account');
+                        platformApplicationArn = global.config.platformApplicationIosProdGR;
+                    }
+                }    
                 break;
             case 3:// windows
                 platformApplicationArn = global.config.platformApplicationWindows;
