@@ -63,7 +63,11 @@ function ActivityTimelineService(objectCollection) {
 
                     //updating log differential datetime for only this asset
                     activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) { });
-                    activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) { });
+                    
+                    (request.hasOwnProperty('signedup_asset_id')) ? 
+                        activityCommonService.updateActivityLogLastUpdatedDatetime(request, 0, function (err, data) { }): //To increase unread cnt for marketing manager
+                        activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) { });
+                    
                     if (formDataJson.hasOwnProperty('asset_reference')) {
                         if (formDataJson.asset_reference.length > 0) {
                             forEachAsync(formDataJson.asset_reference, function (next, rowData) {
