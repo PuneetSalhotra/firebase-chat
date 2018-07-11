@@ -398,21 +398,22 @@ function ActivityListingService(objCollection) {
     this.getActivityCoverCollectionV1 = function (request, callback) {
         var logDatetime = util.getCurrentUTCTime();
         var monthly_summary = {};
-        monthly_summary.owned_tasks_response = -1;
-        monthly_summary.inmail_response_rate = -1;
+        //monthly_summary.owned_tasks_response = -1;
+        //monthly_summary.inmail_response_rate = -1;
         monthly_summary.completion_rate = -1;
+        monthly_summary.unread_update_response_rate = -1;
         monthly_summary.average_value = -1;
         request['datetime_log'] = logDatetime;
         activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
         var paramsArr = new Array(
                 request.activity_id,
-                request.asset_id,
+                request.operating_asset_id,
                 request.organization_id
                 );
         var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_asset', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
-                if (err === false) {
+                if (err === false) {                    
                     formatActivityListing(data, function (err, finalData) {
                         if (err === false) {
                             //callback(false, {data:{activity_cover: finalData, monthly_summary:{}}}, 200);
@@ -421,7 +422,8 @@ function ActivityListingService(objCollection) {
                                     request.operating_asset_id,
                                     request.organization_id,
                                     1,
-                                    util.getStartDayOfMonth()
+                                    //util.getStartDayOfMonth()
+                                    util.getStartDayOfPrevMonth()
                                     );
                             queryString = util.getQueryString('ds_p1_asset_monthly_summary_transaction_select_flag', paramsArr);
                             if (queryString != '') {
@@ -430,36 +432,42 @@ function ActivityListingService(objCollection) {
                                         //console.log('statsData :', statsData);
                                         statsData.forEach(function (rowData, index) {
                                             switch (rowData.monthly_summary_id) {
-                                                case 8:     //Response rate of owned tasks 
+                                                /*case 8:     //Response rate of owned tasks 
                                                     monthly_summary.owned_tasks_response = util.replaceDefaultNumber(rowData['data_entity_decimal_1']);
                                                     break;
                                                 case 10:    //10	Response Rate - InMail
                                                     monthly_summary.inmail_response_rate = util.replaceDefaultNumber(rowData['data_entity_decimal_1']);
-                                                    break;
+                                                    break;*/
                                                 case 12:    // 12	Completion rate - Lead
                                                     monthly_summary.completion_rate = util.replaceDefaultNumber(rowData['data_entity_decimal_1']);
+                                                    break;
+                                                case 22:    // 22	unread update response rate
+                                                    monthly_summary.unread_update_response_rate = util.replaceDefaultNumber(rowData['data_entity_double_1']);
                                                     break;
                                             }
                                         }, this);
                                         var denominator = 0;
                                         
-                                        (monthly_summary.owned_tasks_response > 0)? denominator++: monthly_summary.owned_tasks_response = 0;
-                                        (monthly_summary.inmail_response_rate > 0)? denominator++: monthly_summary.inmail_response_rate = 0;
+                                        //(monthly_summary.owned_tasks_response > 0)? denominator++: monthly_summary.owned_tasks_response = 0;
+                                        //(monthly_summary.inmail_response_rate > 0)? denominator++: monthly_summary.inmail_response_rate = 0;
                                         (monthly_summary.completion_rate > 0) ? denominator++ : monthly_summary.completion_rate = 0;
+                                        (monthly_summary.unread_update_response_rate > 0) ? denominator++ : monthly_summary.unread_update_response_rate = 0;
                                                                                
                                         
                                         console.log('Denominator after processing : ' + denominator);
-                                        console.log('monthly_summary.owned_tasks_response : ' + monthly_summary.owned_tasks_response);
-                                        console.log('monthly_summary.inmail_response_rate : ' + monthly_summary.inmail_response_rate);
+                                        //console.log('monthly_summary.owned_tasks_response : ' + monthly_summary.owned_tasks_response);
+                                        //console.log('monthly_summary.inmail_response_rate : ' + monthly_summary.inmail_response_rate);
                                         console.log('monthly_summary.completion_rate : ' + monthly_summary.completion_rate);
+                                        console.log('monthly_summary.unread_update_response_rate : ' + monthly_summary.unread_update_response_rate);
                                         
                                         if(denominator == 0) {
                                             monthly_summary.average_value = -1;
                                         } else {
-                                            monthly_summary.average_value = (monthly_summary.owned_tasks_response + monthly_summary.inmail_response_rate + monthly_summary.completion_rate) / denominator;
+                                            //monthly_summary.average_value = (monthly_summary.owned_tasks_response + monthly_summary.inmail_response_rate + monthly_summary.completion_rate) / denominator;
+                                            monthly_summary.average_value = (monthly_summary.completion_rate + monthly_summary.unread_update_response_rate) / denominator;
                                         }
-                                        //monthly_summary.average_value = (monthly_summary.owned_tasks_response + monthly_summary.inmail_response_rate + monthly_summary.completion_rate) / 3;
-                                        finalData[0].activity_inline_data.monthly_summary = monthly_summary
+                                        
+                                        finalData[0].activity_inline_data.monthly_summary = monthly_summary;
                                         //console.log('finalData : ' + finalData);
                                         callback(false, {data: finalData}, 200);
                                     } else {
