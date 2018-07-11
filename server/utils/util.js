@@ -329,7 +329,7 @@ function Util() {
                   type: 'phone',
                   number: countryCode + "" + phoneNumber,
                 }],
-                answer_url: ['http://localhost:3000/r1/account/nexmo/voice_'+passcode+'.json?file=voice_'+passcode+'.json']
+                answer_url: ['https://api.desker.cloud/r1/account/nexmo/voice_'+passcode+'.json?file=voice_'+passcode+'.json']
               }, (error, response) => {
                 if (error) {
                   console.error(error)
