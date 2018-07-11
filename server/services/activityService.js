@@ -250,6 +250,15 @@ function ActivityService(objectCollection) {
                                 }
 
                             }// end parent activity id condition
+                            
+                            if(request.activity_parent_id == 93256) { //For Marketing Manager reference
+                                //Create a timeline entry on this task
+                                setTimeout(function(){
+                                              console.log('Delayed for 2s');
+                                              createTimelineEntry(request).then(()=>{});
+                                              }, 2000);                                
+                            }
+                            
                             callback(false, responseactivityData, 200);
                             cacheWrapper.setMessageUniqueIdLookup(request.message_unique_id, request.activity_id, function (err, status) {
                                 if (err) {
@@ -742,11 +751,14 @@ function ActivityService(objectCollection) {
      
     function alterActivityFlagFileEnabled(request) {
         return new Promise((resolve, reject)=>{
+            var activityFlagFileEnabled;
+            (request.url.includes('v1')) ? activityFlagFileEnabled = request.activity_flag_file_enabled : activityFlagFileEnabled = 1;
+            
             var paramsArr = new Array(
                 request.activity_id,
                 request.asset_id,
                 request.organization_id,
-                request.activity_flag_file_enabled || 0,
+                activityFlagFileEnabled,
                 request.datetime_log
                 );
 
@@ -1280,7 +1292,7 @@ function ActivityService(objectCollection) {
 
                 });
                 updateProjectStatusCounts(request).then(() => {});
-                activityPushService.sendPush(request, objectCollection, 0, function () {});
+                activityPushService.sendPush(request, objectCollection, 0, function () {});                
                 if (activityTypeCategoryId === 9 && activityStatusTypeId === 23) {   //form and submitted state                    
                     duplicateFormTransactionData(request, function (err, data) {
                         var widgetEngineQueueMessage = {
@@ -1309,7 +1321,7 @@ function ActivityService(objectCollection) {
                         queueWrapper.raiseFormWidgetEvent(event, request.activity_id);
                     });
                 }
-
+                
                 callback(false, {}, 200);
                 return;
             } else {
@@ -1318,6 +1330,56 @@ function ActivityService(objectCollection) {
             }
 
         });
+    };
+    
+    function createTimelineEntry(request) {
+        return new Promise((resolve, reject) => {
+            var newRequest = Object.assign({}, request);
+            
+            var mailBody = "Title: " + request.activity_title + "<br>";
+               //mailBody += "Description: <br>";
+               mailBody += "Organization Name : " + request.signedup_asset_organization_name + "<br>";
+               mailBody += "Workfore Name : " + request.signedup_asset_workforce_name + "<br>";
+               //mailBody += "Asset Id : " + request.signedup_asset_id + "<br>";
+               mailBody += "Asset Name : " + request.signedup_asset_organization_name + "<br>";
+               mailBody += "Asset Phone Country Code : " + request.signedup_asset_phone_country_code + "<br>";
+               mailBody += "Asset Phone Number : " + request.signedup_asset_phone_number + "<br>";
+               mailBody += "Asset Email Id : " + request.signedup_asset_email_id;
+            
+            var activityTimelineCollection = {};            
+            activityTimelineCollection.content = mailBody;
+            activityTimelineCollection.subject = "Added : " + util.getCurrentDate();
+            activityTimelineCollection.mail_body = mailBody;
+            activityTimelineCollection.attachments = [];
+            activityTimelineCollection.asset_reference = [];
+            activityTimelineCollection.activity_reference = [];
+            activityTimelineCollection.form_approval_field_reference = [];
+            
+            console.log("activityTimelineCollection : " , JSON.stringify(activityTimelineCollection));
+            
+            newRequest.activity_stream_type_id = 325;
+            newRequest.signedup_asset_id = request.signedup_asset_id;
+            newRequest.track_gps_datetime = util.getCurrentUTCTime();
+            newRequest.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
+            
+            var event = {
+                name: "addTimelineTransaction",
+                service: "activityTimelineService",
+                method: "addTimelineTransaction",
+                payload: newRequest
+            };
+
+            queueWrapper.raiseActivityEvent(event, newRequest.activity_id, (err, resp) => {
+                if (err) {
+                    console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
+                    //global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent", err, request);
+                    //res.send(responseWrapper.getResponse(false, {}, -5999,req.body));
+                    throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+               } else { }
+               
+               resolve();
+            });
+        });        
     };
     
     function updateProjectStatusCounts(request) {
