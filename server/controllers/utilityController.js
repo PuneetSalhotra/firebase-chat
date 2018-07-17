@@ -3,6 +3,7 @@
  * 
  */
 var AwsSss = require('../utils/s3Wrapper');
+var fs = require('fs');
 
 function UtilityController(objCollection) {
 
@@ -93,21 +94,11 @@ function UtilityController(objCollection) {
     //Send SMS Invite
     app.post('/' + global.config.version + '/invite/send/sms', function (req, res) {
         var request = req.body;
+        var domesticSmsMode = global.config.domestic_sms_mode;
+        var internationalSmsMode = global.config.international_sms_mode;
+        
         console.log('Request params : ', request);
-        /*var text = "Hey "+ request.receiver_name +" , "+request.sender_name+" has invited you to join the "+request.organization_name+" workforce as a coworker. ";
-            text += "Download the Desker App from the app store and use your mobile number to sign in into our new organisation.";*/
-        
-        /*var text = "Hey "+ request.receiver_name +" , "+ request.sender_name+" has requested your participation in "+request.task_title+" using the Desker App, ";
-            text += "it's due by " + request.due_date + ". Download the App from http://desker.co/download.";*/
         var text;
-        
-        /*if(!request.hasOwnProperty("task_title")) {
-            text = "Hi "+ request.receiver_name +" , "+ request.sender_name+" has requested your participation in a task, ";
-            text += "You can access this task by downloading your WorldDesk App from https://worlddesk.desker.co/";
-        } else{            
-            text = "Hi "+ request.receiver_name +" , "+ request.sender_name+" has requested your participation in "+request.task_title+" using the WorldDesk App, ";
-            text += "it's due by " + request.due_date + ". Download the app from https://worlddesk.desker.co/";
-        }*/
         
         if(!request.hasOwnProperty("task_title")) {
             text = "Hi "+ request.receiver_name +" , "+ request.sender_name+" has requested your participation in a task, ";
@@ -124,10 +115,52 @@ function UtilityController(objCollection) {
         
         console.log("sms Text : " + text);
         
-        util.sendSmsSinfini(text, request.country_code, request.phone_number, function(err,res){
-                console.log(err,'\n',res);                 
-            });
-            
+        if (request.country_code == 91) {
+            console.log('Sending Domestic SMS');
+            fs.readFile(`${__dirname}/../utils/domesticSmsMode.txt`, function(err, data){
+                (err)? console.log(err) : domesticSmsMode = Number(data.toString());
+                    switch (domesticSmsMode) {
+                                case 1: // mvaayoo                        
+                                    util.sendSmsMvaayoo(text, request.country_code, request.phone_number, function (error, data) {
+                                        if (error)
+                                            console.log(error);
+                                            console.log(data);
+                                            global.logger.write('trace', data, error, request)
+                                    });
+                                    break;                                
+                                case 3:// sinfini                                    
+                                    util.sendSmsSinfini(text, request.country_code, request.phone_number, function (error, data) {
+                                        if (error)
+                                            console.log(error);
+                                            console.log(data);
+                                            global.logger.write('trace', data, error, request)
+                                    });
+                                    break;
+                            }
+                    });
+                    
+        } else {
+            fs.readFile(`${__dirname}/../utils/internationalSmsMode.txt`, function(err, data){
+                (err)? console.log(err) : internationalSmsMode = Number(data.toString());
+                
+                // send international sms                    
+                //global.logger.write('came inside else case', request, 'device', 'trace');
+                console.log('Sending International SMS');
+                switch (internationalSmsMode) {
+                        case 1: util.sendInternationalTwilioSMS(text, request.country_code, request.phone_number, function (error, data) {
+                                    if (error)
+                                        global.logger.write('trace', data, error, request)
+                                    });
+                                    break;
+                        case 2: util.sendInternationalNexmoSMS(text, request.country_code, request.phone_number, function (error, data) {
+                                    if (error)
+                                        global.logger.write('trace', data, error, request)
+                                    });
+                                    break;
+                        }
+                });            
+        }       
+          
         res.send(responseWrapper.getResponse(false, {}, 200, req.body));
      });
     
