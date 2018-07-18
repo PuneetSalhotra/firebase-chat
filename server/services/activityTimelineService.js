@@ -345,6 +345,7 @@ function ActivityTimelineService(objectCollection) {
             pubnubMsg.activity_type_category_id = request.activity_type_category_id || 0;
             console.log('PubNub Message : ', pubnubMsg);
             pubnubWrapper.push(request.asset_id, pubnubMsg);
+            pubnubWrapper.push(request.organization_id, pubnubMsg);
         }
         /*if(Number(request.activity_type_category_id) !== 8) {
             activityCommonService.resetAssetUnreadCount(request, 0, function (err, data) {});
