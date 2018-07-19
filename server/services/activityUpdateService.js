@@ -1305,16 +1305,24 @@ function ActivityUpdateService(objectCollection) {
 
 
     this.resetUnreadUpdateCount = function (request, callback) {
-
+               
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
-        //var activityTypeCategoryId = Number(request.activity_type_category_id);
+        var activityTypeCategoryId = Number(request.activity_type_category_id);
+        
+        if (activityTypeCategoryId === 8 && Number(request.device_os_id) != 5) {
+            var pubnubMsg = {};
+            pubnubMsg.type = 'activity_unread';
+            pubnubMsg.organization_id = request.organization_id;
+            pubnubMsg.desk_asset_id = request.asset_id;
+            pubnubMsg.activity_type_category_id = request.activity_type_category_id || 0;
+            console.log('PubNub Message : ', pubnubMsg);            
+            activityPushService.pubNubPush(request, pubnubMsg, function(err, data){});            
+        }
 
         activityCommonService.resetAssetUnreadCount(request, request.activity_id, function (err, data) {});
-        
         activityCommonService.responseRateUnreadCount(request, request.activity_id, function (err, data) {});
-        
-        activityPushService.sendPush(request, objectCollection, 0, function () {});
+        activityPushService.sendPush(request, objectCollection, 0, function () {});             
         callback(false, true);
         /*var activityArray = JSON.parse(request.activity_id_array);
         forEachAsync(activityArray, function (next, activityId) {
