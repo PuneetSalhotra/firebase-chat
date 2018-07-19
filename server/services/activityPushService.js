@@ -293,6 +293,12 @@ function ActivityPushService(objectCollection) {
             objectCollection.sns.pamPublish(pushStringObj, 1, arn);
         });
     };
+    
+    this.pubNubPush = function(request, message, callback) {
+        pubnubWrapper.push(request.asset_id, message);
+        pubnubWrapper.push(request.organization_id, message);
+        callback(false, true);
+    };
 
     this.sendPush = function (request, objectCollection, pushAssetId, callback) {
         var proceedSendPush = function (pushReceivers, senderName) {
