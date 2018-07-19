@@ -141,6 +141,10 @@ function ActivityPushService(objectCollection) {
                             case '/' + global.config.version + '/activity/cover/alter':
                                 msg.activity_type_category_id = 10;
                                 msg.type = 'activity_duedate';
+                                
+                                if (Number(request.activity_sub_type_id) === 1) {
+                                    smsString = ' ' + senderName + ' has assigned a task named ' + activityTitle + ' to you. You can respond by logging into the WorldDesk app. Download Link: https://worlddesk.desker.co/';
+                                }
                                 break;
                             //////////////////////////
                                 
@@ -318,6 +322,7 @@ function ActivityPushService(objectCollection) {
                                                     pubnubMsg.desk_asset_id = rowData.assetId;
                                                     console.log('PubNub Message : ', pubnubMsg);
                                                     pubnubWrapper.push(rowData.organizationId, pubnubMsg);
+                                                    pubnubWrapper.push(rowData.assetId, pubnubMsg);
                                                 }
                                                 //break;
                                             case 'sns':
@@ -327,6 +332,7 @@ function ActivityPushService(objectCollection) {
                                                     pubnubMsg.desk_asset_id = rowData.assetId;
                                                     console.log('PubNub Message : ', pubnubMsg);
                                                     pubnubWrapper.push(rowData.organizationId, pubnubMsg);
+                                                    pubnubWrapper.push(rowData.assetId, pubnubMsg);
                                                 }
                                                 break;
                                         }
@@ -337,6 +343,7 @@ function ActivityPushService(objectCollection) {
                                         pubnubMsg.desk_asset_id = rowData.assetId
                                         console.log('PubNub Message : ', pubnubMsg);
                                         pubnubWrapper.push(rowData.organizationId, pubnubMsg);
+                                        pubnubWrapper.push(rowData.assetId, pubnubMsg);
                                     }
                                 }
                             });
@@ -351,15 +358,17 @@ function ActivityPushService(objectCollection) {
                                 console.log(rowData.assetId, ' is asset for which we are about to send push');
                                 console.log('Asset Map : ', assetMap);
                                 global.logger.write('debug', rowData.assetId + ' is asset for which we are about to send push', {}, request);
-                                if (Object.keys(assetMap).length > 0) {                                    
+                                if (Object.keys(assetMap).length > 0) {
+                                        console.log('rowData : ', rowData);
                                         switch (rowData.pushType) {
                                             case 'pub':
-                                                console.log('pubnubMsg :', pubnubMsg);
+                                                console.log('pubnubMsg :', pubnubMsg);                                                
                                                 if (pubnubMsg.activity_type_category_id != 0) {
                                                     pubnubMsg.organization_id = rowData.organizationId;
                                                     pubnubMsg.desk_asset_id = rowData.assetId;
                                                     console.log('PubNub Message : ', pubnubMsg);
                                                     pubnubWrapper.push(rowData.organizationId, pubnubMsg);
+                                                    pubnubWrapper.push(rowData.assetId, pubnubMsg);
                                                 }
                                                 break;
                                         }
@@ -405,7 +414,7 @@ function ActivityPushService(objectCollection) {
                                                         pushReceivers.push({assetId: rowData['asset_id'], organizationId: rowData['organization_id'], pushType: 'pub'});
                                                         break;
                                                     default:
-                                                        pushReceivers.push({assetId: rowData['asset_id'], organizationId: rowData['organization_id'], pushType: 'sns'});
+                                                        pushReceivers.push({assetId: rowData['asset_id'], organizationId: rowData['organization_id'], pushType: 'sns'});                                                        
                                                         break;
                                                 }
                                             }
@@ -432,7 +441,7 @@ function ActivityPushService(objectCollection) {
                                                         pushReceivers.push({assetId: rowData['asset_id'], organizationId: rowData['organization_id'], pushType: 'pub'});
                                                         break;
                                                     default:
-                                                        pushReceivers.push({assetId: rowData['asset_id'], organizationId: rowData['organization_id'], pushType: 'sns'});
+                                                        pushReceivers.push({assetId: rowData['asset_id'], organizationId: rowData['organization_id'], pushType: 'sns'});                                                        
                                                         break;
                                                 }
                                             }
@@ -468,6 +477,9 @@ function ActivityPushService(objectCollection) {
                     if(senderData.asset_count_signup > 0) {
                         var senderName = senderData['operating_asset_first_name'] + ' ' + senderData['operating_asset_last_name'];
                         getPushString(request, objectCollection, senderName, function (err, pushStringObj, pubnubMsg, smsString) {
+                            
+                            console.log('SMS String : ' , smsString);
+                            
                             objectCollection.util.sendSmsSinfini(smsString, RecieverData.operating_asset_phone_country_code, RecieverData.operating_asset_phone_number, function () {
 
                             });
