@@ -821,8 +821,10 @@ function AssetService(objectCollection) {
                     request.asset_push_arn = endPointArn;
                     proceedLinking(function (err, response, status) {
                         if(status == 200) {
-                            updateSignUpCnt(request, request.asset_id, 1).then(()=>{});
-                            updateSignUpCnt(request, request.operating_asset_id, 2).then(()=>{});
+                            if(request.flag_is_linkup == 1) {
+                                updateSignUpCnt(request, request.asset_id, 1).then(()=>{});
+                                updateSignUpCnt(request, request.operating_asset_id, 2).then(()=>{});
+                            }                      
                         }
                         
                         callback(err, response, status);
@@ -837,8 +839,10 @@ function AssetService(objectCollection) {
             request.asset_push_arn = '';
             proceedLinking(function (err, response, status) {
                 if(status == 200) {
-                      updateSignUpCnt(request, request.asset_id, 1).then(()=>{});
-                      updateSignUpCnt(request, request.operating_asset_id, 2).then(()=>{});
+                    if(request.flag_is_linkup == 1) {
+                        updateSignUpCnt(request, request.asset_id, 1).then(()=>{});
+                        updateSignUpCnt(request, request.operating_asset_id, 2).then(()=>{});
+                    }                      
                 }
                 
                 callback(err, response, status);
@@ -941,7 +945,9 @@ function AssetService(objectCollection) {
                 activityCommonService.getAssetDetails(request, (err, data, statuscode) => {
                     if(err === false) {
                         console.log('Asset Signup count : ' , data.asset_count_signup);
-                        if(!data.asset_count_signup > 0) {
+                        assetListUpdateSignupCnt(request, assetId).then(()=>{});
+                        
+                        /*if(data.asset_count_signup > 0) {
                             assetListUpdateSignupCnt(request, assetId).then(()=>{});
                         } else {
                             //Create a Task in a given Project and add an update
@@ -1000,7 +1006,7 @@ function AssetService(objectCollection) {
                                        });                                    
                                     }
                             });
-                        }                        
+                        }*/
                     }
                 });
             } else {
@@ -2203,10 +2209,10 @@ function AssetService(objectCollection) {
             });
         });
     };
+    
     this.updateAssetPushToken = function (request, callback) {
         var dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
-
 
         var proceed = function (callback) {
             var authTokenCollection = {
@@ -2220,7 +2226,6 @@ function AssetService(objectCollection) {
             };
 
             assetListHistoryInsert(request, request.operating_asset_id, request.organization_id, 201, dateTimeLog, function (err, data) {
-
                 authTokenCollection.asset_id = request.operating_asset_id;
                 // setting auth token for operating asset id
                 cacheWrapper.setTokenAuth(request.operating_asset_id, JSON.stringify(authTokenCollection), function (err, reply) {
@@ -2228,11 +2233,9 @@ function AssetService(objectCollection) {
                         //global.logger.write("auth token is set in redis for operating asset id", request, 'asset', 'trace');
                         callingNextFunction();
                     } else {
-                        callback(false, responseArr, -7998);
+                        callback(false, {}, -7998);
                     }
                 });
-
-
             });
 
             function callingNextFunction() {
@@ -2240,11 +2243,7 @@ function AssetService(objectCollection) {
                     if (err === false) {
                         authTokenCollection.asset_id = request.asset_id;
                         cacheWrapper.setTokenAuth(request.asset_id, JSON.stringify(authTokenCollection), function (err, reply) {
-                            if (!err) {
-                                callback(false, responseArr, 200);
-                            } else {
-                                callback(false, responseArr, -7998);
-                            }
+                            (!err) ? callback(false, {}, 200) : callback(false, {}, -7998);
                         });
                         return;
                     } else {
@@ -2256,7 +2255,7 @@ function AssetService(objectCollection) {
         }
 
         if (request.hasOwnProperty('asset_token_push') && request.asset_token_push !== '' && request.asset_token_push !== null) {
-            sns.createPlatformEndPoint(Number(request.device_os_id), request.asset_token_push, 1, function (err, endPointArn) { //flag 1 is prod and 0 is dev
+            sns.createPlatformEndPoint(Number(request.device_os_id), request.asset_token_push, 1, 0, function (err, endPointArn) { //flag 1 is prod and 0 is dev
                 if (!err) {
                     //console.log('success in creating platform end point');
                     global.logger.write('debug', 'success in creating platform end point', {}, request)
@@ -2265,13 +2264,13 @@ function AssetService(objectCollection) {
                         callback(err, response, status);
                     });
                 } else {
-                    //console.log('problem in creating platform end point');
+                    //console.log('problem in creating platform end point : ' , err);
                     global.logger.write('serverError', 'problem in creating platform end point', err, request)
-                    callback(err, {}, -3108);
+                    callback(true, err, -3108);
                 }
             });
         } else {
-            callback(err, false, -9998);
+            callback(true, false, -9998);
         }
     };
     
