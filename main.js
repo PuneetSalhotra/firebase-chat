@@ -88,7 +88,7 @@ function connectToKafkaBroker(cnt){
     });
     
     kafkaProducer.on('brokersChanged', function (error) {
-        console.log('brokersChanged : ', error);
+        console.log('brokersChanged: ', error);
     });
     
     
