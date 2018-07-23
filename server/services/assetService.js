@@ -2224,33 +2224,41 @@ function AssetService(objectCollection) {
                 "asset_push_arn": request.asset_push_arn,
                 "asset_auth_token": request.asset_token_auth
             };
-
-            assetListHistoryInsert(request, request.operating_asset_id, request.organization_id, 201, dateTimeLog, function (err, data) {
-                authTokenCollection.asset_id = request.operating_asset_id;
-                // setting auth token for operating asset id
-                cacheWrapper.setTokenAuth(request.operating_asset_id, JSON.stringify(authTokenCollection), function (err, reply) {
+            
+            updatePushToken(request, request.operating_asset_id).then(()=>{
+               assetListHistoryInsert(request, request.operating_asset_id, request.organization_id, 201, dateTimeLog, function (err, data) {
+               authTokenCollection.asset_id = request.operating_asset_id;
+               // setting auth token for operating asset id
+               cacheWrapper.setTokenAuth(request.operating_asset_id, JSON.stringify(authTokenCollection), function (err, reply) {
                     if (!err) {
                         //global.logger.write("auth token is set in redis for operating asset id", request, 'asset', 'trace');
                         callingNextFunction();
                     } else {
                         callback(false, {}, -7998);
-                    }
+                        }
+                    });
                 });
+            }).catch(()=>{
+                callback(true, {}, -9998);
             });
 
-            function callingNextFunction() {
-                assetListHistoryInsert(request, request.asset_id, request.organization_id, 201, dateTimeLog, function (err, data) {
-                    if (err === false) {
-                        authTokenCollection.asset_id = request.asset_id;
-                        cacheWrapper.setTokenAuth(request.asset_id, JSON.stringify(authTokenCollection), function (err, reply) {
-                            (!err) ? callback(false, {}, 200) : callback(false, {}, -7998);
-                        });
-                        return;
-                    } else {
-                        //callback(err, false, -9998);
-                        callback(err, false, -3201);
-                    }
-                });
+            function callingNextFunction() {                
+                updatePushToken(request, request.asset_id).then(()=>{
+                    assetListHistoryInsert(request, request.asset_id, request.organization_id, 201, dateTimeLog, function (err, data) {
+                        if (err === false) {
+                            authTokenCollection.asset_id = request.asset_id;
+                            cacheWrapper.setTokenAuth(request.asset_id, JSON.stringify(authTokenCollection), function (err, reply) {
+                                (!err) ? callback(false, {}, 200) : callback(false, {}, -7998);
+                            });
+                            return;
+                        } else {
+                            //callback(err, false, -9998);
+                            callback(err, false, -3201);
+                        }
+                    });
+                }).catch(()=>{
+                    callback(true, {}, -9998);
+                });                
             }
         }
 
@@ -2333,6 +2341,26 @@ function AssetService(objectCollection) {
                     (err === false) ? callback(false, data, 200) : callback(true, err, -9999); 
                 });
             }
+    };
+    
+    function updatePushToken(request, assetId) {
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                assetId,
+                request.organization_id,
+                request.asset_token_push,
+                request.asset_push_arn,
+                request.asset_id,
+                request.datetime_log
+                );
+            var queryString = util.getQueryString('ds_v1_asset_list_update_push_token', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err === false) ? resolve(false, data) : reject(true, err);
+                });
+            }
+        });
+        
     };
 
 }
