@@ -11,6 +11,7 @@ function statsController(objCollection) {
             if (!err) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
+                console.log("err: ", err);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
