@@ -73,6 +73,7 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                         // Stats cases
                         case '/' + global.config.version + '/stats/count/signup':
                         case '/' + global.config.version + '/stats/list/signup':
+                        case '/' + global.config.version + '/stats/timeline/list':
                             next();
                             break;
                         
