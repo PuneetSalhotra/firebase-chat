@@ -24,8 +24,10 @@ var PamUpdateController = require('../controllers/pamUpdateController');
 //var FormDataController = require('../controllers/formDataController');
 //var LinkController = require('../controllers/linkController');
 //var GroupController = require('../controllers/groupController');
-
 //var FormExceptionController = require('../controllers/formExceptionController');
+
+// Stats
+var StatsController = require('../controllers/statsController');
 
 function ControlInterceptor(objCollection) {
     
@@ -51,8 +53,10 @@ function ControlInterceptor(objCollection) {
     //new FormDataController(app, log, cacheWrapper, queueWrapper);
     //new LinkController(app, log, cacheWrapper, queueWrapper);
     //new GroupController(app, log, cacheWrapper, queueWrapper);
-    
     //new FormExceptionController(app, log, cacheWrapper, queueWrapper);
+
+    // Stats
+    new StatsController(objCollection);
 
 }
 ;

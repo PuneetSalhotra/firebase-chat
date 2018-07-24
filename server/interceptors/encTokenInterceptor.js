@@ -69,6 +69,12 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                             //global.logger.write('request', '', req.body, req.body);
                             next();
                             break;
+                        
+                        // Stats cases
+                        case '/' + global.config.version + '/stats/count/signup':
+                            next();
+                            break;
+                        
                         default:
                             if (req.body.hasOwnProperty("activity_id")) {
                                 req.body['module'] = 'activity';
