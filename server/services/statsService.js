@@ -100,7 +100,47 @@ function StatsService(objCollection) {
         request.hasOwnProperty('date_end') ?
             request.date_end = util.getFormatedLogDatetime(request.date_end) : request.date_end = util.getCurrentUTCTime();
 
+        // Set flag to list timeline txn data in 
+        // 0 => [A]scending order based on the field set in sort_flag
+        // 1 => [D]escending order based on the field set in sort_flag
+        let flag = 0 // Default
 
+        // Set sort flag
+        // 0 => timeline_transaction_id
+        let sort_flag = 0
+
+        // Ensure that only one of flag_timeline_activity and flag_timeline_asset is set
+        request.flag_timeline_activity = Number(request.flag_timeline_activity) || 0;
+        request.flag_timeline_asset = Number(request.flag_timeline_asset) || 0;
+
+        // Do not allow the client to set multiple errors
+        if (request.flag_timeline_activity + request.flag_timeline_asset > 1) {
+            let errorMessage = "You can only set one flag_timeline_* at a time."
+            return callback(new Error("Client attempting to set multiple 'flag_timeline_*' flags"), {
+                errorMessage
+            }, -3601);
+        }
+        // If none of flag_timeline_*'s set, set `asset_timeline_transaction` as the default
+        if (!(request.flag_timeline_activity && request.flag_timeline_asset)) {
+            request.flag_timeline_asset = 1;
+        }
+
+        // Fetch data
+        if (request.flag_timeline_asset === 1) {
+            assetTimelineTransactionSelectAssetDates(request, flag, sort_flag)
+                .then(function (data) {
+                    callback(false, data, 200);
+
+                }, function (err) {
+                    callback(err, false, -9998);
+
+                });
+
+        } else if (request.flag_timeline_activity === 1) {
+            
+        } else {
+
+        }
 
     }
 
@@ -129,7 +169,7 @@ function StatsService(objCollection) {
     }
 
     // Retrieving an asset's timeline_transaction data for a given date range
-    function assetTimelineTransactionSelectAssetDates (request, flag, sort_flag) {
+    function assetTimelineTransactionSelectAssetDates(request, flag, sort_flag) {
         return new Promise((resolve, reject) => {
 
             // IN p_asset_id bigint(20), IN p_datetime_start DATETIME, IN p_datetime_end DATETIME, 
@@ -137,8 +177,8 @@ function StatsService(objCollection) {
             // IN p_limit_value TINYINT(4)
             var paramsArr = new Array(
                 request.asset_id,
-                request.datetime_start,
-                request.datetime_end,
+                request.date_start,
+                request.date_end,
                 flag,
                 sort_flag,
                 request.page_start || 0, // p_start_from
