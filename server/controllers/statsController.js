@@ -12,6 +12,17 @@ function statsController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 console.log("err: ", err);
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        })
+    });
+
+    app.post('/' + global.config.version + '/stats/list/signup', function statsSignUpCountReqHandler(req, res) {
+        statsService.getListOfSignUps(req.body, function statsListOfSignUpsCallback(err, data, statusCode) {
+            if (!err) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                console.log("err: ", err);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
