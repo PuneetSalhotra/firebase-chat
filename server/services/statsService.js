@@ -27,8 +27,11 @@ function StatsService(objCollection) {
 
         // Do not allow the client to set multiple errors
         if (request.flag_breakup_country + request.flag_breakup_os + request.flag_breakup_date > 1) {
-            console.log("Sum: ", request.flag_breakup_country + request.flag_breakup_os + request.flag_breakup_date);
-            return callback(new Error("Client attempting to set multiple flags"), false, -3601);
+            // console.log("Sum: ", request.flag_breakup_country + request.flag_breakup_os + request.flag_breakup_date);
+            let errorMessage = "You can only set one flag_breakup_* at a time."
+            return callback(new Error("Client attempting to set multiple 'flag_breakup_*' flags"), {
+                errorMessage
+            }, -3601);
         }
 
         // Set flag
@@ -41,7 +44,7 @@ function StatsService(objCollection) {
         else if (request.flag_breakup_date === 1) flag = 13;
 
 
-        // Sort flag
+        // Set sort flag
         // 0 => asset_id
         // 1 => asset_first_name | Default
         // 2 => operating_asset_first_name
@@ -55,9 +58,40 @@ function StatsService(objCollection) {
 
             }, function (err) {
                 callback(err, false, -9998);
-                
+
             });
     };
+
+    this.getListOfSignUps = function (request, callback) {
+        // Start date
+        request.date_start = util.replaceDefaultDatetime(request.date_start);
+        // End date
+        request.hasOwnProperty('date_end') ?
+            request.date_end = util.getFormatedLogDatetime(request.date_end) : request.date_end = util.getCurrentUTCTime();
+
+        // Set flag
+        // 101 => asset list in [A]scending order based on  p_sort_flag
+        // 102 => asset list in [D]escending order based on p_sort_flag
+        let flag = 101 // Default
+
+        // Set sort flag
+        // 0 => asset_id
+        // 1 => asset_first_name | Default
+        // 2 => operating_asset_first_name
+        // 3 => operating_asset_phone_country_code
+        let sort_flag = 1
+
+        // 
+        assetListSelectWorldDeskStats(request, flag, sort_flag)
+            .then(function (data) {
+                callback(false, data, 200);
+
+            }, function (err) {
+                callback(err, false, -9998);
+
+            });
+
+    }
 
     // Utility functions | DB queries
     // 
@@ -71,8 +105,8 @@ function StatsService(objCollection) {
                 sort_flag,
                 request.date_start,
                 request.date_end,
-                0, // p_start_from
-                50 // p_limit_value
+                request.page_start || 0, // p_start_from
+                request.page_limit || 50 // p_limit_value
             );
             var queryString = util.getQueryString('ds_p1_asset_list_select_worlddesk_stats', paramsArr);
             if (queryString != '') {
