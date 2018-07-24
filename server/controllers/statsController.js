@@ -7,7 +7,14 @@ function statsController(objCollection) {
     var statsService = new StatsService(objCollection);
 
     app.post('/' + global.config.version + '/stats/count/signup', function statsSignUpCountReqHandler(req, res) {
-        res.send('test');
+        statsService.getSignUpCountStats(req.body, function statsSignUpCountCallback(err, data, statusCode) {
+            if (!err) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        })
     });
 }
 
