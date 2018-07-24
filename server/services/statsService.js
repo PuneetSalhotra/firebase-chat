@@ -93,6 +93,17 @@ function StatsService(objCollection) {
 
     }
 
+    // Route: /stats/timeline/list
+    this.getTimelineList = function (request, callback) {
+        request.date_start = util.replaceDefaultDatetime(request.date_start);
+
+        request.hasOwnProperty('date_end') ?
+            request.date_end = util.getFormatedLogDatetime(request.date_end) : request.date_end = util.getCurrentUTCTime();
+
+
+
+    }
+
     // Utility functions | DB queries
     // 
     function assetListSelectWorldDeskStats(request, flag, sort_flag) {
@@ -116,6 +127,31 @@ function StatsService(objCollection) {
             }
         });
     }
+
+    // Retrieving an asset's timeline_transaction data for a given date range
+    function assetTimelineTransactionSelectAssetDates (request, flag, sort_flag) {
+        return new Promise((resolve, reject) => {
+
+            // IN p_asset_id bigint(20), IN p_datetime_start DATETIME, IN p_datetime_end DATETIME, 
+            // IN p_flag TINYINT(4), IN p_sort_flag TINYINT(4), IN p_start_from SMALLINT(6), 
+            // IN p_limit_value TINYINT(4)
+            var paramsArr = new Array(
+                request.asset_id,
+                request.datetime_start,
+                request.datetime_end,
+                flag,
+                sort_flag,
+                request.page_start || 0, // p_start_from
+                request.page_limit || 50 // p_limit_value
+            );
+            var queryString = util.getQueryString('ds_p1_asset_timeline_transaction_select_asset_dates', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (!err) ? resolve(data): reject(err);
+                });
+            }
+        });
+    };
 }
 
 module.exports = StatsService;
