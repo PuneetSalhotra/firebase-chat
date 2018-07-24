@@ -6,7 +6,7 @@ function statsController(objCollection) {
     var app = objCollection.app;
     var statsService = new StatsService(objCollection);
 
-    app.post('/' + global.config.version + '/stats/count/signup', function statsSignUpCountReqHandler(req, res) {
+    app.post('/' + global.config.version + '/stats/signup/count', function statsSignUpCountReqHandler(req, res) {
         statsService.getSignUpCountStats(req.body, function statsSignUpCountCallback(err, data, statusCode) {
             if (!err) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
@@ -17,7 +17,7 @@ function statsController(objCollection) {
         })
     });
 
-    app.post('/' + global.config.version + '/stats/list/signup', function statsSignUpCountReqHandler(req, res) {
+    app.post('/' + global.config.version + '/stats/signup/list', function statsSignUpCountReqHandler(req, res) {
         statsService.getListOfSignUps(req.body, function statsListOfSignUpsCallback(err, data, statusCode) {
             if (!err) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
