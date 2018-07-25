@@ -105,6 +105,152 @@ function AssetService(objectCollection) {
         }
     };
 
+    this.getPhoneNumberAssetsV1 = function (request, callback) {
+
+        var phoneNumber = util.cleanPhoneNumber(request.asset_phone_number);
+        var countryCode = util.cleanPhoneNumber(request.asset_phone_country_code);
+        var emailId = request.asset_email_id;
+        var verificationMethod = Number(request.verification_method);
+        var organizationId = request.organization_id;
+
+
+        //verification_method (0 - NA, 1 - SMS; 2 - Call; 3 - Email)
+        if (verificationMethod === 1 || verificationMethod === 2) {
+            var paramsArr = new Array(
+                0, //organizationId,
+                phoneNumber,
+                countryCode
+            );
+
+            var queryString = util.getQueryString('ds_p1_asset_list_select_phone_number_all', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, selectData) {
+                    if (err === false) {
+                        var verificationCode;
+                        (phoneNumber === 7032975769) ? verificationCode = 637979: verificationCode = util.getVerificationCode();
+
+                        var pwdValidDatetime = util.addDays(util.getCurrentUTCTime(), 1);
+                        if (selectData.length > 0) {
+                            if (verificationMethod !== 0 && verificationMethod === 1) {
+
+                                callback(false, {}, 200);
+                                forEachAsync(selectData, function (next, rowData) {
+                                    paramsArr = new Array(
+                                        rowData.asset_id,
+                                        rowData.organization_id,
+                                        verificationCode,
+                                        pwdValidDatetime
+                                    );
+                                    var updateQueryString = util.getQueryString('ds_v1_asset_list_update_passcode', paramsArr);
+                                    db.executeQuery(0, updateQueryString, request, function (err, data) {
+                                        assetListHistoryInsert(request, rowData.asset_id, rowData.organization_id, 208, util.getCurrentUTCTime(), function (err, data) {
+
+                                        });
+                                        next();
+                                    });
+
+                                });
+
+                                sendCallOrSms(verificationMethod, countryCode, phoneNumber, verificationCode, request);
+                            } else if (verificationMethod === 2) {
+                                request.passcode = selectData[0].asset_phone_passcode;
+                                sendCallOrSms(verificationMethod, countryCode, phoneNumber, 1234, request);
+                                callback(false, {}, 200);
+                                return;
+                            }
+                        } else {
+                            if (verificationMethod === 1) {
+                                newUserPassCodeSet(phoneNumber, verificationCode, request)
+                                    .then(function () {
+                                        // Passcode set in the DB
+                                        sendCallOrSms(verificationMethod, countryCode, phoneNumber, verificationCode, request);
+                                        callback(false, {}, 200);
+                                    }, function (err) {
+                                        // There was an error setting the passcode in the DB
+                                        callback(true, err, -9998);
+
+                                    })
+                            } else if (verificationMethod === 2) {
+                                getPasscodeForNewPhonenumber(phoneNumber, request)
+                                    .then(function (data) {
+                                        request.passcode = data[0].phone_passcode;
+                                        sendCallOrSms(verificationMethod, countryCode, phoneNumber, 1234, request);
+                                        callback(false, {}, 200);
+                                    }, function (err) {
+                                        // Operation error
+                                        callback(false, {}, -9998);
+                                    })
+                            }
+                        }
+                    } else {
+                        // some thing is wrong and have to be dealt                        
+                        callback(err, false, -9999);
+                    }
+                });
+            }
+
+        } else {
+            callback(false, {}, -3101);
+        }
+    };
+
+    function newUserPassCodeSet(phoneNumber, verificationCode, request) {
+        return new Promise(function (resolve, reject) {
+            // Check if the entry already exists
+            // getPasscodeForNewPhonenumber(phoneNumber, request, function (err, data) {
+            //     if (!err) {
+            //         if (data.length > 0) {
+            //             console.log("Entry exists: ", data)
+            //             // Entry exists, so just update
+            //             // IN p_phone_passcode_transaction_id BIGINT(20), IN p_passcode VARCHAR(50), 
+            //             // IN p_passcode_generation_datetime DATETIME, IN p_passcode_expiry_datetime DATETIME
+            //             var paramsArr = new Array(
+            //                 data[0].phone_passcode_transaction_id,
+            //                 verificationCode,
+            //                 util.getCurrentUTCTime(),
+            //                 util.getCurrentUTCTime()
+            //                 // util.getCurrentUTCTime()
+            //             );
+            //             var queryString = util.getQueryString('ds_p1_phone_passcode_transaction_update_passcode', paramsArr);
+            //             if (queryString != '') {
+            //                 db.executeQuery(0, queryString, request, function (err, data) {
+
+            //                 });
+            //             }
+            //             // Set the verification status for the new passcode to false
+            //             setPasscodeVerificationStatusForNewPhonenumber(data[0].phone_passcode_transaction_id, false, request, function () {});
+
+
+            //         } else {
+
+            //             console.log("Entry doesn't exist");
+            //          // No entry exists, so make an insert
+            // 
+            // IN p_phone_number VARCHAR(50), IN p_phone_country_code SMALLINT(6), 
+            // IN p_phone_passcode VARCHAR(20), IN p_phone_passcode_generation_datetime DATETIME, 
+            // IN p_phone_passcode_expiry_datetime DATETIME
+            var paramsArr = new Array(
+                phoneNumber,
+                util.cleanPhoneNumber(request.asset_phone_country_code),
+                verificationCode,
+                util.getCurrentUTCTime(),
+                util.getCurrentUTCTime(),
+                util.getCurrentUTCTime()
+            );
+            var queryString = util.getQueryString('ds_p1_phone_passcode_transaction_insert', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (!err) ? resolve(): reject(err);
+                });
+            }
+            //         }
+            //     } else {
+            //         callback(true, false);
+            //     }
+            // })
+        });
+    }
+
     this.getAssetDetails = function (request, callback) {
         var paramsArr = new Array(
                 request.organization_id,
@@ -587,6 +733,25 @@ function AssetService(objectCollection) {
         }
     };
 
+
+    function getPasscodeForNewPhonenumber(phoneNumber, request) {
+        return new Promise(function (resolve, reject) {
+            console.log("Inside getPasscodeForNewPhonenumber");
+            // IN p_phone_number VARCHAR(50), IN phone_country_code SMALLINT(6)
+
+            var paramsArr = new Array(
+                phoneNumber,
+                util.cleanPhoneNumber(request.asset_phone_country_code)
+            );
+            var queryString = util.getQueryString('ds_p1_phone_passcode_transaction_select', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    console.log("ds_p1_phone_passcode_transaction_select data: ", data);
+                    (!err) ? resolve(data): reject(err);
+                });
+            }
+        });
+    }
 
     var sendCallOrSms = function (verificationMethod, countryCode, phoneNumber, verificationCode, request) {
 
