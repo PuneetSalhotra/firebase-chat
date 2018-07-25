@@ -35,6 +35,7 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                          break;
                          */
                         case '/' + global.config.version + '/asset/passcode/alter':
+                        case '/' + global.config.version + '/asset/passcode/alter/v1':
                             req.body['module'] = 'device';
                             global.logger.write('request', '', req.body, req.body);
                             next();
