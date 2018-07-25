@@ -753,6 +753,28 @@ function AssetService(objectCollection) {
         });
     }
 
+    function setPasscodeVerificationStatusForNewPhonenumber(phonePasscodeTransactionID, isPasscodeVerified, request) {
+        return new Promise(function (resolve, reject) {
+            console.log("Inside setPasscodeVerificationStatusForNewPhonenumber");
+            // IN p_phone_passcode_transaction_id BIGINT(20), IN p_phone_passcode_is_verified TINYINT(4), 
+            // IN p_phone_passcode_verification_datetime DATETIME
+
+            var paramsArr = new Array(
+                phonePasscodeTransactionID,
+                isPasscodeVerified,
+                util.getCurrentUTCTime()
+            );
+
+            var queryString = util.getQueryString('ds_p1_phone_passcode_transaction_update_verified', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    console.log("ds_p1_phone_passcode_transaction_update_verified data: ", data);
+                    (!err) ? resolve(data): reject(err);
+                });
+            }
+        });
+    }
+
     var sendCallOrSms = function (verificationMethod, countryCode, phoneNumber, verificationCode, request) {
 
         var smsString = util.getSMSString(verificationCode);
