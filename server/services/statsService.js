@@ -80,7 +80,8 @@ function StatsService(objCollection) {
         // 2 => operating_asset_first_name
         // 3 => operating_asset_phone_country_code
         // 4 => asset_linked_status_datetime
-        let sort_flag = 4
+        // 5 => asset_created_datetime
+        let sort_flag = 5
 
         // 
         assetListSelectWorldDeskStats(request, flag, sort_flag)
