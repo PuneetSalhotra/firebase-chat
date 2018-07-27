@@ -72,14 +72,16 @@ function StatsService(objCollection) {
         // Set flag
         // 101 => asset list in [A]scending order based on  p_sort_flag
         // 102 => asset list in [D]escending order based on p_sort_flag
-        let flag = 101 // Default
+        let flag = 102 // Default
 
         // Set sort flag
         // 0 => asset_id
         // 1 => asset_first_name | Default
         // 2 => operating_asset_first_name
         // 3 => operating_asset_phone_country_code
-        let sort_flag = 1
+        // 4 => asset_linked_status_datetime
+        // 5 => asset_created_datetime
+        let sort_flag = 5
 
         // 
         assetListSelectWorldDeskStats(request, flag, sort_flag)
@@ -103,7 +105,7 @@ function StatsService(objCollection) {
         // Set flag to list timeline txn data in 
         // 0 => [A]scending order based on the field set in sort_flag
         // 1 => [D]escending order based on the field set in sort_flag
-        let flag = 0 // Default
+        let flag = 1 // Default
 
         // Set sort flag
         // 0 => timeline_transaction_id
