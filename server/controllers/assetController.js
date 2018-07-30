@@ -24,6 +24,21 @@ function AssetController(objCollection) {
             }
         });
     });
+
+    app.put('/' + global.config.version + '/asset/passcode/alter/v1', function (req, res) {
+
+        assetService.getPhoneNumberAssetsV1(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // Positive response
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                // Error
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+
     app.post('/' + global.config.version + '/asset/passcode/check', function (req, res) {
 
         assetService.checkAssetPasscode(req.body, function (err, data, statusCode) {

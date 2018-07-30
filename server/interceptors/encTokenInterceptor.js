@@ -35,6 +35,7 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                          break;
                          */
                         case '/' + global.config.version + '/asset/passcode/alter':
+                        case '/' + global.config.version + '/asset/passcode/alter/v1':
                             req.body['module'] = 'device';
                             global.logger.write('request', '', req.body, req.body);
                             next();
@@ -69,6 +70,14 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                             //global.logger.write('request', '', req.body, req.body);
                             next();
                             break;
+                        
+                        // Stats cases
+                        case '/' + global.config.version + '/stats/signup/count':
+                        case '/' + global.config.version + '/stats/signup/list':
+                        case '/' + global.config.version + '/stats/timeline/list':
+                            next();
+                            break;
+                        
                         default:
                             if (req.body.hasOwnProperty("activity_id")) {
                                 req.body['module'] = 'activity';
