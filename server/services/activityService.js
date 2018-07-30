@@ -2018,7 +2018,7 @@ function ActivityService(objectCollection) {
         });
     };
     
-    function updateTaskCreatedCntFn(request, assetId) {
+    function updateTaskCreatedCntFn(request,   assetId) {
         return new Promise((resolve, reject)=>{
                 var paramsArr = new Array(
                     request.organization_id,
