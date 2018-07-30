@@ -10,6 +10,8 @@ function ActivityUpdateService(objectCollection) {
     var util = objectCollection.util;
     var activityPushService = objectCollection.activityPushService;
     var queueWrapper = objectCollection.queueWrapper;
+    
+    var makeRequest = require('request');
 
     var activityListUpdateInline = function (request, callback) {
 
@@ -654,6 +656,7 @@ function ActivityUpdateService(objectCollection) {
                         switch (activityTypeCategoryId) {
                             case 4: //Id Card
                                 activityStreamTypeId = 102;
+                                // Call the edit name portal service
                                 break;
                             case 5: //Co-worker Contact Card
                                 activityStreamTypeId = 210; //Beta
@@ -687,23 +690,63 @@ function ActivityUpdateService(objectCollection) {
                         activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) { });
                         activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) { });
 
-                        callback(false, {}, 200);
+                        //callback(false, {}, 200);
+                        //callback(false, true);
 
                     } else {
-                        callback(false, {}, -9999);
+                        //callback(false, {}, -9999);
+                        //callback(false, true);
                     }
                 });
                 activityCommonService.activityListHistoryInsert(request, 404, function (err, result) { });
                 activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) { });
                 activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) { });
-
+                
                 if (Number(request.activity_type_category_id) === 4) {    // id card inline update
                     assetListUpdate(request, function (err, data) {});   //opearating asset id
-
+                    
                     var empIdJson = JSON.parse(request.activity_inline_data);
-                    var newRequest = Object.assign({}, request);
-
-                    getCoWorkerActivityId(request, function (err, coworkerData) {
+                    
+                    var newRequest = {};
+                    newRequest.asset_id = empIdJson.employee_asset_id;
+                    newRequest.organization_id =  request.organization_id;
+                    newRequest.workforce_id =  request.workforce_id;
+                    newRequest.account_id= request.account_id;
+                    newRequest.asset_first_name=  empIdJson.employee_first_name;
+                    newRequest.asset_last_name = empIdJson.employee_last_name; 
+                    newRequest.description = empIdJson.employee_designation;
+                    newRequest.old_phone_number = empIdJson.employee_phone_number;
+                    newRequest.old_country_code = empIdJson.employee_phone_country_code;
+                    newRequest.phone_number = empIdJson.employee_phone_number;
+                    newRequest.country_code = empIdJson.employee_phone_country_code;
+                    newRequest.location_latitude = request.track_latitude;
+                    newRequest.location_longitude = request.track_longitude;
+                    newRequest.location_address = request.track_gps_datetime;
+                    newRequest.activity_id = request.activity_id;
+                    newRequest.activity_inline_data = request.activity_inline_data;
+                    newRequest.message_unique_id = request.message_unique_id; 
+                    
+                    console.log('newRequest: ', newRequest);
+                    
+                    var options = {
+                        form : newRequest
+                      }
+                                  
+                    makeRequest.post('https://portal.desker.cloud/r1/asset/update/details', options, function (error, response, body) {
+                          console.log('body:', body);
+                          body = JSON.parse(body);
+                          console.log('error : ', error);
+                          var resp = {
+                              status: body.status,
+                              service_id: body.service_id || 0,
+                              gmt_time: body.gmt_time,
+                              response: body.response
+                          };
+                          //res.send(resp);
+                          console.log(resp);
+                        });
+                    
+                    /*getCoWorkerActivityId(request, function (err, coworkerData) {
                         if (!err) {
                             try {
                                 var inlineJson = JSON.parse(coworkerData[0].activity_inline_data);
@@ -742,11 +785,12 @@ function ActivityUpdateService(objectCollection) {
                         } else {
                             console.log(err)
                         }
-                    })
+                    }) */
                 } //if category_id==4
 
             } else {
-                callback(err, {}, -9999);
+                //callback(err, {}, -9999);
+                callback(false, true);
             }
         });
     }
@@ -943,6 +987,8 @@ function ActivityUpdateService(objectCollection) {
             if (err === false) {
                 console.log('data[0].activity_owner_asset_id :' + data[0].activity_owner_asset_id);
 
+                //creator asset id and lead asset id if it mathces 29 shouldn't be called
+                
                 var paramsArr = new Array(
                         request.activity_id,
                         data[0].activity_owner_asset_id,
