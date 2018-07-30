@@ -9,6 +9,7 @@ var nodemailer = require('nodemailer');
 var tz = require('moment-timezone');
 const Nexmo = require('nexmo');
 var fs = require('fs');
+var os = require('os');
 
 function Util() {
 
@@ -770,6 +771,30 @@ function Util() {
     this.getUniqueArray = function (a) {
         return Array.from(new Set(a));
     }
+    
+    this.writeLogs = function (data) {
+        var date = this.getCurrentUTCTime();
+        var logFilePath = 'logs/' + this.getCurrentDate() + '.txt';
+        var data_to_add = date + ': ' + data;
+        if (fs.existsSync(logFilePath)) {
+            fs.appendFile(logFilePath, os.EOL + data_to_add, function (err, fd) {
+                if (err)
+                    console.log('Error while writing data to file', err);
+                
+                //fs.close(fd);
+            });
+            
+        } else {
+            fs.writeFile(logFilePath, data_to_add, function (err, fd) {
+                if (err)
+                    console.log('Error while writing data to file', err);
+                
+                //fs.close(fd);
+            });            
+        }       
+        
+    };
+    
 }
 ;
 
