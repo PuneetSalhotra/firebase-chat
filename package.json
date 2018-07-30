@@ -11,22 +11,24 @@
   "author": "venkatesh",
   "contributors": [],
   "dependencies": {
+    "aws-sdk": "",
     "body-parser": "1.14.1",
     "bunyan": "1.8.1",
+    "cassandra-driver": "",
+    "cors": "",
     "express": "",
+    "forEachAsync": "",
+    "kafka-node": "",
+    "lodash": "",
     "moment": "",
+    "moment-timezone": "",
     "mysql": "",
+    "nexmo": "^2.3.2",
     "nodemailer": "2.4.2",
+    "pubnub": "",
     "redis": "",
     "request": "",
     "twilio": "2.9.1",
-    "lodash": "",
-    "cors": "",
-    "kafka-node": "",
-    "forEachAsync": "",
-    "aws-sdk": "",
-    "pubnub": "",
-    "moment-timezone": "",
-    "cassandra-driver": ""
+    "winston": "^3.0.0"
   }
 }
