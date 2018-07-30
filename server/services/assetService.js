@@ -2213,6 +2213,12 @@ function AssetService(objectCollection) {
     this.updateAssetPushToken = function (request, callback) {
         var dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
+        
+        var flag; //1 is prod and 0 is dev
+        var flagAppAccount; //1 is Grene Robotics and 0 is BlueFlock
+        
+        (request.hasOwnProperty('flag_dev')) ? flag = request.flag_dev : flag = 1;
+        (request.hasOwnProperty('flag_app_account')) ? flagAppAccount = request.flag_app_account : flagAppAccount = 0;
 
         var proceed = function (callback) {
             var authTokenCollection = {
@@ -2263,7 +2269,7 @@ function AssetService(objectCollection) {
         }
 
         if (request.hasOwnProperty('asset_token_push') && request.asset_token_push !== '' && request.asset_token_push !== null) {
-            sns.createPlatformEndPoint(Number(request.device_os_id), request.asset_token_push, 1, 0, function (err, endPointArn) { //flag 1 is prod and 0 is dev
+            sns.createPlatformEndPoint(Number(request.device_os_id), request.asset_token_push, flag, flagAppAccount, function (err, endPointArn) { //flag 1 is prod and 0 is dev
                 if (!err) {
                     //console.log('success in creating platform end point');
                     global.logger.write('debug', 'success in creating platform end point', {}, request)

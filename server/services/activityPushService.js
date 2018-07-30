@@ -52,7 +52,8 @@ function ActivityPushService(objectCollection) {
                                 msg.activity_type_category_id = 8;
                                 msg.type = 'activity_unread';
                                 pushString.title = senderName;
-                                pushString.description = 'Mail: ' + activityTitle;
+                                //pushString.description = 'Mail: ' + activityTitle;
+                                pushString.description = 'Memo: ' + activityTitle;
                                 smsString = ' ' + senderName + ' has sent a memo to your inbox. You can respond by logging into the WorldDesk app. Download Link: https://worlddesk.desker.co/';
                                 break;
                             case '/' + global.config.version + '/activity/owner/alter':
@@ -105,7 +106,7 @@ function ActivityPushService(objectCollection) {
                                 if (Number(request.activity_sub_type_id) === 1)
                                     smsString = ' ' + senderName + ' has mentioned you in a task named ' + activityTitle + '. You can respond by logging into the WorldDesk app. Download Link: https://worlddesk.desker.co/';
                                 else
-                                    smsString = ' ' + senderName + ' has mentioned you in a file named ' + activityTitle + '. You can respond by logging into the WorldDesk app. Download Link: https://worlddesk.desker.co/';
+                                    smsString = ' ' + senderName + ' has mentioned you in a task named ' + activityTitle + '. You can respond by logging into the WorldDesk app. Download Link: https://worlddesk.desker.co/';
                                 break;
                             case '/' + global.config.version + '/activity/status/alter':                                
                                 break;
@@ -115,8 +116,8 @@ function ActivityPushService(objectCollection) {
                                 
                                 pushString.title = senderName;
                                 (Number(request.owner_asset_id)===0)? //means unassigning
-                                        pushString.description = 'Folder: ' + activityTitle + ' is unassigned':
-                                        pushString.description = 'Folder: ' + activityTitle + ' is assigned';
+                                        pushString.description = 'Task: ' + activityTitle + ' is unassigned':
+                                        pushString.description = 'Task: ' + activityTitle + ' is assigned';
                                 
                                 //pushString.description = 'Folder: ' + activityTitle + ' owner is changed';
                                 if (Number(request.activity_sub_type_id) === 1) {
@@ -229,7 +230,8 @@ function ActivityPushService(objectCollection) {
                                 msg.activity_type_category_id = 28;
                                 msg.type = 'activity_unread';
                                 pushString.title = senderName;
-                                pushString.description = activityData[0]['activity_description'].substring(0, 100);
+                                //pushString.description = activityData[0]['activity_description'].substring(0, 100);
+                                pushString.description = 'sent a sticky note';
                                 smsString = ' ' + senderName + ' has posted a sticky note on your desk. You can respond by logging into the WorldDesk app. Download Link: https://worlddesk.desker.co';
                                 break;
                         }
@@ -471,7 +473,7 @@ function ActivityPushService(objectCollection) {
     this.sendSMSNotification = function (request, objectCollection, pushAssetId, callback) {
         var reqobj = {};
         //getting asset deatails of the reciever
-        reqobj = {organization_id: request.organization_id, asset_id: pushAssetId};
+        reqobj = {organization_id: request.organization_id, asset_id: pushAssetId};        
         objectCollection.activityCommonService.getAssetDetails(reqobj, function (err, RecieverData, resp) {
             var diffDatetime = objectCollection.util.differenceDatetimes(request.datetime_log, objectCollection.util.replaceDefaultDatetime(RecieverData.asset_status_datetime));
             if (diffDatetime.years > 0 || diffDatetime.months > 0 || diffDatetime.days >= 2) {
@@ -493,6 +495,8 @@ function ActivityPushService(objectCollection) {
                     }
                     
                 });
+            } else {
+                console.log('active in last 48 hrs');
             }
 
         });

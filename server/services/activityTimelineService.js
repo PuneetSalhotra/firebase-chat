@@ -70,10 +70,10 @@ function ActivityTimelineService(objectCollection) {
                     
                     if (formDataJson.hasOwnProperty('asset_reference')) {
                         if (formDataJson.asset_reference.length > 0) {
-                            forEachAsync(formDataJson.asset_reference, function (next, rowData) {
+                            forEachAsync(formDataJson.asset_reference, function (next, rowData) {                                
                                 switch (Number(request.activity_type_category_id)) {
-                                    //case 10:
-                                    case 11:
+                                    case 10:
+                                    case 11: 
                                         activityPushService.sendSMSNotification(request, objectCollection, rowData.asset_id, function () {});
                                         break;
                                 }
