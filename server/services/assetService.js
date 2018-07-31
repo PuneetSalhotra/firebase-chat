@@ -1155,7 +1155,7 @@ function AssetService(objectCollection) {
                         console.log('Asset Signup count : ', data.asset_count_signup);
                         assetListUpdateSignupCnt(request, assetId).then(() => {});
 
-                        /*if(data.asset_count_signup > 0) {
+                        if(data.asset_count_signup > 0) {
                             assetListUpdateSignupCnt(request, assetId).then(()=>{});
                         } else {
                             //Create a Task in a given Project and add an update
@@ -1163,11 +1163,11 @@ function AssetService(objectCollection) {
                             console.log('Have to create a Task');
                             var newRequest = {};
 
-                            newRequest.organization_id = 753;
-                            newRequest.account_id = 864;
-                            newRequest.workforce_id = 4576;
-                            newRequest.asset_id = 27008;
-                            newRequest.operating_asset_id = 27007;                            
+                            newRequest.organization_id = 336;
+                            newRequest.account_id = 437;
+                            newRequest.workforce_id = 1898;
+                            newRequest.asset_id = 8827;
+                            newRequest.operating_asset_id = 8826;                            
                             newRequest.activity_title = data.operating_asset_first_name + " has signed up";
                             newRequest.activity_description = data.operating_asset_first_name + " has signed up";
                             newRequest.activity_inline_data= "{}";
@@ -1175,9 +1175,9 @@ function AssetService(objectCollection) {
                             newRequest.activity_datetime_end = util.addUnitsToDateTime(util.getCurrentUTCTime(), 1, 'years');
                             newRequest.activity_type_category_id = 10;
                             newRequest.activity_sub_type_id = 1;
-                            newRequest.activity_type_id = 111328;
+                            newRequest.activity_type_id = 46458;
                             newRequest.activity_access_role_id =26;
-                            newRequest.activity_parent_id = 93256;
+                            newRequest.activity_parent_id = 95670;
                             newRequest.url = "/add/activity/";
                             //activity_status_id:83846
                             //activity_status_type_id:17
@@ -1214,7 +1214,7 @@ function AssetService(objectCollection) {
                                        });                                    
                                     }
                             });
-                        }*/
+                        }
                     }
                 });
             } else {
