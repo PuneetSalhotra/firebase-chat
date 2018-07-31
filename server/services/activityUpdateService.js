@@ -706,9 +706,10 @@ function ActivityUpdateService(objectCollection) {
                     assetListUpdate(request, function (err, data) {});   //opearating asset id
                     
                     var empIdJson = JSON.parse(request.activity_inline_data);
+                    //empIdJson.employee_asset_id = request.asset_id;                  
                     
                     var newRequest = {};
-                    newRequest.asset_id = empIdJson.employee_asset_id;
+                    newRequest.asset_id = request.asset_id;
                     newRequest.organization_id =  request.organization_id;
                     newRequest.workforce_id =  request.workforce_id;
                     newRequest.account_id= request.account_id;
