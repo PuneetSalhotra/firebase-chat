@@ -1187,9 +1187,9 @@ function AssetService(objectCollection) {
                             newRequest.signedup_asset_organization_name = data.organization_name;
                             newRequest.signedup_asset_workforce_name = data.workforce_name;
                             newRequest.signedup_asset_name = data.operating_asset_first_name || "";
-                            newRequest.signedup_asset_email_id = data.asset_email_id || "";
-                            newRequest.signedup_asset_phone_country_code = data.asset_phone_country_code;
-                            newRequest.signedup_asset_phone_number = data.asset_phone_number;                            
+                            newRequest.signedup_asset_email_id = data.operating_asset_email_id || "";
+                            newRequest.signedup_asset_phone_country_code = data.operating_asset_phone_country_code;
+                            newRequest.signedup_asset_phone_number = data.operating_asset_phone_number;                            
                             
                             cacheWrapper.getActivityId(function (err, activityId) {
                                 if (err) {
