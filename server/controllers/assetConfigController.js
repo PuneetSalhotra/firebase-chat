@@ -18,7 +18,6 @@ function AssetConfigController(objCollection) {
 
             if (err === false) {
                 // got positive response    
-
                 res.send(responseWrapper.getResponse(err, data, statusCode,req.body));
 
             } else {

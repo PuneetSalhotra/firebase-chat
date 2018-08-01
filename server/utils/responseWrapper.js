@@ -1,7 +1,6 @@
 
 function ResponseWrapper(util) {
 
-
     this.getResponse = function (err, data, statusCode, request) {
         var response = {
             status: statusCode,
@@ -10,6 +9,8 @@ function ResponseWrapper(util) {
             gmt_time: util.getCurrentUTCTime(),
             response: data
         };
+        
+        global.logger.write('response','',response,request);
 
         return response;
     };

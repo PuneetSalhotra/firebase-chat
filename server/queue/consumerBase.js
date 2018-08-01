@@ -14,11 +14,13 @@ const kafkaClient = new kafka.Client(global.config.kafkaIP);
 const redisClient = redis.createClient(global.config.redisPort, global.config.redisIp);
 const cacheWrapper = new (require('../utils/cacheWrapper'))(redisClient);
 const sns = new AwsSns(); 
+const pubnubWrapper = new (require('../utils/pubnubWrapper'))(); //BETA
 
 class ConsumerBase {
     constructor(opts) {
         this.partition = opts.partition || 0;
         this.topic = opts.topic;
+        
         this.kafkaConsumer = new KafkaConsumer(kafkaClient,
             [{topic: this.topic, partition: this.partition}],
             {
@@ -32,8 +34,10 @@ class ConsumerBase {
             util,
             db,
             cacheWrapper,
-            sns
+            sns,
+            pubnubWrapper
         });
+        
         this.kafkaConsumer.on('connect', this.onConnect.bind(this));
         this.kafkaConsumer.on('message', this.processMessage.bind(this));
         this.kafkaConsumer.on('error', this.onError.bind(this));

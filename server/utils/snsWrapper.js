@@ -5,28 +5,37 @@
 var aws = require('aws-sdk');
 var AwsSns = function () {
     // Load your AWS credentials and try to instantiate the object.
-    aws.config.loadFromPath('/var/www/html/desker/NODEJS/desker_api_0.1/server/utils/config.json');
+    //aws.config.loadFromPath('/var/www/html/desker/NODEJS/desker_api_0.1/server/utils/config.json');
+    aws.config.loadFromPath(`${__dirname}/config.json`);
     var sns = new aws.SNS();
 
     this.publish = function (message, badgeCount, targetArn) {
-        var GCMjson = {data:{title:"", message: "", timestamp:""}}
-        GCMjson.data.title = "'"+message.title+"'";
-        GCMjson.data.message = "'"+message.description+"'";
+        var GCMjson = {data: {title: "", message: "", timestamp: ""}}
+        GCMjson.data.title = "'" + message.title + "'";
+        GCMjson.data.message = "'" + message.description + "'";
         GCMjson.data.timestamp = "''";
-        
+
+        var aps = {
+            'badge': badgeCount,
+            'sound': 'default',
+            'alert': message.title + message.description,
+            'content-available': 1
+        }
+
+        if (message.hasOwnProperty('extra_data')) {
+            GCMjson.data.type = message.extra_data.type;
+            GCMjson.data.call_data = message.extra_data.call_data;
+            aps.call_data = message.extra_data.call_data;
+            aps.type = message.extra_data.type;
+        }
+
         var params = {
             MessageStructure: 'json',
             Message: JSON.stringify({
                 'default': message.title + message.description,
                 'GCM': JSON.stringify(GCMjson),
-                APNS_SANDBOX: JSON.stringify({
-                    aps: {
-                        'badge': badgeCount,
-                        'sound': 'default',
-                        'alert': message.title + message.description,
-                        'content-available': 1                        
-                    }
-                })
+                APNS_VOIP: JSON.stringify({aps}),
+                APNS_VOIP_SANDBOX: JSON.stringify({aps})
             }),
             TargetArn: targetArn
         };
@@ -37,8 +46,35 @@ var AwsSns = function () {
                 console.log(data);           // successful response
         });
     };
+    
+    this.pamPublish = function (message, badgeCount, targetArn) {
+        var aps = {
+            'badge': badgeCount,
+            'sound': 'default',
+            'order_id': message.order_id,
+            'order_name': message.order_name,
+            'status_type_id': 0,
+            'station_category_id': message.activity_channel_category_id
+        }
 
-    this.createPlatformEndPoint = function (deviceOsId, pushToken, callback) {
+        var params = {
+            MessageStructure: 'json',
+            Message: JSON.stringify({
+                'default': message.order_id + message.order_name,                
+                APNS_VOIP: JSON.stringify({aps}),
+                APNS_VOIP_SANDBOX: JSON.stringify({aps})
+            }),
+            TargetArn: targetArn
+        };
+        sns.publish(params, function (err, data) {
+            if (err)
+                console.log(err); // an error occurred
+            else
+                console.log('Notification Sent : ' , data);           // successful response
+        });
+    };
+
+    this.createPlatformEndPoint = function (deviceOsId, pushToken, flag, flagAppAccount, callback) { //flag - 0 is Dev and 1 is Prod 
         var platformApplicationArn = '';
         //if (deviceOsId === 2) {
         switch (deviceOsId) {
@@ -46,10 +82,23 @@ var AwsSns = function () {
                 platformApplicationArn = global.config.platformApplicationAndroid;
                 break;
             case 2:// ios
-                if (global.config.iosPushMode == 'dev')
-                    platformApplicationArn = global.config.platformApplicationIosDev;
-                else
-                    platformApplicationArn = global.config.platformApplicationIosProd;
+                if(flagAppAccount == 0) { //BlueFlock
+                    if (flag == 0){
+                        console.log('Flag is 0. Creating IOS Dev for Blue flock Account');
+                        platformApplicationArn = global.config.platformApplicationIosDev;
+                    } else {
+                        console.log('Flag is 1. Creating IOS Prod for Blue flock Account');
+                        platformApplicationArn = global.config.platformApplicationIosProd;
+                    }
+                } else { //flagAppAccount == 1 i.e. Grene Robotics
+                    if (flag == 0){
+                        console.log('Flag is 0. Creating IOS Dev for Grene Robotics Account');
+                        platformApplicationArn = global.config.platformApplicationIosDevGR;
+                    } else {
+                        console.log('Flag is 1. Creating IOS Prod for Grene Robotics Account');
+                        platformApplicationArn = global.config.platformApplicationIosProdGR;
+                    }
+                }    
                 break;
             case 3:// windows
                 platformApplicationArn = global.config.platformApplicationWindows;

@@ -5,20 +5,19 @@
 var aws = require('aws-sdk');
 
 // Load your AWS credentials and try to instantiate the object.
-aws.config.loadFromPath('/var/www/html/node/Bharat/server/utils/config.json');
+//aws.config.loadFromPath('/var/www/html/node/Bharat/server/utils/config.json');
+aws.config.loadFromPath(`${__dirname}/../utils/config.json`);
 
 // Instantiate SQS.
 var sqs = new aws.SQS();
 
 function SqsProducer() {
-    //var queueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/desker-logging-queue";    
-    var queueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/desker-logging-staging";    
-
+   
     this.produce = function (message,callback) {
         
         var params = {
             MessageBody: message,
-            QueueUrl: queueUrl,
+            QueueUrl: global.config.SQSqueueUrl,
             DelaySeconds: 0
         };
         sqs.sendMessage(params, function (err, data) {

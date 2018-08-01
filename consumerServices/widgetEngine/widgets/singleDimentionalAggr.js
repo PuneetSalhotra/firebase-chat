@@ -47,10 +47,25 @@ class SingleDimensionalAggrWidget extends WidgetBase {
                 .then((result) => {
                     const widgetTransId = result[0] ? result[0].idWidgetTransaction : undefined;
                     widgetData.widget_transaction_id = widgetTransId;
-                    if (widgetTransId)
-                        return widgetTransactionSvc.update(widgetData);
-                    else
-                        return widgetTransactionSvc.create(widgetData);
+                    if (widgetTransId) {
+                            //Pubnub PUSH
+                            var msg = {};
+                            msg.type = "form_submited_show_widget_count";
+                            msg.form_id = widgetData.form_id;
+                            msg.widget_id = widgetData.widget_id;
+                            this.objCollection.pubnubWrapper.push(widgetData.organization_id,msg);
+                            ///////////////////////////////
+                            return widgetTransactionSvc.update(widgetData);
+                    } else {
+                            //Pubnub PUSH
+                            var msg = {};
+                            msg.type = "form_submited_show_widget_count";
+                            msg.form_id = widgetData.form_id;
+                            msg.widget_id = widgetData.widget_id;
+                            this.objCollection.pubnubWrapper.push(widgetData[0].organization_id,msg);
+                            ///////////////////////////////
+                            return widgetTransactionSvc.create(widgetData);
+                    }                        
                 })
     }
 }

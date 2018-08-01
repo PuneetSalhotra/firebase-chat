@@ -1,0 +1,19 @@
+version: 0.1
+          
+phases:
+  install:
+    commands: 
+      - npm install pm2 -g
+      - npm install
+  pre_build:
+    commands:      
+  build:
+    commands:
+      - pm2 start startAllProcesses.yml
+  post_build:
+    commands:
+      - echo Build completed on `date`
+artifacts:
+  files:
+    - '**/*'
+  discard-paths: no

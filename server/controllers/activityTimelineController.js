@@ -35,7 +35,9 @@ function ActivityTimelineController(objCollection) {
             queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp)=>{
                         if(err) {
                             //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                            global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent : " + err,req);
+                            //global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);                            
+                            res.send(responseWrapper.getResponse(true, {}, -5999,req.body));
+                            throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                         } else {
                             if (req.hasOwnProperty('device_os_id')) {
                                 if (Number(req.device_os_id) !== 5) {
@@ -43,21 +45,26 @@ function ActivityTimelineController(objCollection) {
                                     cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                         if (err) {
                                             //console.log("error in setting in asset parity");
-                                            global.logger.write('serverError',"error in setting in asset parity : " + err,req.body);
+                                            global.logger.write('serverError',"error in setting in asset parity",err,req.body);
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('debug',"asset parity is set successfully",req.body);
+                                            global.logger.write('debug',"asset parity is set successfully",{},req.body);
 
                                     });
                                 }
                             }
+                            if (formTransactionId > 0)
+                                res.send(responseWrapper.getResponse(false, {form_transaction_id: formTransactionId}, 200,req.body));
+                            else
+                                res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                            return;
                         }
                 });
-            if (formTransactionId > 0)
+            /*if (formTransactionId > 0)
                 res.send(responseWrapper.getResponse(false, {form_transaction_id: formTransactionId}, 200,req.body));
             else
                 res.send(responseWrapper.getResponse(false, {}, 200,req.body));
-            return;
+            return;*/
         };
         if (req.body.hasOwnProperty('activity_stream_type_id') && req.body.activity_stream_type_id > 0) {
             if (util.hasValidActivityId(req.body)) {
@@ -166,7 +173,9 @@ function ActivityTimelineController(objCollection) {
             queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp)=>{
                         if(err) {
                             //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                            global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent : " + err,req);
+                            //global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);
+                            res.send(responseWrapper.getResponse(true, {}, -5998,req.body));
+                            throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                         } else {
                             if (req.hasOwnProperty('device_os_id')) {
                                 if (Number(req.device_os_id) !== 5) {
@@ -174,18 +183,20 @@ function ActivityTimelineController(objCollection) {
                                     cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                         if (err) {
                                             //console.log("error in setting in asset parity");
-                                            global.logger.write('serverError',"error in setting in asset parity : " + err,req.body);
+                                            global.logger.write('serverError',"error in setting in asset parity",err,req.body);
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('debug',"asset parity is set successfully",req.body);
+                                            global.logger.write('debug',"asset parity is set successfully",{},req.body);
 
                                     });
                                 }
                             }
+                            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                            return;
                         }
                 });
-            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
-            return;
+            //res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+            //return;
         };
         if (util.hasValidActivityId(req.body)) {
             if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5) {
@@ -226,7 +237,7 @@ function ActivityTimelineController(objCollection) {
                 // got positive response    
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                console.log('did not get proper rseponse');
+                console.log('did not get proper response');
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -253,6 +264,20 @@ function ActivityTimelineController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 console.log('did not get proper rseponse');
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    //PAM
+    app.post('/' + global.config.version + '/asset/timeline/list', function (req, res) {
+        activityTimelineService.retrieveTimelineListBasedOnAsset(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                console.log('did not get proper response');
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }

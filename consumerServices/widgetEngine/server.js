@@ -2,6 +2,7 @@
  * author: SBK
  */
 var cluster = require('cluster');
+const http = require('http');
 var numCPUs = require('os').cpus().length;
 
 if (cluster.isMaster) {
@@ -24,4 +25,5 @@ if (cluster.isMaster) {
         topic: 'desker-form-widgets'
     };
     new WidgetEngineConsumer(options);
+    
 }

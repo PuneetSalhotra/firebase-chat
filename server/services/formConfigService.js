@@ -2,14 +2,18 @@
  * author: Sri Sai Venkatesh
  */
 
-function FormConfigService(db, util) {
+function FormConfigService(objCollection) {
+
+    var db = objCollection.db;
+    var util = objCollection.util;
+    var activityCommonService = objCollection.activityCommonService;
 
     this.getOrganizationalLevelForms = function (request, callback) {
         var paramsArr = new Array();
         var queryString = '';
-        
+
         paramsArr = new Array(
-                request.organization_id,                
+                request.organization_id,
                 request.datetime_differential,
                 request.page_start,
                 util.replaceQueryLimit(request.page_limit)
@@ -37,14 +41,14 @@ function FormConfigService(db, util) {
             });
         }
     };
-    
+
     this.getAccountLevelForms = function (request, callback) {
         var paramsArr = new Array();
         var queryString = '';
-        
+
         paramsArr = new Array(
-                request.organization_id,                
-                request.account_id,                
+                request.organization_id,
+                request.account_id,
                 request.datetime_differential,
                 request.page_start,
                 util.replaceQueryLimit(request.page_limit)
@@ -72,15 +76,15 @@ function FormConfigService(db, util) {
             });
         }
     };
-    
+
     this.getWorkforceLevelForms = function (request, callback) {
         var paramsArr = new Array();
         var queryString = '';
-        
+
         paramsArr = new Array(
-                request.organization_id,                
-                request.account_id,                
-                request.workforce_id,                
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
                 request.datetime_differential,
                 request.page_start,
                 util.replaceQueryLimit(request.page_limit)
@@ -108,16 +112,16 @@ function FormConfigService(db, util) {
             });
         }
     };
-    
+
     this.getActivityLevelForms = function (request, callback) {
         var paramsArr = new Array();
         var queryString = '';
-        
+
         paramsArr = new Array(
-                request.organization_id,                
-                request.account_id,               
-                request.workforce_id,                
-                request.activity_id,                
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.activity_id,
                 request.datetime_differential,
                 request.page_start,
                 util.replaceQueryLimit(request.page_limit)
@@ -145,15 +149,15 @@ function FormConfigService(db, util) {
             });
         }
     };
-    
+
     this.getSpecifiedForm = function (request, callback) {
         var paramsArr = new Array();
         var queryString = '';
-        
+
         paramsArr = new Array(
-                request.organization_id,                
-                request.account_id,               
-                request.workforce_id,                
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
                 request.form_id,
                 '1970-01-01 00:00:00',
                 request.page_start,
@@ -260,17 +264,17 @@ function FormConfigService(db, util) {
         }
     };
 
-    var formatFromsListing = function (data, callback) {        
+    var formatFromsListing = function (data, callback) {
         var responseData = new Array();
         data.forEach(function (rowData, index) {
-            
+
             var rowDataArr = {
                 "form_id": util.replaceDefaultNumber(rowData['form_id']),
-                "form_name": util.replaceDefaultString(util.decodeSpecialChars(rowData['form_name'])),                
+                "form_name": util.replaceDefaultString(util.decodeSpecialChars(rowData['form_name'])),
                 "field_id": util.replaceDefaultNumber(rowData['field_id']),
-                "field_description": util.replaceDefaultString(util.decodeSpecialChars(rowData['field_description'])),                
+                "field_description": util.replaceDefaultString(util.decodeSpecialChars(rowData['field_description'])),
                 "field_name": util.replaceDefaultString(util.decodeSpecialChars(rowData['field_name'])),
-                "field_sequence_id": util.replaceDefaultNumber(rowData['field_sequence_id']),                
+                "field_sequence_id": util.replaceDefaultNumber(rowData['field_sequence_id']),
                 "field_mandatory_enabled": util.replaceDefaultNumber(rowData['field_mandatory_enabled']),
                 "field_preview_enabled": util.replaceDefaultNumber(rowData['field_preview_enabled']),
                 "data_type_combo_id": util.replaceDefaultNumber(rowData['data_type_combo_id']),
@@ -307,15 +311,16 @@ function FormConfigService(db, util) {
                 "log_asset_first_name": util.replaceDefaultString(util.decodeSpecialChars(rowData['log_asset_first_name'])),
                 "log_asset_last_name": util.replaceDefaultString(util.decodeSpecialChars(rowData['log_asset_last_name'])),
                 "log_asset_image_path": util.replaceDefaultString(util.decodeSpecialChars(rowData['log_asset_image_path'])),
+                "log_datetime": util.replaceDefaultDatetime(rowData['log_datetime']),
                 "log_state": util.replaceDefaultNumber(rowData['log_state']),
                 "log_active": util.replaceDefaultNumber(rowData['log_active']),
-                "update_sequence_id": util.replaceDefaultNumber(rowData['update_sequence_id'])                
-            };
+                "update_sequence_id": util.replaceDefaultNumber(rowData['update_sequence_id'])
+          };
             responseData.push(rowDataArr);
         }, this);
         callback(false, responseData);
     };
-
+    
 };
 
 module.exports = FormConfigService;

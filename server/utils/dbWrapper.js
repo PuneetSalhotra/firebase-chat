@@ -62,23 +62,22 @@ var executeQuery = function (flag, queryString, request, callback) {
     try {
         conPool.getConnection(function (err, conn) {
             if (err) {
-                console.log('ERROR WHILE GETTING CONNECTON');
-                global.logger.write('serverError','ERROR WHILE GETTING CONNECTON - ' + err, request);
+                console.log('ERROR WHILE GETTING CONNECTON : ', err);
+                global.logger.write('serverError','ERROR WHILE GETTING CONNECTON', err, request);
                 callback(err, false);
                 return;
             } else {
                 conn.query(queryString, function (err, rows, fields) {
                     if (!err) {   
                         console.log(queryString);
-                        global.logger.write('debug','Query String - ' + queryString, request);
-                        conn.release();
+                        global.logger.write('debug',queryString, {},request);
+                        conn.release();                        
                         callback(false, rows[0]);
                         return;
                     } else {
                         console.log('SOME ERROR IN QUERY | ', queryString);
-                        global.logger.write('serverError','SOME ERROR IN QUERY - ' + queryString, err);
-                        //global.logger.write('serverError',err, request);
-                        //console.log(err);
+                        global.logger.write('serverError',queryString, err, request);
+                        console.log(err);
                         conn.release();
                         callback(err, false);
                     }
@@ -88,7 +87,7 @@ var executeQuery = function (flag, queryString, request, callback) {
     } catch (exception) {
         //console.log(queryString);
         console.log(exception);
-        global.logger.write('serverError','Exception - ' + exception, request);
+        global.logger.write('serverError','Exception Occurred', exception, request);
     }
 };
 

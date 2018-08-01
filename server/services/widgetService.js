@@ -53,7 +53,9 @@ function WidgetService(objCollection) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
-                    widgetTransactionSelect(request, data[0], function (err, responseArr) {
+                    //console.log('data[0]: length', data.length)
+                    if(data.length > 0) {
+                       widgetTransactionSelect(request, data[0], function (err, responseArr) {
                         if (!err && responseArr.length > 0) {
                             callback(false, responseArr, 200);
                         } else if (!err && responseArr.length === 0) {
@@ -62,6 +64,9 @@ function WidgetService(objCollection) {
                             callback(err, {}, -9998);
                         }
                     });
+                    } else {
+                        callback(false, {}, 200);
+                    }
                 }
             });
         }

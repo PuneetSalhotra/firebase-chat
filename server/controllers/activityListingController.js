@@ -19,7 +19,22 @@ function ActivityListingController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 console.log('did not get proper response');
-                global.logger.write(1, 'response','did not get proper response - ' + err,req.body);
+                global.logger.write('response','did not get proper response',err,req.body);
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    //PAM
+    app.post('/' + global.config.version + '/activity/access/account/list', function (req, res) {
+        activityListingService.getActivityAssetAccountLevelDifferential(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                console.log('did not get proper response');
+                global.logger.write('response','did not get proper response',err,req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -33,7 +48,7 @@ function ActivityListingController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 console.log('did not get proper response');
-                global.logger.write(1, 'response','did not get proper response - ' + err,req.body);
+                global.logger.write('response','did not get proper response',err,req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -47,12 +62,27 @@ function ActivityListingController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 console.log('did not get proper response');
-                global.logger.write(1, 'response','did not get proper response - ' + err,req.body);
+                global.logger.write('response','did not get proper response',err,req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
+    
+    app.post('/' + global.config.version + '/activity/cover/collection/v1', function (req, res) {
+        activityListingService.getActivityCoverCollectionV1(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                console.log('did not get proper response');
+                global.logger.write('response','did not get proper response',err,req.body);
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
     
     app.post('/' + global.config.version + '/activity/coworker/access/organization/list', function (req, res) {
         activityListingService.getCoworkers(req.body, function (err, data, statusCode) {
@@ -61,13 +91,13 @@ function ActivityListingController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 console.log('did not get proper response');
-                global.logger.write(1, 'response','did not get proper response - ' + err,req.body);
+                global.logger.write('response','did not get proper response',err,req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
-
+    /*
     app.post('/' + global.config.version + '/activity/contact/access/asset/list', function (req, res) {
         activityListingService.getSharedContacts(req.body, function (err, data, statusCode) {
             if (err === false) {
@@ -75,13 +105,13 @@ function ActivityListingController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 console.log('did not get proper response');
-                global.logger.write(1, 'response','did not get proper response - ' + err,req.body);
+                global.logger.write('response','did not get proper response',err,req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
-
+    */
 
     app.post('/' + global.config.version + '/activity/access/asset/search', function (req, res) {
         activityListingService.searchActivityByType(req.body, function (err, data, statusCode) {
@@ -90,7 +120,7 @@ function ActivityListingController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 console.log('did not get proper response');
-                global.logger.write(1, 'response','did not get proper response - ' + err,req.body);
+                global.logger.write('response','did not get proper response',err,req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -105,7 +135,21 @@ function ActivityListingController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 console.log('did not get proper response');
-                global.logger.write(1, 'response','did not get proper response - ' + err,req.body);
+                global.logger.write('response','did not get proper response',err,req.body);
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    app.post('/' + global.config.version + '/activity/contact/access/asset/list', function (req, res) {
+        activityListingService.listContacts(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                console.log('did not get proper response');
+                global.logger.write('response','did not get proper response',err,req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -119,7 +163,7 @@ function ActivityListingController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 console.log('did not get proper response');
-                global.logger.write(1, 'response','did not get proper response - ' + err,req.body);
+                global.logger.write('response','did not get proper response',err,req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -133,7 +177,7 @@ function ActivityListingController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 console.log('did not get proper response');
-                global.logger.write(1, 'response','did not get proper response - ' + err,req.body);
+                global.logger.write('response','did not get proper response',err,req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -147,13 +191,238 @@ function ActivityListingController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 console.log('did not get proper response');
-                global.logger.write(1, 'response','did not get proper response - ' + err,req.body);
+                global.logger.write('response','did not get proper response',err,req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
+    
+   app.post('/' + global.config.version + '/activity/all-contact/access/asset/list', function (req, res) {
+        req.body['module'] = 'activity';
+        activityListingService.getAllContactTypes(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                console.log('did not get proper rseponse');
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    app.post('/' + global.config.version + '/activity/all-contact/access/asset/search', function (req, res) {
+        req.body['module'] = 'activity';
+        activityListingService.searchAllContactTypes(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                console.log('did not get proper rseponse');
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    }); 
+    
+    //BETA
+    app.post('/' + global.config.version + '/activity/video_conference/access/asset/list', function (req, res) {
+        activityListingService.getVideoConfSchedule(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                console.log('did not get proper rseponse');
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    //BETA
+    app.post('/' + global.config.version + '/activity/meeting_room/access/search', function (req, res) {
+        activityListingService.getOptimumMeetingRoom(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                console.log('did not get proper rseponse');
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    //BETA
+    app.post('/' + global.config.version + '/activity/access/folder/list', function (req, res) {
+        activityListingService.getAllFolders(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                console.log('did not get proper rseponse');
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    //BETA
+    app.post('/' + global.config.version + '/activity/access/project/list', function (req, res) {
+        activityListingService.getAllProjects(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                console.log('did not get proper rseponse');
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    //Get the count of all Folders, mail, video calls etc
+    app.post('/' + global.config.version + '/asset/access/counts/list', function (req, res) {
+        activityListingService.getAllPendingCounts(req.body, function (err, data, statusCode) {        
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    //badge count service
+    app.post('/' + global.config.version + '/asset/access/counts/list/V1', function (req, res) {
+        activityListingService.getAllPendingCountsV1(req.body, function (err, data, statusCode) {        
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    
+    //Get the counts on task lists (explicitly for task list)
+    app.post('/' + global.config.version + '/asset/access/tasklist/counts/list', function (req, res) {
+        activityListingService.getTaskListCounts(req.body, function (err, data, statusCode) {        
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    //Get the count of tasks     
+    app.post('/' + global.config.version + '/asset/access/pending_task/count', function (req, res) {
+        activityListingService.pendingInmailCount(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+	});
+    });
 
+    //Get the overall ToDo tasks where I am not collaborator (BAck ward compatability)
+    app.post('/' + global.config.version + '/asset/access/task/list', function (req, res) {
+        activityListingService.getTasks(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+	});
+    });   
+    
+    app.post('/' + global.config.version + '/asset/access/task/list/v1', function (req, res) {
+        activityListingService.getTasksV1(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+	});
+    });    
+    
+    
+    //Get the count of tasks 
+    app.post('/' + global.config.version + '/asset/access/pending_task/count', function (req, res) {
+        activityListingService.pendingInmailCount(req.body, function (err, data, statusCode) {        
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    //Get the overall ToDo tasks where I am not collaborator (BAck ward compatability)
+    app.post('/' + global.config.version + '/asset/access/task/list', function (req, res) {
+        activityListingService.getTasks(req.body, function (err, data, statusCode) {        
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    //Get the count of all Folders, mail, video calls etc
+    app.post('/' + global.config.version + '/activity/access/asset/payroll/list', function (req, res) {
+        activityListingService.getLatestPayrollActivity(req.body, function (err, data, statusCode) {        
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    //
+    app.post('/' + global.config.version + '/activity/access/asset/category/search', function (req, res) {
+        activityListingService.searchActivityByCategory(req.body, function (err, data, statusCode) {        
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    //Get the count of all tasks of an asset in a project
+        app.post('/' + global.config.version + '/asset/tasks_project/access/counts/list', function (req, res) {
+        activityListingService.getAssetTasksInProjCount(req.body, function (err, data, statusCode) {        
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    app.post('/' + global.config.version + '/asset/phonenumber/access/organization/list', function (req, res) {
+        activityListingService.getOrganizationsOfANumber(req.body, function (err, data, statusCode) {        
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
 }
 
 module.exports = ActivityListingController;

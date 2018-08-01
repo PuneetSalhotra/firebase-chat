@@ -71,12 +71,13 @@ function ActivityConfigService(db, util) {
     };
 
     this.getActivityParticipantAccess = function (request, callback) {
-
+        var productId = (request.hasOwnProperty('product_id')) ? request.product_id : 1;
         var paramsArr = new Array(
                 request.page_start,
-                util.replaceQueryLimit(request.page_limit)
+                util.replaceQueryLimit(request.page_limit),
+                productId
                 );
-        var queryString = util.getQueryString('ds_v1_activity_participant_access_master_select', paramsArr);
+        var queryString = util.getQueryString('ds_v1_1_activity_participant_access_master_select', paramsArr);
 
         //console.log(queryString);
         if (queryString != '') {
@@ -116,7 +117,9 @@ function ActivityConfigService(db, util) {
                 'log_datetime': util.replaceDefaultDatetime(rowData['log_datetime']),
                 'log_asset_first_name': util.replaceDefaultString(rowData['log_asset_first_name']),
                 'log_asset_last_name': util.replaceDefaultString(rowData['log_asset_last_name']),
-                'log_asset_id': util.replaceDefaultNumber(rowData['log_asset_id'])
+                'log_asset_id': util.replaceDefaultNumber(rowData['log_asset_id']),
+                'asset_id': util.replaceDefaultNumber(rowData['asset_id']),
+                'asset_type_category_id': util.replaceDefaultNumber(rowData['asset_type_category_id'])
             };
             responseData.push(rowDataArr);
         }, this);

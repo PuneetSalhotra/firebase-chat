@@ -1,5 +1,5 @@
 /**
- * author Sri Sai Venkatesh.
+ * author Nani Kalyan V
  */
 
 require('../utils/globalConfig');
@@ -25,29 +25,38 @@ var Consumer = function (partitionId) {
     var sns = new AwsSns();
     var activityCommonService = new ActivityCommonService(db, util, forEachAsync);
     var activityPushService = new ActivityPushService();
-    var kafkaClient = new kafka.Client(global.config.kafkaIP);
-    var kafkaConsumer = new KafkaConsumer(
-            kafkaClient,
-            [
-                {topic: global.config.kafkaActivitiesTopic, partition: partitionId}
-            ],
-            {
-                groupId: 'test-node-group',
-                autoCommit: true,
-                fromOffset: false
-            });
-    var kafkaProducer = new KafkaProducer(kafkaClient);
+    
+    const options = {
+      groupId: 'test-node-group',
+      autoCommit: true,      
+      kafkaHost: '192.168.43.11:9092',
+      sessionTimeout: 15000,
+      protocol: ['roundrobin'],
+      fromOffset: 'earliest'  
+    };
+
+    const client = new kafka.Client();
+    const offset = new kafka.Offset(client);
+
+    const ConsumerGroup = kafka.ConsumerGroup;
+    const consumerGroup1 = new ConsumerGroup(options, [global.config.kafkaActivitiesTopic]);
+
+    console.log(global.config.kafkaActivitiesTopic);
+
+    var nani = new kafka.KafkaClient(global.config.kafkaIPOne,global.config.kafkaIPTwo,global.config.kafkaIPThree);
+    var kafkaProducer = new KafkaProducer(nani);
+
     new Promise((resolve, reject) => {
         if (kafkaProducer.ready)
             return resolve();
         kafkaProducer.on('ready', resolve);
     }).then(() => {
         console.log('Kafka Producer ready!!');
+
         var queueWrapper = new QueueWrapper(kafkaProducer);
         var objCollection = {
             util: util,
-            db: db,
-            //cassandraWrapper: cassandraWrapper,
+            db: db,            
             cacheWrapper: cacheWrapper,
             activityCommonService: activityCommonService,
             sns: sns,
@@ -55,45 +64,62 @@ var Consumer = function (partitionId) {
             queueWrapper: queueWrapper,
             activityPushService: activityPushService
         };
-        kafkaConsumer.on('message', function (message) {
-            try {
-                var messageJson = JSON.parse(message.value);
-                var serviceFile = messageJson.service;
-                var serviceName = messageJson.service;
-                var method = messageJson['method'];
 
-                if (!serviceObjectCollection.hasOwnProperty(messageJson['service'])) {
-                    var jsFile = "../services/" + serviceFile;
-                    var newClass = require(jsFile);
-                    var serviceObj = eval("new " + newClass + "(objCollection)");
-                    serviceObjectCollection[serviceFile] = serviceObj;
-                    serviceObj[method](messageJson['payload'], function (err, data) {
-                        console.log(data);
-                        if (err) {
-                            console.log(err);
-                        }
-                    });
-                    //console.log(serviceObjectCollection);
-                } else {
-                    serviceObjectCollection[serviceName][method](messageJson['payload'], function (err, data) {
-                        console.log(data);
-                        console.log(err);
-                    });                    
-                }
-            } catch (exception) {
-                console.log(exception);
-            }
+        consumerGroup1.on('message', function (message) {
+            console.log(`topic ${message.topic} partition ${message.partition} offset ${message.offset}`);
+            consumerGroup1.sendOffsetCommitRequest([{
+                                        topic: message.topic,
+                                        partition: message.partition, //default 0
+                                        offset: message.offset,
+                                        metadata: 'm', //default 'm'
+                                     }], (err, data) => {
+                                     if(err) {
+                                        console.log("err:" + err);
+                                     }
+                                     //console.log("data: " + JSON.stringify(data));
+                                     console.log(message.value);
+
+                                     try {
+                                            var messageJson = JSON.parse(message.value);
+                                            var serviceFile = messageJson.service;
+                                            var serviceName = messageJson.service;
+                                            var method = messageJson['method'];
+
+                                            if (!serviceObjectCollection.hasOwnProperty(messageJson['service'])) {
+                                                var jsFile = "../services/" + serviceFile;
+                                                var newClass = require(jsFile);
+                                                var serviceObj = eval("new " + newClass + "(objCollection)");
+                                                serviceObjectCollection[serviceFile] = serviceObj;
+                                                serviceObj[method](messageJson['payload'], function (err, data) {
+                                                    console.log(data);
+                                                    if (err) {
+                                                        console.log(err);
+                                                    }
+                                                });
+                                                //console.log(serviceObjectCollection);
+                                            } else {
+                                                serviceObjectCollection[serviceName][method](messageJson['payload'], function (err, data) {
+                                                    console.log(data);
+                                                    console.log(err);
+                                                });                    
+                                            }
+                                        } catch (exception) {
+                                            console.log(exception);
+                                        }
+                                     });
+            
         });
 
-        kafkaConsumer.on('connect', function (err, data) {
-            console.log("running consumer partition number: " + partitionId);
+        consumerGroup1.on('connect', function (err, data) {
+            //console.log("running consumer partition number: " + partitionId);
+            console.log("Connected to Kafka Host");
         });
 
-        kafkaConsumer.on('error', function (err) {
+        consumerGroup1.on('error', function (err) {
             console.log('err => ' + err);
         });
 
-        kafkaConsumer.on('offsetOutOfRange', function (err) {
+        consumerGroup1.on('offsetOutOfRange', function (err) {
             console.log('offsetOutOfRange => ' + JSON.stringify(err));
         });
 

@@ -10,7 +10,7 @@ function FormConfigController(objCollection) {
     var responseWrapper = objCollection.responseWrapper;    
     var app = objCollection.app;
 
-    var formConfigService = new FormConfigService(objCollection.db, objCollection.util);
+    var formConfigService = new FormConfigService(objCollection);
 
     app.post('/' + global.config.version + '/form/access/organisation/list', function (req, res) {
         
@@ -76,6 +76,29 @@ function FormConfigController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 console.log('did not get proper rseponse');
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    //Added By Nani Kalyan for BETA
+    app.post('/' + global.config.version + '/form/register/access/workforce/list', function (req, res) {
+        formConfigService.getRegisterForms(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+
+    app.post('/' + global.config.version + '/form/access/workforce/timeline/list', function (req, res) {
+        formConfigService.getAllFormSubmissions(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }

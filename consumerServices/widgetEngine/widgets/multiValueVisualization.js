@@ -44,6 +44,7 @@ class MultiDimensionalAggrWidget extends WidgetBase {
     }
 
     aggregateAndSaveTransaction(formSubmissionDate, data) {
+        console.log('In multi visualization')
         let choice;
         let activityQueryData = {
             form_id: this.form.id,
@@ -87,8 +88,10 @@ class MultiDimensionalAggrWidget extends WidgetBase {
             return Promise.all(promises);
         })
         .then((results) => {
-            const field = this.getChoiceSumField();
-            const aggr_value = results.map((res) =>  res[0][field]).filter((val) => !_.isUndefined(val)).reduce((a, b) => { 
+            console.log('RESULTS in multivaluevisualization :', results)
+            if(results.length > 0) {
+                const field = this.getChoiceSumField();
+                const aggr_value = results.map((res) =>  res[0][field]).filter((val) => !_.isUndefined(val)).reduce((a, b) => { 
 			
 			switch(this.rule.widget_aggregate_id){
 				case 2: return a + b; break;
@@ -104,11 +107,27 @@ class MultiDimensionalAggrWidget extends WidgetBase {
                 aggr_value: aggr_value,
                 widget_id: this.rule.widget_id,
                 period_flag: this.getPeriodFlag(),
-				widget_access_level_id: this.rule.widget_access_level_id
+		widget_access_level_id: this.rule.widget_access_level_id
             };
             widgetData = _.merge(widgetData, data);
             return this.createOrUpdateWidgetTransaction(widgetData);
-        });
+            } else {
+                let widgetData = {
+                date: formSubmissionDate.valueInRuleTimeZone,
+                choice: choice,
+                aggr_value: 0,
+                widget_id: this.rule.widget_id,
+                period_flag: this.getPeriodFlag(),
+		widget_access_level_id: this.rule.widget_access_level_id
+            };
+            widgetData = _.merge(widgetData, data);
+            return this.createOrUpdateWidgetTransaction(widgetData);
+            }
+        })
+         .catch((err)=>{
+             console.log('Error in multiValueVisualization :', err);
+             return reject(err);
+         })
     }
     
     getMultiValueAggregateCount(formSubmissionDate, data, choice){
@@ -144,8 +163,26 @@ class MultiDimensionalAggrWidget extends WidgetBase {
         .then((result) => {
             const widgetTransId = result[0] ? result[0].idWidgetTransaction : undefined;
             widgetData.widget_transaction_id = widgetTransId;
-            if(widgetTransId) return widgetTransactionSvc.updateMultiValueVisualization(widgetData);
-            else return widgetTransactionSvc.createMultiValueVisualization(widgetData);
+            if(widgetTransId) {
+                //Pubnub PUSH
+                    var msg = {};
+                    msg.type = "form_submited_show_widget_count";
+                    msg.form_id = widgetData[0].form_id;
+                    msg.widget_id = widgetData[0].widget_id;
+                    this.objCollection.pubnubWrapper.push(widgetData[0].organization_id,msg);
+                    ///////////////////////////////
+                return widgetTransactionSvc.updateMultiValueVisualization(widgetData);
+            } else {
+                //Pubnub PUSH
+                    var msg = {};
+                    msg.type = "form_submited_show_widget_count";
+                    msg.form_id = widgetData[0].form_id;
+                    msg.widget_id = widgetData[0].widget_id;
+                    this.objCollection.pubnubWrapper.push(widgetData[0].organization_id,msg);
+                    ///////////////////////////////
+                return widgetTransactionSvc.createMultiValueVisualization(widgetData);
+            }
+            
         }) ;
     }
 
