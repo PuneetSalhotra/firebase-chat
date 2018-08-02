@@ -5,7 +5,7 @@ version: 0.1
 os: linux
 files:
   - source: .
-    destination: /var/node/staging_mobile/
+    destination: /api-efs/node/staging_bharat
 hooks:
   BeforeInstall:
     - location: deployment/install_dependencies.sh
