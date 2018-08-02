@@ -18,6 +18,7 @@ phases:
   post_build:
     commands:
       - echo Build completed on `date`
+      - pm2 ls
       - pm2 stop all
       - pm2 delete all
 artifacts:
