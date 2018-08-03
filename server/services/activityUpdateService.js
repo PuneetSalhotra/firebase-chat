@@ -1771,6 +1771,29 @@ function ActivityUpdateService(objectCollection) {
             });
         };
     }
+
+    function archiveEmployeeAssetMappingForDeskAsset(request, callback) {
+        // IN p_user_mapping_id BIGINT(20), IN p_organization_id BIGINT(20), 
+        // IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), IN p_asset_id BIGINT(20), 
+        // IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+        var paramsArr = new Array(
+            request.user_mapping_id, // Remember to add this to the client requirement
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.desk_asset_id, // Remember to add this to the client requirement
+            request.desk_asset_id, // Remember to add this to the client requirement
+            util.getCurrentUTCTime() // request.log_datetime
+        );
+
+        // var queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_status', paramsArr);
+        var queryString = util.getQueryString('ds_p1_asset_access_mapping_delete_single', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                (!err) ? callback(false, {}, 200): callback(true, err, -9998);
+            });
+        }
+    }
 };
 
 module.exports = ActivityUpdateService;
