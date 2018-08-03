@@ -1730,6 +1730,23 @@ function ActivityUpdateService(objectCollection) {
             });
         };
     }
+
+    function assetAccessMappingHistoryInsert(request, updateTypeID, callback) {
+        // IN p_user_mapping_id BIGINT(20), IN p_organization_id BIGINT(20), 
+        // IN p_update_type_id SMALLINT(6), IN p_update_datetime DATETIME
+        var paramsArr = new Array(
+            request.user_mapping_id,
+            request.organization_id,
+            updateTypeID,
+            util.getCurrentUTCTime()
+        );
+        var queryString = util.getQueryString('ds_p1_asset_access_mapping_history_insert', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                (!err) ? callback(false, {}, 200): callback(true, err, -9998);
+            });
+        };
+    }
 };
 
 module.exports = ActivityUpdateService;
