@@ -1815,6 +1815,42 @@ function ActivityUpdateService(objectCollection) {
             });
         }
     }
+
+    function resetOperatingAssetDetailsForDeskAsset(request, callback) {
+
+        if (request.hasOwnProperty('activity_inline_data')) {
+            var inlineJson = JSON.parse(request.activity_inline_data);
+            request.employee_asset_id = inlineJson.employee_asset_id;
+            request.employee_first_name = inlineJson.employee_first_name;
+            request.employee_last_name = inlineJson.employee_last_name;
+        }
+
+        // IN p_asset_id BIGINT(20), IN p_workforce_id BIGINT(20), IN p_account_id BIGINT(20), 
+        // IN p_organization_id BIGINT(20), IN p_asset_first_name VARCHAR(50), IN p_asset_last_name VARCHAR(50), 
+        // IN p_asset_type_id BIGINT(20), IN p_operating_asset_id BIGINT(20), IN p_manager_asset_id BIGINT(20), 
+        // IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+        var paramsArr = new Array(
+            request.desk_asset_id, // Remember to add this to the client requirement
+            request.workforce_id,
+            request.account_id,
+            request.organization_id,
+            request.desk_asset_first_name || '', // request.employee_first_name || '',
+            request.desk_asset_last_name || '', // request.employee_last_name || '',
+            request.desk_asset_type_id, // Remember to add this to the client requirement
+            0, // request.employee_asset_id || request.asset_id,
+            0, // request.manager_asset_id
+            request.desk_asset_id,
+            util.getCurrentUTCTime() // request.log_datetime
+        );
+
+        // var queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_status', paramsArr);
+        var queryString = util.getQueryString('ds_p1_asset_list_update_desk', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                (!err) ? callback(false, {}, 200): callback(true, err, -9998);
+            });
+        }
+    }
 };
 
 module.exports = ActivityUpdateService;
