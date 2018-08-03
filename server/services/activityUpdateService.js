@@ -278,8 +278,7 @@ function ActivityUpdateService(objectCollection) {
                 });
             }
         });
-    }
-    ;
+    };
 
     var updateActivityTitle = function (request, newActivityTitle, callback) {
 
@@ -989,24 +988,26 @@ function ActivityUpdateService(objectCollection) {
                 console.log('data[0].activity_owner_asset_id :' + data[0].activity_owner_asset_id);
 
                 //creator asset id and lead asset id if it mathces 29 shouldn't be called
-                
+
                 var paramsArr = new Array(
-                        request.activity_id,
-                        data[0].activity_owner_asset_id,
-                        request.organization_id,
-                        29, //access_role_id,
-                        request.asset_id,
-                        request.datetime_log
-                        );
+                    request.activity_id,
+                    data[0].activity_owner_asset_id,
+                    request.organization_id,
+                    29, //access_role_id,
+                    request.asset_id,
+                    request.datetime_log
+                );
 
                 var queryString = util.getQueryString("ds_v1_activity_asset_mapping_update_asset_aceess", paramsArr);
 
                 if (queryString != '') {
-                    db.executeQuery(0, queryString, request, function (err, data) {
-                        if (err === false) {
-                            activityCommonService.assetActivityListHistoryInsert(request, 0, 503, function (err, result) {});
-                        }
-                    });
+                    if (Number(data[0].activity_owner_asset_id) !== Number(data[0].activity_creator_asset_id)) {
+                        db.executeQuery(0, queryString, request, function (err, data) {
+                            if (err === false) {
+                                activityCommonService.assetActivityListHistoryInsert(request, 0, 503, function (err, result) {});
+                            }
+                        });   
+                    }
                     // checking if this is new row or an update
                     var participantData = {
                         asset_id: request.owner_asset_id,
@@ -1015,23 +1016,24 @@ function ActivityUpdateService(objectCollection) {
                     var paramsArr1 = new Array();
                     var queryString1 = '';
                     activityCommonService.isParticipantAlreadyAssigned(participantData, request.activity_id, request, function (err, alreadyAssignedStatus, newRecordStatus) {
+
                         if ((err === false) && (newRecordStatus)) {
                             paramsArr1 = new Array(
-                                    request.activity_id,
-                                    request.owner_asset_id,
-                                    request.workforce_id,
-                                    request.account_id,
-                                    request.organization_id,
-                                    27, //request.participant_access_id,
-                                    request.message_unique_id,
-                                    request.flag_retry,
-                                    request.flag_offline,
-                                    request.asset_id,
-                                    request.datetime_log,
-                                    0, //Field Id
-                                    '',
-                                    -1
-                                    );
+                                request.activity_id,
+                                request.owner_asset_id,
+                                request.workforce_id,
+                                request.account_id,
+                                request.organization_id,
+                                27, //request.participant_access_id,
+                                request.message_unique_id,
+                                request.flag_retry,
+                                request.flag_offline,
+                                request.asset_id,
+                                request.datetime_log,
+                                0, //Field Id
+                                '', 
+                                -1
+                            );
                             queryString1 = util.getQueryString('ds_v1_activity_asset_mapping_insert_asset_assign_appr_ingre', paramsArr1);
                         }
                         if ((err === false) && (!newRecordStatus)) {
@@ -1047,14 +1049,18 @@ function ActivityUpdateService(objectCollection) {
                         }
                         if (queryString1 !== '') {
                             db.executeQuery(0, queryString1, request, function (err, data) {
-                                //if(err === false) {
-                                activityCommonService.assetActivityListHistoryInsert(request, 0, 0, function (err, restult) {});
+
+                                activityCommonService.assetActivityListHistoryInsert(request, 0, 409, function (err, restult) {});
+
+                                // Update the access role Id of the existing participant
+                                activityAssetMappingUpdateAssetAccess(request)
+                                    .catch((err) => {
+                                        console.log("Error updating the existing participant as owner: ", err);
+                                    });
 
                                 activityListAlterOwner(request, function (err, data) {
                                     if (err === false) {
-                                        activityCommonService.updateLeadAssignedDatetime(request, request.asset_id, function (err, data) {
-
-                                        });
+                                        activityCommonService.updateLeadAssignedDatetime(request, request.asset_id, function (err, data) {});
                                         activityCommonService.activityListHistoryInsert(request, 409, function (err, result) {});
 
                                         assetActivityListUpdateOwner(request, function (err, data) {
@@ -1078,6 +1084,25 @@ function ActivityUpdateService(objectCollection) {
             }
         });
     };
+
+    function activityAssetMappingUpdateAssetAccess(request) {
+        return new Promise((resolve, reject) => {
+            let paramsArr = new Array(
+                request.activity_id,
+                request.owner_asset_id,
+                request.organization_id,
+                27, //access_role_id = owner
+                request.asset_id,
+                request.datetime_log
+            );
+            let queryString = util.getQueryString("ds_v1_activity_asset_mapping_update_asset_aceess", paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (!err) ? resolve(data): reject(err);
+                });
+            }
+        });
+    }
 
     //PAM
     this.alterActivityCoverChannelActivity = function (request, callback) {
