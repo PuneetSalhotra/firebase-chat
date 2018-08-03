@@ -1747,6 +1747,30 @@ function ActivityUpdateService(objectCollection) {
             });
         };
     }
+
+    function getUserMappingID(request, callback) {
+
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
+        // IN p_workforce_id BIGINT(20), IN p_asset_id BIGINT(20), 
+        // IN p_user_asset_id BIGINT(20)
+        var paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.desk_asset_id,
+            request.employee_asset_id || request.asset_id
+        );
+        var queryString = util.getQueryString('ds_p1_asset_access_mapping_select_a2a_mapping', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (err === false) {
+                    callback(false, data[0].user_mapping_id)
+                } else {
+                    callback(true, false)
+                }
+            });
+        };
+    }
 };
 
 module.exports = ActivityUpdateService;
