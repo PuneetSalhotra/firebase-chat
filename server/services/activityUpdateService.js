@@ -1669,6 +1669,30 @@ function ActivityUpdateService(objectCollection) {
         callback(false, true);
 
     };
+
+    function activityAssetMappingUpdateOperationAssetData(request, coWorkerActivityData, callback) {
+        // IN p_activity_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_activity_inline_data JSON, 
+        // IN p_pipe_separated_string VARCHAR(1200), IN p_log_datetime DATETIME, IN p_asset_id BIGINT(20), 
+        // IN p_operating_asset_id BIGINT(20)
+        var paramsArr = new Array(
+            coWorkerActivityData.activity_id,
+            coWorkerActivityData.organization_id,
+            request.activity_inline_data || '{}',
+            "Pipe | Separated | Data",
+            util.getCurrentUTCTime(),
+            coWorkerActivityData.asset_id,
+            coWorkerActivityData.operating_asset_id
+        );
+
+        var queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_operation_asset_data', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                (!err) ? callback(false, {}, 200): callback(true, err, -9998);
+            });
+        };
+
+    }
+    
 };
 
 module.exports = ActivityUpdateService;
