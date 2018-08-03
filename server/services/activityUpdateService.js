@@ -1851,6 +1851,29 @@ function ActivityUpdateService(objectCollection) {
             });
         }
     }
+
+    function assetListHistoryInsert(request, assetId, organizationId, updateTypeId, datetimeLog, callback) {
+
+        var paramsArr = new Array(
+            assetId,
+            organizationId,
+            updateTypeId,
+            datetimeLog
+        );
+
+        var queryString = util.getQueryString('ds_v1_asset_list_history_insert', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                //global.logger.write(queryString, request, 'asset', 'trace');
+                if (err === false) {
+                    callback(false, true);
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, false);
+                }
+            });
+        }
+    };
 };
 
 module.exports = ActivityUpdateService;
