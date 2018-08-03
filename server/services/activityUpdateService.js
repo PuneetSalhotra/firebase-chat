@@ -1468,6 +1468,31 @@ function ActivityUpdateService(objectCollection) {
 
 
     };
+
+    var activityAssetMappingUpdateToRemoveUserFromWorkforce = function (request, callback) {
+
+        // IN p_organization_id BIGINT(20), IN p_account_id SMALLINT(6), IN p_workforce_id BIGINT(20),
+        // IN p_activity_id BIGINT(20), IN p_asset_id BIGINT(20), IN p_activity_status_id BIGINT(20), 
+        // IN p_activity_status_type_id SMALLINT(6), IN p_log_datetime DATETIME
+        var paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_id,
+            request.asset_id,
+            request.activity_status_id,
+            request.activity_status_type_id,
+            util.getCurrentUTCTime() // request.log_datetime
+        );
+
+        // var queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_status', paramsArr);
+        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_status', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                (!err) ? callback(false, {}, 200): callback(true, err, -9998);
+            });
+        }
+    };
     
 };
 
