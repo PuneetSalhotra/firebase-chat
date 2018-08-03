@@ -1396,6 +1396,79 @@ function ActivityUpdateService(objectCollection) {
         }  
     };
 
-}
-;
+    this.archiveAssetAndActivity = function (request, callback) {
+
+        global.logger.write('debug', 'Inside the archiveAssetAndActivity service', {}, request);
+        request.datetime_log = util.getCurrentUTCTime();
+
+        // 1.3 => Insert entry in asset timeline
+        // assetListTimelineTracsactionInsertToRemoveUserFromWorkforce(request, function () {});
+        activityCommonService.assetTimelineTransactionInsert(request, {}, 11008, function (err, data) {
+            if (!err) { // ******* CHANGE THIS ******* 
+
+                // 2.4 => Insert entry into the activity timeline of the ID card activity
+                // activityTimelineTracsactionInsertToRemoveUserFromWorkforce(request, function () {});
+                activityCommonService.activityTimelineTransactionInsert(request, {}, 11008, function (err, data) {
+                    if (!err) { // ******* CHANGE THIS ******* 
+                        // 1 => Archive the asset
+                        // IN p_asset_id BIGINT(20), IN p_organization_id BIGINT(20), 
+                        // IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+                        var paramsArr = new Array(
+                            request.asset_id,
+                            request.organization_id,
+                            request.asset_id, // log_asset_id
+                            util.getCurrentUTCTime()
+                        );
+                        var queryString = util.getQueryString('ds_p1_asset_list_delete', paramsArr);
+                        if (queryString !== '') {
+                            db.executeQuery(0, queryString, request, function (err, data) {
+                                if (!err) {
+                                    // 1.2 => Insert asset archive log in history
+                                    // assetListHistoryInsertToRemoveUserFromWorkforce(request, function () {});
+                                    assetListHistoryInsert(request, request.asset_id, request.organization_id, 204, util.getCurrentUTCTime(), function (err, data) {});
+                                    callback(false, true);
+                                }
+                            });
+                        }
+
+                        // 2 => Archive ID card activity
+
+                        // 2.1 => Update the status of the ID card activity 
+                        //        of the employee asset to archived
+                        // IN p_organization_id BIGINT(20), IN p_account_id SMALLINT(6), IN p_workforce_id BIGINT(20), 
+                        // IN p_activity_id BIGINT(20), IN p_activity_status_id BIGINT(20), 
+                        // IN p_activity_status_type_id SMALLINT(6), IN p_log_datetime DATETIME
+                        paramsArr = new Array(
+                            request.organization_id,
+                            request.account_id,
+                            request.workforce_id,
+                            request.activity_id,
+                            request.activity_status_id,
+                            request.activity_status_type_id,
+                            util.getCurrentUTCTime()
+                        );
+                        queryString = util.getQueryString('ds_p1_activity_list_update_status', paramsArr);
+                        if (queryString !== '') {
+                            db.executeQuery(0, queryString, request, function (err, data) {
+                                if (!err) {
+                                    // 2.2 => Insert ID card activity status alter log in history
+                                    // acitivityHistoryInsertToRemoveUserFromWorkforce(request, function () {});
+                                    activityCommonService.activityListHistoryInsert(request, 402, function (err, data) {});
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        });
+
+        // 2.3 => Update the status of the ID card activity of the 
+        // employee asset to archived for all the collaborator mappings
+        activityAssetMappingUpdateToRemoveUserFromWorkforce(request, function (err, data) {});
+
+
+    };
+    
+};
+
 module.exports = ActivityUpdateService;
