@@ -1494,6 +1494,181 @@ function ActivityUpdateService(objectCollection) {
         }
     };
     
+    this.removeEmployeetoDeskMapping = function (request, callback) {
+
+        // Revoke the access mapping of an employee asset from the desk asset
+        // 
+        global.logger.write('debug', 'Inside the removeEmployeetoDeskMapping service', {}, request);
+        request.datetime_log = util.getCurrentUTCTime();
+        if (request.hasOwnProperty('activity_inline_data')) {
+            var inlineJson = JSON.parse(request.activity_inline_data);
+            request.employee_asset_id = inlineJson.employee_asset_id;
+            request.employee_first_name = inlineJson.employee_first_name;
+            request.employee_last_name = inlineJson.employee_last_name;
+        } else {
+            request.activity_inline_data = "{'message': 'User leaves the organization'}";
+        }
+        var participantData;
+
+        // 1 => Operating asset details of employee desk
+        // 
+        // 1.1 => Reset the operating asset details for the employee desk asset
+        // 
+        resetOperatingAssetDetailsForDeskAsset(request, function (err, data) {
+            if (!err) {
+                // 1.2 => Insert operating asset reset log in history
+                // 
+                assetListHistoryInsert(request, request.desk_asset_id, request.organization_id, 211, util.getCurrentUTCTime(), function (err, data) {
+                    // 2 => Update status of employee desk
+                    // 
+                    // 2.1 => Update the status of the employee desk asset to employee access revoked
+                    revokeEmployeeAccessFromDeskAsset(request, function (err, data) {
+                        if (!err) {
+                            // 2.2 => Insert asset status alter log in history
+                            // 
+                            assetListHistoryInsert(request, request.desk_asset_id, request.organization_id, 207, util.getCurrentUTCTime(), function (err, data) {});
+
+                            // 2.3 => Insert entry in asset timeline of the employee desk asset
+                            // 
+                            participantData = {
+                                organization_id: request.organization_id,
+                                account_id: request.account_id,
+                                workforce_id: request.workforce_id,
+                                asset_id: request.desk_asset_id,
+                                message_unique_id: request.message_unique_id
+                            };
+                            activityCommonService.assetTimelineTransactionInsert(request, participantData, 11010, function (err, data) {
+                                if (!err) {
+
+                                }
+                            });
+                        }
+                    })
+                });
+
+                // 1.3 => Insert entry in asset timeline of the employee desk asset
+                // 
+                participantData = {
+                    organization_id: request.organization_id,
+                    account_id: request.account_id,
+                    workforce_id: request.workforce_id,
+                    asset_id: request.desk_asset_id,
+                    message_unique_id: request.message_unique_id
+                };
+                activityCommonService.assetTimelineTransactionInsert(request, participantData, 11010, function (err, data) {
+                    if (!err) {}
+                });
+            }
+        });
+
+        // 3 => Asset mapping for employee desk
+        // 
+        // Fetch user_mapping_id from the asset_access_mapping table.
+        getUserMappingID(request, function (err, user_mapping_id) {
+            if (!err) {
+                request.user_mapping_id = user_mapping_id;
+
+                // 3.1 => Archive the employee asset mapping of the employee desk asset
+                // 
+                archiveEmployeeAssetMappingForDeskAsset(request, function (err, data) {
+                    // 3.2 => Insert asset mapping archive log in history
+                    // 
+                    assetAccessMappingHistoryInsert(request, 302, function (err, data) {
+                        // 3.3 => Reset the operating asset details for the employee desk mappings to all 
+                        //        the non employee desks
+                        // 
+                        assetAccessMappingUpdateOperatingAsset(request, function (err, data) {
+                            // 3.4 => Record reset asset mapping log in the history table for the employee 
+                            //        desk mapping for all the non employee desk mappings
+                            // 
+                            // assetAccessMappingHistoryInsert(request, 302, function (err, data) {});
+
+                            // 3.5 => Insert entry in asset timeline of the employee desk asset
+                            // 
+                            participantData = {
+                                organization_id: request.organization_id,
+                                account_id: request.account_id,
+                                workforce_id: request.workforce_id,
+                                asset_id: request.desk_asset_id,
+                                message_unique_id: request.message_unique_id
+                            };
+                            activityCommonService.assetTimelineTransactionInsert(request, participantData, 11010, function (err, data) {
+                                if (!err) {
+
+                                    // Raise another queue event for processing the next service in the sequel
+                                    var event = {
+                                        name: "activityUpdateService",
+                                        service: "activityUpdateService",
+                                        method: "archiveAssetAndActivity",
+                                        payload: request
+                                    };
+
+                                    queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
+                                        if (err) {
+                                            console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
+                                            global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent", err, request);
+                                            throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+                                        } else {
+                                            console.log("archiveAssetAndActivity service raised: ", event);
+                                            global.logger.write('debug', "archiveAssetAndActivity service raised: ", event, request);
+                                        }
+                                    });
+                                }
+                            });
+                        })
+                    });
+                });
+
+
+            }
+        });
+
+        // 4 => Update the co-worker contact card activity of the operating asset
+        // 
+        getCoWorkerActivityId(request, function (err, coWorkerData) {
+            if (!err) {
+                var coWorkerActivityData = {
+                    activity_id: Number(coWorkerData[0].activity_id),
+                    organization_id: Number(coWorkerData[0].organization_id),
+                    account_id: Number(coWorkerData[0].account_id),
+                    workforce_id: Number(coWorkerData[0].workforce_id),
+                    asset_id: Number(coWorkerData[0].asset_id),
+                    operating_asset_id: Number(coWorkerData[0].operating_asset_id),
+                    datetime_log: util.getCurrentUTCTime(),
+                    message_unique_id: Number(request.message_unique_id)
+                };
+                console.log("coWorkerActivityData: ", coWorkerActivityData);
+                // 4.1 Reset the desk details in the inline data and also in the asset 
+                // columns in the row data of the co-worker contact card activity of the operating employee
+                // 
+                activityListUpdateOperatingAssetData(request, coWorkerActivityData, function (err, data) {
+                    if (!err) {
+                        // 4.2 => Insert co-worker contact card desk details reset log in history
+                        // 
+                        activityCommonService.activityListHistoryInsert(coWorkerActivityData, 406, function (err, data) {});
+
+                        // 4.3 => Reset the desk details in the inline data and also the asset columns in the row data of 
+                        // the co-worker contact card activity of the operating employee in all the collaborator mappings
+                        // 
+                        activityAssetMappingUpdateOperationAssetData(request, coWorkerActivityData, function (err, data) {});
+
+                        // 4.4 => Insert entry into the activity timeline of the co-worker contact card activity
+                        // 
+                        // Clone the request and update the activity_id to contact card's activity ID
+                        var newRequest = Object.assign({}, request);
+                        newRequest.activity_id = Number(coWorkerData[0].activity_id);
+
+                        activityCommonService.activityTimelineTransactionInsert(request, coWorkerActivityData, 11010, function () {});
+                    }
+
+                });
+            }
+
+        });
+
+        callback(false, true);
+
+    };
 };
 
 module.exports = ActivityUpdateService;
