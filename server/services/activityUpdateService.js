@@ -1938,6 +1938,30 @@ function ActivityUpdateService(objectCollection) {
             });
         }
     };
+
+    function workforceActivityStatusMappingSelectStatus(request, callback) {
+        // IN p_organization_id bigint(20), IN p_account_id bigint(20), 
+        // IN p_workforce_id bigint(20), IN p_activity_status_type_id SMALLINT(6)
+        var paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            9 // 9 => Inactive
+        );
+
+        var queryString = util.getQueryString('ds_v1_workforce_activity_status_mapping_select_status', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                //global.logger.write(queryString, request, 'asset', 'trace');
+                if (err === false) {
+                    callback(false, data);
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, false);
+                }
+            });
+        }
+    };
 };
 
 module.exports = ActivityUpdateService;
