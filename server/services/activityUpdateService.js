@@ -1917,6 +1917,27 @@ function ActivityUpdateService(objectCollection) {
         });
 
     };
+
+    function getIDCardActivityForEmployeeAsset(request, callback) {
+        // IN p_asset_id bigint(20), IN p_organization_id BIGINT(20)
+        var paramsArr = new Array(
+            request.asset_id,
+            request.organization_id
+        );
+
+        var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_asset_id_card', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                //global.logger.write(queryString, request, 'asset', 'trace');
+                if (err === false) {
+                    callback(false, data);
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, false);
+                }
+            });
+        }
+    };
 };
 
 module.exports = ActivityUpdateService;
