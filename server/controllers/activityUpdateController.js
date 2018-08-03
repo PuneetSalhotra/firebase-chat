@@ -575,6 +575,102 @@ function ActivityUpdateController(objCollection) {
             res.send(responseWrapper.getResponse(false, {}, -3301,req.body));
         }
     });
+
+    // Delete a user from the Organization/Workforce
+    app.put('/' + global.config.version + '/asset/access/workforce/reset', function (req, res) {
+        var deviceOsId = 0;
+        if (req.body.hasOwnProperty('device_os_id')) {
+            deviceOsId = Number(req.body.device_os_id);
+        }
+        // Get current datetime for logging
+        req['datetime_log'] = util.getCurrentUTCTime();
+
+        if ((util.hasValidGenericId(req.body, 'asset_message_counter')) && deviceOsId !== 5 && deviceOsId !== 6) {
+            cacheWrapper.checkAssetParity(req.body.asset_id, Number(req.body.asset_message_counter), function (err, status) {
+                if (err) {
+                    res.send(responseWrapper.getResponse(false, {
+                        activity_id: 0
+                    }, -7998, req.body));
+                } else {
+                    if (status) { // proceed
+                        console.log("calling deleteAccountFromWorkforce");
+                        global.logger.write('debug', 'calling deleteAccountFromWorkforce', {}, req.body);
+                        // Raise event
+                        initiateServiceToDeleteUserFromWorkforce(req.body, function (err, data) {
+                            if (!err) {
+                                res.send(responseWrapper.getResponse(false, data, 200, req.body));
+                            } else {
+                                // Message not produced to Kafka
+                                res.send(responseWrapper.getResponse(err, data, -5998, req.body));
+                            }
+                        });
+                    } else { // get the activity id using message unique id and send as response
+                        cacheWrapper.getMessageUniqueIdLookup(req.body.message_unique_id, function (err, activityId) {
+                            if (err) {
+                                res.send(responseWrapper.getResponse(false, {
+                                    activity_id: 0
+                                }, -7998, req.body));
+                            } else {
+                                res.send(responseWrapper.getResponse(false, {
+                                    activity_id: Number(activityId)
+                                }, 200, req.body));
+                            }
+                        });
+                    }
+                }
+            });
+        } else if (deviceOsId === 5 || deviceOsId === 6) {
+            // Raise event
+            initiateServiceToDeleteUserFromWorkforce(req.body, function (err, data) {
+                if (!err) {
+                    res.send(responseWrapper.getResponse(false, data, 200, req.body));
+                } else {
+                    // Message not produced to Kafka
+                    res.send(responseWrapper.getResponse(err, data, -5998, req.body));
+                }
+            });
+        } else {
+            res.send(responseWrapper.getResponse(false, {
+                activity_id: 0
+            }, -3304, req.body));
+        }
+
+        
+        function initiateServiceToDeleteUserFromWorkforce(reqBody, callback) {
+            var event = {
+                name: "activityUpdateService",
+                service: "activityUpdateService",
+                method: "populateDataForRemovingUserFromOrg",
+                payload: reqBody
+            };
+
+            queueWrapper.raiseActivityEvent(event, reqBody.asset_id, function (err, resp) {
+                if (err) {
+                    console.log('Error in queueWrapper raiseActivityEvent : ' + err)
+                    global.logger.write('serverError', 'Error in queueWrapper raiseActivityEvent', err, reqBody);
+                    callback(true, {})
+                } else {
+                    if (req.hasOwnProperty('device_os_id')) {
+                        if (Number(reqBody.device_os_id) !== 5) {
+                            //incr the asset_message_counter                        
+                            cacheWrapper.setAssetParity(reqBody.asset_id, reqBody.asset_message_counter, function (err, status) {
+                                if (err) {
+                                    console.log("error in setting in asset parity");
+                                    global.logger.write('serverError', 'error in setting in asset parity', err, reqBody);
+                                } else
+                                    console.log("asset parity is set successfully")
+                                    global.logger.write('debug', "asset parity is set successfully", {}, reqBody);
+
+                            });
+                        }
+                    }
+                    console.log("populateDataForRemovingUserFromOrg service raised: ", event);
+                    global.logger.write('debug', "populateDataForRemovingUserFromOrg service raised: ", event, reqBody);
+                    callback(false, {});
+                }
+            });
+        }
+    });
     
 }
 
