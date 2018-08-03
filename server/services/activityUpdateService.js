@@ -1715,6 +1715,21 @@ function ActivityUpdateService(objectCollection) {
         };
 
     }
+
+    function assetAccessMappingUpdateOperatingAsset(request, callback) {
+        // IN p_user_mapping_id  BIGINT(20),  IN p_user_asset_id BIGINT(20), IN p_log_datetime DATETIME
+        var paramsArr = new Array(
+            request.user_mapping_id,
+            request.employee_asset_id,
+            util.getCurrentUTCTime()
+        );
+        var queryString = util.getQueryString('ds_p1_asset_access_mapping_update_operating_asset', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                (!err) ? callback(false, {}, 200): callback(true, err, -9998);
+            });
+        };
+    }
 };
 
 module.exports = ActivityUpdateService;
