@@ -1,0 +1,19 @@
+#Author: V Nani Kalyan
+#Date: 02-Aug-2018
+#Description: yml file to run the Staging Mobile API Services
+version: 0.1
+os: linux
+files:
+  - source: .
+    destination: /api-efs/node/staging_bharat
+hooks:
+  BeforeInstall:
+    - location: deployment/install_dependencies.sh
+      timeout: 300
+  ApplicationStart:
+    - location: deployment/start_serverices.sh    
+      timeout: 300    
+  #ApplicationStop:
+    #- location: scripts/stop_server.sh
+     #  timeout: 300
+     # runas: root
