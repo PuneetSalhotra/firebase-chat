@@ -1874,6 +1874,49 @@ function ActivityUpdateService(objectCollection) {
             });
         }
     };
+
+    // Populate the ID Card details in the request body
+    this.populateDataForRemovingUserFromOrg = function (request, callback) {
+        // Get the ID Card Activity Details
+        getIDCardActivityForEmployeeAsset(request, function (err, data) {
+            if (!err) {
+                request.activity_id = Number(data[0].activity_id);
+                request.activity_inline_data = data[0].activity_inline_data;
+                request.activity_type_category_id = Number(data[0].activity_type_category_id);
+                request.activity_status_type_id = 9;
+                request.desk_asset_status_id = 1;
+
+                workforceActivityStatusMappingSelectStatus(request, function (err, data) {
+                    if (!err) {
+                        request.activity_status_id = Number(data[0].activity_status_id);
+                        request.activity_status_type_id = Number(data[0].activity_status_type_id);
+                        // Raise another queue event for processing the next service in the sequel
+                        var event = {
+                            name: "activityUpdateService",
+                            service: "activityUpdateService",
+                            method: "removeEmployeetoDeskMapping",
+                            payload: request
+                        };
+
+                        queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
+                            if (err) {
+                                console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
+                                global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent", err, request);
+                                throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+                            } else {
+                                console.log("removeEmployeetoDeskMapping service raised: ", event);
+                                global.logger.write('debug', "removeEmployeetoDeskMapping service raised: ", event, request);
+                                callback(false, request)
+                            }
+                        });
+
+                        // callback(false, request)
+                    }
+                });
+            }
+        });
+
+    };
 };
 
 module.exports = ActivityUpdateService;
