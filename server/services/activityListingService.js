@@ -1376,7 +1376,7 @@ function ActivityListingService(objCollection) {
                 "activity_id": util.replaceDefaultNumber(rowData['activity_id']),
                 "activity_title": util.replaceDefaultString(util.ucfirst(util.decodeSpecialChars(rowData['activity_title']))),
                 "activity_description": util.replaceDefaultString(util.decodeSpecialChars(rowData['activity_description'])),
-                "activity_inline_data": JSON.parse(util.replaceDefaultString(rowData['activity_inline_data'])),
+                "activity_inline_data": JSON.parse(util.replaceDefaultJSON(rowData['activity_inline_data'])),
                 "activity_type_id": util.replaceDefaultNumber(rowData['activity_type_id']),
                 "activity_type_name": (util.replaceDefaultString(rowData['activity_type_id']) === 1) ? 'Personal ' : util.replaceDefaultString(rowData['activity_type_name']),
                 "activity_type_category_id": util.replaceDefaultNumber(rowData['activity_type_category_id']),
@@ -1466,7 +1466,8 @@ function ActivityListingService(objCollection) {
                 "activity_rating_lead_ownership": util.replaceDefaultNumber(rowData['activity_rating_lead_ownership']),
                 "activity_rating_lead_completion": util.replaceDefaultNumber(rowData['activity_rating_lead_completion']),
                 "activity_rating_lead_timeliness": util.replaceDefaultNumber(rowData['activity_rating_lead_timeliness']),
-                "activity_flag_file_enabled":util.replaceDefaultNumber(rowData['activity_flag_file_enabled'])
+                "activity_flag_file_enabled":util.replaceDefaultNumber(rowData['activity_flag_file_enabled']),
+                "count":util.replaceDefaultNumber(rowData['count'])
 
             };
             responseData.push(rowDataArr);

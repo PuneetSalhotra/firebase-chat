@@ -532,6 +532,13 @@ function Util() {
         else
             return value;
     };
+    
+    this.replaceDefaultJSON = function (value) {
+        if (value === undefined || value === null || value === '')
+            return {};
+        else
+            return value;
+    };
 
     this.replaceDefaultDatetime = function (value) {
         if (value === undefined || value === null || value === '' || value === '1970-01-01' || value === '1970-01-01 00:00:00')
