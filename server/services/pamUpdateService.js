@@ -358,7 +358,7 @@ function PamUpdateService(objectCollection) {
 	                                    next();
 	                                });
                                 }else{
-                                	console.log("NO Inventory for Ingredient: "+row.ingredient_asset_id)
+                                	console.log("****NO Inventory for Ingredient: "+row.ingredient_asset_id)
                                 	next();
                                 }
                                
