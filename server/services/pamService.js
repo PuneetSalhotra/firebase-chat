@@ -1051,6 +1051,10 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
         var maxIndex = activityParticipantCollection.length - 1;
         //var maxIndex = request.activity_participant_collection.length - 1;
         iterateAddParticipant(activityParticipantCollection, index, maxIndex, function (err, data) {
+             if(activityTypeCategroyId == 37) {                    
+                  var newRequest = Object.assign({}, request);
+                  activityCommonService.sendSmsCodeParticipant(newRequest, function(err, data){});
+              }
             if (err === false && data === true) {
                 if (maxIndex === index) {
                     activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
@@ -1558,8 +1562,9 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                 isMember = 1;
                 response.asset_id = data[0].asset_id;
                 response.asset_first_name = data[0].asset_first_name;
-                response.asset_last_name = data[0].asset_last_name;
-                response.asset_phone_passcode = data[0].asset_phone_passcode;                
+                response.asset_last_name = data[0].asset_last_name;                
+                response.asset_phone_passcode = data[0].asset_phone_passcode;     
+                response.asset_qrcode_image_path = data[0].asset_qrcode_image_path; 
                 response.is_personal_code = 1;
             }
                 
@@ -2238,6 +2243,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, resp) {
                     if (err === false) {
+                      	activityCommonService.activityListHistoryInsert(request, 413, function (err, result) {});
                         activityCommonService.getActivityDetails(request, 0, function(err, data){
                             if(err === false){
                                 activityStatusId = data[0].activity_status_id;
@@ -2321,6 +2327,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, resp) {
                     if (err === false) {
+                       	activityCommonService.activityListHistoryInsert(request, 414, function (err, result) {});
                         activityCommonService.getActivityDetails(request, 0, function(err, data){
                             if(err === false){                     
                                 
@@ -2666,7 +2673,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
    
     generateUniqueCode = function(request, callback) {
           function generateCode() { //personal code
-                var phoneCode = util.randomInt(1000,5000).toString();                
+                var phoneCode = util.randomInt(10001,49999).toString();                
                 checkingFourDgtUniqueCode(request,phoneCode, (err, data)=>{
                     (err === false) ? callback(false, data) : generateCode();                    
                 });

@@ -189,7 +189,7 @@ function PamListingService(objectCollection) {
     
     this.eventReport = function(request, callback) {
         callback(false,{}, 200);
-    };
+    };        
 }
 ;
 

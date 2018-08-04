@@ -1449,18 +1449,24 @@ function ActivityCommonService(db, util, forEachAsync) {
                          console.log('phoneNumber : ', phoneNumber);
                          
                          var expiryDateTime = util.addUnitsToDateTime(util.replaceDefaultDatetime(request.event_start_datetime),5.5,'hours');
-                         expiryDateTime = util.getDatewithndrdth(expiryDateTime);
+                         //expiryDateTime = util.getDatewithndrdth(expiryDateTime);
+                         expiryDateTime = util.getFormatedSlashDate(expiryDateTime);
                          
                          if(request.hasOwnProperty('reserv_at_item_order')) {
                             text = "Dear "+memberName+","+" Your code was used to make an order a few minutes ago.";
                              text += " If you are not at Pudding & Mink right now, please whatsapp / call us at 916309386175 immediately. Pudding & Mink";
                          } else {
-                            text = "Dear "+memberName+","+" I have reserved table number "+tableNames+" for your group tonight, your reservation code is "+reservationCode+".";
+                            /*text = "Dear "+memberName+","+" I have reserved table number "+tableNames+" for your group tonight, your reservation code is "+reservationCode+".";
                              text += " Feel free to forward this message to your other "+noOfGuests+" guests, they can use the same code to enter.";
                              text += " Remember the entry is only from the parking garage @ Radisson Blu Banjara Hills. Looking forward to hosting your group on ";
                              text += expiryDateTime + ".";
                              //text += " PS - I will be forced to release the table block if no one shows up before "+expiryDatetime+"."+" -PAM";
-                             text += " Pudding & Mink";                             
+                             text += " Pudding & Mink";*/
+                             
+                             text = "Dear "+memberName+","+" Thank you for patronizing PUDDING & MINK! \nTable number "+tableNames+" is reserved for you/ your group on "+expiryDateTime+".";
+                             text += " Your reservation code is "+reservationCode+"."+" Do feel free to forward this message to your other guests, so they may use the same code to enter. \nPlease note the entry is from the parking level @ Radisson Blu Plaza, Banjara Hills.";
+                             text += " Your reservation will be forfeited at 12am if no one from the group is present. \nWe look forward to hosting you/ your group. \nAssuring you of a great experience, \nPUDDING & MINK !!";
+
                          }
                          console.log('SMS text : \n', text);
                          util.pamSendSmsMvaayoo(text, countryCode, phoneNumber, function(err,res){

@@ -196,7 +196,7 @@ function PamUpdateController(objCollection) {
             return;
         }
 
-    });
+    }); 
 }
 
 module.exports = PamUpdateController;
