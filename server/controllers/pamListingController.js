@@ -48,6 +48,11 @@ function PamListingController(objCollection) {
         });
     });
     
+    app.post('/' + global.config.version + '/pam/event/payment/export', function (req, res) {
+        res.send(responseWrapper.getResponse(false, {}, 200, req.body));
+    });
+
+    
     app.post('/' + global.config.version + '/pam/asset/timeline/list', function (req, res) {
         pamListingService.assetTimeline(req.body, function (err, data, statusCode) {
             if (err === false) {    
