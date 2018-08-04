@@ -1447,20 +1447,28 @@ function ActivityCommonService(db, util, forEachAsync) {
                          console.log('memberName : ', memberName);
                          console.log('countryCode: ', countryCode);
                          console.log('phoneNumber : ', phoneNumber);
+                         console.log('tableNames : ', tableNames);
                          
                          var expiryDateTime = util.addUnitsToDateTime(util.replaceDefaultDatetime(request.event_start_datetime),5.5,'hours');
-                         expiryDateTime = util.getDatewithndrdth(expiryDateTime);
+                         //expiryDateTime = util.getDatewithndrdth(expiryDateTime);
+                         expiryDateTime = util.getFormatedSlashDate(expiryDateTime);
                          
                          if(request.hasOwnProperty('reserv_at_item_order')) {
                             text = "Dear "+memberName+","+" Your code was used to make an order a few minutes ago.";
                              text += " If you are not at Pudding & Mink right now, please whatsapp / call us at 916309386175 immediately. Pudding & Mink";
                          } else {
+                        	 /*
                             text = "Dear "+memberName+","+" I have reserved table number "+tableNames+" for your group tonight, your reservation code is "+reservationCode+".";
                              text += " Feel free to forward this message to your other "+noOfGuests+" guests, they can use the same code to enter.";
                              text += " Remember the entry is only from the parking garage @ Radisson Blu Banjara Hills. Looking forward to hosting your group on ";
                              text += expiryDateTime + ".";
                              //text += " PS - I will be forced to release the table block if no one shows up before "+expiryDatetime+"."+" -PAM";
-                             text += " Pudding & Mink";                             
+                             text += " Pudding & Mink"; */          
+                        	 
+	                       	  text = "Dear "+memberName+","+" Thank you for patronizing PUDDING & MINK! \nTable number "+tableNames+" is reserved for you/ your group on "+expiryDateTime+".";
+	                    	  text += " Your reservation code is "+reservationCode+"."+" Do feel free to forward this message to your other guests, so they may use the same code to enter. \nPlease note the entry is from the parking level @ Radisson Blu Plaza, Banjara Hills.";
+	                    	  text += " Your reservation will be forfeited at 12am if no one from the group is present. \nWe look forward to hosting you/ your group. \nAssuring you of a great experience, \nPUDDING & MINK !!";
+
                          }
                          console.log('SMS text : \n', text);
                          util.pamSendSmsMvaayoo(text, countryCode, phoneNumber, function(err,res){
@@ -1688,6 +1696,85 @@ function ActivityCommonService(db, util, forEachAsync) {
         });
         
     };
+    
+    this.getAllParticipantsforField = function (request, activityId, fieldId){
+        return new Promise((resolve, reject)=>{
+     	   var paramsArr = new Array(
+					request.organization_id,
+					request.account_id,
+					activityId,
+					41,
+					0,
+					50,
+					fieldId
+				   );
+            var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_participants_option', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data) : reject(err);
+                });
+            }
+        });        
+    };
+    
+  this.assetActivityListHistoryInsertField = function (request, assetId, fieldId, updateTypeId) {
+        if (assetId === 0) {
+            assetId = request.asset_id;
+        }
+        var paramsArr = new Array(
+                request.organization_id,
+                request.activity_id,
+                assetId,
+                fieldId,
+                updateTypeId,
+                request.datetime_log // server log date time
+                );
+
+        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_history_insert_field', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                (err === false) ? resolve(data) : reject(err);
+            });
+        }
+    };
+
+
+    this.orderIngredientsAssign = function (request, participantData) {
+        
+        //console.log('In function activityAssetMappingInsertParticipantAssign - participantData : ', participantData);
+ 	   return new Promise((resolve, reject)=>{
+        	var fieldId = 0;
+        var paramsArr = new Array(
+                request.activity_id,
+                participantData.asset_id,
+                participantData.workforce_id,
+                participantData.account_id,
+                participantData.organization_id,
+                participantData.access_role_id,
+                participantData.message_unique_id,
+                request.flag_retry,
+                request.flag_offline,
+                request.asset_id,
+                request.datetime_log,
+                participantData.field_id,
+                participantData.activity_sub_type_name,
+                participantData.activity_sub_type_id,
+                participantData.option_id,
+                participantData.parent_activity_title
+                );
+        var queryString = util.getQueryString("ds_v1_activity_asset_mapping_insert_asset_assign_pam", paramsArr);
+
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                if (err === false) {
+                    resolve(data)
+                } else {
+                    reject(err);
+                }
+            });
+        }
+ 	   });
+    };  
 
 }
 ;

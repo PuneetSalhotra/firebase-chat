@@ -190,6 +190,267 @@ function PamListingService(objectCollection) {
     this.eventReport = function(request, callback) {
         callback(false,{}, 200);
     };
+    
+    this.assetTimeline = function (request, callback) {
+        var logDatetime = util.getCurrentUTCTime();
+        request['datetime_log'] = logDatetime;
+
+        var paramsArr = new Array(
+                request.organization_id,
+                request.target_asset_id,
+                request.timeline_transaction_id,
+                request.flag_previous,
+                request.page_start,
+                util.replaceQueryLimit(request.page_limit)
+                );
+        var queryString = util.getQueryString('ds_v1_asset_timeline_transaction_select_differential', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (err === false) {
+                    formatAssetTimelineList(data, function (err, responseData) {
+                        if (err === false) {
+                            callback(false, {data: responseData}, 200);
+                        } else {
+                            callback(false, {}, -9999)
+                        }
+                    });
+                    return;
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, false, -9999);
+                    return;
+                }
+            });
+        } else {
+            callback(false, {}, -3303);
+        }
+
+    };
+    
+    var formatAssetTimelineList = function (data, callback) {
+        var responseData = new Array();
+        forEachAsync(data, function (next, rowData) {
+            var rowDataArr = {};
+            rowDataArr.activity_id = util.replaceDefaultNumber(rowData['activity_id']);
+            rowDataArr.activity_type_id = util.replaceDefaultNumber(rowData['activity_type_id']);
+            rowDataArr.activity_type_category_id = util.replaceDefaultNumber(rowData['activity_type_category_id']);
+            rowDataArr.timeline_transaction_id = util.replaceDefaultNumber(rowData['timeline_transaction_id']);
+            rowDataArr.timeline_transaction_datetime = util.replaceDefaultDatetime(rowData['timeline_transaction_datetime']);
+            rowDataArr.timeline_stream_type_id = util.replaceDefaultNumber(rowData['timeline_stream_type_id']);
+            rowDataArr.timeline_stream_type_name = util.replaceDefaultString(rowData['timeline_stream_type_name']);
+            rowDataArr.asset_id = util.replaceDefaultNumber(rowData['asset_id']);
+            rowDataArr.asset_first_name = util.replaceDefaultString(rowData['asset_first_name']);
+            rowDataArr.asset_last_name = util.replaceDefaultString(rowData['asset_last_name']);
+            rowDataArr.asset_image_path = util.replaceDefaultString(rowData['asset_image_path']);
+            rowDataArr.workforce_id = util.replaceDefaultNumber(rowData['workforce_id']);
+            rowDataArr.workforce_name = util.replaceDefaultString(rowData['workforce_name']);
+            rowDataArr.account_id = util.replaceDefaultNumber(rowData['account_id']);
+            rowDataArr.account_name = util.replaceDefaultString(rowData['account_name']);
+            rowDataArr.organization_id = util.replaceDefaultNumber(rowData['organization_id']);
+            rowDataArr.organization_name = util.replaceDefaultString(rowData['organization_name']);
+            rowDataArr.datetime_log = util.replaceDefaultDatetime(rowData['log_datetime']);
+            rowDataArr.message_unique_id = rowData['log_message_unique_id'];
+            rowDataArr.activity_timeline_text = util.replaceDefaultString(rowData['data_entity_text_1']);
+            rowDataArr.activity_timeline_url = '';
+            rowDataArr.activity_timeline_collection = {};
+            rowDataArr.activity_timeline_url_title = '';
+            rowDataArr.log_message_unique_id = util.replaceDefaultNumber(rowData['log_message_unique_id']);
+            rowDataArr.log_retry = util.replaceDefaultNumber(rowData['log_retry']);
+            rowDataArr.log_offline = util.replaceDefaultNumber(rowData['log_offline']);
+            rowDataArr.log_asset_id = util.replaceDefaultNumber(rowData['log_asset_id']);
+            rowDataArr.log_asset_first_name = util.replaceDefaultString(rowData['log_asset_first_name']);
+            rowDataArr.log_asset_last_name = util.replaceDefaultString(rowData['log_asset_last_name']);
+            rowDataArr.log_asset_image_path = util.replaceDefaultString(rowData['log_asset_image_path']);
+            rowDataArr.log_datetime = util.replaceDefaultDatetime(rowData['log_datetime']);
+
+            responseData.push(rowDataArr);
+            next();
+        }).then(function () {
+            callback(false, responseData);
+        });
+
+    };
+    
+    this.getFavouriteOrdersOfMember = function(request){
+    	 return new Promise((resolve, reject)=>{
+	        var paramsArr = new Array(
+	            request.organization_id,
+	            request.account_id,
+	            request.workforce_id, 
+	            request.target_asset_id, 
+	            request.start_limit,
+	            request.end_limit
+	            );
+	            var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_member_favourites', paramsArr);
+	            if (queryString != '') {
+	                db.executeQuery(1, queryString, request, function (err, data) {
+	                	console.log("err "+err);
+	                   if(err === false) {
+	                	   formatMemberOrdersData(data).then((finalData)=>{
+	                		   resolve(data);
+	                        });
+	                       
+	                   } else {
+	                       reject(err);
+	                   }
+	                });
+	            }
+    	 });
+    };
+    
+    function formatMemberOrdersData(data){
+        return new Promise((resolve, reject)=>{
+            var responseArr = new Array();
+            forEachAsync(data, function (next, row) {
+                var rowData = {
+                    'count': util.replaceDefaultNumber(row['count']),
+                    'activity_title': util.replaceDefaultString(row['activity_tite']),
+                  
+                };
+                responseArr.push(rowData);
+                next();
+            }).then(() => {
+                resolve(responseArr);
+            });
+        });        
+    };
+    
+    this.getCategoryActivitiesOfAsset = function(request){
+   	 return new Promise((resolve, reject)=>{
+	        var paramsArr = new Array(
+	            request.organization_id,
+	            request.account_id,
+	            request.target_asset_id, 
+	            request.activity_type_category_id, 
+	            request.is_search,
+	            request.search_string,
+	            request.start_limit,
+	            request.end_limit
+	            );
+	            var queryString = util.getQueryString('ds_v1_1_activity_asset_mapping_select_asset_category', paramsArr);
+	            if (queryString != '') {
+	                db.executeQuery(1, queryString, request, function (err, data) {
+	                	console.log("err "+err);
+	                   if(err === false) {
+	                	   //formatMemberOrdersData(data).then((finalData)=>{
+	                		   resolve(data);
+	                       // });
+	                       
+	                   } else {
+	                       reject(err);
+	                   }
+	                });
+	       }
+   	 });
+   };
+   
+   this.getActivityParticipantsCategory = function(request){
+	   	 return new Promise((resolve, reject)=>{
+		        var paramsArr = new Array(
+		        		request.organization_id,
+			            request.account_id,
+			            request.activity_id, 
+			            request.asset_type_category_id, 
+			            request.is_search,
+			            request.search_string,
+			            request.start_limit,
+			            request.end_limit
+		            );
+		            var queryString = util.getQueryString('ds_v1_1_activity_asset_mapping_select_participants_category', paramsArr);
+		            if (queryString != '') {
+		                db.executeQuery(1, queryString, request, function (err, data) {
+		                	console.log("err "+err);
+		                   if(err === false) {
+		                	   //formatMemberOrdersData(data).then((finalData)=>{
+		                		   resolve(data);
+		                       // });
+		                       
+		                   } else {
+		                       reject(err);
+		                   }
+		                });
+		       }
+	   	 });
+	   };
+	   
+	   this.getActivityListCategory = function(request){
+		   	 return new Promise((resolve, reject)=>{
+			        var paramsArr = new Array(
+			        		request.organization_id,
+				            request.account_id,
+				            request.workforce_id, 
+				            request.activity_type_category_id, 
+				            request.is_search,
+				            request.search_string,
+				            request.start_limit,
+				            request.end_limit
+			            );
+			            var queryString = util.getQueryString('ds_v1_activity_list_select_category', paramsArr);
+			            if (queryString != '') {
+			                db.executeQuery(1, queryString, request, function (err, data) {
+			                	console.log("err "+err);
+			                   if(err === false) {
+			                	   //formatMemberOrdersData(data).then((finalData)=>{
+			                		   resolve(data);
+			                       // });
+			                       
+			                   } else {
+			                       reject(err);
+			                   }
+			                });
+			       }
+		   	 });
+		   };
+		   
+		   this.getMemberEventVisitHistory = function(request){
+			   	 return new Promise((resolve, reject)=>{
+				        var paramsArr = new Array(
+				        		request.organization_id,
+					            request.account_id,
+					            request.target_asset_id, 
+					            request.is_date,
+					            request.event_date,
+					            request.is_total,
+					            request.start_limit,
+					            request.end_limit
+				            );
+				            var queryString = util.getQueryString('pm_v1_pam_event_billing_select', paramsArr);
+				            if (queryString != '') {
+				                db.executeQuery(1, queryString, request, function (err, data) {
+				                	console.log("err "+err);
+				                   if(err === false) {
+				                	   if(request.is_total == 0){
+				                	   formatMemberHistoryData(data).then((finalData)=>{
+			                		   resolve(finalData);
+			                        });	  
+				                	   }else{
+				                		   resolve(data);
+				                	   }
+				                   } else {
+				                       reject(err);
+				                   }
+				                });
+				       }
+			   	 });
+			   };
+			   
+			    function formatMemberHistoryData(data){
+			        return new Promise((resolve, reject)=>{
+			            var responseArr = new Array();
+			            forEachAsync(data, function (next, row) {
+			                var rowData = {
+			                    'event_id': util.replaceDefaultNumber(row['event_id']),
+			                    'event_name': util.replaceDefaultString(row['event_name']),
+			                    'event_date': util.replaceDefaultDate(row['event_date']),
+			                	'event_bill': util.replaceDefaultString(row['event_bill'])			                  
+			                };
+			                responseArr.push(rowData);
+			                next();
+			            }).then(() => {
+			                resolve(responseArr);
+			            });
+			        });        
+			    };
 }
 ;
 
