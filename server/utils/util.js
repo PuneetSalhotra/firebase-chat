@@ -562,6 +562,11 @@ function Util() {
         var value = moment(timeString).format("YYYY-MM-DD");
         return value;
     };
+    
+    this.getFormatedSlashDate = function (timeString) {
+        var value = moment(timeString).format("DD/MM/YYYY");
+        return value;
+    };
 
     this.getFormatedLogTime = function (timeString) {
         var value = moment(timeString).format("HH:mm:ss");
