@@ -339,14 +339,10 @@ function PamUpdateService(objectCollection) {
         return new Promise((resolve, reject) => {
             //activityCommonService.getActivityDetails(request,0,function(err, data){
             getItemOrderStation(request).then((data) => {
-                
                 console.log('menu_activity_id : ', data[0].channel_activity_id);
                 console.log('station_id : ', data[0].asset_id);
                 request.menu_activity_id = data[0].channel_activity_id;
                 request.station_id = data[0].asset_id;
-                
-                //item_choice_price_tax
-                
                 getAllIngrediants(request).then((ingredients) => {
                     if (ingredients.length > 0) {
                         console.log('Ingredients : ', ingredients)
@@ -355,11 +351,17 @@ function PamUpdateService(objectCollection) {
                             getAllInventoriesOfIngre(request, row).then((updatedInvs) => {
                                 console.log('===========================');
                                 console.log('Temp Array : ', updatedInvs);
-                                updateIngrInvQty(request, updatedInvs).then(() => {
-                                    updateIngrInvQtyAllParticipants(request, updatedInvs).then(() => {
-                                    });
-                                    next();
-                                });
+                                if(updatedInvs.length > 0){
+	                                updateIngrInvQty(request, updatedInvs).then(() => {
+	                                    updateIngrInvQtyAllParticipants(request, updatedInvs).then(() => {
+	                                    });
+	                                    next();
+	                                });
+                                }else{
+                                	console.log("****NO Inventory for Ingredient: "+row.ingredient_asset_id)
+                                	next();
+                                }
+                               
                             });
                         });
                     }
@@ -372,54 +374,43 @@ function PamUpdateService(objectCollection) {
         return new Promise((resolve, reject) => {
             var paramsArr = new Array();
             var queryString = '';
-            activityCommonService.getActivityDetails(request, 0, function(err, resultData){
-                if(err === false) {
-                    var data = JSON.parse(resultData[0].activity_inline_data);
-
-                    paramsArr = new Array(
-                        request.organization_id,
-                        request.account_id,
-                        request.menu_activity_id,
-                        41, //request.asset_type_category_id,
-                        request.page_start || 0,
-                        util.replaceQueryLimit(request.page_limit),
-                        data.option_id
-                        );
-                    queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_participants_option', paramsArr);
-                    //queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_participants_category', paramsArr);
-                    if (queryString != '') {
-                        db.executeQuery(1, queryString, request, function (err, data) {
-                            if (err === false) {
-                                //console.log('DAta in ingredients : ', data);
-                                if (data.length > 0) {
-                                    var ingredients = new Array();
-                                    forEachAsync(data, function (next, x) {
-                                        var items = {
-                                            'ingredient_asset_id': x.asset_id,
-                                            'channel_activity_type_category_id': x.channel_activity_type_category_id,
-                                            'activity_sub_type_id': x.activity_sub_type_id
-                                        };
-                                        ingredients.push(items);
-                                        next();
-                                    }).then(() => {
-                                        if (ingredients.length > 0) {
-                                            ingredients = util.getUniqueValuesOfArray(ingredients);
-                                        }
-                                        resolve(ingredients);
-                                    });
+            paramsArr = new Array(
+                    request.organization_id,
+                    request.account_id,
+                    request.activity_id,
+                    41, //request.asset_type_category_id,
+                    request.page_start || 0,
+                    util.replaceQueryLimit(request.page_limit)
+                    );
+            queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_participants_category', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    if (err === false) {
+                        //console.log('DAta in ingredients : ', data);
+                        if (data.length > 0) {
+                            var ingredients = new Array();
+                            forEachAsync(data, function (next, x) {
+                            	var requiredInventory=x.activity_sub_type_id*x.activity_priority_enabled;
+                                var items = {
+                                    'ingredient_asset_id': x.asset_id,
+                                    'channel_activity_type_category_id': x.channel_activity_type_category_id,
+                                    'activity_sub_type_id': requiredInventory
+                                };
+                                ingredients.push(items);
+                                next();
+                            }).then(() => {
+                                if (ingredients.length > 0) {
+                                    ingredients = util.getUniqueValuesOfArray(ingredients);
                                 }
-                            }
-                        });
+                                resolve(ingredients);
+                            });
+                        }
                     }
-                } else {
-                    
-                }
-                
-            });
-            
+                });
+            }
         });
     }
-    
+
     function getAllInventoriesOfIngre(request, ingredients) {
         return new Promise((resolve, reject) => {
             var inventories = new Array();
@@ -444,12 +435,13 @@ function PamUpdateService(objectCollection) {
                         console.log('inventories data: ', data);
                         if (data.length > 0) {
                             updatingInventoryQtys(ingredients.activity_sub_type_id, data).then((updatedInv) => {
-                                resolve(updatedInv)
+                                resolve(updatedInv);
                             }).catch(()=>{
                                 console.log('Error occurred in performing the deductions of inventory quantity');
                                 reject('Error occurred in performing the deductions of inventory quantity');
                             });
                         } else {
+                        	resolve('');
                         }
 
                     } else {
@@ -512,6 +504,10 @@ function PamUpdateService(objectCollection) {
                 if (queryString != '') {
                     db.executeQuery(0, queryString, request, function (err, data) {
                         if (err === false) {
+                        	request.activity_id = row.activity_id;
+                        	activityCommonService.activityListHistoryInsert(request, 416, function (err, restult) {
+
+                            });
                             next();
                         } else {
                             reject(err);
@@ -676,6 +672,68 @@ function PamUpdateService(objectCollection) {
         });
     };
     
+    this.activityListUpdateEventCovers = function (request) {
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.activity_id,
+                request.male_covers,
+                request.female_covers,
+                request.datetime_log,
+                request.asset_id
+                );
+            var queryString = util.getQueryString("ds_v1_activity_list_update_event_covers", paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {                  
+                   if(err === false){
+                	   activityCommonService.activityListHistoryInsert(request, 415, function(err, resp){});
+                	   resolve();
+                   }else{
+                	   reject(err);
+                   }
+                });
+            }
+        })
+    }
+    
+    this.activityAssetMappingUpdateEventCovers = function (request){
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array();
+            activityCommonService.getAllParticipants(request, function (err, participantsData) {
+                if (err === false) {
+                    participantsData.forEach(function (rowData, index) {
+                        paramsArr = new Array(   
+                                request.organization_id,
+                                request.account_id,
+                                request.workforce_id,
+                                request.activity_id,
+                                rowData['asset_id'],
+                                request.male_covers,
+                                request.female_covers,
+                                request.datetime_log,
+                                request.asset_id
+                                );
+                        queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_event_covers', paramsArr);
+                        db.executeQuery(0, queryString, request, function (error, queryResponse) {
+                        	//console.log("*******************error in service "+error);
+                        	if(error == false){
+                        		//reject(err);
+                        	}else{
+                        		console.log("*******************error in service"+err);
+                        		reject(err);
+                        	}
+                        });
+                    }, this);
+                    resolve();                
+                } else {
+                    reject(err);
+                }
+            });
+        });      
+    };
+
 }
 ;
 module.exports = PamUpdateService;

@@ -151,12 +151,12 @@ function ActivityService(objectCollection) {
                             if(activityTypeCategroyId === 10 && Number(request.activity_sub_type_id) === 1) {
                                 updateTaskCreatedCnt(request).then(()=>{});                                
                             }
-                            // do the timeline transactions here..          
                             
+                            // do the timeline transactions here..                    
                             if(activityTypeCategroyId === 38){                            	
                             	addIngredients(request);                            	
                             }
-
+                            
                             activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
 
                             });

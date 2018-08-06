@@ -389,6 +389,38 @@ function PamController(objCollection) {
             res.send(responseWrapper.getResponse(false, {}, -3301,req.body));
         }
     });
+        
+    app.post('/' + global.config.version + '/pam/asset/timeline/entry/add', function (req, res) {
+     		console.log(req.body);
+    		pamService.insertAssetTimeline(req.body, function (err, data, statusCode) {
+                if (err === false) {    
+                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                } else {                
+                    data = {};
+                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                }
+            });
+        
+    });
+    
+    app.put('/' + global.config.version + '/pam/asset/desc/alter', function (req, res) {
+        pamService.assetListUpdateDesc(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    app.put('/' + global.config.version + '/asset/activate/alter', function (req, res) {
+    	pamService.deactivateAsset(req.body).then((data)=>{    		
+    		res.send(responseWrapper.getResponse(data, {}, 200, req.body));    	
+    	}).catch((err) => {        	
+        	res.send(responseWrapper.getResponse(err, {}, -999, req.body));
+        	});
+    		
+        });
 }
 ;
 module.exports = PamController;
