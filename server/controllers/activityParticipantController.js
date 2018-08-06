@@ -241,11 +241,11 @@ function ActivityParticipantController(objCollection) {
                                 }
                             }
                             res.send(responseWrapper.getResponse(false, {}, 200,req.body));
-                            return;
+                            // return;
                         }
                 });
             res.send(responseWrapper.getResponse(false, {}, 200,req.body));
-            return;
+            // return;
         };
         if (util.hasValidActivityId(req.body)) {
             if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5) {
