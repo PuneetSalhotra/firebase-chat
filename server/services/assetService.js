@@ -867,7 +867,7 @@ function AssetService(objectCollection) {
 
                 }
                 break;
-            case 2: //Make a call                 
+            case 2: //Make a call                
                 fs.readFile(`${__dirname}/../utils/phoneCall.txt`, function (err, data) {
                     (err) ? console.log(err): phoneCall = Number(data.toString());
 
@@ -1177,7 +1177,7 @@ function AssetService(objectCollection) {
                             newRequest.activity_sub_type_id = 1;
                             newRequest.activity_type_id = 46458;
                             newRequest.activity_access_role_id =26;
-                            newRequest.activity_parent_id = 95670;
+                            newRequest.activity_parent_id = 95670;  //PROD - 95670 ; Staging - 93256
                             newRequest.url = "/add/activity/";
                             //activity_status_id:83846
                             //activity_status_type_id:17

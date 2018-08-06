@@ -2244,6 +2244,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                 db.executeQuery(0, queryString, request, function (err, resp) {
                 	activityCommonService.activityListHistoryInsert(request, 413, function (err, result) {});
                     if (err === false) {
+                      	activityCommonService.activityListHistoryInsert(request, 413, function (err, result) {});
                         activityCommonService.getActivityDetails(request, 0, function(err, data){
                             if(err === false){
                                 activityStatusId = data[0].activity_status_id;
@@ -2328,6 +2329,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
             db.executeQuery(0, queryString, request, function (err, resp) {
             	activityCommonService.activityListHistoryInsert(request, 414, function (err, result) {});
                     if (err === false) {
+                       	activityCommonService.activityListHistoryInsert(request, 414, function (err, result) {});
                         activityCommonService.getActivityDetails(request, 0, function(err, data){
                             if(err === false){                     
                                 

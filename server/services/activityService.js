@@ -255,7 +255,9 @@ function ActivityService(objectCollection) {
 
                             }// end parent activity id condition
                             
-                            if(request.activity_parent_id == 93256) { //For Marketing Manager reference
+                            console.log('request - ', request);
+                            
+                            if(request.activity_parent_id == 95670) { //For Marketing Manager reference //PROD - 95670 ; Staging - 93256
                                 //Create a timeline entry on this task
                                 setTimeout(function(){
                                               console.log('Delayed for 2s');
@@ -1156,16 +1158,18 @@ function ActivityService(objectCollection) {
         activityListUpdateStatus(request, function (err, data) {
             if (err === false) {
                 //PAM
-                /*if(activityTypeCategroyId == 38) {
+                if(activityTypeCategroyId == 38) {
                     switch(Number(request.activity_status_type_id)) {
                         case 105: itemOrderAlterStatus(request).then(()=>{});
                                   updateStatusDateTimes(request).then(()=>{});
                                   break;
-                        case 106: 
+                        case 106: if(request.served_at_bar == 1){
+                                    itemOrderAlterStatus(request).then(()=>{});
+                                  }
                         case 125: updateStatusDateTimes(request).then(()=>{});
                                   break;
                     }
-                }*/
+                }
 
                 //Remote Analytics
                 if (activityTypeCategroyId == 28 || activityTypeCategroyId == 8) {
