@@ -255,7 +255,9 @@ function ActivityService(objectCollection) {
 
                             }// end parent activity id condition
                             
-                            if(request.activity_parent_id == 93256) { //For Marketing Manager reference
+                            console.log('request - ', request);
+                            
+                            if(request.activity_parent_id == 95670) { //For Marketing Manager reference //PROD - 95670 ; Staging - 93256
                                 //Create a timeline entry on this task
                                 setTimeout(function(){
                                               console.log('Delayed for 2s');
