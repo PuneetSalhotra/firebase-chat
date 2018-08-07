@@ -434,23 +434,80 @@ function PamListingService(objectCollection) {
 			   	 });
 			   };
 			   
-			    function formatMemberHistoryData(data){
-			        return new Promise((resolve, reject)=>{
-			            var responseArr = new Array();
-			            forEachAsync(data, function (next, row) {
-			                var rowData = {
-			                    'event_id': util.replaceDefaultNumber(row['event_id']),
-			                    'event_name': util.replaceDefaultString(row['event_name']),
-			                    'event_date': util.replaceDefaultDate(row['event_date']),
-			                	'event_bill': util.replaceDefaultString(row['event_bill'])			                  
-			                };
-			                responseArr.push(rowData);
-			                next();
-			            }).then(() => {
-			                resolve(responseArr);
-			            });
-			        });        
-			    };
+    function formatMemberHistoryData(data){
+        return new Promise((resolve, reject)=>{
+            var responseArr = new Array();
+            forEachAsync(data, function (next, row) {
+               var rowData = {
+                    'event_id': util.replaceDefaultNumber(row['event_id']),
+                    'event_name': util.replaceDefaultString(row['event_name']),
+                    'event_date': util.replaceDefaultDate(row['event_date']),
+                    'event_bill': util.replaceDefaultString(row['event_bill'])			                  
+		};
+		responseArr.push(rowData);
+		next();
+	    }).then(() => {
+	        resolve(responseArr);
+	    });
+	});        
+    };
+    
+    this.getActivitiesAllCategories = function(request){
+	   return new Promise((resolve, reject)=>{
+	        var paramsArr = new Array(
+	       		request.organization_id,
+                        request.account_id,
+                        request.parent_activity_id, 
+                        request.activity_type_category_id, 
+                        request.access_role_id, 
+                        request.activity_status_type_id, 
+                        request.is_search,
+                        request.search_string,
+                        request.is_date,
+                        request.date,
+                        request.start_limit,
+                        request.end_limit
+	            );
+	        var queryString = util.getQueryString('pm_v1_activity_asset_mapping_select_all_categories', paramsArr);
+	            if (queryString != '') {
+	                db.executeQuery(1, queryString, request, function (err, data) {
+	               	console.log("err "+err);
+	                if(err === false) {
+	               	   //formatMemberOrdersData(data).then((finalData)=>{
+	       		   resolve(data);
+	                     // });
+	                } else {
+	                      reject(err);
+	                   }
+	                });
+	       }
+	});
+    };
+    
+    this.getImageList = function(request){
+	return new Promise((resolve, reject)=>{
+	    var paramsArr = new Array(
+	       		request.organization_id,
+                        request.account_id,
+                        request.log_datetime,
+                        request.start_limit,
+                        request.end_limit
+                        );
+	    var queryString = util.getQueryString('pm_v1_pam_image_list_select', paramsArr);
+	        if (queryString != '') {
+	            db.executeQuery(1, queryString, request, function (err, data) {
+                    console.log("err "+err);
+		    if(err === false) {
+		      //formatMemberOrdersData(data).then((finalData)=>{
+		       resolve(data);
+		        // });
+		    } else {
+		       reject(err);
+		    }
+		    });
+		    }
+            });
+    };
 }
 ;
 
