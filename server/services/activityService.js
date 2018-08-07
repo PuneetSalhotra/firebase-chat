@@ -603,8 +603,8 @@ function ActivityService(objectCollection) {
                 break;
             case 10:
                 var ownerAssetID;
-                if(request.hasOwnProperty('owner_asset_id')) {
-                      ownerAssetID = request.owner_asset_id;
+                if(request.hasOwnProperty('owner_asset_id')) {                        
+                      (request.owner_asset_id == 0) ? ownerAssetID = request.asset_id : ownerAssetID = request.owner_asset_id;
                 } else {
                       ownerAssetID = request.asset_id;
                 }
