@@ -1,7 +1,7 @@
 #Author: V Nani Kalyan
 #Date: 02-Aug-2018
 #Description: yml file to run the Staging Mobile API Services
-version: 0.1
+version: 0.0
 os: linux
 files:
   - source: .
