@@ -1468,6 +1468,7 @@ function ActivityListingService(objCollection) {
                 "activity_rating_lead_timeliness": util.replaceDefaultNumber(rowData['activity_rating_lead_timeliness']),
                 "activity_flag_file_enabled":util.replaceDefaultNumber(rowData['activity_flag_file_enabled']),
                 "count":util.replaceDefaultNumber(rowData['count'])
+
             };
             responseData.push(rowDataArr);
         }, this);
