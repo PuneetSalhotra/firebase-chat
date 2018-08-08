@@ -136,6 +136,20 @@ function PamListingController(objCollection) {
     		res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         	});  		
     });
+
+    app.post('/' + global.config.version + '/pam/activity/access/account/list', function (req, res) {
+        pamListingService.getActivityAssetCategoryDifferential(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                console.log('did not get proper response');
+                global.logger.write('response','did not get proper response',err,req.body);
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
     
 }
 ;
