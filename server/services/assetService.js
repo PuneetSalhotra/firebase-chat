@@ -808,41 +808,11 @@ function AssetService(objectCollection) {
             case 1:
                 // send sms                
                 //global.logger.write("sms string is " + smsString, request, 'trace'); // no third party api's in this case
+                
+                // There used to be a logic earlier to decide between the SMS vendors and 
+                // and then send domestic/international text. You can check it out in the
+                // GitHub PR (Pull Request) #19. 
                 if (countryCode === 91) {
-                    // fs.readFile(`${__dirname}/../utils/domesticSmsMode.txt`, function (err, data) {
-                    //     (err) ? console.log(err): domesticSmsMode = Number(data.toString());
-
-                    //     // send local sms
-                    //     //switch (global.config.domestic_sms_mode) {
-                    //     switch (domesticSmsMode) {
-                    //         case 1: // mvaayoo                        
-                    //             util.sendSmsMvaayoo(smsString, countryCode, phoneNumber, function (error, data) {
-                    //                 if (error)
-                    //                     //console.log(error);
-                    //                     //console.log(data);
-                    //                     global.logger.write('trace', data, error, request)
-                    //             });
-                    //             break;
-                    //         case 2: // bulk sms                            
-                    //             util.sendSmsBulk(smsString, countryCode, phoneNumber, function (error, data) {
-                    //                 if (error)
-                    //                     //console.log(error);
-                    //                     //console.log(data);
-                    //                     global.logger.write('trace', data, error, request)
-                    //             });
-                    //             break;
-                    //         case 3: // sinfini                                                        
-                    //             console.log('In send SmsSinfini');
-                    //             util.sendSmsSinfini(smsString, countryCode, phoneNumber, function (error, data) {
-                    //                 if (error)
-                    //                     console.log(error);
-                    //                 console.log(data);
-                    //                 global.logger.write('trace', data, error, request)
-                    //             });
-                    //             break;
-                    //     }
-                    // });
-
                 let smsOptions = {
                     type: 'OTP', // Other types: 'NOTFCTN' | 'COLLBRTN' | 'INVTATN',
                     countryCode,
@@ -853,28 +823,6 @@ function AssetService(objectCollection) {
                 smsEngine.sendDomesticSms(smsOptions);
 
                 } else {
-
-                    // fs.readFile(`${__dirname}/../utils/internationalSmsMode.txt`, function (err, data) {
-                    //     (err) ? console.log(err): internationalSmsMode = Number(data.toString());
-
-                    //     // send international sms                    
-                    //     //global.logger.write('came inside else case', request, 'device', 'trace');
-                    //     switch (internationalSmsMode) {
-                    //         case 1:
-                    //             util.sendInternationalTwilioSMS(smsString, countryCode, phoneNumber, function (error, data) {
-                    //                 if (error)
-                    //                     global.logger.write('trace', data, error, request)
-                    //             });
-                    //             break;
-
-                    //         case 2:
-                    //             util.sendInternationalNexmoSMS(smsString, countryCode, phoneNumber, function (error, data) {
-                    //                 if (error)
-                    //                     global.logger.write('trace', data, error, request)
-                    //             });
-                    //             break;
-                    //     }
-                    // });
 
                     let smsOptions = {
                         type: 'OTP', // Other types: 'NOTFCTN' | 'COLLBRTN' | 'INVTATN',
