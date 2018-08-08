@@ -3,6 +3,7 @@ var bodyParser = require('body-parser');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 var makeRequest = require('request');
+var globalConfig = require('../utils/globalConfig');
 
 app.post('/pam/reservation/set', function (req, res) {
      invokeJavaPgm(req.body).then((data)=>{
@@ -56,5 +57,5 @@ function pamReservSet(request, result) {
 }
 
 app.listen(global.config.standAlonePamServicePort, ()=>{
-    console.log('Server is running on 3100 port');
+    console.log('Server is running on ' + global.config.standAlonePamServicePort + ' port');
 });
