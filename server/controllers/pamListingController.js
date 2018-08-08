@@ -117,6 +117,31 @@ function PamListingController(objCollection) {
     		
     });
     
+    app.post('/' + global.config.version + '/pam/category/activities/list', function (req, res) {
+    	pamListingService.getActivitiesAllCategories(req.body).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        	});
+    		
+    });
+    
+    app.post('/' + global.config.version + '/pam/activity/access/account/list', function (req, res) {
+        pamListingService.getActivityAssetCategoryDifferential(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                console.log('did not get proper response');
+                global.logger.write('response','did not get proper response',err,req.body);
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
 }
 ;
 module.exports = PamListingController;
