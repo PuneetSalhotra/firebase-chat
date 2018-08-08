@@ -38,6 +38,7 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                         case '/' + global.config.version + '/asset/passcode/alter/v1':
                         case '/' + global.config.version + '/sms-dlvry/sinfini':
                         case '/' + global.config.version + '/sms-dlvry/nexmo':
+                        case '/' + global.config.version + '/sms-dlvry/twilio':
                             req.body['module'] = 'device';
                             global.logger.write('request', '', req.body, req.body);
                             next();

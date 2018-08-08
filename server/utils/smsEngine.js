@@ -1,17 +1,19 @@
 // Events
 const EventEmitter = require('events');
 const request = require('request');
-const baseUrl = (global.mode === 'dev') ? 'http://0a4fc7df.ngrok.io/' + global.config.version : 'https://api.desker.cloud/' + global.config.version;
-console.log("global.mode: ", global.mode);
+const baseUrl = (global.mode === 'dev') ? 'http://8599f133.ngrok.io/' + global.config.version : 'https://api.desker.cloud/' + global.config.version;
 
 // Nexmo
 const Nexmo = require('nexmo');
 const nexmo = new Nexmo({
-    apiKey: '38eaffb2',
-    apiSecret: 'NKHjXZ7pbdskGoRS'
+    apiKey: global.config.nexmoAPIKey,
+    apiSecret: global.config.nexmoSecretKey
 });
 
-class EEngine extends EventEmitter {
+// Twilio
+const twilioClient = require('twilio')(global.config.twilioAccountSid, global.config.twilioAuthToken);
+
+class SmsEngine extends EventEmitter {
 
     constructor(dateOfCreation) {
         super();
@@ -25,6 +27,7 @@ class EEngine extends EventEmitter {
         this.on('send-bulksms-sms', sendBulkSms);
 
         // International
+        this.on('send-twilio-sms', sendTwilioSms);
         this.on('send-nexmo-sms', sendNexmoSms);
 
     };
@@ -42,12 +45,21 @@ class EEngine extends EventEmitter {
             return;
         }
 
-        this.emit();
+    }
+
+    sendInternationalSms(options) {
+        options.failOver = (typeof options.failOver === 'undefined') ? false : options.failOver;
+
+        if (options.failOver === true && options.type === 'OTP') {
+            this.emit('send-twilio-sms', options);
+            return;
+        }
+
     }
 
 }
 
-const eEngine = new EEngine(new Date());
+const smsEngine = new SmsEngine(new Date());
 
 ////////////////////////////////////////////////////////////
 // Domestic
@@ -205,6 +217,45 @@ function sendBulkSms(options) {
 
 ////////////////////////////////////////////////////////////
 // International
+
+// Twilio
+function sendTwilioSms(options) {
+    // Inits
+    options.failOver = (typeof options.failOver === 'undefined') ? false : options.failOver;
+    options.countryCode = (typeof options.countryCode === 'undefined') ? '' : options.countryCode;
+
+    let msgString;
+    if (options.type === 'OTP') {
+        msgString = getOTPString(options.verificationCode);
+    }
+
+    let callbackQs = `ph=${'' + options.countryCode + options.phoneNumber}&vcode=${options.verificationCode}&type=${options.type}`;
+    console.log("statusCallback: ", baseUrl + '/sms-dlvry/twilio');
+
+    twilioClient.messages.create({
+
+        to: '+' + options.countryCode + options.phoneNumber, // Send message to this number
+        from: '+1 810-637-5928', // From a valid Twilio number
+        body: msgString,
+        statusCallback: baseUrl + '/sms-dlvry/twilio?' + callbackQs
+
+    }, (error, message) => {
+
+        if (error) {
+            console.log("\x1b[31m[twilio]\x1b[0m Error: ", error);
+            console.log("\x1b[31m[twilio]\x1b[0m message: ", message);
+            return;
+        }
+
+        // The SMS has been submitted to the operator/mobile network.
+        // All good for now.
+        console.log("\x1b[32m[twilio]\x1b[0m message: ", message);
+        return;
+
+    })
+
+}
+
 // Nexmo
 function sendNexmoSms(options) {
     // Inits
@@ -218,7 +269,7 @@ function sendNexmoSms(options) {
 
     // Nexmo params
     let from = 'DESKER';
-    var to = '+' + options.countryCode + options.phoneNumber;
+    let to = '+' + options.countryCode + options.phoneNumber;
     let callbackQs = `ph=${to}&vcode=${options.verificationCode}&type=${options.type}`;
 
     let nexmoOptions = {
@@ -233,12 +284,11 @@ function sendNexmoSms(options) {
             // Emit failover event to NONE 
             return;
 
-        } else {
-            // The SMS has been submitted to the operator/mobile network.
-            // All good for now.
-            console.log("\x1b[32m[nexmo]\x1b[0m response: ", response);
-            return;
         }
+        // The SMS has been submitted to the operator/mobile network.
+        // All good for now.
+        console.log("\x1b[32m[nexmo]\x1b[0m response: ", response);
+        return;
     });
 }
 
@@ -249,4 +299,4 @@ function getOTPString(verificationCode) {
     return msg_body;
 };
 
-module.exports = eEngine;
+module.exports = smsEngine;

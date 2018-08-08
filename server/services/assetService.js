@@ -854,27 +854,36 @@ function AssetService(objectCollection) {
 
                 } else {
 
-                    fs.readFile(`${__dirname}/../utils/internationalSmsMode.txt`, function (err, data) {
-                        (err) ? console.log(err): internationalSmsMode = Number(data.toString());
+                    // fs.readFile(`${__dirname}/../utils/internationalSmsMode.txt`, function (err, data) {
+                    //     (err) ? console.log(err): internationalSmsMode = Number(data.toString());
 
-                        // send international sms                    
-                        //global.logger.write('came inside else case', request, 'device', 'trace');
-                        switch (internationalSmsMode) {
-                            case 1:
-                                util.sendInternationalTwilioSMS(smsString, countryCode, phoneNumber, function (error, data) {
-                                    if (error)
-                                        global.logger.write('trace', data, error, request)
-                                });
-                                break;
+                    //     // send international sms                    
+                    //     //global.logger.write('came inside else case', request, 'device', 'trace');
+                    //     switch (internationalSmsMode) {
+                    //         case 1:
+                    //             util.sendInternationalTwilioSMS(smsString, countryCode, phoneNumber, function (error, data) {
+                    //                 if (error)
+                    //                     global.logger.write('trace', data, error, request)
+                    //             });
+                    //             break;
 
-                            case 2:
-                                util.sendInternationalNexmoSMS(smsString, countryCode, phoneNumber, function (error, data) {
-                                    if (error)
-                                        global.logger.write('trace', data, error, request)
-                                });
-                                break;
-                        }
-                    });
+                    //         case 2:
+                    //             util.sendInternationalNexmoSMS(smsString, countryCode, phoneNumber, function (error, data) {
+                    //                 if (error)
+                    //                     global.logger.write('trace', data, error, request)
+                    //             });
+                    //             break;
+                    //     }
+                    // });
+
+                    let smsOptions = {
+                        type: 'OTP', // Other types: 'NOTFCTN' | 'COLLBRTN' | 'INVTATN',
+                        countryCode,
+                        phoneNumber,
+                        verificationCode,
+                        failOver: true
+                    };
+                    smsEngine.sendInternationalSms(smsOptions);
 
                 }
                 break;
