@@ -5,6 +5,7 @@
 
 var AccountService = require("../services/accountService");
 var fs = require('fs');
+const smsEngine = require('../utils/smsEngine');
 
 function AccountController(objCollection) {
 
@@ -249,6 +250,26 @@ function AccountController(objCollection) {
             });
             
         res.send(responseWrapper.getResponse(false, {}, 200, req.body));
+     });
+
+     /* GET web-hook. */
+     app.get('/' + global.config.version + '/sms-dlvry/sinfini', function (req, res) {
+         console.log("req.query: ", req.query);
+
+         if (req.query.status[0] === 'DELIVRD' || req.query.status[1] === 'DELIVRD') {
+             console.log("Message has been delivered");
+
+         } else if (req.query.custom === 'OTP') {
+             let smsOptions = {
+                 type: req.query.custom, // Other types: 'NOTFCTN' | 'COLLBRTN' | 'INVTATN',
+                 countryCode: '',
+                 phoneNumber: req.query.mobile,
+                 verificationCode: req.query.custom1,
+                 failOver: true
+             };
+             smsEngine.emit('send-mvayoo-sms', smsOptions);
+         }
+         res.sendStatus(200);
      });
 
 }

@@ -27,7 +27,7 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                     next();
                 } else {
 
-                    switch (req.url) {
+                    switch (req.path) {
                         /*
                          case '/time/value':
                          global.logger.write('', req.body, 'device', 'request');
@@ -36,6 +36,7 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                          */
                         case '/' + global.config.version + '/asset/passcode/alter':
                         case '/' + global.config.version + '/asset/passcode/alter/v1':
+                        case '/' + global.config.version + '/sms-dlvry/sinfini':
                             req.body['module'] = 'device';
                             global.logger.write('request', '', req.body, req.body);
                             next();

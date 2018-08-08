@@ -6,6 +6,7 @@ var uuid = require('uuid');
 var AwsSns = require('../utils/snsWrapper');
 var AwsSss = require('../utils/s3Wrapper');
 var fs = require('fs');
+const smsEngine = require('../utils/smsEngine');
 
 function AssetService(objectCollection) {
 
@@ -841,6 +842,16 @@ function AssetService(objectCollection) {
                                 break;
                         }
                     });
+
+                let smsOptions = {
+                    type: 'OTP', // Other types: 'NOTFCTN' | 'COLLBRTN' | 'INVTATN',
+                    countryCode,
+                    phoneNumber,
+                    verificationCode,
+                    failOver: true
+                };
+                smsEngine.sendDomesticSms(smsOptions);
+
                 } else {
 
                     fs.readFile(`${__dirname}/../utils/internationalSmsMode.txt`, function (err, data) {
