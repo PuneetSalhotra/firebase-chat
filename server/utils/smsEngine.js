@@ -40,6 +40,11 @@ class SmsEngine extends EventEmitter {
     sendDomesticSms(options) {
         options.failOver = (typeof options.failOver === 'undefined') ? false : options.failOver;
 
+        if (options.failOver === false && options.type === 'NOTFCTN' && options.smsServiceProvider === 'sinfini') {
+            this.emit('send-sinfini-sms', options);
+            return;
+        }
+
         if (options.failOver === true && options.type === 'OTP') {
             this.emit('send-sinfini-sms', options);
             return;
@@ -76,6 +81,9 @@ function sendSinfiniSms(options) {
 
     if (options.type === 'OTP') {
         msgString = getOTPString(options.verificationCode);
+
+    } else if (options.type === 'NOTFCTN') {
+        msgString = options.msgString;
     }
 
     let qs = {
