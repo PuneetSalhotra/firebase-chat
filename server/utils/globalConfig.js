@@ -21,6 +21,7 @@ if (mode === 'dev') {
     //Ports Config
     config.version = 'r1';
     config.servicePort = 3000;
+    config.standAlonePamServicePort = 3100;
 
     config.consumerOne = 3200;
     config.consumerTwo = 3201;
@@ -67,6 +68,7 @@ if (mode === 'staging') {
     //Ports Config
     config.version = 'r0';
     config.servicePort = 4000;
+    config.standAlonePamServicePort = 4100;
 
     config.consumerOne = 4200;
     config.consumerTwo = 4201;
@@ -110,6 +112,7 @@ if (mode === 'prod') {
     //Ports config
     config.version = 'r1';
     config.servicePort = 3000;
+    config.standAlonePamServicePort = 3100;
 
     config.consumerOne = 3200;
     config.consumerTwo = 3201;

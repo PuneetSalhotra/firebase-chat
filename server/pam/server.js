@@ -40,7 +40,7 @@ function pamReservSet(request, result) {
               }
           }
 
-        makeRequest.post('http://localhost:3000/0.1/pam/reservation/set', options, function (error, response, body) {
+        makeRequest.post('http://localhost:3000/r1/pam/reservation/set', options, function (error, response, body) {
               console.log('body:', body);
               body = JSON.parse(body);
               var resp = {
@@ -55,6 +55,6 @@ function pamReservSet(request, result) {
     });    
 }
 
-app.listen(3100, ()=>{
+app.listen(global.config.standAlonePamServicePort, ()=>{
     console.log('Server is running on 3100 port');
 });
