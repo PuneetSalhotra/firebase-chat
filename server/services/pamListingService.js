@@ -508,7 +508,174 @@ function PamListingService(objectCollection) {
 		    }
             });
     };
-}
-;
+
+    this.getActivityAssetCategoryDifferential = function (request, callback) {
+        var paramsArr = new Array();
+        var queryString = '';
+        paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.asset_id,
+                request.activity_type_category_id,
+                request.datetime_differential,
+                request.page_start,
+                util.replaceQueryLimit(request.page_limit)
+                );
+        queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_category_differential', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                //console.log(data);
+                if (err === false) {
+                    formatActivityAccountListing(data, function (err, finalData) {
+                        if (err === false) {
+                            callback(false, {data: finalData}, 200);
+                        }
+                    });
+                    return;
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, false, -9999);
+                    return;
+                }
+            });
+        }
+    };
+
+ //PAM
+var formatActivityAccountListing = function (data, callback) {
+    var responseData = new Array();
+    data.forEach(function (rowData, index) {
+        var rowDataArr = {
+            "activity_id": util.replaceDefaultNumber(rowData['activity_id']),
+            "activity_title": util.replaceDefaultString(util.ucfirst(util.decodeSpecialChars(rowData['activity_title']))),
+            "activity_description": util.replaceDefaultString(util.decodeSpecialChars(rowData['activity_description'])),
+            "activity_inline_data": JSON.parse(util.replaceDefaultString(rowData['activity_inline_data'])),
+            "activity_type_id": util.replaceDefaultNumber(rowData['activity_type_id']),
+            "activity_type_name": (util.replaceDefaultString(rowData['activity_type_id']) === 1) ? 'Personal ' : util.replaceDefaultString(rowData['activity_type_name']),
+            "activity_type_category_id": util.replaceDefaultNumber(rowData['activity_type_category_id']),
+            "activity_type_category_name": util.replaceDefaultString(rowData['activity_type_category_name']),
+            "activity_sub_type_id": util.replaceDefaultNumber(rowData['activity_sub_type_id']),
+            "activity_sub_type_name": util.replaceDefaultString(rowData['activity_sub_type_name']),
+            "activity_datetime_created": util.replaceDefaultDatetime(rowData['activity_datetime_created']),
+            "activity_datetime_start_expected": util.replaceDefaultDatetime(rowData['activity_datetime_start_expected']),
+            "activity_datetime_end_expected": util.replaceDefaultDatetime(rowData['activity_datetime_end_expected']),
+            "activity_datetime_end_deferred": util.replaceDefaultDatetime(rowData['activity_datetime_end_deferred']),
+            "activity_datetime_end_estimated": util.replaceDefaultDatetime(rowData['activity_datetime_end_estimated']),
+            "activity_datetime_closed": util.replaceDefaultDatetime(rowData['activity_datetime_closed']),
+            "activity_datetime_last_updated": util.replaceDefaultDatetime(rowData['activity_datetime_last_updated']),
+            "activity_status_id": util.replaceDefaultNumber(rowData['activity_status_id']),
+            "activity_status_name": util.replaceDefaultString(rowData['activity_status_name']),
+            "activity_status_type_id": util.replaceDefaultNumber(rowData['activity_status_type_id']),
+            "activity_status_type_name": util.replaceDefaultString(rowData['activity_status_type_name']),
+            "activity_status_type_category_id": util.replaceDefaultNumber(rowData['activity_status_type_category_id']),
+            "activity_status_type_category_name": util.replaceDefaultString(rowData['activity_status_type_category_name']),
+            "activity_pinned_enabled": util.replaceZero(rowData['activity_pinned_enabled']),
+            "activity_priority_enabled": util.replaceZero(rowData['activity_priority_enabled']),
+            "activity_participant_count": util.replaceZero(rowData['participant_count']),
+            "activity_owner_asset_id": util.replaceDefaultNumber(rowData['activity_owner_asset_id']),
+            "activity_owner_asset_first_name": util.replaceDefaultString(rowData['activity_owner_asset_first_name']),
+            "activity_owner_asset_last_name": util.replaceDefaultString(rowData['activity_owner_asset_last_name']),
+            "activity_owner_asset_image_path": util.replaceDefaultString(rowData['activity_owner_asset_image_path']),
+            "activity_owner_asset_type_id": util.replaceDefaultNumber(rowData['activity_owner_asset_type_id']),
+            "activity_owner_asset_type_name": util.replaceDefaultString(rowData['activity_owner_asset_type_name']),
+            "activity_owner_asset_type_category_id": util.replaceDefaultNumber(rowData['activity_owner_asset_type_category_id']),
+            "activity_owner_asset_type_category_name": util.replaceDefaultString(rowData['activity_owner_asset_type_category_name']),
+            "activity_lead_asset_id": util.replaceDefaultNumber(rowData['activity_lead_asset_id']),
+            "activity_lead_asset_first_name": util.replaceDefaultString(rowData['activity_lead_asset_first_name']),
+            "activity_lead_asset_last_name": util.replaceDefaultString(rowData['activity_lead_asset_last_name']),
+            "activity_lead_asset_image_path": util.replaceDefaultString(rowData['activity_lead_asset_image_path']),
+            "activity_lead_asset_type_id": util.replaceDefaultNumber(rowData['activity_lead_asset_type_id']),
+            "activity_lead_asset_type_name": util.replaceDefaultString(rowData['activity_lead_asset_type_name']),
+            "activity_lead_asset_type_category_id": util.replaceDefaultNumber(rowData['activity_lead_asset_type_category_id']),
+            "activity_lead_asset_type_category_name": util.replaceDefaultString(rowData['activity_lead_asset_type_category_name']),
+            "parent_activity_id": util.replaceDefaultNumber(rowData['parent_activity_id']),
+            "parent_activity_title": util.replaceDefaultString(util.decodeSpecialChars(rowData['parent_activity_title'])),
+            "parent_activity_type_id": util.replaceDefaultNumber(rowData['parent_activity_type_id']),
+            "parent_activity_type_name": util.replaceDefaultString(rowData['parent_activity_type_name']),
+            "parent_activity_type_category_id": util.replaceDefaultNumber(rowData['parent_activity_type_category_id']),
+            "parent_activity_type_category_name": util.replaceDefaultString(rowData['parent_activity_type_category_name']),
+            //"parent_activity_total_count": util.replaceZero(rowData['parent_activity_total_count']),
+            //"parent_activity_priority_count": util.replaceZero(rowData['parent_activity_priority_count']),
+            "parent_activity_open_count": util.replaceZero(rowData['parent_activity_open_count']),
+            "parent_activity_closed_count": util.replaceZero(rowData['parent_activity_closed_count']),
+            //"parent_activity_asset_participation_count": util.replaceZero(rowData['parent_activity_asset_participation_count']),
+            "asset_datetime_last_differential": util.replaceDefaultDatetime(rowData['asset_datetime_last_differential']),
+            "asset_datetime_last_seen": util.replaceDefaultDatetime(rowData['asset_datetime_last_seen']),
+            "asset_participant_access_id": util.replaceDefaultNumber(rowData['asset_participant_access_id']),
+            "asset_participant_access_name": util.replaceDefaultString(rowData['asset_participant_access_name']),
+            "asset_unread_updates_count": util.replaceZero(rowData['asset_unread_updates_count']),
+            //"asset_unread_field_updates_count": util.replaceZero(rowData['asset_unread_field_updates_count']),
+            "asset_notification_muted": util.replaceDefaultString(rowData['asset_notification_muted']),
+            "asset_id": util.replaceDefaultNumber(rowData['asset_id']),
+            "asset_first_name": util.replaceDefaultString(rowData['asset_first_name']),
+            "asset_last_name": util.replaceDefaultString(rowData['asset_last_name']),
+            "asset_image_path": util.replaceDefaultString(rowData['asset_image_path']),
+            "asset_type_id": util.replaceDefaultNumber(rowData['asset_type_id']),
+            "asset_type_name": util.replaceDefaultString(rowData['asset_type_name']),
+            "asset_type_category_id": util.replaceDefaultNumber(rowData['asset_type_category_id']),
+            "asset_type_category_name": util.replaceDefaultString(rowData['activity_sub_type_name']),
+            "operating_asset_id": util.replaceZero(rowData['operating_asset_id']),
+            "operating_asset_first_name": util.replaceDefaultString(rowData['operating_asset_first_name']),
+            "operating_asset_last_name": util.replaceDefaultString(rowData['operating_asset_last_name']),
+            "operating_asset_image_path": util.replaceDefaultString(rowData['operating_asset_image_path']),
+            "operating_asset_type_id": util.replaceDefaultNumber(rowData['operating_asset_type_id']),
+            "operating_asset_type_name": util.replaceDefaultString(rowData['operating_asset_type_name']),
+            "operating_asset_type_category_id": util.replaceDefaultNumber(rowData['operating_asset_type_category_id']),
+            "operating_asset_type_category_name": util.replaceDefaultString(rowData['operating_asset_type_category_name']),
+            "operating_asset_phone_country_code": util.replaceDefaultString(rowData['operating_asset_phone_country_code']),
+            "operating_asset_phone_number": util.replaceDefaultString(rowData['operating_asset_phone_number']),
+            "operating_asset_email_id": util.replaceDefaultString(rowData['operating_asset_email_id']),
+            "workforce_id": util.replaceZero(rowData['workforce_id']),
+            "workforce_name": util.replaceDefaultString(rowData['workforce_name']),
+            "workforce_image_path": util.replaceDefaultString(rowData['workforce_image_path']),
+            "workforce_type_id": util.replaceDefaultNumber(rowData['workforce_type_id']),
+            "workforce_type_name": util.replaceDefaultString(rowData['workforce_type_name']),
+            "workforce_type_category_id": util.replaceDefaultNumber(rowData['workforce_type_category_id']),
+            "workforce_type_category_name": util.replaceDefaultString(rowData['workforce_type_category_name']),
+            "account_id": util.replaceZero(rowData['account_id']),
+            "account_name": util.replaceDefaultString(rowData['account_name']),
+            "account_image_path": util.replaceDefaultString(rowData['account_image_path']),
+            "account_type_id": util.replaceDefaultNumber(rowData['account_type_id']),
+            "account_type_name": util.replaceDefaultString(rowData['account_type_name']),
+            "account_type_category_id": util.replaceDefaultNumber(rowData['account_type_category_id']),
+            "account_type_category_name": util.replaceDefaultString(rowData['account_type_category_name']),
+            "organization_id": util.replaceDefaultNumber(rowData['organization_id']),
+            "organization_name": util.replaceDefaultString(rowData['organization_name']),
+            "organization_image_path": util.replaceDefaultString(rowData['organization_image_path']),
+            "organization_type_id": util.replaceDefaultNumber(rowData['organization_type_id']),
+            "organization_type_name": util.replaceDefaultString(rowData['organization_type_name']),
+            "organization_type_category_id": util.replaceDefaultNumber(rowData['organization_type_category_id']),
+            "organization_type_category_name": util.replaceDefaultString(rowData['organization_type_category_name']),
+            "form_transaction_id": util.replaceZero(rowData['form_transaction_id']),
+            "form_id": util.replaceZero(rowData['form_id']),
+            "field_id": util.replaceDefaultNumber(rowData['field_id']),
+            //"activity_form_approval_status": util.replaceDefaultString(rowData['activity_form_approval_status']),
+            //"activity_form_approval_datetime": util.replaceDefaultDatetime(rowData['activity_form_approval_datetime']),
+            "channel_activity_id": util.replaceDefaultNumber(rowData['channel_activity_id']),
+            "channel_activity_type_category_id": util.replaceDefaultNumber(rowData['channel_activity_type_category_id']),
+            "log_message_unique_id": util.replaceDefaultNumber(rowData['log_message_unique_id']),
+            "log_retry": util.replaceDefaultNumber(rowData['log_retry']),
+            "log_offline": util.replaceDefaultNumber(rowData['log_offline']),
+            "log_asset_id": util.replaceDefaultNumber(rowData['log_asset_id']),
+            "log_asset_first_name": util.replaceDefaultString(rowData['log_asset_first_name']),
+            "log_asset_last_name": util.replaceDefaultString(rowData['log_asset_last_name']),
+            "log_asset_image_path": util.replaceDefaultString(rowData['log_asset_image_path']),
+            "log_datetime": util.replaceDefaultDatetime(rowData['asset_datetime_last_differential']),
+            "log_state": util.replaceDefaultNumber(rowData['log_state']),
+            "log_active": util.replaceDefaultNumber(rowData['log_active']),
+            "update_sequence_id": util.replaceDefaultNumber(rowData['log_asset_image_path']),
+            "activity_creator_operating_asset_id": util.replaceDefaultNumber(rowData['activity_creator_operating_asset_id']),
+            "activity_creator_operating_asset_first_name": util.replaceDefaultString(rowData['activity_creator_operating_asset_first_name']),
+            "activity_creator_operating_asset_last_name": util.replaceDefaultString(rowData['activity_creator_operating_asset_last_name']),
+            "activity_creator_asset_id": util.replaceDefaultNumber(rowData['activity_creator_asset_id']),
+            "activity_creator_asset_first_name": util.replaceDefaultString(rowData['activity_creator_asset_first_name']),
+            "activity_creator_asset_last_name": util.replaceDefaultString(rowData['activity_creator_asset_last_name'])
+        };
+        responseData.push(rowDataArr);
+    }, this);
+    callback(false, responseData);
+};
+
+};
 
 module.exports = PamListingService;
