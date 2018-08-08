@@ -1,3 +1,3 @@
 #Pass arguments from command line
-cd ..
+cd /api-final-efs/node/staging/staging_desker_api
 mode=staging pm2 start startStagProcesses.yml
