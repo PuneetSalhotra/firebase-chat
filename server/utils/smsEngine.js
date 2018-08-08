@@ -54,7 +54,6 @@ class SmsEngine extends EventEmitter {
             this.emit('send-twilio-sms', options);
             return;
         }
-
     }
 
 }
@@ -230,7 +229,6 @@ function sendTwilioSms(options) {
     }
 
     let callbackQs = `ph=${'' + options.countryCode + options.phoneNumber}&vcode=${options.verificationCode}&type=${options.type}`;
-    console.log("statusCallback: ", baseUrl + '/sms-dlvry/twilio');
 
     twilioClient.messages.create({
 
@@ -241,9 +239,15 @@ function sendTwilioSms(options) {
 
     }, (error, message) => {
 
-        if (error) {
+        if (error || message.status === 'failed' || message.status === 'undelivered') {
             console.log("\x1b[31m[twilio]\x1b[0m Error: ", error);
             console.log("\x1b[31m[twilio]\x1b[0m message: ", message);
+
+            // log error
+            // Emit failover event to Nexmo
+            if (options.failOver === true) {
+                this.emit('send-nexmo-sms', options);
+            }
             return;
         }
 
