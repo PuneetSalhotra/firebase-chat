@@ -151,8 +151,12 @@ function ActivityService(objectCollection) {
                             if(activityTypeCategroyId === 10 && Number(request.activity_sub_type_id) === 1) {
                                 updateTaskCreatedCnt(request).then(()=>{});                                
                             }
+                            
                             // do the timeline transactions here..                    
-
+                            if(activityTypeCategroyId === 38){                            	
+                            	addIngredients(request);                            	
+                            }
+                            
                             activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
 
                             });
@@ -251,7 +255,9 @@ function ActivityService(objectCollection) {
 
                             }// end parent activity id condition
                             
-                            if(request.activity_parent_id == 93256) { //For Marketing Manager reference
+                            console.log('request - ', request);
+                            
+                            if(request.activity_parent_id == 95670) { //For Marketing Manager reference //PROD - 95670 ; Staging - 93256
                                 //Create a timeline entry on this task
                                 setTimeout(function(){
                                               console.log('Delayed for 2s');
@@ -348,7 +354,7 @@ function ActivityService(objectCollection) {
             if(activityTypeCategoryId === 37 && !request.hasOwnProperty('member_code')) { //PAM
                 var reserveCode;
                 function generateUniqueCode() {
-                    reserveCode = util.randomInt(5001,9999).toString();
+                    reserveCode = util.randomInt(50001,99999).toString();
                     activityCommonService.checkingUniqueCode(request,reserveCode, (err, data)=>{
                     if(err === false) {
                         console.log('activitySubTypeName : ' + data);
@@ -597,8 +603,8 @@ function ActivityService(objectCollection) {
                 break;
             case 10:
                 var ownerAssetID;
-                if(request.hasOwnProperty('owner_asset_id')) {
-                      ownerAssetID = request.owner_asset_id;
+                if(request.hasOwnProperty('owner_asset_id')) {                        
+                      (request.owner_asset_id == 0) ? ownerAssetID = request.asset_id : ownerAssetID = request.owner_asset_id;
                 } else {
                       ownerAssetID = request.asset_id;
                 }
@@ -1152,16 +1158,18 @@ function ActivityService(objectCollection) {
         activityListUpdateStatus(request, function (err, data) {
             if (err === false) {
                 //PAM
-                /*if(activityTypeCategroyId == 38) {
+                if(activityTypeCategroyId == 38) {
                     switch(Number(request.activity_status_type_id)) {
                         case 105: itemOrderAlterStatus(request).then(()=>{});
                                   updateStatusDateTimes(request).then(()=>{});
                                   break;
-                        case 106: 
+                        case 106: if(request.served_at_bar == 1){
+                                    itemOrderAlterStatus(request).then(()=>{});
+                                  }
                         case 125: updateStatusDateTimes(request).then(()=>{});
                                   break;
                     }
-                }*/
+                }
 
                 //Remote Analytics
                 if (activityTypeCategroyId == 28 || activityTypeCategroyId == 8) {
@@ -2036,6 +2044,111 @@ function ActivityService(objectCollection) {
                }
             });
     };
+    
+    function addIngredients(request) {
+    	
+		//new Promise(resolve,reject){
+    	//activityCommonService.getActivityDetails(request, 0, function (err, activityData) {
+    		console.log('data '+request.activity_inline_data);
+    		
+    		var option_id = JSON.parse(request.activity_inline_data).option_id;
+    		
+    		activityCommonService.getAllParticipantsforField(request,request.activity_channel_id, option_id).then((participantData)=>{
+    			
+    	    forEachAsync(participantData, function (next, x) {
+    	    	x.access_role_id = 123;
+    	    	x.field_id = option_id;
+    	    	x.option_id = request.item_order_count;      //  	    	
+    	    	activityCommonService.orderIngredientsAssign(request,x).then(()=>{
+    	    		next(); 
+    	    	});
+    	    	       	    	
+    	    	}).then(()=>{
+    	    		console.log("IN THEN");
+    	    		
+    	    		if(JSON.parse(request.activity_inline_data).hasOwnProperty('item_choice_price_tax'))
+    				{				
+    					var arr = JSON.parse(request.activity_inline_data).item_choice_price_tax;
+    					console.log('arr'+arr[0].activity_id);
+    						var choice_option = 2;
+    						forEachAsync(arr, function (next, x1) {        							
+    							console.log('arr[key1].activity_id '+x1.activity_id);
+    							choice_option++;
+    							//var quantity = x1.quantity;
+    							activityCommonService.getAllParticipantsforField(request,x1.activity_id, 1).then((rows)=>{
+    				    	    	        			        	    	
+    								forEachAsync(rows, function (next, x2) { 
+    									x2.access_role_id = 123;
+        			        	    	x2.field_id = choice_option;
+        			        	    	x2.option_id = x1.quantity;  //
+        			        	    	console.log('parent_activity_title ' +x2.parent_activity_title);
+        			        	    	console.log('choice quantity: ' +x2.option_id);
+        			        	    	activityCommonService.orderIngredientsAssign(request,x2).then(()=>{
+        			        	    		next(); 
+        			        	    	});
+        								
+    								}).then(()=>{
+    									next();
+    								});
+    			        	    	
+    						});
+    							
+    						});
+    				} 
+    	    		
+    	    	});
+    	    	
+    	    });
+    	    	
+			
+           
+           // });
+	//}
+};
+
+
+
+var activityAssetMappingInsertParticipantAssign = function (request, participantData, callback) {
+    
+    //console.log('In function activityAssetMappingInsertParticipantAssign - participantData : ', participantData);
+    
+    	var fieldId = 0;
+    var paramsArr = new Array(
+            request.activity_id,
+            participantData.asset_id,
+            participantData.workforce_id,
+            participantData.account_id,
+            participantData.organization_id,
+            participantData.access_role_id,
+            participantData.message_unique_id,
+            request.flag_retry,
+            request.flag_offline,
+            request.asset_id,
+            request.datetime_log,
+            participantData.field_id,
+            participantData.activity_sub_type_id,
+            participantData.activity_sub_type_name,
+            participantData.option_id,
+            participantData.parent_activity_title
+            );
+    var queryString = util.getQueryString("ds_v1_activity_asset_mapping_insert_asset_assign_pam", paramsArr);
+
+    if (queryString !== '') {
+
+        db.executeQuery(0, queryString, request, function (err, data) {
+            if (err === false)
+            {
+              //  console.log(data);
+            } else {
+            	//console.log(data)
+                console.log(err);
+                global.logger.write('serverError','' + err, request)
+               
+            }
+        });
+    }
+   
+	};
     
 }
 ;

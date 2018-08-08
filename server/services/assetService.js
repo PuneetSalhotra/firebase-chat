@@ -835,7 +835,7 @@ function AssetService(objectCollection) {
 
                 }
                 break;
-            case 2: //Make a call                 
+            case 2: //Make a call                
                 fs.readFile(`${__dirname}/../utils/phoneCall.txt`, function (err, data) {
                     (err) ? console.log(err): phoneCall = Number(data.toString());
 
@@ -1144,8 +1144,10 @@ function AssetService(objectCollection) {
                             newRequest.activity_type_category_id = 10;
                             newRequest.activity_sub_type_id = 1;
                             newRequest.activity_type_id = 46458;
+
                             newRequest.activity_access_role_id = 26;
-                            newRequest.activity_parent_id = 95670;
+                            newRequest.activity_parent_id = 95670;  //PROD - 95670 ; Staging - 93256
+
                             newRequest.url = "/add/activity/";
                             //activity_status_id:83846
                             //activity_status_type_id:17
@@ -1155,10 +1157,11 @@ function AssetService(objectCollection) {
                             newRequest.signedup_asset_organization_name = data.organization_name;
                             newRequest.signedup_asset_workforce_name = data.workforce_name;
                             newRequest.signedup_asset_name = data.operating_asset_first_name || "";
-                            newRequest.signedup_asset_email_id = data.asset_email_id || "";
-                            newRequest.signedup_asset_phone_country_code = data.asset_phone_country_code;
-                            newRequest.signedup_asset_phone_number = data.asset_phone_number;
 
+                            newRequest.signedup_asset_email_id = data.operating_asset_email_id || "";
+                            newRequest.signedup_asset_phone_country_code = data.operating_asset_phone_country_code;
+                            newRequest.signedup_asset_phone_number = data.operating_asset_phone_number;                            
+                            
                             cacheWrapper.getActivityId(function (err, activityId) {
                                 if (err) {
                                     console.log(err);

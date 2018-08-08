@@ -227,15 +227,15 @@ function Util() {
         xmlText += "</Response>"
         
         console.log('xmlText : ' + xmlText);
-        console.log('http://staging.api.desker.cloud/r0/account/voice_'+passcode);
-        //fs.writeFile('/api-efs/twiliovoicesxmlfiles/voice_'+passcode+'.xml', xmlText, function (err) {
-        fs.writeFile('/home/nani/Desktop/twiliovoicesxmlfiles/voice_'+passcode+'.xml', xmlText, function (err) {
+        console.log('https://api.desker.cloud/r1/account/voice_'+passcode);
+        fs.writeFile('/api-cdci-efs/twiliovoicesxmlfiles/voice_'+passcode+'.xml', xmlText, function (err) {
+        //fs.writeFile('/home/nani/Desktop/twiliovoicesxmlfiles/voice_'+passcode+'.xml', xmlText, function (err) {
           if (err) {
               throw err;
           } else {
               client.calls.create(
                 {
-                  url: 'http://staging.api.desker.cloud/r0/account/voice_'+passcode,
+                  url: 'https://api.desker.cloud/r1/account/voice_'+passcode,
                   to: toNumber,
                   from: '+1 810-637-5928' // From a valid Twilio number                  
                 },
@@ -302,12 +302,12 @@ function Util() {
         });
     };*/
 
-    this.makeCallNexmo = function (messageString, passcode, countryCode, phoneNumber, callback) {
+    this.makeCallNexmo = function (messageString, passcode, countryCode, phoneNumber, callback) {        
         const nexmo = new Nexmo({
             apiKey: global.config.nexmoAPIKey,
             apiSecret: global.config.nexmoSecretKey,
             applicationId: global.config.nexmpAppliationId,
-            privateKey: "/home/nani/Downloads/private.key"
+            privateKey: `${__dirname}/private.key`
         });
                 
         var jsonText = '[{ "action": "talk", "voiceName": "Russell","text":"';
@@ -316,8 +316,8 @@ function Util() {
                 
         console.log('jsonText : ' + jsonText);
         //console.log('http://staging.api.desker.cloud/r0/account/nexmo/voice_'+passcode);
-        //fs.writeFile('/api-efs/twiliovoicesxmlfiles/voice_'+passcode+'.xml', xmlText, function (err) {
-        fs.writeFile('/home/nani/Desktop/nexmovoicesjsonfiles/voice_'+passcode+'.json', jsonText, function (err) {
+        fs.writeFile('/api-cdci-efs/nexmovoicesjsonfiles/voice_'+passcode+'.xml', jsonText, function (err) {
+        //fs.writeFile('/home/nani/Desktop/nexmovoicesjsonfiles/voice_'+passcode+'.json', jsonText, function (err) {
           if (err) {
               throw err;
           } else {
@@ -532,6 +532,13 @@ function Util() {
         else
             return value;
     };
+    
+    this.replaceDefaultJSON = function (value) {
+        if (value === undefined || value === null || value === '')
+            return {};
+        else
+            return value;
+    };
 
     this.replaceDefaultDatetime = function (value) {
         if (value === undefined || value === null || value === '' || value === '1970-01-01' || value === '1970-01-01 00:00:00')
@@ -561,6 +568,11 @@ function Util() {
 
     this.getFormatedLogDate = function (timeString) {
         var value = moment(timeString).format("YYYY-MM-DD");
+        return value;
+    };
+    
+    this.getFormatedSlashDate = function (timeString) {
+        var value = moment(timeString).format("DD/MM/YYYY");
         return value;
     };
 

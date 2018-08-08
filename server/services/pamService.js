@@ -1051,6 +1051,10 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
         var maxIndex = activityParticipantCollection.length - 1;
         //var maxIndex = request.activity_participant_collection.length - 1;
         iterateAddParticipant(activityParticipantCollection, index, maxIndex, function (err, data) {
+	      	  if(activityTypeCategroyId == 37) {                    
+	              var newRequest = Object.assign({}, request);
+	              activityCommonService.sendSmsCodeParticipant(newRequest, function(err, data){});
+	          }
             if (err === false && data === true) {
                 if (maxIndex === index) {
                     activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
@@ -1559,7 +1563,8 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                 response.asset_id = data[0].asset_id;
                 response.asset_first_name = data[0].asset_first_name;
                 response.asset_last_name = data[0].asset_last_name;
-                response.asset_phone_passcode = data[0].asset_phone_passcode;                
+                response.asset_phone_passcode = data[0].asset_phone_passcode;   
+                response.asset_qrcode_image_path = data[0].asset_qrcode_image_path;
                 response.is_personal_code = 1;
             }
                 
@@ -2237,7 +2242,9 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
             var queryString = util.getQueryString('ds_v1_activity_list_update_status_cancel', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, resp) {
+                	activityCommonService.activityListHistoryInsert(request, 413, function (err, result) {});
                     if (err === false) {
+                      	activityCommonService.activityListHistoryInsert(request, 413, function (err, result) {});
                         activityCommonService.getActivityDetails(request, 0, function(err, data){
                             if(err === false){
                                 activityStatusId = data[0].activity_status_id;
@@ -2320,7 +2327,9 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
         var queryString = util.getQueryString('ds_v1_activity_list_update_status_station', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, resp) {
+            	activityCommonService.activityListHistoryInsert(request, 414, function (err, result) {});
                     if (err === false) {
+                       	activityCommonService.activityListHistoryInsert(request, 414, function (err, result) {});
                         activityCommonService.getActivityDetails(request, 0, function(err, data){
                             if(err === false){                     
                                 
@@ -2666,7 +2675,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
    
     generateUniqueCode = function(request, callback) {
           function generateCode() { //personal code
-                var phoneCode = util.randomInt(1000,5000).toString();                
+                var phoneCode = util.randomInt(10001,49999).toString();                
                 checkingFourDgtUniqueCode(request,phoneCode, (err, data)=>{
                     (err === false) ? callback(false, data) : generateCode();                    
                 });
@@ -2780,6 +2789,171 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
             });
         }
     };
+    
+    this.insertAssetTimeline = function(request, callback) {
+    	
+    	var activityStreamTypeId = 323;
+    	if(request.hasOwnProperty('stream_type_id')){
+    		activityStreamTypeId = request.stream_type_id;
+    	}
+    	//var obj= request.activity_timeline_collection;
+    	var obj= JSON.parse(request.activity_timeline_collection);
+    	 var newAssetCollection = {
+                 organization_id: obj.organization_id,
+                 account_id: obj.account_id,
+                 workforce_id: obj.workforce_id,
+                 asset_id: obj.asset_id,
+                 message_unique_id: obj.message_unique_id
+             };
+    	 
+    	 console.log(newAssetCollection);
+    	 assetTimelineInsert(request, newAssetCollection, activityStreamTypeId, function (err, data) {
+        	callback(false, {}, 200);
+        });
+    };
+    
+    function assetTimelineInsert(request, participantData, streamTypeId, callback) {
+        //console.log('vnk streamTypeId : ', streamTypeId);
+        var assetId = request.asset_id;
+        var organizationId = request.organization_id;
+        var accountId = request.account_id;
+        var workforceId = request.workforce_id;
+        var messageUniqueId = request.message_unique_id;
+        var entityTypeId = 0;
+        var entityText1 = request.activity_timeline_text;
+        var entityText2 = "";
+        var entityText3 = "";
+        var activityTimelineCollection = "{}"; //BETA
+        var retryFlag = 0;
+        var formTransactionId = 0;
+        var dataTypeId = 0;
+        var formId = 0;
+        var logDatetime = util.getCurrentUTCTime();
+        request['datetime_log'] = logDatetime;
+        
+        if (Number(request.device_os_id) === 5)
+            retryFlag = 1;
+       
+        if (participantData.asset_id > 0) {
+            organizationId = participantData.organization_id;
+            accountId = participantData.account_id;
+            workforceId = participantData.workforce_id;
+            assetId = participantData.asset_id;
+            messageUniqueId = participantData.message_unique_id
+        }
+        console.log('participantData.length '+participantData+'   '+participantData.asset_id+' '+workforceId+' '+accountId+' '+organizationId);
+
+        var paramsArr = new Array(
+                request.activity_id,
+                assetId,
+                workforceId,
+                accountId,
+                organizationId,
+                streamTypeId,
+                entityTypeId, // entity type id
+                entityText1, // entity text 1
+                entityText2, // entity text 2
+                entityText3, //Beta
+                activityTimelineCollection, //BETA
+                request.track_latitude,
+                request.track_longitude,
+                formTransactionId, //form_transaction_id
+                formId, //form_id
+                dataTypeId, //data_type_id  should be 37 static
+                request.track_latitude, //location latitude
+                request.track_longitude, //location longitude
+                request.track_gps_accuracy,
+                request.track_gps_status,
+                request.track_gps_location,
+                request.track_gps_datetime,
+                "",
+                "",
+                request.device_os_id,
+                "",
+                "",
+                request.app_version,
+                request.service_version,
+                request.asset_id,
+                messageUniqueId,
+                retryFlag,
+                request.flag_offline,
+                request.track_gps_datetime,
+                request.datetime_log
+                );
+        var queryString = util.getQueryString("ds_v1_2_asset_timeline_transaction_insert", paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                if (err === false)
+                {
+                    callback(false, true);
+                    return;
+                } else {
+                    callback(err, false);
+                    //console.log(err);
+                    global.logger.write('serverError', '', err, request)
+                    return;
+                }
+            });
+        }
+    };
+    
+    this.assetListUpdateDesc = function(request, callback) {
+        var logDatetime = util.getCurrentUTCTime();        
+        request['datetime_log'] = logDatetime;
+        
+        var paramsArr = new Array(
+                request.target_asset_id,
+                request.organization_id,
+                request.asset_qrcode_image_path,
+                request.asset_id,
+                request.datetime_log
+                );
+
+        var queryString = util.getQueryString('ds_v1_1_asset_list_update_desc_pam', paramsArr);
+        if (queryString != '') {            
+            db.executeQuery(0, queryString, request, function (err, assetData) {
+                if (err === false) {                    
+                    pamAssetListHistoryInsert(request, 223, request.target_asset_id).then(()=>{});
+                    callback(false, {}, 200);
+                } else {                    
+                    callback(true, err, -9999);
+                    }
+                });
+            }     
+    };
+    
+    this.deactivateAsset = function (request) {
+    return new Promise((resolve, reject)=>{
+    	var logDatetime = util.getCurrentUTCTime();        
+        request['datetime_log'] = logDatetime;
+        var paramsArr = new Array(
+                request.target_asset_id,
+                request.organization_id,
+                request.activate_flag,
+                request.asset_id,
+                request.datetime_log
+                );
+
+        var queryString = util.getQueryString('ds_v1_asset_list_update_activate_status', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, assetData) {
+                if (err === false) {                    
+                    pamAssetListHistoryInsert(request, 203, request.target_asset_id).then(()=>{
+                    
+                    	 resolve(true);
+                    	
+                    }).catch((err) => {
+                    	console.log("errrrrrrrrrrrrrrr");
+                    	reject(err);
+                    	});
+                   
+                } else {                    
+                    reject(err);
+                    }
+             });
+        	}
+    	});
+     }
 }
 ;
 

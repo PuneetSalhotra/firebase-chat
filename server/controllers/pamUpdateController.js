@@ -2,7 +2,7 @@
  *author: V Nani Kalyan
  * 
  */
-
+var PamUpdateService = require("../services/pamUpdateService");
 function PamUpdateController(objCollection) {
 
     var responseWrapper = objCollection.responseWrapper;
@@ -11,7 +11,8 @@ function PamUpdateController(objCollection) {
     var app = objCollection.app;
     var util = objCollection.util;
     var forEachAsync = objCollection.forEachAsync;
-
+    var pamUpdateService = new PamUpdateService(objCollection);
+    
     //PAM
     app.put('/' + global.config.version + '/pam/activity/ingredient/alter', function (req, res) {
         var deviceOsId = 0;
@@ -196,6 +197,18 @@ function PamUpdateController(objCollection) {
             return;
         }
 
+    });
+    
+    app.put('/' + global.config.version + '/pam/activity/event/covers/alter', function (req, res) {
+    	pamUpdateService.activityListUpdateEventCovers(req.body).then(()=>{    	
+    		pamUpdateService.activityAssetMappingUpdateEventCovers(req.body).then(()=>{   	
+    			res.send(responseWrapper.getResponse({}, {}, 200, req.body));    	
+    		}).catch((err) => {        	
+    			res.send(responseWrapper.getResponse(err, {}, -999, req.body));
+    		});
+    	}).catch((err) => {        	
+        	res.send(responseWrapper.getResponse(err, {}, -998, req.body));
+    	});
     });
 }
 

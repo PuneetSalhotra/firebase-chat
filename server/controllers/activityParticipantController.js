@@ -244,8 +244,8 @@ function ActivityParticipantController(objCollection) {
                             return;
                         }
                 });
-            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
-            return;
+            // res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+            // return;
         };
         if (util.hasValidActivityId(req.body)) {
             if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5) {
