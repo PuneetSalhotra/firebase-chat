@@ -1,6 +1,15 @@
 // Events
 const EventEmitter = require('events');
 const request = require('request');
+const baseUrl = (global.mode === 'dev') ? 'http://0a4fc7df.ngrok.io/' + global.config.version : 'https://api.desker.cloud/' + global.config.version;
+console.log("global.mode: ", global.mode);
+
+// Nexmo
+const Nexmo = require('nexmo');
+const nexmo = new Nexmo({
+    apiKey: '38eaffb2',
+    apiSecret: 'NKHjXZ7pbdskGoRS'
+});
 
 class EEngine extends EventEmitter {
 
@@ -14,6 +23,9 @@ class EEngine extends EventEmitter {
         this.on('send-sinfini-sms', sendSinfiniSms);
         this.on('send-mvayoo-sms', sendMvayooSms);
         this.on('send-bulksms-sms', sendBulkSms);
+
+        // International
+        this.on('send-nexmo-sms', sendNexmoSms);
 
     };
 
@@ -48,7 +60,7 @@ function sendSinfiniSms(options) {
     let msgString;
 
     let url = 'https://api-alerts.solutionsinfini.com/v4';
-    let dlrurl = 'http://0a4fc7df.ngrok.io/sms-dlvry/sinfini?sent={sent}&delivered={delivered}&custom={custom}&sid={sid}&status={status}&reference={reference}&custom1={custom1}&custom2={custom2}&credits={credits}&mobile={mobile}';
+    let dlrurl = baseUrl + '/sms-dlvry/sinfini?sent={sent}&delivered={delivered}&custom={custom}&sid={sid}&status={status}&reference={reference}&custom1={custom1}&custom2={custom2}&credits={credits}&mobile={mobile}';
     dlrurl = (options.failOver === true) ? dlrurl : '';
 
     if (options.type === 'OTP') {
@@ -67,7 +79,6 @@ function sendSinfiniSms(options) {
         custom2: '',
         dlrurl: dlrurl
     };
-    console.log("qs: ", qs)
     // dlrurl => dlr_url
 
     request({
@@ -114,7 +125,7 @@ function sendMvayooSms(options) {
         senderID: 'DESKER',
         receipientno: options.countryCode + '' + options.phoneNumber,
         dcs: 0, // Data Coding Schema. 0 => Text Message
-        msgtxt: 'msgString',
+        msgtxt: msgString,
         state: 4 // This specifies the response types 
     };
 
@@ -193,7 +204,46 @@ function sendBulkSms(options) {
 }
 
 ////////////////////////////////////////////////////////////
-// Utilities
+// International
+// Nexmo
+function sendNexmoSms(options) {
+    // Inits
+    options.failOver = (typeof options.failOver === 'undefined') ? false : options.failOver;
+    options.countryCode = (typeof options.countryCode === 'undefined') ? '' : options.countryCode;
+
+    let msgString;
+    if (options.type === 'OTP') {
+        msgString = getOTPString(options.verificationCode);
+    }
+
+    // Nexmo params
+    let from = 'DESKER';
+    var to = '+' + options.countryCode + options.phoneNumber;
+    let callbackQs = `ph=${to}&vcode=${options.verificationCode}&type=${options.type}`;
+
+    let nexmoOptions = {
+        callback: baseUrl + '/sms-dlvry/nexmo?' + callbackQs
+    };
+
+    nexmo.message.sendSms(from, to, msgString, nexmoOptions, (error, response) => {
+        if (error || response.messages[0].status !== '0') {
+            console.log("\x1b[31m[nexmo]\x1b[0m Error: ", error);
+            console.log("\x1b[31m[nexmo]\x1b[0m response: ", response.statusCode);
+            // log error
+            // Emit failover event to NONE 
+            return;
+
+        } else {
+            // The SMS has been submitted to the operator/mobile network.
+            // All good for now.
+            console.log("\x1b[32m[nexmo]\x1b[0m response: ", response);
+            return;
+        }
+    });
+}
+
+////////////////////////////////////////////////////////////
+// Utility functions
 function getOTPString(verificationCode) {
     var msg_body = "Desker : Use " + verificationCode + " as verification code for registering the Desker App .";
     return msg_body;

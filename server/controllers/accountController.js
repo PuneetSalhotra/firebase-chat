@@ -257,9 +257,11 @@ function AccountController(objCollection) {
          console.log("req.query: ", req.query);
 
          if (req.query.status[0] === 'DELIVRD' || req.query.status[1] === 'DELIVRD') {
-             console.log("Message has been delivered");
+             console.log("\x1b[32m[sinfini]\x1b[0m Message has been delivered.");
 
          } else if (req.query.custom === 'OTP') {
+             console.log("\x1b[31m[sinfini]\x1b[0m OTP has not been delivered.");
+
              let smsOptions = {
                  type: req.query.custom, // Other types: 'NOTFCTN' | 'COLLBRTN' | 'INVTATN',
                  countryCode: '',
@@ -272,6 +274,28 @@ function AccountController(objCollection) {
          res.sendStatus(200);
      });
 
-}
-;
+     /* GET web-hook. */
+     app.get('/' + global.config.version + '/sms-dlvry/nexmo', function (req, res) {
+
+         if (req.query.status === 'delivered') {
+            console.log("\x1b[32m[nexmo]\x1b[0m Message has been delivered.");
+         } else if (req.query.type === 'OTP') {
+            // Currently, the primay internationsal SMS service vendor is Twilio.
+            // So, uncomment the following lines, when either a 3rd vendor is added or
+            // when Twilio becomes secondary and Nexmo becomes primary.
+            // let smsOptions = {
+            //     type: req.query.type, // Other types: 'NOTFCTN' | 'COLLBRTN' | 'INVTATN',
+            //     countryCode: '',
+            //     phoneNumber: req.query.ph,
+            //     verificationCode: req.query.vcode,
+            //     failOver: false
+            // };
+
+            // smsEngine.emit('send-XXXXXXX-sms', smsOptions);
+         }
+         res.sendStatus(200);
+     });
+
+};
+
 module.exports = AccountController;
