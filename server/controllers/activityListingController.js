@@ -4,6 +4,7 @@
  */
 
 var ActivityListingService = require("../services/activityListingService");
+const moment = require('moment');
 
 function ActivityListingController(objCollection) {
 
@@ -415,6 +416,36 @@ function ActivityListingController(objCollection) {
     
     app.post('/' + global.config.version + '/asset/phonenumber/access/organization/list', function (req, res) {
         activityListingService.getOrganizationsOfANumber(req.body, function (err, data, statusCode) {        
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+    // List meetings for a given date range
+    app.post('/' + global.config.version + '/asset/access/meetings/list', function (req, res) {
+        // Sanity check
+        // 1. A valid date range is mandatory
+        // The date range must be present
+        if (!moment(req.body.datetime_start).isValid() || !moment(req.body.datetime_start).isValid()) {
+            let data = 'Invalid start/end date.';
+            res.send(responseWrapper.getResponse(true, data, -3308, req.body));
+            return;
+        }
+        // 2. If the search-with-string flag is set, there must be a valid search string
+        if (Number(req.body.flter_flag) === 11) {
+            if (typeof req.body.search_string === 'undefined' || req.body.search_string === '') {
+                let data = 'Search flag set, but invalid/empty search string found.';
+                res.send(responseWrapper.getResponse(true, data, -3309, req.body));
+                return;
+            }
+        }
+        // 
+        // Fetch list of meetings
+        activityListingService.listMeetingsByDateRangeOrSearchString(req.body, function (err, data, statusCode) {        
             if (err === false) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
