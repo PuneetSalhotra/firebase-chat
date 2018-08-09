@@ -1624,6 +1624,47 @@ function ActivityListingService(objCollection) {
         }
     };
 
+    this.countOfMeetingsByDateRangeOrSearchString = function (request, callback) {
+        // Parameters: 
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), 
+        // IN p_asset_id BIGINT(20), IN p_operating_asset_id BIGINT(20), IN p_activity_type_category_id 
+        // SMALLINT(6), IN p_sub_type_id SMALLINT(6), IN p_flter_flag SMALLINT(6), IN p_search_string 
+        // VARCHAR(100), IN p_datetime_start DATETIME, IN p_datetime_end DATETIME, IN p_datetime DATETIME, 
+        // IN p_coworker_asset_id BIGINT(20), IN p_parent_activity_id BIGINT(20)
+        // 
+        // p_flter_flag values:
+        // 0 => all meetings in a date range 
+        // 1 => meetings in a date range which are in progress or scheduled
+        // 11 => search all meetings in a date range
+        // 
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.asset_id,
+            request.operating_asset_id,
+            request.activity_type_category_id,
+            request.sub_type_id || 0,
+            request.flter_flag,
+            request.search_string,
+            request.datetime_start,
+            request.datetime_end,
+            request.datetime || '1970-01-01 00:00:00',
+            request.coworker_asset_id || 0,
+            request.parent_activity_id || 0,
+        );
+        let queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_day_planner_filters_count', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (err === false) {
+                    callback(false, data, 200);
+                } else {
+                    callback(err, false, -9999);
+                }
+            });
+        }
+    };
+
 }
 ;
 
