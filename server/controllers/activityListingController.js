@@ -475,7 +475,7 @@ function ActivityListingController(objCollection) {
         }
         // 
         // Fetch count of meetings
-        activityListingService.listMeetingsByDateRangeOrSearchString(req.body, function (err, data, statusCode) {        
+        activityListingService.countOfMeetingsByDateRangeOrSearchString(req.body, function (err, data, statusCode) {        
             if (err === false) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
