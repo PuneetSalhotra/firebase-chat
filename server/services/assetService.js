@@ -6,6 +6,7 @@ var uuid = require('uuid');
 var AwsSns = require('../utils/snsWrapper');
 var AwsSss = require('../utils/s3Wrapper');
 var fs = require('fs');
+const smsEngine = require('../utils/smsEngine');
 
 function AssetService(objectCollection) {
 
@@ -807,63 +808,30 @@ function AssetService(objectCollection) {
             case 1:
                 // send sms                
                 //global.logger.write("sms string is " + smsString, request, 'trace'); // no third party api's in this case
-                if (countryCode === 91) {
-                    fs.readFile(`${__dirname}/../utils/domesticSmsMode.txt`, function (err, data) {
-                        (err) ? console.log(err): domesticSmsMode = Number(data.toString());
 
-                        // send local sms
-                        //switch (global.config.domestic_sms_mode) {
-                        switch (domesticSmsMode) {
-                            case 1: // mvaayoo                        
-                                util.sendSmsMvaayoo(smsString, countryCode, phoneNumber, function (error, data) {
-                                    if (error)
-                                        //console.log(error);
-                                        //console.log(data);
-                                        global.logger.write('trace', data, error, request)
-                                });
-                                break;
-                            case 2: // bulk sms                            
-                                util.sendSmsBulk(smsString, countryCode, phoneNumber, function (error, data) {
-                                    if (error)
-                                        //console.log(error);
-                                        //console.log(data);
-                                        global.logger.write('trace', data, error, request)
-                                });
-                                break;
-                            case 3: // sinfini                                                        
-                                console.log('In send SmsSinfini');
-                                util.sendSmsSinfini(smsString, countryCode, phoneNumber, function (error, data) {
-                                    if (error)
-                                        console.log(error);
-                                    console.log(data);
-                                    global.logger.write('trace', data, error, request)
-                                });
-                                break;
-                        }
-                    });
+                // There used to be a logic earlier to decide between the SMS vendors and 
+                // and then send domestic/international text. You can check it out in the
+                // GitHub PR (Pull Request) #19. 
+                if (countryCode === 91) {
+                    let smsOptions = {
+                        type: 'OTP', // Other types: 'NOTFCTN' | 'COLLBRTN' | 'INVTATN',
+                        countryCode,
+                        phoneNumber,
+                        verificationCode,
+                        failOver: true
+                    };
+                    smsEngine.sendDomesticSms(smsOptions);
+
                 } else {
 
-                    fs.readFile(`${__dirname}/../utils/internationalSmsMode.txt`, function (err, data) {
-                        (err) ? console.log(err): internationalSmsMode = Number(data.toString());
-
-                        // send international sms                    
-                        //global.logger.write('came inside else case', request, 'device', 'trace');
-                        switch (internationalSmsMode) {
-                            case 1:
-                                util.sendInternationalTwilioSMS(smsString, countryCode, phoneNumber, function (error, data) {
-                                    if (error)
-                                        global.logger.write('trace', data, error, request)
-                                });
-                                break;
-
-                            case 2:
-                                util.sendInternationalNexmoSMS(smsString, countryCode, phoneNumber, function (error, data) {
-                                    if (error)
-                                        global.logger.write('trace', data, error, request)
-                                });
-                                break;
-                        }
-                    });
+                    let smsOptions = {
+                        type: 'OTP', // Other types: 'NOTFCTN' | 'COLLBRTN' | 'INVTATN',
+                        countryCode,
+                        phoneNumber,
+                        verificationCode,
+                        failOver: true
+                    };
+                    smsEngine.sendInternationalSms(smsOptions);
 
                 }
                 break;
@@ -1155,8 +1123,8 @@ function AssetService(objectCollection) {
                         console.log('Asset Signup count : ', data.asset_count_signup);
                         assetListUpdateSignupCnt(request, assetId).then(() => {});
 
-                        if(data.asset_count_signup > 0) {
-                            assetListUpdateSignupCnt(request, assetId).then(()=>{});
+                        if (data.asset_count_signup > 0) {
+                            assetListUpdateSignupCnt(request, assetId).then(() => {});
                         } else {
                             //Create a Task in a given Project and add an update
                             //Asset_id, operating_asset_name, organization_name, workforce_name
@@ -1167,26 +1135,29 @@ function AssetService(objectCollection) {
                             newRequest.account_id = 437;
                             newRequest.workforce_id = 1898;
                             newRequest.asset_id = 8827;
-                            newRequest.operating_asset_id = 8826;                            
+                            newRequest.operating_asset_id = 8826;
                             newRequest.activity_title = data.operating_asset_first_name + " has signed up";
                             newRequest.activity_description = data.operating_asset_first_name + " has signed up";
-                            newRequest.activity_inline_data= "{}";
+                            newRequest.activity_inline_data = "{}";
                             newRequest.activity_datetime_start = util.getCurrentUTCTime();
                             newRequest.activity_datetime_end = util.addUnitsToDateTime(util.getCurrentUTCTime(), 1, 'years');
                             newRequest.activity_type_category_id = 10;
                             newRequest.activity_sub_type_id = 1;
                             newRequest.activity_type_id = 46458;
-                            newRequest.activity_access_role_id =26;
+
+                            newRequest.activity_access_role_id = 26;
                             newRequest.activity_parent_id = 95670;  //PROD - 95670 ; Staging - 93256
+
                             newRequest.url = "/add/activity/";
                             //activity_status_id:83846
                             //activity_status_type_id:17
                             //activity_status_type_category_id:0
-                            
+
                             newRequest.signedup_asset_id = data.asset_id;
                             newRequest.signedup_asset_organization_name = data.organization_name;
                             newRequest.signedup_asset_workforce_name = data.workforce_name;
                             newRequest.signedup_asset_name = data.operating_asset_first_name || "";
+
                             newRequest.signedup_asset_email_id = data.operating_asset_email_id || "";
                             newRequest.signedup_asset_phone_country_code = data.operating_asset_phone_country_code;
                             newRequest.signedup_asset_phone_number = data.operating_asset_phone_number;                            
@@ -1202,17 +1173,17 @@ function AssetService(objectCollection) {
                                         service: "activityService",
                                         method: "addActivity",
                                         payload: newRequest
-                                        };
-                                    queueWrapper.raiseActivityEvent(event, activityId, (err, resp)=>{
-                                            if(err) {
-                                                console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                                                //global.logger.write('serverError','Error in queueWrapper raiseActivityEvent',resp,req);                                                
-                                            } else {                                                
-                                                console.log("new activityId is : " + activityId);
-                                                //global.logger.write('debug',"new activityId is :" + activityId,{}, newRequest);
-                                            }
-                                       });                                    
-                                    }
+                                    };
+                                    queueWrapper.raiseActivityEvent(event, activityId, (err, resp) => {
+                                        if (err) {
+                                            console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
+                                            //global.logger.write('serverError','Error in queueWrapper raiseActivityEvent',resp,req);                                                
+                                        } else {
+                                            console.log("new activityId is : " + activityId);
+                                            //global.logger.write('debug',"new activityId is :" + activityId,{}, newRequest);
+                                        }
+                                    });
+                                }
                             });
                         }
                     }
@@ -2428,12 +2399,12 @@ function AssetService(objectCollection) {
     this.updateAssetPushToken = function (request, callback) {
         var dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
-        
+
         var flag; //1 is prod and 0 is dev
         var flagAppAccount; //1 is Grene Robotics and 0 is BlueFlock
-        
-        (request.hasOwnProperty('flag_dev')) ? flag = request.flag_dev : flag = 1;
-        (request.hasOwnProperty('flag_app_account')) ? flagAppAccount = request.flag_app_account : flagAppAccount = 0;
+
+        (request.hasOwnProperty('flag_dev')) ? flag = request.flag_dev: flag = 1;
+        (request.hasOwnProperty('flag_app_account')) ? flagAppAccount = request.flag_app_account: flagAppAccount = 0;
 
         var proceed = function (callback) {
             var authTokenCollection = {
