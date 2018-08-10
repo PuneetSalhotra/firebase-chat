@@ -6,8 +6,15 @@ os: linux
 files:
   - source: .
     destination: /api-staging-efs/node/staging_desker_api
+  - source: .
+    destination: /api-final-efs/node/production_desker_api
 permissions:
   - object: /api-staging-efs/node/staging_desker_api/deployment
+    owner: nanikalyan
+    mode: 777
+    type:
+      - directory
+  - object: /api-final-efs/node/production_desker_api/deployment
     owner: nanikalyan
     mode: 777
     type:

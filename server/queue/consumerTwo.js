@@ -29,7 +29,7 @@ var Consumer = function () {
     console.log('global.config.kafkaIPOne : ', global.config.kafkaIPTwo.kafkaHost);
     
     const options = {
-      groupId: 'desker-activities-consumer-group',
+      groupId: global.config.consumerGroup,
       autoCommit: false,      
       kafkaHost: global.config.kafkaIPTwo.kafkaHost,
       sessionTimeout: 15000,

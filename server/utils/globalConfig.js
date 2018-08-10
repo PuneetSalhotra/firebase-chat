@@ -53,12 +53,16 @@ if (mode === 'dev') {
     config.kafkaActivitiesTopic = 'desker-activities';
     //config.kafkaActivitiesTopic = 'desker-test';
     config.kafkaFormWidgetTopic = 'desker-form-widgets';
+    config.consumerGroup = "desker-activities-consumer-group-v2";
     
     //IOS Push
     config.iosPushMode = 'dev';
     
     //SQS Queue
     config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/Desker-staging"; //Staging SQS QUEUE
+    
+    //Portal Service URL
+    config.portalBaseUrl = "http://staging.portal.desker.cloud/r0";
 }
 
 if (mode === 'staging') {
@@ -84,10 +88,10 @@ if (mode === 'staging') {
     config.conLimit = 10;
 
     //Redis Config
-    config.redisIp = 'dev-redis.apppnf.0001.use1.cache.amazonaws.com';
-    config.redisPort = 6379;
-    //config.redisIp = '127.0.0.1';
-    //config.redisPort = 6379;   
+    //config.redisIp = 'dev-redis.apppnf.0001.use1.cache.amazonaws.com';
+    //config.redisPort = 6379;
+    config.redisIp = '127.0.0.1';
+    config.redisPort = 6379;   
 
     //Kafka Brokers Config
     config.kafkaIPOne = {kafkaHost: 'kafka1:9092'};
@@ -97,12 +101,16 @@ if (mode === 'staging') {
     //Kafka Topics
     config.kafkaActivitiesTopic = 'staging-desker-activities';
     //config.kafkaFormWidgetTopic = 'desker-form-widgets';
+    config.consumerGroup = "desker-activities-consumer-group-v2";
     
     //IOS Push
     config.iosPushMode = 'dev';    // currently shouuld be in dev
     
     //SQS Queue
     config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/Desker-staging"; //Staging SQS QUEUE
+    
+    //Portal Service URL
+    config.portalBaseUrl = "http://staging.portal.desker.cloud/r0";
 }
 
 if (mode === 'prod') {
@@ -124,13 +132,15 @@ if (mode === 'prod') {
     config.slave2Ip = 'readreplica2.citeodhwc7z9.us-east-1.rds.amazonaws.com';
     
     config.dbUser = 'apiuser';
-    config.database = 'desker';
+    config.database = 'desker_staging';
+    //config.database = 'desker';
     config.dbPassword = 'apidbuser';
 
     config.conLimit = 10;
 
     //Redis
-    config.redisIp = 'rediscluster1.apppnf.ng.0001.use1.cache.amazonaws.com';
+    config.redisIp = 'dev-redis.apppnf.0001.use1.cache.amazonaws.com';
+    //config.redisIp = 'rediscluster1.apppnf.ng.0001.use1.cache.amazonaws.com';
     config.redisPort = 6379;
 
     //Kafka Brokers Config
@@ -139,14 +149,21 @@ if (mode === 'prod') {
     config.kafkaIPThree = {kafkaHost: 'kafka3:9092'};
     
     //Kafka Topics
-    config.kafkaActivitiesTopic = 'desker-activities';    
-    config.kafkaFormWidgetTopic = 'desker-form-widgets';
+    //config.kafkaActivitiesTopic = 'desker-activities';    
+    //config.kafkaFormWidgetTopic = 'desker-form-widgets';
+    config.kafkaActivitiesTopic = 'desker-test';
+    
+    config.consumerGroup = "desker-activities-consumer-group-v2";
     
     //IOS PUSH
-    config.iosPushMode = 'prod';
+    //config.iosPushMode = 'prod';
+    config.iosPushMode = 'dev';
     
     //SQS QUEUE
     config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/desker-logging-staging"; //Prod SQS QUEUE - DONT confuse with the naming Convention
+    
+    //Portal Service URL
+    config.portalBaseUrl = "https://portal.desker.cloud/r1";
 }
 
 config.platformApplicationIosDev = 'arn:aws:sns:us-east-1:430506864995:app/APNS_VOIP_SANDBOX/VOIPios';
