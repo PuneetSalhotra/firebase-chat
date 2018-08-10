@@ -88,10 +88,8 @@ if (mode === 'staging') {
     config.conLimit = 10;
 
     //Redis Config
-    //config.redisIp = 'dev-redis.apppnf.0001.use1.cache.amazonaws.com';
-    //config.redisPort = 6379;
-    config.redisIp = '127.0.0.1';
-    config.redisPort = 6379;   
+    config.redisIp = 'dev-redis.apppnf.0001.use1.cache.amazonaws.com';
+    config.redisPort = 6379;    
 
     //Kafka Brokers Config
     config.kafkaIPOne = {kafkaHost: 'kafka1:9092'};
