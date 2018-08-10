@@ -5,9 +5,9 @@ version: 0.0
 os: linux
 files:
   - source: .
-    destination: /api-final-efs/node/staging/staging_desker_api
+    destination: /api-staging-efs/node/staging_desker_api
 permissions:
-  - object: /api-final-efs/node/staging/staging_desker_api/deployment
+  - object: /api-staging-efs/node/staging_desker_api/deployment
     owner: nanikalyan
     mode: 777
     type:
