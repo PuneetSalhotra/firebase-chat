@@ -1190,7 +1190,7 @@ function ActivityListingService(objCollection) {
 
     this.getTaskListCounts = function (request, callback) {
 
-        var flags = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15];
+        var flags = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 17];
         var response = {};
         forEachAsync(flags, function (next, flagValue) {
 
@@ -1219,7 +1219,7 @@ function ActivityListingService(objCollection) {
                         response.search_count = data;
                         break;
                     case 6:
-                        response.creator_count = data
+                        response.creator_count = data;
                         break;
                     case 7:
                         response.lead_count = data;
@@ -1244,6 +1244,9 @@ function ActivityListingService(objCollection) {
                         break;
                     case 15:
                         response.pending_next_24hr_count = data;
+                        break;
+                    case 17:
+                        response.no_file = data;
                         break;
                 }
                 next();
