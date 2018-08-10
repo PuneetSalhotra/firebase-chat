@@ -40,7 +40,7 @@ function Logger() {
             environment: global.mode, //'prod'
             log:'log'
         };
-        //util.writeLogs(message); //Using our own logic
+        util.writeLogs(message); //Using our own logic
         //logger.info(message); //Winston rotational logs
         var loggerCollectionString = JSON.stringify(loggerCollection);
         sqs.produce(loggerCollectionString, function (err, response) {

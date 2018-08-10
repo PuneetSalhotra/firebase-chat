@@ -791,20 +791,15 @@ function Util() {
         if (fs.existsSync(logFilePath)) {
             fs.appendFile(logFilePath, os.EOL + data_to_add, function (err, fd) {
                 if (err)
-                    console.log('Error while writing data to file', err);
-                
-                //fs.close(fd);
+                    console.log('Error while writing data to file', err);                
             });
             
         } else {
             fs.writeFile(logFilePath, data_to_add, function (err, fd) {
                 if (err)
-                    console.log('Error while writing data to file', err);
-                
-                //fs.close(fd);
+                    console.log('Error while writing data to file', err);                
             });            
-        }       
-        
+        }        
     };
     
 }
