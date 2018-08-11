@@ -246,7 +246,7 @@ function FormConfigService(objCollection) {
                 if (err === false) {
                     if (data.length > 0) {
                         //console.log(data);
-                        activityCommonService.formatFormDataCollection(data, function (err, finalData) {
+                        formatFromsListing(data, function (err, finalData) {
                             if (err === false) {
                                 callback(false, {data: finalData}, 200);
                             }
@@ -320,8 +320,7 @@ function FormConfigService(objCollection) {
         }, this);
         callback(false, responseData);
     };
-
-}
-;
+    
+};
 
 module.exports = FormConfigService;

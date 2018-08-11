@@ -732,7 +732,8 @@ function ActivityUpdateService(objectCollection) {
                         form : newRequest
                       }
                                   
-                    makeRequest.post('https://portal.desker.cloud/r1/asset/update/details', options, function (error, response, body) {
+                    //makeRequest.post('https://portal.desker.cloud/r1/asset/update/details', options, function (error, response, body) {
+                    makeRequest.post(global.config.portalBaseUrl + '/asset/update/details', options, function (error, response, body) {
                           console.log('body:', body);
                           body = JSON.parse(body);
                           console.log('error : ', error);

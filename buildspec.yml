@@ -1,3 +1,7 @@
+#Author: V Nani Kalyan
+#Date: 02-Aug-2018
+#Description: yml file to build the Mobile API Services
+
 version: 0.1
           
 phases:
@@ -9,10 +13,17 @@ phases:
     commands:      
   build:
     commands:
-      - pm2 start startAllProcesses.yml
+      - mode=staging pm2 start startStagProcesses.yml
+      - sleep 5
+      - mode=prod pm2 start startProdProcesses.yml
   post_build:
     commands:
       - echo Build completed on `date`
+      - sleep 30
+      - pm2 ls
+      - sleep 30
+      - pm2 stop all      
+      - pm2 delete all
 artifacts:
   files:
     - '**/*'

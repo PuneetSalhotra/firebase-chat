@@ -3,6 +3,7 @@ var bodyParser = require('body-parser');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 var makeRequest = require('request');
+var globalConfig = require('../utils/globalConfig');
 
 app.post('/pam/reservation/set', function (req, res) {
      invokeJavaPgm(req.body).then((data)=>{
@@ -40,7 +41,7 @@ function pamReservSet(request, result) {
               }
           }
 
-        makeRequest.post('http://localhost:3000/0.1/pam/reservation/set', options, function (error, response, body) {
+        makeRequest.post('http://localhost:3000/r1/pam/reservation/set', options, function (error, response, body) {
               console.log('body:', body);
               body = JSON.parse(body);
               var resp = {
@@ -55,6 +56,6 @@ function pamReservSet(request, result) {
     });    
 }
 
-app.listen(3100, ()=>{
-    console.log('Server is running on 3100 port');
+app.listen(global.config.standAlonePamServicePort, ()=>{
+    console.log('Server is running on ' + global.config.standAlonePamServicePort + ' port');
 });

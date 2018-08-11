@@ -999,7 +999,7 @@ function ActivityListingService(objCollection) {
                     getCatGrpCts(request).then((resp) => {
                         
                         forEachAsync(resp, (next, row)=>{                            
-                            if(row.activity_type_category_id == 11) {
+                            if(row.activity_type_category_id == 11) {                                  
                                    projectCnt = row.count;                                   
                                }
                             next();
