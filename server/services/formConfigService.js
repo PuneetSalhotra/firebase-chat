@@ -320,7 +320,35 @@ function FormConfigService(objCollection) {
         }, this);
         callback(false, responseData);
     };
-    
-};
+
+    this.getManualMobileAndWebTimecardForms = function (request, callback) {
+
+        let paramsArr = new Array(
+            request.asset_id,
+            request.organization_id,
+            request.datetime_start,
+            request.datetime_end,
+            request.flag || 0,
+            request.is_sort || 0
+        );
+        let queryString = util.getQueryString('ds_p1_activity_form_transaction_select_timecard_forms', paramsArr);
+        if (queryString !== '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (!err) {
+                    // callback(false, data, 200);
+                    activityCommonService.formatFormDataCollection(data, function (err, formattedData) {
+                        if (err === false) {
+                            callback(false, {data: formattedData}, 200);
+                        }
+                    });
+                } else {
+                    callback(err, data, -9999);
+                }
+            })
+        }
+    }
+
+}
+;
 
 module.exports = FormConfigService;
