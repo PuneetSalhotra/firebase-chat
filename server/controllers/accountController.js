@@ -7,6 +7,12 @@ var AccountService = require("../services/accountService");
 var fs = require('fs');
 const smsEngine = require('../utils/smsEngine');
 
+let efsPath = '/api-cdci-efs/';
+if(global.mode === 'staging') {
+    efsPath = '/api-staging-efs/';
+
+}
+
 function AccountController(objCollection) {
 
     var responseWrapper = objCollection.responseWrapper;
@@ -197,7 +203,7 @@ function AccountController(objCollection) {
         x = x.split("/");
         console.log('x[3] : ' + x[3]);
         
-        var file = '/api-efs/twiliovoicesxmlfiles/' + x[3] + '.xml';
+        var file = efsPath + 'twiliovoicesxmlfiles/' + x[3] + '.xml';
         //var file = '/home/nani/Desktop/twiliovoicesxmlfiles/' + x[3] + '.xml';
         console.log(file);               
         
@@ -216,7 +222,7 @@ function AccountController(objCollection) {
     //Voice JSON for NEXMO
     app.get('/' + global.config.version + '/account/nexmo/voice*', function (req, res) {
         console.log('Request.query : ' , req.body);
-        var file = '/api-efs/nexmovoicesjsonfiles/' + req.query.file;
+        var file = efsPath + 'nexmovoicesjsonfiles/' + req.query.file;
         //var file = '/home/nani/Desktop/twiliovoicesxmlfiles/' + x[3] + '.xml';
         console.log(file);       
      
