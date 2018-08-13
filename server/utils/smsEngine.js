@@ -1,8 +1,15 @@
 // Events
 const EventEmitter = require('events');
 const request = require('request');
-const baseUrl = (global.mode === 'dev') ? 'http://8599f133.ngrok.io/' + global.config.version : 'https://api.desker.cloud/' + global.config.version;
 
+let baseUrl = (global.mode === 'dev') ? 'http://8599f133.ngrok.io/' + global.config.version : 'https://api.desker.cloud/' + global.config.version;
+let efsPath = '/api-cdci-efs/'
+
+if(global.mode === 'staging') {
+    baseUrl = 'http://staging.api.desker.cloud/' + global.config.version;
+    efsPath = '/api-staging-efs/';
+
+}
 // Nexmo
 const Nexmo = require('nexmo');
 const nexmo = new Nexmo({
