@@ -325,7 +325,7 @@ function AccountController(objCollection) {
          }
          res.sendStatus(200);
      });
-
+     
 };
 
 module.exports = AccountController;
