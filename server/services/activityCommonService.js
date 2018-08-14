@@ -3,7 +3,7 @@
  */
 
 function ActivityCommonService(db, util, forEachAsync) {
-
+    
     this.getAllParticipants = function (request, callback) {
         var paramsArr = new Array(
                 request.activity_id,
@@ -1775,6 +1775,56 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
  	   });
     };  
+    
+    this.updateProjectEndDateTime= function (request, callback) {
+        getlatestDateInAProject(request).then((data)=>{
+            var taskProjectsEndDtTime = util.replaceDefaultDatetime(data[0].activity_datetime_end_deferred); //Task with latest end Date Time
+            
+            //Get the Activity Details 
+            this.getActivityDetails(request, request.activity_parent_id, (err, activityData)=>{
+                var projectEndDtTime = util.replaceDefaultDatetime(activityData[0].activity_datetime_end_deferred);
+                
+                console.log('projectEndDtTime : ', projectEndDtTime);
+                console.log('taskProjectsEndDtTime : ', taskProjectsEndDtTime);
+                console.log('Math.sign(util.differenceDatetimes(' + taskProjectsEndDtTime+ ', ' + projectEndDtTime  + '): ', typeof Math.sign(util.differenceDatetimes(taskProjectsEndDtTime, projectEndDtTime)));
+                if((Math.sign(util.differenceDatetimes(taskProjectsEndDtTime, projectEndDtTime)) === 1)) {
+                    //Call alter cover for that project
+                    //Add timeline Entry
+                    callback(false, projectEndDtTime, taskProjectsEndDtTime);
+                } else {                    
+                    callback(true, false, false);
+                }
+            });
+        });
+        
+    };
+    
+    function getlatestDateInAProject(request) {
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                request.organization_id,
+                request.activity_parent_id,
+                request.flag || 1,
+                request.entity_1,
+                request.start_datetime || "",
+                request.end_datetime || "",
+                request.start_from || 0,
+                request.limit_value || 1
+                );
+
+            var queryString = util.getQueryString('ds_p1_activity_list_select_parent_flag', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    if(err === false) {
+                     console.log('DATA : ', data);
+                        resolve(data)   
+                    } else {
+                     reject(err);
+                    } 
+                });
+            }
+        });        
+    };
 
 }
 ;

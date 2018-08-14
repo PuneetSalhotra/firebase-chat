@@ -29,7 +29,7 @@ var AwsSns = function () {
             aps.type = message.extra_data.type;
         }
 
-        var params = {
+        /*var params = {
             MessageStructure: 'json',
             Message: JSON.stringify({
                 'default': message.title + message.description,
@@ -38,7 +38,21 @@ var AwsSns = function () {
                 APNS_VOIP_SANDBOX: JSON.stringify({aps})
             }),
             TargetArn: targetArn
+        };*/
+        
+        var params = {
+            MessageStructure: 'json',
+            Message: JSON.stringify({
+                'default': message.title + message.description,
+                'GCM': JSON.stringify(GCMjson),
+                APNS_VOIP: JSON.stringify({aps}),
+                APNS_VOIP_SANDBOX: JSON.stringify({aps}),
+                APNS: JSON.stringify({aps}),
+                APNS_SANDBOX: JSON.stringify({aps})
+            }),
+            TargetArn: targetArn
         };
+        
         sns.publish(params, function (err, data) {
             if (err)
                 console.log(err); // an error occurred
@@ -90,15 +104,23 @@ var AwsSns = function () {
                         console.log('Flag is 1. Creating IOS Prod for Blue flock Account');
                         platformApplicationArn = global.config.platformApplicationIosProd;
                     }
-                } else { //flagAppAccount == 1 i.e. Grene Robotics
+                } else if(flagAppAccount == 1){ //flagAppAccount == 1 i.e. Grene Robotics -- VOIP Push
                     if (flag == 0){
-                        console.log('Flag is 0. Creating IOS Dev for Grene Robotics Account');
+                        console.log('Flag is 0. Creating IOS Dev for Grene Robotics Account VOIP Push');
                         platformApplicationArn = global.config.platformApplicationIosDevGR;
                     } else {
-                        console.log('Flag is 1. Creating IOS Prod for Grene Robotics Account');
+                        console.log('Flag is 1. Creating IOS Prod for Grene Robotics Account VOIP Push');
                         platformApplicationArn = global.config.platformApplicationIosProdGR;
                     }
-                }    
+                } else { //flagAppAccount == 2 i.e. Grene Robotics World Desk normal IOS Push
+                    if (flag == 0){
+                        console.log('Flag is 0. Creating IOS Dev for Grene Robotics Account Plain Push');
+                        platformApplicationArn = global.config.platformApplicationIosWorldDeskDevGR;
+                    } else {
+                        console.log('Flag is 1. Creating IOS Prod for Grene Robotics Account Plain Push');
+                        platformApplicationArn = global.config.platformApplicationIosWorldDeskProdGR;
+                    }
+                }
                 break;
             case 3:// windows
                 platformApplicationArn = global.config.platformApplicationWindows;

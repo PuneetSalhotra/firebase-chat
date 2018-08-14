@@ -172,12 +172,24 @@ function ActivityService(objectCollection) {
                             
                             alterActivityFlagFileEnabled(request).then(()=>{});
                             
-                            updateProjectStatusCounts(request).then(() => {});
-                            if (request.hasOwnProperty('activity_parent_id')) {
-                                if (util.hasValidGenericId(request, 'activity_parent_id')) {
-                                    activityCommonService.getActivityDetails(request, Number(request.activity_parent_id), function (err, activityData) {
-                                        if (err === false) {
+                            updateProjectStatusCounts(request).then(() => {});                            
+                            if (request.hasOwnProperty('activity_parent_id')) {                                
+                                if (util.hasValidGenericId(request, 'activity_parent_id')) {                                    
+                                    activityCommonService.getActivityDetails(request, Number(request.activity_parent_id), function (err, activityData) {                                        
+                                        if (err === false) {                                            
                                             switch (Number(activityData[0]['activity_type_category_id'])) {
+                                                case 11:
+                                                    //Updating the due date of the project                                                    
+                                                    activityCommonService.updateProjectEndDateTime(request, (err, oldDateTime, newDateTime)=>{                                                        
+                                                        if(err === false) {                                                            
+                                                            var coverAlterJson = {};
+                                                            coverAlterJson.title = {old: activityData[0]['activity_title'], new : activityData[0]['activity_title']};
+                                                            coverAlterJson.description = {old: activityData[0]['activity_description'], new : activityData[0]['activity_description']};
+                                                            coverAlterJson.duedate = {old: oldDateTime, new : newDateTime};
+                                                            callAlterActivityCover(request, coverAlterJson, activityData[0]['activity_type_category_id']).then(()=>{}).catch(()=>{});
+                                                        }
+                                                    });
+                                                    break;
                                                 case 6:
                                                 case 29:
                                                 case 43:
@@ -201,8 +213,8 @@ function ActivityService(objectCollection) {
                                                                 var newEndEstimatedDatetime = result[0]['activity_datetime_end_estimated'];
                                                                 console.log('setting new datetime for contact as ' + newEndEstimatedDatetime);
                                                                 coverAlterJson.description = {old: activityData[0]['activity_datetime_end_estimated'], new : newEndEstimatedDatetime};
-
-                                                                var event = {
+                 callAlterActivityCover(request, coverAlterJson, activityData[0]['activity_type_category_id']).then(()=>{}).catch(()=>{});
+                                                                /*var event = {
                                                                     name: "alterActivityCover",
                                                                     service: "activityUpdateService",
                                                                     method: "alterActivityCover",
@@ -241,7 +253,7 @@ function ActivityService(objectCollection) {
                                                                         //global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent", err, request);
                                                                         throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                                                                     }
-                                                                });
+                                                                });*/
                                                             }
                                                         });
                                                     }
@@ -290,6 +302,54 @@ function ActivityService(objectCollection) {
             global.logger.write('serverError', '', err, request);
         });
     };
+    
+    function callAlterActivityCover(request, coverAlterJson, activityTypeCategoryId){
+        return new Promise((resolve, reject)=>{
+           console.log('coverAlterJson : ', coverAlterJson);
+           var event = {
+                name: "alterActivityCover",
+                service: "activityUpdateService",
+                method: "alterActivityCover",
+           payload: {
+                organization_id: request.organization_id,
+                account_id: request.account_id,
+                workforce_id: request.workforce_id,
+                asset_id: request.asset_id,
+                asset_token_auth: request.asset_token_auth,
+                activity_id: request.activity_parent_id,
+                activity_cover_data: JSON.stringify(coverAlterJson),
+                activity_type_category_id: activityTypeCategoryId,
+                activity_type_id: request.activity_type_id || 1,
+                activity_access_role_id: 1,
+                activity_parent_id: 0,
+                flag_pin: 0,
+                flag_priority: 0,
+                flag_offline: 0,
+                flag_retry: 0,
+                message_unique_id: util.getMessageUniqueId(request.asset_id),
+                track_latitude: request.track_latitude,
+                track_longitude: request.track_longitude,
+                track_altitude: request.track_altitude,
+                track_gps_datetime: request.track_gps_datetime,
+                track_gps_accuracy: request.track_gps_accuracy,
+                track_gps_status: request.track_gps_status,
+                track_gps_location: request.track_gps_location,
+                service_version: request.service_version,
+                app_version: request.app_version,
+                device_os_id: request.device_os_id
+                }
+                };
+            queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
+                if (err) {
+                    //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
+                    //global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent", err, request);
+                    throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+                  }
+                resolve();
+             });          
+        });
+    }
+    
     var updateMailInlineJson = function (request, callback) {
         var mailJson = JSON.parse(request.activity_inline_data);
         var finalJson = {};
@@ -1185,6 +1245,7 @@ function ActivityService(objectCollection) {
                         case 26://Closed 
                             updateFlagOntime(request).then(() => {
                             });
+                            //activityCommonService.updateProjectEndDateTime(request, (err, data)=>{});
                             break;
                         case 130://Accepted 
                             //updateFlagOntime(request).then(()=>{});
