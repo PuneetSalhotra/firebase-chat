@@ -494,10 +494,11 @@ function PamListingService(objectCollection) {
 	                request.asset_id,
 	                request.activity_type_category_id,
 	                request.datetime_differential,
-	                request.parent_activity_id,
+	                 request.parent_activity_id,
 	                request.page_start,
 	                util.replaceQueryLimit(request.page_limit)
 	                );
+	                
 	        queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_category_differential', paramsArr);
 	        if (queryString != '') {
 	            db.executeQuery(1, queryString, request, function (err, data) {
