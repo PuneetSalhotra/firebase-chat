@@ -522,6 +522,7 @@ function PamListingService(objectCollection) {
             request.asset_id,
             request.activity_type_category_id,
             request.datetime_differential,
+            request.parent_activity_id,
             request.page_start,
             util.replaceQueryLimit(request.page_limit)
         );

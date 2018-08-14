@@ -13,11 +13,11 @@ function FormConfigService(objCollection) {
         var queryString = '';
 
         paramsArr = new Array(
-                request.organization_id,
-                request.datetime_differential,
-                request.page_start,
-                util.replaceQueryLimit(request.page_limit)
-                );
+            request.organization_id,
+            request.datetime_differential,
+            request.page_start,
+            util.replaceQueryLimit(request.page_limit)
+        );
         queryString = util.getQueryString('ds_v1_workforce_form_field_mapping_select_level_organization', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
@@ -26,7 +26,9 @@ function FormConfigService(objCollection) {
                         //console.log(data);
                         formatFromsListing(data, function (err, finalData) {
                             if (err === false) {
-                                callback(false, {data: finalData}, 200);
+                                callback(false, {
+                                    data: finalData
+                                }, 200);
                             }
                         });
                     } else {
@@ -47,12 +49,12 @@ function FormConfigService(objCollection) {
         var queryString = '';
 
         paramsArr = new Array(
-                request.organization_id,
-                request.account_id,
-                request.datetime_differential,
-                request.page_start,
-                util.replaceQueryLimit(request.page_limit)
-                );
+            request.organization_id,
+            request.account_id,
+            request.datetime_differential,
+            request.page_start,
+            util.replaceQueryLimit(request.page_limit)
+        );
         queryString = util.getQueryString('ds_v1_workforce_form_field_mapping_select_level_account', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
@@ -61,7 +63,9 @@ function FormConfigService(objCollection) {
                         //console.log(data);
                         formatFromsListing(data, function (err, finalData) {
                             if (err === false) {
-                                callback(false, {data: finalData}, 200);
+                                callback(false, {
+                                    data: finalData
+                                }, 200);
                             }
                         });
                     } else {
@@ -82,13 +86,13 @@ function FormConfigService(objCollection) {
         var queryString = '';
 
         paramsArr = new Array(
-                request.organization_id,
-                request.account_id,
-                request.workforce_id,
-                request.datetime_differential,
-                request.page_start,
-                util.replaceQueryLimit(request.page_limit)
-                );
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.datetime_differential,
+            request.page_start,
+            util.replaceQueryLimit(request.page_limit)
+        );
         queryString = util.getQueryString('ds_v1_workforce_form_field_mapping_select_level_workforce', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
@@ -97,7 +101,9 @@ function FormConfigService(objCollection) {
                         //console.log(data);
                         formatFromsListing(data, function (err, finalData) {
                             if (err === false) {
-                                callback(false, {data: finalData}, 200);
+                                callback(false, {
+                                    data: finalData
+                                }, 200);
                             }
                         });
                     } else {
@@ -118,14 +124,14 @@ function FormConfigService(objCollection) {
         var queryString = '';
 
         paramsArr = new Array(
-                request.organization_id,
-                request.account_id,
-                request.workforce_id,
-                request.activity_id,
-                request.datetime_differential,
-                request.page_start,
-                util.replaceQueryLimit(request.page_limit)
-                );
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_id,
+            request.datetime_differential,
+            request.page_start,
+            util.replaceQueryLimit(request.page_limit)
+        );
         queryString = util.getQueryString('ds_v1_workforce_form_field_mapping_select_level_activity', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
@@ -134,7 +140,9 @@ function FormConfigService(objCollection) {
                         //console.log(data);
                         formatFromsListing(data, function (err, finalData) {
                             if (err === false) {
-                                callback(false, {data: finalData}, 200);
+                                callback(false, {
+                                    data: finalData
+                                }, 200);
                             }
                         });
                     } else {
@@ -155,14 +163,14 @@ function FormConfigService(objCollection) {
         var queryString = '';
 
         paramsArr = new Array(
-                request.organization_id,
-                request.account_id,
-                request.workforce_id,
-                request.form_id,
-                '1970-01-01 00:00:00',
-                request.page_start,
-                util.replaceQueryLimit(request.page_limit)
-                );
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.form_id,
+            '1970-01-01 00:00:00',
+            request.page_start,
+            util.replaceQueryLimit(request.page_limit)
+        );
         queryString = util.getQueryString('ds_v1_workforce_form_field_mapping_select', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
@@ -171,7 +179,9 @@ function FormConfigService(objCollection) {
                         //console.log(data);
                         formatFromsListing(data, function (err, finalData) {
                             if (err === false) {
-                                callback(false, {data: finalData}, 200);
+                                callback(false, {
+                                    data: finalData
+                                }, 200);
                             }
                         });
                     } else {
@@ -193,15 +203,15 @@ function FormConfigService(objCollection) {
         var queryString = '';
 
         paramsArr = new Array(
-                request.organization_id,
-                request.account_id,
-                request.workforce_id,
-                0, //request.group_id
-                10, //form_type_category_id
-                3, //entity_level_id,
-                request.page_start,
-                util.replaceQueryLimit(request.page_limit)
-                );
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            0, //request.group_id
+            10, //form_type_category_id
+            3, //entity_level_id,
+            request.page_start,
+            util.replaceQueryLimit(request.page_limit)
+        );
         queryString = util.getQueryString('ds_v1_workforce_form_mapping_select_category_level', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
@@ -210,7 +220,9 @@ function FormConfigService(objCollection) {
                         //console.log(data);
                         formatFromsListing(data, function (err, finalData) {
                             if (err === false) {
-                                callback(false, {data: finalData}, 200);
+                                callback(false, {
+                                    data: finalData
+                                }, 200);
                             }
                         });
                     } else {
@@ -231,15 +243,15 @@ function FormConfigService(objCollection) {
         var queryString = '';
 
         paramsArr = new Array(
-                request.form_id,
-                request.workforce_id,
-                request.account_id,
-                request.organization_id,
-                request.datetime_differential,
-                3, //entity_level_id,
-                request.page_start,
-                util.replaceQueryLimit(request.page_limit)
-                );
+            request.form_id,
+            request.workforce_id,
+            request.account_id,
+            request.organization_id,
+            request.datetime_differential,
+            3, //entity_level_id,
+            request.page_start,
+            util.replaceQueryLimit(request.page_limit)
+        );
         queryString = util.getQueryString('ds_v1_activity_form_transaction_analytics_select_form', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
@@ -248,7 +260,9 @@ function FormConfigService(objCollection) {
                         //console.log(data);
                         formatFromsListing(data, function (err, finalData) {
                             if (err === false) {
-                                callback(false, {data: finalData}, 200);
+                                callback(false, {
+                                    data: finalData
+                                }, 200);
                             }
                         });
                     } else {
@@ -315,12 +329,41 @@ function FormConfigService(objCollection) {
                 "log_state": util.replaceDefaultNumber(rowData['log_state']),
                 "log_active": util.replaceDefaultNumber(rowData['log_active']),
                 "update_sequence_id": util.replaceDefaultNumber(rowData['update_sequence_id'])
-          };
+            };
             responseData.push(rowDataArr);
         }, this);
         callback(false, responseData);
     };
-    
+
+    this.getManualMobileAndWebTimecardForms = function (request, callback) {
+
+        let paramsArr = new Array(
+            request.asset_id,
+            request.organization_id,
+            request.datetime_start,
+            request.datetime_end,
+            request.flag || 0,
+            request.is_sort || 0
+        );
+        let queryString = util.getQueryString('ds_p1_activity_form_transaction_select_timecard_forms', paramsArr);
+        if (queryString !== '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (!err) {
+                    // callback(false, data, 200);
+                    activityCommonService.formatFormDataCollection(data, function (err, formattedData) {
+                        if (err === false) {
+                            callback(false, {
+                                data: formattedData
+                            }, 200);
+                        }
+                    });
+                } else {
+                    callback(err, data, -9999);
+                }
+            })
+        }
+    };
+
 };
 
 module.exports = FormConfigService;
