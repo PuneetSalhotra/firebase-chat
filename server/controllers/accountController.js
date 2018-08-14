@@ -7,6 +7,12 @@ var AccountService = require("../services/accountService");
 var fs = require('fs');
 const smsEngine = require('../utils/smsEngine');
 
+let efsPath = '/api-cdci-efs/';
+if(global.mode === 'staging') {
+    efsPath = '/api-staging-efs/';
+
+}
+
 function AccountController(objCollection) {
 
     var responseWrapper = objCollection.responseWrapper;
@@ -197,8 +203,7 @@ function AccountController(objCollection) {
         x = x.split("/");
         console.log('x[3] : ' + x[3]);
         
-        var file = '/api-efs/twiliovoicesxmlfiles/' + x[3] + '.xml';
-        //var file = '/home/nani/Desktop/twiliovoicesxmlfiles/' + x[3] + '.xml';
+        var file = efsPath + 'twiliovoicesxmlfiles/' + x[3] + '.xml';
         console.log(file);               
         
         fs.readFile(file,function (err, data) {
@@ -216,8 +221,7 @@ function AccountController(objCollection) {
     //Voice JSON for NEXMO
     app.get('/' + global.config.version + '/account/nexmo/voice*', function (req, res) {
         console.log('Request.query : ' , req.body);
-        var file = '/api-efs/nexmovoicesjsonfiles/' + req.query.file;
-        //var file = '/home/nani/Desktop/twiliovoicesxmlfiles/' + x[3] + '.xml';
+        var file = efsPath + 'nexmovoicesjsonfiles/' + req.query.file;
         console.log(file);       
      
         fs.readFile(file,function (err, data) {
@@ -242,9 +246,6 @@ function AccountController(objCollection) {
         var request = req.body;
         console.log('Request params : ', request);
                 
-        /*var text = "Hey "+ request.receiver_name +" , "+ request.sender_name+" has requested your participation in "+request.task_title+" using the Desker App, ";
-            text += "it's due by " + request.due_date + ". Download the App from http://desker.co/download.";*/
-                       
         util.sendSmsSinfini(request.message, request.country_code, request.phone_number, function(err,res){
                 console.log(err,'\n',res);                 
             });

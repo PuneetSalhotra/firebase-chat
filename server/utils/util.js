@@ -10,6 +10,11 @@ var tz = require('moment-timezone');
 const Nexmo = require('nexmo');
 var fs = require('fs');
 var os = require('os');
+let efsPath = '/api-cdci-efs/';
+if(global.mode === 'staging') {
+    efsPath = '/api-staging-efs/';
+
+}
 
 function Util() {
 
@@ -228,7 +233,7 @@ function Util() {
         
         console.log('xmlText : ' + xmlText);
         console.log('https://api.desker.cloud/r1/account/voice_'+passcode);
-        fs.writeFile('/api-cdci-efs/twiliovoicesxmlfiles/voice_'+passcode+'.xml', xmlText, function (err) {
+        fs.writeFile(efsPath + 'twiliovoicesxmlfiles/voice_'+passcode+'.xml', xmlText, function (err) {
         //fs.writeFile('/home/nani/Desktop/twiliovoicesxmlfiles/voice_'+passcode+'.xml', xmlText, function (err) {
           if (err) {
               throw err;
@@ -316,7 +321,7 @@ function Util() {
                 
         console.log('jsonText : ' + jsonText);
         //console.log('http://staging.api.desker.cloud/r0/account/nexmo/voice_'+passcode);
-        fs.writeFile('/api-cdci-efs/nexmovoicesjsonfiles/voice_'+passcode+'.xml', jsonText, function (err) {
+        fs.writeFile(efsPath + 'nexmovoicesjsonfiles/voice_'+passcode+'.xml', jsonText, function (err) {
         //fs.writeFile('/home/nani/Desktop/nexmovoicesjsonfiles/voice_'+passcode+'.json', jsonText, function (err) {
           if (err) {
               throw err;
