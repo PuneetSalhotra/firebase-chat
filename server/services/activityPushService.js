@@ -235,10 +235,14 @@ function ActivityPushService(objectCollection) {
                             case '/' + global.config.version + '/activity/timeline/entry/add':
                                 break;
                             case '/' + global.config.version + '/activity/status/alter':
+                                if (Number(request.activity_status_type_id) === 79) {
+                                    pushString.title = senderName;
+                                    pushString.description =  'has joined the meeting - ' + activityTitle + '.';
+                                }
                                 break;
                             case '/' + global.config.version + '/activity/participant/access/set':
                                 pushString.title = senderName;
-                                pushString.description = 'Shared an Event to you - ' + activityTitle;
+                                pushString.description = 'has added you to the meeting - ' + activityTitle + '.';
                                 break;
                         };
                         break;
