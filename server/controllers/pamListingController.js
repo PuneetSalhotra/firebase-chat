@@ -142,6 +142,42 @@ function PamListingController(objCollection) {
         });
     });
     
+    app.post('/' + global.config.version + '/pam/activity/access/account/list/count', function (req, res) {
+    	pamListingService.getActivityAssetCategoryDifferentialCount(req.body).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        });
+    		
+    });
+    
+    app.post('/' + global.config.version + '/pam/asset/access/account/list', function (req, res) {
+        pamListingService.assetAccountListCategoryDiff(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+
+            } else {
+                //console.log('did not get proper rseponse');
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
+     app.post('/' + global.config.version + '/pam/asset/access/account/list/count', function (req, res) {
+    	pamListingService.assetAccountListCategoryDiffCount(req.body).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        });
+    		
+    });
+    
 }
 ;
 module.exports = PamListingController;
