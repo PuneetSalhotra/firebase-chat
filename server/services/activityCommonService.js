@@ -1778,25 +1778,28 @@ function ActivityCommonService(db, util, forEachAsync) {
     
     this.updateProjectEndDateTime= function (request, callback) {
         getlatestDateInAProject(request).then((data)=>{
-            var taskProjectsEndDtTime = util.replaceDefaultDatetime(data[0].activity_datetime_end_deferred); //Task with latest end Date Time
+            if(data.length > 0) {
+                var taskProjectsEndDtTime = util.replaceDefaultDatetime(data[0].activity_datetime_end_deferred); //Task with latest end Date Time
             
-            //Get the Activity Details 
-            this.getActivityDetails(request, request.activity_parent_id, (err, activityData)=>{
-                var projectEndDtTime = util.replaceDefaultDatetime(activityData[0].activity_datetime_end_deferred);
-                
-                console.log('projectEndDtTime : ', projectEndDtTime);
-                console.log('taskProjectsEndDtTime : ', taskProjectsEndDtTime);
-                console.log('Math.sign(util.differenceDatetimes(' + taskProjectsEndDtTime+ ', ' + projectEndDtTime  + '): ', typeof Math.sign(util.differenceDatetimes(taskProjectsEndDtTime, projectEndDtTime)));
-                if((Math.sign(util.differenceDatetimes(taskProjectsEndDtTime, projectEndDtTime)) === 1)) {
-                    //Call alter cover for that project
-                    //Add timeline Entry
-                    callback(false, projectEndDtTime, taskProjectsEndDtTime);
-                } else {                    
-                    callback(true, false, false);
-                }
-            });
+                //Get the Activity Details 
+                this.getActivityDetails(request, request.activity_parent_id, (err, activityData)=>{
+                    var projectEndDtTime = util.replaceDefaultDatetime(activityData[0].activity_datetime_end_deferred);
+
+                    console.log('projectEndDtTime : ', projectEndDtTime);
+                    console.log('taskProjectsEndDtTime : ', taskProjectsEndDtTime);
+                    console.log('Math.sign(util.differenceDatetimes(' + taskProjectsEndDtTime+ ', ' + projectEndDtTime  + '): ', Math.sign(util.differenceDatetimes(taskProjectsEndDtTime, projectEndDtTime)));
+                    if((Math.sign(util.differenceDatetimes(taskProjectsEndDtTime, projectEndDtTime)) !== 0)) {
+                        //Call alter cover for that project
+                        //Add timeline Entry
+                        callback(false, projectEndDtTime, taskProjectsEndDtTime);
+                    } else {                    
+                        callback(true, false, false);
+                    }
+                });
+            } else {
+                console.log('There are no tasks in the project - project id - ', request.activity_parent_id);
+            }           
         });
-        
     };
     
     function getlatestDateInAProject(request) {
@@ -1804,7 +1807,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             var paramsArr = new Array(
                 request.organization_id,
                 request.activity_parent_id,
-                request.flag || 1,
+                1, //request.flag
                 request.entity_1,
                 request.start_datetime || "",
                 request.end_datetime || "",

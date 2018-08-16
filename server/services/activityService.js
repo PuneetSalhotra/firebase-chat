@@ -1243,9 +1243,30 @@ function ActivityService(objectCollection) {
                 if (activityTypeCategroyId == 10 || request.activity_sub_type_id == 1) {
                     switch (Number(request.activity_status_type_id)) {
                         case 26://Closed 
-                            updateFlagOntime(request).then(() => {
-                            });
-                            //activityCommonService.updateProjectEndDateTime(request, (err, data)=>{});
+                            updateFlagOntime(request).then(() => {});
+                            
+                            if (request.hasOwnProperty('activity_parent_id')) {                                
+                                if (util.hasValidGenericId(request, 'activity_parent_id')) {                                    
+                                    activityCommonService.getActivityDetails(request, Number(request.activity_parent_id), function (err, activityData) {
+                                        if (err === false) {                                            
+                                            switch (Number(activityData[0]['activity_type_category_id'])) {
+                                                case 11:
+                                                    //Updating the due date of the project                                                    
+                                                    activityCommonService.updateProjectEndDateTime(request, (err, oldDateTime, newDateTime)=>{                                                        
+                                                        if(err === false) {                                                            
+                                                            var coverAlterJson = {};
+                                                            coverAlterJson.title = {old: activityData[0]['activity_title'], new : activityData[0]['activity_title']};
+                                                            coverAlterJson.description = {old: activityData[0]['activity_description'], new : activityData[0]['activity_description']};
+                                                            coverAlterJson.duedate = {old: oldDateTime, new : newDateTime};
+                                                            callAlterActivityCover(request, coverAlterJson, activityData[0]['activity_type_category_id']).then(()=>{}).catch(()=>{});
+                                                        }
+                                                    });
+                                            }
+                                        }
+                                    });
+                                }
+                            }
+                                                    
                             break;
                         case 130://Accepted 
                             //updateFlagOntime(request).then(()=>{});
