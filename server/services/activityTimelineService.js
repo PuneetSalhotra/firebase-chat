@@ -92,6 +92,84 @@ function ActivityTimelineService(objectCollection) {
         }
         callback(false, {}, 200);
     };
+    
+    //This is to support the feature - Not to increase unread count during timeline entry
+    this.addTimelineTransactionV1 = function (request, callback) {
+        console.log('In addTimelineTransactionV1');
+        var logDatetime = util.getCurrentUTCTime();
+        request['datetime_log'] = logDatetime;
+        var activityTypeCategoryId = Number(request.activity_type_category_id);
+        var activityStreamTypeId = Number(request.activity_stream_type_id);
+        activityCommonService.updateAssetLocation(request, function (err, data) {});
+        if (activityTypeCategoryId === 9 && activityStreamTypeId === 705) {   // add form case
+            var formDataJson = JSON.parse(request.activity_timeline_collection);
+            request.form_id = formDataJson[0]['form_id'];
+            console.log('form id extracted from json is: ' + formDataJson[0]['form_id']);
+            var lastObject = formDataJson[formDataJson.length - 1]
+            console.log('Last object : ', lastObject)
+            if (lastObject.hasOwnProperty('field_value')) {
+                console.log('Has the field value in the last object')
+                //remote Analytics
+                if (request.form_id == 325) {
+                    monthlySummaryTransInsert(request).then(() => {
+                    });
+                }
+            }
+            // add form entries
+            addFormEntries(request, function (err, approvalFieldsArr) {
+                if (err === false) {
+                    //callback(false,{},200);
+                } else {
+                    //callback(true, {}, -9999);
+                }
+            });
+        } else {
+            request.form_id = 0;
+        }
+        try {
+            var formDataJson = JSON.parse(request.activity_timeline_collection);
+        } catch (exception) {
+            console.log(exception);
+        }
+
+        var isAddToTimeline = true;
+        if (request.hasOwnProperty('flag_timeline_entry'))
+            isAddToTimeline = (Number(request.flag_timeline_entry)) > 0 ? true : false;
+        if (isAddToTimeline) {
+            activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
+                if (err) {
+
+                } else {
+                    activityPushService.sendPush(request, objectCollection, 0, function () {});
+                    activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) { });
+
+                    //updating log differential datetime for only this asset
+                    activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) { });
+                    
+                    if (formDataJson.hasOwnProperty('asset_reference')) {
+                        if (formDataJson.asset_reference.length > 0) {
+                            forEachAsync(formDataJson.asset_reference, function (next, rowData) {                                
+                                switch (Number(request.activity_type_category_id)) {
+                                    case 10:
+                                    case 11: 
+                                        activityPushService.sendSMSNotification(request, objectCollection, rowData.asset_id, function () {});
+                                        break;
+                                }
+                                next();
+                            }).then(function () {
+
+                            });
+                        }
+                    } else {
+                        console.log('asset_reference is not availale')
+                    }
+
+
+                }
+            });
+        }
+        callback(false, {}, 200);
+    };
 
 
     //MONTHLY Remote Analytics
