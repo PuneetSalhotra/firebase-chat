@@ -1,6 +1,8 @@
 /*
  * author: Sri Sai Venkatesh
  */
+const moment = require('moment');
+const AccountService = require("../services/accountService");
 
 function ActivityUpdateService(objectCollection) {
 
@@ -10,6 +12,7 @@ function ActivityUpdateService(objectCollection) {
     var util = objectCollection.util;
     var activityPushService = objectCollection.activityPushService;
     var queueWrapper = objectCollection.queueWrapper;
+    let accountService = new AccountService(objectCollection);
     
     var makeRequest = require('request');
 
@@ -972,6 +975,38 @@ function ActivityUpdateService(objectCollection) {
 
                 });
 
+                if (activityTypeCategoryId === 10) {
+                    let parsedActivityCoverData = JSON.parse(request.activity_cover_data);
+
+                    // If due date is updated then update count of due date changes
+                    if (parsedActivityCoverData.duedate.old !== parsedActivityCoverData.duedate.new) {
+                        // Fetch account_config_due_date_hours from the account_list table
+                        accountService.retrieveAccountList(request, function (error, data, statusCode) {
+                            if (!error && Object.keys(data).length) {
+                                // Check whether the difference between date of duedate change and old
+                                // duedate is within the threshhold value in account_config_due_date_hours
+                                let datetimeDifference = moment(parsedActivityCoverData.duedate.old).diff(moment().utc());
+                                let changeDurationInHours = moment.duration(datetimeDifference).asHours;
+                                // Set flag_ontime
+                                let flag_ontime = 0; // Default: 'not on time'
+                                if (changeDurationInHours <= Number(data.data[0].account_config_due_date_hours)) {
+                                    flag_ontime = 1; // Set to 'on time'
+                                }
+                                activityListUpdateDueDateAlterCount(request, flag_ontime)
+                                    .catch(() => {});
+                            }
+
+                            // Weekly Summary Update
+                            activityCommonService.weeklySummaryInsert(request, {})
+                                .catch(() => {});
+                            
+                            // Monthly Summary Update
+                            activityCommonService.monthlySummaryInsert(request, {})
+                                .catch(() => {});
+                        })
+                    }
+                }
+
                 callback(false, {}, 200);
 
                 // if activity_type_category_id = 17 update asset image id also
@@ -986,6 +1021,26 @@ function ActivityUpdateService(objectCollection) {
         // call resource ranking...
 
     };
+
+    function activityListUpdateDueDateAlterCount(request, flag_ontime) {
+        // IN p_activity_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_flag_ontime TINYINT(4), 
+        // IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+        return new Promise((resolve, reject) => {
+            let paramsArr = new Array(
+                request.activity_id,
+                request.organization_id,
+                flag_ontime,
+                request.asset_id,
+                util.getCurrentUTCTime()
+            );
+            let queryString = util.getQueryString('ds_p1_activity_list_update_count_alter_duedate', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (!err) ? resolve(data): reject(err);
+                });
+            };
+        });
+    }
     
     function callAlterActivityCover(request, coverAlterJson, activityTypeCategoryId){
         return new Promise((resolve, reject)=>{
