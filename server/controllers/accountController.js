@@ -10,7 +10,6 @@ const smsEngine = require('../utils/smsEngine');
 let efsPath = '/api-cdci-efs/';
 if(global.mode === 'staging') {
     efsPath = '/api-staging-efs/';
-
 }
 
 function AccountController(objCollection) {
