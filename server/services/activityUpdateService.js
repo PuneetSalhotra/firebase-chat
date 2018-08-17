@@ -993,16 +993,59 @@ function ActivityUpdateService(objectCollection) {
                                     flag_ontime = 1; // Set to 'on time'
                                 }
                                 activityListUpdateDueDateAlterCount(request, flag_ontime)
-                                    .catch(() => {});
-                            }
+                                    .then((data) => {
 
-                            // Weekly Summary Update
-                            activityCommonService.weeklySummaryInsert(request, {})
-                                .catch(() => {});
-                            
-                            // Monthly Summary Update
-                            activityCommonService.monthlySummaryInsert(request, {})
-                                .catch(() => {});
+                                        return activityListSelectDuedateAlterCount(
+                                            request, 
+                                            util.getStartDateTimeOfWeek(), 
+                                            util.getEndDateTimeOfWeek()
+                                        );
+                                    })
+                                    .then((data) => {
+
+                                        let percentageScore = (Number(data[0].ontime_count)/Number(data[0].total_count)) * 100;
+                                        // Weekly Summary Update
+                                        activityCommonService.weeklySummaryInsert(request, {
+                                            summary_id: 7,
+                                            asset_id: request.asset_id,
+                                            entity_tinyint_1: 0,
+                                            entity_bigint_1: Number(data[0].total_count),
+                                            entity_double_1: percentageScore,
+                                            entity_decimal_1: percentageScore,
+                                            entity_decimal_2: Number(data[0].ontime_count),
+                                            entity_decimal_3: 0,
+                                            entity_text_1: '',
+                                            entity_text_2: ''
+
+                                        }).catch(() => {});
+
+                                        return activityListSelectDuedateAlterCount(
+                                            request, 
+                                            util.getStartDateTimeOfMonth(), 
+                                            util.getEndDateTimeOfMonth()
+                                        );
+
+                                    })
+                                    .then((data) => {
+
+                                        let percentageScore = (Number(data[0].ontime_count)/Number(data[0].total_count)) * 100;
+                                        // Monthly Summary Update
+                                        activityCommonService.monthlySummaryInsert(request, {
+                                            summary_id: 30,
+                                            asset_id: request.asset_id,
+                                            entity_tinyint_1: 0,
+                                            entity_bigint_1: Number(data[0].total_count),
+                                            entity_double_1: percentageScore,
+                                            entity_decimal_1: percentageScore,
+                                            entity_decimal_2: Number(data[0].ontime_count),
+                                            entity_decimal_3: 0,
+                                            entity_text_1: '',
+                                            entity_text_2: ''
+
+                                        }).catch(() => {});
+
+                                    }).catch(() => {});
+                            }
                         })
                     }
                 }
@@ -1022,6 +1065,7 @@ function ActivityUpdateService(objectCollection) {
 
     };
 
+    // Update due date alter counts
     function activityListUpdateDueDateAlterCount(request, flag_ontime) {
         // IN p_activity_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_flag_ontime TINYINT(4), 
         // IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
@@ -1034,6 +1078,27 @@ function ActivityUpdateService(objectCollection) {
                 util.getCurrentUTCTime()
             );
             let queryString = util.getQueryString('ds_p1_activity_list_update_count_alter_duedate', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (!err) ? resolve(data): reject(err);
+                });
+            };
+        });
+    }
+
+    // Select due date alter counts
+    function activityListSelectDuedateAlterCount(request, startDate, endDate) {
+        // IN p_organization_id BIGINT(20), IN p_activity_type_category_id SMALLINT(6), 
+        // IN p_asset_id BIGINT(20), IN p_datetime_start DATETIME, IN p_datetime_end DATETIME
+        return new Promise((resolve, reject) => {
+            let paramsArr = new Array(
+                request.organization_id,
+                request.activity_type_category_id,
+                request.asset_id,
+                startDate,
+                endDate
+            );
+            let queryString = util.getQueryString('ds_p1_activity_list_select_duedate_alter_counts', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (!err) ? resolve(data): reject(err);
