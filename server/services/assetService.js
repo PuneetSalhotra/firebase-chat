@@ -2565,7 +2565,7 @@ function AssetService(objectCollection) {
             request.operating_asset_id,
             request.organization_id,
             2, // p_flag
-            request.data_entity_date_1
+            request.month_start_date // p_data_entity_date_1 => YYYY-MM-DD
         );
         let queryString = util.getQueryString('ds_p1_asset_monthly_summary_transaction_select_flag', paramsArr);
         if (queryString != '') {

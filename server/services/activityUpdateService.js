@@ -986,7 +986,7 @@ function ActivityUpdateService(objectCollection) {
                                 // Check whether the difference between date of duedate change and old
                                 // duedate is within the threshhold value in account_config_due_date_hours
                                 let datetimeDifference = moment(parsedActivityCoverData.duedate.old).diff(moment().utc());
-                                let changeDurationInHours = moment.duration(datetimeDifference).asHours;
+                                let changeDurationInHours = moment.duration(datetimeDifference).asHours();
                                 // Set flag_ontime
                                 let flag_ontime = 0; // Default: 'not on time'
                                 if (changeDurationInHours <= Number(data.data[0].account_config_due_date_hours)) {
