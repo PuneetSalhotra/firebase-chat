@@ -1197,6 +1197,24 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
     };
 
+    this.getPostItCounts = function (request, callback) {
+        // IN p_organization_id BIGINT(20), IN p_activity_type_category_id SMALLINT(6), 
+        // IN p_asset_id BIGINT(20), IN p_datetime_start DATETIME, IN p_datetime_end DATETIME
+        let paramsArr = new Array(
+            request.organization_id,
+            request.activity_type_category_id,
+            request.asset_id,
+            util.getStartDateTimeOfMonth(),
+            util.getEndDateTimeOfMonth()
+        );
+        let queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_postit_counts', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                (err === false) ? callback(false, data): callback(true, err);
+            });
+        }
+    };
+
     this.updateLeadAssignedDatetime = function (request, assetId, callback) {
         var paramsArr = new Array(
                 request.activity_id,

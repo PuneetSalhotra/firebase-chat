@@ -1,6 +1,8 @@
 /*
  * author: Sri Sai Venkatesh
  */
+const moment = require('moment');
+const AccountService = require("../services/accountService");
 
 function ActivityUpdateService(objectCollection) {
 
@@ -10,6 +12,7 @@ function ActivityUpdateService(objectCollection) {
     var util = objectCollection.util;
     var activityPushService = objectCollection.activityPushService;
     var queueWrapper = objectCollection.queueWrapper;
+    let accountService = new AccountService(objectCollection);
     
     var makeRequest = require('request');
 
@@ -972,6 +975,81 @@ function ActivityUpdateService(objectCollection) {
 
                 });
 
+                if (activityTypeCategoryId === 10) {
+                    let parsedActivityCoverData = JSON.parse(request.activity_cover_data);
+
+                    // If due date is updated then update count of due date changes
+                    if (parsedActivityCoverData.duedate.old !== parsedActivityCoverData.duedate.new) {
+                        // Fetch account_config_due_date_hours from the account_list table
+                        accountService.retrieveAccountList(request, function (error, data, statusCode) {
+                            if (!error && Object.keys(data).length) {
+                                // Check whether the difference between date of duedate change and old
+                                // duedate is within the threshhold value in account_config_due_date_hours
+                                let datetimeDifference = moment(parsedActivityCoverData.duedate.old).diff(moment().utc());
+                                let changeDurationInHours = moment.duration(datetimeDifference).asHours;
+                                // Set flag_ontime
+                                let flag_ontime = 0; // Default: 'not on time'
+                                if (changeDurationInHours <= Number(data.data[0].account_config_due_date_hours)) {
+                                    flag_ontime = 1; // Set to 'on time'
+                                }
+                                activityListUpdateDueDateAlterCount(request, flag_ontime)
+                                    .then((data) => {
+
+                                        return activityListSelectDuedateAlterCount(
+                                            request, 
+                                            util.getStartDateTimeOfWeek(), 
+                                            util.getEndDateTimeOfWeek()
+                                        );
+                                    })
+                                    .then((data) => {
+
+                                        let percentageScore = (Number(data[0].ontime_count)/Number(data[0].total_count)) * 100;
+                                        // Weekly Summary Update
+                                        activityCommonService.weeklySummaryInsert(request, {
+                                            summary_id: 7,
+                                            asset_id: request.asset_id,
+                                            entity_tinyint_1: 0,
+                                            entity_bigint_1: Number(data[0].total_count),
+                                            entity_double_1: percentageScore,
+                                            entity_decimal_1: percentageScore,
+                                            entity_decimal_2: Number(data[0].ontime_count),
+                                            entity_decimal_3: 0,
+                                            entity_text_1: '',
+                                            entity_text_2: ''
+
+                                        }).catch(() => {});
+
+                                        return activityListSelectDuedateAlterCount(
+                                            request, 
+                                            util.getStartDateTimeOfMonth(), 
+                                            util.getEndDateTimeOfMonth()
+                                        );
+
+                                    })
+                                    .then((data) => {
+
+                                        let percentageScore = (Number(data[0].ontime_count)/Number(data[0].total_count)) * 100;
+                                        // Monthly Summary Update
+                                        activityCommonService.monthlySummaryInsert(request, {
+                                            summary_id: 30,
+                                            asset_id: request.asset_id,
+                                            entity_tinyint_1: 0,
+                                            entity_bigint_1: Number(data[0].total_count),
+                                            entity_double_1: percentageScore,
+                                            entity_decimal_1: percentageScore,
+                                            entity_decimal_2: Number(data[0].ontime_count),
+                                            entity_decimal_3: 0,
+                                            entity_text_1: '',
+                                            entity_text_2: ''
+
+                                        }).catch(() => {});
+
+                                    }).catch(() => {});
+                            }
+                        })
+                    }
+                }
+
                 callback(false, {}, 200);
 
                 // if activity_type_category_id = 17 update asset image id also
@@ -986,6 +1064,48 @@ function ActivityUpdateService(objectCollection) {
         // call resource ranking...
 
     };
+
+    // Update due date alter counts
+    function activityListUpdateDueDateAlterCount(request, flag_ontime) {
+        // IN p_activity_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_flag_ontime TINYINT(4), 
+        // IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+        return new Promise((resolve, reject) => {
+            let paramsArr = new Array(
+                request.activity_id,
+                request.organization_id,
+                flag_ontime,
+                request.asset_id,
+                util.getCurrentUTCTime()
+            );
+            let queryString = util.getQueryString('ds_p1_activity_list_update_count_alter_duedate', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (!err) ? resolve(data): reject(err);
+                });
+            };
+        });
+    }
+
+    // Select due date alter counts
+    function activityListSelectDuedateAlterCount(request, startDate, endDate) {
+        // IN p_organization_id BIGINT(20), IN p_activity_type_category_id SMALLINT(6), 
+        // IN p_asset_id BIGINT(20), IN p_datetime_start DATETIME, IN p_datetime_end DATETIME
+        return new Promise((resolve, reject) => {
+            let paramsArr = new Array(
+                request.organization_id,
+                request.activity_type_category_id,
+                request.asset_id,
+                startDate,
+                endDate
+            );
+            let queryString = util.getQueryString('ds_p1_activity_list_select_duedate_alter_counts', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (!err) ? resolve(data): reject(err);
+                });
+            };
+        });
+    }
     
     function callAlterActivityCover(request, coverAlterJson, activityTypeCategoryId){
         return new Promise((resolve, reject)=>{
@@ -1442,7 +1562,7 @@ function ActivityUpdateService(objectCollection) {
         request['datetime_log'] = logDatetime;
         var activityTypeCategoryId = Number(request.activity_type_category_id);
         
-        if (activityTypeCategoryId === 8 && Number(request.device_os_id) != 5) {
+        if (activityTypeCategoryId === 8 && Number(request.device_os_id) !== 5) {
             var pubnubMsg = {};
             pubnubMsg.type = 'activity_unread';
             pubnubMsg.organization_id = request.organization_id;

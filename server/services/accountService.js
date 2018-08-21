@@ -67,7 +67,7 @@ function AccountService(objectCollection) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (data.length > 0) {
-                    //console.log(data);
+                    console.log(data);
                     formatAccountAccessList(data, function (error, data) {
                         if (error === false)
                             callback(false, {data: data}, 200);
@@ -385,7 +385,10 @@ function AccountService(objectCollection) {
                 "account_billing_asset_last_name": util.replaceDefaultString(rowData['account_billing_asset_last_name']),
                 "account_billing_operating_asset_id": util.replaceDefaultNumber(rowData['account_billing_operating_asset_id']),
                 "account_billing_operating_asset_first_name": util.replaceDefaultString(rowData['account_billing_operating_asset_first_name']),
-                "account_billing_operating_asset_last_name": util.replaceDefaultString(rowData['account_billing_operating_asset_last_name'])
+                "account_billing_operating_asset_last_name": util.replaceDefaultString(rowData['account_billing_operating_asset_last_name']),
+                "account_config_weekly_hours": util.replaceDefaultNumber(rowData['account_config_weekly_hours']),
+                "account_config_response_hours": util.replaceDefaultNumber(rowData['account_config_response_hours']),
+                "account_config_due_date_hours": util.replaceDefaultNumber(rowData['account_config_due_date_hours'])
             };
             responseArr.push(row);
             next();
