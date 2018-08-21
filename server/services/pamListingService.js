@@ -742,6 +742,71 @@ function PamListingService(objectCollection) {
             }
         });
     };
+    
+    
+    this.activityAssetMappingCategorySearch = function (request) {
+		return new Promise((resolve, reject)=>{
+	        var paramsArr = new Array(
+	                request.organization_id,
+	                request.account_id,
+	                request.workforce_id,
+	                request.activity_type_category_id,
+	                request.asset_type_category_id,
+	                request.is_search,
+	                request.search_string,
+	                request.is_date,
+	                request.start_datetime,
+	                request.end_datetime,
+	                request.is_status,
+	                request.activity_status_type_id,
+	                request.page_start,
+                	util.replaceQueryLimit(request.page_limit)
+	                );
+	
+	        var queryString = util.getQueryString('pm_v1_activity_asset_mapping_select_category_search_date', paramsArr);
+	        if (queryString != '') {
+	            db.executeQuery(1, queryString, request, function (err, data) {
+	            	//console.log("err "+err);
+	               if(err === false) {	        			
+	        			  formatInventoryData(data).then((finalData)=>{
+	        			  	resolve(finalData);
+	        			  }).catch((err1)=>{
+	        			  console.log(err1);
+				            reject(err1);
+				          });     			  
+                    } else {
+	                   reject(err);
+	               }
+	            });
+	   		}
+        });
+    };	  
+    
+    function formatInventoryData(data){
+        return new Promise((resolve, reject)=>{
+            var responseArr = new Array();
+            forEachAsync(data, function (next, row) {
+                var rowData = {
+                    'activity_id': util.replaceDefaultNumber(row['activity_id']),
+                    'activity_title': util.replaceDefaultString(row['activity_title']),
+                    'asset_id': util.replaceDefaultNumber(row['asset_id']),
+                	'asset_first_name': util.replaceDefaultString(row['asset_first_name']),
+                	'activity_datetime_created': util.replaceDefaultDatetime(row['activity_datetime_created']),
+                	'activity_inline_data': util.replaceDefaultString(row['activity_inline_data']),
+                	'activity_sub_type_id': util.replaceDefaultNumber(row['activity_sub_type_id']),
+                	'activity_sub_type_name': util.replaceDefaultString(row['activity_sub_type_name']),
+                 	'activity_status_id': util.replaceDefaultNumber(row['activity_status_id']),
+                	'activity_status_name': util.replaceDefaultString(row['activity_status_name']),
+                 	'activity_status_type_id': util.replaceDefaultNumber(row['activity_status_type_id']),
+                	'activity_status_type_name': util.replaceDefaultString(row['activity_status_type_name'])   			                  
+                };
+                responseArr.push(rowData);
+                next();
+            }).then(() => {
+                resolve(responseArr);
+            });
+        });        
+	};  
 };
 
 module.exports = PamListingService;
