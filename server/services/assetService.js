@@ -2555,6 +2555,26 @@ function AssetService(objectCollection) {
 
     };
 
+    // Retrieve asset's monthly summary params
+    this.retrieveAssetMonthlySummaryParams = function (request, callback) {
+
+        // IN p_asset_id BIGINT(20), IN p_operating_asset_id BIGINT(20), 
+        // IN p_organization_id BIGINT(20), IN p_flag SMALLINT(6), IN p_data_entity_date_1 DATETIME
+        let paramsArr = new Array(
+            request.asset_id,
+            request.operating_asset_id,
+            request.organization_id,
+            2, // p_flag
+            request.data_entity_date_1
+        );
+        let queryString = util.getQueryString('ds_p1_asset_monthly_summary_transaction_select_flag', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                (err === false) ? callback(false, data, 200): callback(true, err, -9999);
+            });
+        }
+    };
+
 }
 
 module.exports = AssetService;
