@@ -408,9 +408,19 @@ function Util() {
         var value = moment().startOf('week').add(1, 'days').format("YYYY-MM-DD");
         return value;
     };
+
+    this.getStartDateTimeOfWeek = function () {
+        var value = moment().startOf('week').add(1, 'days').format("YYYY-MM-DD HH:mm:ss");
+        return value;
+    };
     
     this.getEndDayOfWeek = function () {
         var value = moment().endOf('week').format("YYYY-MM-DD");
+        return value;
+    };
+
+    this.getEndDateTimeOfWeek = function () {
+        var value = moment().endOf('week').add(1, 'days').format("YYYY-MM-DD HH:mm:ss");
         return value;
     };
     
