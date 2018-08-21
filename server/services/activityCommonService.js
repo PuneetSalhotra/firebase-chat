@@ -1196,6 +1196,22 @@ function ActivityCommonService(db, util, forEachAsync) {
             });
         }
     };
+    
+    this.getpostItCounts = function (request, callback) {
+        var paramsArr = new Array(
+                request.organization_id,
+                request.activity_type_category_id,
+                request.asset_id,
+                util.getStartDateTimeOfMonth(),
+                util.getEndDateTimeOfMonth()
+                );
+        var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_postit_counts', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                (err === false) ? callback(false, data) : callback(true, err);
+            });
+        }
+    };
 
     this.updateLeadAssignedDatetime = function (request, assetId, callback) {
         var paramsArr = new Array(
@@ -1828,6 +1844,41 @@ function ActivityCommonService(db, util, forEachAsync) {
             }
         });        
     };
+    
+    this.getActivityListDateRange = function (request, callback) {
+        var paramsArr = new Array(
+                request.organization_id,
+                request.asset_id,
+                request.datetime_start, //00:00:00
+                request.datetime_end // 23:59:59
+                );
+        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_asset_open_payroll_activity', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                (err === false) ? callback(false, data) : callback(err, false);
+            });
+        }
+    };
+    
+    //Can use this function for both inmail and postit
+    this.updateInMailResponse = function (request, activityFlagResponseonTimeFlag, callback) {
+        var paramsArr = new Array(
+                    request.organization_id,
+                    request.account_id,
+                    request.workforce_id,
+                    request.activity_id,
+                    request.asset_id,
+                    activityFlagResponseonTimeFlag,
+                    request.datetime_log
+                    );
+        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_inmail_response', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err === false) ? callback(false, true) : callback(err, false);                            
+                });
+            }
+    };
+    
 
 }
 ;

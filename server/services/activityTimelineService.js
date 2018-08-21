@@ -11,6 +11,7 @@ function ActivityTimelineService(objectCollection) {
     var util = objectCollection.util;
     var forEachAsync = objectCollection.forEachAsync;
     var activityPushService = objectCollection.activityPushService;
+    var queueWrapper = objectCollection.queueWrapper;
 
     this.addTimelineTransaction = function (request, callback) {
 
@@ -1134,9 +1135,38 @@ function ActivityTimelineService(objectCollection) {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     next();
                     if (err === false) {
-                        //success
+                        //Success
+                        /*if(request.activity_type_category_id == 9 && request.activity_form_id == 807) {
+                            //success
+                            var newRequest = Object.assign({}, request);
+                            newRequest.datetime_start = util.getStartDayOfWeek();
+                            newRequest.datetime_end = util.getEndDayOfWeek();
+                            activityCommonService.getActivityListDateRange(newRequest, (err, data)=>{
+                                if(data.length>0) {                                
+                                    newRequest.activity_id = data[0].activity_id; //TimeCard ActivityId for the week
+                                    var event = {
+                                            name: "addTimelineTransaction",
+                                            service: "activityTimelineService",
+                                            method: "addTimelineTransaction",
+                                            payload: newRequest
+                                            };
+                                    queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
+                                        if (err) {
+                                            //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
+                                            //global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent", err, request);
+                                            throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+                                           }
+                                    });
+                                }
+                            });
+                            next();
+                        } else {
+                            next();
+                        }*/
+                        
                     } else {
                         //failure
+                        //next();
                     }
                 });
             } else {
