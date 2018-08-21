@@ -1562,7 +1562,7 @@ function ActivityUpdateService(objectCollection) {
         request['datetime_log'] = logDatetime;
         var activityTypeCategoryId = Number(request.activity_type_category_id);
         
-        if (activityTypeCategoryId === 8 && Number(request.device_os_id) != 5) {
+        if (activityTypeCategoryId === 8 && Number(request.device_os_id) !== 5) {
             var pubnubMsg = {};
             pubnubMsg.type = 'activity_unread';
             pubnubMsg.organization_id = request.organization_id;
