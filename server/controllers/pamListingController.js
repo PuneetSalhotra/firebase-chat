@@ -151,6 +151,15 @@ function PamListingController(objCollection) {
         });
     });
 
+    app.post('/' + global.config.version + '/pam/activity/stock/list', function (req, res) {
+    	pamListingService.activityAssetMappingCategorySearch(req.body).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        });    		
+    });
 };
 
 module.exports = PamListingController;
