@@ -1197,22 +1197,6 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
     };
     
-    this.getpostItCounts = function (request, callback) {
-        var paramsArr = new Array(
-                request.organization_id,
-                request.activity_type_category_id,
-                request.asset_id,
-                util.getStartDateTimeOfMonth(),
-                util.getEndDateTimeOfMonth()
-                );
-        var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_postit_counts', paramsArr);
-        if (queryString != '') {
-            db.executeQuery(1, queryString, request, function (err, data) {
-                (err === false) ? callback(false, data) : callback(true, err);
-            });
-        }
-    };
-
     this.getPostItCounts = function (request, callback) {
         // IN p_organization_id BIGINT(20), IN p_activity_type_category_id SMALLINT(6), 
         // IN p_asset_id BIGINT(20), IN p_datetime_start DATETIME, IN p_datetime_end DATETIME
@@ -1895,6 +1879,24 @@ function ActivityCommonService(db, util, forEachAsync) {
                     (err === false) ? callback(false, true) : callback(err, false);                            
                 });
             }
+    };
+    
+    this.retrieveAccountList = function (request, callback) {
+        var paramsArr = new Array(
+                request.account_id
+                //request.page_start,
+                //request.page_limit
+                );
+        var queryString = util.getQueryString('ds_p1_account_list_select', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (data.length > 0) {
+                    (err === false) ? callback(false, data) : callback(true, {});
+                } else {
+                    callback(true, {});
+                }
+            });
+        }
     };
     
 
