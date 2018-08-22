@@ -1599,113 +1599,149 @@ function ActivityUpdateService(objectCollection) {
     //To calculate New Productivity Score inMails
     function updateInmailPS(request) {
         return new Promise((resolve, reject)=>{
-            //Get the Config Value
-            activityCommonService.asdf(request, ()=>{
-                
-                //Find out it ontime or not
-                var onTimeFlag = 1; //1 means ontime; 0 means not
-                activityCommonService.updateInMailResponse(request, onTimeFlag, (err, data)=>{
-                    if(err === false) {
-                        //Get the inmail Counts
-                        activityCommonService.getInmailCounts(request, (err, data)=>{
-                            if(err === false) {
-                                //you will get these three countReceivedInmails, countToBeRespondedInmails, countOntimeRespondedInmails;
-                                //Calculate the percentage
-                                //var percentage = countOntimeRespondedInmails/countReceivedInmails * 100; //Have to consider leave time
-                                
-                                //Insert into monthly summary table
-                                var monthlyCollection = {};
-                                monthlyCollection.summary_id = 10;
-                                monthlyCollection.asset_id = 
-                                monthlyCollection.entity_tinyint_1 = 
-                                monthlyCollection.entity_bigint_1 = 
-                                monthlyCollection.entity_double_1 = 
-                                monthlyCollection.entity_decimal_1 = 
-                                monthlyCollection.entity_decimal_2 =
-                                monthlyCollection.entity_decimal_3 =
-                                monthlyCollection.entity_text_1 =
-                                monthlyCollection.entity_text_2 =
-                                activityCommonService.monthlySummaryInsert(request, monthlyCollection, (err, data)=>{});
-                                
-                                //Insert into weekly summary table
-                                var weeklyCollection = {};
-                                weeklyCollection.summary_id = 3;
-                                weeklyCollection.asset_id = 
-                                weeklyCollection.entity_tinyint_1 = 
-                                weeklyCollection.entity_bigint_1 = 
-                                weeklyCollection.entity_double_1 = 
-                                weeklyCollection.entity_decimal_1 = 
-                                weeklyCollection.entity_decimal_2 = 
-                                weeklyCollection.entity_decimal_3 =
-                                weeklyCollection.entity_text_1 =
-                                weeklyCollection.entity_text_2 =
-                                activityCommonService.weeklySummaryInsert(request, weeklyCollection, (err, data)=>{});
-                        
-                                resolve();
-                            }
+            var creationDate;
+            
+            //Get activity Details
+            activityCommonService.getActivityDetails(request, 0, function (err, activityData) {
+                if(err === false) {
+                    creationDate = util.replaceDefaultDatetime(activityData[0].activity_datetime_start_expected);
+                    
+                    //Get the Config Value
+                    activityCommonService.retrieveAccountList(request, (err, data)=>{
+                        if(err === false) {
+                            var configRespHours = data[0].account_config_response_hours;
+                            global.logger.write('debug','Response hours in Config file  : ' + configRespHours,{},request);
                             
-                        });
-                    }
-                });
-                
-            });
-        });
+                            //diff will be in milli seconds
+                            var diff = util.differenceDatetimes(request.datetime_log ,util.replaceDefaultDatetime(creationDate));
+                            diff = diff / 3600000;
+                            diff = Number(diff);
+                            global.logger.write('debug','Difference  : ' + diff,{},request);
+                            (diff <= configRespHours) ? onTimeFlag = 1 : onTimeFlag = 0;  
+                            
+                            //Update the flag
+                            activityCommonService.updateInMailResponse(request, onTimeFlag, (err, data)=>{
+                                if(err === false) { 
+                                 
+                                    //Get the inmail Counts
+                                    activityCommonService.getInmailCounts(request, (err, countsData)=>{
+                                        if(err === false) {
+                                            var percentage = 0;
+                                            var noOfReceivedInmails = countsData[0].countReceivedInmails;
+                                            var noOfRespondedInmails = countsData[0].countOntimeRespondedInmails;
+                                            
+                                            if(noOfReceivedInmails != 0) {
+                                                percentage = (noOfReceivedInmails/noOfRespondedInmails) * 100;
+                                            }
+                                            
+                                            global.logger.write('debug','Number Of ReceivedInmails : ' + noOfReceivedInmails,{},request);
+                                            global.logger.write('debug','Number Of RespondedInmails : ' + noOfRespondedInmails,{},request);
+                                            global.logger.write('debug','Percentage : ' + percentage,{},request);
+                                            
+                                            //Insert into monthly summary table
+                                            var monthlyCollection = {};
+                                            monthlyCollection.summary_id = 10;
+                                            monthlyCollection.asset_id = request.asset_id;
+                                            monthlyCollection.entity_bigint_1 = noOfReceivedInmails;//denominator
+                                            monthlyCollection.entity_double_1 = percentage; //percentage value
+                                            monthlyCollection.entity_decimal_1 = percentage; //percentage value
+                                            monthlyCollection.entity_decimal_3 = noOfRespondedInmails; //numerator
+                                            activityCommonService.monthlySummaryInsert(request, monthlyCollection, (err, data)=>{});
+
+                                            //Insert into weekly summary table
+                                            var weeklyCollection = {};
+                                            weeklyCollection.summary_id = 3;                                            
+                                            weeklyCollection.asset_id = request.asset_id;
+                                            weeklyCollection.entity_bigint_1 = noOfReceivedInmails;
+                                            weeklyCollection.entity_double_1 = percentage;
+                                            weeklyCollection.entity_decimal_1 = percentage;
+                                            weeklyCollection.entity_decimal_3 = noOfRespondedInmails;
+                                            activityCommonService.weeklySummaryInsert(request, weeklyCollection, (err, data)=>{});
+
+                                            resolve();
+                                        }
+                                    }); //getInmailCounts                                    
+                                }
+                            }); //updateInmailResponse                            
+                        }
+                    }); //retrieveAccountList
+                }
+            }); //getActivityDetails
+        }); // updateInmailPS Promise
     };
     
     //To calculate New Productivity Score PostIts
     function updatepostItPS(request) {
         return new Promise((resolve, reject)=>{
-            //Get the Config Value
-            activityCommonService.asdf(request, ()=>{
-                
-                //Find out it ontime or not
-                var onTimeFlag = 1; //1 means ontime; 0 means not
-                activityCommonService.updateInMailResponse(request, onTimeFlag, (err, data)=>{
-                    if(err === false) {
-                        //Get the inmail Counts
-                        activityCommonService.getInmailCounts(request, (err, data)=>{
-                            if(err === false) {
-                                //you will get these three countReceivedInmails, countToBeRespondedInmails, countOntimeRespondedInmails;
-                                //Calculate the percentage
-                                //var percentage = countOntimeRespondedInmails/countReceivedInmails * 100; //Have to consider leave time
-                                
-                                //Insert into monthly summary table
-                                var monthlyCollection = {};
-                                monthlyCollection.summary_id = 29;
-                                monthlyCollection.asset_id = 
-                                monthlyCollection.entity_tinyint_1 = 
-                                monthlyCollection.entity_bigint_1 = 
-                                monthlyCollection.entity_double_1 = 
-                                monthlyCollection.entity_decimal_1 = 
-                                monthlyCollection.entity_decimal_2 =
-                                monthlyCollection.entity_decimal_3 =
-                                monthlyCollection.entity_text_1 =
-                                monthlyCollection.entity_text_2 =
-                                activityCommonService.monthlySummaryInsert(request, monthlyCollection, (err, data)=>{});
-                                
-                                //Insert into weekly summary table
-                                var weeklyCollection = {};
-                                weeklyCollection.summary_id = 16;
-                                weeklyCollection.asset_id = 
-                                weeklyCollection.entity_tinyint_1 = 
-                                weeklyCollection.entity_bigint_1 = 
-                                weeklyCollection.entity_double_1 = 
-                                weeklyCollection.entity_decimal_1 = 
-                                weeklyCollection.entity_decimal_2 = 
-                                weeklyCollection.entity_decimal_3 =
-                                weeklyCollection.entity_text_1 =
-                                weeklyCollection.entity_text_2 =
-                                activityCommonService.weeklySummaryInsert(request, weeklyCollection, (err, data)=>{});
-                        
-                                resolve();
-                            }
+            var creationDate;
+            
+            //Get activity Details
+            activityCommonService.getActivityDetails(request, 0, function (err, activityData) {
+                if(err === false) {
+                    creationDate = util.replaceDefaultDatetime(activityData[0].activity_datetime_start_expected);
+                    
+                    //Get the Config Value
+                    activityCommonService.retrieveAccountList(request, (err, data)=>{
+                        if(err === false) {
+                            var configRespHours = data[0].account_config_response_hours;
                             
-                        });
-                    }
-                });
-                
-            });
-        });
+                            //diff will be in milli seconds
+                            var diff = util.differenceDatetimes(request.datetime_log ,util.replaceDefaultDatetime(creationDate));
+                            diff = diff / 3600000;
+                            diff = Number(diff);
+                            (diff <= configRespHours) ? onTimeFlag = 1 : onTimeFlag = 0;  
+                            
+                            //Update the flag
+                            activityCommonService.updateInMailResponse(request, onTimeFlag, (err, data)=>{
+                                if(err === false) { 
+                                 
+                                    //Get the inmail Counts
+                                    activityCommonService.getPostItCounts(request, (err, countsData)=>{
+                                        if(err === false) {
+                                            var percentage = 0;
+                                            var noOfReceivedPostits = countsData[0].countReceivedPostits;
+                                            var noOfRespondedPostits = countsData[0].countOntimeRespondedPostits;
+                                            
+                                            if(noOfReceivedPostits != 0) {
+                                                percentage = (noOfReceivedPostits/noOfRespondedPostits) * 100;
+                                            }
+                                            
+                                            global.logger.write('debug','Number Of ReceivedPostits : ' + noOfReceivedPostits,{},request);
+                                            global.logger.write('debug','Number Of RespondedPostits : ' + noOfRespondedPostits,{},request);
+                                            global.logger.write('debug','Percentage : ' + percentage,{},request);
+
+                                            //Insert into monthly summary table
+                                            var monthlyCollection = {};
+                                            monthlyCollection.summary_id = 29;
+                                            monthlyCollection.asset_id = request.asset_id;
+                                            monthlyCollection.entity_bigint_1 = noOfReceivedPostits;//denominator
+                                            monthlyCollection.entity_double_1 = percentage; //percentage value
+                                            monthlyCollection.entity_decimal_1 = percentage; //percentage value
+                                            monthlyCollection.entity_decimal_3 = noOfRespondedPostits; //numerator
+                                            
+                                            activityCommonService.monthlySummaryInsert(request, monthlyCollection, (err, data)=>{});
+
+                                            //Insert into weekly summary table
+                                            var weeklyCollection = {};
+                                            weeklyCollection.summary_id = 16;
+                                            weeklyCollection.asset_id = request.asset_id;
+                                            weeklyCollection.entity_bigint_1 = noOfReceivedPostits;
+                                            weeklyCollection.entity_double_1 = percentage;
+                                            weeklyCollection.entity_decimal_1 = percentage;
+                                            weeklyCollection.entity_decimal_3 = noOfRespondedPostits;
+                                            
+                                            activityCommonService.weeklySummaryInsert(request, weeklyCollection, (err, data)=>{});
+
+                                            resolve();
+                                        }
+                                    }); //getInmailCounts                                    
+                                }
+                            }); //updateInmailResponse                            
+                        }
+                    }); //retrieveAccountList
+                }
+            }); //getActivityDetails
+        }); // updateInmailPS Promise
     };
     
     this.alterActivityFlagFileEnabled = function(request, callback) {
