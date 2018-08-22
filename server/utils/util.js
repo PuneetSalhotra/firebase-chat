@@ -818,6 +818,7 @@ function Util() {
         var date = this.getCurrentUTCTime();
         var logFilePath = 'logs/' + this.getCurrentDate() + '.txt';
         var data_to_add = date + ': ' + data;
+        console.log(data);
         if (fs.existsSync(logFilePath)) {
             fs.appendFile(logFilePath, os.EOL + data_to_add, function (err, fd) {
                 if (err)
