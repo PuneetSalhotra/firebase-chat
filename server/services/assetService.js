@@ -2629,6 +2629,31 @@ function AssetService(objectCollection) {
             });
         }
     };
+    
+    // Retrieve asset's weekly summary params
+    this.retrieveAssetWeeklySummaryParams = function (request, callback) {
+        let paramsArr = new Array(
+            request.asset_id,
+            request.operating_asset_id,
+            request.organization_id,
+            2, // p_flag
+            request.week_start_date // p_data_entity_date_1 => YYYY-MM-DD
+        );
+        let queryString = util.getQueryString('ds_p1_asset_monthly_summary_transaction_select_flag', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+              if(typeof data !== 'undefined') {
+                if(data.length > 0 ) {
+                    (err === false) ? callback(false, data, 200) : callback(true, err, -9999);
+                } else {
+                    callback(true, err, -9999);
+                }   
+              } else {
+                  callback(true, err, -9999);
+              }                               
+            });
+        }
+    };
 
 }
 
