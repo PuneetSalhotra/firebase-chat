@@ -480,31 +480,7 @@ function PamListingService(objectCollection) {
                         //formatMemberOrdersData(data).then((finalData)=>{
                         resolve(data);
                         // });
-                    } else {
-                        reject(err);
-                    }
-                });
-            }
-        });
-    };
 
-    this.getImageList = function (request) {
-        return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
-                request.organization_id,
-                request.account_id,
-                request.log_datetime,
-                request.start_limit,
-                request.end_limit
-            );
-            var queryString = util.getQueryString('pm_v1_pam_image_list_select', paramsArr);
-            if (queryString != '') {
-                db.executeQuery(1, queryString, request, function (err, data) {
-                    console.log("err " + err);
-                    if (err === false) {
-                        //formatMemberOrdersData(data).then((finalData)=>{
-                        resolve(data);
-                        // });
                     } else {
                         reject(err);
                     }
@@ -526,6 +502,7 @@ function PamListingService(objectCollection) {
             request.page_start,
             util.replaceQueryLimit(request.page_limit)
         );
+
         queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_category_differential', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
@@ -683,6 +660,153 @@ function PamListingService(objectCollection) {
         callback(false, responseData);
     };
 
+    this.getActivityAssetCategoryDifferentialCount = function (request) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array();
+            var queryString = '';
+            paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.asset_id,
+                request.activity_type_category_id,
+                request.datetime_differential,
+                request.parent_activity_id
+            );
+
+            queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_category_differential_count', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    console.log("err " + err);
+                    if (err === false) {
+                        resolve(data);
+                    } else {
+                        reject(err);
+                    }
+                });
+            }
+        });
+    };
+
+    this.assetAccountListCategoryDiff = function (request, callback) {
+        var paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.asset_type_category_id,
+            request.datetime_differential,
+            request.page_start,
+            util.replaceQueryLimit(request.page_limit)
+        );
+
+        var queryString = util.getQueryString('ds_v1_asset_list_select_category_differential', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (err === false) {
+                    formatAssetAccountListDiff(data, (err, responseData) => {
+                        if (err === false) {
+                            callback(false, {
+                                data: responseData
+                            }, 200);
+                        } else {
+                            callback(false, {}, -9999)
+                        }
+                    })
+                    //callback(false, data, 200);
+                } else {
+                    callback(true, err, -9998);
+                }
+            });
+        }
+    };
+
+    this.assetAccountListCategoryDiffCount = function (request) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.asset_type_category_id,
+                request.datetime_differential
+            );
+
+            var queryString = util.getQueryString('ds_v1_asset_list_select_category_differential_count', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    console.log("err " + err);
+                    if (err === false) {
+                        resolve(data);
+                    } else {
+                        reject(err);
+                    }
+                });
+            }
+        });
+    };
+    
+    
+    this.activityAssetMappingCategorySearch = function (request) {
+		return new Promise((resolve, reject)=>{
+	        var paramsArr = new Array(
+	                request.organization_id,
+	                request.account_id,
+	                request.workforce_id,
+	                request.activity_type_category_id,
+	                request.asset_type_category_id,
+	                request.is_search,
+	                request.search_string,
+	                request.is_date,
+	                request.start_datetime,
+	                request.end_datetime,
+	                request.is_status,
+	                request.activity_status_type_id,
+	                request.page_start,
+                	util.replaceQueryLimit(request.page_limit)
+	                );
+	
+	        var queryString = util.getQueryString('pm_v1_activity_asset_mapping_select_category_search_date', paramsArr);
+	        if (queryString != '') {
+	            db.executeQuery(1, queryString, request, function (err, data) {
+	            	//console.log("err "+err);
+	               if(err === false) {	        			
+	        			  formatInventoryData(data).then((finalData)=>{
+	        			  	resolve(finalData);
+	        			  }).catch((err1)=>{
+	        			  console.log(err1);
+				            reject(err1);
+				          });     			  
+                    } else {
+	                   reject(err);
+	               }
+	            });
+	   		}
+        });
+    };	  
+    
+    function formatInventoryData(data){
+        return new Promise((resolve, reject)=>{
+            var responseArr = new Array();
+            forEachAsync(data, function (next, row) {
+                var rowData = {
+                    'activity_id': util.replaceDefaultNumber(row['activity_id']),
+                    'activity_title': util.replaceDefaultString(row['activity_title']),
+                    'asset_id': util.replaceDefaultNumber(row['asset_id']),
+                	'asset_first_name': util.replaceDefaultString(row['asset_first_name']),
+                	'activity_datetime_created': util.replaceDefaultDatetime(row['activity_datetime_created']),
+                	'activity_inline_data': util.replaceDefaultString(row['activity_inline_data']),
+                	'activity_sub_type_id': util.replaceDefaultNumber(row['activity_sub_type_id']),
+                	'activity_sub_type_name': util.replaceDefaultString(row['activity_sub_type_name']),
+                 	'activity_status_id': util.replaceDefaultNumber(row['activity_status_id']),
+                	'activity_status_name': util.replaceDefaultString(row['activity_status_name']),
+                 	'activity_status_type_id': util.replaceDefaultNumber(row['activity_status_type_id']),
+                	'activity_status_type_name': util.replaceDefaultString(row['activity_status_type_name'])   			                  
+                };
+                responseArr.push(rowData);
+                next();
+            }).then(() => {
+                resolve(responseArr);
+            });
+        });        
+	};  
 };
 
 module.exports = PamListingService;
