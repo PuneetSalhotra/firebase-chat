@@ -1422,6 +1422,8 @@ function ActivityListingService(objCollection) {
                 "parent_activity_type_name": util.replaceDefaultString(rowData['parent_activity_type_name']),
                 "parent_activity_type_category_id": util.replaceDefaultNumber(rowData['parent_activity_type_category_id']),
                 "parent_activity_type_category_name": util.replaceDefaultString(rowData['parent_activity_type_category_name']),
+                "parent_activity_open_count": util.replaceDefaultNumber(rowData['parent_activity_open_count']),
+                "parent_activity_closed_count": util.replaceDefaultNumber(rowData['parent_activity_closed_count']),        
                 "activity_participant_count": util.replaceZero(rowData['participant_count']),
                 "account_id": util.replaceZero(rowData['account_id']),
                 "account_name": util.replaceDefaultString(rowData['account_name']),
