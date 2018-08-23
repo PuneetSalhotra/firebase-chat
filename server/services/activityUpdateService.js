@@ -874,8 +874,8 @@ function ActivityUpdateService(objectCollection) {
 
                     //});
                     //assetActivityListUpdateSubTaskCover(request, function (err, data) {}); facing some issues here, handle post alpha                    
-                    activityPushService.sendPush(request, objectCollection, 0, function () {});
-                    activityPushService.sendSMSNotification(request, objectCollection, request.asset_id, function () {});
+                    // activityPushService.sendPush(request, objectCollection, 0, function () {});
+                    // activityPushService.sendSMSNotification(request, objectCollection, request.asset_id, function () {});
                     
                     if (request.hasOwnProperty('activity_parent_id')) {
                         if (util.hasValidGenericId(request, 'activity_parent_id')) {
@@ -974,104 +974,117 @@ function ActivityUpdateService(objectCollection) {
                 
                 if (activityTypeCategoryId === 10) {
                     let parsedActivityCoverData = JSON.parse(request.activity_cover_data);
-                    var diff;
-                    
-                    console.log('parsedActivityCoverData.duedate.old : ', parsedActivityCoverData.duedate.old);
-                    console.log('parsedActivityCoverData.duedate.new : ', parsedActivityCoverData.duedate.new);
+                    let taskDateTimeDiffInHours, dueDateThreshhold;
+
+                    console.log('\x1b[34m parsedActivityCoverData.duedate.old :\x1b[0m ', parsedActivityCoverData.duedate.old);
+                    console.log('\x1b[34m parsedActivityCoverData.duedate.new :\x1b[0m ', parsedActivityCoverData.duedate.new);
                     // If due date is updated then update count of due date changes
                     if (parsedActivityCoverData.duedate.old !== parsedActivityCoverData.duedate.new) {
                         //get the activity Details
-                        activityCommonService.getActivityDetails(request, 0, function(err, activityData){
-                           if(err === false) {                               
-                               diff = util.differenceDatetimes(util.replaceDefaultDatetime(activityData[0].activity_datetime_end_expected), util.replaceDefaultDatetime(activityData[0].activity_datetime_start_expected));
-                               diff = diff / 3600000; 
-                               diff = Number(diff); //Hours
-                               
-                               // Fetch account_config_due_date_hours from the account_list table
-                               activityCommonService.retrieveAccountList(request, function (error, data) {
-                                if (!error && Object.keys(data).length) {
-                                    // Check whether the difference between date of duedate change and old
-                                    // duedate is within the threshhold value in account_config_due_date_hours
-                                    let datetimeDifference = moment(parsedActivityCoverData.duedate.old).diff(moment().utc());
-                                    let changeDurationInHours = moment.duration(datetimeDifference).asHours();
-                                    // Set flag_ontime
-                                    let flag_ontime = 0; // Default: 'not on time'
-                                    
-                                    console.log('datetimeDifference : ', datetimeDifference);
-                                    console.log('parsedActivityCoverData.duedate.old : ', parsedActivityCoverData.duedate.old);
-                                    console.log('moment().utc() : ', moment().utc());
-                                                                                                           
-                                    //Formula for new config
-                                    //config/diff * 100
-                                    var newConfig = (Number(data[0].account_config_due_date_hours) /diff ) * 100;
-                                    console.log('diff : ', diff);
-                                    console.log('Config Value from DB : ', Number(data[0].account_config_due_date_hours));
-                                    console.log('changeDurationInHours : ', changeDurationInHours);
-                                    console.log('New Config Value : ', newConfig);
-                                    if (changeDurationInHours <= Number(newConfig)) {
-                                        flag_ontime = 1; // Set to 'on time'                                        
+                        activityCommonService.getActivityDetails(request, 0, function (err, activityData) {
+                            if (err === false) {
+                                taskDateTimeDiffInHours = util.differenceDatetimes(
+                                    util.replaceDefaultDatetime(activityData[0].activity_datetime_end_expected),
+                                    util.replaceDefaultDatetime(activityData[0].activity_datetime_start_expected)
+                                );
+                                // 1 Hour => 60 min => 3600 s => 3600000 ms
+                                taskDateTimeDiffInHours = Number(taskDateTimeDiffInHours / 3600000);
+                                console.log('\x1b[34m taskDateTimeDiffInHours:\x1b[0m ', taskDateTimeDiffInHours);
+
+                                // Fetch account_config_due_date_hours from the account_list table
+                                activityCommonService.retrieveAccountList(request, function (error, data) {
+                                    if (!error && Object.keys(data).length) {
+                                        // Check whether the difference between date of duedate change and old
+                                        // duedate is within the % threshhold value returned in account_config_due_date_hours
+                                        let datetimeDifference = moment(activityData[0].activity_datetime_end_expected).diff(moment().utc());
+                                        let changeDurationInHours = moment.duration(datetimeDifference).asHours();
+                                        // Set flag_ontime
+                                        let flag_ontime = 0; // Default: 'not on time'
+
+                                        console.log('\x1b[34m datetimeDifference[now ~ old due date] :\x1b[0m ', datetimeDifference);
+                                        console.log('\x1b[34m changeDurationInHours[now ~ old due date] :\x1b[0m ', changeDurationInHours);
+                                        console.log('\x1b[34m moment().utc() [current time] :\x1b[0m ', moment().utc());
+
+                                        // Calculate the new threshhold
+                                        // (% threshhold / difference b/w the creation and due datetime) * 100
+                                        dueDateThreshhold = (Number(data[0].account_config_due_date_hours) / taskDateTimeDiffInHours) * 100;
+                                        console.log('\x1b[32m account_config_due_date_hours [threshhold % from DB] :\x1b[0m ', Number(data[0].account_config_due_date_hours));
+                                        console.log('\x1b[32m Calculated dueDateThreshhold:\x1b[0m ', dueDateThreshhold);
+
+                                        if (changeDurationInHours >= Number(dueDateThreshhold)) {
+                                            flag_ontime = 1; // Set to 'on time'                                        
+                                        }
+
+                                        console.log('\x1b[32m flag_ontime :\x1b[0m ', flag_ontime);
+                                        activityListUpdateDueDateAlterCount(request, flag_ontime)
+                                            .then((data) => {
+
+                                                return activityListSelectDuedateAlterCount(
+                                                    request,
+                                                    util.getStartDateTimeOfWeek(),
+                                                    util.getEndDateTimeOfWeek()
+                                                );
+                                            })
+                                            .then((data) => {
+
+                                                let percentageScore = (Number(data[0].ontime_count) / Number(data[0].total_count)) * 100;
+                                                console.log('\x1b[32m ontime_count:\x1b[0m ', Number(data[0].ontime_count));
+                                                console.log('\x1b[32m total_count:\x1b[0m ', Number(data[0].total_count));
+                                                console.log('\x1b[32m Weekly Summary (percentageScore):\x1b[0m ', percentageScore);
+                                                // Weekly Summary Update
+                                                activityCommonService.weeklySummaryInsert(request, {
+                                                    summary_id: 7,
+                                                    asset_id: request.asset_id,
+                                                    entity_tinyint_1: 0,
+                                                    entity_bigint_1: Number(data[0].total_count),
+                                                    entity_double_1: percentageScore,
+                                                    entity_decimal_1: percentageScore,
+                                                    entity_decimal_2: Number(data[0].ontime_count),
+                                                    entity_decimal_3: 0,
+                                                    entity_text_1: '',
+                                                    entity_text_2: ''
+
+                                                }).catch(() => {});
+
+                                                return activityListSelectDuedateAlterCount(
+                                                    request,
+                                                    util.getStartDateTimeOfMonth(),
+                                                    util.getEndDateTimeOfMonth()
+                                                );
+
+                                            })
+                                            .then((data) => {
+
+                                                let percentageScore = (Number(data[0].ontime_count) / Number(data[0].total_count)) * 100;
+                                                console.log('\x1b[32m ontime_count:\x1b[0m ', Number(data[0].ontime_count));
+                                                console.log('\x1b[32m total_count:\x1b[0m ', Number(data[0].total_count));
+                                                console.log('\x1b[32m Monthly Summary (percentageScore):\x1b[0m ', percentageScore);
+                                                // Monthly Summary Update
+                                                activityCommonService.monthlySummaryInsert(request, {
+                                                    summary_id: 30,
+                                                    asset_id: request.asset_id,
+                                                    entity_tinyint_1: 0,
+                                                    entity_bigint_1: Number(data[0].total_count),
+                                                    entity_double_1: percentageScore,
+                                                    entity_decimal_1: percentageScore,
+                                                    entity_decimal_2: Number(data[0].ontime_count),
+                                                    entity_decimal_3: 0,
+                                                    entity_text_1: '',
+                                                    entity_text_2: ''
+
+                                                }).catch((err) => {
+                                                    console.log('\x1b[31m Error:\x1b[0m', err)
+                                                });
+
+                                            }).catch((err) => {
+                                                console.log('\x1b[31m Error:\x1b[0m', err)
+                                            });
                                     }
-                                    
-                                    console.log('flag_ontime : ', flag_ontime);
-                                    activityListUpdateDueDateAlterCount(request, flag_ontime)
-                                        .then((data) => {
+                                });
 
-                                            return activityListSelectDuedateAlterCount(
-                                                request, 
-                                                util.getStartDateTimeOfWeek(), 
-                                                util.getEndDateTimeOfWeek()
-                                            );
-                                        })
-                                        .then((data) => {
-
-                                            let percentageScore = (Number(data[0].ontime_count)/Number(data[0].total_count)) * 100;
-                                            // Weekly Summary Update
-                                            activityCommonService.weeklySummaryInsert(request, {
-                                                summary_id: 7,
-                                                asset_id: request.asset_id,
-                                                entity_tinyint_1: 0,
-                                                entity_bigint_1: Number(data[0].total_count),
-                                                entity_double_1: percentageScore,
-                                                entity_decimal_1: percentageScore,
-                                                entity_decimal_2: Number(data[0].ontime_count),
-                                                entity_decimal_3: 0,
-                                                entity_text_1: '',
-                                                entity_text_2: ''
-
-                                            }).catch(() => {});
-
-                                            return activityListSelectDuedateAlterCount(
-                                                request, 
-                                                util.getStartDateTimeOfMonth(), 
-                                                util.getEndDateTimeOfMonth()
-                                            );
-
-                                        })
-                                        .then((data) => {
-
-                                            let percentageScore = (Number(data[0].ontime_count)/Number(data[0].total_count)) * 100;
-                                            // Monthly Summary Update
-                                            activityCommonService.monthlySummaryInsert(request, {
-                                                summary_id: 30,
-                                                asset_id: request.asset_id,
-                                                entity_tinyint_1: 0,
-                                                entity_bigint_1: Number(data[0].total_count),
-                                                entity_double_1: percentageScore,
-                                                entity_decimal_1: percentageScore,
-                                                entity_decimal_2: Number(data[0].ontime_count),
-                                                entity_decimal_3: 0,
-                                                entity_text_1: '',
-                                                entity_text_2: ''
-
-                                            }).catch(() => {});
-
-                                        }).catch(() => {});
-                                }
-                            });
-                               
-                           } 
+                            }
                         });
-                        
+
                     } else {
                         console.log('Else Part');
                     }
@@ -1589,17 +1602,26 @@ function ActivityUpdateService(objectCollection) {
         request['datetime_log'] = logDatetime;
         var activityTypeCategoryId = Number(request.activity_type_category_id);
         
-        if (activityTypeCategoryId === 8 && Number(request.device_os_id) !== 5) {
-            var pubnubMsg = {};
-            pubnubMsg.type = 'activity_unread';
-            pubnubMsg.organization_id = request.organization_id;
-            pubnubMsg.desk_asset_id = request.asset_id;
-            pubnubMsg.activity_type_category_id = request.activity_type_category_id || 0;
-            console.log('PubNub Message : ', pubnubMsg);            
-            activityPushService.pubNubPush(request, pubnubMsg, function(err, data){});            
-        }
-
-        activityCommonService.resetAssetUnreadCount(request, request.activity_id, function (err, data) {});
+        activityCommonService.resetAssetUnreadCount(request, request.activity_id, function (err, data) {
+            if(err === false) {
+                if (activityTypeCategoryId === 8 && Number(request.device_os_id) !== 5) {
+                    var pubnubMsg = {};
+                    pubnubMsg.type = 'activity_unread';
+                    pubnubMsg.organization_id = request.organization_id;
+                    pubnubMsg.desk_asset_id = request.asset_id;
+                    pubnubMsg.activity_type_category_id = request.activity_type_category_id || 0;
+                    console.log('PubNub Message : ', pubnubMsg);            
+                    activityPushService.pubNubPush(request, pubnubMsg, function(err, data){});            
+                }
+            }
+        });
+        
+        if (Number(request.device_os_id) === 5) {
+            decreaseUnreadCntsInMobile(request).then(()=>{}).catch((err)=>{
+               console.log('Error in decreaseUnreadCntsInMobile : ', err); 
+            });
+        }  
+        
         activityCommonService.responseRateUnreadCount(request, request.activity_id, function (err, data) {});
         activityPushService.sendPush(request, objectCollection, 0, function () {});
         
@@ -1622,6 +1644,23 @@ function ActivityUpdateService(objectCollection) {
             next();
         }); */
     };
+    
+    function decreaseUnreadCntsInMobile(request) {
+        return new Promise((resolve, reject)=>{
+           var paramsArr = new Array(
+                request.activity_id,
+                request.asset_id,
+                request.organization_id,
+                request.datetime_log
+                );
+            var queryString = util.getQueryString('ds_p1_activity_asset_mapping_reset_unread_counts_web', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err === false) ? resolve() : reject(err);
+                });
+            } 
+        });
+    }
     
     //To calculate New Productivity Score inMails
     function updateInmailPS(request) {
