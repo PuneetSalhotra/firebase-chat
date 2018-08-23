@@ -1589,17 +1589,26 @@ function ActivityUpdateService(objectCollection) {
         request['datetime_log'] = logDatetime;
         var activityTypeCategoryId = Number(request.activity_type_category_id);
         
+        activityCommonService.resetAssetUnreadCount(request, request.activity_id, function (err, data) {
+            if(err === false) {
+                if (activityTypeCategoryId === 8 && Number(request.device_os_id) !== 5) {
+                    var pubnubMsg = {};
+                    pubnubMsg.type = 'activity_unread';
+                    pubnubMsg.organization_id = request.organization_id;
+                    pubnubMsg.desk_asset_id = request.asset_id;
+                    pubnubMsg.activity_type_category_id = request.activity_type_category_id || 0;
+                    console.log('PubNub Message : ', pubnubMsg);            
+                    activityPushService.pubNubPush(request, pubnubMsg, function(err, data){});            
+                }
+            }
+        });
+        
         if (activityTypeCategoryId === 8 && Number(request.device_os_id) !== 5) {
-            var pubnubMsg = {};
-            pubnubMsg.type = 'activity_unread';
-            pubnubMsg.organization_id = request.organization_id;
-            pubnubMsg.desk_asset_id = request.asset_id;
-            pubnubMsg.activity_type_category_id = request.activity_type_category_id || 0;
-            console.log('PubNub Message : ', pubnubMsg);            
-            activityPushService.pubNubPush(request, pubnubMsg, function(err, data){});            
-        }
-
-        activityCommonService.resetAssetUnreadCount(request, request.activity_id, function (err, data) {});
+            decreaseUnreadCntsInMobile(request).then(()=>{}).catch((err)=>{
+               console.log('Error in decreaseUnreadCntsInMobile : ', err); 
+            });
+        }        
+        
         activityCommonService.responseRateUnreadCount(request, request.activity_id, function (err, data) {});
         activityPushService.sendPush(request, objectCollection, 0, function () {});
         
@@ -1622,6 +1631,23 @@ function ActivityUpdateService(objectCollection) {
             next();
         }); */
     };
+    
+    function decreaseUnreadCntsInMobile(request) {
+        return new Promise((resolve, reject)=>{
+           var paramsArr = new Array(
+                request.activity_id,
+                request.asset_id,
+                request.organization_id,
+                request.datetime_log
+                );
+            var queryString = util.getQueryString('ds_p1_activity_asset_mapping_reset_unread_counts_web', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err === false) ? resolve() : reject(err);
+                });
+            } 
+        });
+    }
     
     //To calculate New Productivity Score inMails
     function updateInmailPS(request) {
