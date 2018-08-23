@@ -374,6 +374,11 @@ function Util() {
         return now;
     };
 
+    this.getOTPHeartBeatCode = function () {
+        var now = moment().tz('Asia/Kolkata').format("DDHHmm");
+        return now;
+    };
+
     this.getCurrentDate = function () {
         var now = moment().utc().format("YYYY-MM-DD");
         return now;
