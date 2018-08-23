@@ -874,8 +874,8 @@ function ActivityUpdateService(objectCollection) {
 
                     //});
                     //assetActivityListUpdateSubTaskCover(request, function (err, data) {}); facing some issues here, handle post alpha                    
-                    activityPushService.sendPush(request, objectCollection, 0, function () {});
-                    activityPushService.sendSMSNotification(request, objectCollection, request.asset_id, function () {});
+                    // activityPushService.sendPush(request, objectCollection, 0, function () {});
+                    // activityPushService.sendSMSNotification(request, objectCollection, request.asset_id, function () {});
                     
                     if (request.hasOwnProperty('activity_parent_id')) {
                         if (util.hasValidGenericId(request, 'activity_parent_id')) {
@@ -974,104 +974,120 @@ function ActivityUpdateService(objectCollection) {
                 
                 if (activityTypeCategoryId === 10) {
                     let parsedActivityCoverData = JSON.parse(request.activity_cover_data);
-                    var diff;
-                    
+                    let taskDateTimeDiffInHours, dueDateThreshhold;
+
                     console.log('parsedActivityCoverData.duedate.old : ', parsedActivityCoverData.duedate.old);
                     console.log('parsedActivityCoverData.duedate.new : ', parsedActivityCoverData.duedate.new);
                     // If due date is updated then update count of due date changes
                     if (parsedActivityCoverData.duedate.old !== parsedActivityCoverData.duedate.new) {
                         //get the activity Details
-                        activityCommonService.getActivityDetails(request, 0, function(err, activityData){
-                           if(err === false) {                               
-                               diff = util.differenceDatetimes(util.replaceDefaultDatetime(activityData[0].activity_datetime_end_expected), util.replaceDefaultDatetime(activityData[0].activity_datetime_start_expected));
-                               diff = diff / 3600000; 
-                               diff = Number(diff); //Hours
-                               
-                               // Fetch account_config_due_date_hours from the account_list table
-                               activityCommonService.retrieveAccountList(request, function (error, data) {
-                                if (!error && Object.keys(data).length) {
-                                    // Check whether the difference between date of duedate change and old
-                                    // duedate is within the threshhold value in account_config_due_date_hours
-                                    let datetimeDifference = moment(parsedActivityCoverData.duedate.old).diff(moment().utc());
-                                    let changeDurationInHours = moment.duration(datetimeDifference).asHours();
-                                    // Set flag_ontime
-                                    let flag_ontime = 0; // Default: 'not on time'
-                                    
-                                    console.log('datetimeDifference : ', datetimeDifference);
-                                    console.log('parsedActivityCoverData.duedate.old : ', parsedActivityCoverData.duedate.old);
-                                    console.log('moment().utc() : ', moment().utc());
-                                                                                                           
-                                    //Formula for new config
-                                    //config/diff * 100
-                                    var newConfig = (Number(data[0].account_config_due_date_hours) /diff ) * 100;
-                                    console.log('diff : ', diff);
-                                    console.log('Config Value from DB : ', Number(data[0].account_config_due_date_hours));
-                                    console.log('changeDurationInHours : ', changeDurationInHours);
-                                    console.log('New Config Value : ', newConfig);
-                                    if (changeDurationInHours <= Number(newConfig)) {
-                                        flag_ontime = 1; // Set to 'on time'                                        
+                        activityCommonService.getActivityDetails(request, 0, function (err, activityData) {
+                            if (err === false) {
+                                taskDateTimeDiffInHours = util.differenceDatetimes(
+                                    util.replaceDefaultDatetime(activityData[0].activity_datetime_end_expected),
+                                    util.replaceDefaultDatetime(activityData[0].activity_datetime_start_expected)
+                                );
+                                console.log('taskDateTimeDiffInHours: ', taskDateTimeDiffInHours);
+                                // 1 Hour => 60 min => 3600 s => 3600000 ms
+                                taskDateTimeDiffInHours = Number(taskDateTimeDiffInHours / 3600000);
+                                console.log('taskDateTimeDiffInHours: ', taskDateTimeDiffInHours);
+
+                                // Fetch account_config_due_date_hours from the account_list table
+                                activityCommonService.retrieveAccountList(request, function (error, data) {
+                                    if (!error && Object.keys(data).length) {
+                                        // Check whether the difference between date of duedate change and old
+                                        // duedate is within the % threshhold value returned in account_config_due_date_hours
+                                        let datetimeDifference = moment(activityData[0].activity_datetime_end_expected).diff(moment().utc());
+                                        let changeDurationInHours = moment.duration(datetimeDifference).asHours();
+                                        // Set flag_ontime
+                                        let flag_ontime = 0; // Default: 'not on time'
+
+                                        console.log('datetimeDifference[incoming] : ', datetimeDifference);
+                                        console.log('changeDurationInHours[incoming] : ', changeDurationInHours);
+                                        console.log('parsedActivityCoverData.duedate.old : ', parsedActivityCoverData.duedate.old);
+                                        console.log('moment().utc() : ', moment().utc());
+
+                                        // Calculate the new threshhold
+                                        // (% threshhold / difference b/w the creation and due datetime) * 100
+                                        dueDateThreshhold = (Number(data[0].account_config_due_date_hours) / taskDateTimeDiffInHours) * 100;
+                                        console.log('taskDateTimeDiffInHours : ', taskDateTimeDiffInHours);
+                                        console.log('Config Value from DB : ', Number(data[0].account_config_due_date_hours));
+                                        console.log('changeDurationInHours : ', changeDurationInHours);
+                                        console.log('Calculated dueDateThreshhold: ', dueDateThreshhold);
+                                        if (changeDurationInHours >= Number(dueDateThreshhold)) {
+                                            flag_ontime = 1; // Set to 'on time'                                        
+                                        }
+
+                                        console.log('flag_ontime : ', flag_ontime);
+                                        activityListUpdateDueDateAlterCount(request, flag_ontime)
+                                            .then((data) => {
+
+                                                return activityListSelectDuedateAlterCount(
+                                                    request,
+                                                    util.getStartDateTimeOfWeek(),
+                                                    util.getEndDateTimeOfWeek()
+                                                );
+                                            })
+                                            .then((data) => {
+
+                                                let percentageScore = (Number(data[0].ontime_count) / Number(data[0].total_count)) * 100;
+                                                console.log('ontime_count: ', Number(data[0].ontime_count));
+                                                console.log('total_count: ', Number(data[0].total_count));
+                                                console.log('Weekly Summary (percentageScore): ', percentageScore);
+                                                // Weekly Summary Update
+                                                activityCommonService.weeklySummaryInsert(request, {
+                                                    summary_id: 7,
+                                                    asset_id: request.asset_id,
+                                                    entity_tinyint_1: 0,
+                                                    entity_bigint_1: Number(data[0].total_count),
+                                                    entity_double_1: percentageScore,
+                                                    entity_decimal_1: percentageScore,
+                                                    entity_decimal_2: Number(data[0].ontime_count),
+                                                    entity_decimal_3: 0,
+                                                    entity_text_1: '',
+                                                    entity_text_2: ''
+
+                                                }).catch(() => {});
+
+                                                return activityListSelectDuedateAlterCount(
+                                                    request,
+                                                    util.getStartDateTimeOfMonth(),
+                                                    util.getEndDateTimeOfMonth()
+                                                );
+
+                                            })
+                                            .then((data) => {
+
+                                                let percentageScore = (Number(data[0].ontime_count) / Number(data[0].total_count)) * 100;
+                                                console.log('ontime_count: ', Number(data[0].ontime_count));
+                                                console.log('total_count: ', Number(data[0].total_count));
+                                                console.log('Monthly Summary (percentageScore): ', percentageScore);
+                                                // Monthly Summary Update
+                                                activityCommonService.monthlySummaryInsert(request, {
+                                                    summary_id: 30,
+                                                    asset_id: request.asset_id,
+                                                    entity_tinyint_1: 0,
+                                                    entity_bigint_1: Number(data[0].total_count),
+                                                    entity_double_1: percentageScore,
+                                                    entity_decimal_1: percentageScore,
+                                                    entity_decimal_2: Number(data[0].ontime_count),
+                                                    entity_decimal_3: 0,
+                                                    entity_text_1: '',
+                                                    entity_text_2: ''
+
+                                                }).catch((err) => {
+                                                    console.log('Error:', err)
+                                                });
+
+                                            }).catch((err) => {
+                                                console.log('Error:', err)
+                                            });
                                     }
-                                    
-                                    console.log('flag_ontime : ', flag_ontime);
-                                    activityListUpdateDueDateAlterCount(request, flag_ontime)
-                                        .then((data) => {
+                                });
 
-                                            return activityListSelectDuedateAlterCount(
-                                                request, 
-                                                util.getStartDateTimeOfWeek(), 
-                                                util.getEndDateTimeOfWeek()
-                                            );
-                                        })
-                                        .then((data) => {
-
-                                            let percentageScore = (Number(data[0].ontime_count)/Number(data[0].total_count)) * 100;
-                                            // Weekly Summary Update
-                                            activityCommonService.weeklySummaryInsert(request, {
-                                                summary_id: 7,
-                                                asset_id: request.asset_id,
-                                                entity_tinyint_1: 0,
-                                                entity_bigint_1: Number(data[0].total_count),
-                                                entity_double_1: percentageScore,
-                                                entity_decimal_1: percentageScore,
-                                                entity_decimal_2: Number(data[0].ontime_count),
-                                                entity_decimal_3: 0,
-                                                entity_text_1: '',
-                                                entity_text_2: ''
-
-                                            }).catch(() => {});
-
-                                            return activityListSelectDuedateAlterCount(
-                                                request, 
-                                                util.getStartDateTimeOfMonth(), 
-                                                util.getEndDateTimeOfMonth()
-                                            );
-
-                                        })
-                                        .then((data) => {
-
-                                            let percentageScore = (Number(data[0].ontime_count)/Number(data[0].total_count)) * 100;
-                                            // Monthly Summary Update
-                                            activityCommonService.monthlySummaryInsert(request, {
-                                                summary_id: 30,
-                                                asset_id: request.asset_id,
-                                                entity_tinyint_1: 0,
-                                                entity_bigint_1: Number(data[0].total_count),
-                                                entity_double_1: percentageScore,
-                                                entity_decimal_1: percentageScore,
-                                                entity_decimal_2: Number(data[0].ontime_count),
-                                                entity_decimal_3: 0,
-                                                entity_text_1: '',
-                                                entity_text_2: ''
-
-                                            }).catch(() => {});
-
-                                        }).catch(() => {});
-                                }
-                            });
-                               
-                           } 
+                            }
                         });
-                        
+
                     } else {
                         console.log('Else Part');
                     }
