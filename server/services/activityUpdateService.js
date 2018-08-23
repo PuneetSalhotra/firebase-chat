@@ -1603,11 +1603,11 @@ function ActivityUpdateService(objectCollection) {
             }
         });
         
-        if (activityTypeCategoryId === 8 && Number(request.device_os_id) !== 5) {
+        if (Number(request.device_os_id) === 5) {
             decreaseUnreadCntsInMobile(request).then(()=>{}).catch((err)=>{
                console.log('Error in decreaseUnreadCntsInMobile : ', err); 
             });
-        }        
+        }  
         
         activityCommonService.responseRateUnreadCount(request, request.activity_id, function (err, data) {});
         activityPushService.sendPush(request, objectCollection, 0, function () {});
