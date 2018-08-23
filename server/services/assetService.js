@@ -2520,19 +2520,74 @@ function AssetService(objectCollection) {
 
     //Retrieving the unread count based on mobile number
     this.unreadCntBasedOnMobileNumber = function (request, callback) {
+        var response = new Array;
+        var allAssetIds = new Array;
+        
         var paramsArr = new Array(
-            request.operating_asset_phone_number,
-            request.operating_asset_phone_country_code,
-            request.sort_flag,
-            0,
-            50
-        );
+                request.operating_asset_phone_number,
+                request.operating_asset_phone_country_code,
+                request.sort_flag,
+                0,
+                50
+                );
+        
         var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_unread_counts_phone_number', paramsArr);
         if (queryString != '') {
-            db.executeQuery(1, queryString, request, function (err, data) {
-                (err === false) ? callback(false, data, 200): callback(true, err, -9999);
-            });
-        }
+            db.executeQuery(1, queryString, request, function (err, data) {            
+            forEachAsync(data, (next, row)=>{
+                allAssetIds.push(row.asset_id);
+                formatActiveAccountsCountData(row, (err, formatedData)=>{
+                    response.push(formatedData);
+                    next();
+                });
+        }).then(()=>{
+                var paramsArr = new Array(
+                    0, //organizationId,
+                    request.operating_asset_phone_number,
+                    request.operating_asset_phone_country_code
+                );
+                var queryString = util.getQueryString('ds_p1_asset_list_select_phone_number_all', paramsArr);
+                    if (queryString != '') {
+                        db.executeQuery(1, queryString, request, function (err, selectData) {
+                        if(err === false) {
+                            console.log(selectData.length);
+                            forEachAsync(selectData, (next, rowData)=>{
+                                if(allAssetIds.includes(rowData.asset_id)) {
+                                    console.log(rowData.asset_id + ' is there.');
+                                    next();
+                                } else {
+                                    formatActiveAccountsCountData(rowData, (err, formatedData)=>{
+                                        response.push(formatedData);
+                                        next();
+                                    });
+                                }
+                            }).then(()=>{
+                                    (err === false) ? callback(false, response, 200): callback(true, err, -9999);
+                            });
+                        }
+                    });
+                    }
+                });
+        });
+    }
+};
+    
+    var formatActiveAccountsCountData = function (rowArray, callback) {
+        
+        var rowData = {
+            'count' : rowArray['count'] || 0,
+            'asset_id': util.replaceDefaultNumber(rowArray['asset_id']),
+            'asset_first_name': util.replaceDefaultString(rowArray['asset_first_name']),
+            'organization_id': util.replaceDefaultNumber(rowArray['organization_id']),
+            'organization_name': util.replaceDefaultString(rowArray['organization_name']),
+            'asset_last_name': util.replaceDefaultString(rowArray['asset_last_name']),
+            'asset_image_path': util.replaceDefaultString(rowArray['asset_image_path']),
+            'operating_asset_id': util.replaceDefaultNumber(rowArray['operating_asset_id']),
+            'operating_asset_first_name': util.replaceDefaultString(rowArray['operating_asset_first_name']),
+            'operating_asset_last_name': util.replaceDefaultString(rowArray['operating_asset_last_name'])      
+        };
+
+        callback(false, rowData);
     };
 
     function updatePushToken(request, assetId) {
@@ -2571,6 +2626,31 @@ function AssetService(objectCollection) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 (err === false) ? callback(false, data, 200): callback(true, err, -9999);
+            });
+        }
+    };
+    
+    // Retrieve asset's weekly summary params
+    this.retrieveAssetWeeklySummaryParams = function (request, callback) {
+        let paramsArr = new Array(
+            request.asset_id,
+            request.operating_asset_id,
+            request.organization_id,
+            2, // p_flag
+            request.week_start_date // p_data_entity_date_1 => YYYY-MM-DD
+        );
+        let queryString = util.getQueryString('ds_p1_asset_monthly_summary_transaction_select_flag', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+              if(typeof data !== 'undefined') {
+                if(data.length > 0 ) {
+                    (err === false) ? callback(false, data, 200) : callback(true, err, -9999);
+                } else {
+                    callback(true, err, -9999);
+                }   
+              } else {
+                  callback(true, err, -9999);
+              }                               
             });
         }
     };

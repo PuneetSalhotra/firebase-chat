@@ -1,8 +1,6 @@
 /*
  * author: Sri Sai Venkatesh
  */
-const moment = require('moment');
-const AccountService = require("../services/accountService");
 
 function ActivityUpdateService(objectCollection) {
 
@@ -12,9 +10,8 @@ function ActivityUpdateService(objectCollection) {
     var util = objectCollection.util;
     var activityPushService = objectCollection.activityPushService;
     var queueWrapper = objectCollection.queueWrapper;
-    let accountService = new AccountService(objectCollection);
-    
     var makeRequest = require('request');
+    const moment = require('moment');
 
     var activityListUpdateInline = function (request, callback) {
 
@@ -974,79 +971,109 @@ function ActivityUpdateService(objectCollection) {
                     }// end parent activity id condition
 
                 });
-
+                
                 if (activityTypeCategoryId === 10) {
                     let parsedActivityCoverData = JSON.parse(request.activity_cover_data);
-
+                    var diff;
+                    
+                    console.log('parsedActivityCoverData.duedate.old : ', parsedActivityCoverData.duedate.old);
+                    console.log('parsedActivityCoverData.duedate.new : ', parsedActivityCoverData.duedate.new);
                     // If due date is updated then update count of due date changes
                     if (parsedActivityCoverData.duedate.old !== parsedActivityCoverData.duedate.new) {
-                        // Fetch account_config_due_date_hours from the account_list table
-                        accountService.retrieveAccountList(request, function (error, data, statusCode) {
-                            if (!error && Object.keys(data).length) {
-                                // Check whether the difference between date of duedate change and old
-                                // duedate is within the threshhold value in account_config_due_date_hours
-                                let datetimeDifference = moment(parsedActivityCoverData.duedate.old).diff(moment().utc());
-                                let changeDurationInHours = moment.duration(datetimeDifference).asHours();
-                                // Set flag_ontime
-                                let flag_ontime = 0; // Default: 'not on time'
-                                if (changeDurationInHours <= Number(data.data[0].account_config_due_date_hours)) {
-                                    flag_ontime = 1; // Set to 'on time'
+                        //get the activity Details
+                        activityCommonService.getActivityDetails(request, 0, function(err, activityData){
+                           if(err === false) {                               
+                               diff = util.differenceDatetimes(util.replaceDefaultDatetime(activityData[0].activity_datetime_end_expected), util.replaceDefaultDatetime(activityData[0].activity_datetime_start_expected));
+                               diff = diff / 3600000; 
+                               diff = Number(diff); //Hours
+                               
+                               // Fetch account_config_due_date_hours from the account_list table
+                               activityCommonService.retrieveAccountList(request, function (error, data) {
+                                if (!error && Object.keys(data).length) {
+                                    // Check whether the difference between date of duedate change and old
+                                    // duedate is within the threshhold value in account_config_due_date_hours
+                                    let datetimeDifference = moment(parsedActivityCoverData.duedate.old).diff(moment().utc());
+                                    let changeDurationInHours = moment.duration(datetimeDifference).asHours();
+                                    // Set flag_ontime
+                                    let flag_ontime = 0; // Default: 'not on time'
+                                    
+                                    console.log('datetimeDifference : ', datetimeDifference);
+                                    console.log('parsedActivityCoverData.duedate.old : ', parsedActivityCoverData.duedate.old);
+                                    console.log('moment().utc() : ', moment().utc());
+                                                                                                           
+                                    //Formula for new config
+                                    //config/diff * 100
+                                    var newConfig = (Number(data[0].account_config_due_date_hours) /diff ) * 100;
+                                    console.log('diff : ', diff);
+                                    console.log('Config Value from DB : ', Number(data[0].account_config_due_date_hours));
+                                    console.log('changeDurationInHours : ', changeDurationInHours);
+                                    console.log('New Config Value : ', newConfig);
+                                    if (changeDurationInHours <= Number(newConfig)) {
+                                        flag_ontime = 1; // Set to 'on time'                                        
+                                    }
+                                    
+                                    console.log('flag_ontime : ', flag_ontime);
+                                    activityListUpdateDueDateAlterCount(request, flag_ontime)
+                                        .then((data) => {
+
+                                            return activityListSelectDuedateAlterCount(
+                                                request, 
+                                                util.getStartDateTimeOfWeek(), 
+                                                util.getEndDateTimeOfWeek()
+                                            );
+                                        })
+                                        .then((data) => {
+
+                                            let percentageScore = (Number(data[0].ontime_count)/Number(data[0].total_count)) * 100;
+                                            // Weekly Summary Update
+                                            activityCommonService.weeklySummaryInsert(request, {
+                                                summary_id: 7,
+                                                asset_id: request.asset_id,
+                                                entity_tinyint_1: 0,
+                                                entity_bigint_1: Number(data[0].total_count),
+                                                entity_double_1: percentageScore,
+                                                entity_decimal_1: percentageScore,
+                                                entity_decimal_2: Number(data[0].ontime_count),
+                                                entity_decimal_3: 0,
+                                                entity_text_1: '',
+                                                entity_text_2: ''
+
+                                            }).catch(() => {});
+
+                                            return activityListSelectDuedateAlterCount(
+                                                request, 
+                                                util.getStartDateTimeOfMonth(), 
+                                                util.getEndDateTimeOfMonth()
+                                            );
+
+                                        })
+                                        .then((data) => {
+
+                                            let percentageScore = (Number(data[0].ontime_count)/Number(data[0].total_count)) * 100;
+                                            // Monthly Summary Update
+                                            activityCommonService.monthlySummaryInsert(request, {
+                                                summary_id: 30,
+                                                asset_id: request.asset_id,
+                                                entity_tinyint_1: 0,
+                                                entity_bigint_1: Number(data[0].total_count),
+                                                entity_double_1: percentageScore,
+                                                entity_decimal_1: percentageScore,
+                                                entity_decimal_2: Number(data[0].ontime_count),
+                                                entity_decimal_3: 0,
+                                                entity_text_1: '',
+                                                entity_text_2: ''
+
+                                            }).catch(() => {});
+
+                                        }).catch(() => {});
                                 }
-                                activityListUpdateDueDateAlterCount(request, flag_ontime)
-                                    .then((data) => {
-
-                                        return activityListSelectDuedateAlterCount(
-                                            request, 
-                                            util.getStartDateTimeOfWeek(), 
-                                            util.getEndDateTimeOfWeek()
-                                        );
-                                    })
-                                    .then((data) => {
-
-                                        let percentageScore = (Number(data[0].ontime_count)/Number(data[0].total_count)) * 100;
-                                        // Weekly Summary Update
-                                        activityCommonService.weeklySummaryInsert(request, {
-                                            summary_id: 7,
-                                            asset_id: request.asset_id,
-                                            entity_tinyint_1: 0,
-                                            entity_bigint_1: Number(data[0].total_count),
-                                            entity_double_1: percentageScore,
-                                            entity_decimal_1: percentageScore,
-                                            entity_decimal_2: Number(data[0].ontime_count),
-                                            entity_decimal_3: 0,
-                                            entity_text_1: '',
-                                            entity_text_2: ''
-
-                                        }).catch(() => {});
-
-                                        return activityListSelectDuedateAlterCount(
-                                            request, 
-                                            util.getStartDateTimeOfMonth(), 
-                                            util.getEndDateTimeOfMonth()
-                                        );
-
-                                    })
-                                    .then((data) => {
-
-                                        let percentageScore = (Number(data[0].ontime_count)/Number(data[0].total_count)) * 100;
-                                        // Monthly Summary Update
-                                        activityCommonService.monthlySummaryInsert(request, {
-                                            summary_id: 30,
-                                            asset_id: request.asset_id,
-                                            entity_tinyint_1: 0,
-                                            entity_bigint_1: Number(data[0].total_count),
-                                            entity_double_1: percentageScore,
-                                            entity_decimal_1: percentageScore,
-                                            entity_decimal_2: Number(data[0].ontime_count),
-                                            entity_decimal_3: 0,
-                                            entity_text_1: '',
-                                            entity_text_2: ''
-
-                                        }).catch(() => {});
-
-                                    }).catch(() => {});
-                            }
-                        })
+                            });
+                               
+                           } 
+                        });
+                        
+                    } else {
+                        console.log('Else Part');
                     }
                 }
 
@@ -1574,7 +1601,19 @@ function ActivityUpdateService(objectCollection) {
 
         activityCommonService.resetAssetUnreadCount(request, request.activity_id, function (err, data) {});
         activityCommonService.responseRateUnreadCount(request, request.activity_id, function (err, data) {});
-        activityPushService.sendPush(request, objectCollection, 0, function () {});             
+        activityPushService.sendPush(request, objectCollection, 0, function () {});
+        
+        //New Productivity Score
+        //inMail
+        if(activityTypeCategoryId === 8) {
+            updateInmailPS(request).then(()=>{});            
+        }
+        
+        //postIt
+        if(activityTypeCategoryId === 28) {
+            updatepostItPS(request).then(()=>{});            
+        }
+        
         callback(false, true);
         /*var activityArray = JSON.parse(request.activity_id_array);
         forEachAsync(activityArray, function (next, activityId) {
@@ -1582,6 +1621,154 @@ function ActivityUpdateService(objectCollection) {
             //console.log(activityId);
             next();
         }); */
+    };
+    
+    //To calculate New Productivity Score inMails
+    function updateInmailPS(request) {
+        return new Promise((resolve, reject)=>{
+            var creationDate;
+            
+            //Get activity Details
+            activityCommonService.getActivityDetails(request, 0, function (err, activityData) {
+                if(err === false) {
+                    creationDate = util.replaceDefaultDatetime(activityData[0].activity_datetime_start_expected);
+                    
+                    //Get the Config Value
+                    activityCommonService.retrieveAccountList(request, (err, data)=>{
+                        if(err === false) {
+                            var configRespHours = data[0].account_config_response_hours;
+                            global.logger.write('debug','Response hours in Config file  : ' + configRespHours,{},request);
+                            
+                            //diff will be in milli seconds
+                            var diff = util.differenceDatetimes(request.datetime_log ,util.replaceDefaultDatetime(creationDate));
+                            diff = diff / 3600000;
+                            diff = Number(diff);
+                            global.logger.write('debug','Difference  : ' + diff,{},request);
+                            (diff <= configRespHours) ? onTimeFlag = 1 : onTimeFlag = 0;  
+                            
+                            //Update the flag
+                            activityCommonService.updateInMailResponse(request, onTimeFlag, (err, data)=>{
+                                if(err === false) { 
+                                 
+                                    //Get the inmail Counts
+                                    activityCommonService.getInmailCounts(request, (err, countsData)=>{
+                                        if(err === false) {
+                                            var percentage = 0;
+                                            var noOfReceivedInmails = countsData[0].countReceivedInmails;
+                                            var noOfRespondedInmails = countsData[0].countOntimeRespondedInmails;
+                                            
+                                            if(noOfReceivedInmails != 0) {
+                                                percentage = (noOfReceivedInmails/noOfRespondedInmails) * 100;
+                                            }
+                                            
+                                            global.logger.write('debug','Number Of ReceivedInmails : ' + noOfReceivedInmails,{},request);
+                                            global.logger.write('debug','Number Of RespondedInmails : ' + noOfRespondedInmails,{},request);
+                                            global.logger.write('debug','Percentage : ' + percentage,{},request);
+                                            
+                                            //Insert into monthly summary table
+                                            var monthlyCollection = {};
+                                            monthlyCollection.summary_id = 10;
+                                            monthlyCollection.asset_id = request.asset_id;
+                                            monthlyCollection.entity_bigint_1 = noOfReceivedInmails;//denominator
+                                            monthlyCollection.entity_double_1 = percentage; //percentage value
+                                            monthlyCollection.entity_decimal_1 = percentage; //percentage value
+                                            monthlyCollection.entity_decimal_3 = noOfRespondedInmails; //numerator
+                                            activityCommonService.monthlySummaryInsert(request, monthlyCollection, (err, data)=>{});
+
+                                            //Insert into weekly summary table
+                                            var weeklyCollection = {};
+                                            weeklyCollection.summary_id = 3;                                            
+                                            weeklyCollection.asset_id = request.asset_id;
+                                            weeklyCollection.entity_bigint_1 = noOfReceivedInmails;
+                                            weeklyCollection.entity_double_1 = percentage;
+                                            weeklyCollection.entity_decimal_1 = percentage;
+                                            weeklyCollection.entity_decimal_3 = noOfRespondedInmails;
+                                            activityCommonService.weeklySummaryInsert(request, weeklyCollection, (err, data)=>{});
+
+                                            resolve();
+                                        }
+                                    }); //getInmailCounts                                    
+                                }
+                            }); //updateInmailResponse                            
+                        }
+                    }); //retrieveAccountList
+                }
+            }); //getActivityDetails
+        }); // updateInmailPS Promise
+    };
+    
+    //To calculate New Productivity Score PostIts
+    function updatepostItPS(request) {
+        return new Promise((resolve, reject)=>{
+            var creationDate;
+            
+            //Get activity Details
+            activityCommonService.getActivityDetails(request, 0, function (err, activityData) {
+                if(err === false) {
+                    creationDate = util.replaceDefaultDatetime(activityData[0].activity_datetime_start_expected);
+                    
+                    //Get the Config Value
+                    activityCommonService.retrieveAccountList(request, (err, data)=>{
+                        if(err === false) {
+                            var configRespHours = data[0].account_config_response_hours;
+                            
+                            //diff will be in milli seconds
+                            var diff = util.differenceDatetimes(request.datetime_log ,util.replaceDefaultDatetime(creationDate));
+                            diff = diff / 3600000;
+                            diff = Number(diff);
+                            (diff <= configRespHours) ? onTimeFlag = 1 : onTimeFlag = 0;  
+                            
+                            //Update the flag
+                            activityCommonService.updateInMailResponse(request, onTimeFlag, (err, data)=>{
+                                if(err === false) { 
+                                 
+                                    //Get the inmail Counts
+                                    activityCommonService.getPostItCounts(request, (err, countsData)=>{
+                                        if(err === false) {
+                                            var percentage = 0;
+                                            var noOfReceivedPostits = countsData[0].countReceivedPostits;
+                                            var noOfRespondedPostits = countsData[0].countOntimeRespondedPostits;
+                                            
+                                            if(noOfReceivedPostits != 0) {
+                                                percentage = (noOfReceivedPostits/noOfRespondedPostits) * 100;
+                                            }
+                                            
+                                            global.logger.write('debug','Number Of ReceivedPostits : ' + noOfReceivedPostits,{},request);
+                                            global.logger.write('debug','Number Of RespondedPostits : ' + noOfRespondedPostits,{},request);
+                                            global.logger.write('debug','Percentage : ' + percentage,{},request);
+
+                                            //Insert into monthly summary table
+                                            var monthlyCollection = {};
+                                            monthlyCollection.summary_id = 29;
+                                            monthlyCollection.asset_id = request.asset_id;
+                                            monthlyCollection.entity_bigint_1 = noOfReceivedPostits;//denominator
+                                            monthlyCollection.entity_double_1 = percentage; //percentage value
+                                            monthlyCollection.entity_decimal_1 = percentage; //percentage value
+                                            monthlyCollection.entity_decimal_3 = noOfRespondedPostits; //numerator
+                                            
+                                            activityCommonService.monthlySummaryInsert(request, monthlyCollection, (err, data)=>{});
+
+                                            //Insert into weekly summary table
+                                            var weeklyCollection = {};
+                                            weeklyCollection.summary_id = 16;
+                                            weeklyCollection.asset_id = request.asset_id;
+                                            weeklyCollection.entity_bigint_1 = noOfReceivedPostits;
+                                            weeklyCollection.entity_double_1 = percentage;
+                                            weeklyCollection.entity_decimal_1 = percentage;
+                                            weeklyCollection.entity_decimal_3 = noOfRespondedPostits;
+                                            
+                                            activityCommonService.weeklySummaryInsert(request, weeklyCollection, (err, data)=>{});
+
+                                            resolve();
+                                        }
+                                    }); //getInmailCounts                                    
+                                }
+                            }); //updateInmailResponse                            
+                        }
+                    }); //retrieveAccountList
+                }
+            }); //getActivityDetails
+        }); // updateInmailPS Promise
     };
     
     this.alterActivityFlagFileEnabled = function(request, callback) {

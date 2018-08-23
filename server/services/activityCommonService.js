@@ -1196,7 +1196,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             });
         }
     };
-
+    
     this.getPostItCounts = function (request, callback) {
         // IN p_organization_id BIGINT(20), IN p_activity_type_category_id SMALLINT(6), 
         // IN p_asset_id BIGINT(20), IN p_datetime_start DATETIME, IN p_datetime_end DATETIME
@@ -1846,6 +1846,59 @@ function ActivityCommonService(db, util, forEachAsync) {
             }
         });        
     };
+    
+    this.getActivityListDateRange = function (request, callback) {
+        var paramsArr = new Array(
+                request.organization_id,
+                request.asset_id,
+                request.datetime_start, //00:00:00
+                request.datetime_end // 23:59:59
+                );
+        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_asset_open_payroll_activity', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                (err === false) ? callback(false, data) : callback(err, false);
+            });
+        }
+    };
+    
+    //Can use this function for both inmail and postit
+    this.updateInMailResponse = function (request, activityFlagResponseonTimeFlag, callback) {
+        var paramsArr = new Array(
+                    request.organization_id,
+                    request.account_id,
+                    request.workforce_id,
+                    request.activity_id,
+                    request.asset_id,
+                    activityFlagResponseonTimeFlag,
+                    request.datetime_log
+                    );
+        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_inmail_response', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err === false) ? callback(false, true) : callback(err, false);                            
+                });
+            }
+    };
+    
+    this.retrieveAccountList = function (request, callback) {
+        var paramsArr = new Array(
+                request.account_id
+                //request.page_start,
+                //request.page_limit
+                );
+        var queryString = util.getQueryString('ds_p1_account_list_select', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (data.length > 0) {
+                    (err === false) ? callback(false, data) : callback(true, {});
+                } else {
+                    callback(true, {});
+                }
+            });
+        }
+    };
+    
 
 }
 ;

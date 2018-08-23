@@ -448,6 +448,18 @@ function AssetController(objCollection) {
             }
         });
     });
+    
+    // Retrieve asset's weekly summary params
+    app.post('/' + global.config.version + '/asset/weekly/summary/params', function (req, res) {
+        assetService.retrieveAssetWeeklySummaryParams(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
 
 }
 module.exports = AssetController;

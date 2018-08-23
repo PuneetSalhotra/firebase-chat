@@ -646,6 +646,11 @@ function Util() {
         return moment.duration(value)._data;
     };
     
+    this.getNoOfDays = function (timeString1, timeString2) {
+        var value = moment(timeString1, "YYYY-MM-DD HH:mm:ss").diff(moment(timeString2, "YYYY-MM-DD HH:mm:ss"), 'days');
+        return value;
+    };
+    
     this.getDayStartDatetime = function() {
         var value = moment().startOf('day').utcOffset("-05:30").format('YYYY-MM-DD HH:mm:ss');
         return value;
@@ -653,6 +658,16 @@ function Util() {
     
     this.getDayEndDatetime = function() {
         var value = moment().endOf('day').utcOffset("-05:30").format('YYYY-MM-DD HH:mm:ss');
+        return value;
+    };
+    
+    this.getGivenDayStartDatetime = function(timeString) {
+        var value = moment(timeString, "YYYY-MM-DD HH:mm:ss").format('YYYY-MM-DD 00:00:00');
+        return value;
+    };
+    
+    this.getGivenDayEndDatetime = function(timeString) {
+        var value = moment(timeString, "YYYY-MM-DD HH:mm:ss").format('YYYY-MM-DD 23:59:59');
         return value;
     };
     
@@ -803,6 +818,7 @@ function Util() {
         var date = this.getCurrentUTCTime();
         var logFilePath = 'logs/' + this.getCurrentDate() + '.txt';
         var data_to_add = date + ': ' + data;
+        //console.log(data);
         if (fs.existsSync(logFilePath)) {
             fs.appendFile(logFilePath, os.EOL + data_to_add, function (err, fd) {
                 if (err)

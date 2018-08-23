@@ -6,7 +6,7 @@ function ActivityService(objectCollection) {
 
     var db = objectCollection.db;
     var cacheWrapper = objectCollection.cacheWrapper;
-    var activityCommonService = objectCollection.activityCommonService;
+    var activityCommonService = objectCollection.activityCommonService;    
     var util = objectCollection.util;
     var forEachAsync = objectCollection.forEachAsync;
     var queueWrapper = objectCollection.queueWrapper;
@@ -277,6 +277,11 @@ function ActivityService(objectCollection) {
                                               }, 2000);                                
                             }
                             
+                            //Submit leave Form
+                            if(activityTypeCategroyId === 9 && request.activity_form_id == 807) {
+                                submitLeaveForms(request).then(()=>{});                                
+                            }                            
+                                
                             callback(false, responseactivityData, 200);
                             cacheWrapper.setMessageUniqueIdLookup(request.message_unique_id, request.activity_id, function (err, status) {
                                 if (err) {
@@ -302,6 +307,113 @@ function ActivityService(objectCollection) {
             global.logger.write('serverError', '', err, request);
         });
     };
+    
+    function submitLeaveForms(request) {
+        return new Promise((resolve, reject)=>{
+           var days = util.getNoOfDays(request.activity_datetime_end, request.activity_datetime_start);
+           days++;
+           console.log('Number of days leave applied : ', days);
+           var startDate = request.activity_datetime_start;
+           var cnt = 0;
+           
+            function submitForms() {                                    
+                new Promise((resolve, reject)=>{
+                    if(cnt>0) {
+                        cacheWrapper.getFormTransactionId(function (err, formTransactionId) {
+                        if (err) {
+                            console.log(err);
+                            global.logger.write('serverError','',err,request);
+                            return reject();
+                        } else {                                                
+                            return resolve(formTransactionId);
+                        }
+                       });
+                    } else {
+                        var formTransactionId = request.form_transaction_id;
+                        return resolve(formTransactionId);
+                    }                                        
+                }).then((formTransactionId)=>{
+                        var newReqObj = Object.assign({}, request);
+                            newReqObj.activity_stream_type_id = 705;
+                            newReqObj.form_transaction_id = formTransactionId;
+
+                            newReqObj.activity_timeline_collection = JSON.stringify([{
+                                "form_id": Number(request.activity_form_id),
+                                "form_transaction_id": formTransactionId,
+                                "field_id": 4637,
+                                "field_data_type_id": 21,
+                                "field_data_type_category_id": 8,
+                                "data_type_combo_id": 0,
+                                "data_type_combo_value": "",
+                                "field_value": "Leave Form",
+                                "message_unique_id": util.getMessageUniqueId(request.asset_id)
+                            },
+                            {
+                                "form_id": Number(request.activity_form_id),
+                                "form_transaction_id": formTransactionId,
+                                "field_id": 4638,
+                                "field_data_type_id": 4,
+                                "field_data_type_category_id": 1,
+                                "data_type_combo_id": 0,
+                                "data_type_combo_value": "",
+                                "field_value": startDate,
+                               "message_unique_id": util.getMessageUniqueId(request.asset_id)
+                            },
+                            {
+                                "form_id": Number(request.activity_form_id),
+                                "form_transaction_id": formTransactionId,
+                                "field_id": 4639,
+                                "field_data_type_id": 4,
+                                "field_data_type_category_id": 1,
+                                "data_type_combo_id": 0,
+                                "data_type_combo_value": "",
+                                "field_value": util.getGivenDayEndDatetime(startDate),
+                                "message_unique_id": util.getMessageUniqueId(request.asset_id)
+                            },
+                            {
+                                "form_id": Number(request.activity_form_id),
+                                "form_transaction_id": formTransactionId,
+                                "field_id": 4640,
+                                "field_data_type_id": 6,
+                                "field_data_type_category_id": 2,
+                                "data_type_combo_id": 0,
+                                "data_type_combo_value": "",
+                                "field_value": 24,
+                                "message_unique_id": util.getMessageUniqueId(request.asset_id)
+                            }
+                            ]);
+
+                            console.log('*************************************************************************');
+                            console.log('Activity Timeline Collections : ', newReqObj.activity_timeline_collection);
+                            console.log('*************************************************************************');
+
+                            var event = {
+                                name: "addTimelineTransaction",
+                                service: "activityTimelineService",
+                                method: "addTimelineTransaction",
+                                payload: newReqObj
+                               };
+                            queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
+                                if (err) {
+                                    //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
+                                    //global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent", err, request);
+                                    throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+                                }
+                                     
+                                startDate = util.addDays(startDate,1);
+                                cnt++;
+                                if(cnt < days) {
+                                    submitForms();    
+                                } else if(cnt === days) {
+                                    resolve();
+                                }
+                            });
+                                                                              
+                            });
+                    }
+                submitForms(); 
+        });
+    }
     
     function callAlterActivityCover(request, coverAlterJson, activityTypeCategoryId){
         return new Promise((resolve, reject)=>{
@@ -662,6 +774,7 @@ function ActivityService(objectCollection) {
                         );
                 break;
             case 10:
+            case 11:
                 var ownerAssetID;
                 if(request.hasOwnProperty('owner_asset_id')) {                        
                       (request.owner_asset_id == 0) ? ownerAssetID = request.asset_id : ownerAssetID = request.owner_asset_id;

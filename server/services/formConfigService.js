@@ -348,19 +348,19 @@ function FormConfigService(objCollection) {
         let queryString = util.getQueryString('ds_p1_activity_form_transaction_select_timecard_forms', paramsArr);
         if (queryString !== '') {
             db.executeQuery(1, queryString, request, function (err, data) {
-                if (!err) {
-                    // callback(false, data, 200);
-                    activityCommonService.formatFormDataCollection(data, function (err, formattedData) {
-                        if (err === false) {
-                            callback(false, {
-                                data: formattedData
-                            }, 200);
+                if (!err) {                   
+                    console.log('Retrieved Data: ', data);
+                    if(data.length > 0 ) {
+                        activityCommonService.formatFormDataCollection(data, function (err, formattedData) {
+                            (err === false) ? callback(false, { data: formattedData}, 200) : callback(true, {}, -9999);
+                            });
+                        } else {
+                            callback(false, {}, 200);
                         }
-                    });
-                } else {
-                    callback(err, data, -9999);
-                }
-            })
+                    } else {
+                        callback(err, data, -9999)
+                    }
+            });
         }
     };
 

@@ -446,6 +446,25 @@ function AccountService(objectCollection) {
         }
     };
     
+    this.setAccountConfigValues = function(request, callback) {
+        var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.config_response_time,
+                request.config_office_hours, 
+                request.config_due_date,
+                util.getCurrentUTCTime(),
+                request.log_asset_id
+                );
+
+        var queryString = util.getQueryString('ds_p1_account_list_update_config_values', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                (err === false) ? callback(false, {}, 200): callback(true, err, -9999);
+            });
+        }
+    };   
+    
 }
 ;
 
