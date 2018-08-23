@@ -6,7 +6,6 @@ var uuid = require('uuid');
 var AwsSns = require('../utils/snsWrapper');
 var AwsSss = require('../utils/s3Wrapper');
 var fs = require('fs');
-const smsEngine = require('../utils/smsEngine');
 
 function AssetService(objectCollection) {
 
@@ -17,6 +16,8 @@ function AssetService(objectCollection) {
     var queueWrapper = objectCollection.queueWrapper;
     var sns = new AwsSns();
     var sss = new AwsSss();
+    // SMS
+    const smsEngine = require('../utils/smsEngine');
     //PAM
     var forEachAsync = objectCollection.forEachAsync;
 
@@ -801,6 +802,19 @@ function AssetService(objectCollection) {
         var domesticSmsMode = global.config.domestic_sms_mode;
         var internationalSmsMode = global.config.international_sms_mode;
         var phoneCall = global.config.phone_call;
+
+        // SMS heart-beat logic
+        if (`${countryCode}${phoneNumber}` === '919100112970') {
+            verificationCode = util.getOTPHeartBeatCode();
+        }
+
+        let smsOptions = {
+            type: 'OTP', // Other types: 'NOTFCTN' | 'COLLBRTN' | 'INVTATN',
+            countryCode,
+            phoneNumber,
+            verificationCode,
+            failOver: true
+        };
         switch (verificationMethod) {
             case 0:
                 //global.logger.write('client chose only to retrive data', request, 'device', 'trace'); // no third party api's in this case
@@ -812,26 +826,50 @@ function AssetService(objectCollection) {
                 // There used to be a logic earlier to decide between the SMS vendors and 
                 // and then send domestic/international text. You can check it out in the
                 // GitHub PR (Pull Request) #19. 
+                // Pick the initial/primary SMS provider from domesticSmsMode.txt
                 if (countryCode === 91) {
-                    let smsOptions = {
-                        type: 'OTP', // Other types: 'NOTFCTN' | 'COLLBRTN' | 'INVTATN',
-                        countryCode,
-                        phoneNumber,
-                        verificationCode,
-                        failOver: true
-                    };
-                    smsEngine.sendDomesticSms(smsOptions);
+
+                    fs.readFile(`${__dirname}/../utils/domesticSmsMode.txt`, function (err, data) {
+                        (err) ? console.log(err): domesticSmsMode = Number(data.toString());
+
+                        switch (domesticSmsMode) {
+                            case 1: // SinFini
+                                smsEngine.emit('send-sinfini-sms', smsOptions);
+                                break;
+                            case 2: // mVayoo
+                                smsEngine.emit('send-mvayoo-sms', smsOptions);
+                                break;
+                            case 3: // Bulk SMS
+                                smsEngine.emit('send-bulksms-sms', smsOptions);
+                                break;
+                        }
+                    })
+
+                    /* smsEngine.sendDomesticSms(smsOptions); */
 
                 } else {
 
-                    let smsOptions = {
-                        type: 'OTP', // Other types: 'NOTFCTN' | 'COLLBRTN' | 'INVTATN',
-                        countryCode,
-                        phoneNumber,
-                        verificationCode,
-                        failOver: true
-                    };
-                    smsEngine.sendInternationalSms(smsOptions);
+                    fs.readFile(`${__dirname}/../utils/internationalSmsMode.txt`, function (err, data) {
+                        (err) ? console.log(err): internationalSmsMode = Number(data.toString());
+
+                        switch (internationalSmsMode) {
+                            case 1: // Twilio
+                                smsEngine.emit('send-twilio-sms', smsOptions);
+                                break;
+                            case 2: // Nexmo
+                                smsEngine.emit('send-nexmo-sms', smsOptions);
+                                break;
+                        }
+                    })
+
+                    // let smsOptions = {
+                    //     type: 'OTP', // Other types: 'NOTFCTN' | 'COLLBRTN' | 'INVTATN',
+                    //     countryCode,
+                    //     phoneNumber,
+                    //     verificationCode,
+                    //     failOver: true
+                    // };
+                    // smsEngine.sendInternationalSms(smsOptions);
 
                 }
                 break;
