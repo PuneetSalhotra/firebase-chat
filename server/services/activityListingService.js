@@ -204,7 +204,7 @@ function ActivityListingService(objCollection) {
             var rowDataArr = {
                 "activity_id": util.replaceDefaultNumber(rowData['activity_id']),
                 "activity_title": util.replaceDefaultString(util.ucfirst(util.decodeSpecialChars(rowData['activity_title']))),
-                "activity_description": util.replaceDefaultString(util.decodeSpecialChars(rowData['activity_description'])),
+                "activity_description": util.replaceDefaultString(util.decodeSpecialChars(rowData['activity_description'])),                
                 "activity_inline_data": JSON.parse(util.replaceDefaultString(rowData['activity_inline_data'])),
                 "activity_type_id": util.replaceDefaultNumber(rowData['activity_type_id']),
                 "activity_type_name": (util.replaceDefaultString(rowData['activity_type_id']) === 1) ? 'Personal ' : util.replaceDefaultString(rowData['activity_type_name']),
