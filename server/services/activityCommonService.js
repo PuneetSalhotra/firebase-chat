@@ -403,7 +403,7 @@ function ActivityCommonService(db, util, forEachAsync) {
     };
 
     this.activityTimelineTransactionInsert = function (request, participantData, streamTypeId, callback) {
-        //console.log('vnk streamTypeId : ', streamTypeId);
+        
         var assetId = request.asset_id;
         var organizationId = request.organization_id;
         var accountId = request.account_id;
@@ -553,6 +553,9 @@ function ActivityCommonService(db, util, forEachAsync) {
                 activityTimelineCollection, //BETA
                 newUserAssetId, //New User Signed Up Asset ID
                 request.track_longitude,
+                request.entity_tinyint_1 || 0,
+                request.entity_tinyint_2 || 0,
+                request.entity_bigint_1 || 0,
                 formTransactionId, //form_transaction_id
                 formId, //form_id
                 dataTypeId, //data_type_id  should be 37 static
@@ -577,7 +580,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 request.datetime_log
                 );
         //Beta
-        var queryString = util.getQueryString("ds_v1_2_activity_timeline_transaction_insert", paramsArr);
+        var queryString = util.getQueryString("ds_v1_3_activity_timeline_transaction_insert", paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false)
@@ -592,6 +595,16 @@ function ActivityCommonService(db, util, forEachAsync) {
                 }
             });
         }
+    };
+
+    // Promise/Async version of this.activityTimelineTransactionInsert method
+    this.asyncActivityTimelineTransactionInsert = function (request, participantData, streamTypeId) {
+        const self = this;
+        return new Promise((resolve, reject) => {
+            self.activityTimelineTransactionInsert(request, participantData, streamTypeId, (err, data) => {
+                (!err) ? resolve(data): reject(err);
+            })
+        });
     };
 
     this.resetAssetUnreadCount = function (request, activityId, callback) {
