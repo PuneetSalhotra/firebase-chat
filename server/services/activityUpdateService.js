@@ -801,6 +801,8 @@ function ActivityUpdateService(objectCollection) {
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         var activityTypeCategoryId = Number(request.activity_type_category_id);
+        var activityStreamTypeId;
+        let parsedActivityCoverData = JSON.parse(request.activity_cover_data);
         activityCommonService.updateAssetLocation(request, function (err, data) {});
         activityListUpdateCover(request, function (err, data) {
             if (err === false) {
@@ -863,7 +865,15 @@ function ActivityUpdateService(objectCollection) {
                     ;
 
                     activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) { });
-                    activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) { });
+
+                    // Timeline transaction entry for:
+                    // 1. All non-Task category updates +
+                    // 2. Non due-date change Task category updates
+                    let isTaskDueDateChange = activityTypeCategoryId === 10 && (parsedActivityCoverData.duedate.old === parsedActivityCoverData.duedate.new);
+
+                    if (activityTypeCategoryId !== 10 || isTaskDueDateChange ) {
+                        activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) { });
+                    }
 
                     //updating log differential datetime for only this asset
                     activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) {
@@ -1017,9 +1027,15 @@ function ActivityUpdateService(objectCollection) {
 
                                         console.log('\x1b[32m flag_ontime :\x1b[0m ', flag_ontime);
                                         activityListUpdateDueDateAlterCount(request, flag_ontime)
+                                            .then(() => {
+                                                request.entity_tinyint_1 = 1; // Due date change
+                                                request.entity_tinyint_2 = flag_ontime; // Whether the due-date change was in time or not
+
+                                                return activityCommonService.asyncActivityTimelineTransactionInsert(request, {}, activityStreamTypeId);
+                                            })
                                             .then((data) => {
 
-                                                return activityListSelectDuedateAlterCount(
+                                                return activityTimelineTransactionSelectDuedateAlterCount(
                                                     request,
                                                     util.getStartDateTimeOfWeek(),
                                                     util.getEndDateTimeOfWeek()
@@ -1046,7 +1062,7 @@ function ActivityUpdateService(objectCollection) {
 
                                                 }).catch(() => {});
 
-                                                return activityListSelectDuedateAlterCount(
+                                                return activityTimelineTransactionSelectDuedateAlterCount(
                                                     request,
                                                     util.getStartDateTimeOfMonth(),
                                                     util.getEndDateTimeOfMonth()
@@ -1126,7 +1142,7 @@ function ActivityUpdateService(objectCollection) {
         });
     }
 
-    // Select due date alter counts
+    // Select due date alter counts from activity_list table
     function activityListSelectDuedateAlterCount(request, startDate, endDate) {
         // IN p_organization_id BIGINT(20), IN p_activity_type_category_id SMALLINT(6), 
         // IN p_asset_id BIGINT(20), IN p_datetime_start DATETIME, IN p_datetime_end DATETIME
@@ -1139,6 +1155,27 @@ function ActivityUpdateService(objectCollection) {
                 endDate
             );
             let queryString = util.getQueryString('ds_p1_activity_list_select_duedate_alter_counts', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (!err) ? resolve(data): reject(err);
+                });
+            };
+        });
+    }
+
+    // Select due date alter counts from activity_timeline_transaction table
+    function activityTimelineTransactionSelectDuedateAlterCount(request, startDate, endDate) {
+        // IN p_organization_id BIGINT(20), IN p_activity_type_category_id SMALLINT(6), 
+        // IN p_asset_id BIGINT(20), IN p_datetime_start DATETIME, IN p_datetime_end DATETIME
+        return new Promise((resolve, reject) => {
+            let paramsArr = new Array(
+                request.organization_id,
+                request.activity_type_category_id,
+                request.asset_id,
+                startDate,
+                endDate
+            );
+            let queryString = util.getQueryString('ds_p1_activity_timeline_transaction_select_count_due_date_alter', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (!err) ? resolve(data): reject(err);
