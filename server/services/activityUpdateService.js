@@ -1046,6 +1046,8 @@ function ActivityUpdateService(objectCollection) {
                                             .then(() => {
                                                 request.entity_tinyint_1 = 1; // Due date change
                                                 request.entity_tinyint_2 = flag_ontime; // Whether the due-date change was in time or not
+                                                request.entity_datetime_1 = parsedActivityCoverData.duedate.old;
+                                                request.entity_datetime_2 = parsedActivityCoverData.duedate.new;
 
                                                 return activityCommonService.asyncActivityTimelineTransactionInsert(request, {}, activityStreamTypeId);
                                             })
@@ -1681,9 +1683,9 @@ function ActivityUpdateService(objectCollection) {
         }
 
         //postIt
-        if (activityTypeCategoryId === 28) {
-            updatepostItPS(request).then(() => {});
-        }
+        // if (activityTypeCategoryId === 28) {
+        //     updatepostItPS(request).then(() => {});
+        // }
 
         callback(false, true);
         /*var activityArray = JSON.parse(request.activity_id_array);

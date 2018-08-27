@@ -403,6 +403,18 @@ function ActivityCommonService(db, util, forEachAsync) {
     };
 
     this.activityTimelineTransactionInsert = function (request, participantData, streamTypeId, callback) {
+
+        // IN p_activity_id BIGINT(20), IN p_asset_id BIGINT(20), IN p_workforce_id BIGINT(20), IN p_account_id BIGINT(20), 
+        // IN p_organization_id BIGINT(20), IN p_stream_type_id SMALLINT(6), IN p_entity_type_id SMALLINT(6), IN p_entity_datetime_1 DATETIME, 
+        // IN p_entity_datetime_2 DATETIME, IN p_entity_text_1 VARCHAR(1200), IN p_entity_text_2 VARCHAR(1200), IN p_entity_text_3 VARCHAR(100), 
+        // IN p_data_entity_inline JSON,  IN p_entity_decimal_1 DECIMAL(14,8), IN p_entity_decimal_2 DECIMAL(14,8), IN p_entity_tinyint_1 TINYINT(4), 
+        // IN p_entity_tinyint_2 TINYINT(4), IN p_entity_bigint_1 BIGINT(20), IN p_form_transaction_id BIGINT(20), IN p_form_id BIGINT(20), 
+        // IN p_data_type_id SMALLINT(6), IN p_location_latitude DECIMAL(12,8), IN p_location_longitude DECIMAL(12,8), 
+        // IN p_location_gps_accuracy DOUBLE(16,4), IN p_location_gps_enabled tinyint(4), IN p_location_address VARCHAR(300), 
+        // IN p_location_datetime DATETIME, IN p_device_manufacturer_name VARCHAR(50), IN p_device_model_name VARCHAR(50), 
+        // IN p_device_os_id TINYINT(4), IN p_device_os_name VARCHAR(50), IN p_device_os_version VARCHAR(50), IN p_device_app_version VARCHAR(50), 
+        // IN p_device_api_version VARCHAR(50), IN p_log_asset_id BIGINT(20), IN p_log_message_unique_id VARCHAR(50), IN p_log_retry tinyint(4), 
+        // IN p_log_offline tinyint(4), IN p_transaction_datetime DATETIME, IN p_log_datetime DATETIME
         
         var assetId = request.asset_id;
         var organizationId = request.organization_id;
@@ -547,6 +559,8 @@ function ActivityCommonService(db, util, forEachAsync) {
                 organizationId,
                 streamTypeId,
                 entityTypeId, // entity type id
+                request.entity_datetime_1 || '1970-01-01 00:00:00', // entity type id
+                request.entity_datetime_2 || '1970-01-01 00:00:00', // entity type id
                 entityText1, // entity text 1
                 entityText2, // entity text 2
                 entityText3, //Beta
