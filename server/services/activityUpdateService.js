@@ -1683,9 +1683,9 @@ function ActivityUpdateService(objectCollection) {
         }
 
         //postIt
-        if (activityTypeCategoryId === 28) {
-            updatepostItPS(request).then(() => {});
-        }
+        // if (activityTypeCategoryId === 28) {
+        //     updatepostItPS(request).then(() => {});
+        // }
 
         callback(false, true);
         /*var activityArray = JSON.parse(request.activity_id_array);

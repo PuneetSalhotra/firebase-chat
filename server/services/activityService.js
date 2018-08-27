@@ -1224,6 +1224,7 @@ function ActivityService(objectCollection) {
             });
         });
     };
+
     this.alterActivityStatus = function (request, callback) {
 
         var logDatetime = util.getCurrentUTCTime();
@@ -1533,6 +1534,85 @@ function ActivityService(objectCollection) {
             }
 
         });
+        
+        // Post-It Productivity Score Logic
+        if (activityTypeCategoryId === 28 && (activityStatusTypeId === 73 || activityStatusTypeId === 74)) {
+            updatePostItProductivityScore(request).then(() => {});
+        }
+    };
+    
+    // To calculate productivity scores for Post-Its
+    function updatePostItProductivityScore(request) {
+        return new Promise((resolve, reject) => {
+            var creationDate;
+
+            //Get activity Details
+            activityCommonService.getActivityDetails(request, 0, function (err, activityData) {
+                if (err === false) {
+                    creationDate = util.replaceDefaultDatetime(activityData[0].activity_datetime_start_expected);
+
+                    //Get the Config Value
+                    activityCommonService.retrieveAccountList(request, (err, data) => {
+                        if (err === false) {
+                            var configRespHours = data[0].account_config_response_hours;
+
+                            //diff will be in milli seconds
+                            var diff = util.differenceDatetimes(request.datetime_log, util.replaceDefaultDatetime(creationDate));
+                            diff = diff / 3600000;
+                            diff = Number(diff);
+                            (diff <= configRespHours) ? onTimeFlag = 1: onTimeFlag = 0;
+
+                            //Update the flag
+                            activityCommonService.updateInMailResponse(request, onTimeFlag, (err, data) => {
+                                if (err === false) {
+
+                                    //Get the inmail Counts
+                                    activityCommonService.getPostItCounts(request, (err, countsData) => {
+                                        if (err === false) {
+                                            var percentage = 0;
+                                            var noOfReceivedPostits = countsData[0].countReceivedPostits;
+                                            var noOfRespondedPostits = countsData[0].countOntimeRespondedPostits;
+
+                                            if (noOfReceivedPostits != 0) {
+                                                percentage = (noOfReceivedPostits / noOfRespondedPostits) * 100;
+                                            }
+
+                                            global.logger.write('debug', 'Number Of ReceivedPostits : ' + noOfReceivedPostits, {}, request);
+                                            global.logger.write('debug', 'Number Of RespondedPostits : ' + noOfRespondedPostits, {}, request);
+                                            global.logger.write('debug', 'Percentage : ' + percentage, {}, request);
+
+                                            //Insert into monthly summary table
+                                            var monthlyCollection = {};
+                                            monthlyCollection.summary_id = 29;
+                                            monthlyCollection.asset_id = request.asset_id;
+                                            monthlyCollection.entity_bigint_1 = noOfReceivedPostits; //denominator
+                                            monthlyCollection.entity_double_1 = percentage; //percentage value
+                                            monthlyCollection.entity_decimal_1 = percentage; //percentage value
+                                            monthlyCollection.entity_decimal_3 = noOfRespondedPostits; //numerator
+
+                                            activityCommonService.monthlySummaryInsert(request, monthlyCollection, (err, data) => {});
+
+                                            //Insert into weekly summary table
+                                            var weeklyCollection = {};
+                                            weeklyCollection.summary_id = 16;
+                                            weeklyCollection.asset_id = request.asset_id;
+                                            weeklyCollection.entity_bigint_1 = noOfReceivedPostits;
+                                            weeklyCollection.entity_double_1 = percentage;
+                                            weeklyCollection.entity_decimal_1 = percentage;
+                                            weeklyCollection.entity_decimal_3 = noOfRespondedPostits;
+
+                                            activityCommonService.weeklySummaryInsert(request, weeklyCollection, (err, data) => {});
+
+                                            resolve();
+                                        }
+                                    }); // getInmailCounts                                    
+                                }
+                            }); // updateInmailResponse                            
+                        }
+                    }); // retrieveAccountList
+                }
+            }); // getActivityDetails
+        }); // updateInmailPS Promise
     };
     
     function createTimelineEntry(request) {
