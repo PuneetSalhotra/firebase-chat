@@ -686,6 +686,20 @@ function Util() {
         return value;
     };
     
+    //getDay start time based on the TimeZone
+    this.getDayStartDatetimeTZ = function(timezone) {
+        (timezone === "") ? timezone = 'Asia/Kolkata' : timezone = timezone;
+        var value = moment().tz(timezone).startOf('day').format('YYYY-MM-DD HH:mm:ss');
+        return value;
+    };
+    
+    //getDay end time based on the TimeZone
+    this.getDayEndDatetimeTZ = function(timezone) {
+        (timezone === "") ? timezone = 'Asia/Kolkata' : timezone = timezone;
+        var value = moment().tz(timezone).endOf('day').format('YYYY-MM-DD HH:mm:ss');
+        return value;
+    };
+    
     this.isDateBetween = function(startDt, endDt, compareDt) {
         var compareDate = moment(compareDt, "YYYY-MM-DD HH:mm:ss");
         var startDate   = moment(startDt, "YYYY-MM-DD HH:mm:ss");

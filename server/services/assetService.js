@@ -2560,6 +2560,10 @@ function AssetService(objectCollection) {
     this.unreadCntBasedOnMobileNumber = function (request, callback) {
         var response = new Array;
         var allAssetIds = new Array;
+        var finalAssetIds = new Array;
+        var finalResponse = new Array;
+        var dayPlanAssetIds = new Array;
+        var pastDueAssetIds = new Array;
         
         var paramsArr = new Array(
                 request.operating_asset_phone_number,
@@ -2571,44 +2575,146 @@ function AssetService(objectCollection) {
         
         var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_unread_counts_phone_number', paramsArr);
         if (queryString != '') {
-            db.executeQuery(1, queryString, request, function (err, data) {            
-            forEachAsync(data, (next, row)=>{
-                allAssetIds.push(row.asset_id);
-                formatActiveAccountsCountData(row, (err, formatedData)=>{
-                    response.push(formatedData);
-                    next();
-                });
-        }).then(()=>{
-                var paramsArr = new Array(
-                    0, //organizationId,
-                    request.operating_asset_phone_number,
-                    request.operating_asset_phone_country_code
-                );
-                var queryString = util.getQueryString('ds_p1_asset_list_select_phone_number_all', paramsArr);
-                    if (queryString != '') {
-                        db.executeQuery(1, queryString, request, function (err, selectData) {
-                        if(err === false) {
-                            console.log(selectData.length);
-                            forEachAsync(selectData, (next, rowData)=>{
-                                if(allAssetIds.includes(rowData.asset_id)) {
-                                    console.log(rowData.asset_id + ' is there.');
-                                    next();
-                                } else {
-                                    formatActiveAccountsCountData(rowData, (err, formatedData)=>{
-                                        response.push(formatedData);
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if(err === false) {
+                    console.log('unread counts: ', data);
+                    forEachAsync(data, (next, row)=>{
+                        allAssetIds.push(row.asset_id);
+                        row.unread_count = row.count; //Adding the unread_count parameter in the response                
+                        formatActiveAccountsCountData(row, (err, formatedData)=>{
+                            response.push(formatedData);
+                            next();
+                        });
+            }).then(()=>{
+                    var paramsArr = new Array(
+                        0, //organizationId,
+                        request.operating_asset_phone_number,
+                        request.operating_asset_phone_country_code
+                    );
+                    var queryString = util.getQueryString('ds_p1_asset_list_select_phone_number_all', paramsArr);
+                        if (queryString != '') {
+                            db.executeQuery(1, queryString, request, function (err, selectData) {
+                            if(err === false) {
+                                console.log(selectData.length);
+                                forEachAsync(selectData, (next, rowData)=>{
+                                    finalAssetIds.push(rowData.asset_id);
+                                    if(allAssetIds.includes(rowData.asset_id)) {
+                                        console.log(rowData.asset_id + ' is there.');
                                         next();
-                                    });
-                                }
-                            }).then(()=>{
-                                    (err === false) ? callback(false, response, 200): callback(true, err, -9999);
+                                    } else {
+                                        formatActiveAccountsCountData(rowData, (err, formatedData)=>{
+                                            response.push(formatedData);
+                                            next();
+                                        });
+                                    }
+                                }).then(()=>{
+                                    console.log('All Asset Ids : ', allAssetIds);
+                                    console.log('final Asset Ids : ', finalAssetIds);
+                                    
+                                    forEachAsync(response, (next, rowData)=>{
+                                        if(finalAssetIds.includes(rowData.asset_id)) {
+                                            console.log(rowData.asset_id);
+                                            finalResponse.push(rowData);
+                                        }
+                                        next();
+                                    }).then(()=>{                                          
+
+                                        dayPlanCnt(request).then((dayPlanCnt)=>{
+                                        console.log('DayPlanCnt : ', dayPlanCnt);
+
+                                        forEachAsync(dayPlanCnt, (next, dayPlanrowData)=>{
+                                            dayPlanAssetIds.push(dayPlanrowData.asset_id);
+
+                                            if(finalAssetIds.includes(dayPlanrowData.asset_id)) {
+
+                                                //Updating the count in the final response
+                                                forEachAsync(finalResponse, (next, finalResprowData)=>{
+                                                    if(finalResprowData.asset_id === dayPlanrowData.asset_id) {
+                                                        finalResprowData.count +=  dayPlanrowData.count; //Adding the dayPlanCount to total count
+                                                        finalResprowData.day_plan_count = dayPlanrowData.count;                                                              
+                                                        next();
+                                                    } else { next(); }                                                
+                                                }).then(()=>{ next(); });
+                                            } else { next(); }
+
+                                        }).then(()=>{
+                                            pastDueCnt(request).then((pastDueCnt)=>{
+                                                console.log('pastDueCnt : ', pastDueCnt);
+
+                                                forEachAsync(pastDueCnt, (next, pastDuerowData)=>{
+                                                    pastDueAssetIds.push(pastDuerowData.asset_id);
+                                                        if(finalAssetIds.includes(pastDuerowData.asset_id)) {
+
+                                                            //Updating the count in the final response
+                                                            forEachAsync(finalResponse, (next, finalResprowData)=>{
+                                                                if(finalResprowData.asset_id === pastDuerowData.asset_id) {
+                                                                    finalResprowData.count +=  pastDuerowData.count; //Adding the PastDueCount to total count
+                                                                    finalResprowData.past_due_count = pastDuerowData.count;
+                                                                    next();
+                                                                } else { next(); }
+                                                            }).then(()=>{ next(); });
+                                                        } else { next(); }
+                                                }).then(()=>{
+                                                    callback(false, finalResponse, 200);
+                                                });
+
+                                            });
+                                            
+                                        });
+                                    });                                            
+                                });                                        
                             });
-                        }
+                        } else { callback(true, err, -9999); } //Second DB Call
                     });
-                    }
-                });
-        });
+                }
+            });           
+                    
+        } else { callback(true, err, -9999); } //First DB Call
+    });
+                
     }
 };
+
+    function dayPlanCnt(request) {
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                request.operating_asset_phone_number,
+                request.operating_asset_phone_country_code,
+                util.getDayStartDatetimeTZ(request.timezone || ""),  //start_datetime, TimeZone needs to be considered
+                util.getDayEndDatetimeTZ(request.timezone || ""),    //end_datetime,TimeZone needs to be considered
+                request.sort_flag || 0, //anything can be given DB developer confirmed
+                0,
+                50
+                );
+        
+            var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_dayplan_count_phone_number', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data) : reject(err);
+                });
+            }
+        });
+    };
+    
+    function pastDueCnt(request) {
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                request.operating_asset_phone_number,
+                request.operating_asset_phone_country_code,
+                util.getCurrentUTCTime(),
+                request.sort_flag || 0, //anything can be given DB developer confirmed
+                0,
+                50
+                );
+        
+            var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_past_due_count_phone_number', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data) : reject(err);
+                });
+            }
+        });
+    };
     
     var formatActiveAccountsCountData = function (rowArray, callback) {
         
@@ -2622,7 +2728,10 @@ function AssetService(objectCollection) {
             'asset_image_path': util.replaceDefaultString(rowArray['asset_image_path']),
             'operating_asset_id': util.replaceDefaultNumber(rowArray['operating_asset_id']),
             'operating_asset_first_name': util.replaceDefaultString(rowArray['operating_asset_first_name']),
-            'operating_asset_last_name': util.replaceDefaultString(rowArray['operating_asset_last_name'])      
+            'operating_asset_last_name': util.replaceDefaultString(rowArray['operating_asset_last_name']),
+            'unread_count' : rowArray['unread_count'] || 0,
+            'day_plan_count': rowArray['day_plan_count'] || 0,
+            'past_due_count': rowArray['past_due_count'] || 0
         };
 
         callback(false, rowData);
