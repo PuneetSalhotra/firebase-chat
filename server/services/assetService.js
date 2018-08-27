@@ -2633,10 +2633,7 @@ function AssetService(objectCollection) {
                                                         finalResprowData.count +=  dayPlanrowData.count; //Adding the dayPlanCount to total count
                                                         finalResprowData.day_plan_count = dayPlanrowData.count;                                                              
                                                         next();
-                                                    } else {
-                                                        finalResprowData.day_plan_count = 0;
-                                                        next();
-                                                        }                                                
+                                                    } else { next(); }                                                
                                                 }).then(()=>{ next(); });
                                             } else { next(); }
 
@@ -2654,10 +2651,7 @@ function AssetService(objectCollection) {
                                                                     finalResprowData.count +=  pastDuerowData.count; //Adding the PastDueCount to total count
                                                                     finalResprowData.past_due_count = pastDuerowData.count;
                                                                     next();
-                                                                } else {
-                                                                    finalResprowData.past_due_count = 0;
-                                                                    next();
-                                                                 }                                                
+                                                                } else { next(); }
                                                             }).then(()=>{ next(); });
                                                         } else { next(); }
                                                 }).then(()=>{
@@ -2735,7 +2729,9 @@ function AssetService(objectCollection) {
             'operating_asset_id': util.replaceDefaultNumber(rowArray['operating_asset_id']),
             'operating_asset_first_name': util.replaceDefaultString(rowArray['operating_asset_first_name']),
             'operating_asset_last_name': util.replaceDefaultString(rowArray['operating_asset_last_name']),
-            'unread_count' : rowArray['unread_count'] || 0
+            'unread_count' : rowArray['unread_count'] || 0,
+            'day_plan_count': rowArray['day_plan_count'] || 0,
+            'past_due_count': rowArray['past_due_count'] || 0
         };
 
         callback(false, rowData);
