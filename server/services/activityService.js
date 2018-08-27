@@ -6,7 +6,7 @@ function ActivityService(objectCollection) {
 
     var db = objectCollection.db;
     var cacheWrapper = objectCollection.cacheWrapper;
-    var activityCommonService = objectCollection.activityCommonService;    
+    var activityCommonService = objectCollection.activityCommonService;
     var util = objectCollection.util;
     var forEachAsync = objectCollection.forEachAsync;
     var queueWrapper = objectCollection.queueWrapper;
@@ -15,7 +15,9 @@ function ActivityService(objectCollection) {
     this.addActivity = function (request, callback) {
 
         var logDatetime = util.getCurrentUTCTime();
-        responseactivityData = {activity_id: request.activity_id};
+        responseactivityData = {
+            activity_id: request.activity_id
+        };
         request['datetime_log'] = logDatetime;
         var activityTypeCategroyId = Number(request.activity_type_category_id);
         new Promise((resolve, reject) => {
@@ -68,61 +70,61 @@ function ActivityService(objectCollection) {
                         case 9: //form
                             activityStreamTypeId = 701;
                             break;
-                        case 10:    //document
+                        case 10: //document
                             activityStreamTypeId = 301;
                             break;
-                        case 11:    //folder
+                        case 11: //folder
                             activityStreamTypeId = 1401;
                             break;
-                        case 14:    //voice call
+                        case 14: //voice call
                             activityStreamTypeId = 801;
                             break;
-                        case 15:    //video conference
+                        case 15: //video conference
                             activityStreamTypeId = 1601;
                             break;
-                        case 28:    // post-it
+                        case 28: // post-it
                             activityStreamTypeId = 901;
                             break;
-                        case 29:    // External Contact Card - Supplier
+                        case 29: // External Contact Card - Supplier
                             activityStreamTypeId = 1203;
                             break;
-                        case 30:    //contact group
+                        case 30: //contact group
                             activityStreamTypeId = 1301;
                             break;
                             //Added by Nani Kalyan
-                        case 31:    //Calendar Event
+                        case 31: //Calendar Event
                             activityStreamTypeId = 501;
                             break;
                             //Added by Nani Kalyan
-                        case 32:    //Customer Request
+                        case 32: //Customer Request
                             activityStreamTypeId = 601;
                             break;
                             //Added by Nani Kalyan
-                        case 33:    //Visitor Request
+                        case 33: //Visitor Request
                             activityStreamTypeId = 1301;
                             break;
                             //Added by Nani Kalyan
-                        case 34:    //Time Card
+                        case 34: //Time Card
                             activityStreamTypeId = 1501;
                             break;
                             /////////////////////////////////
                             //PAM
-                        case 36:    //Menu Item
+                        case 36: //Menu Item
                             activityStreamTypeId = 19001;
                             break;
-                        case 37:    //Reservation
+                        case 37: //Reservation
                             activityStreamTypeId = 18001;
                             break;
-                        case 38:    //Item Order
+                        case 38: //Item Order
                             activityStreamTypeId = 21001;
                             break;
-                        case 39:    //Inventory
+                        case 39: //Inventory
                             activityStreamTypeId = 20001;
                             break;
-                        case 40:    //Payment
+                        case 40: //Payment
                             activityStreamTypeId = 22004;
                             break;
-                        case 41:    //Event
+                        case 41: //Event
                             activityStreamTypeId = 17001;
                             break;
                         case 42: //PAM Enquiry
@@ -135,28 +137,27 @@ function ActivityService(objectCollection) {
                             //console.log('adding streamtype id 1');
                             global.logger.write('debug', 'adding streamtype id 1', {}, request);
                             break;
-                    }
-                    ;
+                    };
                     //console.log('streamtype id is: ' + activityStreamTypeId)
                     global.logger.write('debug', 'streamtype id is: ' + activityStreamTypeId, {}, request);
                     assetActivityListInsertAddActivity(request, function (err, status) {
                         if (err === false) {
-                            if(activityTypeCategroyId === 10 && request.hasOwnProperty('owner_asset_id')) {
-                                    if(request.owner_asset_id !== request.asset_id){
-                                        activityPushService.sendPush(request, objectCollection, 0, function () {});
-                                        activityCommonService.updateParticipantCount(request.activity_id, request.organization_id, request, function (err, data) { });
-                                    }
+                            if (activityTypeCategroyId === 10 && request.hasOwnProperty('owner_asset_id')) {
+                                if (request.owner_asset_id !== request.asset_id) {
+                                    activityPushService.sendPush(request, objectCollection, 0, function () {});
+                                    activityCommonService.updateParticipantCount(request.activity_id, request.organization_id, request, function (err, data) {});
                                 }
-                                
-                            if(activityTypeCategroyId === 10 && Number(request.activity_sub_type_id) === 1) {
-                                updateTaskCreatedCnt(request).then(()=>{});                                
                             }
-                            
+
+                            if (activityTypeCategroyId === 10 && Number(request.activity_sub_type_id) === 1) {
+                                updateTaskCreatedCnt(request).then(() => {});
+                            }
+
                             // do the timeline transactions here..                    
-                            if(activityTypeCategroyId === 38){                            	
-                            	addIngredients(request);                            	
+                            if (activityTypeCategroyId === 38) {
+                                addIngredients(request);
                             }
-                            
+
                             activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
 
                             });
@@ -169,24 +170,33 @@ function ActivityService(objectCollection) {
                             activityCommonService.assetActivityListHistoryInsert(request, activityAssetMappingAsset, 0, function (err, restult) {
 
                             });
-                            
-                            alterActivityFlagFileEnabled(request).then(()=>{});
-                            
-                            updateProjectStatusCounts(request).then(() => {});                            
-                            if (request.hasOwnProperty('activity_parent_id')) {                                
-                                if (util.hasValidGenericId(request, 'activity_parent_id')) {                                    
-                                    activityCommonService.getActivityDetails(request, Number(request.activity_parent_id), function (err, activityData) {                                        
-                                        if (err === false) {                                            
+
+                            alterActivityFlagFileEnabled(request).then(() => {});
+
+                            updateProjectStatusCounts(request).then(() => {});
+                            if (request.hasOwnProperty('activity_parent_id')) {
+                                if (util.hasValidGenericId(request, 'activity_parent_id')) {
+                                    activityCommonService.getActivityDetails(request, Number(request.activity_parent_id), function (err, activityData) {
+                                        if (err === false) {
                                             switch (Number(activityData[0]['activity_type_category_id'])) {
                                                 case 11:
                                                     //Updating the due date of the project                                                    
-                                                    activityCommonService.updateProjectEndDateTime(request, (err, oldDateTime, newDateTime)=>{                                                        
-                                                        if(err === false) {                                                            
+                                                    activityCommonService.updateProjectEndDateTime(request, (err, oldDateTime, newDateTime) => {
+                                                        if (err === false) {
                                                             var coverAlterJson = {};
-                                                            coverAlterJson.title = {old: activityData[0]['activity_title'], new : activityData[0]['activity_title']};
-                                                            coverAlterJson.description = {old: activityData[0]['activity_description'], new : activityData[0]['activity_description']};
-                                                            coverAlterJson.duedate = {old: oldDateTime, new : newDateTime};
-                                                            callAlterActivityCover(request, coverAlterJson, activityData[0]['activity_type_category_id']).then(()=>{}).catch(()=>{});
+                                                            coverAlterJson.title = {
+                                                                old: activityData[0]['activity_title'],
+                                                                new: activityData[0]['activity_title']
+                                                            };
+                                                            coverAlterJson.description = {
+                                                                old: activityData[0]['activity_description'],
+                                                                new: activityData[0]['activity_description']
+                                                            };
+                                                            coverAlterJson.duedate = {
+                                                                old: oldDateTime,
+                                                                new: newDateTime
+                                                            };
+                                                            callAlterActivityCover(request, coverAlterJson, activityData[0]['activity_type_category_id']).then(() => {}).catch(() => {});
                                                         }
                                                     });
                                                     break;
@@ -196,24 +206,33 @@ function ActivityService(objectCollection) {
                                                 case 44:
                                                     //update the p_parent_activity_id's end estimated datetime
                                                     var coverAlterJson = {};
-                                                    coverAlterJson.title = {old: activityData[0]['activity_title'], new : activityData[0]['activity_title']};
-                                                    coverAlterJson.duedate = {old: activityData[0]['activity_title'], new : activityData[0]['activity_title']};
+                                                    coverAlterJson.title = {
+                                                        old: activityData[0]['activity_title'],
+                                                        new: activityData[0]['activity_title']
+                                                    };
+                                                    coverAlterJson.duedate = {
+                                                        old: activityData[0]['activity_title'],
+                                                        new: activityData[0]['activity_title']
+                                                    };
                                                     // get the updated estimated datetime of project.
                                                     var newParamsArr = new Array(
-                                                            request.activity_parent_id,
-                                                            request.workforce_id,
-                                                            request.account_id,
-                                                            request.organization_id,
-                                                            0, 1
-                                                            );
+                                                        request.activity_parent_id,
+                                                        request.workforce_id,
+                                                        request.account_id,
+                                                        request.organization_id,
+                                                        0, 1
+                                                    );
                                                     var queryString = util.getQueryString('ds_p1_activity_list_select_project_tasks', newParamsArr);
                                                     if (queryString != '') {
                                                         db.executeQuery(1, queryString, request, function (err, result) {
                                                             if (err === false) {
                                                                 var newEndEstimatedDatetime = result[0]['activity_datetime_end_estimated'];
                                                                 console.log('setting new datetime for contact as ' + newEndEstimatedDatetime);
-                                                                coverAlterJson.description = {old: activityData[0]['activity_datetime_end_estimated'], new : newEndEstimatedDatetime};
-                 callAlterActivityCover(request, coverAlterJson, activityData[0]['activity_type_category_id']).then(()=>{}).catch(()=>{});
+                                                                coverAlterJson.description = {
+                                                                    old: activityData[0]['activity_datetime_end_estimated'],
+                                                                    new: newEndEstimatedDatetime
+                                                                };
+                                                                callAlterActivityCover(request, coverAlterJson, activityData[0]['activity_type_category_id']).then(() => {}).catch(() => {});
                                                                 /*var event = {
                                                                     name: "alterActivityCover",
                                                                     service: "activityUpdateService",
@@ -265,23 +284,23 @@ function ActivityService(objectCollection) {
                                     });
                                 }
 
-                            }// end parent activity id condition
-                            
+                            } // end parent activity id condition
+
                             console.log('request - ', request);
-                            
-                            if(request.activity_parent_id == 95670) { //For Marketing Manager reference //PROD - 95670 ; Staging - 93256
+
+                            if (request.activity_parent_id == 95670) { //For Marketing Manager reference //PROD - 95670 ; Staging - 93256
                                 //Create a timeline entry on this task
-                                setTimeout(function(){
-                                              console.log('Delayed for 2s');
-                                              createTimelineEntry(request).then(()=>{});
-                                              }, 2000);                                
+                                setTimeout(function () {
+                                    console.log('Delayed for 2s');
+                                    createTimelineEntry(request).then(() => {});
+                                }, 2000);
                             }
-                            
+
                             //Submit leave Form
-                            if(activityTypeCategroyId === 9 && request.activity_form_id == 807) {
-                                submitLeaveForms(request).then(()=>{});                                
-                            }                            
-                                
+                            if (activityTypeCategroyId === 9 && request.activity_form_id == 807) {
+                                submitLeaveForms(request).then(() => {});
+                            }
+
                             callback(false, responseactivityData, 200);
                             cacheWrapper.setMessageUniqueIdLookup(request.message_unique_id, request.activity_id, function (err, status) {
                                 if (err) {
@@ -303,165 +322,165 @@ function ActivityService(objectCollection) {
                 }
             });
         }).catch((err) => {
-//console.log(err);
+            //console.log(err);
             global.logger.write('serverError', '', err, request);
         });
     };
-    
+
     function submitLeaveForms(request) {
-        return new Promise((resolve, reject)=>{
-           var days = util.getNoOfDays(request.activity_datetime_end, request.activity_datetime_start);
-           days++;
-           console.log('Number of days leave applied : ', days);
-           var startDate = request.activity_datetime_start;
-           var cnt = 0;
-           
-            function submitForms() {                                    
-                new Promise((resolve, reject)=>{
-                    if(cnt>0) {
+        return new Promise((resolve, reject) => {
+            var days = util.getNoOfDays(request.activity_datetime_end, request.activity_datetime_start);
+            days++;
+            console.log('Number of days leave applied : ', days);
+            var startDate = request.activity_datetime_start;
+            var cnt = 0;
+
+            function submitForms() {
+                new Promise((resolve, reject) => {
+                    if (cnt > 0) {
                         cacheWrapper.getFormTransactionId(function (err, formTransactionId) {
-                        if (err) {
-                            console.log(err);
-                            global.logger.write('serverError','',err,request);
-                            return reject();
-                        } else {                                                
-                            return resolve(formTransactionId);
-                        }
-                       });
+                            if (err) {
+                                console.log(err);
+                                global.logger.write('serverError', '', err, request);
+                                return reject();
+                            } else {
+                                return resolve(formTransactionId);
+                            }
+                        });
                     } else {
                         var formTransactionId = request.form_transaction_id;
                         return resolve(formTransactionId);
-                    }                                        
-                }).then((formTransactionId)=>{
-                        var newReqObj = Object.assign({}, request);
-                            newReqObj.activity_stream_type_id = 705;
-                            newReqObj.form_transaction_id = formTransactionId;
-
-                            newReqObj.activity_timeline_collection = JSON.stringify([{
-                                "form_id": Number(request.activity_form_id),
-                                "form_transaction_id": formTransactionId,
-                                "field_id": 4637,
-                                "field_data_type_id": 21,
-                                "field_data_type_category_id": 8,
-                                "data_type_combo_id": 0,
-                                "data_type_combo_value": "",
-                                "field_value": "Leave Form",
-                                "message_unique_id": util.getMessageUniqueId(request.asset_id)
-                            },
-                            {
-                                "form_id": Number(request.activity_form_id),
-                                "form_transaction_id": formTransactionId,
-                                "field_id": 4638,
-                                "field_data_type_id": 4,
-                                "field_data_type_category_id": 1,
-                                "data_type_combo_id": 0,
-                                "data_type_combo_value": "",
-                                "field_value": startDate,
-                               "message_unique_id": util.getMessageUniqueId(request.asset_id)
-                            },
-                            {
-                                "form_id": Number(request.activity_form_id),
-                                "form_transaction_id": formTransactionId,
-                                "field_id": 4639,
-                                "field_data_type_id": 4,
-                                "field_data_type_category_id": 1,
-                                "data_type_combo_id": 0,
-                                "data_type_combo_value": "",
-                                "field_value": util.getGivenDayEndDatetime(startDate),
-                                "message_unique_id": util.getMessageUniqueId(request.asset_id)
-                            },
-                            {
-                                "form_id": Number(request.activity_form_id),
-                                "form_transaction_id": formTransactionId,
-                                "field_id": 4640,
-                                "field_data_type_id": 6,
-                                "field_data_type_category_id": 2,
-                                "data_type_combo_id": 0,
-                                "data_type_combo_value": "",
-                                "field_value": 24,
-                                "message_unique_id": util.getMessageUniqueId(request.asset_id)
-                            }
-                            ]);
-
-                            console.log('*************************************************************************');
-                            console.log('Activity Timeline Collections : ', newReqObj.activity_timeline_collection);
-                            console.log('*************************************************************************');
-
-                            var event = {
-                                name: "addTimelineTransaction",
-                                service: "activityTimelineService",
-                                method: "addTimelineTransaction",
-                                payload: newReqObj
-                               };
-                            queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
-                                if (err) {
-                                    //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                                    //global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent", err, request);
-                                    throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
-                                }
-                                     
-                                startDate = util.addDays(startDate,1);
-                                cnt++;
-                                if(cnt < days) {
-                                    submitForms();    
-                                } else if(cnt === days) {
-                                    resolve();
-                                }
-                            });
-                                                                              
-                            });
                     }
-                submitForms(); 
+                }).then((formTransactionId) => {
+                    var newReqObj = Object.assign({}, request);
+                    newReqObj.activity_stream_type_id = 705;
+                    newReqObj.form_transaction_id = formTransactionId;
+
+                    newReqObj.activity_timeline_collection = JSON.stringify([{
+                            "form_id": Number(request.activity_form_id),
+                            "form_transaction_id": formTransactionId,
+                            "field_id": 4637,
+                            "field_data_type_id": 21,
+                            "field_data_type_category_id": 8,
+                            "data_type_combo_id": 0,
+                            "data_type_combo_value": "",
+                            "field_value": "Leave Form",
+                            "message_unique_id": util.getMessageUniqueId(request.asset_id)
+                        },
+                        {
+                            "form_id": Number(request.activity_form_id),
+                            "form_transaction_id": formTransactionId,
+                            "field_id": 4638,
+                            "field_data_type_id": 4,
+                            "field_data_type_category_id": 1,
+                            "data_type_combo_id": 0,
+                            "data_type_combo_value": "",
+                            "field_value": startDate,
+                            "message_unique_id": util.getMessageUniqueId(request.asset_id)
+                        },
+                        {
+                            "form_id": Number(request.activity_form_id),
+                            "form_transaction_id": formTransactionId,
+                            "field_id": 4639,
+                            "field_data_type_id": 4,
+                            "field_data_type_category_id": 1,
+                            "data_type_combo_id": 0,
+                            "data_type_combo_value": "",
+                            "field_value": util.getGivenDayEndDatetime(startDate),
+                            "message_unique_id": util.getMessageUniqueId(request.asset_id)
+                        },
+                        {
+                            "form_id": Number(request.activity_form_id),
+                            "form_transaction_id": formTransactionId,
+                            "field_id": 4640,
+                            "field_data_type_id": 6,
+                            "field_data_type_category_id": 2,
+                            "data_type_combo_id": 0,
+                            "data_type_combo_value": "",
+                            "field_value": 24,
+                            "message_unique_id": util.getMessageUniqueId(request.asset_id)
+                        }
+                    ]);
+
+                    console.log('*************************************************************************');
+                    console.log('Activity Timeline Collections : ', newReqObj.activity_timeline_collection);
+                    console.log('*************************************************************************');
+
+                    var event = {
+                        name: "addTimelineTransaction",
+                        service: "activityTimelineService",
+                        method: "addTimelineTransaction",
+                        payload: newReqObj
+                    };
+                    queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
+                        if (err) {
+                            //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
+                            //global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent", err, request);
+                            throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+                        }
+
+                        startDate = util.addDays(startDate, 1);
+                        cnt++;
+                        if (cnt < days) {
+                            submitForms();
+                        } else if (cnt === days) {
+                            resolve();
+                        }
+                    });
+
+                });
+            }
+            submitForms();
         });
     }
-    
-    function callAlterActivityCover(request, coverAlterJson, activityTypeCategoryId){
-        return new Promise((resolve, reject)=>{
-           console.log('coverAlterJson : ', coverAlterJson);
-           var event = {
+
+    function callAlterActivityCover(request, coverAlterJson, activityTypeCategoryId) {
+        return new Promise((resolve, reject) => {
+            console.log('coverAlterJson : ', coverAlterJson);
+            var event = {
                 name: "alterActivityCover",
                 service: "activityUpdateService",
                 method: "alterActivityCover",
-           payload: {
-                organization_id: request.organization_id,
-                account_id: request.account_id,
-                workforce_id: request.workforce_id,
-                asset_id: request.asset_id,
-                asset_token_auth: request.asset_token_auth,
-                activity_id: request.activity_parent_id,
-                activity_cover_data: JSON.stringify(coverAlterJson),
-                activity_type_category_id: activityTypeCategoryId,
-                activity_type_id: request.activity_type_id || 1,
-                activity_access_role_id: 1,
-                activity_parent_id: 0,
-                flag_pin: 0,
-                flag_priority: 0,
-                flag_offline: 0,
-                flag_retry: 0,
-                message_unique_id: util.getMessageUniqueId(request.asset_id),
-                track_latitude: request.track_latitude,
-                track_longitude: request.track_longitude,
-                track_altitude: request.track_altitude,
-                track_gps_datetime: request.track_gps_datetime,
-                track_gps_accuracy: request.track_gps_accuracy,
-                track_gps_status: request.track_gps_status,
-                track_gps_location: request.track_gps_location,
-                service_version: request.service_version,
-                app_version: request.app_version,
-                device_os_id: request.device_os_id
+                payload: {
+                    organization_id: request.organization_id,
+                    account_id: request.account_id,
+                    workforce_id: request.workforce_id,
+                    asset_id: request.asset_id,
+                    asset_token_auth: request.asset_token_auth,
+                    activity_id: request.activity_parent_id,
+                    activity_cover_data: JSON.stringify(coverAlterJson),
+                    activity_type_category_id: activityTypeCategoryId,
+                    activity_type_id: request.activity_type_id || 1,
+                    activity_access_role_id: 1,
+                    activity_parent_id: 0,
+                    flag_pin: 0,
+                    flag_priority: 0,
+                    flag_offline: 0,
+                    flag_retry: 0,
+                    message_unique_id: util.getMessageUniqueId(request.asset_id),
+                    track_latitude: request.track_latitude,
+                    track_longitude: request.track_longitude,
+                    track_altitude: request.track_altitude,
+                    track_gps_datetime: request.track_gps_datetime,
+                    track_gps_accuracy: request.track_gps_accuracy,
+                    track_gps_status: request.track_gps_status,
+                    track_gps_location: request.track_gps_location,
+                    service_version: request.service_version,
+                    app_version: request.app_version,
+                    device_os_id: request.device_os_id
                 }
-                };
+            };
             queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
                 if (err) {
                     //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
                     //global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent", err, request);
                     throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
-                  }
+                }
                 resolve();
-             });          
+            });
         });
     }
-    
+
     var updateMailInlineJson = function (request, callback) {
         var mailJson = JSON.parse(request.activity_inline_data);
         var finalJson = {};
@@ -514,69 +533,69 @@ function ActivityService(objectCollection) {
         //PAM
         var activitySubTypeName = (request.hasOwnProperty('activity_sub_type_name')) ? request.activity_sub_type_name : '';
         var expiryDateTime = (request.hasOwnProperty('expiry_datetime')) ? request.expiry_datetime : '';
-        var itemOrderCount = (request.hasOwnProperty('item_order_count')) ? request.item_order_count : '0';        
-             
-        if(activityTypeCategoryId === 38){
+        var itemOrderCount = (request.hasOwnProperty('item_order_count')) ? request.item_order_count : '0';
+
+        if (activityTypeCategoryId === 38) {
             console.log('Inside sendPush');
-            sendPushPam(request).then(() => {
-            });
+            sendPushPam(request).then(() => {});
         }
-        
-        new Promise((resolve, reject)=>{            
-            if(activityTypeCategoryId === 37 && !request.hasOwnProperty('member_code')) { //PAM
+
+        new Promise((resolve, reject) => {
+            if (activityTypeCategoryId === 37 && !request.hasOwnProperty('member_code')) { //PAM
                 var reserveCode;
+
                 function generateUniqueCode() {
-                    reserveCode = util.randomInt(50001,99999).toString();
-                    activityCommonService.checkingUniqueCode(request,reserveCode, (err, data)=>{
-                    if(err === false) {
-                        console.log('activitySubTypeName : ' + data);
-                        activitySubTypeName = data;
-                        responseactivityData.reservation_code = data;
-                        activityCommonService.getActivityDetails(request, request.activity_parent_id, function(err, resp){
-                            if(err === false) {
-                                var eventStartDateTime = util.replaceDefaultDatetime(resp[0].activity_datetime_start_expected);                                                                                                
-                                (Math.sign(util.differenceDatetimes(eventStartDateTime ,request.datetime_log)) === 1) ? 
-                                                   expiryDateTime = util.addUnitsToDateTime(eventStartDateTime,6.5,'hours') :
-                                                   expiryDateTime = util.addUnitsToDateTime(request.datetime_log,6.5,'hours');                                           
-                                return resolve();
-                            } else {
-                                return resolve();
-                            }
-                        })                        
-                       } else {
-                           generateUniqueCode();
-                        }
-                    });
-                }
-               generateUniqueCode(); 
-            } else if(activityTypeCategoryId === 37 && request.hasOwnProperty('member_code')) {
-                    activitySubTypeName = request.member_code;
-                    responseactivityData.reservation_code = request.member_code;
-                    activityCommonService.getActivityDetails(request, request.activity_parent_id, function(err, resp){
-                                if(err === false) {
-                                    var eventStartDateTime = util.replaceDefaultDatetime(resp[0].activity_datetime_start_expected);                                                                                                
-                                    (Math.sign(util.differenceDatetimes(eventStartDateTime ,request.datetime_log)) === 1) ? 
-                                                       expiryDateTime = util.addUnitsToDateTime(eventStartDateTime,6.5,'hours') :
-                                                       expiryDateTime = util.addUnitsToDateTime(request.datetime_log,6.5,'hours');                                           
+                    reserveCode = util.randomInt(50001, 99999).toString();
+                    activityCommonService.checkingUniqueCode(request, reserveCode, (err, data) => {
+                        if (err === false) {
+                            console.log('activitySubTypeName : ' + data);
+                            activitySubTypeName = data;
+                            responseactivityData.reservation_code = data;
+                            activityCommonService.getActivityDetails(request, request.activity_parent_id, function (err, resp) {
+                                if (err === false) {
+                                    var eventStartDateTime = util.replaceDefaultDatetime(resp[0].activity_datetime_start_expected);
+                                    (Math.sign(util.differenceDatetimes(eventStartDateTime, request.datetime_log)) === 1) ?
+                                    expiryDateTime = util.addUnitsToDateTime(eventStartDateTime, 6.5, 'hours'):
+                                        expiryDateTime = util.addUnitsToDateTime(request.datetime_log, 6.5, 'hours');
                                     return resolve();
                                 } else {
                                     return resolve();
                                 }
-                            });
-                } else {
-                    return resolve();
-                }                
-            
-        }).then(()=>{
-          switch (activityTypeCategoryId) {
-            case 2:    // notepad
-                /*
-                 * 
-                 * 
-                 * 
-                 IN p_channel_activity_id BIGINT(20), IN p_channel_activity_type_category_id TINYINT(4)
-                 */
-                paramsArr = new Array(
+                            })
+                        } else {
+                            generateUniqueCode();
+                        }
+                    });
+                }
+                generateUniqueCode();
+            } else if (activityTypeCategoryId === 37 && request.hasOwnProperty('member_code')) {
+                activitySubTypeName = request.member_code;
+                responseactivityData.reservation_code = request.member_code;
+                activityCommonService.getActivityDetails(request, request.activity_parent_id, function (err, resp) {
+                    if (err === false) {
+                        var eventStartDateTime = util.replaceDefaultDatetime(resp[0].activity_datetime_start_expected);
+                        (Math.sign(util.differenceDatetimes(eventStartDateTime, request.datetime_log)) === 1) ?
+                        expiryDateTime = util.addUnitsToDateTime(eventStartDateTime, 6.5, 'hours'):
+                            expiryDateTime = util.addUnitsToDateTime(request.datetime_log, 6.5, 'hours');
+                        return resolve();
+                    } else {
+                        return resolve();
+                    }
+                });
+            } else {
+                return resolve();
+            }
+
+        }).then(() => {
+            switch (activityTypeCategoryId) {
+                case 2: // notepad
+                    /*
+                     * 
+                     * 
+                     * 
+                     IN p_channel_activity_id BIGINT(20), IN p_channel_activity_type_category_id TINYINT(4)
+                     */
+                    paramsArr = new Array(
                         request.activity_id,
                         request.activity_title,
                         request.activity_description,
@@ -601,11 +620,11 @@ function ActivityService(objectCollection) {
                         0,
                         activityChannelId,
                         activityChannelCategoryId
-                        );
-                break;
-            case 3: // plant activity            
-            case 4:    // id card            
-                paramsArr = new Array(
+                    );
+                    break;
+                case 3: // plant activity            
+                case 4: // id card            
+                    paramsArr = new Array(
                         request.activity_id,
                         request.activity_title,
                         request.activity_description,
@@ -630,10 +649,10 @@ function ActivityService(objectCollection) {
                         0,
                         activityChannelId,
                         activityChannelCategoryId
-                        );
-                break;
-            case 5: // coworker card
-                paramsArr = new Array(
+                    );
+                    break;
+                case 5: // coworker card
+                    paramsArr = new Array(
                         request.activity_id,
                         request.activity_title,
                         request.activity_description,
@@ -658,11 +677,11 @@ function ActivityService(objectCollection) {
                         0,
                         activityChannelId,
                         activityChannelCategoryId
-                        );
-                break;
-            case 29:    // contact supplier
-            case 6:    // contact customer
-                paramsArr = new Array(
+                    );
+                    break;
+                case 29: // contact supplier
+                case 6: // contact customer
+                    paramsArr = new Array(
                         request.activity_id,
                         request.activity_title,
                         request.activity_description,
@@ -687,10 +706,10 @@ function ActivityService(objectCollection) {
                         0,
                         activityChannelId,
                         activityChannelCategoryId
-                        );
-                break;
-            case 8: // mail
-                paramsArr = new Array(
+                    );
+                    break;
+                case 8: // mail
+                    paramsArr = new Array(
                         request.activity_id,
                         request.activity_title,
                         request.activity_description,
@@ -715,10 +734,10 @@ function ActivityService(objectCollection) {
                         0,
                         activityChannelId,
                         activityChannelCategoryId
-                        );
-                break;
-            case 9:// form
-                paramsArr = new Array(
+                    );
+                    break;
+                case 9: // form
+                    paramsArr = new Array(
                         request.activity_id,
                         request.activity_title,
                         request.activity_description,
@@ -743,10 +762,10 @@ function ActivityService(objectCollection) {
                         request.form_transaction_id,
                         activityChannelId,
                         activityChannelCategoryId
-                        );
-                break;
-            case 28:    //post it
-                paramsArr = new Array(
+                    );
+                    break;
+                case 28: //post it
+                    paramsArr = new Array(
                         request.activity_id,
                         request.activity_title,
                         request.activity_description,
@@ -771,18 +790,18 @@ function ActivityService(objectCollection) {
                         0,
                         activityChannelId,
                         activityChannelCategoryId
-                        );
-                break;
-            case 10:
-            case 11:
-                var ownerAssetID;
-                if(request.hasOwnProperty('owner_asset_id')) {                        
-                      (request.owner_asset_id == 0) ? ownerAssetID = request.asset_id : ownerAssetID = request.owner_asset_id;
-                } else {
-                      ownerAssetID = request.asset_id;
-                }
-                
-                paramsArr = new Array(
+                    );
+                    break;
+                case 10:
+                case 11:
+                    var ownerAssetID;
+                    if (request.hasOwnProperty('owner_asset_id')) {
+                        (request.owner_asset_id == 0) ? ownerAssetID = request.asset_id: ownerAssetID = request.owner_asset_id;
+                    } else {
+                        ownerAssetID = request.asset_id;
+                    }
+
+                    paramsArr = new Array(
                         request.activity_id,
                         request.activity_title,
                         request.activity_description,
@@ -807,12 +826,12 @@ function ActivityService(objectCollection) {
                         0,
                         activityChannelId,
                         activityChannelCategoryId
-                        );
-               break;
-            //PAM
-            case 37:
-                activitySubTypeId = 0;
-                paramsArr = new Array(
+                    );
+                    break;
+                    //PAM
+                case 37:
+                    activitySubTypeId = 0;
+                    paramsArr = new Array(
                         request.activity_id,
                         request.activity_title,
                         request.activity_description,
@@ -837,10 +856,10 @@ function ActivityService(objectCollection) {
                         0,
                         activityChannelId,
                         activityChannelCategoryId
-                        );
-                break;
-            default:
-                paramsArr = new Array(
+                    );
+                    break;
+                default:
+                    paramsArr = new Array(
                         request.activity_id,
                         request.activity_title,
                         request.activity_description,
@@ -865,23 +884,22 @@ function ActivityService(objectCollection) {
                         0,
                         activityChannelId,
                         activityChannelCategoryId
-                        );
-                break;
-        }
-        ;
-        paramsArr.push(request.track_latitude);
-        paramsArr.push(request.track_longitude); 
-        paramsArr.push(activitySubTypeId);
-        paramsArr.push(activitySubTypeName); //PAM
-        paramsArr.push(expiryDateTime); //PAM
-                
-        var queryString = util.getQueryString('ds_v1_activity_list_insert_pam', paramsArr);
-        if (queryString !== '') {
-            db.executeQuery(0, queryString, request, function (err, data) {
-                if (err === false) {
-                    //BETA                            
-                    if ((activityTypeCategoryId === 10 || activityTypeCategoryId === 11) && (request.asset_id !== ownerAssetID)) {
-                        var paramsArr1 = new Array(
+                    );
+                    break;
+            };
+            paramsArr.push(request.track_latitude);
+            paramsArr.push(request.track_longitude);
+            paramsArr.push(activitySubTypeId);
+            paramsArr.push(activitySubTypeName); //PAM
+            paramsArr.push(expiryDateTime); //PAM
+
+            var queryString = util.getQueryString('ds_v1_activity_list_insert_pam', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    if (err === false) {
+                        //BETA                            
+                        if ((activityTypeCategoryId === 10 || activityTypeCategoryId === 11) && (request.asset_id !== ownerAssetID)) {
+                            var paramsArr1 = new Array(
                                 request.activity_id,
                                 request.asset_id,
                                 request.workforce_id,
@@ -896,29 +914,29 @@ function ActivityService(objectCollection) {
                                 0 //Field Id
                                 //'',
                                 //-1
-                                );
-                        //var queryString = util.getQueryString('ds_v1_activity_asset_mapping_insert_asset_assign_appr_ingre', paramsArr1);
-                        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_insert_asset_assign_appr', paramsArr1);
-                        if (queryString !== '') {
+                            );
+                            //var queryString = util.getQueryString('ds_v1_activity_asset_mapping_insert_asset_assign_appr_ingre', paramsArr1);
+                            var queryString = util.getQueryString('ds_v1_activity_asset_mapping_insert_asset_assign_appr', paramsArr1);
+                            if (queryString !== '') {
                                 db.executeQuery(0, queryString, request, function (err, data) {
-                                if (err === false) {
-                                     activityCommonService.updateLeadAssignedDatetime(request, request.asset_id, function (err, data) {
+                                    if (err === false) {
+                                        activityCommonService.updateLeadAssignedDatetime(request, request.asset_id, function (err, data) {
 
                                         });
-                                    callback(false, true);
-                                    return;
-                                } else {
-                                    callback(err, false);
-                                    return;
+                                        callback(false, true);
+                                        return;
+                                    } else {
+                                        callback(err, false);
+                                        return;
                                     }
-                              });
-                          }
-                          } else {
+                                });
+                            }
+                        } else {
                             callback(false, true);
                             return;
                         }
 
-                    } else {                        
+                    } else {
                         // some thing is wrong and have to be dealt
                         callback(err, false);
                         return;
@@ -927,40 +945,40 @@ function ActivityService(objectCollection) {
             }
         });
     };
-     
+
     function alterActivityFlagFileEnabled(request) {
-        return new Promise((resolve, reject)=>{
+        return new Promise((resolve, reject) => {
             var activityFlagFileEnabled;
-            (request.url.includes('v1')) ? activityFlagFileEnabled = request.activity_flag_file_enabled : activityFlagFileEnabled = 1;
-            
+            (request.url.includes('v1')) ? activityFlagFileEnabled = request.activity_flag_file_enabled: activityFlagFileEnabled = 1;
+
             var paramsArr = new Array(
                 request.activity_id,
                 request.asset_id,
                 request.organization_id,
                 activityFlagFileEnabled,
                 request.datetime_log
-                );
+            );
 
-        var queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_flag_file_enabled', paramsArr);
-        if (queryString != '') {
-            db.executeQuery(0, queryString, request, function (err, data) {
-                (err === false) ? resolve(): reject(err);
-            });
+            var queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_flag_file_enabled', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err === false) ? resolve(): reject(err);
+                });
             }
-        });          
-    };  
-    
-    
+        });
+    };
+
+
     function sendPushPam(request) {
         return new Promise((resolve, reject) => {
             var paramsArr = new Array(
-                    request.organization_id,
-                    request.account_id,
-                    0,
-                    request.activity_channel_category_id,
-                    0,
-                    50
-                    );
+                request.organization_id,
+                request.account_id,
+                0,
+                request.activity_channel_category_id,
+                0,
+                50
+            );
             var queryString = util.getQueryString('ds_v1_asset_list_select_category', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, pushArns) {
@@ -985,28 +1003,27 @@ function ActivityService(objectCollection) {
                 });
             }
         })
-    }
-    ;
+    };
     var assetActivityListInsertAddActivity = function (request, callback) {
 
         var activityInlineData = JSON.parse(request.activity_inline_data);
         var activityTypeCategoryId = Number(request.activity_type_category_id);
         var organisationId = 0;
         switch (activityTypeCategoryId) {
-            case 2:    // notepad
+            case 2: // notepad
                 organisationId = activityInlineData.organization_id;
                 break;
             case 3: // plant activity            
-            case 4:    // id card            
+            case 4: // id card            
                 organisationId = activityInlineData.employee_organization_id;
                 break;
             case 5: // coworker card
                 organisationId = activityInlineData.contact_organization_id;
                 break;
-            case 6:    // contact
+            case 6: // contact
                 organisationId = request.organization_id;
                 break;
-            case 9:// form
+            case 9: // form
                 organisationId = request.organization_id;
                 break;
             default:
@@ -1014,11 +1031,11 @@ function ActivityService(objectCollection) {
                 break;
         }
         var paramsArr = new Array(
-                request.activity_id,
-                organisationId,
-                request.activity_access_role_id,
-                request.datetime_log // server log date time
-                );
+            request.activity_id,
+            organisationId,
+            request.activity_access_role_id,
+            request.datetime_log // server log date time
+        );
         var queryString = util.getQueryString('ds_v1_activity_asset_mapping_insert', paramsArr);
         if (queryString != '') {
 
@@ -1074,22 +1091,21 @@ function ActivityService(objectCollection) {
     var activityListUpdateStatus = function (request, callback) {
 
         var paramsArr = new Array(
-                request.organization_id,
-                request.account_id,
-                request.workforce_id,
-                request.activity_id,
-                request.activity_status_id,
-                request.activity_status_type_id,
-                request.datetime_log,
-                request.asset_id
-                );        
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_id,
+            request.activity_status_id,
+            request.activity_status_type_id,
+            request.datetime_log,
+            request.asset_id
+        );
         var queryString = util.getQueryString("ds_v1_1_activity_list_update_status", paramsArr);
         //var queryString = util.getQueryString("ds_v1_activity_list_update_status", paramsArr);
         if (queryString != '') {
 
             db.executeQuery(0, queryString, request, function (err, data) {
-                if (err === false)
-                {
+                if (err === false) {
                     callback(false, true);
                     return;
                 } else {
@@ -1107,17 +1123,17 @@ function ActivityService(objectCollection) {
             if (err === false) {
                 participantsData.forEach(function (rowData, index) {
                     paramsArr = new Array(
-                            request.organization_id,
-                            request.account_id,
-                            request.workforce_id,
-                            request.activity_id,
-                            rowData['asset_id'],
-                            activityStatusId,
-                            activityStatusTypeId,
-                            request.datetime_log
-                            );
+                        request.organization_id,
+                        request.account_id,
+                        request.workforce_id,
+                        request.activity_id,
+                        rowData['asset_id'],
+                        activityStatusId,
+                        activityStatusTypeId,
+                        request.datetime_log
+                    );
                     queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_status', paramsArr);
-                    db.executeQuery(0, queryString, request, function (error, queryResponse) { });
+                    db.executeQuery(0, queryString, request, function (error, queryResponse) {});
                 }, this);
                 callback(false, true);
                 return;
@@ -1130,10 +1146,10 @@ function ActivityService(objectCollection) {
     };
     var getFormTransactionRecords = function (request, formTransactionId, formId, callback) {
         var paramsArr = new Array(
-                formTransactionId,
-                formId,
-                request.organization_id
-                );
+            formTransactionId,
+            formId,
+            request.organization_id
+        );
         queryString = util.getQueryString('ds_v1_activity_form_transaction_select', paramsArr);
         db.executeQuery(1, queryString, request, function (err, data) {
             if (err === false) {
@@ -1143,7 +1159,7 @@ function ActivityService(objectCollection) {
     };
     var duplicateFormTransactionData = function (request, callback) {
 
-        activityCommonService.getActivityDetails(request, 0, function (err, activityData) {    // get activity form_id and form_transaction id
+        activityCommonService.getActivityDetails(request, 0, function (err, activityData) { // get activity form_id and form_transaction id
             var formTransactionId = activityData[0].form_transaction_id;
             var formId = activityData[0].form_id;
             getFormTransactionRecords(request, formTransactionId, formId, function (err, formTransactionData) { // get all form transaction data
@@ -1157,47 +1173,47 @@ function ActivityService(objectCollection) {
                         var finalFormTransactionKeys = (Object.keys(finalFormTransactionData));
                         forEachAsync(finalFormTransactionKeys, function (next, keyValue) {
                             var paramsArr = new Array(
-                                    finalFormTransactionData[keyValue].form_transaction_id,
-                                    finalFormTransactionData[keyValue].form_id,
-                                    finalFormTransactionData[keyValue].field_id,
-                                    finalFormTransactionData[keyValue].data_type_combo_id,
-                                    finalFormTransactionData[keyValue].activity_id,
-                                    finalFormTransactionData[keyValue].asset_id,
-                                    finalFormTransactionData[keyValue].workforce_id,
-                                    finalFormTransactionData[keyValue].account_id,
-                                    finalFormTransactionData[keyValue].organization_id,
-                                    util.replaceDefaultDate(finalFormTransactionData[keyValue].data_entity_date_1),
-                                    util.replaceDefaultDatetime(finalFormTransactionData[keyValue].data_entity_datetime_1),
-                                    finalFormTransactionData[keyValue].data_entity_tinyint_1,
-                                    finalFormTransactionData[keyValue].data_entity_tinyint_2, //BETA
-                                    finalFormTransactionData[keyValue].data_entity_bigint_1,
-                                    finalFormTransactionData[keyValue].data_entity_double_1,
-                                    finalFormTransactionData[keyValue].data_entity_decimal_1,
-                                    finalFormTransactionData[keyValue].data_entity_decimal_2,
-                                    finalFormTransactionData[keyValue].data_entity_decimal_3,
-                                    finalFormTransactionData[keyValue].data_entity_text_1,
-                                    '', //  p_entity_text_2 VARCHAR(4800)
-                                    '', //  p_entity_text_3 VARCHAR(100) BETA
-                                    request.track_latitude,
-                                    request.track_longitude,
-                                    request.track_gps_accuracy,
-                                    request.track_gps_status,
-                                    '',
-                                    '',
-                                    '',
-                                    '',
-                                    request.device_os_id,
-                                    '',
-                                    '',
-                                    request.app_version,
-                                    request.service_version,
-                                    finalFormTransactionData[keyValue].log_asset_id,
-                                    finalFormTransactionData[keyValue].log_message_unique_id,
-                                    0,
-                                    request.flag_offline,
-                                    util.replaceDefaultDatetime(finalFormTransactionData[keyValue].form_transaction_datetime),
-                                    request.datetime_log
-                                    );
+                                finalFormTransactionData[keyValue].form_transaction_id,
+                                finalFormTransactionData[keyValue].form_id,
+                                finalFormTransactionData[keyValue].field_id,
+                                finalFormTransactionData[keyValue].data_type_combo_id,
+                                finalFormTransactionData[keyValue].activity_id,
+                                finalFormTransactionData[keyValue].asset_id,
+                                finalFormTransactionData[keyValue].workforce_id,
+                                finalFormTransactionData[keyValue].account_id,
+                                finalFormTransactionData[keyValue].organization_id,
+                                util.replaceDefaultDate(finalFormTransactionData[keyValue].data_entity_date_1),
+                                util.replaceDefaultDatetime(finalFormTransactionData[keyValue].data_entity_datetime_1),
+                                finalFormTransactionData[keyValue].data_entity_tinyint_1,
+                                finalFormTransactionData[keyValue].data_entity_tinyint_2, //BETA
+                                finalFormTransactionData[keyValue].data_entity_bigint_1,
+                                finalFormTransactionData[keyValue].data_entity_double_1,
+                                finalFormTransactionData[keyValue].data_entity_decimal_1,
+                                finalFormTransactionData[keyValue].data_entity_decimal_2,
+                                finalFormTransactionData[keyValue].data_entity_decimal_3,
+                                finalFormTransactionData[keyValue].data_entity_text_1,
+                                '', //  p_entity_text_2 VARCHAR(4800)
+                                '', //  p_entity_text_3 VARCHAR(100) BETA
+                                request.track_latitude,
+                                request.track_longitude,
+                                request.track_gps_accuracy,
+                                request.track_gps_status,
+                                '',
+                                '',
+                                '',
+                                '',
+                                request.device_os_id,
+                                '',
+                                '',
+                                request.app_version,
+                                request.service_version,
+                                finalFormTransactionData[keyValue].log_asset_id,
+                                finalFormTransactionData[keyValue].log_message_unique_id,
+                                0,
+                                request.flag_offline,
+                                util.replaceDefaultDatetime(finalFormTransactionData[keyValue].form_transaction_datetime),
+                                request.datetime_log
+                            );
                             //var queryString = util.getQueryString('ds_v1_activity_form_transaction_analytics_insert', paramsArr);
                             var queryString = util.getQueryString('ds_v1_1_activity_form_transaction_analytics_insert', paramsArr); //BETA
                             if (queryString != '') {
@@ -1214,7 +1230,10 @@ function ActivityService(objectCollection) {
                                 });
                             }
                         }).then(function () {
-                            callback(false, {formTransactionId: formTransactionId, formId: formId});
+                            callback(false, {
+                                formTransactionId: formTransactionId,
+                                formId: formId
+                            });
                         });
                     });
                 } else {
@@ -1224,6 +1243,7 @@ function ActivityService(objectCollection) {
             });
         });
     };
+
     this.alterActivityStatus = function (request, callback) {
 
         var logDatetime = util.getCurrentUTCTime();
@@ -1262,25 +1282,25 @@ function ActivityService(objectCollection) {
                 case 9: //form
                     activityStreamTypeId = 704;
                     break;
-                case 10:    //document
+                case 10: //document
                     activityStreamTypeId = 305;
                     break;
-                case 11:    //folder
+                case 11: //folder
                     activityStreamTypeId = 1402;
                     break;
-                case 14:    //voice call
+                case 14: //voice call
                     activityStreamTypeId = 802; //Added by Nani Kalyan
                     break;
-                case 15:    //video conference
+                case 15: //video conference
                     activityStreamTypeId = 1602; //Added by Nani Kalyan
                     break;
-                case 28:    // post-it
+                case 28: // post-it
                     activityStreamTypeId = 903;
                     break;
-                case 29:    // External Contact Card - Supplier
+                case 29: // External Contact Card - Supplier
                     activityStreamTypeId = 1208;
                     break;
-                case 30:    //contact group
+                case 30: //contact group
                     activityStreamTypeId = 11; // non existent now 
                     break;
                     //Added by Nani Kalyan
@@ -1300,10 +1320,10 @@ function ActivityService(objectCollection) {
                     activityStreamTypeId = 1502;
                     break;
                     //PAM
-                case 36:    //Menu Item
+                case 36: //Menu Item
                     activityStreamTypeId = 19004;
                     break;
-                case 37:    //Reservation
+                case 37: //Reservation
                     activityStreamTypeId = 18004;
                     break;
                     /*case 38:    //Item Order
@@ -1312,10 +1332,10 @@ function ActivityService(objectCollection) {
                      case 39:    //Inventory
                      activityStreamTypeId = 20001;
                      break;*/
-                case 40:    //Payment
+                case 40: //Payment
                     activityStreamTypeId = 22007;
                     break;
-                case 41:    //Event
+                case 41: //Event
                     activityStreamTypeId = 17004;
                     break;
                 default:
@@ -1323,55 +1343,65 @@ function ActivityService(objectCollection) {
                     //console.log('adding streamtype id 11');
                     global.logger.write('debug', 'adding streamtype id 11', {}, request)
                     break;
-            }
-            ;
+            };
             request.activity_stream_type_id = activityStreamTypeId;
         }
         activityCommonService.updateAssetLocation(request, function (err, data) {});
         activityListUpdateStatus(request, function (err, data) {
             if (err === false) {
                 //PAM
-                if(activityTypeCategroyId == 38) {
-                    switch(Number(request.activity_status_type_id)) {
-                        case 105: itemOrderAlterStatus(request).then(()=>{});
-                                  updateStatusDateTimes(request).then(()=>{});
-                                  break;
-                        case 106: if(request.served_at_bar == 1){
-                                    itemOrderAlterStatus(request).then(()=>{});
-                                  }
-                        case 125: updateStatusDateTimes(request).then(()=>{});
-                                  break;
+                if (activityTypeCategroyId == 38) {
+                    switch (Number(request.activity_status_type_id)) {
+                        case 105:
+                            itemOrderAlterStatus(request).then(() => {});
+                            updateStatusDateTimes(request).then(() => {});
+                            break;
+                        case 106:
+                            if (request.served_at_bar == 1) {
+                                itemOrderAlterStatus(request).then(() => {});
+                            }
+                        case 125:
+                            updateStatusDateTimes(request).then(() => {});
+                            break;
                     }
                 }
 
                 //Remote Analytics
                 if (activityTypeCategroyId == 28 || activityTypeCategroyId == 8) {
                     if (request.activity_status_type_id == 74 || request.activity_status_type_id == 19) {
-                        avgTotRespTimePostItsInmailsSummaryInsert(request).then(() => {
-                        });
+                        avgTotRespTimePostItsInmailsSummaryInsert(request).then(() => {});
                     }
                 }
 
                 //TaskList Analytics
                 if (activityTypeCategroyId == 10 || request.activity_sub_type_id == 1) {
                     switch (Number(request.activity_status_type_id)) {
-                        case 26://Closed 
+                        case 26: //Closed 
                             updateFlagOntime(request).then(() => {});
-                            
-                            if (request.hasOwnProperty('activity_parent_id')) {                                
-                                if (util.hasValidGenericId(request, 'activity_parent_id')) {                                    
+
+                            if (request.hasOwnProperty('activity_parent_id')) {
+                                if (util.hasValidGenericId(request, 'activity_parent_id')) {
                                     activityCommonService.getActivityDetails(request, Number(request.activity_parent_id), function (err, activityData) {
-                                        if (err === false) {                                            
+                                        if (err === false) {
                                             switch (Number(activityData[0]['activity_type_category_id'])) {
                                                 case 11:
                                                     //Updating the due date of the project                                                    
-                                                    activityCommonService.updateProjectEndDateTime(request, (err, oldDateTime, newDateTime)=>{                                                        
-                                                        if(err === false) {                                                            
+                                                    activityCommonService.updateProjectEndDateTime(request, (err, oldDateTime, newDateTime) => {
+                                                        if (err === false) {
                                                             var coverAlterJson = {};
-                                                            coverAlterJson.title = {old: activityData[0]['activity_title'], new : activityData[0]['activity_title']};
-                                                            coverAlterJson.description = {old: activityData[0]['activity_description'], new : activityData[0]['activity_description']};
-                                                            coverAlterJson.duedate = {old: oldDateTime, new : newDateTime};
-                                                            callAlterActivityCover(request, coverAlterJson, activityData[0]['activity_type_category_id']).then(()=>{}).catch(()=>{});
+                                                            coverAlterJson.title = {
+                                                                old: activityData[0]['activity_title'],
+                                                                new: activityData[0]['activity_title']
+                                                            };
+                                                            coverAlterJson.description = {
+                                                                old: activityData[0]['activity_description'],
+                                                                new: activityData[0]['activity_description']
+                                                            };
+                                                            coverAlterJson.duedate = {
+                                                                old: oldDateTime,
+                                                                new: newDateTime
+                                                            };
+                                                            callAlterActivityCover(request, coverAlterJson, activityData[0]['activity_type_category_id']).then(() => {}).catch(() => {});
                                                         }
                                                     });
                                             }
@@ -1379,14 +1409,13 @@ function ActivityService(objectCollection) {
                                     });
                                 }
                             }
-                                                    
+
                             break;
-                        case 130://Accepted 
+                        case 130: //Accepted 
                             //updateFlagOntime(request).then(()=>{});
                             break;
                         case 134: //Certified
-                            updateFlagQuality(request).then(() => {
-                            });
+                            updateFlagQuality(request).then(() => {});
                             break;
                         case 135: //Not Certified
                             //updateFlagOntime(request).then(()=>{});
@@ -1397,82 +1426,105 @@ function ActivityService(objectCollection) {
                 //Inmail response < 24 hours
                 if (activityTypeCategoryId === 8 && assetParticipantAccessId === 19) { //18 Sender //19 Receiver
                     respReqinMail(request).then(() => {
-                        inMailMonthlySummaryTransInsert(request).then(() => {
-                        });
+                        inMailMonthlySummaryTransInsert(request).then(() => {});
                     });
                 }
                 switch (activityStatusTypeId) {
 
-                    case 26:    //completed // flag value is 2
-                        activityCommonService.getActivityDetails(request, 0, function(err, resultData){
-                            if(err === false) {                                
+                    case 26: //completed // flag value is 2
+                        activityCommonService.getActivityDetails(request, 0, function (err, resultData) {
+                            if (err === false) {
                                 var newRequest = Object.assign({}, request);
                                 newRequest.asset_id = resultData[0].activity_owner_asset_id;
-                                
+
                                 getTaskAcceptanceStats(newRequest, 2).then((acceptanceStats) => { // weekly and monthly stats here    
-                                    acceptanceStatsSummaryInsert(newRequest, acceptanceStats, {weekly: 5, monthly: 12}, function () {});
+                                    acceptanceStatsSummaryInsert(newRequest, acceptanceStats, {
+                                        weekly: 5,
+                                        monthly: 12
+                                    }, function () {});
                                 });
                             }
                         });
-                        
+
                         getTaskAcceptanceStats(request, 2).then((acceptanceStats) => { // weekly and monthly stats here    
-                            acceptanceStatsSummaryInsert(request, acceptanceStats, {weekly: 5, monthly: 12}, function () {});
+                            acceptanceStatsSummaryInsert(request, acceptanceStats, {
+                                weekly: 5,
+                                monthly: 12
+                            }, function () {});
                         });
                         break;
 
-                    case 130:// flag value is 1 //accepted
+                    case 130: // flag value is 1 //accepted
                         activityCommonService.updateLeadStatus(request, 1, function (err, result) {
-                            if(err === false) {
+                            if (err === false) {
                                 activityCommonService.updateOwnerStatus(request, 1, function (err, result) {
-                                    if(err === false) {
+                                    if (err === false) {
                                         getTaskAcceptanceStats(request, 1).then((acceptanceStats) => { // weekly and monthly stats here   
-                                            acceptanceStatsSummaryInsert(request, acceptanceStats, {weekly: 4, monthly: 11}, function () {});
+                                            acceptanceStatsSummaryInsert(request, acceptanceStats, {
+                                                weekly: 4,
+                                                monthly: 11
+                                            }, function () {});
                                         });
-                                        
+
                                         getTaskAcceptanceStats(request, 6).then((acceptanceStats) => { // weekly and monthly stats here            
-                                            acceptanceStatsSummaryInsert(request, acceptanceStats, {weekly: 8, monthly: 8}, function () {});
+                                            acceptanceStatsSummaryInsert(request, acceptanceStats, {
+                                                weekly: 8,
+                                                monthly: 8
+                                            }, function () {});
                                         });
                                     } else {}
                                 });
                             } else {}
                         });
                         break;
-                        
-                    //rejected
+
+                        //rejected
                     case 131:
                         activityCommonService.updateLeadStatus(request, 2, function (err, result) {
-                            if(err === false) {
+                            if (err === false) {
                                 activityCommonService.updateOwnerStatus(request, 2, function (err, result) {
-                                    if(err === false) {
+                                    if (err === false) {
                                         getTaskAcceptanceStats(request, 3).then((acceptanceStats) => { // weekly and monthly stats here    
-                                            acceptanceStatsSummaryInsert(request, acceptanceStats, {weekly: 6, monthly: 13}, function () {});
+                                            acceptanceStatsSummaryInsert(request, acceptanceStats, {
+                                                weekly: 6,
+                                                monthly: 13
+                                            }, function () {});
                                         });
                                         getTaskAcceptanceStats(request, 4).then((acceptanceStats) => { //there is a gray area here     
-                                            acceptanceStatsSummaryInsert(request, acceptanceStats, {weekly: 7, monthly: 15}, function () {});
+                                            acceptanceStatsSummaryInsert(request, acceptanceStats, {
+                                                weekly: 7,
+                                                monthly: 15
+                                            }, function () {});
                                         });
                                         getTaskAcceptanceStats(request, 6).then((acceptanceStats) => { // weekly and monthly stats here     
-                                            acceptanceStatsSummaryInsert(request, acceptanceStats, {weekly: 8, monthly: 8}, function () {});
+                                            acceptanceStatsSummaryInsert(request, acceptanceStats, {
+                                                weekly: 8,
+                                                monthly: 8
+                                            }, function () {});
                                         });
                                     } else {}
                                 });
-                                
+
                             } else {}
                         });
                         break;
-                        
-                    //discussion
+
+                        //discussion
                     case 132:
                         activityCommonService.updateLeadStatus(request, 3, function (err, result) {
-                            if(err === false) {
+                            if (err === false) {
                                 activityCommonService.updateOwnerStatus(request, 3, function (err, result) {
-                                    if(err === false) {
+                                    if (err === false) {
                                         getTaskAcceptanceStats(request, 5).then((acceptanceStats) => { // weekly and monthly stats here            
-                                            acceptanceStatsSummaryInsert(request, acceptanceStats, {weekly: 8, monthly: 8}, function () {});
+                                            acceptanceStatsSummaryInsert(request, acceptanceStats, {
+                                                weekly: 8,
+                                                monthly: 8
+                                            }, function () {});
                                         });
                                     } else {}
                                 });
                             } else {}
-                        });                        
+                        });
                         break;
                 }
 
@@ -1495,8 +1547,8 @@ function ActivityService(objectCollection) {
 
                 });
                 updateProjectStatusCounts(request).then(() => {});
-                activityPushService.sendPush(request, objectCollection, 0, function () {});                
-                if (activityTypeCategoryId === 9 && activityStatusTypeId === 23) {   //form and submitted state                    
+                activityPushService.sendPush(request, objectCollection, 0, function () {});
+                if (activityTypeCategoryId === 9 && activityStatusTypeId === 23) { //form and submitted state                    
                     duplicateFormTransactionData(request, function (err, data) {
                         var widgetEngineQueueMessage = {
                             form_id: data.formId,
@@ -1524,7 +1576,7 @@ function ActivityService(objectCollection) {
                         queueWrapper.raiseFormWidgetEvent(event, request.activity_id);
                     });
                 }
-                
+
                 callback(false, {}, 200);
                 return;
             } else {
@@ -1533,23 +1585,102 @@ function ActivityService(objectCollection) {
             }
 
         });
+
+        // Post-It Productivity Score Logic
+        if (activityTypeCategoryId === 28 && (activityStatusTypeId === 73 || activityStatusTypeId === 74)) {
+            updatePostItProductivityScore(request).then(() => {});
+        }
     };
-    
+
+    // To calculate productivity scores for Post-Its
+    function updatePostItProductivityScore(request) {
+        return new Promise((resolve, reject) => {
+            var creationDate;
+
+            //Get activity Details
+            activityCommonService.getActivityDetails(request, 0, function (err, activityData) {
+                if (err === false) {
+                    creationDate = util.replaceDefaultDatetime(activityData[0].activity_datetime_start_expected);
+
+                    //Get the Config Value
+                    activityCommonService.retrieveAccountList(request, (err, data) => {
+                        if (err === false) {
+                            var configRespHours = data[0].account_config_response_hours;
+
+                            //diff will be in milli seconds
+                            var diff = util.differenceDatetimes(request.datetime_log, util.replaceDefaultDatetime(creationDate));
+                            diff = diff / 3600000;
+                            diff = Number(diff);
+                            (diff <= configRespHours) ? onTimeFlag = 1: onTimeFlag = 0;
+
+                            //Update the flag
+                            activityCommonService.updateInMailResponse(request, onTimeFlag, (err, data) => {
+                                if (err === false) {
+
+                                    //Get the inmail Counts
+                                    activityCommonService.getPostItCounts(request, (err, countsData) => {
+                                        if (err === false) {
+                                            var percentage = 0;
+                                            var noOfReceivedPostits = countsData[0].countReceivedPostits;
+                                            var noOfRespondedPostits = countsData[0].countOntimeRespondedPostits;
+
+                                            if (noOfReceivedPostits != 0) {
+                                                percentage = (noOfReceivedPostits / noOfRespondedPostits) * 100;
+                                            }
+
+                                            global.logger.write('debug', 'Number Of ReceivedPostits : ' + noOfReceivedPostits, {}, request);
+                                            global.logger.write('debug', 'Number Of RespondedPostits : ' + noOfRespondedPostits, {}, request);
+                                            global.logger.write('debug', 'Percentage : ' + percentage, {}, request);
+
+                                            //Insert into monthly summary table
+                                            var monthlyCollection = {};
+                                            monthlyCollection.summary_id = 29;
+                                            monthlyCollection.asset_id = request.asset_id;
+                                            monthlyCollection.entity_bigint_1 = noOfReceivedPostits; //denominator
+                                            monthlyCollection.entity_double_1 = percentage; //percentage value
+                                            monthlyCollection.entity_decimal_1 = percentage; //percentage value
+                                            monthlyCollection.entity_decimal_3 = noOfRespondedPostits; //numerator
+
+                                            activityCommonService.monthlySummaryInsert(request, monthlyCollection, (err, data) => {});
+
+                                            //Insert into weekly summary table
+                                            var weeklyCollection = {};
+                                            weeklyCollection.summary_id = 16;
+                                            weeklyCollection.asset_id = request.asset_id;
+                                            weeklyCollection.entity_bigint_1 = noOfReceivedPostits;
+                                            weeklyCollection.entity_double_1 = percentage;
+                                            weeklyCollection.entity_decimal_1 = percentage;
+                                            weeklyCollection.entity_decimal_3 = noOfRespondedPostits;
+
+                                            activityCommonService.weeklySummaryInsert(request, weeklyCollection, (err, data) => {});
+
+                                            resolve();
+                                        }
+                                    }); // getInmailCounts                                    
+                                }
+                            }); // updateInmailResponse                            
+                        }
+                    }); // retrieveAccountList
+                }
+            }); // getActivityDetails
+        }); // updateInmailPS Promise
+    };
+
     function createTimelineEntry(request) {
         return new Promise((resolve, reject) => {
             var newRequest = Object.assign({}, request);
-            
+
             var mailBody = "Title: " + request.activity_title + "<br>";
-               //mailBody += "Description: <br>";
-               mailBody += "Organization Name : " + request.signedup_asset_organization_name + "<br>";
-               mailBody += "Workfore Name : " + request.signedup_asset_workforce_name + "<br>";
-               //mailBody += "Asset Id : " + request.signedup_asset_id + "<br>";
-               mailBody += "Asset Name : " + request.signedup_asset_organization_name + "<br>";
-               mailBody += "Asset Phone Country Code : " + request.signedup_asset_phone_country_code + "<br>";
-               mailBody += "Asset Phone Number : " + request.signedup_asset_phone_number + "<br>";
-               mailBody += "Asset Email Id : " + request.signedup_asset_email_id;
-            
-            var activityTimelineCollection = {};            
+            //mailBody += "Description: <br>";
+            mailBody += "Organization Name : " + request.signedup_asset_organization_name + "<br>";
+            mailBody += "Workfore Name : " + request.signedup_asset_workforce_name + "<br>";
+            //mailBody += "Asset Id : " + request.signedup_asset_id + "<br>";
+            mailBody += "Asset Name : " + request.signedup_asset_organization_name + "<br>";
+            mailBody += "Asset Phone Country Code : " + request.signedup_asset_phone_country_code + "<br>";
+            mailBody += "Asset Phone Number : " + request.signedup_asset_phone_number + "<br>";
+            mailBody += "Asset Email Id : " + request.signedup_asset_email_id;
+
+            var activityTimelineCollection = {};
             activityTimelineCollection.content = mailBody;
             activityTimelineCollection.subject = "Added : " + util.getCurrentDate();
             activityTimelineCollection.mail_body = mailBody;
@@ -1557,14 +1688,14 @@ function ActivityService(objectCollection) {
             activityTimelineCollection.asset_reference = [];
             activityTimelineCollection.activity_reference = [];
             activityTimelineCollection.form_approval_field_reference = [];
-            
-            console.log("activityTimelineCollection : " , JSON.stringify(activityTimelineCollection));
-            
+
+            console.log("activityTimelineCollection : ", JSON.stringify(activityTimelineCollection));
+
             newRequest.activity_stream_type_id = 325;
             newRequest.signedup_asset_id = request.signedup_asset_id;
             newRequest.track_gps_datetime = util.getCurrentUTCTime();
             newRequest.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
-            
+
             var event = {
                 name: "addTimelineTransaction",
                 service: "activityTimelineService",
@@ -1578,37 +1709,37 @@ function ActivityService(objectCollection) {
                     //global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent", err, request);
                     //res.send(responseWrapper.getResponse(false, {}, -5999,req.body));
                     throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
-               } else { }
-               
-               resolve();
+                } else {}
+
+                resolve();
             });
-        });        
+        });
     };
-    
+
     function updateProjectStatusCounts(request) {
         return new Promise((resolve, reject) => {
             activityCommonService.getActivityDetails(request, 0, function (err, resp) { //If parent Id > 0 then only he is calling these calls
-               	if (err === false) {
+                if (err === false) {
                     var parentActivityId = (Number(resp[0].parent_activity_id) > 0) ? resp[0].parent_activity_id : 0;
                     if (parentActivityId > 0) {
                         var paramsArr = new Array(
-                                request.organization_id,
-                                parentActivityId,
-                                request.datetime_log
-                                );
+                            request.organization_id,
+                            parentActivityId,
+                            request.datetime_log
+                        );
                         var queryString = util.getQueryString('ds_p1_activity_list_select_project_status_counts', paramsArr);
                         if (queryString != '') {
                             db.executeQuery(1, queryString, request, function (err, countsData) {
                                 if (err === false) {
                                     //resolve();
                                     paramsArr = new Array(
-                                            parentActivityId,
-                                            request.organization_id,
-                                            countsData[0].countOpen,
-                                            countsData[0].countClosed,
-                                            request.asset_id,
-                                            request.datetime_log
-					);
+                                        parentActivityId,
+                                        request.organization_id,
+                                        countsData[0].countOpen,
+                                        countsData[0].countClosed,
+                                        request.asset_id,
+                                        request.datetime_log
+                                    );
                                     queryString = util.getQueryString('ds_p1_activity_list_update_parent_task_counts', paramsArr);
                                     if (queryString != '') {
                                         db.executeQuery(0, queryString, request, function (err, data) {
@@ -1616,14 +1747,14 @@ function ActivityService(objectCollection) {
                                                 queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_parent_task_counts', paramsArr);
                                                 if (queryString != '') {
                                                     db.executeQuery(0, queryString, request, function (err, data) {
-                                                        (err === false) ?  resolve(): reject(err);
+                                                        (err === false) ? resolve(): reject(err);
                                                     });
                                                 }
                                             } else {
                                                 reject(err);
                                             }
                                         });
-                                        }
+                                    }
 
                                 } else {
                                     reject(err);
@@ -1638,11 +1769,10 @@ function ActivityService(objectCollection) {
                 }
             });
         });
-    }
-    ;
-    
-    function respReqinMail(request){
-        return new Promise((resolve, reject)=>{            
+    };
+
+    function respReqinMail(request) {
+        return new Promise((resolve, reject) => {
             var activityFlagResponseRequired;
             var diff;
             activityCommonService.getActivityDetails(request, 0, function (err, resp) {
@@ -1652,22 +1782,22 @@ function ActivityService(objectCollection) {
                     //console.log('resp[0].activity_datetime_end_expected : ', util.replaceDefaultDatetime(resp[0].activity_datetime_end_expected));
 
                     //diff will be in milli seconds
-                    diff = util.differenceDatetimes(request.datetime_log ,util.replaceDefaultDatetime(resp[0].activity_datetime_end_expected));                    
+                    diff = util.differenceDatetimes(request.datetime_log, util.replaceDefaultDatetime(resp[0].activity_datetime_end_expected));
                     diff = diff / 3600000;
                     diff = Number(diff);
-                    (diff <= 24) ? activityFlagResponseRequired = 1 : activityFlagResponseRequired = 0;
+                    (diff <= 24) ? activityFlagResponseRequired = 1: activityFlagResponseRequired = 0;
                     //console.log('DIFF : ', typeof diff);
                     //console.log('activityFlagResponseRequired : ', activityFlagResponseRequired);
 
                     var paramsArr = new Array(
-                            request.organization_id,
-                            request.account_id,
-                            request.workforce_id,
-                            request.activity_id,
-                            request.asset_id,
-                            activityFlagResponseRequired,
-                            request.datetime_log
-                            );
+                        request.organization_id,
+                        request.account_id,
+                        request.workforce_id,
+                        request.activity_id,
+                        request.asset_id,
+                        activityFlagResponseRequired,
+                        request.datetime_log
+                    );
                     var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_inmail_response', paramsArr);
                     if (queryString !== '') {
                         db.executeQuery(0, queryString, request, function (err, data) {
@@ -1684,8 +1814,7 @@ function ActivityService(objectCollection) {
                 }
             });
         });
-    }
-    ;
+    };
     //For inMails
     function inMailMonthlySummaryTransInsert(request) {
         return new Promise((resolve, reject) => {
@@ -1705,48 +1834,47 @@ function ActivityService(objectCollection) {
 
                     //insert
                     var paramsArr = new Array(
-                            10, //request.monthly_summary_id,
-                            request.asset_id,
-                            request.workforce_id,
-                            request.account_id,
-                            request.organization_id,
-                            util.getStartDayOfMonth(), //entity_date_1,    //Monthly Month start Date
-                            "", //entity_datetime_1, 
-                            "", //entity_tinyint_1, 
-                            request.entity_bigint_1, //entity_bigint_1, //ontimecount
-                            request.entity_double_1, //entity_double_1, //total count
-                            request.entity_decimal_1, //entity_decimal_1, //percentage
-                            request.entity_decimal_2, //entity_decimal_2, //toberesponsded
-                            "", //entity_decimal_3, 
-                            request.entity_text_1, //entity_text_1, 
-                            "", //entity_text_2
-                            request.track_latitude,
-                            request.track_longitude,
-                            request.track_gps_accuracy,
-                            request.track_gps_status,
-                            request.track_gps_location,
-                            request.track_gps_datetime,
-                            request.device_manufacturer_name,
-                            request.device_model_name,
-                            request.device_os_id,
-                            request.device_os_name,
-                            request.device_os_version,
-                            request.app_version,
-                            request.api_version,
-                            request.asset_id,
-                            request.message_unique_id,
-                            request.flag_retry,
-                            request.flag_offline,
-                            request.track_gps_datetime,
-                            request.datetime_log
-                            );
+                        10, //request.monthly_summary_id,
+                        request.asset_id,
+                        request.workforce_id,
+                        request.account_id,
+                        request.organization_id,
+                        util.getStartDayOfMonth(), //entity_date_1,    //Monthly Month start Date
+                        "", //entity_datetime_1, 
+                        "", //entity_tinyint_1, 
+                        request.entity_bigint_1, //entity_bigint_1, //ontimecount
+                        request.entity_double_1, //entity_double_1, //total count
+                        request.entity_decimal_1, //entity_decimal_1, //percentage
+                        request.entity_decimal_2, //entity_decimal_2, //toberesponsded
+                        "", //entity_decimal_3, 
+                        request.entity_text_1, //entity_text_1, 
+                        "", //entity_text_2
+                        request.track_latitude,
+                        request.track_longitude,
+                        request.track_gps_accuracy,
+                        request.track_gps_status,
+                        request.track_gps_location,
+                        request.track_gps_datetime,
+                        request.device_manufacturer_name,
+                        request.device_model_name,
+                        request.device_os_id,
+                        request.device_os_name,
+                        request.device_os_version,
+                        request.app_version,
+                        request.api_version,
+                        request.asset_id,
+                        request.message_unique_id,
+                        request.flag_retry,
+                        request.flag_offline,
+                        request.track_gps_datetime,
+                        request.datetime_log
+                    );
                     var queryString = util.getQueryString('ds_v1_asset_monthly_summary_transaction_insert', paramsArr);
                     if (queryString != '') {
                         db.executeQuery(0, queryString, request, function (err, data) {
                             if (err === false) {
                                 //Inserting the Response Rate
-                                avgTotRespTimeSummaryInsert(request).then(() => {
-                                });
+                                avgTotRespTimeSummaryInsert(request).then(() => {});
                                 resolve(data)
                             } else {
                                 reject(err);
@@ -1756,8 +1884,8 @@ function ActivityService(objectCollection) {
                 }
             });
         });
-    }
-    ;
+    };
+
     function updateFlagOntime(request) {
         return new Promise((resolve, reject) => {
             activityCommonService.getActivityDetails(request, 0, function (err, data) {
@@ -1765,16 +1893,16 @@ function ActivityService(objectCollection) {
                     var dueDate = util.replaceDefaultDatetime(data[0].activity_datetime_end_expected);
                     if (util.getCurrentDate() <= dueDate) {
                         var paramsArr = new Array(
-                                request.activity_id,
-                                request.organization_id,
-                                1, //activity_flag_delivery_ontime,
-                                request.asset_id,
-                                request.datetime_log
-                                );
+                            request.activity_id,
+                            request.organization_id,
+                            1, //activity_flag_delivery_ontime,
+                            request.asset_id,
+                            request.datetime_log
+                        );
                         var queryString = util.getQueryString('ds_v1_activity_list_update_flag_ontime', paramsArr);
                         if (queryString != '') {
                             db.executeQuery(0, queryString, request, function (err, data) {
-                                (err === false) ? resolve(data) : reject(err);
+                                (err === false) ? resolve(data): reject(err);
                             });
                         }
                     }
@@ -1793,16 +1921,16 @@ function ActivityService(objectCollection) {
                     var dueDate = util.replaceDefaultDatetime(data[0].activity_datetime_end_expected);
                     if (util.getCurrentDate() <= dueDate) {
                         var paramsArr = new Array(
-                                request.activity_id,
-                                request.organization_id,
-                                1, //activity_flag_delivery_quality,
-                                request.asset_id,
-                                request.datetime_log
-                                );
+                            request.activity_id,
+                            request.organization_id,
+                            1, //activity_flag_delivery_quality,
+                            request.asset_id,
+                            request.datetime_log
+                        );
                         var queryString = util.getQueryString('ds_p1_activity_list_update_flag_quality', paramsArr);
                         if (queryString != '') {
                             db.executeQuery(0, queryString, request, function (err, data) {
-                                (err === false) ? resolve(data) : reject(err);
+                                (err === false) ? resolve(data): reject(err);
                             });
                         }
                     }
@@ -1840,23 +1968,22 @@ function ActivityService(objectCollection) {
                 }
             });
         });
-    }
-    ;
+    };
     //get the current total number of hours to respond and current number of post its / inmails
     function assetWeeklySummaryTrans(request, creationDatetime) {
         return new Promise((resolve, reject) => {
             var paramsArr = new Array(
-                    request.asset_id,
-                    request.operating_asset_id,
-                    request.organization_id,
-                    request.weekly_summary_id,
-                    util.getFormatedLogDate(creationDatetime)
-                    );
+                request.asset_id,
+                request.operating_asset_id,
+                request.organization_id,
+                request.weekly_summary_id,
+                util.getFormatedLogDate(creationDatetime)
+            );
             var queryString = util.getQueryString('ds_p1_asset_weekly_summary_transaction_select', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     //console.log('assetWeeklySummaryTrans : \n', data, "\n");
-                    (err === false) ? resolve(data) : reject(err);
+                    (err === false) ? resolve(data): reject(err);
                 });
             }
         });
@@ -1865,45 +1992,45 @@ function ActivityService(objectCollection) {
     function avgTotRespTimeSummaryInsert(request) {
         return new Promise((resolve, reject) => {
             var paramsArr = new Array(
-                    request.weekly_summary_id,
-                    request.asset_id,
-                    request.workforce_id,
-                    request.account_id,
-                    request.organization_id,
-                    util.getStartDayOfWeek(), //entity_date_1, //WEEK
-                    request.entity_datetime_1,
-                    request.entity_tinyint_1,
-                    request.entity_bigint_1,
-                    request.entity_double_1,
-                    request.entity_decimal_1,
-                    request.entity_decimal_2,
-                    request.entity_decimal_3,
-                    request.entity_text_1, //request.asset_frist_name
-                    request.entity_text_2, //request.asset_last_name
-                    request.track_latitude,
-                    request.track_longitude,
-                    request.track_gps_accuracy,
-                    request.track_gps_enabled,
-                    request.track_gps_location,
-                    request.location_datetime,
-                    request.device_manufacturer_name,
-                    request.device_model_name,
-                    request.device_os_id,
-                    request.device_os_name,
-                    request.device_os_version,
-                    request.device_app_version,
-                    request.device_api_version,
-                    request.asset_id,
-                    request.message_unique_id,
-                    request.flag_retry,
-                    request.falg_retry_offline,
-                    request.transaction_datetime,
-                    request.datetime_log
-                    );
+                request.weekly_summary_id,
+                request.asset_id,
+                request.workforce_id,
+                request.account_id,
+                request.organization_id,
+                util.getStartDayOfWeek(), //entity_date_1, //WEEK
+                request.entity_datetime_1,
+                request.entity_tinyint_1,
+                request.entity_bigint_1,
+                request.entity_double_1,
+                request.entity_decimal_1,
+                request.entity_decimal_2,
+                request.entity_decimal_3,
+                request.entity_text_1, //request.asset_frist_name
+                request.entity_text_2, //request.asset_last_name
+                request.track_latitude,
+                request.track_longitude,
+                request.track_gps_accuracy,
+                request.track_gps_enabled,
+                request.track_gps_location,
+                request.location_datetime,
+                request.device_manufacturer_name,
+                request.device_model_name,
+                request.device_os_id,
+                request.device_os_name,
+                request.device_os_version,
+                request.device_app_version,
+                request.device_api_version,
+                request.asset_id,
+                request.message_unique_id,
+                request.flag_retry,
+                request.falg_retry_offline,
+                request.transaction_datetime,
+                request.datetime_log
+            );
             var queryString = util.getQueryString('ds_v1_asset_weekly_summary_transaction_insert', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
-                    (err === false) ? resolve(data) : reject(err);
+                    (err === false) ? resolve(data): reject(err);
                 });
             }
         });
@@ -1911,14 +2038,14 @@ function ActivityService(objectCollection) {
 
     this.inmailResReqSet = function (request, callback) {
         var paramsArr = new Array(
-                request.organization_id,
-                request.account_id,
-                request.workforce_id,
-                request.activity_id,
-                request.asset_id,
-                request.activity_flag_response_required,
-                util.getCurrentUTCTime()
-                );
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_id,
+            request.asset_id,
+            request.activity_flag_response_required,
+            util.getCurrentUTCTime()
+        );
         var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_inmail_response_req_flag', paramsArr);
         if (queryString !== '') {
             db.executeQuery(0, queryString, request, function (err, data) {
@@ -1941,16 +2068,16 @@ function ActivityService(objectCollection) {
             flag = 2;
         }
         var paramsArr = new Array(
-                request.activity_id,
-                request.owner_asset_id,
-                request.organization_id,
-                flag,
-                request.owner_specification_rating,
-                request.owner_decision_rating,
-                request.owner_planning_rating,
-                request.asset_id,
-                util.getCurrentUTCTime()
-                );
+            request.activity_id,
+            request.owner_asset_id,
+            request.organization_id,
+            flag,
+            request.owner_specification_rating,
+            request.owner_decision_rating,
+            request.owner_planning_rating,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
         var queryString = util.getQueryString('ds_p1_activity_list_update_creator_rating', paramsArr);
         if (queryString !== '') {
             db.executeQuery(0, queryString, request, function (err, data) {
@@ -1965,7 +2092,7 @@ function ActivityService(objectCollection) {
                                 collection.asset_id = request.owner_asset_id;
                                 collection.operating_asset_id = request.owner_operating_asset_id;
                                 collection.datetime_start = util.getStartDayOfWeek();
-                                collection.datetime_end = util.getEndDayOfWeek();   // getting weekly data
+                                collection.datetime_end = util.getEndDayOfWeek(); // getting weekly data
                                 if (flag === 1) {
                                     activityCommonService.getAssetAverageRating(request, collection).then((assetAverageRating) => {
                                         //console.log(assetAverageRating);
@@ -1997,7 +2124,7 @@ function ActivityService(objectCollection) {
                                          18	Creator Rating - Planning
                                          */
                                         collection.datetime_start = util.getStartDateTimeOfMonth();
-                                        collection.datetime_end = util.getEndDateTimeOfMonth();   // getting monthly data
+                                        collection.datetime_end = util.getEndDateTimeOfMonth(); // getting monthly data
                                         activityCommonService.getAssetAverageRating(request, collection).then((monthlyAssetAverageRating) => {
                                             var monthlySummaryCollection = {};
                                             monthlySummaryCollection.summary_id = 16;
@@ -2042,16 +2169,16 @@ function ActivityService(objectCollection) {
             flag = 2;
         }
         var paramsArr = new Array(
-                request.activity_id,
-                request.lead_asset_id,
-                request.organization_id,
-                flag, // flag that sets that rating is set to lead
-                request.lead_ownership_rating,
-                request.lead_completion_rating,
-                request.lead_timeliness_rating,
-                request.asset_id,
-                util.getCurrentUTCTime()
-                );
+            request.activity_id,
+            request.lead_asset_id,
+            request.organization_id,
+            flag, // flag that sets that rating is set to lead
+            request.lead_ownership_rating,
+            request.lead_completion_rating,
+            request.lead_timeliness_rating,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
         var queryString = util.getQueryString('ds_p1_activity_list_update_lead_rating', paramsArr);
         if (queryString !== '') {
             db.executeQuery(0, queryString, request, function (err, data) {
@@ -2066,7 +2193,7 @@ function ActivityService(objectCollection) {
                                 collection.asset_id = request.lead_asset_id;
                                 collection.operating_asset_id = request.lead_operating_asset_id;
                                 collection.datetime_start = util.getStartDayOfWeek();
-                                collection.datetime_end = util.getEndDayOfWeek();   // getting weekly data
+                                collection.datetime_end = util.getEndDayOfWeek(); // getting weekly data
                                 if (flag === 1) {
                                     activityCommonService.getAssetAverageRating(request, collection).then((assetAverageRating) => {
                                         /*
@@ -2096,7 +2223,7 @@ function ActivityService(objectCollection) {
                                          21	Lead Rating - Timeliness
                                          */
                                         collection.datetime_start = util.getStartDateTimeOfMonth();
-                                        collection.datetime_end = util.getEndDateTimeOfMonth();   // getting monthly data
+                                        collection.datetime_end = util.getEndDateTimeOfMonth(); // getting monthly data
                                         activityCommonService.getAssetAverageRating(request, collection).then((assetAverageRating) => {
                                             console.log(assetAverageRating)
                                             var monthlySummaryCollection = {};
@@ -2140,30 +2267,30 @@ function ActivityService(objectCollection) {
         return new Promise((resolve, reject) => {
             var response = {};
             var paramsArr = new Array(
-                    request.organization_id,
-                    request.account_id,
-                    request.workforce_id,
-                    request.asset_id,
-                    request.operating_asset_id || 0,
-                    flag,
-                    util.getStartDayOfWeek(),
-                    util.getEndDayOfWeek()
-                    );
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.asset_id,
+                request.operating_asset_id || 0,
+                flag,
+                util.getStartDayOfWeek(),
+                util.getEndDayOfWeek()
+            );
             var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_task_acceptance_stats', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, weeklyAcceptanceStats) { // weekly stats
                     if (err === false) {
                         response.weekly_acceptance_stats = weeklyAcceptanceStats;
                         paramsArr = new Array(
-                                request.organization_id,
-                                request.account_id,
-                                request.workforce_id,
-                                request.asset_id,
-                                request.operating_asset_id || 0,
-                                flag,
-                                util.getStartDateTimeOfMonth(),
-                                util.getEndDateTimeOfMonth()
-                                );
+                            request.organization_id,
+                            request.account_id,
+                            request.workforce_id,
+                            request.asset_id,
+                            request.operating_asset_id || 0,
+                            flag,
+                            util.getStartDateTimeOfMonth(),
+                            util.getEndDateTimeOfMonth()
+                        );
                         var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_task_acceptance_stats', paramsArr);
                         db.executeQuery(1, queryString, request, function (err, monthlyAcceptanceStats) { //monthly stats
                             if (err === false) {
@@ -2208,107 +2335,106 @@ function ActivityService(objectCollection) {
             });
         });
     };
-    
+
     function updateTaskCreatedCnt(request) {
-        return new Promise((resolve, reject)=>{
-            updateTaskCreatedCntFn(request, request.asset_id).then(()=>{});
-            activityCommonService.getAssetDetails(request, function (err, data){
-               if(err === false) {
-                   updateTaskCreatedCntFn(request, data.operating_asset_id).then(()=>{});
-                   resolve();
-               }   
+        return new Promise((resolve, reject) => {
+            updateTaskCreatedCntFn(request, request.asset_id).then(() => {});
+            activityCommonService.getAssetDetails(request, function (err, data) {
+                if (err === false) {
+                    updateTaskCreatedCntFn(request, data.operating_asset_id).then(() => {});
+                    resolve();
+                }
             });
         });
     };
-    
-    function updateTaskCreatedCntFn(request,   assetId) {
-        return new Promise((resolve, reject)=>{
-                var paramsArr = new Array(
-                    request.organization_id,
-                    request.account_id,
-                    request.workforce_id,
-                    assetId
-                    );
 
-                var queryString = util.getQueryString('ds_v1_asset_list_update_task_created_count', paramsArr);
-                if (queryString != '') {
-                    db.executeQuery(0, queryString, request, function (err, data) {
-                        //global.logger.write(queryString, request, 'asset', 'trace');
-                        (err === false) ? resolve(): reject(err);
-                    });                
-               }
-            });
+    function updateTaskCreatedCntFn(request, assetId) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                assetId
+            );
+
+            var queryString = util.getQueryString('ds_v1_asset_list_update_task_created_count', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    //global.logger.write(queryString, request, 'asset', 'trace');
+                    (err === false) ? resolve(): reject(err);
+                });
+            }
+        });
     };
-    
+
     function addIngredients(request) {
-    	
-		//new Promise(resolve,reject){
-    	//activityCommonService.getActivityDetails(request, 0, function (err, activityData) {
-    		console.log('data '+request.activity_inline_data);
-    		
-    		var option_id = JSON.parse(request.activity_inline_data).option_id;
-    		
-    		activityCommonService.getAllParticipantsforField(request,request.activity_channel_id, option_id).then((participantData)=>{
-    			
-    	    forEachAsync(participantData, function (next, x) {
-    	    	x.access_role_id = 123;
-    	    	x.field_id = option_id;
-    	    	x.option_id = request.item_order_count;      //  	    	
-    	    	activityCommonService.orderIngredientsAssign(request,x).then(()=>{
-    	    		next(); 
-    	    	});
-    	    	       	    	
-    	    	}).then(()=>{
-    	    		console.log("IN THEN");
-    	    		
-    	    		if(JSON.parse(request.activity_inline_data).hasOwnProperty('item_choice_price_tax'))
-    				{				
-    					var arr = JSON.parse(request.activity_inline_data).item_choice_price_tax;
-    					console.log('arr'+arr[0].activity_id);
-    						var choice_option = 2;
-    						forEachAsync(arr, function (next, x1) {        							
-    							console.log('arr[key1].activity_id '+x1.activity_id);
-    							choice_option++;
-    							//var quantity = x1.quantity;
-    							activityCommonService.getAllParticipantsforField(request,x1.activity_id, 1).then((rows)=>{
-    				    	    	        			        	    	
-    								forEachAsync(rows, function (next, x2) { 
-    									x2.access_role_id = 123;
-        			        	    	x2.field_id = choice_option;
-        			        	    	x2.option_id = x1.quantity;  //
-        			        	    	console.log('parent_activity_title ' +x2.parent_activity_title);
-        			        	    	console.log('choice quantity: ' +x2.option_id);
-        			        	    	activityCommonService.orderIngredientsAssign(request,x2).then(()=>{
-        			        	    		next(); 
-        			        	    	});
-        								
-    								}).then(()=>{
-    									next();
-    								});
-    			        	    	
-    						});
-    							
-    						});
-    				} 
-    	    		
-    	    	});
-    	    	
-    	    });
-    	    	
-			
-           
-           // });
-	//}
-};
+
+        //new Promise(resolve,reject){
+        //activityCommonService.getActivityDetails(request, 0, function (err, activityData) {
+        console.log('data ' + request.activity_inline_data);
+
+        var option_id = JSON.parse(request.activity_inline_data).option_id;
+
+        activityCommonService.getAllParticipantsforField(request, request.activity_channel_id, option_id).then((participantData) => {
+
+            forEachAsync(participantData, function (next, x) {
+                x.access_role_id = 123;
+                x.field_id = option_id;
+                x.option_id = request.item_order_count; //  	    	
+                activityCommonService.orderIngredientsAssign(request, x).then(() => {
+                    next();
+                });
+
+            }).then(() => {
+                console.log("IN THEN");
+
+                if (JSON.parse(request.activity_inline_data).hasOwnProperty('item_choice_price_tax')) {
+                    var arr = JSON.parse(request.activity_inline_data).item_choice_price_tax;
+                    console.log('arr' + arr[0].activity_id);
+                    var choice_option = 2;
+                    forEachAsync(arr, function (next, x1) {
+                        console.log('arr[key1].activity_id ' + x1.activity_id);
+                        choice_option++;
+                        //var quantity = x1.quantity;
+                        activityCommonService.getAllParticipantsforField(request, x1.activity_id, 1).then((rows) => {
+
+                            forEachAsync(rows, function (next, x2) {
+                                x2.access_role_id = 123;
+                                x2.field_id = choice_option;
+                                x2.option_id = x1.quantity; //
+                                console.log('parent_activity_title ' + x2.parent_activity_title);
+                                console.log('choice quantity: ' + x2.option_id);
+                                activityCommonService.orderIngredientsAssign(request, x2).then(() => {
+                                    next();
+                                });
+
+                            }).then(() => {
+                                next();
+                            });
+
+                        });
+
+                    });
+                }
+
+            });
+
+        });
 
 
 
-var activityAssetMappingInsertParticipantAssign = function (request, participantData, callback) {
-    
-    //console.log('In function activityAssetMappingInsertParticipantAssign - participantData : ', participantData);
-    
-    	var fieldId = 0;
-    var paramsArr = new Array(
+        // });
+        //}
+    };
+
+
+
+    var activityAssetMappingInsertParticipantAssign = function (request, participantData, callback) {
+
+        //console.log('In function activityAssetMappingInsertParticipantAssign - participantData : ', participantData);
+
+        var fieldId = 0;
+        var paramsArr = new Array(
             request.activity_id,
             participantData.asset_id,
             participantData.workforce_id,
@@ -2325,26 +2451,24 @@ var activityAssetMappingInsertParticipantAssign = function (request, participant
             participantData.activity_sub_type_name,
             participantData.option_id,
             participantData.parent_activity_title
-            );
-    var queryString = util.getQueryString("ds_v1_activity_asset_mapping_insert_asset_assign_pam", paramsArr);
+        );
+        var queryString = util.getQueryString("ds_v1_activity_asset_mapping_insert_asset_assign_pam", paramsArr);
 
-    if (queryString !== '') {
+        if (queryString !== '') {
 
-        db.executeQuery(0, queryString, request, function (err, data) {
-            if (err === false)
-            {
-              //  console.log(data);
-            } else {
-            	//console.log(data)
-                console.log(err);
-                global.logger.write('serverError','' + err, request)
-               
-            }
-        });
-    }
-   
-	};
-    
-}
-;
+            db.executeQuery(0, queryString, request, function (err, data) {
+                if (err === false) {
+                    //  console.log(data);
+                } else {
+                    //console.log(data)
+                    console.log(err);
+                    global.logger.write('serverError', '' + err, request)
+
+                }
+            });
+        }
+
+    };
+
+};
 module.exports = ActivityService;
