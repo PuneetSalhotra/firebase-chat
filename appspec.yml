@@ -5,16 +5,16 @@ version: 0.0
 os: linux
 files:
   - source: .
-    destination: /api-staging-efs/node/staging_desker_api
+    destination: /api-staging-efs/node/staging_desker_api/2018-08-27-01
   - source: .
-    destination: /api-final-efs/node/production_desker_api
+    destination: /api-itsnotan-efs/node/production_desker_api/2018-08-27-01
 permissions:
-  - object: /api-staging-efs/node/staging_desker_api/deployment
+  - object: /api-staging-efs/node/staging_desker_api/2018-08-27-01/deployment
     owner: nanikalyan
     mode: 777
     type:
       - directory
-  - object: /api-final-efs/node/production_desker_api/deployment
+  - object: /api-itsnotan-efs/node/production_desker_api/2018-08-27-01/deployment
     owner: nanikalyan
     mode: 777
     type:
