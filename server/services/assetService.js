@@ -2677,7 +2677,7 @@ function AssetService(objectCollection) {
             2, // p_flag
             request.week_start_date // p_data_entity_date_1 => YYYY-MM-DD
         );
-        let queryString = util.getQueryString('ds_p1_asset_monthly_summary_transaction_select_flag', paramsArr);
+        let queryString = util.getQueryString('ds_p1_asset_weekly_summary_transaction_select_flag', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
               if(typeof data !== 'undefined') {
