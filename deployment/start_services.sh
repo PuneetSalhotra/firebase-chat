@@ -1,7 +1,7 @@
 #Pass arguments from command line
 if [ "$DEPLOYMENT_GROUP_NAME" == "DeskerApiCode-Staging" ]
 then
-  cd /api-staging-efs/node/staging_desker_api/2018-08-27-02/
+  cd /api-staging-efs/node/staging_desker_api/
   mode=staging pm2 reload startStagProcesses.yml
 elif [ "$DEPLOYMENT_GROUP_NAME" == "DeskerApiCode-Production" ] 
 then
