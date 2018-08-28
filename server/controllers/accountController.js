@@ -326,6 +326,16 @@ function AccountController(objCollection) {
          res.sendStatus(200);
      });
      
+     
+     //Set Account Config Values
+    app.post('/' + global.config.version + '/account/config/set', function (req, res) {
+        accountService.setAccountConfigValues(req.body, function (err, data, statusCode) {
+                (err === false) ?
+                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body)):                    
+                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body));                
+            });        
+    });
+     
 };
 
 module.exports = AccountController;

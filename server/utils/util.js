@@ -374,6 +374,11 @@ function Util() {
         return now;
     };
 
+    this.getOTPHeartBeatCode = function () {
+        var now = moment().tz('Asia/Kolkata').format("DDHHmm");
+        return now;
+    };
+
     this.getCurrentDate = function () {
         var now = moment().utc().format("YYYY-MM-DD");
         return now;
@@ -408,9 +413,19 @@ function Util() {
         var value = moment().startOf('week').add(1, 'days').format("YYYY-MM-DD");
         return value;
     };
+
+    this.getStartDateTimeOfWeek = function () {
+        var value = moment().startOf('week').add(1, 'days').format("YYYY-MM-DD HH:mm:ss");
+        return value;
+    };
     
     this.getEndDayOfWeek = function () {
         var value = moment().endOf('week').format("YYYY-MM-DD");
+        return value;
+    };
+
+    this.getEndDateTimeOfWeek = function () {
+        var value = moment().endOf('week').add(1, 'days').format("YYYY-MM-DD HH:mm:ss");
         return value;
     };
     
@@ -636,6 +651,11 @@ function Util() {
         return moment.duration(value)._data;
     };
     
+    this.getNoOfDays = function (timeString1, timeString2) {
+        var value = moment(timeString1, "YYYY-MM-DD HH:mm:ss").diff(moment(timeString2, "YYYY-MM-DD HH:mm:ss"), 'days');
+        return value;
+    };
+    
     this.getDayStartDatetime = function() {
         var value = moment().startOf('day').utcOffset("-05:30").format('YYYY-MM-DD HH:mm:ss');
         return value;
@@ -646,6 +666,16 @@ function Util() {
         return value;
     };
     
+    this.getGivenDayStartDatetime = function(timeString) {
+        var value = moment(timeString, "YYYY-MM-DD HH:mm:ss").format('YYYY-MM-DD 00:00:00');
+        return value;
+    };
+    
+    this.getGivenDayEndDatetime = function(timeString) {
+        var value = moment(timeString, "YYYY-MM-DD HH:mm:ss").format('YYYY-MM-DD 23:59:59');
+        return value;
+    };
+    
     this.getDayStartDatetimeIST = function() {
         var value = moment().tz('Asia/Kolkata').startOf('day').format('YYYY-MM-DD HH:mm:ss');
         return value;
@@ -653,6 +683,20 @@ function Util() {
     
     this.getDayEndDatetimeIST = function() {
         var value = moment().tz('Asia/Kolkata').endOf('day').format('YYYY-MM-DD HH:mm:ss');
+        return value;
+    };
+    
+    //getDay start time based on the TimeZone
+    this.getDayStartDatetimeTZ = function(timezone) {
+        (timezone === "") ? timezone = 'Asia/Kolkata' : timezone = timezone;
+        var value = moment().tz(timezone).startOf('day').format('YYYY-MM-DD HH:mm:ss');
+        return value;
+    };
+    
+    //getDay end time based on the TimeZone
+    this.getDayEndDatetimeTZ = function(timezone) {
+        (timezone === "") ? timezone = 'Asia/Kolkata' : timezone = timezone;
+        var value = moment().tz(timezone).endOf('day').format('YYYY-MM-DD HH:mm:ss');
         return value;
     };
     
@@ -793,6 +837,7 @@ function Util() {
         var date = this.getCurrentUTCTime();
         var logFilePath = 'logs/' + this.getCurrentDate() + '.txt';
         var data_to_add = date + ': ' + data;
+        //console.log(data);
         if (fs.existsSync(logFilePath)) {
             fs.appendFile(logFilePath, os.EOL + data_to_add, function (err, fd) {
                 if (err)

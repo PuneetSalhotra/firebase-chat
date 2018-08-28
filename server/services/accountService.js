@@ -67,7 +67,7 @@ function AccountService(objectCollection) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (data.length > 0) {
-                    //console.log(data);
+                    console.log(data);
                     formatAccountAccessList(data, function (error, data) {
                         if (error === false)
                             callback(false, {data: data}, 200);
@@ -385,7 +385,10 @@ function AccountService(objectCollection) {
                 "account_billing_asset_last_name": util.replaceDefaultString(rowData['account_billing_asset_last_name']),
                 "account_billing_operating_asset_id": util.replaceDefaultNumber(rowData['account_billing_operating_asset_id']),
                 "account_billing_operating_asset_first_name": util.replaceDefaultString(rowData['account_billing_operating_asset_first_name']),
-                "account_billing_operating_asset_last_name": util.replaceDefaultString(rowData['account_billing_operating_asset_last_name'])
+                "account_billing_operating_asset_last_name": util.replaceDefaultString(rowData['account_billing_operating_asset_last_name']),
+                "account_config_weekly_hours": util.replaceDefaultNumber(rowData['account_config_weekly_hours']),
+                "account_config_response_hours": util.replaceDefaultNumber(rowData['account_config_response_hours']),
+                "account_config_due_date_hours": util.replaceDefaultNumber(rowData['account_config_due_date_hours'])
             };
             responseArr.push(row);
             next();
@@ -442,6 +445,25 @@ function AccountService(objectCollection) {
             });
         }
     };
+    
+    this.setAccountConfigValues = function(request, callback) {
+        var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.config_response_time,
+                request.config_office_hours, 
+                request.config_due_date,
+                util.getCurrentUTCTime(),
+                request.log_asset_id
+                );
+
+        var queryString = util.getQueryString('ds_p1_account_list_update_config_values', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                (err === false) ? callback(false, {}, 200): callback(true, err, -9999);
+            });
+        }
+    };   
     
 }
 ;

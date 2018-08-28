@@ -403,7 +403,19 @@ function ActivityCommonService(db, util, forEachAsync) {
     };
 
     this.activityTimelineTransactionInsert = function (request, participantData, streamTypeId, callback) {
-        //console.log('vnk streamTypeId : ', streamTypeId);
+
+        // IN p_activity_id BIGINT(20), IN p_asset_id BIGINT(20), IN p_workforce_id BIGINT(20), IN p_account_id BIGINT(20), 
+        // IN p_organization_id BIGINT(20), IN p_stream_type_id SMALLINT(6), IN p_entity_type_id SMALLINT(6), IN p_entity_datetime_1 DATETIME, 
+        // IN p_entity_datetime_2 DATETIME, IN p_entity_text_1 VARCHAR(1200), IN p_entity_text_2 VARCHAR(1200), IN p_entity_text_3 VARCHAR(100), 
+        // IN p_data_entity_inline JSON,  IN p_entity_decimal_1 DECIMAL(14,8), IN p_entity_decimal_2 DECIMAL(14,8), IN p_entity_tinyint_1 TINYINT(4), 
+        // IN p_entity_tinyint_2 TINYINT(4), IN p_entity_bigint_1 BIGINT(20), IN p_form_transaction_id BIGINT(20), IN p_form_id BIGINT(20), 
+        // IN p_data_type_id SMALLINT(6), IN p_location_latitude DECIMAL(12,8), IN p_location_longitude DECIMAL(12,8), 
+        // IN p_location_gps_accuracy DOUBLE(16,4), IN p_location_gps_enabled tinyint(4), IN p_location_address VARCHAR(300), 
+        // IN p_location_datetime DATETIME, IN p_device_manufacturer_name VARCHAR(50), IN p_device_model_name VARCHAR(50), 
+        // IN p_device_os_id TINYINT(4), IN p_device_os_name VARCHAR(50), IN p_device_os_version VARCHAR(50), IN p_device_app_version VARCHAR(50), 
+        // IN p_device_api_version VARCHAR(50), IN p_log_asset_id BIGINT(20), IN p_log_message_unique_id VARCHAR(50), IN p_log_retry tinyint(4), 
+        // IN p_log_offline tinyint(4), IN p_transaction_datetime DATETIME, IN p_log_datetime DATETIME
+        
         var assetId = request.asset_id;
         var organizationId = request.organization_id;
         var accountId = request.account_id;
@@ -547,12 +559,17 @@ function ActivityCommonService(db, util, forEachAsync) {
                 organizationId,
                 streamTypeId,
                 entityTypeId, // entity type id
+                request.entity_datetime_1 || '1970-01-01 00:00:00', // entity type id
+                request.entity_datetime_2 || '1970-01-01 00:00:00', // entity type id
                 entityText1, // entity text 1
                 entityText2, // entity text 2
                 entityText3, //Beta
                 activityTimelineCollection, //BETA
                 newUserAssetId, //New User Signed Up Asset ID
                 request.track_longitude,
+                request.entity_tinyint_1 || 0,
+                request.entity_tinyint_2 || 0,
+                request.entity_bigint_1 || 0,
                 formTransactionId, //form_transaction_id
                 formId, //form_id
                 dataTypeId, //data_type_id  should be 37 static
@@ -577,7 +594,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 request.datetime_log
                 );
         //Beta
-        var queryString = util.getQueryString("ds_v1_2_activity_timeline_transaction_insert", paramsArr);
+        var queryString = util.getQueryString("ds_v1_3_activity_timeline_transaction_insert", paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false)
@@ -592,6 +609,16 @@ function ActivityCommonService(db, util, forEachAsync) {
                 }
             });
         }
+    };
+
+    // Promise/Async version of this.activityTimelineTransactionInsert method
+    this.asyncActivityTimelineTransactionInsert = function (request, participantData, streamTypeId) {
+        const self = this;
+        return new Promise((resolve, reject) => {
+            self.activityTimelineTransactionInsert(request, participantData, streamTypeId, (err, data) => {
+                (!err) ? resolve(data): reject(err);
+            })
+        });
     };
 
     this.resetAssetUnreadCount = function (request, activityId, callback) {
@@ -1193,6 +1220,24 @@ function ActivityCommonService(db, util, forEachAsync) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 (err === false) ? callback(false, data) : callback(true, err);
+            });
+        }
+    };
+    
+    this.getPostItCounts = function (request, callback) {
+        // IN p_organization_id BIGINT(20), IN p_activity_type_category_id SMALLINT(6), 
+        // IN p_asset_id BIGINT(20), IN p_datetime_start DATETIME, IN p_datetime_end DATETIME
+        let paramsArr = new Array(
+            request.organization_id,
+            request.activity_type_category_id,
+            request.asset_id,
+            util.getStartDateTimeOfMonth(),
+            util.getEndDateTimeOfMonth()
+        );
+        let queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_postit_counts', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                (err === false) ? callback(false, data): callback(true, err);
             });
         }
     };
@@ -1828,6 +1873,59 @@ function ActivityCommonService(db, util, forEachAsync) {
             }
         });        
     };
+    
+    this.getActivityListDateRange = function (request, callback) {
+        var paramsArr = new Array(
+                request.organization_id,
+                request.asset_id,
+                request.datetime_start, //00:00:00
+                request.datetime_end // 23:59:59
+                );
+        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_asset_open_payroll_activity', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                (err === false) ? callback(false, data) : callback(err, false);
+            });
+        }
+    };
+    
+    //Can use this function for both inmail and postit
+    this.updateInMailResponse = function (request, activityFlagResponseonTimeFlag, callback) {
+        var paramsArr = new Array(
+                    request.organization_id,
+                    request.account_id,
+                    request.workforce_id,
+                    request.activity_id,
+                    request.asset_id,
+                    activityFlagResponseonTimeFlag,
+                    request.datetime_log
+                    );
+        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_inmail_response', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err === false) ? callback(false, true) : callback(err, false);                            
+                });
+            }
+    };
+    
+    this.retrieveAccountList = function (request, callback) {
+        var paramsArr = new Array(
+                request.account_id
+                //request.page_start,
+                //request.page_limit
+                );
+        var queryString = util.getQueryString('ds_p1_account_list_select', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (data.length > 0) {
+                    (err === false) ? callback(false, data) : callback(true, {});
+                } else {
+                    callback(true, {});
+                }
+            });
+        }
+    };
+    
 
 }
 ;
