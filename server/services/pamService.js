@@ -2953,7 +2953,110 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
              });
         	}
     	});
-     }
+     };
+     
+     this.insertActivityTimeline = function(request, callback) {
+     	var obj= JSON.parse(request.activity_timeline_collection);
+    	 var newAssetCollection = {
+                 organization_id: obj.organization_id,
+                 account_id: obj.account_id,
+                 workforce_id: obj.workforce_id,
+                 asset_id: obj.asset_id,
+                 message_unique_id: obj.message_unique_id
+             };
+    	 
+    	 console.log(newAssetCollection);
+    	 activityTimelineInsert(request, newAssetCollection, function (err, data) {
+        	callback(false, {}, 200);
+        });
+    };
+    
+     function activityTimelineInsert(request, participantData, callback) {
+        //console.log('vnk streamTypeId : ', streamTypeId);
+        var assetId = request.asset_id;
+        var organizationId = request.organization_id;
+        var accountId = request.account_id;
+        var workforceId = request.workforce_id;
+        var messageUniqueId = request.message_unique_id;
+        var entityTypeId = 0;
+        var entityText1 = request.activity_timeline_text;
+        var entityText2 = "";
+        var entityText3 = "";
+        var activityTimelineCollection = "{}"; //BETA
+        var retryFlag = 0;
+        var formTransactionId = 0;
+        var dataTypeId = 0;
+        var formId = 0;
+        var logDatetime = util.getCurrentUTCTime();
+        request['datetime_log'] = logDatetime;
+        
+        if (Number(request.device_os_id) === 5)
+            retryFlag = 1;
+       
+        if (participantData.asset_id > 0) {
+            organizationId = participantData.organization_id;
+            accountId = participantData.account_id;
+            workforceId = participantData.workforce_id;
+            assetId = participantData.asset_id;
+            messageUniqueId = participantData.message_unique_id
+        }
+        console.log('participantData.length '+participantData+'   '+participantData.asset_id+' '+workforceId+' '+accountId+' '+organizationId);
+
+        var paramsArr = new Array(
+                request.activity_id,
+                assetId,
+                workforceId,
+                accountId,
+                organizationId,
+                request.stream_type_id,
+                entityTypeId, // entity type id
+                entityText1, // entity text 1
+                entityText2, // entity text 2
+                entityText3, //Beta
+                activityTimelineCollection, //BETA
+                request.track_latitude,
+                request.track_longitude,
+                formTransactionId, //form_transaction_id
+                formId, //form_id
+                dataTypeId, //data_type_id  should be 37 static
+                request.track_latitude, //location latitude
+                request.track_longitude, //location longitude
+                request.track_gps_accuracy,
+                request.track_gps_status,
+                request.track_gps_location,
+                request.track_gps_datetime,
+                "",
+                "",
+                request.device_os_id,
+                "",
+                "",
+                request.app_version,
+                request.service_version,
+                request.asset_id,
+                messageUniqueId,
+                retryFlag,
+                request.flag_offline,
+                request.track_gps_datetime,
+                request.datetime_log
+                );
+        var queryString = util.getQueryString("ds_v1_2_activity_timeline_transaction_insert", paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                if (err === false)
+                {
+                    callback(false, true);
+                    return;
+                } else {
+                    callback(err, false);
+                    //console.log(err);
+                    global.logger.write('serverError', '', err, request)
+                    return;
+                }
+            });
+        }
+    };
+     
+     
 }
 ;
 
