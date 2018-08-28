@@ -1234,13 +1234,17 @@ function AssetService(objectCollection) {
 
     function assetListUpdateSignupCnt(request, assetId) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), 
+            // IN p_asset_id BIGINT(20), IN p_asset_count_signup BIGINT(20), IN p_log_datetime DATETIME
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
-                assetId
+                assetId,
+                request.asset_count_signup,
+                util.getCurrentUTCTime()
             );
-            var queryString = util.getQueryString('ds_v1_asset_list_update_signup_count', paramsArr);
+            let queryString = util.getQueryString('ds_v1_1_asset_list_update_signup_count', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     //global.logger.write(queryString, request, 'asset', 'trace');
