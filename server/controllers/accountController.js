@@ -304,7 +304,7 @@ function AccountController(objCollection) {
          res.sendStatus(200);
      });
 
-     /* GET NEXMO SMS delivery receipt. */
+    /* GET NEXMO SMS delivery receipt. */
      app.get('/' + global.config.version + '/sms-dlvry/nexmo', function (req, res) {
 
          if (req.query.status === 'delivered') {
@@ -327,8 +327,8 @@ function AccountController(objCollection) {
      });
      
      
-     //Set Account Config Values
-    app.post('/' + global.config.version + '/account/config/set', function (req, res) {
+    // Set Account Config Values
+    app.put('/' + global.config.version + '/account/config/set', function (req, res) {
         accountService.setAccountConfigValues(req.body, function (err, data, statusCode) {
                 (err === false) ?
                     res.send(responseWrapper.getResponse(err, data, statusCode, req.body)):                    
