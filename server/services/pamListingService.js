@@ -806,44 +806,7 @@ function PamListingService(objectCollection) {
                 resolve(responseArr);
             });
         });        
-    };  
-    
-    	
-    this.activityTimeline = function (request, callback) {
-        var logDatetime = util.getCurrentUTCTime();
-        request['datetime_log'] = logDatetime;
-
-        var paramsArr = new Array(
-                request.organization_id,
-                request.activity_id,
-                request.timeline_transaction_id,
-                request.flag_previous,
-                request.page_start,
-                util.replaceQueryLimit(request.page_limit)
-                );
-        var queryString = util.getQueryString('ds_v1_activity_timeline_transaction_select_differential', paramsArr);
-        if (queryString != '') {
-            db.executeQuery(1, queryString, request, function (err, data) {
-                if (err === false) {
-                    formatAssetTimelineList(data, function (err, responseData) {
-                        if (err === false) {
-                            callback(false, {data: responseData}, 200);
-                        } else {
-                            callback(false, {}, -9999)
-                        }
-                    });
-                    return;
-                } else {
-                    // some thing is wrong and have to be dealt
-                    callback(err, false, -9999);
-                    return;
-                }
-            });
-        } else {
-            callback(false, {}, -3303);
-        }
-
-    };
+	};  
 };
 
 module.exports = PamListingService;
