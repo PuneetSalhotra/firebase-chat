@@ -461,5 +461,17 @@ function AssetController(objCollection) {
         });
     });
 
+    // Service to fire everytime the app is launched.
+    app.post('/' + global.config.version + '/asset/signal/app_launch', function (req, res) {
+        assetService.assetAppLaunchTransactionInsert(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+
 }
 module.exports = AssetController;
