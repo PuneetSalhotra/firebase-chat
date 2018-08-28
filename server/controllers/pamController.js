@@ -421,6 +421,19 @@ function PamController(objCollection) {
         	});
     		
         });
+
+    app.post('/' + global.config.version + '/pam/activity/timeline/entry/add', function (req, res) {
+     		console.log(req.body);
+    		pamService.insertActivityTimeline(req.body, function (err, data, statusCode) {
+                if (err === false) {    
+                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                } else {                
+                    data = {};
+                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                }
+            });
+        
+    });
 }
 ;
 module.exports = PamController;
