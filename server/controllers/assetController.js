@@ -448,7 +448,7 @@ function AssetController(objCollection) {
             }
         });
     });
-    
+
     // Retrieve asset's weekly summary params
     app.post('/' + global.config.version + '/asset/weekly/summary/params', function (req, res) {
         assetService.retrieveAssetWeeklySummaryParams(req.body, function (err, data, statusCode) {
