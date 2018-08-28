@@ -2802,6 +2802,26 @@ function AssetService(objectCollection) {
         }
     };
 
+    // Service to fire everytime the app is launched.
+    this.assetAppLaunchTransactionInsert = function (request, callback) {
+        // IN p_asset_id BIGINT(20), IN p_workforce_id BIGINT(20), IN p_account_id BIGINT(20), 
+        // IN p_organization_id BIGINT(20), IN p_log_datetime DATETIME
+        let paramsArr = new Array(
+            request.asset_id,
+            request.workforce_id,
+            request.account_id,
+            request.organization_id,
+            util.getCurrentUTCTime()
+        );
+        let queryString = util.getQueryString('ds_p1_asset_app_launch_transaction_insert', paramsArr);
+
+        if (queryString !== '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                (err === false) ? callback(false, data, 200): callback(true, err, -9999);
+            });
+        }
+    }
+
 }
 
 module.exports = AssetService;
