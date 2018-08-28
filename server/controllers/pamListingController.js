@@ -175,9 +175,7 @@ function PamListingController(objCollection) {
     		data = {};
     		res.send(responseWrapper.getResponse(err, data, -999, req.body));
         });    		
-    });
-    
- 
+    });     
  
     app.post('/' + global.config.version + '/pam/activity/stock/list', function (req, res) {
     	pamListingService.activityAssetMappingCategorySearch(req.body).then((data)=>{   
@@ -189,7 +187,16 @@ function PamListingController(objCollection) {
         });    		
     });
     
-    
+    app.post('/' + global.config.version + '/pam/activity/timeline/list', function (req, res) {
+        pamListingService.activityTimeline(req.body, function (err, data, statusCode) {
+            if (err === false) {    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {                
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
     
 }
 ;
