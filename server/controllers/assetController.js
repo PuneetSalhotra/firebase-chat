@@ -473,7 +473,7 @@ function AssetController(objCollection) {
         });
     });
 
-    // Service to fire everytime the app is launched.
+    // Service to return both weekly and monthly summary params combined.
     app.post('/' + global.config.version + '/asset/weekly_monthly/summary/params', function (req, res) {
         assetService.retrieveAssetWeeklyAndMonthlySummaryParams(req.body, function (err, data, statusCode) {
             if (err === false) {

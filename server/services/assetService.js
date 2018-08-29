@@ -2844,6 +2844,7 @@ function AssetService(objectCollection) {
         }
     }
 
+    // Service to return both weekly and monthly summary params combined.
     this.retrieveAssetWeeklyAndMonthlySummaryParams = function (request, callback) {
         const self = this;
         let responseJSON = {
@@ -2957,7 +2958,7 @@ function AssetService(objectCollection) {
                 return;
             })
             .catch((err) => {
-                callback(true, responseJSON, -9999)
+                callback(true, err, -9999)
                 return;
             })
 
