@@ -1159,6 +1159,8 @@ function AssetService(objectCollection) {
                 activityCommonService.getAssetDetails(request, (err, data, statuscode) => {
                     if (err === false) {
                         console.log('Asset Signup count : ', data.asset_count_signup);
+                        request.asset_count_signup = data.asset_count_signup;
+
                         assetListUpdateSignupCnt(request, assetId).then(() => {});
 
                         if (data.asset_count_signup > 0) {
@@ -2841,6 +2843,165 @@ function AssetService(objectCollection) {
             });
         }
     }
+
+    this.retrieveAssetWeeklyAndMonthlySummaryParams = function (request, callback) {
+        const self = this;
+        let responseJSON = {
+            asset_id: request.asset_id,
+            operating_asset_id: request.operating_asset_id,
+            workforce_id: request.workforce_id,
+            account_id: request.account_id,
+            organization_id: request.organization_id,
+            week_start_date: request.week_start_date,
+            month_start_date: request.month_start_date,
+            performance_data_weekly: { // Weekly summary params 
+                response_rate: 0,
+                planning_rate: 0,
+                completion_rate: 0,
+                office_presence_percentage: 0
+            },
+            performance_data_monthly: { // Monthly summary params
+                response_rate: 0,
+                planning_rate: 0,
+                completion_rate: 0,
+                office_presence_percentage: 0
+            }
+        };
+
+        Promise.all([
+                // Populate weekly summary params
+                asyncRetrieveAssetWeeklySummaryParams(request)
+                .then((data) => {
+                    // Run through each of the summary entries returned
+                    console.log("data: ", data);
+                    let responseRateSum = 0;
+                    let numOfResponseRateEntries = 0;
+                    // Run through each of the summary entries returned
+                    console.log("data: ", data);
+                    data.forEach((summaryEntry) => {
+                        // 
+                        switch (Number(summaryEntry.monthly_summary_id)) {
+
+                            case 3: // Response Rate - InMail
+                            case 15: // Response Rate - Unread Updates
+                            case 16: // Response Rate - Postits
+                                // Include the response rate value for average calculation only if
+                                // it's a non-zero positive value. Else, ignore the entry.
+                                if (Number(summaryEntry.data_entity_decimal_1) > 0) {
+                                    responseRateSum += Number(summaryEntry.data_entity_decimal_1);
+                                    numOfResponseRateEntries += 1;
+                                }
+
+                            case 17: // Timeliness of tasks - Lead
+                                responseJSON.performance_data_monthly.planning_rate = summaryEntry.data_entity_decimal_1;
+                                break;
+
+                            case 5: // Completion rate - Lead
+                                responseJSON.performance_data_monthly.completion_rate = summaryEntry.data_entity_decimal_1;
+                                break;
+
+                            case 18: // Office presence
+                                responseJSON.performance_data_monthly.office_presence_percentage = summaryEntry.data_entity_decimal_1;
+                                break;
+                        }
+                    });
+
+                    if (responseRateSum > 0) {
+                        responseJSON.performance_data_monthly.response_rate = responseRateSum / numOfResponseRateEntries;
+                    }
+                }),
+
+                // Populate monthly summary params
+                asyncRetrieveAssetMonthlySummaryParams(request)
+                .then((data) => {
+                    let responseRateSum = 0;
+                    let numOfResponseRateEntries = 0;
+                    // Run through each of the summary entries returned
+                    console.log("data: ", data);
+                    data.forEach((summaryEntry) => {
+                        // 
+                        switch (Number(summaryEntry.monthly_summary_id)) {
+
+                            case 10: // Response Rate - InMail
+                            case 22: // Response Rate - Unread Updates
+                            case 29: // Response Rate - Postits
+                                // Include the response rate value for average calculation only if
+                                // it's a non-zero positive value. Else, ignore the entry.
+                                if (Number(summaryEntry.data_entity_decimal_1) > 0) {
+                                    responseRateSum += Number(summaryEntry.data_entity_decimal_1);
+                                    numOfResponseRateEntries += 1;
+                                }
+
+                            case 30: // Timeliness of tasks - Lead
+                                responseJSON.performance_data_monthly.planning_rate = summaryEntry.data_entity_decimal_1;
+                                break;
+
+                            case 12: // Completion rate - Lead
+                                responseJSON.performance_data_monthly.completion_rate = summaryEntry.data_entity_decimal_1;
+                                break;
+
+                            case 31: // Office presence
+                                responseJSON.performance_data_monthly.office_presence_percentage = summaryEntry.data_entity_decimal_1;
+                                break;
+                        }
+                    });
+
+                    if (responseRateSum > 0) {
+                        responseJSON.performance_data_monthly.response_rate = responseRateSum / numOfResponseRateEntries;
+                    }
+
+                })
+            ])
+            .then(() => {
+                callback(false, responseJSON, 200)
+                return;
+            })
+            .catch((err) => {
+                callback(true, responseJSON, -9999)
+                return;
+            })
+
+    };
+
+    // [Asynchronously] Retrieve asset's weekly summary params
+    function asyncRetrieveAssetWeeklySummaryParams (request) {
+        return new Promise((resolve, reject) => {
+            let paramsArr = new Array(
+                request.asset_id,
+                request.operating_asset_id,
+                request.organization_id,
+                2, // p_flag
+                request.week_start_date // p_data_entity_date_1 => YYYY-MM-DD
+            );
+            let queryString = util.getQueryString('ds_p1_asset_weekly_summary_transaction_select_flag', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (!err)? resolve(data): reject(err);
+                });
+            }
+        });
+    };
+
+    // [Asynchronously] Retrieve asset's monthly summary params
+    function asyncRetrieveAssetMonthlySummaryParams(request) {
+        return new Promise((resolve, reject) => {
+            // IN p_asset_id BIGINT(20), IN p_operating_asset_id BIGINT(20), 
+            // IN p_organization_id BIGINT(20), IN p_flag SMALLINT(6), IN p_data_entity_date_1 DATETIME
+            let paramsArr = new Array(
+                request.asset_id,
+                request.operating_asset_id,
+                request.organization_id,
+                2, // p_flag
+                request.month_start_date // p_data_entity_date_1 => YYYY-MM-DD
+            );
+            let queryString = util.getQueryString('ds_p1_asset_monthly_summary_transaction_select_flag', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (!err) ? resolve(data): reject(err);
+                });
+            }
+        });
+    };
 
 }
 
