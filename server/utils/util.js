@@ -835,9 +835,18 @@ function Util() {
     
     this.writeLogs = function (data) {
         var date = this.getCurrentUTCTime();
-        var logFilePath = 'logs/' + this.getCurrentDate() + '.txt';
+        var locationInServer;
+        var logFilePath;
+        
+        if(global.mode === 'prod') {
+            locationInServer = '/api-final-efs/node/production_desker_mobile/';
+            logFilePath = locationInServer + 'logs/' + this.getCurrentDate() + '.txt';
+        } else {
+            logFilePath = 'logs/' + this.getCurrentDate() + '.txt';
+        }
+        
         var data_to_add = date + ': ' + data;
-        //console.log(data);
+        console.log(data);
         if (fs.existsSync(logFilePath)) {
             fs.appendFile(logFilePath, os.EOL + data_to_add, function (err, fd) {
                 if (err)
