@@ -839,7 +839,7 @@ function Util() {
         var logFilePath;
         
         if(global.mode === 'prod') {
-            locationInServer = '/api-final-efs/node/production_desker_mobile/';
+            locationInServer = '/api-final-efs/node/production_desker_api/';
             logFilePath = locationInServer + 'logs/' + this.getCurrentDate() + '.txt';
         } else {
             logFilePath = 'logs/' + this.getCurrentDate() + '.txt';
