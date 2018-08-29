@@ -821,7 +821,7 @@ function PamListingService(objectCollection) {
                 request.page_start,
                 util.replaceQueryLimit(request.page_limit)
                 );
-        var queryString = util.getQueryString('ds_v1_activity_timeline_transaction_select_differential', paramsArr);
+        var queryString = util.getQueryString('ds_v1_2_activity_timeline_transaction_select_differential', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
