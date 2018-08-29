@@ -2856,12 +2856,14 @@ function AssetService(objectCollection) {
             week_start_date: request.week_start_date,
             month_start_date: request.month_start_date,
             performance_data_weekly: { // Weekly summary params 
+                week_start_date: request.week_start_date,
                 response_rate: 0,
                 planning_rate: 0,
                 completion_rate: 0,
                 office_presence_percentage: 0
             },
             performance_data_monthly: { // Monthly summary params
+                month_start_date: request.month_start_date,
                 response_rate: 0,
                 planning_rate: 0,
                 completion_rate: 0,
