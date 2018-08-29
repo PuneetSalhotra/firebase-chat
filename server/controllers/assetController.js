@@ -473,5 +473,17 @@ function AssetController(objCollection) {
         });
     });
 
+    // Service to fire everytime the app is launched.
+    app.post('/' + global.config.version + '/asset/weekly_monthly/summary/params', function (req, res) {
+        assetService.retrieveAssetWeeklyAndMonthlySummaryParams(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+
 }
 module.exports = AssetController;
