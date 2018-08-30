@@ -1377,7 +1377,30 @@ function ActivityService(objectCollection) {
                 if (activityTypeCategroyId == 10 || request.activity_sub_type_id == 1) {
                     switch (Number(request.activity_status_type_id)) {
                         case 26: //Closed 
-                            updateFlagOntime(request).then(() => {});
+                            updateFlagOntime(request).then(() => {
+                                
+                                activityCommonService.getActivityDetails(request, 0, function (err, resultData) {
+                                    if (err === false) {
+                                        var newRequest = Object.assign({}, request);
+                                        newRequest.asset_id = resultData[0].activity_owner_asset_id;
+
+                                        getTaskAcceptanceStats(newRequest, 2).then((acceptanceStats) => { // weekly and monthly stats here    
+                                            acceptanceStatsSummaryInsert(newRequest, acceptanceStats, {
+                                                weekly: 5,
+                                                monthly: 12
+                                            }, function () {});
+                                        });
+                                    }
+                                });
+
+                                getTaskAcceptanceStats(request, 2).then((acceptanceStats) => { // weekly and monthly stats here    
+                                    acceptanceStatsSummaryInsert(request, acceptanceStats, {
+                                        weekly: 5,
+                                        monthly: 12
+                                    }, function () {});
+                                });
+                        
+                            });
 
                             if (request.hasOwnProperty('activity_parent_id')) {
                                 if (util.hasValidGenericId(request, 'activity_parent_id')) {
@@ -1420,6 +1443,9 @@ function ActivityService(objectCollection) {
                         case 135: //Not Certified
                             //updateFlagOntime(request).then(()=>{});
                             break;
+                        default : request.set_flag = 0; //
+                                  updateFlagOntime(request).then(() => {});
+                                  break;
                     }
                 }
 
@@ -1432,7 +1458,7 @@ function ActivityService(objectCollection) {
                 switch (activityStatusTypeId) {
 
                     case 26: //completed // flag value is 2
-                        activityCommonService.getActivityDetails(request, 0, function (err, resultData) {
+                        /*activityCommonService.getActivityDetails(request, 0, function (err, resultData) {
                             if (err === false) {
                                 var newRequest = Object.assign({}, request);
                                 newRequest.asset_id = resultData[0].activity_owner_asset_id;
@@ -1452,7 +1478,7 @@ function ActivityService(objectCollection) {
                                 monthly: 12
                             }, function () {});
                         });
-                        break;
+                        break;*/
 
                     case 130: // flag value is 1 //accepted
                         activityCommonService.updateLeadStatus(request, 1, function (err, result) {
@@ -1890,22 +1916,45 @@ function ActivityService(objectCollection) {
         return new Promise((resolve, reject) => {
             activityCommonService.getActivityDetails(request, 0, function (err, data) {
                 if (err === false) {
-                    var dueDate = util.replaceDefaultDatetime(data[0].activity_datetime_end_expected);
-                    if (util.getCurrentDate() <= dueDate) {
-                        var paramsArr = new Array(
-                            request.activity_id,
-                            request.organization_id,
-                            1, //activity_flag_delivery_ontime,
-                            request.asset_id,
-                            request.datetime_log
-                        );
-                        var queryString = util.getQueryString('ds_v1_activity_list_update_flag_ontime', paramsArr);
-                        if (queryString != '') {
-                            db.executeQuery(0, queryString, request, function (err, data) {
-                                (err === false) ? resolve(data): reject(err);
-                            });
+                    var dueDate = util.replaceDefaultDatetime(data[0].activity_datetime_end_deferred);
+                    
+                    console.log('util.getCurrentUTCTime() : ', util.getCurrentUTCTime());
+                    console.log('dueDate : ', dueDate);
+                    
+                    if(request.hasOwnProperty('set_flag')) {
+                        if(request.set_flag == 0) {
+                            var paramsArr = new Array(
+                                request.activity_id,
+                                request.organization_id,
+                                0, //activity_flag_delivery_ontime,
+                                request.asset_id,
+                                request.datetime_log
+                                );
+                            var queryString = util.getQueryString('ds_v1_activity_list_update_flag_ontime', paramsArr);
+                            if (queryString != '') {
+                                db.executeQuery(0, queryString, request, function (err, data) {
+                                    (err === false) ? resolve(data): reject(err);
+                                });
+                            }
                         }
-                    }
+                    } else {
+                        if (util.getCurrentUTCTime() <= dueDate) {
+                            var paramsArr = new Array(
+                                request.activity_id,
+                                request.organization_id,
+                                1, //activity_flag_delivery_ontime,
+                                request.asset_id,
+                                request.datetime_log
+                            );
+                            var queryString = util.getQueryString('ds_v1_activity_list_update_flag_ontime', paramsArr);
+                            if (queryString != '') {
+                                db.executeQuery(0, queryString, request, function (err, data) {
+                                    (err === false) ? resolve(data): reject(err);
+                                });
+                            }
+                        }
+                    }                    
+                    
                 } else {
                     reject(err)
                 }
@@ -2313,6 +2362,11 @@ function ActivityService(objectCollection) {
         var totalCount = Number(acceptanceStats.weekly_acceptance_stats[0].total_count);
         var count = Number(acceptanceStats.weekly_acceptance_stats[0].count);
         var percentage = (totalCount > 0) ? (count / totalCount) * 100 : 0;
+        
+        console.log('weekly Count : ', count);
+        console.log('weekly Total Count : ', totalCount);
+        console.log('weekly Percentage : ', percentage);
+        
         collection.summary_id = summaryIds.weekly;
         collection.asset_id = request.asset_id;
         collection.entity_bigint_1 = totalCount;
@@ -2325,6 +2379,11 @@ function ActivityService(objectCollection) {
             totalCount = Number(acceptanceStats.monthly_acceptance_stats[0].total_count);
             count = Number(acceptanceStats.monthly_acceptance_stats[0].count);
             percentage = (totalCount > 0) ? (count / totalCount) * 100 : 0;
+            
+            console.log('monthly Count : ', count);
+            console.log('monthly Total Count : ', totalCount);
+            console.log('monthly Percentage : ', percentage);
+            
             collection.summary_id = summaryIds.monthly;
             collection.entity_bigint_1 = totalCount;
             collection.entity_decimal_2 = count;
