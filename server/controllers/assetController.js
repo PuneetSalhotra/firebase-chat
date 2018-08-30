@@ -448,10 +448,34 @@ function AssetController(objCollection) {
             }
         });
     });
-    
+
     // Retrieve asset's weekly summary params
     app.post('/' + global.config.version + '/asset/weekly/summary/params', function (req, res) {
         assetService.retrieveAssetWeeklySummaryParams(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+
+    // Service to fire everytime the app is launched.
+    app.post('/' + global.config.version + '/asset/signal/app_launch', function (req, res) {
+        assetService.assetAppLaunchTransactionInsert(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+
+    // Service to return both weekly and monthly summary params combined.
+    app.post('/' + global.config.version + '/asset/weekly_monthly/summary/params', function (req, res) {
+        assetService.retrieveAssetWeeklyAndMonthlySummaryParams(req.body, function (err, data, statusCode) {
             if (err === false) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {

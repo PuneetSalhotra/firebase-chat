@@ -1032,8 +1032,8 @@ function ActivityUpdateService(objectCollection) {
                                         console.log('\x1b[34m moment().utc() [current time] :\x1b[0m ', moment().utc());
 
                                         // Calculate the new threshhold
-                                        // (% threshhold / difference b/w the creation and due datetime) * 100
-                                        dueDateThreshhold = (Number(data[0].account_config_due_date_hours) / taskDateTimeDiffInHours) * 100;
+                                        // (% threshhold / 100) * difference b/w the creation and due datetime
+                                        dueDateThreshhold = (Number(data[0].account_config_due_date_hours) / 100) * taskDateTimeDiffInHours;
                                         console.log('\x1b[32m account_config_due_date_hours [threshhold % from DB] :\x1b[0m ', Number(data[0].account_config_due_date_hours));
                                         console.log('\x1b[32m Calculated dueDateThreshhold:\x1b[0m ', dueDateThreshhold);
 
@@ -1067,7 +1067,7 @@ function ActivityUpdateService(objectCollection) {
                                                 console.log('\x1b[32m Weekly Summary (percentageScore):\x1b[0m ', percentageScore);
                                                 // Weekly Summary Update
                                                 activityCommonService.weeklySummaryInsert(request, {
-                                                    summary_id: 7,
+                                                    summary_id: 17,
                                                     asset_id: request.asset_id,
                                                     entity_tinyint_1: 0,
                                                     entity_bigint_1: Number(data[0].total_count),
