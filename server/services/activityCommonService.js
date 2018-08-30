@@ -663,7 +663,8 @@ function ActivityCommonService(db, util, forEachAsync) {
                 request.timeline_transaction_id,
                 request.asset_id,
                 request.datetime_log, // server log date time
-                duration
+                duration,
+                request.config_resp_hours
                 );
 
         var queryString = util.getQueryString('ds_p1_asset_update_transaction_insert', paramsArr);
@@ -1208,13 +1209,24 @@ function ActivityCommonService(db, util, forEachAsync) {
         generateCode();
     };
 
-    this.getInmailCounts = function (request, callback) {
+    this.getInmailCounts = function (request, flag, callback) { //flag = 1 means monthly and flag = 2 means weekly
+        var startDate;
+        var endDate;
+        
+        if(flag === 1) {
+            startDate = util.getStartDateTimeOfMonth();
+            endDate = util.getEndDateTimeOfMonth();
+        } else {
+            startDate = util.getStartDateTimeOfWeek();
+            endDate = util.getEndDateTimeOfWeek();
+        }
+        
         var paramsArr = new Array(
                 request.organization_id,
                 request.activity_type_category_id,
                 request.asset_id,
-                util.getStartDateTimeOfMonth(),
-                util.getEndDateTimeOfMonth()
+                startDate,
+                endDate
                 );
         var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_inmail_counts', paramsArr);
         if (queryString != '') {
@@ -1376,7 +1388,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                     request.asset_id,
                     request.message_unique_id,
                     request.flag_retry,
-                    request.falg_retry_offline,
+                    request.flag_offline,
                     request.track_gps_datetime || request.datetime_log,
                     request.datetime_log
                     );
