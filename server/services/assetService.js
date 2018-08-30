@@ -2846,15 +2846,14 @@ function AssetService(objectCollection) {
 
     // Service to return both weekly and monthly summary params combined.
     this.retrieveAssetWeeklyAndMonthlySummaryParams = function (request, callback) {
-        const self = this;
         let responseJSON = {
             asset_id: request.asset_id,
             operating_asset_id: request.operating_asset_id,
             workforce_id: request.workforce_id,
             account_id: request.account_id,
             organization_id: request.organization_id,
-            week_start_date: request.week_start_date,
-            month_start_date: request.month_start_date,
+            // week_start_date: request.week_start_date,
+            // month_start_date: request.month_start_date,
             performance_data_weekly: { // Weekly summary params 
                 week_start_date: request.week_start_date,
                 response_rate: 0,
@@ -2883,11 +2882,12 @@ function AssetService(objectCollection) {
                     console.log("data: ", data);
                     data.forEach((summaryEntry) => {
                         // 
-                        switch (Number(summaryEntry.monthly_summary_id)) {
+                        switch (Number(summaryEntry.weekly_summary_id)) {
 
                             case 3: // Response Rate - InMail
-                            case 15: // Response Rate - Unread Updates
+                            // case 15: // Response Rate - Unread Updates
                             case 16: // Response Rate - Postits
+                            case 19: // Response Rate - File Updates
                                 // Include the response rate value for average calculation only if
                                 // it's a non-zero positive value. Else, ignore the entry.
                                 if (Number(summaryEntry.data_entity_decimal_1) > 0) {
@@ -2896,21 +2896,21 @@ function AssetService(objectCollection) {
                                 }
 
                             case 17: // Timeliness of tasks - Lead
-                                responseJSON.performance_data_monthly.planning_rate = summaryEntry.data_entity_decimal_1;
+                                // responseJSON.performance_data_weekly.planning_rate = summaryEntry.data_entity_decimal_1;
                                 break;
 
                             case 5: // Completion rate - Lead
-                                responseJSON.performance_data_monthly.completion_rate = summaryEntry.data_entity_decimal_1;
+                                responseJSON.performance_data_weekly.completion_rate = summaryEntry.data_entity_decimal_1;
                                 break;
 
                             case 18: // Office presence
-                                responseJSON.performance_data_monthly.office_presence_percentage = summaryEntry.data_entity_decimal_1;
+                                // responseJSON.performance_data_weekly.office_presence_percentage = summaryEntry.data_entity_decimal_1;
                                 break;
                         }
                     });
 
                     if (responseRateSum > 0) {
-                        responseJSON.performance_data_monthly.response_rate = responseRateSum / numOfResponseRateEntries;
+                        responseJSON.performance_data_weekly.response_rate = responseRateSum / numOfResponseRateEntries;
                     }
                 }),
 
@@ -2926,8 +2926,9 @@ function AssetService(objectCollection) {
                         switch (Number(summaryEntry.monthly_summary_id)) {
 
                             case 10: // Response Rate - InMail
-                            case 22: // Response Rate - Unread Updates
+                            // case 22: // Response Rate - Unread Updates
                             case 29: // Response Rate - Postits
+                            case 32: // Response Rate - File Updates
                                 // Include the response rate value for average calculation only if
                                 // it's a non-zero positive value. Else, ignore the entry.
                                 if (Number(summaryEntry.data_entity_decimal_1) > 0) {
@@ -2936,7 +2937,7 @@ function AssetService(objectCollection) {
                                 }
 
                             case 30: // Timeliness of tasks - Lead
-                                responseJSON.performance_data_monthly.planning_rate = summaryEntry.data_entity_decimal_1;
+                                // responseJSON.performance_data_monthly.planning_rate = summaryEntry.data_entity_decimal_1;
                                 break;
 
                             case 12: // Completion rate - Lead
@@ -2944,7 +2945,7 @@ function AssetService(objectCollection) {
                                 break;
 
                             case 31: // Office presence
-                                responseJSON.performance_data_monthly.office_presence_percentage = summaryEntry.data_entity_decimal_1;
+                                // responseJSON.performance_data_monthly.office_presence_percentage = summaryEntry.data_entity_decimal_1;
                                 break;
                         }
                     });
