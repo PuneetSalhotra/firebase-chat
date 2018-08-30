@@ -1672,8 +1672,25 @@ function ActivityUpdateService(objectCollection) {
                 console.log('Error in decreaseUnreadCntsInMobile : ', err);
             });
         }
-
-        activityCommonService.responseRateUnreadCount(request, request.activity_id, function (err, data) {});
+        
+        if(request.url.includes('v1')) {
+            if(activityTypeCategoryId === 10 || activityTypeCategoryId === 11 || activityTypeCategoryId === 5 ||
+                    activityTypeCategoryId === 6 || activityTypeCategoryId === 29 || activityTypeCategoryId === 43 ||
+                    activityTypeCategoryId === 44) {
+                activityCommonService.retrieveAccountList(request, (err, data) => {
+                    if (err === false) {                    
+                        request.config_resp_hours = data[0].account_config_response_hours;
+                        
+                        activityCommonService.responseRateUnreadCount(request, request.activity_id, function (err, data) {
+                            if(err === false){
+                                updateFilesPS(request).then(()=>{});
+                            }
+                        });
+                    }
+                });
+            }
+        }
+      
         activityPushService.sendPush(request, objectCollection, 0, function () {});
 
         //New Productivity Score
@@ -1695,7 +1712,7 @@ function ActivityUpdateService(objectCollection) {
             next();
         }); */
     };
-
+    
     function decreaseUnreadCntsInMobile(request) {
         return new Promise((resolve, reject) => {
             var paramsArr = new Array(
@@ -1712,6 +1729,94 @@ function ActivityUpdateService(objectCollection) {
             }
         });
     }
+    
+    //To calculate New Productivity Score files
+    function updateFilesPS(request) {
+        return new Promise((resolve, reject) => {           
+            
+            //Updating monthly summary Data
+            getResponseRateForFiles(request, 1).then((monthlyData)=>{
+                    console.log('Monthly Data : ', monthlyData);
+
+                    var percentage = 0;
+                    var noOfReceivedFileUpdates = monthlyData[0].countReceivedUpdates;
+                    var noOfRespondedFileUpdates = monthlyData[0].countRespondedOntimeUpdates;
+
+                    if (noOfReceivedFileUpdates != 0) {                                                
+                            percentage = (noOfRespondedFileUpdates / noOfReceivedFileUpdates) * 100;
+                    }
+
+                    console.log('Number Of ReceivedFileUpdates : ' + noOfReceivedFileUpdates);
+                    console.log('Number Of RespondedFileUpdates : ' + noOfRespondedFileUpdates);
+                    console.log('Percentage : ' + percentage);
+
+                    //Insert into monthly summary table
+                    var monthlyCollection = {};
+                    monthlyCollection.summary_id = 32;
+                    monthlyCollection.asset_id = request.asset_id;
+                    monthlyCollection.entity_bigint_1 = noOfReceivedFileUpdates; //denominator
+                    monthlyCollection.entity_double_1 = percentage; //percentage value
+                    monthlyCollection.entity_decimal_1 = percentage; //percentage value
+                    monthlyCollection.entity_decimal_3 = noOfRespondedFileUpdates; //numerator
+                    activityCommonService.monthlySummaryInsert(request, monthlyCollection, (err, data) => {});                                
+             });
+
+             //Updating weekly summary Data
+             getResponseRateForFiles(request, 2).then((weeklyData)=>{
+                console.log('Weekly Data : ', weeklyData);
+
+                var percentage = 0;
+                var noOfReceivedFileUpdates = weeklyData[0].countReceivedUpdates;
+                var noOfRespondedFileUpdates = weeklyData[0].countRespondedOntimeUpdates;
+
+                if (noOfReceivedFileUpdates != 0) {                                                
+                    percentage = (noOfRespondedFileUpdates / noOfReceivedFileUpdates) * 100;
+                }
+
+                console.log('Number Of ReceivedFileUpdates : ' + noOfReceivedFileUpdates);
+                console.log('Number Of RespondedFileUpdates : ' + noOfRespondedFileUpdates);
+                console.log('Percentage : ' + percentage);
+
+                //Insert into weekly summary table
+                var weeklyCollection = {};
+                weeklyCollection.summary_id = 19;
+                weeklyCollection.asset_id = request.asset_id;
+                weeklyCollection.entity_bigint_1 = noOfReceivedFileUpdates;
+                weeklyCollection.entity_double_1 = percentage;
+                weeklyCollection.entity_decimal_1 = percentage;
+                weeklyCollection.entity_decimal_3 = noOfRespondedFileUpdates;
+                activityCommonService.weeklySummaryInsert(request, weeklyCollection, (err, data) => {});
+                });               
+             
+         }); //closing the promise        
+    };
+    
+    function getResponseRateForFiles(request, flag) { ////flag = 1 means monthly and flag = 2 means weekly
+        return new Promise((resolve, reject) => {
+            var startDate;
+            var endDate;
+
+            if(flag === 1) {
+                startDate = util.getStartDateTimeOfMonth();
+                endDate = util.getEndDateTimeOfMonth();
+            } else {
+                startDate = util.getStartDateTimeOfWeek();
+                endDate = util.getEndDateTimeOfWeek();
+            }
+            var paramsArr = new Array(
+                request.organization_id,
+                request.asset_id,
+                startDate,
+                endDate                
+            );
+            var queryString = util.getQueryString('ds_v1_asset_update_transaction_select_response_rate', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data): reject(err);
+                });
+            }
+        });
+    };
 
     //To calculate New Productivity Score inMails
     function updateInmailPS(request) {
@@ -1740,15 +1845,15 @@ function ActivityUpdateService(objectCollection) {
                             activityCommonService.updateInMailResponse(request, onTimeFlag, (err, data) => {
                                 if (err === false) {
 
-                                    //Get the inmail Counts
-                                    activityCommonService.getInmailCounts(request, (err, countsData) => {
+                                    //Get the inmail Counts Monthly
+                                    activityCommonService.getInmailCounts(request, 1, (err, countsData) => {
                                         if (err === false) {
                                             var percentage = 0;
                                             var noOfReceivedInmails = countsData[0].countReceivedInmails;
                                             var noOfRespondedInmails = countsData[0].countOntimeRespondedInmails;
 
-                                            if (noOfReceivedInmails != 0) {
-                                                percentage = (noOfReceivedInmails / noOfRespondedInmails) * 100;
+                                            if (noOfReceivedInmails != 0) {                                                
+                                                percentage = (noOfRespondedInmails / noOfReceivedInmails) * 100;
                                             }
 
                                             global.logger.write('debug', 'Number Of ReceivedInmails : ' + noOfReceivedInmails, {}, request);
@@ -1763,7 +1868,26 @@ function ActivityUpdateService(objectCollection) {
                                             monthlyCollection.entity_double_1 = percentage; //percentage value
                                             monthlyCollection.entity_decimal_1 = percentage; //percentage value
                                             monthlyCollection.entity_decimal_3 = noOfRespondedInmails; //numerator
-                                            activityCommonService.monthlySummaryInsert(request, monthlyCollection, (err, data) => {});
+                                            activityCommonService.monthlySummaryInsert(request, monthlyCollection, (err, data) => {});                                           
+
+                                            resolve();
+                                        }
+                                    }); //getInmailCounts Monthly                            
+                                    
+                                    //Get the inmail Counts Weekly
+                                    activityCommonService.getInmailCounts(request, 2, (err, countsData) => {
+                                        if (err === false) {
+                                            var percentage = 0;
+                                            var noOfReceivedInmails = countsData[0].countReceivedInmails;
+                                            var noOfRespondedInmails = countsData[0].countOntimeRespondedInmails;
+
+                                            if (noOfReceivedInmails != 0) {                                                
+                                                percentage = (noOfRespondedInmails / noOfReceivedInmails) * 100;
+                                            }
+
+                                            global.logger.write('debug', 'Number Of ReceivedInmails : ' + noOfReceivedInmails, {}, request);
+                                            global.logger.write('debug', 'Number Of RespondedInmails : ' + noOfRespondedInmails, {}, request);
+                                            global.logger.write('debug', 'Percentage : ' + percentage, {}, request);
 
                                             //Insert into weekly summary table
                                             var weeklyCollection = {};
@@ -1777,81 +1901,8 @@ function ActivityUpdateService(objectCollection) {
 
                                             resolve();
                                         }
-                                    }); //getInmailCounts                                    
-                                }
-                            }); //updateInmailResponse                            
-                        }
-                    }); //retrieveAccountList
-                }
-            }); //getActivityDetails
-        }); // updateInmailPS Promise
-    };
-
-    //To calculate New Productivity Score PostIts
-    function updatepostItPS(request) {
-        return new Promise((resolve, reject) => {
-            var creationDate;
-
-            //Get activity Details
-            activityCommonService.getActivityDetails(request, 0, function (err, activityData) {
-                if (err === false) {
-                    creationDate = util.replaceDefaultDatetime(activityData[0].activity_datetime_start_expected);
-
-                    //Get the Config Value
-                    activityCommonService.retrieveAccountList(request, (err, data) => {
-                        if (err === false) {
-                            var configRespHours = data[0].account_config_response_hours;
-
-                            //diff will be in milli seconds
-                            var diff = util.differenceDatetimes(request.datetime_log, util.replaceDefaultDatetime(creationDate));
-                            diff = diff / 3600000;
-                            diff = Number(diff);
-                            (diff <= configRespHours) ? onTimeFlag = 1: onTimeFlag = 0;
-
-                            //Update the flag
-                            activityCommonService.updateInMailResponse(request, onTimeFlag, (err, data) => {
-                                if (err === false) {
-
-                                    //Get the inmail Counts
-                                    activityCommonService.getPostItCounts(request, (err, countsData) => {
-                                        if (err === false) {
-                                            var percentage = 0;
-                                            var noOfReceivedPostits = countsData[0].countReceivedPostits;
-                                            var noOfRespondedPostits = countsData[0].countOntimeRespondedPostits;
-
-                                            if (noOfReceivedPostits != 0) {
-                                                percentage = (noOfReceivedPostits / noOfRespondedPostits) * 100;
-                                            }
-
-                                            global.logger.write('debug', 'Number Of ReceivedPostits : ' + noOfReceivedPostits, {}, request);
-                                            global.logger.write('debug', 'Number Of RespondedPostits : ' + noOfRespondedPostits, {}, request);
-                                            global.logger.write('debug', 'Percentage : ' + percentage, {}, request);
-
-                                            //Insert into monthly summary table
-                                            var monthlyCollection = {};
-                                            monthlyCollection.summary_id = 29;
-                                            monthlyCollection.asset_id = request.asset_id;
-                                            monthlyCollection.entity_bigint_1 = noOfReceivedPostits; //denominator
-                                            monthlyCollection.entity_double_1 = percentage; //percentage value
-                                            monthlyCollection.entity_decimal_1 = percentage; //percentage value
-                                            monthlyCollection.entity_decimal_3 = noOfRespondedPostits; //numerator
-
-                                            activityCommonService.monthlySummaryInsert(request, monthlyCollection, (err, data) => {});
-
-                                            //Insert into weekly summary table
-                                            var weeklyCollection = {};
-                                            weeklyCollection.summary_id = 16;
-                                            weeklyCollection.asset_id = request.asset_id;
-                                            weeklyCollection.entity_bigint_1 = noOfReceivedPostits;
-                                            weeklyCollection.entity_double_1 = percentage;
-                                            weeklyCollection.entity_decimal_1 = percentage;
-                                            weeklyCollection.entity_decimal_3 = noOfRespondedPostits;
-
-                                            activityCommonService.weeklySummaryInsert(request, weeklyCollection, (err, data) => {});
-
-                                            resolve();
-                                        }
-                                    }); //getInmailCounts                                    
+                                    }); //getInmailCounts Weekly
+                                    
                                 }
                             }); //updateInmailResponse                            
                         }
