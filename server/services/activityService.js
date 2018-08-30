@@ -1625,7 +1625,7 @@ function ActivityService(objectCollection) {
                                             var noOfRespondedPostits = countsData[0].countOntimeRespondedPostits;
 
                                             if (noOfReceivedPostits != 0) {
-                                                percentage = (noOfReceivedPostits / noOfRespondedPostits) * 100;
+                                                percentage = (noOfRespondedPostits / noOfReceivedPostits) * 100;
                                             }
 
                                             global.logger.write('debug', 'Number Of ReceivedPostits : ' + noOfReceivedPostits, {}, request);
