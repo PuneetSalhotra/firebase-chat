@@ -640,6 +640,11 @@ function Util() {
         var value = moment(timeString, "YYYY-MM-DD HH:mm:ss").subtract(days, 'days').format("YYYY-MM-DD HH:mm:ss");
         return value;
     };
+    
+    this.subtractUnitsFromDateTime = function (timeString, days, unit) {
+        var value = moment(timeString, "YYYY-MM-DD HH:mm:ss").subtract(days, unit).format("YYYY-MM-DD HH:mm:ss");
+        return value;
+    };
 
     this.differenceDatetimes = function (timeString1, timeString2) {
         var value = moment(timeString1, "YYYY-MM-DD HH:mm:ss").diff(moment(timeString2, "YYYY-MM-DD HH:mm:ss"));
