@@ -1159,6 +1159,8 @@ function AssetService(objectCollection) {
                 activityCommonService.getAssetDetails(request, (err, data, statuscode) => {
                     if (err === false) {
                         console.log('Asset Signup count : ', data.asset_count_signup);
+                        request.asset_count_signup = data.asset_count_signup;
+
                         assetListUpdateSignupCnt(request, assetId).then(() => {});
 
                         if (data.asset_count_signup > 0) {
@@ -1184,7 +1186,7 @@ function AssetService(objectCollection) {
                             newRequest.activity_type_id = 46458;
 
                             newRequest.activity_access_role_id = 26;
-                            newRequest.activity_parent_id = 95670;  //PROD - 95670 ; Staging - 93256
+                            newRequest.activity_parent_id = 95670; //PROD - 95670 ; Staging - 93256
 
                             newRequest.url = "/add/activity/";
                             //activity_status_id:83846
@@ -1198,8 +1200,8 @@ function AssetService(objectCollection) {
 
                             newRequest.signedup_asset_email_id = data.operating_asset_email_id || "";
                             newRequest.signedup_asset_phone_country_code = data.operating_asset_phone_country_code;
-                            newRequest.signedup_asset_phone_number = data.operating_asset_phone_number;                            
-                            
+                            newRequest.signedup_asset_phone_number = data.operating_asset_phone_number;
+
                             cacheWrapper.getActivityId(function (err, activityId) {
                                 if (err) {
                                     console.log(err);
@@ -1234,13 +1236,17 @@ function AssetService(objectCollection) {
 
     function assetListUpdateSignupCnt(request, assetId) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), 
+            // IN p_asset_id BIGINT(20), IN p_asset_count_signup BIGINT(20), IN p_log_datetime DATETIME
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
-                assetId
+                assetId,
+                request.asset_count_signup,
+                util.getCurrentUTCTime()
             );
-            var queryString = util.getQueryString('ds_v1_asset_list_update_signup_count', paramsArr);
+            let queryString = util.getQueryString('ds_v1_1_asset_list_update_signup_count', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     //global.logger.write(queryString, request, 'asset', 'trace');
@@ -2564,140 +2570,156 @@ function AssetService(objectCollection) {
         var finalResponse = new Array;
         var dayPlanAssetIds = new Array;
         var pastDueAssetIds = new Array;
-        
+
         var paramsArr = new Array(
-                request.operating_asset_phone_number,
-                request.operating_asset_phone_country_code,
-                request.sort_flag,
-                0,
-                50
-                );
-        
+            request.operating_asset_phone_number,
+            request.operating_asset_phone_country_code,
+            request.sort_flag,
+            0,
+            50
+        );
+
         var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_unread_counts_phone_number', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
-                if(err === false) {
+                if (err === false) {
                     console.log('unread counts: ', data);
-                    forEachAsync(data, (next, row)=>{
+                    forEachAsync(data, (next, row) => {
                         allAssetIds.push(row.asset_id);
                         row.unread_count = row.count; //Adding the unread_count parameter in the response                
-                        formatActiveAccountsCountData(row, (err, formatedData)=>{
+                        formatActiveAccountsCountData(row, (err, formatedData) => {
                             response.push(formatedData);
                             next();
                         });
-            }).then(()=>{
-                    var paramsArr = new Array(
-                        0, //organizationId,
-                        request.operating_asset_phone_number,
-                        request.operating_asset_phone_country_code
-                    );
-                    var queryString = util.getQueryString('ds_p1_asset_list_select_phone_number_all', paramsArr);
+                    }).then(() => {
+                        var paramsArr = new Array(
+                            0, //organizationId,
+                            request.operating_asset_phone_number,
+                            request.operating_asset_phone_country_code
+                        );
+                        var queryString = util.getQueryString('ds_p1_asset_list_select_phone_number_all', paramsArr);
                         if (queryString != '') {
                             db.executeQuery(1, queryString, request, function (err, selectData) {
-                            if(err === false) {
-                                console.log(selectData.length);
-                                forEachAsync(selectData, (next, rowData)=>{
-                                    finalAssetIds.push(rowData.asset_id);
-                                    if(allAssetIds.includes(rowData.asset_id)) {
-                                        console.log(rowData.asset_id + ' is there.');
-                                        next();
-                                    } else {
-                                        formatActiveAccountsCountData(rowData, (err, formatedData)=>{
-                                            response.push(formatedData);
+                                if (err === false) {
+                                    console.log(selectData.length);
+                                    forEachAsync(selectData, (next, rowData) => {
+                                        finalAssetIds.push(rowData.asset_id);
+                                        if (allAssetIds.includes(rowData.asset_id)) {
+                                            console.log(rowData.asset_id + ' is there.');
                                             next();
-                                        });
-                                    }
-                                }).then(()=>{
-                                    console.log('All Asset Ids : ', allAssetIds);
-                                    console.log('final Asset Ids : ', finalAssetIds);
-                                    
-                                    forEachAsync(response, (next, rowData)=>{
-                                        if(finalAssetIds.includes(rowData.asset_id)) {
-                                            console.log(rowData.asset_id);
-                                            finalResponse.push(rowData);
-                                        }
-                                        next();
-                                    }).then(()=>{                                          
-
-                                        dayPlanCnt(request).then((dayPlanCnt)=>{
-                                        console.log('DayPlanCnt : ', dayPlanCnt);
-
-                                        forEachAsync(dayPlanCnt, (next, dayPlanrowData)=>{
-                                            dayPlanAssetIds.push(dayPlanrowData.asset_id);
-
-                                            if(finalAssetIds.includes(dayPlanrowData.asset_id)) {
-
-                                                //Updating the count in the final response
-                                                forEachAsync(finalResponse, (next, finalResprowData)=>{
-                                                    if(finalResprowData.asset_id === dayPlanrowData.asset_id) {
-                                                        finalResprowData.count +=  dayPlanrowData.count; //Adding the dayPlanCount to total count
-                                                        finalResprowData.day_plan_count = dayPlanrowData.count;                                                              
-                                                        next();
-                                                    } else { next(); }                                                
-                                                }).then(()=>{ next(); });
-                                            } else { next(); }
-
-                                        }).then(()=>{
-                                            pastDueCnt(request).then((pastDueCnt)=>{
-                                                console.log('pastDueCnt : ', pastDueCnt);
-
-                                                forEachAsync(pastDueCnt, (next, pastDuerowData)=>{
-                                                    pastDueAssetIds.push(pastDuerowData.asset_id);
-                                                        if(finalAssetIds.includes(pastDuerowData.asset_id)) {
-
-                                                            //Updating the count in the final response
-                                                            forEachAsync(finalResponse, (next, finalResprowData)=>{
-                                                                if(finalResprowData.asset_id === pastDuerowData.asset_id) {
-                                                                    finalResprowData.count +=  pastDuerowData.count; //Adding the PastDueCount to total count
-                                                                    finalResprowData.past_due_count = pastDuerowData.count;
-                                                                    next();
-                                                                } else { next(); }
-                                                            }).then(()=>{ next(); });
-                                                        } else { next(); }
-                                                }).then(()=>{
-                                                    callback(false, finalResponse, 200);
-                                                });
-
+                                        } else {
+                                            formatActiveAccountsCountData(rowData, (err, formatedData) => {
+                                                response.push(formatedData);
+                                                next();
                                             });
-                                            
+                                        }
+                                    }).then(() => {
+                                        console.log('All Asset Ids : ', allAssetIds);
+                                        console.log('final Asset Ids : ', finalAssetIds);
+
+                                        forEachAsync(response, (next, rowData) => {
+                                            if (finalAssetIds.includes(rowData.asset_id)) {
+                                                console.log(rowData.asset_id);
+                                                finalResponse.push(rowData);
+                                            }
+                                            next();
+                                        }).then(() => {
+
+                                            dayPlanCnt(request).then((dayPlanCnt) => {
+                                                console.log('DayPlanCnt : ', dayPlanCnt);
+
+                                                forEachAsync(dayPlanCnt, (next, dayPlanrowData) => {
+                                                    dayPlanAssetIds.push(dayPlanrowData.asset_id);
+
+                                                    if (finalAssetIds.includes(dayPlanrowData.asset_id)) {
+
+                                                        //Updating the count in the final response
+                                                        forEachAsync(finalResponse, (next, finalResprowData) => {
+                                                            if (finalResprowData.asset_id === dayPlanrowData.asset_id) {
+                                                                finalResprowData.count += dayPlanrowData.count; //Adding the dayPlanCount to total count
+                                                                finalResprowData.day_plan_count = dayPlanrowData.count;
+                                                                next();
+                                                            } else {
+                                                                next();
+                                                            }
+                                                        }).then(() => {
+                                                            next();
+                                                        });
+                                                    } else {
+                                                        next();
+                                                    }
+
+                                                }).then(() => {
+                                                    pastDueCnt(request).then((pastDueCnt) => {
+                                                        console.log('pastDueCnt : ', pastDueCnt);
+
+                                                        forEachAsync(pastDueCnt, (next, pastDuerowData) => {
+                                                            pastDueAssetIds.push(pastDuerowData.asset_id);
+                                                            if (finalAssetIds.includes(pastDuerowData.asset_id)) {
+
+                                                                //Updating the count in the final response
+                                                                forEachAsync(finalResponse, (next, finalResprowData) => {
+                                                                    if (finalResprowData.asset_id === pastDuerowData.asset_id) {
+                                                                        finalResprowData.count += pastDuerowData.count; //Adding the PastDueCount to total count
+                                                                        finalResprowData.past_due_count = pastDuerowData.count;
+                                                                        next();
+                                                                    } else {
+                                                                        next();
+                                                                    }
+                                                                }).then(() => {
+                                                                    next();
+                                                                });
+                                                            } else {
+                                                                next();
+                                                            }
+                                                        }).then(() => {
+                                                            callback(false, finalResponse, 200);
+                                                        });
+
+                                                    });
+
+                                                });
+                                            });
                                         });
-                                    });                                            
-                                });                                        
+                                    });
+                                } else {
+                                    callback(true, err, -9999);
+                                } //Second DB Call
                             });
-                        } else { callback(true, err, -9999); } //Second DB Call
+                        }
                     });
-                }
-            });           
-                    
-        } else { callback(true, err, -9999); } //First DB Call
-    });
-                
-    }
-};
+
+                } else {
+                    callback(true, err, -9999);
+                } //First DB Call
+            });
+
+        }
+    };
 
     function dayPlanCnt(request) {
-        return new Promise((resolve, reject)=>{
+        return new Promise((resolve, reject) => {
             var paramsArr = new Array(
                 request.operating_asset_phone_number,
                 request.operating_asset_phone_country_code,
-                util.getDayStartDatetimeTZ(request.timezone || ""),  //start_datetime, TimeZone needs to be considered
-                util.getDayEndDatetimeTZ(request.timezone || ""),    //end_datetime,TimeZone needs to be considered
+                util.getDayStartDatetimeTZ(request.timezone || ""), //start_datetime, TimeZone needs to be considered
+                util.getDayEndDatetimeTZ(request.timezone || ""), //end_datetime,TimeZone needs to be considered
                 request.sort_flag || 0, //anything can be given DB developer confirmed
                 0,
                 50
-                );
-        
+            );
+
             var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_dayplan_count_phone_number', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
-                    (err === false) ? resolve(data) : reject(err);
+                    (err === false) ? resolve(data): reject(err);
                 });
             }
         });
     };
-    
+
     function pastDueCnt(request) {
-        return new Promise((resolve, reject)=>{
+        return new Promise((resolve, reject) => {
             var paramsArr = new Array(
                 request.operating_asset_phone_number,
                 request.operating_asset_phone_country_code,
@@ -2705,21 +2727,21 @@ function AssetService(objectCollection) {
                 request.sort_flag || 0, //anything can be given DB developer confirmed
                 0,
                 50
-                );
-        
+            );
+
             var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_past_due_count_phone_number', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
-                    (err === false) ? resolve(data) : reject(err);
+                    (err === false) ? resolve(data): reject(err);
                 });
             }
         });
     };
-    
+
     var formatActiveAccountsCountData = function (rowArray, callback) {
-        
+
         var rowData = {
-            'count' : rowArray['count'] || 0,
+            'count': rowArray['count'] || 0,
             'asset_id': util.replaceDefaultNumber(rowArray['asset_id']),
             'asset_first_name': util.replaceDefaultString(rowArray['asset_first_name']),
             'organization_id': util.replaceDefaultNumber(rowArray['organization_id']),
@@ -2729,7 +2751,7 @@ function AssetService(objectCollection) {
             'operating_asset_id': util.replaceDefaultNumber(rowArray['operating_asset_id']),
             'operating_asset_first_name': util.replaceDefaultString(rowArray['operating_asset_first_name']),
             'operating_asset_last_name': util.replaceDefaultString(rowArray['operating_asset_last_name']),
-            'unread_count' : rowArray['unread_count'] || 0,
+            'unread_count': rowArray['unread_count'] || 0,
             'day_plan_count': rowArray['day_plan_count'] || 0,
             'past_due_count': rowArray['past_due_count'] || 0
         };
@@ -2776,7 +2798,7 @@ function AssetService(objectCollection) {
             });
         }
     };
-    
+
     // Retrieve asset's weekly summary params
     this.retrieveAssetWeeklySummaryParams = function (request, callback) {
         let paramsArr = new Array(
@@ -2789,17 +2811,200 @@ function AssetService(objectCollection) {
         let queryString = util.getQueryString('ds_p1_asset_weekly_summary_transaction_select_flag', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
-              if(typeof data !== 'undefined') {
-                if(data.length > 0 ) {
-                    (err === false) ? callback(false, data, 200) : callback(true, err, -9999);
+                if (typeof data !== 'undefined') {
+                    if (data.length > 0) {
+                        (err === false) ? callback(false, data, 200): callback(true, err, -9999);
+                    } else {
+                        callback(true, err, -9999);
+                    }
                 } else {
                     callback(true, err, -9999);
-                }   
-              } else {
-                  callback(true, err, -9999);
-              }                               
+                }
             });
         }
+    };
+
+    // Service to fire everytime the app is launched.
+    this.assetAppLaunchTransactionInsert = function (request, callback) {
+        // IN p_asset_id BIGINT(20), IN p_workforce_id BIGINT(20), IN p_account_id BIGINT(20), 
+        // IN p_organization_id BIGINT(20), IN p_log_datetime DATETIME
+        let paramsArr = new Array(
+            request.asset_id,
+            request.workforce_id,
+            request.account_id,
+            request.organization_id,
+            util.getCurrentUTCTime()
+        );
+        let queryString = util.getQueryString('ds_p1_asset_app_launch_transaction_insert', paramsArr);
+
+        if (queryString !== '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                (err === false) ? callback(false, data, 200): callback(true, err, -9999);
+            });
+        }
+    }
+
+    // Service to return both weekly and monthly summary params combined.
+    this.retrieveAssetWeeklyAndMonthlySummaryParams = function (request, callback) {
+        let responseJSON = {
+            asset_id: request.asset_id,
+            operating_asset_id: request.operating_asset_id,
+            workforce_id: request.workforce_id,
+            account_id: request.account_id,
+            organization_id: request.organization_id,
+            // week_start_date: request.week_start_date,
+            // month_start_date: request.month_start_date,
+            performance_data_weekly: { // Weekly summary params 
+                week_start_date: request.week_start_date,
+                response_rate: 0,
+                planning_rate: 0,
+                completion_rate: 0,
+                office_presence_percentage: 0
+            },
+            performance_data_monthly: { // Monthly summary params
+                month_start_date: request.month_start_date,
+                response_rate: 0,
+                planning_rate: 0,
+                completion_rate: 0,
+                office_presence_percentage: 0
+            }
+        };
+
+        Promise.all([
+                // Populate weekly summary params
+                asyncRetrieveAssetWeeklySummaryParams(request)
+                .then((data) => {
+                    // Run through each of the summary entries returned
+                    console.log("data: ", data);
+                    let responseRateSum = 0;
+                    let numOfResponseRateEntries = 0;
+                    // Run through each of the summary entries returned
+                    console.log("data: ", data);
+                    data.forEach((summaryEntry) => {
+                        // 
+                        switch (Number(summaryEntry.weekly_summary_id)) {
+
+                            case 3: // Response Rate - InMail
+                            // case 15: // Response Rate - Unread Updates
+                            case 16: // Response Rate - Postits
+                            case 19: // Response Rate - File Updates
+                                // Include the response rate value for average calculation only if
+                                // it's a non-zero positive value. Else, ignore the entry.
+                                if (Number(summaryEntry.data_entity_decimal_1) > 0) {
+                                    responseRateSum += Number(summaryEntry.data_entity_decimal_1);
+                                    numOfResponseRateEntries += 1;
+                                }
+
+                            case 17: // Timeliness of tasks - Lead
+                                // responseJSON.performance_data_weekly.planning_rate = summaryEntry.data_entity_decimal_1;
+                                break;
+
+                            case 5: // Completion rate - Lead
+                                responseJSON.performance_data_weekly.completion_rate = summaryEntry.data_entity_decimal_1;
+                                break;
+
+                            case 18: // Office presence
+                                // responseJSON.performance_data_weekly.office_presence_percentage = summaryEntry.data_entity_decimal_1;
+                                break;
+                        }
+                    });
+
+                    if (responseRateSum > 0) {
+                        responseJSON.performance_data_weekly.response_rate = responseRateSum / numOfResponseRateEntries;
+                    }
+                }),
+
+                // Populate monthly summary params
+                asyncRetrieveAssetMonthlySummaryParams(request)
+                .then((data) => {
+                    let responseRateSum = 0;
+                    let numOfResponseRateEntries = 0;
+                    // Run through each of the summary entries returned
+                    console.log("data: ", data);
+                    data.forEach((summaryEntry) => {
+                        // 
+                        switch (Number(summaryEntry.monthly_summary_id)) {
+
+                            case 10: // Response Rate - InMail
+                            // case 22: // Response Rate - Unread Updates
+                            case 29: // Response Rate - Postits
+                            case 32: // Response Rate - File Updates
+                                // Include the response rate value for average calculation only if
+                                // it's a non-zero positive value. Else, ignore the entry.
+                                if (Number(summaryEntry.data_entity_decimal_1) > 0) {
+                                    responseRateSum += Number(summaryEntry.data_entity_decimal_1);
+                                    numOfResponseRateEntries += 1;
+                                }
+
+                            case 30: // Timeliness of tasks - Lead
+                                // responseJSON.performance_data_monthly.planning_rate = summaryEntry.data_entity_decimal_1;
+                                break;
+
+                            case 12: // Completion rate - Lead
+                                responseJSON.performance_data_monthly.completion_rate = summaryEntry.data_entity_decimal_1;
+                                break;
+
+                            case 31: // Office presence
+                                // responseJSON.performance_data_monthly.office_presence_percentage = summaryEntry.data_entity_decimal_1;
+                                break;
+                        }
+                    });
+
+                    if (responseRateSum > 0) {
+                        responseJSON.performance_data_monthly.response_rate = responseRateSum / numOfResponseRateEntries;
+                    }
+
+                })
+            ])
+            .then(() => {
+                callback(false, responseJSON, 200)
+                return;
+            })
+            .catch((err) => {
+                callback(true, err, -9999)
+                return;
+            })
+
+    };
+
+    // [Asynchronously] Retrieve asset's weekly summary params
+    function asyncRetrieveAssetWeeklySummaryParams (request) {
+        return new Promise((resolve, reject) => {
+            let paramsArr = new Array(
+                request.asset_id,
+                request.operating_asset_id,
+                request.organization_id,
+                2, // p_flag
+                request.week_start_date // p_data_entity_date_1 => YYYY-MM-DD
+            );
+            let queryString = util.getQueryString('ds_p1_asset_weekly_summary_transaction_select_flag', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (!err)? resolve(data): reject(err);
+                });
+            }
+        });
+    };
+
+    // [Asynchronously] Retrieve asset's monthly summary params
+    function asyncRetrieveAssetMonthlySummaryParams(request) {
+        return new Promise((resolve, reject) => {
+            // IN p_asset_id BIGINT(20), IN p_operating_asset_id BIGINT(20), 
+            // IN p_organization_id BIGINT(20), IN p_flag SMALLINT(6), IN p_data_entity_date_1 DATETIME
+            let paramsArr = new Array(
+                request.asset_id,
+                request.operating_asset_id,
+                request.organization_id,
+                2, // p_flag
+                request.month_start_date // p_data_entity_date_1 => YYYY-MM-DD
+            );
+            let queryString = util.getQueryString('ds_p1_asset_monthly_summary_transaction_select_flag', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (!err) ? resolve(data): reject(err);
+                });
+            }
+        });
     };
 
 }

@@ -1643,15 +1643,15 @@ function ActivityService(objectCollection) {
                             activityCommonService.updateInMailResponse(request, onTimeFlag, (err, data) => {
                                 if (err === false) {
 
-                                    //Get the inmail Counts
-                                    activityCommonService.getPostItCounts(request, (err, countsData) => {
+                                    // Get the inmail Counts | Monthly Summary Insert
+                                    activityCommonService.getPostItCounts(request, 1, (err, countsData) => {
                                         if (err === false) {
-                                            var percentage = 0;
-                                            var noOfReceivedPostits = countsData[0].countReceivedPostits;
-                                            var noOfRespondedPostits = countsData[0].countOntimeRespondedPostits;
+                                            let percentage = 0;
+                                            let noOfReceivedPostits = countsData[0].countReceivedPostits;
+                                            let noOfRespondedPostits = countsData[0].countOntimeRespondedPostits;
 
-                                            if (noOfReceivedPostits != 0) {
-                                                percentage = (noOfReceivedPostits / noOfRespondedPostits) * 100;
+                                            if (noOfReceivedPostits !== 0) {
+                                                percentage = (noOfRespondedPostits / noOfReceivedPostits) * 100;
                                             }
 
                                             global.logger.write('debug', 'Number Of ReceivedPostits : ' + noOfReceivedPostits, {}, request);
@@ -1669,6 +1669,25 @@ function ActivityService(objectCollection) {
 
                                             activityCommonService.monthlySummaryInsert(request, monthlyCollection, (err, data) => {});
 
+                                            resolve();
+                                        }
+                                    }); // getInmailCounts for the Month
+
+                                    // Get the inmail Counts | Weekly Summary Insert
+                                    activityCommonService.getPostItCounts(request, 2, (err, countsData) => {
+                                        if (err === false) {
+                                            let percentage = 0;
+                                            let noOfReceivedPostits = countsData[0].countReceivedPostits;
+                                            let noOfRespondedPostits = countsData[0].countOntimeRespondedPostits;
+
+                                            if (noOfReceivedPostits !== 0) {
+                                                percentage = (noOfRespondedPostits / noOfReceivedPostits) * 100;
+                                            }
+
+                                            global.logger.write('debug', 'Number Of ReceivedPostits : ' + noOfReceivedPostits, {}, request);
+                                            global.logger.write('debug', 'Number Of RespondedPostits : ' + noOfRespondedPostits, {}, request);
+                                            global.logger.write('debug', 'Percentage : ' + percentage, {}, request);
+
                                             //Insert into weekly summary table
                                             var weeklyCollection = {};
                                             weeklyCollection.summary_id = 16;
@@ -1680,9 +1699,8 @@ function ActivityService(objectCollection) {
 
                                             activityCommonService.weeklySummaryInsert(request, weeklyCollection, (err, data) => {});
 
-                                            resolve();
                                         }
-                                    }); // getInmailCounts                                    
+                                    }); // getInmailCounts for the Week
                                 }
                             }); // updateInmailResponse                            
                         }

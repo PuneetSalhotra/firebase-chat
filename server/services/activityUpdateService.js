@@ -1009,9 +1009,13 @@ function ActivityUpdateService(objectCollection) {
                         //get the activity Details
                         activityCommonService.getActivityDetails(request, 0, function (err, activityData) {
                             if (err === false) {
+                                
+                                console.log('\x1b[32m activity_datetime_start_expected in DB :\x1b[0m ' , util.replaceDefaultDatetime(activityData[0].activity_datetime_start_expected));
+                                console.log('\x1b[32m activity_datetime_end_deferred in DB: \x1b[0m' , util.replaceDefaultDatetime(activityData[0].activity_datetime_end_deferred));
+                                        
                                 taskDateTimeDiffInHours = util.differenceDatetimes(
-                                    util.replaceDefaultDatetime(activityData[0].activity_datetime_end_expected),
-                                    util.replaceDefaultDatetime(activityData[0].activity_datetime_start_expected)
+                                    util.replaceDefaultDatetime(activityData[0].activity_datetime_end_deferred),
+                                    parsedActivityCoverData.duedate.old
                                 );
                                 // 1 Hour => 60 min => 3600 s => 3600000 ms
                                 taskDateTimeDiffInHours = Number(taskDateTimeDiffInHours / 3600000);
@@ -1022,25 +1026,32 @@ function ActivityUpdateService(objectCollection) {
                                     if (!error && Object.keys(data).length) {
                                         // Check whether the difference between date of duedate change and old
                                         // duedate is within the % threshhold value returned in account_config_due_date_hours
-                                        let datetimeDifference = moment(activityData[0].activity_datetime_end_expected).diff(moment().utc());
-                                        let changeDurationInHours = moment.duration(datetimeDifference).asHours();
-                                        // Set flag_ontime
+                                                           
+                                        console.log('\x1b[32m difference between: datetime_log :\x1b[0m ' , request.datetime_log);
+                                        console.log('\x1b[32m end defferred time: \x1b[0m' , util.replaceDefaultDatetime(activityData[0].activity_datetime_end_deferred));
+                                        //let datetimeDifference = moment(activityData[0].activity_datetime_end_expected).diff(moment().utc());
+                                        
+                                        let changeDurationInHours;
                                         let flag_ontime = 0; // Default: 'not on time'
+                                        if(request.datetime_log <= util.replaceDefaultDatetime(activityData[0].activity_datetime_end_deferred)) {
+                                             changeDurationInHours  = util.differenceDatetimes(
+                                                    request.datetime_log,
+                                                    parsedActivityCoverData.duedate.old
+                                                );
+                                             
+                                             changeDurationInHours = Number(changeDurationInHours / 3600000);
+                                             console.log('\x1b[32m change Duration In Hours:\x1b[0m ', changeDurationInHours)
+                                             
+                                             dueDateThreshhold = (Number(data[0].account_config_due_date_hours) / 100) * taskDateTimeDiffInHours;
+                                             console.log('\x1b[32m account_config_due_date_hours [threshhold % from DB] :\x1b[0m ', Number(data[0].account_config_due_date_hours));
+                                             console.log('\x1b[32m Calculated dueDateThreshhold:\x1b[0m ', dueDateThreshhold);
 
-                                        console.log('\x1b[34m datetimeDifference[now ~ old due date] :\x1b[0m ', datetimeDifference);
-                                        console.log('\x1b[34m changeDurationInHours[now ~ old due date] :\x1b[0m ', changeDurationInHours);
-                                        console.log('\x1b[34m moment().utc() [current time] :\x1b[0m ', moment().utc());
-
-                                        // Calculate the new threshhold
-                                        // (% threshhold / difference b/w the creation and due datetime) * 100
-                                        dueDateThreshhold = (Number(data[0].account_config_due_date_hours) / taskDateTimeDiffInHours) * 100;
-                                        console.log('\x1b[32m account_config_due_date_hours [threshhold % from DB] :\x1b[0m ', Number(data[0].account_config_due_date_hours));
-                                        console.log('\x1b[32m Calculated dueDateThreshhold:\x1b[0m ', dueDateThreshhold);
-
-                                        if (changeDurationInHours >= Number(dueDateThreshhold)) {
-                                            flag_ontime = 1; // Set to 'on time'                                        
+                                             console.log(changeDurationInHours +' >= '+ Number(dueDateThreshhold))
+                                             if (changeDurationInHours >= Number(dueDateThreshhold)) {
+                                                flag_ontime = 1; // Set to 'on time'                                        
+                                             }
                                         }
-
+                                       
                                         console.log('\x1b[32m flag_ontime :\x1b[0m ', flag_ontime);
                                         activityListUpdateDueDateAlterCount(request, flag_ontime)
                                             .then(() => {
@@ -1067,7 +1078,7 @@ function ActivityUpdateService(objectCollection) {
                                                 console.log('\x1b[32m Weekly Summary (percentageScore):\x1b[0m ', percentageScore);
                                                 // Weekly Summary Update
                                                 activityCommonService.weeklySummaryInsert(request, {
-                                                    summary_id: 7,
+                                                    summary_id: 17,
                                                     asset_id: request.asset_id,
                                                     entity_tinyint_1: 0,
                                                     entity_bigint_1: Number(data[0].total_count),
