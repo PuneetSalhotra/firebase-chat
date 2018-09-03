@@ -1153,22 +1153,26 @@ function AssetService(objectCollection) {
         }
     };
 
-    function updateSignUpCnt(request, assetId, whichAssetId) { //Asset_Id : 1 -- Operating_asset_id : 2
+    function updateSignUpCnt(request, assetId, whichAssetId) { 
+        // asset_Id : 1 
+        // operating_asset_id : 2
         return new Promise((resolve, reject) => {
-            if (whichAssetId == 2) {
-                activityCommonService.getAssetDetails(request, (err, data, statuscode) => {
-                    if (err === false) {
-                        console.log('Asset Signup count : ', data.asset_count_signup);
-                        request.asset_count_signup = data.asset_count_signup;
 
-                        assetListUpdateSignupCnt(request, assetId).then(() => {});
+            if (whichAssetId === 1) {
+                // ASSET ID - DESK
+                activityCommonService.getAssetDetails(request, (err, data, statusCode) => {
+                    if (err === false) {
+                        console.log('\x1b[36mAsset Signup count:\x1b[0m ', data.asset_count_signup);
+                        request.asset_count_signup = data.asset_count_signup;
 
                         if (data.asset_count_signup > 0) {
                             assetListUpdateSignupCnt(request, assetId).then(() => {});
+
                         } else {
+                            assetListUpdateSignupCnt(request, assetId).then(() => {});
                             //Create a Task in a given Project and add an update
                             //Asset_id, operating_asset_name, organization_name, workforce_name
-                            console.log('Have to create a Task');
+                            console.log('Create a Task for Paramesh');
                             var newRequest = {};
 
                             newRequest.organization_id = 336;
@@ -1229,7 +1233,17 @@ function AssetService(objectCollection) {
                     }
                 });
             } else {
-                assetListUpdateSignupCnt(request, assetId).then(() => {});
+                // OPERATING ASSET ID - EMPLOYEE
+                let newRequest = Object.assign(request);
+                newRequest.asset_id = request.operating_asset_id;
+
+                activityCommonService.getAssetDetails(newRequest, (err, data, statusCode) => {
+                    console.log('\x1b[36mOperating Asset Signup count:\x1b[0m ', data.asset_count_signup);
+                    newRequest.asset_count_signup = data.asset_count_signup;
+
+                    assetListUpdateSignupCnt(request, assetId).then(() => {});
+                });
+
             }
         });
     };
