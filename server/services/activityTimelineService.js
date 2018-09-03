@@ -992,7 +992,7 @@ function ActivityTimelineService(objectCollection) {
                     request.account_id, //7
                     request.organization_id, //8
                     '', //IN p_entity_date_1 DATE                                   9
-                    '', //IN p_entity_datetime_1 DATETIME                           10
+                    request.entity_datetime_1 || '', //IN p_entity_datetime_1 DATETIME            10
                     '', //IN p_entity_tinyint_1 TINYINT(4)                          11
                     '', //IN p_entity_tinyint_2 TINYINT(4)                          12 BETA
                     '', //IN p_entity_bigint_1 BIGINT(20)                           13
@@ -1008,7 +1008,7 @@ function ActivityTimelineService(objectCollection) {
                     '', //IN p_location_gps_accuracy DOUBLE(16,4)                   23
                     '', //IN p_location_gps_enabled TINYINT(1)                      24
                     '', //IN p_location_address VARCHAR(300)                        25
-                    '' //IN p_location_datetime DATETIME                            26
+                    ''  //IN p_location_datetime DATETIME                            26
                     );
 
             var dataTypeId = Number(row.field_data_type_id);
@@ -1126,11 +1126,13 @@ function ActivityTimelineService(objectCollection) {
             params.push(row.message_unique_id);                                 // IN p_log_message_unique_id VARCHAR(50)
             params.push(request.flag_retry);                                    // IN p_log_retry TINYINT(1)
             params.push(request.flag_offline);                                  // IN p_log_offline TINYINT(1)
-            params.push(request.track_gps_datetime);                            // IN p_transaction_datetime DATETIME
+            params.push(util.getCurrentUTCTime());                              // IN p_transaction_datetime DATETIME
             params.push(request.datetime_log);                                  // IN p_log_datetime DATETIME
+            params.push(request.entity_datetime_2);                             // IN p_entity_datetime_2 DATETIME
 
             //var queryString = util.getQueryString('ds_v1_activity_form_transaction_insert', params);
-            var queryString = util.getQueryString('ds_v1_1_activity_form_transaction_insert', params); //BETA
+            // var queryString = util.getQueryString('ds_v1_1_activity_form_transaction_insert', params); //BETA
+            var queryString = util.getQueryString('ds_v1_2_activity_form_transaction_insert', params); //BETA
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     next();
