@@ -1153,7 +1153,7 @@ function AssetService(objectCollection) {
         }
     };
 
-    function updateSignUpCnt(request, assetId, whichAssetId) { 
+    function updateSignUpCnt(request, assetId, whichAssetId) {
         // asset_Id : 1 
         // operating_asset_id : 2
         return new Promise((resolve, reject) => {
@@ -2899,7 +2899,7 @@ function AssetService(objectCollection) {
                         switch (Number(summaryEntry.weekly_summary_id)) {
 
                             case 3: // Response Rate - InMail
-                            // case 15: // Response Rate - Unread Updates
+                                // case 15: // Response Rate - Unread Updates
                             case 16: // Response Rate - Postits
                             case 19: // Response Rate - File Updates
                                 // Include the response rate value for average calculation only if
@@ -2940,7 +2940,7 @@ function AssetService(objectCollection) {
                         switch (Number(summaryEntry.monthly_summary_id)) {
 
                             case 10: // Response Rate - InMail
-                            // case 22: // Response Rate - Unread Updates
+                                // case 22: // Response Rate - Unread Updates
                             case 29: // Response Rate - Postits
                             case 32: // Response Rate - File Updates
                                 // Include the response rate value for average calculation only if
@@ -2982,7 +2982,7 @@ function AssetService(objectCollection) {
     };
 
     // [Asynchronously] Retrieve asset's weekly summary params
-    function asyncRetrieveAssetWeeklySummaryParams (request) {
+    function asyncRetrieveAssetWeeklySummaryParams(request) {
         return new Promise((resolve, reject) => {
             let paramsArr = new Array(
                 request.asset_id,
@@ -2994,7 +2994,7 @@ function AssetService(objectCollection) {
             let queryString = util.getQueryString('ds_p1_asset_weekly_summary_transaction_select_flag', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
-                    (!err)? resolve(data): reject(err);
+                    (!err) ? resolve(data): reject(err);
                 });
             }
         });
