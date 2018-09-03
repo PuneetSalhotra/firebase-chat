@@ -7,9 +7,8 @@ elif [ "$DEPLOYMENT_GROUP_NAME" == "DeskerApiCode-Production" ]
 then
   cd /api-itsnotan-efs/node/production_desker_api/2018-09-03-03/
   mode=prod pm2 reload startProdProcesses.yml
-  sleep 5
   cd /api-final-efs/node/production_portal_api/2018-08-29-01
-  mode=prod pm2 reload startAllProdPortalProcesses.yml
+  mode=prod pm2 reload startAllProdPortalProcesses.yml  
 else    
   echo "Unknown deployment Group"
 fi
