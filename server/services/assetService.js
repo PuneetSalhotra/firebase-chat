@@ -2896,7 +2896,7 @@ function AssetService(objectCollection) {
                                 }
 
                             case 17: // Timeliness of tasks - Lead
-                                // responseJSON.performance_data_weekly.planning_rate = summaryEntry.data_entity_decimal_1;
+                                responseJSON.performance_data_weekly.planning_rate = summaryEntry.data_entity_decimal_1;
                                 break;
 
                             case 5: // Completion rate - Lead
@@ -2904,7 +2904,7 @@ function AssetService(objectCollection) {
                                 break;
 
                             case 18: // Office presence
-                                // responseJSON.performance_data_weekly.office_presence_percentage = summaryEntry.data_entity_decimal_1;
+                                responseJSON.performance_data_weekly.office_presence_percentage = summaryEntry.data_entity_double_1;
                                 break;
                         }
                     });
@@ -2937,7 +2937,7 @@ function AssetService(objectCollection) {
                                 }
 
                             case 30: // Timeliness of tasks - Lead
-                                // responseJSON.performance_data_monthly.planning_rate = summaryEntry.data_entity_decimal_1;
+                                responseJSON.performance_data_monthly.planning_rate = summaryEntry.data_entity_decimal_1;
                                 break;
 
                             case 12: // Completion rate - Lead
@@ -2945,7 +2945,7 @@ function AssetService(objectCollection) {
                                 break;
 
                             case 31: // Office presence
-                                // responseJSON.performance_data_monthly.office_presence_percentage = summaryEntry.data_entity_decimal_1;
+                                responseJSON.performance_data_monthly.office_presence_percentage = summaryEntry.data_entity_double_1;
                                 break;
                         }
                     });
