@@ -50,7 +50,8 @@ function PamListingService(objectCollection) {
                     'parent_activity_title': util.replaceDefaultString(row['parent_activity_title']),
                     'channel_activity_id': util.replaceDefaultNumber(row['channel_activity_id']),
                     'channel_activity_type_category_id': util.replaceDefaultString(row['channel_activity_type_category_id']),
-                    'log_datetime': util.replaceDefaultDatetime(row['log_datetime'])
+                    'log_datetime': util.replaceDefaultDatetime(row['log_datetime']),
+                    'form_id': util.replaceDefaultNumber(row['form_id'])
                 };
                 responseArr.push(rowData);
                 next();
