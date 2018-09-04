@@ -36,13 +36,13 @@ function ActivityTimelineService(objectCollection) {
                 }
             }
             // add form entries
-            addFormEntries(request, function (err, approvalFieldsArr) {
-                if (err === false) {
-                    //callback(false,{},200);
-                } else {
-                    //callback(true, {}, -9999);
-                }
-            });
+            // addFormEntries(request, function (err, approvalFieldsArr) {
+            //     if (err === false) {
+            //         //callback(false,{},200);
+            //     } else {
+            //         //callback(true, {}, -9999);
+            //     }
+            // });
         } else {
             request.form_id = 0;
         }
