@@ -846,6 +846,129 @@ function PamListingService(objectCollection) {
 
     };
     
+    this.averages = function (request) {
+		return new Promise((resolve, reject)=>{
+	        var paramsArr = new Array(
+	        		request.organization_id,
+	        		request.account_id,
+					request.event_activity_id,
+					request.is_date,
+					request.start_date,
+					request.end_date
+	                );
+	
+	        var queryString = util.getQueryString('pm_v1_pam_order_list_select_averages', paramsArr);
+	        if (queryString != '') {
+	            db.executeQuery(1, queryString, request, function (err, data) {
+	            	//console.log("err "+err);
+	               if(err === false) {
+	        			resolve(data);	        			      			  
+                    } else {
+	                   reject(err);
+	               }
+	            });
+	   		}
+        });
+    };
+    
+    this.mostOrdered = function (request) {
+		return new Promise((resolve, reject)=>{
+	        var paramsArr = new Array(
+	        	    request.organization_id,
+	        		request.account_id,
+					request.event_activity_id,
+					request.order_activity_type_id,
+					request.is_date,
+					request.start_date,
+					request.end_date
+	                );
+	
+	        var queryString = util.getQueryString('pm_v1_pam_order_list_max_ordered', paramsArr);
+	        if (queryString != '') {
+	            db.executeQuery(1, queryString, request, function (err, data) {
+	            	//console.log("err "+err);
+	               if(err === false) {
+	        			resolve(data);	        			      			  
+                    } else {
+	                   reject(err);
+	               }
+	            });
+	   		}
+        });
+    };
+    
+    this.billByItemType = function (request) {
+		return new Promise((resolve, reject)=>{
+	        var paramsArr = new Array(
+	        		request.organization_id,
+	        		request.account_id,
+					request.event_activity_id,
+					request.is_date,
+					request.start_date,
+					request.end_date,
+					request.is_status,
+					request.is_type
+	                );
+	
+	        var queryString = util.getQueryString('pm_v1_pam_order_list_select_bill_group_by', paramsArr);
+	        if (queryString != '') {
+	            db.executeQuery(1, queryString, request, function (err, data) {
+	            	//console.log("err "+err);
+	               if(err === false) {
+	        			resolve(data);	        			      			  
+                    } else {
+	                   reject(err);
+	               }
+	            });
+	   		}
+        });
+    };
+    
+    this.getEventBydate = function (request) {
+		return new Promise((resolve, reject)=>{
+	        var paramsArr = new Array(
+	        		request.organization_id,
+	        		request.account_id,
+					request.activity_type_category_id,
+					request.start_datetime,
+					request.end_datetime,
+	                request.page_start,
+                	util.replaceQueryLimit(request.page_limit)
+	                );
+	
+	        var queryString = util.getQueryString('pm_v1_activity_list_select_date_events', paramsArr);
+	        if (queryString != '') {
+	            db.executeQuery(1, queryString, request, function (err, data) {
+	            	//console.log("err "+err);
+	               if(err === false) {
+	        			resolve(data);	        			      			  
+                    } else {
+	                   reject(err);
+	               }
+	            });
+	   		}
+        });
+    };
+    
+    this.getAssetDetails = function (request) {
+    return new Promise((resolve, reject)=>{
+        var paramsArr = new Array(
+            request.organization_id,
+            request.target_asset_id
+        );
+        var queryString = util.getQueryString('pm_v1_asset_list_select', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+				 if(err === false) {
+	        			resolve(data);	        			      			  
+                    } else {
+	                   reject(err);
+	               }
+            });
+        }
+	});
+    };
+    
 };
 
 module.exports = PamListingService;
