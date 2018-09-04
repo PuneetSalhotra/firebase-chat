@@ -15,6 +15,7 @@ function ActivityTimelineService(objectCollection) {
 
     this.addTimelineTransaction = function (request, callback) {
 
+        const self = this;
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         var activityTypeCategoryId = Number(request.activity_type_category_id);
@@ -59,6 +60,20 @@ function ActivityTimelineService(objectCollection) {
                 if (err) {
 
                 } else {
+
+                    if (activityTypeCategoryId === 9 && activityStreamTypeId === 705) {
+
+                        setImmediate(addFormEntries.bind(self),
+                            request,
+                            function addFormEntriesCallback(err, approvalFieldsArr) {
+                                if (err === false) {
+                                    //callback(false,{},200);
+                                } else {
+                                    //callback(true, {}, -9999);
+                                }
+                            });
+                    }
+
                     activityPushService.sendPush(request, objectCollection, 0, function () {});
                     activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) { });
 
