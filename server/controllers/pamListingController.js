@@ -247,6 +247,26 @@ function PamListingController(objCollection) {
     		res.send(responseWrapper.getResponse(err, data, -999, req.body));
         });    		
     });
+    
+    app.post('/' + global.config.version + '/pam/event/payment/collection', function (req, res) {
+    	pamListingService.billingAmountByPaymentType(req.body).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        });    		
+    });
+    
+    app.post('/' + global.config.version + '/pam/inventory/consumption', function (req, res) {
+    	pamListingService.getInventoryConsumption(req.body).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        });    		
+    });
 }
 ;
 module.exports = PamListingController;
