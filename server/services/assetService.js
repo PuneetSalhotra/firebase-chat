@@ -2908,6 +2908,7 @@ function AssetService(objectCollection) {
                                     responseRateSum += Number(summaryEntry.data_entity_decimal_1);
                                     numOfResponseRateEntries += 1;
                                 }
+                                break;
 
                             case 17: // Timeliness of tasks - Lead
                                 responseJSON.performance_data_weekly.planning_rate = summaryEntry.data_entity_decimal_1;
@@ -2949,6 +2950,7 @@ function AssetService(objectCollection) {
                                     responseRateSum += Number(summaryEntry.data_entity_decimal_1);
                                     numOfResponseRateEntries += 1;
                                 }
+                                break;
 
                             case 30: // Timeliness of tasks - Lead
                                 responseJSON.performance_data_monthly.planning_rate = summaryEntry.data_entity_decimal_1;
