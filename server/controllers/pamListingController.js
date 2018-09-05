@@ -258,7 +258,7 @@ function PamListingController(objCollection) {
         });    		
     });
     
-    app.post('/' + global.config.version + '/pam/inventory/consumption', function (req, res) {
+    app.post('/' + global.config.version + '/pam/event/inventory/consumption', function (req, res) {
     	pamListingService.getInventoryConsumption(req.body).then((data)=>{   
     		//console.log(data);
     		res.send(responseWrapper.getResponse({}, data, 200, req.body));
