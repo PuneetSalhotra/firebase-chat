@@ -694,14 +694,22 @@ function Util() {
     //getDay start time based on the TimeZone
     this.getDayStartDatetimeTZ = function(timezone) {
         (timezone === "") ? timezone = 'Asia/Kolkata' : timezone = timezone;
-        var value = moment().tz(timezone).startOf('day').format('YYYY-MM-DD HH:mm:ss');
+        var input = moment().tz(timezone).startOf('day');
+        var format = 'YYYY-MM-DD HH:mm:ss';
+        var value = moment.tz(input, format, timezone).utc().format('YYYY-MM-DD HH:mm:ss');
+        console.log('TimeZone : ', timezone);
+        console.log('Start DateTime in given timezone: ', value);        
         return value;
     };
     
     //getDay end time based on the TimeZone
     this.getDayEndDatetimeTZ = function(timezone) {
         (timezone === "") ? timezone = 'Asia/Kolkata' : timezone = timezone;
-        var value = moment().tz(timezone).endOf('day').format('YYYY-MM-DD HH:mm:ss');
+        var input = moment().tz(timezone).endOf('day');
+        var format = 'YYYY-MM-DD HH:mm:ss';
+        var value = moment.tz(input, format, timezone).utc().format('YYYY-MM-DD HH:mm:ss');
+        console.log('TimeZone : ', timezone);
+        console.log('End DateTime in given timezone: ', value);
         return value;
     };
     
