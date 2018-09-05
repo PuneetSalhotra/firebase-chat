@@ -932,6 +932,13 @@ function ActivityService(objectCollection) {
                                 });
                             }
                         } else {
+                            
+                            // TimeCard Form Submission for Swipe In
+                            var isTimeCardFormSubmission = (Number(request.activity_form_id) === 800) || (Number(request.activity_form_id) === 801) || (Number(request.activity_form_id) === 325);
+                            if (activityTypeCategoryId === 9 && Number(request.swipe_flag) === 0 && isTimeCardFormSubmission) {
+                                submitFormActivityForOfficePresenceSwipeIn(request);
+                            }
+
                             callback(false, true);
                             return;
                         }
@@ -945,6 +952,96 @@ function ActivityService(objectCollection) {
             }
         });
     };
+
+    function submitFormActivityForOfficePresenceSwipeIn(request) {
+        // Form ID logic to decide between (request.activity_form_id)
+        // 325 => Timecard - Manual 
+        // 800 => Timecard - Automated - Mobile 
+        // 801 => Timecard - Automated - Web
+        // Calculate field IDs
+        var clientSignInTime;
+        var serverSignInTime;
+        // On the other hand, if the form_id is either 800 or 801,
+        // calculate the field_ids
+        if (Number(request.activity_form_id) === 800) {
+            clientSignInTime = 4605;
+            serverSignInTime = 4606;
+
+        } else if (Number(request.activity_form_id) === 801) {
+            clientSignInTime = 4611;
+            serverSignInTime = 4612;
+
+        } else if (Number(request.activity_form_id) === 325) {
+            clientSignInTime = 2549;
+            serverSignInTime = 2550;
+        }
+
+        var activityTimelineCollectionJSON = JSON.stringify([{
+                "form_id": Number(request.activity_form_id),
+                "field_id": clientSignInTime,
+                "field_data_type_id": 4,
+                "field_data_type_category_id": 1,
+                "data_type_combo_id": 0,
+                "data_type_combo_value": "",
+                "field_value": request.swipe_in_datetime,
+                "message_unique_id": util.getMessageUniqueId(request.asset_id)
+            },
+            {
+                "form_id": Number(request.activity_form_id),
+                "field_id": serverSignInTime,
+                "field_data_type_id": 4,
+                "field_data_type_category_id": 1,
+                "data_type_combo_id": 0,
+                "data_type_combo_value": "",
+                "field_value": util.getCurrentUTCTime(),
+                "message_unique_id": util.getMessageUniqueId(request.asset_id)
+            }
+        ]);
+        var event = {
+            name: "addTimelineTransaction",
+            service: "activityTimelineService",
+            method: "addTimelineTransaction",
+            payload: {
+                organization_id: request.organization_id,
+                account_id: request.account_id,
+                workforce_id: request.workforce_id,
+                asset_id: request.asset_id,
+                asset_token_auth: request.asset_token_auth,
+                asset_message_counter: request.asset_message_counter,
+                activity_id: request.activity_id,
+                activity_type_category_id: 9, // 9 for forms
+                activity_stream_type_id: 705,
+                form_transaction_id: request.form_transaction_id,
+                activity_timeline_text: 'SWIPE IN',
+                activity_timeline_url: '',
+                activity_timeline_collection: activityTimelineCollectionJSON,
+                message_unique_id: util.getMessageUniqueId(request.asset_id),
+                flag_offline: request.flag_offline,
+                flag_timeline_entry: 0,
+                track_latitude: request.track_latitude,
+                track_longitude: request.track_longitude,
+                track_altitude: request.track_altitude,
+                track_gps_datetime: request.track_gps_datetime,
+                track_gps_accuracy: request.track_gps_accuracy,
+                track_gps_status: request.track_gps_status,
+                track_gps_location: request.track_gps_location,
+                service_version: request.service_version,
+                app_version: request.app_version,
+                device_os_id: request.device_os_id,
+                entity_datetime_1: request.swipe_in_datetime,
+                entity_datetime_2: request.swipe_out_datetime
+            }
+        };
+        queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
+            if (err) {
+                console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
+                //global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent", err, request);
+                throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+            } else {
+                console.log('\x1b[36m%s\x1b[0m', 'Successfullly raised SWIPE IN activity event.');
+            }
+        });
+    }
 
     function alterActivityFlagFileEnabled(request) {
         return new Promise((resolve, reject) => {
