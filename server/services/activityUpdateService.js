@@ -1843,7 +1843,7 @@ function ActivityUpdateService(objectCollection) {
             //Get activity Details
             activityCommonService.getActivityDetails(request, 0, function (err, activityData) {
                 if (err === false) {
-                    creationDate = util.replaceDefaultDatetime(activityData[0].activity_datetime_start_expected);
+                    creationDate = util.replaceDefaultDatetime(activityData[0].activity_datetime_end_deferred);
 
                     //Get the Config Value
                     activityCommonService.retrieveAccountList(request, (err, data) => {
