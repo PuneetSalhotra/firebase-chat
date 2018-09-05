@@ -2890,10 +2890,12 @@ function AssetService(objectCollection) {
                 .then((data) => {
                     // Run through each of the summary entries returned
                     console.log("data: ", data);
+                    let responseRateTotalCount = 0;
+                    let responseRateOnTimeCount = 0;
+
                     let responseRateSum = 0;
                     let numOfResponseRateEntries = 0;
                     // Run through each of the summary entries returned
-                    console.log("data: ", data);
                     data.forEach((summaryEntry) => {
                         // 
                         switch (Number(summaryEntry.weekly_summary_id)) {
@@ -2904,10 +2906,14 @@ function AssetService(objectCollection) {
                             case 19: // Response Rate - File Updates
                                 // Include the response rate value for average calculation only if
                                 // it's a non-zero positive value. Else, ignore the entry.
-                                if (Number(summaryEntry.data_entity_decimal_1) > 0) {
-                                    responseRateSum += Number(summaryEntry.data_entity_decimal_1);
-                                    numOfResponseRateEntries += 1;
-                                }
+                                // if (Number(summaryEntry.data_entity_decimal_1) > 0) {
+                                //     responseRateSum += Number(summaryEntry.data_entity_decimal_1);
+                                //     numOfResponseRateEntries += 1;
+                                // }
+
+                                responseRateTotalCount += Number(summaryEntry.data_entity_bigint_1);
+                                responseRateOnTimeCount += Number(summaryEntry.data_entity_decimal_3);
+
                                 break;
 
                             case 17: // Timeliness of tasks - Lead
@@ -2924,15 +2930,19 @@ function AssetService(objectCollection) {
                         }
                     });
 
-                    if (responseRateSum > 0) {
-                        responseJSON.performance_data_weekly.response_rate = responseRateSum / numOfResponseRateEntries;
+                    if (responseRateTotalCount === 0) {
+                        responseJSON.performance_data_weekly.response_rate = 0;
+                    } else {
+                        responseJSON.performance_data_weekly.response_rate = (responseRateOnTimeCount / responseRateTotalCount) * 100;
                     }
                 }),
 
                 // Populate monthly summary params
                 asyncRetrieveAssetMonthlySummaryParams(request)
                 .then((data) => {
-                    let responseRateSum = 0;
+                    let responseRateTotalCount = 0;
+                    let responseRateOnTimeCount = 0;
+
                     let numOfResponseRateEntries = 0;
                     // Run through each of the summary entries returned
                     console.log("data: ", data);
@@ -2946,10 +2956,13 @@ function AssetService(objectCollection) {
                             case 32: // Response Rate - File Updates
                                 // Include the response rate value for average calculation only if
                                 // it's a non-zero positive value. Else, ignore the entry.
-                                if (Number(summaryEntry.data_entity_decimal_1) > 0) {
-                                    responseRateSum += Number(summaryEntry.data_entity_decimal_1);
-                                    numOfResponseRateEntries += 1;
-                                }
+                                // if (Number(summaryEntry.data_entity_decimal_1) > 0) {
+                                //     responseRateSum += Number(summaryEntry.data_entity_decimal_1);
+                                //     numOfResponseRateEntries += 1;
+                                // }
+                                responseRateTotalCount += Number(summaryEntry.data_entity_bigint_1);
+                                responseRateOnTimeCount += Number(summaryEntry.data_entity_decimal_3);
+
                                 break;
 
                             case 30: // Timeliness of tasks - Lead
@@ -2966,8 +2979,10 @@ function AssetService(objectCollection) {
                         }
                     });
 
-                    if (responseRateSum > 0) {
-                        responseJSON.performance_data_monthly.response_rate = responseRateSum / numOfResponseRateEntries;
+                    if (responseRateTotalCount === 0) {
+                        responseJSON.performance_data_monthly.response_rate = 0;
+                    } else {
+                        responseJSON.performance_data_monthly.response_rate = (responseRateOnTimeCount / responseRateTotalCount) * 100;
                     }
 
                 })
