@@ -969,6 +969,58 @@ function PamListingService(objectCollection) {
 	});
     };
     
+   this.billingAmountByPaymentType = function (request) {
+		return new Promise((resolve, reject)=>{
+	        var paramsArr = new Array(
+	        		request.organization_id,
+	        		request.account_id,
+					request.event_activity_id,
+					request.is_date,
+					request.start_date,
+					request.end_date
+	                );
+	
+	        var queryString = util.getQueryString('pm_v1_pam_event_billing_select_event_billing', paramsArr);
+	        if (queryString != '') {
+	            db.executeQuery(1, queryString, request, function (err, data) {
+	            	//console.log("err "+err);
+	               if(err === false) {
+	        			resolve(data);	        			      			  
+                    } else {
+	                   reject(err);
+	               }
+	            });
+	   		}
+        });
+    };
+    
+    this.getInventoryConsumption = function (request) {
+		return new Promise((resolve, reject)=>{
+	        var paramsArr = new Array(
+	        		request.organization_id,
+	        		request.account_id,
+					request.event_activity_id,
+					request.is_date,
+					request.start_date,
+					request.end_date,
+					request.start_limit,
+					request.end_limit
+	                );
+	
+	        var queryString = util.getQueryString('pm_v1_pam_inventory_consumption_select_consumption', paramsArr);
+	        if (queryString != '') {
+	            db.executeQuery(1, queryString, request, function (err, data) {
+	            	//console.log("err "+err);
+	               if(err === false) {
+	        			resolve(data);	        			      			  
+                    } else {
+	                   reject(err);
+	               }
+	            });
+	   		}
+        });
+    };
+    
 };
 
 module.exports = PamListingService;
