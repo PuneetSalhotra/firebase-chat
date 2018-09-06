@@ -36,13 +36,13 @@ function ActivityTimelineService(objectCollection) {
                 }
             }
             // add form entries
-            // addFormEntries(request, function (err, approvalFieldsArr) {
-            //     if (err === false) {
-            //         //callback(false,{},200);
-            //     } else {
-            //         //callback(true, {}, -9999);
-            //     }
-            // });
+            addFormEntries(request, function (err, approvalFieldsArr) {
+                if (err === false) {
+                    //callback(false,{},200);
+                } else {
+                    //callback(true, {}, -9999);
+                }
+            });
         } else {
             request.form_id = 0;
         }
@@ -60,19 +60,6 @@ function ActivityTimelineService(objectCollection) {
                 if (err) {
 
                 } else {
-
-                    if (activityTypeCategoryId === 9 && activityStreamTypeId === 705) {
-
-                        setImmediate(addFormEntries.bind(self),
-                            request,
-                            function addFormEntriesCallback(err, approvalFieldsArr) {
-                                if (err === false) {
-                                    //callback(false,{},200);
-                                } else {
-                                    //callback(true, {}, -9999);
-                                }
-                            });
-                    }
 
                     activityPushService.sendPush(request, objectCollection, 0, function () {});
                     activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) { });
@@ -989,6 +976,9 @@ function ActivityTimelineService(objectCollection) {
     };
 
     var addFormEntries = function (request, callback) {
+
+        console.log('\x1b[32m%s\x1b[0m', 'Inside the addFormEntries() function.');
+
         var formDataJson = JSON.parse(request.activity_timeline_collection);
         var approvalFields = new Array();
         forEachAsync(formDataJson, function (next, row) {
@@ -1026,6 +1016,8 @@ function ActivityTimelineService(objectCollection) {
                     ''  //IN p_location_datetime DATETIME                            26
                     );
 
+            console.log('\x1b[32m addFormEntries params - \x1b[0m', params);        
+            
             var dataTypeId = Number(row.field_data_type_id);
             switch (dataTypeId) {
                 case 1:     // Date
