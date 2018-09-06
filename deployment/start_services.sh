@@ -5,7 +5,7 @@ then
   mode=staging pm2 reload startStagProcesses.yml
 elif [ "$DEPLOYMENT_GROUP_NAME" == "DeskerApiCode-Production" ] 
 then
-  cd /api-itsnotan-efs/node/production_desker_api/2018-09-06-01/
+  cd /api-itsnotan-efs/node/production_desker_api/2018-09-06-02/
   mode=prod pm2 reload startProdProcesses.yml
   sleep 2
   cd /api-final-efs/node/production_portal_api/2018-08-29-01
