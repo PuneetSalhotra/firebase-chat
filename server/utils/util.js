@@ -10,11 +10,10 @@ var tz = require('moment-timezone');
 const Nexmo = require('nexmo');
 var fs = require('fs');
 var os = require('os');
-let efsPath = '/api-cdci-efs/';
+/*let efsPath = '/api-cdci-efs/';
 if(global.mode === 'staging') {
     efsPath = '/api-staging-efs/';
-
-}
+}*/
 
 function Util() {
 
@@ -232,15 +231,14 @@ function Util() {
         xmlText += "</Response>"
         
         console.log('xmlText : ' + xmlText);
-        console.log('https://api.desker.cloud/r1/account/voice_'+passcode);
-        fs.writeFile(efsPath + 'twiliovoicesxmlfiles/voice_'+passcode+'.xml', xmlText, function (err) {
-        //fs.writeFile('/home/nani/Desktop/twiliovoicesxmlfiles/voice_'+passcode+'.xml', xmlText, function (err) {
+        console.log(global.config.mobileBaseUrl + global.config.version + '/account/voice_'+passcode);
+        fs.writeFile(global.config.efsPath + 'twiliovoicesxmlfiles/voice_'+passcode+'.xml', xmlText, function (err) {        
           if (err) {
               throw err;
           } else {
               client.calls.create(
                 {
-                  url: 'https://api.desker.cloud/r1/account/voice_'+passcode,
+                  url: global.config.mobileBaseUrl + global.config.version + '/account/voice_'+passcode,
                   to: toNumber,
                   from: '+1 810-637-5928' // From a valid Twilio number                  
                 },
@@ -320,9 +318,9 @@ function Util() {
         jsonText += '"}]';
                 
         console.log('jsonText : ' + jsonText);
-        //console.log('http://staging.api.desker.cloud/r0/account/nexmo/voice_'+passcode);
-        fs.writeFile(efsPath + 'nexmovoicesjsonfiles/voice_'+passcode+'.xml', jsonText, function (err) {
-        //fs.writeFile('/home/nani/Desktop/nexmovoicesjsonfiles/voice_'+passcode+'.json', jsonText, function (err) {
+        let answerUrl = global.config.mobileBaseUrl + global.config.version + '/account/nexmo/voice_'+passcode+'.json?file=voice_'+passcode+'.json';
+        console.log('Answer Url : ', answerUrl);
+        fs.writeFile(global.config.efsPath + 'nexmovoicesjsonfiles/voice_'+passcode+'.json', jsonText, function (err) {        
           if (err) {
               throw err;
           } else {
@@ -335,13 +333,13 @@ function Util() {
                   type: 'phone',
                   number: countryCode + "" + phoneNumber,
                 }],
-                answer_url: ['https://api.desker.cloud/r1/account/nexmo/voice_'+passcode+'.json?file=voice_'+passcode+'.json']
+                answer_url: [answerUrl]
               }, (error, response) => {
                 if (error) {
                   console.error(error)
                   callback(true, error, -3502);
                 } else {
-                  console.log(response);
+                  console.log('makeCallNexmo response: ', response);
                   callback(false, response, 200);
                 }
             });

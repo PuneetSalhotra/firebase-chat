@@ -62,7 +62,13 @@ if (mode === 'dev') {
     config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/Desker-staging"; //Staging SQS QUEUE
     
     //Portal Service URL
-    config.portalBaseUrl = "http://staging.portal.desker.cloud/r0";
+    config.portalBaseUrl = "http://staging.portal.desker.cloud/";
+    
+    //Mobile Service URL
+    config.mobileBaseUrl = "http://localhost:3000/";
+    
+    //making twilio, Nexmo Calls
+    config.efsPath = "/";
 }
 
 if (mode === 'staging') {
@@ -108,7 +114,13 @@ if (mode === 'staging') {
     config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/Desker-staging"; //Staging SQS QUEUE
     
     //Portal Service URL
-    config.portalBaseUrl = "http://staging.portal.desker.cloud/r0";
+    config.portalBaseUrl = "http://staging.portal.desker.cloud/";
+    
+    //Mobile Service URL
+    config.mobileBaseUrl = "http://staging.api.desker.cloud/";
+    
+    //making twilio, Nexmo Calls
+    config.efsPath = "/api-staging-efs/";
 }
 
 if (mode === 'prod') {
@@ -130,14 +142,14 @@ if (mode === 'prod') {
     config.slave2Ip = 'readreplica2.citeodhwc7z9.us-east-1.rds.amazonaws.com';
     
     config.dbUser = 'apiuser';
-    config.database = 'desker_staging';
+    config.database = 'desker_staging'; //Change this
     //config.database = 'desker';
     config.dbPassword = 'apidbuser';
 
     config.conLimit = 10;
 
     //Redis
-    config.redisIp = 'dev-redis.apppnf.0001.use1.cache.amazonaws.com';
+    config.redisIp = 'dev-redis.apppnf.0001.use1.cache.amazonaws.com'; //Change this
     //config.redisIp = 'rediscluster1.apppnf.ng.0001.use1.cache.amazonaws.com';
     config.redisPort = 6379;
 
@@ -148,20 +160,26 @@ if (mode === 'prod') {
     
     //Kafka Topics
     //config.kafkaActivitiesTopic = 'desker-activities';    
-    //config.kafkaFormWidgetTopic = 'desker-form-widgets';
-    config.kafkaActivitiesTopic = 'desker-test';
+    //config.kafkaFormWidgetTopic = 'desker-form-widgets'; //Change this
+    config.kafkaActivitiesTopic = 'desker-test'; //Change this
     
-    config.consumerGroup = "desker-activities-consumer-group-v2";
+    config.consumerGroup = "desker-activities-consumer-group-v2"; //Change this
     
     //IOS PUSH
     //config.iosPushMode = 'prod';
-    config.iosPushMode = 'dev';
+    config.iosPushMode = 'dev'; //Change this
     
     //SQS QUEUE
     config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/desker-logging-staging"; //Prod SQS QUEUE - DONT confuse with the naming Convention
     
     //Portal Service URL
-    config.portalBaseUrl = "https://portal.desker.cloud/r1";
+    config.portalBaseUrl = "https://portal.desker.cloud/";
+    
+    //Mobile Service URL
+    config.mobileBaseUrl = "https://api.desker.cloud/";
+    
+    //making twilio, Nexmo Calls
+    config.efsPath = "/api-final-efs/";
 }
 
 config.platformApplicationIosDev = 'arn:aws:sns:us-east-1:430506864995:app/APNS_VOIP_SANDBOX/VOIPios';
