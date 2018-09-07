@@ -1139,14 +1139,27 @@ function AssetService(objectCollection) {
             dateTimeLog
         );
 
-        var queryString = util.getQueryString('ds_v1_asset_list_update_link', paramsArr);
-        if (queryString != '') {
+        if (request.hasOwnProperty('timezone_offset')) {
+            console.log('\x1b[36m timezone_offset parameter found \x1b[0m');
+            paramsArr.push(request.timezone_offset);
+
+            // IN p_asset_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_device_hardware_id VARCHAR(300), 
+            // IN p_device_os_id TINYINT(4), IN p_encryption_token_id VARCHAR(300), IN p_push_notification_id VARCHAR(300), 
+            // IN p_push_arn VARCHAR(600), IN p_model_name VARCHAR(50), IN p_manufacturer_name VARCHAR(50), 
+            // IN p_app_version VARCHAR(50), IN p_device_os_version VARCHAR(50),  IN p_log_asset_id BIGINT(20), 
+            // IN p_log_datetime DATETIME, IN p_timezone_offset BIGINT
+            var queryString = util.getQueryString('ds_v1_2_asset_list_update_link', paramsArr);
+
+        } else {
+            // The following is retained for the sake of backward compatibility
+            var queryString = util.getQueryString('ds_v1_asset_list_update_link', paramsArr);
+
+        }
+        if (queryString !== '') {
             db.executeQuery(0, queryString, request, function (err, data) {
-                //global.logger.write(queryString, request, 'asset', 'trace');
                 if (err === false) {
                     callback(false, true);
                 } else {
-                    // some thing is wrong and have to be dealt
                     callback(err, false);
                 }
             });
