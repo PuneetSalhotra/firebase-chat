@@ -464,6 +464,26 @@ function AccountService(objectCollection) {
             });
         }
     };   
+
+    this.fetchCustomerServiceAgentsOnCrmFloor = function (request, callback) {
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
+        // IN p_asset_type_category_id BIGINT(20), IN p_start_from BIGINT(20),
+        // IN p_limit_value TINYINT(4)
+        var paramsArr = new Array(
+            request.organization_id,
+            0, // request.account_id,
+            19, // request.asset_type_category_id,
+            0, // request.start_from,
+            50 // request.limit_value,
+        );
+
+        var queryString = util.getQueryString('ds_p1_asset_access_mapping_select_asset_type_access', paramsArr);
+        if (queryString !== '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                (err === false) ? callback(false, data, 200): callback(true, err, -9999);
+            });
+        }
+    };
     
 }
 ;
