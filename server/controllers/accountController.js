@@ -335,6 +335,21 @@ function AccountController(objCollection) {
                     res.send(responseWrapper.getResponse(err, data, statusCode, req.body));                
             });        
     });
+
+    // Fetch available customer suppoer agent: POC Phase.
+    // This route may be required to be moved to a separate module altogether.
+    app.post('/' + global.config.version + '/account/customer_service/agents/fetch', function (req, res) {
+        accountService.fetchCustomerServiceAgentsOnCrmFloor(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                // Error fetching available errors
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
      
 };
 
