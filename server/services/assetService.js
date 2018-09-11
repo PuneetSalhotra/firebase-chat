@@ -1139,14 +1139,27 @@ function AssetService(objectCollection) {
             dateTimeLog
         );
 
-        var queryString = util.getQueryString('ds_v1_asset_list_update_link', paramsArr);
-        if (queryString != '') {
+        if (request.hasOwnProperty('timezone_offset')) {
+            console.log('\x1b[36m timezone_offset parameter found \x1b[0m');
+            paramsArr.push(request.timezone_offset);
+
+            // IN p_asset_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_device_hardware_id VARCHAR(300), 
+            // IN p_device_os_id TINYINT(4), IN p_encryption_token_id VARCHAR(300), IN p_push_notification_id VARCHAR(300), 
+            // IN p_push_arn VARCHAR(600), IN p_model_name VARCHAR(50), IN p_manufacturer_name VARCHAR(50), 
+            // IN p_app_version VARCHAR(50), IN p_device_os_version VARCHAR(50),  IN p_log_asset_id BIGINT(20), 
+            // IN p_log_datetime DATETIME, IN p_timezone_offset BIGINT
+            var queryString = util.getQueryString('ds_v1_2_asset_list_update_link', paramsArr);
+
+        } else {
+            // The following is retained for the sake of backward compatibility
+            var queryString = util.getQueryString('ds_v1_asset_list_update_link', paramsArr);
+
+        }
+        if (queryString !== '') {
             db.executeQuery(0, queryString, request, function (err, data) {
-                //global.logger.write(queryString, request, 'asset', 'trace');
                 if (err === false) {
                     callback(false, true);
                 } else {
-                    // some thing is wrong and have to be dealt
                     callback(err, false);
                 }
             });
@@ -2890,10 +2903,12 @@ function AssetService(objectCollection) {
                 .then((data) => {
                     // Run through each of the summary entries returned
                     console.log("data: ", data);
+                    let responseRateTotalCount = 0;
+                    let responseRateOnTimeCount = 0;
+
                     let responseRateSum = 0;
                     let numOfResponseRateEntries = 0;
                     // Run through each of the summary entries returned
-                    console.log("data: ", data);
                     data.forEach((summaryEntry) => {
                         // 
                         switch (Number(summaryEntry.weekly_summary_id)) {
@@ -2904,10 +2919,15 @@ function AssetService(objectCollection) {
                             case 19: // Response Rate - File Updates
                                 // Include the response rate value for average calculation only if
                                 // it's a non-zero positive value. Else, ignore the entry.
-                                if (Number(summaryEntry.data_entity_decimal_1) > 0) {
-                                    responseRateSum += Number(summaryEntry.data_entity_decimal_1);
-                                    numOfResponseRateEntries += 1;
-                                }
+                                // if (Number(summaryEntry.data_entity_decimal_1) > 0) {
+                                //     responseRateSum += Number(summaryEntry.data_entity_decimal_1);
+                                //     numOfResponseRateEntries += 1;
+                                // }
+
+                                responseRateTotalCount += Number(summaryEntry.data_entity_bigint_1);
+                                responseRateOnTimeCount += Number(summaryEntry.data_entity_decimal_3);
+
+                                break;
 
                             case 17: // Timeliness of tasks - Lead
                                 responseJSON.performance_data_weekly.planning_rate = summaryEntry.data_entity_decimal_1;
@@ -2923,15 +2943,19 @@ function AssetService(objectCollection) {
                         }
                     });
 
-                    if (responseRateSum > 0) {
-                        responseJSON.performance_data_weekly.response_rate = responseRateSum / numOfResponseRateEntries;
+                    if (responseRateTotalCount === 0) {
+                        responseJSON.performance_data_weekly.response_rate = 0;
+                    } else {
+                        responseJSON.performance_data_weekly.response_rate = (responseRateOnTimeCount / responseRateTotalCount) * 100;
                     }
                 }),
 
                 // Populate monthly summary params
                 asyncRetrieveAssetMonthlySummaryParams(request)
                 .then((data) => {
-                    let responseRateSum = 0;
+                    let responseRateTotalCount = 0;
+                    let responseRateOnTimeCount = 0;
+
                     let numOfResponseRateEntries = 0;
                     // Run through each of the summary entries returned
                     console.log("data: ", data);
@@ -2945,10 +2969,14 @@ function AssetService(objectCollection) {
                             case 32: // Response Rate - File Updates
                                 // Include the response rate value for average calculation only if
                                 // it's a non-zero positive value. Else, ignore the entry.
-                                if (Number(summaryEntry.data_entity_decimal_1) > 0) {
-                                    responseRateSum += Number(summaryEntry.data_entity_decimal_1);
-                                    numOfResponseRateEntries += 1;
-                                }
+                                // if (Number(summaryEntry.data_entity_decimal_1) > 0) {
+                                //     responseRateSum += Number(summaryEntry.data_entity_decimal_1);
+                                //     numOfResponseRateEntries += 1;
+                                // }
+                                responseRateTotalCount += Number(summaryEntry.data_entity_bigint_1);
+                                responseRateOnTimeCount += Number(summaryEntry.data_entity_decimal_3);
+
+                                break;
 
                             case 30: // Timeliness of tasks - Lead
                                 responseJSON.performance_data_monthly.planning_rate = summaryEntry.data_entity_decimal_1;
@@ -2964,8 +2992,10 @@ function AssetService(objectCollection) {
                         }
                     });
 
-                    if (responseRateSum > 0) {
-                        responseJSON.performance_data_monthly.response_rate = responseRateSum / numOfResponseRateEntries;
+                    if (responseRateTotalCount === 0) {
+                        responseJSON.performance_data_monthly.response_rate = 0;
+                    } else {
+                        responseJSON.performance_data_monthly.response_rate = (responseRateOnTimeCount / responseRateTotalCount) * 100;
                     }
 
                 })

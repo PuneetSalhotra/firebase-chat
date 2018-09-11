@@ -197,7 +197,76 @@ function PamListingController(objCollection) {
             }
         });
     });
+
+    app.post('/' + global.config.version + '/pam/order/average/times', function (req, res) {
+    	pamListingService.averages(req.body).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        });    		
+    });
+
+    app.post('/' + global.config.version + '/pam/most/ordered', function (req, res) {
+    	pamListingService.mostOrdered(req.body).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        });    		
+    });    
+
+    app.post('/' + global.config.version + '/pam/event/bill/groupby', function (req, res) {
+    	pamListingService.billByItemType(req.body).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        });    		
+    }); 
+
+    app.post('/' + global.config.version + '/pam/date/events', function (req, res) {
+    	pamListingService.getEventBydate(req.body).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        });    		
+    }); 
     
+    app.post('/' + global.config.version + '/pam/asset/details', function (req, res) {
+    	pamListingService.getAssetDetails(req.body).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        });    		
+    });
+    
+    app.post('/' + global.config.version + '/pam/event/payment/collection', function (req, res) {
+    	pamListingService.billingAmountByPaymentType(req.body).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        });    		
+    });
+    
+    app.post('/' + global.config.version + '/pam/event/inventory/consumption', function (req, res) {
+    	pamListingService.getInventoryConsumption(req.body).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        });    		
+    });
 }
 ;
 module.exports = PamListingController;

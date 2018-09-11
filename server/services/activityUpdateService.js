@@ -731,8 +731,7 @@ function ActivityUpdateService(objectCollection) {
                         form: newRequest
                     }
 
-                    //makeRequest.post('https://portal.desker.cloud/r1/asset/update/details', options, function (error, response, body) {
-                    makeRequest.post(global.config.portalBaseUrl + '/asset/update/details', options, function (error, response, body) {
+                    makeRequest.post(global.config.portalBaseUrl + global.config.version + '/asset/update/details', options, function (error, response, body) {
                         console.log('body:', body);
                         body = JSON.parse(body);
                         console.log('error : ', error);
@@ -1014,8 +1013,8 @@ function ActivityUpdateService(objectCollection) {
                                 console.log('\x1b[32m activity_datetime_end_deferred in DB: \x1b[0m' , util.replaceDefaultDatetime(activityData[0].activity_datetime_end_deferred));
                                         
                                 taskDateTimeDiffInHours = util.differenceDatetimes(
-                                    util.replaceDefaultDatetime(activityData[0].activity_datetime_end_deferred),
-                                    parsedActivityCoverData.duedate.old
+                                    parsedActivityCoverData.duedate.old,
+                                    util.replaceDefaultDatetime(activityData[0].activity_datetime_start_expected)                                
                                 );
                                 // 1 Hour => 60 min => 3600 s => 3600000 ms
                                 taskDateTimeDiffInHours = Number(taskDateTimeDiffInHours / 3600000);
@@ -1033,10 +1032,10 @@ function ActivityUpdateService(objectCollection) {
                                         
                                         let changeDurationInHours;
                                         let flag_ontime = 0; // Default: 'not on time'
-                                        if(request.datetime_log <= util.replaceDefaultDatetime(activityData[0].activity_datetime_end_deferred)) {
+                                        if(request.track_gps_datetime <= util.replaceDefaultDatetime(activityData[0].activity_datetime_end_deferred)) {
                                              changeDurationInHours  = util.differenceDatetimes(
-                                                    request.datetime_log,
-                                                    parsedActivityCoverData.duedate.old
+                                                    parsedActivityCoverData.duedate.old,
+                                                    request.track_gps_datetime
                                                 );
                                              
                                              changeDurationInHours = Number(changeDurationInHours / 3600000);
@@ -1059,6 +1058,12 @@ function ActivityUpdateService(objectCollection) {
                                                 request.entity_tinyint_2 = flag_ontime; // Whether the due-date change was in time or not
                                                 request.entity_datetime_1 = parsedActivityCoverData.duedate.old;
                                                 request.entity_datetime_2 = parsedActivityCoverData.duedate.new;
+                                                //entity text 3  Add the cut off date time
+                                                request.activity_timeline_title = 
+                                                    util.subtractUnitsFromDateTime(parsedActivityCoverData.duedate.old, 
+                                                                                   Number(dueDateThreshhold),
+                                                                                   'hours'
+                                                                                  ); //entitytext3 in timelinetransaction insert
 
                                                 return activityCommonService.asyncActivityTimelineTransactionInsert(request, {}, activityStreamTypeId);
                                             })
@@ -1837,7 +1842,7 @@ function ActivityUpdateService(objectCollection) {
             //Get activity Details
             activityCommonService.getActivityDetails(request, 0, function (err, activityData) {
                 if (err === false) {
-                    creationDate = util.replaceDefaultDatetime(activityData[0].activity_datetime_start_expected);
+                    creationDate = util.replaceDefaultDatetime(activityData[0].activity_datetime_end_deferred);
 
                     //Get the Config Value
                     activityCommonService.retrieveAccountList(request, (err, data) => {
