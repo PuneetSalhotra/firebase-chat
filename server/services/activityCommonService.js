@@ -1899,7 +1899,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         });        
     };
     
-    this.getActivityListDateRange = function (request, callback) {
+    /*this.getActivityListDateRange = function (request, callback) {
         var paramsArr = new Array(
                 request.organization_id,
                 request.asset_id,
@@ -1912,7 +1912,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 (err === false) ? callback(false, data) : callback(err, false);
             });
         }
-    };
+    };*/
     
     //Can use this function for both inmail and postit
     this.updateInMailResponse = function (request, activityFlagResponseonTimeFlag, callback) {

@@ -11,7 +11,7 @@ function ActivityTimelineService(objectCollection) {
     var util = objectCollection.util;
     var forEachAsync = objectCollection.forEachAsync;
     var activityPushService = objectCollection.activityPushService;
-    var queueWrapper = objectCollection.queueWrapper;
+    //var queueWrapper = objectCollection.queueWrapper;
 
     this.addTimelineTransaction = function (request, callback) {
 
