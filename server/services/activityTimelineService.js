@@ -15,6 +15,7 @@ function ActivityTimelineService(objectCollection) {
 
     this.addTimelineTransaction = function (request, callback) {
 
+        const self = this;
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         var activityTypeCategoryId = Number(request.activity_type_category_id);
@@ -59,6 +60,7 @@ function ActivityTimelineService(objectCollection) {
                 if (err) {
 
                 } else {
+
                     activityPushService.sendPush(request, objectCollection, 0, function () {});
                     activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) { });
 
@@ -974,6 +976,9 @@ function ActivityTimelineService(objectCollection) {
     };
 
     var addFormEntries = function (request, callback) {
+
+        console.log('\x1b[32m%s\x1b[0m', 'Inside the addFormEntries() function.');
+
         var formDataJson = JSON.parse(request.activity_timeline_collection);
         var approvalFields = new Array();
         forEachAsync(formDataJson, function (next, row) {
@@ -1011,6 +1016,8 @@ function ActivityTimelineService(objectCollection) {
                     ''  //IN p_location_datetime DATETIME                            26
                     );
 
+            console.log('\x1b[32m addFormEntries params - \x1b[0m', params);        
+            
             var dataTypeId = Number(row.field_data_type_id);
             switch (dataTypeId) {
                 case 1:     // Date

@@ -1656,7 +1656,7 @@ function ActivityListingService(objCollection) {
             request.datetime_end,
             request.datetime || '1970-01-01 00:00:00',
             request.coworker_asset_id || 0,
-            request.parent_activity_id || 0,
+            request.parent_activity_id || 0
         );
         let queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_day_planner_filters_count', paramsArr);
         if (queryString != '') {

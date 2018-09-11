@@ -61,7 +61,13 @@ if (mode === 'dev') {
     config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/Desker-staging"; //Staging SQS QUEUE
     
     //Portal Service URL
-    config.portalBaseUrl = "http://staging.portal.desker.cloud/r0";
+    config.portalBaseUrl = "http://staging.portal.desker.cloud/";
+    
+    //Mobile Service URL
+    config.mobileBaseUrl = "http://localhost:3000/";
+    
+    //making twilio, Nexmo Calls
+    config.efsPath = "/";
 }
 
 if (mode === 'staging') {
@@ -107,7 +113,13 @@ if (mode === 'staging') {
     config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/Desker-staging"; //Staging SQS QUEUE
     
     //Portal Service URL
-    config.portalBaseUrl = "http://staging.portal.desker.cloud/r0";
+    config.portalBaseUrl = "http://staging.portal.desker.cloud/";
+    
+    //Mobile Service URL
+    config.mobileBaseUrl = "http://staging.api.desker.cloud/";
+    
+    //making twilio, Nexmo Calls
+    config.efsPath = "/api-staging-efs/";
 }
 
 if (mode === 'prod') {
@@ -128,7 +140,7 @@ if (mode === 'prod') {
     config.slave1Ip = 'readreplica1.citeodhwc7z9.us-east-1.rds.amazonaws.com';
     config.slave2Ip = 'readreplica2.citeodhwc7z9.us-east-1.rds.amazonaws.com';
     
-    config.dbUser = 'apiuser';    
+    config.dbUser = 'apiuser';
     config.database = 'desker';
     config.dbPassword = 'apidbuser';
 
@@ -150,14 +162,20 @@ if (mode === 'prod') {
     config.consumerGroup = "desker-activities-consumer-group-v2";
     
     //IOS PUSH
-    //config.iosPushMode = 'prod';
-    config.iosPushMode = 'dev';
+    config.iosPushMode = 'prod';
+    
     
     //SQS QUEUE
     config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/desker-logging-staging"; //Prod SQS QUEUE - DONT confuse with the naming Convention
     
     //Portal Service URL
-    config.portalBaseUrl = "https://portal.desker.cloud/r1";
+    config.portalBaseUrl = "https://portal.desker.cloud/";
+    
+    //Mobile Service URL
+    config.mobileBaseUrl = "https://api.desker.cloud/";
+    
+    //making twilio, Nexmo Calls
+    config.efsPath = "/api-final-efs/";
 }
 
 config.platformApplicationIosDev = 'arn:aws:sns:us-east-1:430506864995:app/APNS_VOIP_SANDBOX/VOIPios';

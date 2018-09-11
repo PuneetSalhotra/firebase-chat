@@ -237,3 +237,51 @@
 2018-08-16 08:40:57: CALL ds_p1_activity_asset_mapping_select_task_acceptance_stats('753','864','4576','25409','25408','2','2018-08-13','2018-08-18');
 2018-08-16 08:40:57: CALL ds_v1_2_activity_timeline_transaction_insert('107158','25409','4576','864','753','305','0','','','','{}','','0.0','0','0','0','0.0','0.0','0.0','1','MIY','2018-08-16 00:00:00','','','5','','','1.0','1.0','25409','1534408855','1','0','2018-08-16 00:00:00','2018-08-16 08:40:54');
 2018-08-16 08:40:57: CALL ds_v1_activity_asset_mapping_update_last_differential('107158','25409','753','2018-08-16 08:40:54');
+2018-08-16 13:39:06: Redis encToken checking failed
+2018-08-16 13:39:06: 
+2018-08-16 13:40:04: successfully redis encToken checking is done
+2018-08-16 13:40:04: producing to partition id: 0
+2018-08-16 13:40:04: Producer success callback message
+2018-08-16 13:40:04: 
+2018-08-16 13:40:06: CALL ds_v1_asset_list_update_location_v2('336','8999','0.0','0.0','0.0','1','hyd','2018-07-23 11:06:20','8999','2018-08-16 13:40:04');
+2018-08-16 13:40:06: CALL ds_v1_2_activity_timeline_transaction_insert('57595','8999','1898','437','336','325','0','','descriptionTextView.text','AddingFolderwithCollectiontoTimeline  ','{\"asset_reference\":[{\"asset_id\":\"11712\",\"contact_phone_country_code\":\"91\",\"asset_type_id\":\"1\",\"access_role_id\":\"19\",\"message_unique_id\":\"89991532343978850321\",\"contact_first_name\":\"Vijay Teste\",\"contact_phone_number\":\"9866626006\",\"workforce_id\":\"1898\",\"asset_category_id\":\"1\",\"organization_id\":\"336\",\"account_id\":\"437\"}]}','','0.0','0','0','0','0.0','0.0','0.0','1','hyd','2018-07-23 11:06:20','','','5','','','1.0','1.0','8999','12345678','1','0','2018-07-23 11:06:20','2018-08-16 13:40:04');
+2018-08-16 13:40:06: CALL ds_v1_activity_asset_mapping_update_last_differential('57595','8999','336','2018-08-16 13:40:04');
+2018-08-16 13:40:06: CALL ds_v1_2_asset_timeline_transaction_insert('57595','8999','1898','437','336','325','0','','descriptionTextView.text','AddingFolderwithCollectiontoTimeline  ','{\"asset_reference\":[{\"asset_id\":\"11712\",\"contact_phone_country_code\":\"91\",\"asset_type_id\":\"1\",\"access_role_id\":\"19\",\"message_unique_id\":\"89991532343978850321\",\"contact_first_name\":\"Vijay Teste\",\"contact_phone_number\":\"9866626006\",\"workforce_id\":\"1898\",\"asset_category_id\":\"1\",\"organization_id\":\"336\",\"account_id\":\"437\"}]}','0.0','0.0','0','0','0','0.0','0.0','0.0','1','hyd','2018-07-23 11:06:20','','','5','','','1.0','1.0','8999','12345678','1','0','2018-07-23 11:06:20','2018-08-16 13:40:04');
+2018-08-16 13:40:07: CALL ds_v1_activity_asset_mapping_select_other_participants('57595','8999','336','437','1898','0','50');
+2018-08-16 13:40:07: CALL ds_v1_asset_list_select('336','11712');
+2018-08-16 13:40:07: CALL ds_v1_activity_asset_mapping_select_participants('57595','336','0','50');
+2018-08-16 13:40:08: CALL ds_p1_asset_list_select_phone_number_last_linked('7893066333','91');
+2018-08-16 13:42:30: successfully redis encToken checking is done
+2018-08-16 13:42:30: producing to partition id: 0
+2018-08-16 13:42:30: Producer success callback message
+2018-08-16 13:42:30: 
+2018-08-16 13:42:39: CALL ds_v1_asset_list_update_location_v2('336','8999','0.0','0.0','0.0','1','hyd','2018-07-23 11:06:20','8999','2018-08-16 13:42:38');
+2018-08-16 13:42:39: CALL ds_v1_2_activity_timeline_transaction_insert('57595','8999','1898','437','336','325','0','','descriptionTextView.text','AddingFolderwithCollectiontoTimeline  ','{\"asset_reference\":[{\"asset_id\":\"11712\",\"contact_phone_country_code\":\"91\",\"asset_type_id\":\"1\",\"access_role_id\":\"19\",\"message_unique_id\":\"89991532343978850321\",\"contact_first_name\":\"Vijay Teste\",\"contact_phone_number\":\"9866626006\",\"workforce_id\":\"1898\",\"asset_category_id\":\"1\",\"organization_id\":\"336\",\"account_id\":\"437\"}]}','','0.0','0','0','0','0.0','0.0','0.0','1','hyd','2018-07-23 11:06:20','','','5','','','1.0','1.0','8999','12345678','1','0','2018-07-23 11:06:20','2018-08-16 13:42:38');
+2018-08-16 13:42:40: CALL ds_v1_activity_asset_mapping_update_last_differential('57595','8999','336','2018-08-16 13:42:38');
+2018-08-16 13:42:40: CALL ds_v1_2_asset_timeline_transaction_insert('57595','8999','1898','437','336','325','0','','descriptionTextView.text','AddingFolderwithCollectiontoTimeline  ','{\"asset_reference\":[{\"asset_id\":\"11712\",\"contact_phone_country_code\":\"91\",\"asset_type_id\":\"1\",\"access_role_id\":\"19\",\"message_unique_id\":\"89991532343978850321\",\"contact_first_name\":\"Vijay Teste\",\"contact_phone_number\":\"9866626006\",\"workforce_id\":\"1898\",\"asset_category_id\":\"1\",\"organization_id\":\"336\",\"account_id\":\"437\"}]}','0.0','0.0','0','0','0','0.0','0.0','0.0','1','hyd','2018-07-23 11:06:20','','','5','','','1.0','1.0','8999','12345678','1','0','2018-07-23 11:06:20','2018-08-16 13:42:38');
+2018-08-16 13:42:41: CALL ds_v1_activity_asset_mapping_select_other_participants('57595','8999','336','437','1898','0','50');
+2018-08-16 13:42:41: CALL ds_v1_asset_list_select('336','11712');
+2018-08-16 13:42:41: CALL ds_v1_activity_asset_mapping_select_participants('57595','336','0','50');
+2018-08-16 13:42:41: CALL ds_p1_asset_list_select_phone_number_last_linked('7893066333','91');
+2018-08-16 13:42:48: successfully redis encToken checking is done
+2018-08-16 13:42:48: producing to partition id: 0
+2018-08-16 13:42:48: Producer success callback message
+2018-08-16 13:42:48: 
+2018-08-16 13:42:49: CALL ds_v1_asset_list_update_location_v2('336','8999','0.0','0.0','0.0','1','hyd','2018-07-23 11:06:20','8999','2018-08-16 13:42:48');
+2018-08-16 13:42:49: CALL ds_v1_2_activity_timeline_transaction_insert('57595','8999','1898','437','336','325','0','','descriptionTextView.text','AddingFolderwithCollectiontoTimeline  ','{\"asset_reference\":[{\"asset_id\":\"11712\",\"contact_phone_country_code\":\"91\",\"asset_type_id\":\"1\",\"access_role_id\":\"19\",\"message_unique_id\":\"89991532343978850321\",\"contact_first_name\":\"Vijay Teste\",\"contact_phone_number\":\"9866626006\",\"workforce_id\":\"1898\",\"asset_category_id\":\"1\",\"organization_id\":\"336\",\"account_id\":\"437\"}]}','','0.0','0','0','0','0.0','0.0','0.0','1','hyd','2018-07-23 11:06:20','','','5','','','1.0','1.0','8999','12345678','1','0','2018-07-23 11:06:20','2018-08-16 13:42:48');
+2018-08-16 13:42:49: CALL ds_v1_asset_list_select('336','11712');
+2018-08-16 13:42:49: CALL ds_v1_activity_asset_mapping_update_last_differential('57595','8999','336','2018-08-16 13:42:48');
+2018-08-16 13:42:49: CALL ds_v1_2_asset_timeline_transaction_insert('57595','8999','1898','437','336','325','0','','descriptionTextView.text','AddingFolderwithCollectiontoTimeline  ','{\"asset_reference\":[{\"asset_id\":\"11712\",\"contact_phone_country_code\":\"91\",\"asset_type_id\":\"1\",\"access_role_id\":\"19\",\"message_unique_id\":\"89991532343978850321\",\"contact_first_name\":\"Vijay Teste\",\"contact_phone_number\":\"9866626006\",\"workforce_id\":\"1898\",\"asset_category_id\":\"1\",\"organization_id\":\"336\",\"account_id\":\"437\"}]}','0.0','0.0','0','0','0','0.0','0.0','0.0','1','hyd','2018-07-23 11:06:20','','','5','','','1.0','1.0','8999','12345678','1','0','2018-07-23 11:06:20','2018-08-16 13:42:48');
+2018-08-16 13:42:50: CALL ds_v1_activity_asset_mapping_select_participants('57595','336','0','50');
+2018-08-16 13:42:50: CALL ds_p1_asset_list_select_phone_number_last_linked('7893066333','91');
+2018-08-16 13:44:12: successfully redis encToken checking is done
+2018-08-16 13:44:12: producing to partition id: 0
+2018-08-16 13:44:12: Producer success callback message
+2018-08-16 13:44:12: 
+2018-08-16 13:44:21: CALL ds_v1_asset_list_update_location_v2('336','8999','0.0','0.0','0.0','1','hyd','2018-07-23 11:06:20','8999','2018-08-16 13:44:18');
+2018-08-16 13:44:22: CALL ds_v1_2_activity_timeline_transaction_insert('57595','8999','1898','437','336','325','0','','descriptionTextView.text','AddingFolderwithCollectiontoTimeline  ','{\"asset_reference\":[{\"asset_id\":\"11712\",\"contact_phone_country_code\":\"91\",\"asset_type_id\":\"1\",\"access_role_id\":\"19\",\"message_unique_id\":\"89991532343978850321\",\"contact_first_name\":\"Vijay Teste\",\"contact_phone_number\":\"9866626006\",\"workforce_id\":\"1898\",\"asset_category_id\":\"1\",\"organization_id\":\"336\",\"account_id\":\"437\"}]}','','0.0','0','0','0','0.0','0.0','0.0','1','hyd','2018-07-23 11:06:20','','','5','','','1.0','1.0','8999','12345678','1','0','2018-07-23 11:06:20','2018-08-16 13:44:18');
+2018-08-16 13:44:22: CALL ds_v1_activity_asset_mapping_update_last_differential('57595','8999','336','2018-08-16 13:44:18');
+2018-08-16 13:44:22: CALL ds_v1_2_asset_timeline_transaction_insert('57595','8999','1898','437','336','325','0','','descriptionTextView.text','AddingFolderwithCollectiontoTimeline  ','{\"asset_reference\":[{\"asset_id\":\"11712\",\"contact_phone_country_code\":\"91\",\"asset_type_id\":\"1\",\"access_role_id\":\"19\",\"message_unique_id\":\"89991532343978850321\",\"contact_first_name\":\"Vijay Teste\",\"contact_phone_number\":\"9866626006\",\"workforce_id\":\"1898\",\"asset_category_id\":\"1\",\"organization_id\":\"336\",\"account_id\":\"437\"}]}','0.0','0.0','0','0','0','0.0','0.0','0.0','1','hyd','2018-07-23 11:06:20','','','5','','','1.0','1.0','8999','12345678','1','0','2018-07-23 11:06:20','2018-08-16 13:44:18');
+2018-08-16 13:44:23: CALL ds_v1_asset_list_select('336','11712');
+2018-08-16 13:44:23: CALL ds_v1_activity_asset_mapping_select_participants('57595','336','0','50');
+2018-08-16 13:44:23: CALL ds_p1_asset_list_select_phone_number_last_linked('7893066333','91');
