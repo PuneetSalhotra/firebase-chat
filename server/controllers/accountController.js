@@ -5,7 +5,7 @@
 
 var AccountService = require("../services/accountService");
 var fs = require('fs');
-const smsEngine = require('../utils/smsEngine');
+//const smsEngine = require('../utils/smsEngine');
 
 function AccountController(objCollection) {
 
@@ -239,6 +239,9 @@ function AccountController(objCollection) {
     app.post('/' + global.config.version + '/account/send/sms', function (req, res) {
         var request = req.body;
         console.log('Request params : ', request);
+        
+        /*var text = "Hey "+ request.receiver_name +" , "+ request.sender_name+" has requested your participation in "+request.task_title+" using the Desker App, ";
+            text += "it's due by " + request.due_date + ". Download the App from http://desker.co/download.";*/
                 
         util.sendSmsSinfini(request.message, request.country_code, request.phone_number, function(err,res){
                 console.log(err,'\n',res);                 
@@ -248,7 +251,7 @@ function AccountController(objCollection) {
      });
 
      /* GET SINFINI SMS delivery receipt  */
-     app.get('/' + global.config.version + '/sms-dlvry/sinfini', function (req, res) {
+     /*app.get('/' + global.config.version + '/sms-dlvry/sinfini', function (req, res) {
          console.log("req.query: ", req.query);
 
          if (req.query.status[0] === 'DELIVRD' || req.query.status[1] === 'DELIVRD') {
@@ -267,10 +270,10 @@ function AccountController(objCollection) {
              smsEngine.emit('send-mvayoo-sms', smsOptions);
          }
          res.sendStatus(200);
-     });
+     });*/
 
      /* GET TWILIO SMS delivery receipt */
-     app.post('/' + global.config.version + '/sms-dlvry/twilio', function (req, res) {
+     /*app.post('/' + global.config.version + '/sms-dlvry/twilio', function (req, res) {
          console.log("req.query: ", req.query);
          console.log("req.body: ", req.body);
          console.log("req.params: ", req.params);
@@ -297,10 +300,10 @@ function AccountController(objCollection) {
             smsEngine.emit('send-nexmo-sms', smsOptions);
          }
          res.sendStatus(200);
-     });
+     });*/
 
     /* GET NEXMO SMS delivery receipt. */
-     app.get('/' + global.config.version + '/sms-dlvry/nexmo', function (req, res) {
+     /*app.get('/' + global.config.version + '/sms-dlvry/nexmo', function (req, res) {
 
          if (req.query.status === 'delivered') {
             console.log("\x1b[32m[nexmo]\x1b[0m Message has been delivered.");
@@ -319,7 +322,7 @@ function AccountController(objCollection) {
             // smsEngine.emit('send-XXXXXXX-sms', smsOptions);
          }
          res.sendStatus(200);
-     });
+     });*/
      
      
     // Set Account Config Values
@@ -333,7 +336,7 @@ function AccountController(objCollection) {
 
     // Fetch available customer suppoer agent: POC Phase.
     // This route may be required to be moved to a separate module altogether.
-    app.post('/' + global.config.version + '/account/customer_service/agents/fetch', function (req, res) {
+    /*app.post('/' + global.config.version + '/account/customer_service/agents/fetch', function (req, res) {
         accountService.fetchCustomerServiceAgentsOnCrmFloor(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response    
@@ -344,7 +347,7 @@ function AccountController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
-    });
+    });*/
      
 };
 
