@@ -2,7 +2,7 @@
  * author: Sri Sai Venkatesh
  */
 const pubnubWrapper = new(require('../utils/pubnubWrapper'))(); //BETA
-const smsEngine = require('../utils/smsEngine');
+//const smsEngine = require('../utils/smsEngine');
 
 function ActivityPushService(objectCollection) {
     var getPushString = function (request, objectCollection, senderName, callback) {
@@ -519,13 +519,13 @@ function ActivityPushService(objectCollection) {
 
                             console.log('SMS String : ', smsString);
 
-                            // objectCollection.util.sendSmsSinfini(smsString, RecieverData.operating_asset_phone_country_code, RecieverData.operating_asset_phone_number, function () {
+                             objectCollection.util.sendSmsSinfini(smsString, RecieverData.operating_asset_phone_country_code, RecieverData.operating_asset_phone_number, function () {
 
-                            // });
+                             });
 
                             // GitHub PR (Pull Request) #19: Test out the SMS Engine on SMS Notifications
                             // If it works remove the above commented-out 'sendSmsSinfini' method call.
-                            let smsOptions = {
+                            /*let smsOptions = {
                                 type: 'NOTFCTN ', // Other types: 'OTP' | 'COLLBRTN' | 'INVTATN',
                                 countryCode: RecieverData.operating_asset_phone_country_code,
                                 phoneNumber: RecieverData.operating_asset_phone_number,
@@ -533,7 +533,7 @@ function ActivityPushService(objectCollection) {
                                 smsServiceProvider: 'sinfini',
                                 failOver: false
                             };
-                            smsEngine.sendDomesticSms(smsOptions);
+                            smsEngine.sendDomesticSms(smsOptions);*/
 
                         }.bind(this));
                     }

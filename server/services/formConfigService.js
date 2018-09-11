@@ -258,7 +258,8 @@ function FormConfigService(objCollection) {
                 if (err === false) {
                     if (data.length > 0) {
                         //console.log(data);
-                        formatFromsListing(data, function (err, finalData) {
+                        activityCommonService.formatFormDataCollection(data, function (err, finalData) {
+                        //formatFromsListing(data, function (err, finalData) {
                             if (err === false) {
                                 callback(false, {
                                     data: finalData

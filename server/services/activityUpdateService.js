@@ -862,6 +862,7 @@ function ActivityUpdateService(objectCollection) {
                     };
 
                     activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {});
+                    activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {});
 
                     // Timeline transaction entry for:
                     // 1. All non-Task category updates +
@@ -1668,6 +1669,8 @@ function ActivityUpdateService(objectCollection) {
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         var activityTypeCategoryId = Number(request.activity_type_category_id);
+        
+        //activityCommonService.responseRateUnreadCount(request, request.activity_id, function (err, data) {});
 
         activityCommonService.resetAssetUnreadCount(request, request.activity_id, function (err, data) {
             if (err === false) {

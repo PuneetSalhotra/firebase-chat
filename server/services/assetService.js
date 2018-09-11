@@ -831,6 +831,33 @@ function AssetService(objectCollection) {
 
                     fs.readFile(`${__dirname}/../utils/domesticSmsMode.txt`, function (err, data) {
                         (err) ? console.log(err): domesticSmsMode = Number(data.toString());
+                        
+                        /*   case 1: // mvaayoo                        
+                                util.sendSmsMvaayoo(smsString, countryCode, phoneNumber, function (error, data) {
+                                    if (error)
+                                        //console.log(error);
+                                        //console.log(data);
+                                        global.logger.write('trace', data, error, request)
+                                });
+                                break;
+                            case 2: // bulk sms                            
+                                util.sendSmsBulk(smsString, countryCode, phoneNumber, function (error, data) {
+                                    if (error)
+                                        //console.log(error);
+                                        //console.log(data);
+                                        global.logger.write('trace', data, error, request)
+                                });
+                                break;
+                            case 3: // sinfini                                                        
+                                console.log('In send SmsSinfini');
+                                util.sendSmsSinfini(smsString, countryCode, phoneNumber, function (error, data) {
+                                    if (error)
+                                        console.log(error);
+                                    console.log(data);
+                                    global.logger.write('trace', data, error, request)
+                                });
+                                break;
+                         */
 
                         switch (domesticSmsMode) {
                             case 1: // SinFini
@@ -851,6 +878,20 @@ function AssetService(objectCollection) {
 
                     fs.readFile(`${__dirname}/../utils/internationalSmsMode.txt`, function (err, data) {
                         (err) ? console.log(err): internationalSmsMode = Number(data.toString());
+                        
+                         /* case 1:
+                                util.sendInternationalTwilioSMS(smsString, countryCode, phoneNumber, function (error, data) {
+                                    if (error)
+                                        global.logger.write('trace', data, error, request)
+                                });
+                                break;
+
+                            case 2:
+                                util.sendInternationalNexmoSMS(smsString, countryCode, phoneNumber, function (error, data) {
+                                    if (error)
+                                        global.logger.write('trace', data, error, request)
+                                });
+                                break; */
 
                         switch (internationalSmsMode) {
                             case 1: // Twilio

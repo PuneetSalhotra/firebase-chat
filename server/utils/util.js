@@ -654,10 +654,10 @@ function Util() {
         return moment.duration(value)._data;
     };
     
-    this.getNoOfDays = function (timeString1, timeString2) {
+    /*this.getNoOfDays = function (timeString1, timeString2) {
         var value = moment(timeString1, "YYYY-MM-DD HH:mm:ss").diff(moment(timeString2, "YYYY-MM-DD HH:mm:ss"), 'days');
         return value;
-    };
+    };*/
     
     this.getDayStartDatetime = function() {
         var value = moment().startOf('day').utcOffset("-05:30").format('YYYY-MM-DD HH:mm:ss');
@@ -669,7 +669,7 @@ function Util() {
         return value;
     };
     
-    this.getGivenDayStartDatetime = function(timeString) {
+    /*this.getGivenDayStartDatetime = function(timeString) {
         var value = moment(timeString, "YYYY-MM-DD HH:mm:ss").format('YYYY-MM-DD 00:00:00');
         return value;
     };
@@ -677,7 +677,7 @@ function Util() {
     this.getGivenDayEndDatetime = function(timeString) {
         var value = moment(timeString, "YYYY-MM-DD HH:mm:ss").format('YYYY-MM-DD 23:59:59');
         return value;
-    };
+    };*/
     
     this.getDayStartDatetimeIST = function() {
         var value = moment().tz('Asia/Kolkata').startOf('day').format('YYYY-MM-DD HH:mm:ss');
@@ -842,7 +842,7 @@ function Util() {
 
     this.getUniqueArray = function (a) {
         return Array.from(new Set(a));
-    }
+    };
     
     this.writeLogs = function (data) {
         var date = this.getCurrentUTCTime();
@@ -850,7 +850,7 @@ function Util() {
         var logFilePath;
         
         if(global.mode === 'prod') {
-            locationInServer = '/api-final-efs/node/production_desker_api/';
+            locationInServer = global.config.efsPath+ 'node/production_desker_api/';
             logFilePath = locationInServer + 'logs/' + this.getCurrentDate() + '.txt';
         } else {
             logFilePath = 'logs/' + this.getCurrentDate() + '.txt';
