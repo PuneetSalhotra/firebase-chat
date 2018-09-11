@@ -297,9 +297,9 @@ function ActivityService(objectCollection) {
                             }
 
                             //Submit leave Form
-                            if (activityTypeCategroyId === 9 && request.activity_form_id == 807) {
+                            /*if (activityTypeCategroyId === 9 && request.activity_form_id == 807) {
                                 submitLeaveForms(request).then(() => {});
-                            }
+                            }*/
 
                             callback(false, responseactivityData, 200);
                             cacheWrapper.setMessageUniqueIdLookup(request.message_unique_id, request.activity_id, function (err, status) {
@@ -327,7 +327,7 @@ function ActivityService(objectCollection) {
         });
     };
 
-    function submitLeaveForms(request) {
+    /*function submitLeaveForms(request) {
         return new Promise((resolve, reject) => {
             var days = util.getNoOfDays(request.activity_datetime_end, request.activity_datetime_start);
             days++;
@@ -432,7 +432,7 @@ function ActivityService(objectCollection) {
             }
             submitForms();
         });
-    }
+    } */
 
     function callAlterActivityCover(request, coverAlterJson, activityTypeCategoryId) {
         return new Promise((resolve, reject) => {
@@ -1447,7 +1447,7 @@ function ActivityService(objectCollection) {
         activityListUpdateStatus(request, function (err, data) {
             if (err === false) {
                 //PAM
-                if (activityTypeCategroyId == 38) {
+                /*if (activityTypeCategroyId == 38) {
                     switch (Number(request.activity_status_type_id)) {
                         case 105:
                             itemOrderAlterStatus(request).then(() => {});
@@ -1461,7 +1461,7 @@ function ActivityService(objectCollection) {
                             updateStatusDateTimes(request).then(() => {});
                             break;
                     }
-                }
+                }*/
 
                 //Remote Analytics
                 if (activityTypeCategroyId == 28 || activityTypeCategroyId == 8) {

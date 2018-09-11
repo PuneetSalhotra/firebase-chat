@@ -2873,6 +2873,7 @@ function AssetService(objectCollection) {
 
     // Service to return both weekly and monthly summary params combined.
     this.retrieveAssetWeeklyAndMonthlySummaryParams = function (request, callback) {
+        const self = this;
         let responseJSON = {
             asset_id: request.asset_id,
             operating_asset_id: request.operating_asset_id,

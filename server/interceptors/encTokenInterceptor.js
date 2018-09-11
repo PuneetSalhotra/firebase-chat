@@ -27,7 +27,7 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                     next();
                 } else {
 
-                    switch (req.path) {
+                    switch (req.url) {
                         /*
                          case '/time/value':
                          global.logger.write('', req.body, 'device', 'request');

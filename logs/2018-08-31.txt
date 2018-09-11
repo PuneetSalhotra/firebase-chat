@@ -1,0 +1,332 @@
+2018-08-31 06:27:35: successfully redis encToken checking is done
+2018-08-31 06:27:35: producing to partition id: 2
+2018-08-31 06:28:03: successfully redis encToken checking is done
+2018-08-31 06:28:03: producing to partition id: 0
+2018-08-31 06:28:04: Producer success callback message
+2018-08-31 06:28:04: 
+2018-08-31 06:28:09: successfully redis encToken checking is done
+2018-08-31 06:28:09: producing to partition id: 0
+2018-08-31 06:28:09: Producer success callback message
+2018-08-31 06:28:09: 
+2018-08-31 06:28:10: CALL ds_v1_asset_list_update_location_v2('753','25409','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','25409','2018-08-31 06:28:09');
+2018-08-31 06:28:10: CALL ds_v1_activity_list_update('107207','753','TESTING 01 from pm','TESTING 01 from pm','2018-08-24 12:30:00','25409','2018-08-31 06:28:09');
+2018-08-31 06:28:11: CALL ds_v1_activity_list_history_insert('753','107207','403','2018-08-31 06:28:09');
+2018-08-31 06:28:11: CALL ds_v1_activity_list_select('107207','753');
+2018-08-31 06:28:12: CALL ds_v1_activity_asset_mapping_select_participants('107207','753','0','50');
+2018-08-31 06:28:12: CALL ds_p1_account_list_select('864');
+2018-08-31 06:28:12: CALL ds_v1_activity_asset_mapping_select_participants('107207','753','0','50');
+2018-08-31 06:28:12: CALL ds_v1_activity_asset_mapping_update('107207','25409','753','TESTING 01 from pm','TESTING 01 from pm','2018-08-24 12:30:00','25409','2018-08-31 06:28:09');
+2018-08-31 06:28:12: CALL ds_v1_2_asset_timeline_transaction_insert('107207','25409','4576','864','753','309','0','','undefined','','{}','7.7','7.7','0','0','0','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','','','5','','','1.0','1.0','25409','124775347178732','1','0','2018-08-22 00:00:00','2018-08-31 06:28:09');
+2018-08-31 06:28:13: CALL ds_v1_activity_asset_mapping_update_last_differential('107207','25409','753','2018-08-31 06:28:09');
+2018-08-31 06:28:13: CALL ds_v1_asset_list_select('753','25409');
+2018-08-31 06:28:13: CALL ds_p1_asset_list_select_phone_number_last_linked('9966626954','91');
+2018-08-31 06:28:13: CALL ds_p1_activity_list_update_count_alter_duedate('107207','753','0','25409','2018-08-31 06:28:12');
+2018-08-31 06:28:14: CALL ds_v1_3_activity_timeline_transaction_insert('107207','25409','4576','864','753','309','0','2018-08-22 23:59:59','2018-08-24 12:30:00','','undefined','','{}','','7.7','1','0','0','0','0','0','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','','','5','','','1.0','1.0','25409','124775347178732','1','0','2018-08-22 00:00:00','2018-08-31 06:28:09');
+2018-08-31 06:28:15: CALL ds_p1_activity_timeline_transaction_select_count_due_date_alter('753','10','25409','2018-08-27 00:00:00','2018-09-02 23:59:59');
+2018-08-31 06:28:16: CALL ds_v1_asset_weekly_summary_transaction_insert('17','25409','4576','864','753','2018-08-27','2018-08-27','0','1','0','0','0','0','','','7.7','7.7','7.7','undefined','MIY','2018-08-22 00:00:00','undefined','undefined','5','undefined','undefined','undefined','undefined','25409','124775347178732','0','0','2018-08-22 00:00:00','2018-08-31 06:28:09');
+2018-08-31 06:28:16: CALL ds_p1_activity_timeline_transaction_select_count_due_date_alter('753','10','25409','2018-08-01 00:00:00','2018-08-31 23:59:59');
+2018-08-31 06:28:17: CALL ds_v1_asset_monthly_summary_transaction_insert('30','25409','4576','864','753','2018-08-01','2018-08-01','0','1','0','0','0','0','','','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','undefined','undefined','5','undefined','undefined','1.0','undefined','25409','124775347178732','0','0','2018-08-22 00:00:00','2018-08-31 06:28:09');
+2018-08-31 06:31:46: successfully redis encToken checking is done
+2018-08-31 06:31:46: producing to partition id: 0
+2018-08-31 06:31:46: Producer success callback message
+2018-08-31 06:31:46: 
+2018-08-31 06:32:06: ERROR WHILE GETTING CONNECTON
+2018-08-31 06:32:06: ERROR WHILE GETTING CONNECTON
+2018-08-31 06:33:07: CALL ds_v1_activity_list_update('107207','753','TESTING 01 from pm','TESTING 01 from pm','2018-08-24 12:30:00','25409','2018-08-31 06:33:02');
+2018-08-31 06:33:07: CALL ds_v1_asset_list_update_location_v2('753','25409','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','25409','2018-08-31 06:33:02');
+2018-08-31 06:33:07: CALL ds_v1_activity_list_history_insert('753','107207','403','2018-08-31 06:33:02');
+2018-08-31 06:33:12: CALL ds_v1_activity_list_select('107207','753');
+2018-08-31 06:33:12: CALL ds_v1_activity_asset_mapping_select_participants('107207','753','0','50');
+2018-08-31 06:33:12: CALL ds_p1_account_list_select('864');
+2018-08-31 06:33:12: CALL ds_v1_activity_asset_mapping_select_participants('107207','753','0','50');
+2018-08-31 06:33:12: CALL ds_v1_activity_asset_mapping_update('107207','25409','753','TESTING 01 from pm','TESTING 01 from pm','2018-08-24 12:30:00','25409','2018-08-31 06:33:02');
+2018-08-31 06:33:12: CALL ds_v1_2_asset_timeline_transaction_insert('107207','25409','4576','864','753','309','0','','undefined','','{}','7.7','7.7','0','0','0','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','','','5','','','1.0','1.0','25409','124775347178732','1','0','2018-08-22 00:00:00','2018-08-31 06:33:02');
+2018-08-31 06:33:13: CALL ds_p1_asset_list_select_phone_number_last_linked('9966626954','91');
+2018-08-31 06:33:17: CALL ds_v1_asset_list_select('753','25409');
+2018-08-31 06:33:17: CALL ds_p1_activity_list_update_count_alter_duedate('107207','753','0','25409','2018-08-31 06:33:12');
+2018-08-31 06:33:17: CALL ds_v1_activity_asset_mapping_update_last_differential('107207','25409','753','2018-08-31 06:33:02');
+2018-08-31 06:33:17: CALL ds_v1_3_activity_timeline_transaction_insert('107207','25409','4576','864','753','309','0','2018-08-22 23:59:59','2018-08-24 12:30:00','','undefined','','{}','','7.7','1','0','0','0','0','0','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','','','5','','','1.0','1.0','25409','124775347178732','1','0','2018-08-22 00:00:00','2018-08-31 06:33:02');
+2018-08-31 06:33:18: CALL ds_p1_activity_timeline_transaction_select_count_due_date_alter('753','10','25409','2018-08-27 00:00:00','2018-09-02 23:59:59');
+2018-08-31 06:33:19: CALL ds_v1_asset_weekly_summary_transaction_insert('17','25409','4576','864','753','2018-08-27','2018-08-27','0','2','0','0','0','0','','','7.7','7.7','7.7','undefined','MIY','2018-08-22 00:00:00','undefined','undefined','5','undefined','undefined','undefined','undefined','25409','124775347178732','0','0','2018-08-22 00:00:00','2018-08-31 06:33:02');
+2018-08-31 06:33:19: CALL ds_p1_activity_timeline_transaction_select_count_due_date_alter('753','10','25409','2018-08-01 00:00:00','2018-08-31 23:59:59');
+2018-08-31 06:33:19: CALL ds_v1_asset_monthly_summary_transaction_insert('30','25409','4576','864','753','2018-08-01','2018-08-01','0','2','0','0','0','0','','','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','undefined','undefined','5','undefined','undefined','1.0','undefined','25409','124775347178732','0','0','2018-08-22 00:00:00','2018-08-31 06:33:02');
+2018-08-31 06:36:39: successfully redis encToken checking is done
+2018-08-31 06:36:39: producing to partition id: 0
+2018-08-31 06:36:39: Producer success callback message
+2018-08-31 06:36:39: 
+2018-08-31 06:36:48: CALL ds_v1_activity_list_update('107207','753','TESTING 01 from pm','TESTING 01 from pm','2018-08-24 12:30:00','25409','2018-08-31 06:36:39');
+2018-08-31 06:36:48: CALL ds_v1_asset_list_update_location_v2('753','25409','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','25409','2018-08-31 06:36:39');
+2018-08-31 06:36:49: CALL ds_v1_activity_list_history_insert('753','107207','403','2018-08-31 06:36:39');
+2018-08-31 06:36:53: CALL ds_v1_activity_list_select('107207','753');
+2018-08-31 06:36:54: CALL ds_v1_activity_asset_mapping_select_participants('107207','753','0','50');
+2018-08-31 06:36:54: CALL ds_p1_account_list_select('864');
+2018-08-31 06:36:54: CALL ds_v1_activity_asset_mapping_select_participants('107207','753','0','50');
+2018-08-31 06:36:54: CALL ds_v1_activity_asset_mapping_update('107207','25409','753','TESTING 01 from pm','TESTING 01 from pm','2018-08-24 12:30:00','25409','2018-08-31 06:36:39');
+2018-08-31 06:36:54: CALL ds_v1_2_asset_timeline_transaction_insert('107207','25409','4576','864','753','309','0','','undefined','','{}','7.7','7.7','0','0','0','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','','','5','','','1.0','1.0','25409','124775347178732','1','0','2018-08-22 00:00:00','2018-08-31 06:36:39');
+2018-08-31 06:36:55: CALL ds_p1_asset_list_select_phone_number_last_linked('9966626954','91');
+2018-08-31 06:36:58: CALL ds_v1_asset_list_select('753','25409');
+2018-08-31 06:36:58: CALL ds_p1_activity_list_update_count_alter_duedate('107207','753','1','25409','2018-08-31 06:36:54');
+2018-08-31 06:36:58: CALL ds_v1_activity_asset_mapping_update_last_differential('107207','25409','753','2018-08-31 06:36:39');
+2018-08-31 06:36:59: CALL ds_v1_3_activity_timeline_transaction_insert('107207','25409','4576','864','753','309','0','2018-08-22 23:59:59','2018-08-24 12:30:00','','undefined','','{}','','7.7','1','1','0','0','0','0','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','','','5','','','1.0','1.0','25409','124775347178732','1','0','2018-08-22 00:00:00','2018-08-31 06:36:39');
+2018-08-31 06:37:00: CALL ds_p1_activity_timeline_transaction_select_count_due_date_alter('753','10','25409','2018-08-27 00:00:00','2018-09-02 23:59:59');
+2018-08-31 06:37:00: CALL ds_v1_asset_weekly_summary_transaction_insert('17','25409','4576','864','753','2018-08-27','2018-08-27','0','3','33.33333333333333','33.33333333333333','1','0','','','7.7','7.7','7.7','undefined','MIY','2018-08-22 00:00:00','undefined','undefined','5','undefined','undefined','undefined','undefined','25409','124775347178732','0','0','2018-08-22 00:00:00','2018-08-31 06:36:39');
+2018-08-31 06:37:01: CALL ds_p1_activity_timeline_transaction_select_count_due_date_alter('753','10','25409','2018-08-01 00:00:00','2018-08-31 23:59:59');
+2018-08-31 06:37:01: CALL ds_v1_asset_monthly_summary_transaction_insert('30','25409','4576','864','753','2018-08-01','2018-08-01','0','3','33.33333333333333','33.33333333333333','1','0','','','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','undefined','undefined','5','undefined','undefined','1.0','undefined','25409','124775347178732','0','0','2018-08-22 00:00:00','2018-08-31 06:36:39');
+2018-08-31 06:39:51: successfully redis encToken checking is done
+2018-08-31 06:39:51: producing to partition id: 0
+2018-08-31 06:39:51: Producer success callback message
+2018-08-31 06:39:51: 
+2018-08-31 06:39:59: CALL ds_v1_activity_list_update('107207','753','TESTING 01 from pm','TESTING 01 from pm','2018-08-24 12:30:00','25409','2018-08-31 06:39:57');
+2018-08-31 06:39:59: CALL ds_v1_asset_list_update_location_v2('753','25409','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','25409','2018-08-31 06:39:57');
+2018-08-31 06:40:00: CALL ds_v1_activity_list_history_insert('753','107207','403','2018-08-31 06:39:57');
+2018-08-31 06:40:00: CALL ds_v1_activity_list_select('107207','753');
+2018-08-31 06:40:00: CALL ds_v1_activity_asset_mapping_select_participants('107207','753','0','50');
+2018-08-31 06:40:01: CALL ds_p1_account_list_select('864');
+2018-08-31 06:40:01: CALL ds_v1_activity_asset_mapping_update('107207','25409','753','TESTING 01 from pm','TESTING 01 from pm','2018-08-24 12:30:00','25409','2018-08-31 06:39:57');
+2018-08-31 06:40:01: CALL ds_v1_activity_asset_mapping_select_participants('107207','753','0','50');
+2018-08-31 06:40:01: CALL ds_v1_2_asset_timeline_transaction_insert('107207','25409','4576','864','753','309','0','','undefined','','{}','7.7','7.7','0','0','0','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','','','5','','','1.0','1.0','25409','124775347178732','1','0','2018-08-22 00:00:00','2018-08-31 06:39:57');
+2018-08-31 06:40:02: CALL ds_v1_activity_asset_mapping_update_last_differential('107207','25409','753','2018-08-31 06:39:57');
+2018-08-31 06:40:02: CALL ds_p1_asset_list_select_phone_number_last_linked('9966626954','91');
+2018-08-31 06:40:03: CALL ds_v1_asset_list_select('753','25409');
+2018-08-31 06:40:03: CALL ds_p1_activity_list_update_count_alter_duedate('107207','753','1','25409','2018-08-31 06:40:01');
+2018-08-31 06:40:03: CALL ds_v1_3_activity_timeline_transaction_insert('107207','25409','4576','864','753','309','0','2018-08-22 23:59:59','2018-08-24 12:30:00','','undefined','','{}','','7.7','1','1','0','0','0','0','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','','','5','','','1.0','1.0','25409','124775347178732','1','0','2018-08-22 00:00:00','2018-08-31 06:39:57');
+2018-08-31 06:40:04: CALL ds_p1_activity_timeline_transaction_select_count_due_date_alter('753','10','25409','2018-08-27 00:00:00','2018-09-02 23:59:59');
+2018-08-31 06:40:05: CALL ds_v1_asset_weekly_summary_transaction_insert('17','25409','4576','864','753','2018-08-27','2018-08-27','0','4','50','50','2','0','','','7.7','7.7','7.7','undefined','MIY','2018-08-22 00:00:00','undefined','undefined','5','undefined','undefined','undefined','undefined','25409','124775347178732','0','0','2018-08-22 00:00:00','2018-08-31 06:39:57');
+2018-08-31 06:40:06: CALL ds_p1_activity_timeline_transaction_select_count_due_date_alter('753','10','25409','2018-08-01 00:00:00','2018-08-31 23:59:59');
+2018-08-31 06:40:06: CALL ds_v1_asset_monthly_summary_transaction_insert('30','25409','4576','864','753','2018-08-01','2018-08-01','0','4','50','50','2','0','','','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','undefined','undefined','5','undefined','undefined','1.0','undefined','25409','124775347178732','0','0','2018-08-22 00:00:00','2018-08-31 06:39:57');
+2018-08-31 06:41:15: successfully redis encToken checking is done
+2018-08-31 06:41:15: producing to partition id: 0
+2018-08-31 06:41:15: Producer success callback message
+2018-08-31 06:41:15: 
+2018-08-31 06:41:24: CALL ds_v1_activity_list_update('107207','753','TESTING 01 from pm','TESTING 01 from pm','2018-08-24 12:30:00','25409','2018-08-31 06:41:23');
+2018-08-31 06:41:24: CALL ds_v1_asset_list_update_location_v2('753','25409','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','25409','2018-08-31 06:41:23');
+2018-08-31 06:41:24: CALL ds_v1_activity_list_history_insert('753','107207','403','2018-08-31 06:41:23');
+2018-08-31 06:41:25: CALL ds_v1_activity_list_select('107207','753');
+2018-08-31 06:41:25: CALL ds_v1_activity_asset_mapping_select_participants('107207','753','0','50');
+2018-08-31 06:41:26: CALL ds_p1_account_list_select('864');
+2018-08-31 06:41:26: CALL ds_v1_activity_asset_mapping_update('107207','25409','753','TESTING 01 from pm','TESTING 01 from pm','2018-08-24 12:30:00','25409','2018-08-31 06:41:23');
+2018-08-31 06:41:26: CALL ds_v1_2_asset_timeline_transaction_insert('107207','25409','4576','864','753','309','0','','undefined','','{}','7.7','7.7','0','0','0','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','','','5','','','1.0','1.0','25409','124775347178732','1','0','2018-08-22 00:00:00','2018-08-31 06:41:23');
+2018-08-31 06:41:26: CALL ds_v1_activity_asset_mapping_select_participants('107207','753','0','50');
+2018-08-31 06:41:27: CALL ds_v1_asset_list_select('753','25409');
+2018-08-31 06:41:27: CALL ds_v1_activity_asset_mapping_update_last_differential('107207','25409','753','2018-08-31 06:41:23');
+2018-08-31 06:41:27: CALL ds_p1_activity_list_update_count_alter_duedate('107207','753','1','25409','2018-08-31 06:41:26');
+2018-08-31 06:41:27: CALL ds_p1_asset_list_select_phone_number_last_linked('9966626954','91');
+2018-08-31 06:41:28: CALL ds_v1_3_activity_timeline_transaction_insert('107207','25409','4576','864','753','309','0','2018-08-22 23:59:59','2018-08-24 12:30:00','','undefined','','{}','','7.7','1','1','0','0','0','0','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','','','5','','','1.0','1.0','25409','124775347178732','1','0','2018-08-22 00:00:00','2018-08-31 06:41:23');
+2018-08-31 06:41:29: CALL ds_p1_activity_timeline_transaction_select_count_due_date_alter('753','10','25409','2018-08-27 00:00:00','2018-09-02 23:59:59');
+2018-08-31 06:41:30: CALL ds_v1_asset_weekly_summary_transaction_insert('17','25409','4576','864','753','2018-08-27','2018-08-27','0','5','60','60','3','0','','','7.7','7.7','7.7','undefined','MIY','2018-08-22 00:00:00','undefined','undefined','5','undefined','undefined','undefined','undefined','25409','124775347178732','0','0','2018-08-22 00:00:00','2018-08-31 06:41:23');
+2018-08-31 06:41:30: CALL ds_p1_activity_timeline_transaction_select_count_due_date_alter('753','10','25409','2018-08-01 00:00:00','2018-08-31 23:59:59');
+2018-08-31 06:41:31: CALL ds_v1_asset_monthly_summary_transaction_insert('30','25409','4576','864','753','2018-08-01','2018-08-01','0','5','60','60','3','0','','','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','undefined','undefined','5','undefined','undefined','1.0','undefined','25409','124775347178732','0','0','2018-08-22 00:00:00','2018-08-31 06:41:23');
+2018-08-31 06:51:01: successfully redis encToken checking is done
+2018-08-31 06:51:01: producing to partition id: 0
+2018-08-31 06:51:01: Producer success callback message
+2018-08-31 06:51:01: 
+2018-08-31 06:51:13: CALL ds_v1_activity_list_update('107207','753','TESTING 01 from pm','TESTING 01 from pm','2018-08-24 12:30:00','25409','2018-08-31 06:51:08');
+2018-08-31 06:51:13: CALL ds_v1_asset_list_update_location_v2('753','25409','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','25409','2018-08-31 06:51:08');
+2018-08-31 06:51:13: CALL ds_v1_activity_list_history_insert('753','107207','403','2018-08-31 06:51:08');
+2018-08-31 06:51:18: CALL ds_v1_activity_list_select('107207','753');
+2018-08-31 06:51:18: CALL ds_v1_activity_asset_mapping_select_participants('107207','753','0','50');
+2018-08-31 06:51:18: CALL ds_p1_account_list_select('864');
+2018-08-31 06:51:18: CALL ds_v1_activity_asset_mapping_update('107207','25409','753','TESTING 01 from pm','TESTING 01 from pm','2018-08-24 12:30:00','25409','2018-08-31 06:51:08');
+2018-08-31 06:51:18: CALL ds_v1_2_asset_timeline_transaction_insert('107207','25409','4576','864','753','309','0','','undefined','','{}','7.7','7.7','0','0','0','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','','','5','','','1.0','1.0','25409','124775347178732','1','0','2018-08-22 00:00:00','2018-08-31 06:51:08');
+2018-08-31 06:51:19: CALL ds_v1_activity_asset_mapping_select_participants('107207','753','0','50');
+2018-08-31 06:51:19: CALL ds_p1_asset_list_select_phone_number_last_linked('9966626954','91');
+2018-08-31 06:51:23: CALL ds_v1_asset_list_select('753','25409');
+2018-08-31 06:51:23: CALL ds_p1_activity_list_update_count_alter_duedate('107207','753','0','25409','2018-08-31 06:51:18');
+2018-08-31 06:51:23: CALL ds_v1_activity_asset_mapping_update_last_differential('107207','25409','753','2018-08-31 06:51:08');
+2018-08-31 06:51:23: CALL ds_v1_3_activity_timeline_transaction_insert('107207','25409','4576','864','753','309','0','2018-08-22 23:59:59','2018-08-24 12:30:00','','undefined','','{}','','7.7','1','0','0','0','0','0','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','','','5','','','1.0','1.0','25409','124775347178732','1','0','2018-08-22 00:00:00','2018-08-31 06:51:08');
+2018-08-31 06:51:24: CALL ds_p1_activity_timeline_transaction_select_count_due_date_alter('753','10','25409','2018-08-27 00:00:00','2018-09-02 23:59:59');
+2018-08-31 06:51:25: CALL ds_v1_asset_weekly_summary_transaction_insert('17','25409','4576','864','753','2018-08-27','2018-08-27','0','6','50','50','3','0','','','7.7','7.7','7.7','undefined','MIY','2018-08-22 00:00:00','undefined','undefined','5','undefined','undefined','undefined','undefined','25409','124775347178732','0','0','2018-08-22 00:00:00','2018-08-31 06:51:08');
+2018-08-31 06:51:25: CALL ds_p1_activity_timeline_transaction_select_count_due_date_alter('753','10','25409','2018-08-01 00:00:00','2018-08-31 23:59:59');
+2018-08-31 06:51:26: CALL ds_v1_asset_monthly_summary_transaction_insert('30','25409','4576','864','753','2018-08-01','2018-08-01','0','6','50','50','3','0','','','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','undefined','undefined','5','undefined','undefined','1.0','undefined','25409','124775347178732','0','0','2018-08-22 00:00:00','2018-08-31 06:51:08');
+2018-08-31 06:55:49: successfully redis encToken checking is done
+2018-08-31 06:55:50: producing to partition id: 0
+2018-08-31 06:55:50: Producer success callback message
+2018-08-31 06:55:50: 
+2018-08-31 06:55:54: CALL ds_v1_activity_list_update('107207','753','TESTING 01 from pm','TESTING 01 from pm','2018-08-24 12:30:00','25409','2018-08-31 06:55:50');
+2018-08-31 06:55:54: CALL ds_v1_asset_list_update_location_v2('753','25409','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','25409','2018-08-31 06:55:50');
+2018-08-31 06:55:55: CALL ds_v1_activity_list_history_insert('753','107207','403','2018-08-31 06:55:50');
+2018-08-31 06:55:59: CALL ds_v1_activity_list_select('107207','753');
+2018-08-31 06:56:00: CALL ds_v1_activity_asset_mapping_select_participants('107207','753','0','50');
+2018-08-31 06:56:00: CALL ds_p1_account_list_select('864');
+2018-08-31 06:56:00: CALL ds_v1_activity_asset_mapping_update('107207','25409','753','TESTING 01 from pm','TESTING 01 from pm','2018-08-24 12:30:00','25409','2018-08-31 06:55:50');
+2018-08-31 06:56:00: CALL ds_v1_2_asset_timeline_transaction_insert('107207','25409','4576','864','753','309','0','','undefined','','{}','7.7','7.7','0','0','0','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','','','5','','','1.0','1.0','25409','124775347178732','1','0','2018-08-22 00:00:00','2018-08-31 06:55:50');
+2018-08-31 06:56:00: CALL ds_v1_activity_asset_mapping_select_participants('107207','753','0','50');
+2018-08-31 06:56:01: CALL ds_p1_asset_list_select_phone_number_last_linked('9966626954','91');
+2018-08-31 06:56:04: CALL ds_v1_asset_list_select('753','25409');
+2018-08-31 06:56:04: CALL ds_v1_activity_asset_mapping_update_last_differential('107207','25409','753','2018-08-31 06:55:50');
+2018-08-31 06:56:04: CALL ds_p1_activity_list_update_count_alter_duedate('107207','753','0','25409','2018-08-31 06:56:00');
+2018-08-31 06:56:05: CALL ds_v1_3_activity_timeline_transaction_insert('107207','25409','4576','864','753','309','0','2018-08-22 23:59:59','2018-08-24 12:30:00','','undefined','','{}','','7.7','1','0','0','0','0','0','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','','','5','','','1.0','1.0','25409','124775347178732','1','0','2018-08-22 00:00:00','2018-08-31 06:55:50');
+2018-08-31 06:56:06: CALL ds_p1_activity_timeline_transaction_select_count_due_date_alter('753','10','25409','2018-08-27 00:00:00','2018-09-02 23:59:59');
+2018-08-31 06:56:06: CALL ds_v1_asset_weekly_summary_transaction_insert('17','25409','4576','864','753','2018-08-27','2018-08-27','0','7','42.857142857142854','42.857142857142854','3','0','','','7.7','7.7','7.7','undefined','MIY','2018-08-22 00:00:00','undefined','undefined','5','undefined','undefined','undefined','undefined','25409','124775347178732','0','0','2018-08-22 00:00:00','2018-08-31 06:55:50');
+2018-08-31 06:56:07: CALL ds_p1_activity_timeline_transaction_select_count_due_date_alter('753','10','25409','2018-08-01 00:00:00','2018-08-31 23:59:59');
+2018-08-31 06:56:07: CALL ds_v1_asset_monthly_summary_transaction_insert('30','25409','4576','864','753','2018-08-01','2018-08-01','0','7','42.857142857142854','42.857142857142854','3','0','','','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','undefined','undefined','5','undefined','undefined','1.0','undefined','25409','124775347178732','0','0','2018-08-22 00:00:00','2018-08-31 06:55:50');
+2018-08-31 06:57:12: successfully redis encToken checking is done
+2018-08-31 06:57:12: producing to partition id: 0
+2018-08-31 06:57:12: Producer success callback message
+2018-08-31 06:57:12: 
+2018-08-31 06:57:12: CALL ds_v1_asset_list_update_location_v2('753','25409','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','25409','2018-08-31 06:57:12');
+2018-08-31 06:57:12: CALL ds_v1_activity_list_update('107207','753','TESTING 01 from pm','TESTING 01 from pm','2018-08-31 11:59:59','25409','2018-08-31 06:57:12');
+2018-08-31 06:57:13: CALL ds_v1_activity_list_select('107207','753');
+2018-08-31 06:57:13: CALL ds_v1_activity_list_history_insert('753','107207','403','2018-08-31 06:57:12');
+2018-08-31 06:57:13: CALL ds_v1_activity_asset_mapping_select_participants('107207','753','0','50');
+2018-08-31 06:57:13: CALL ds_p1_account_list_select('864');
+2018-08-31 06:57:14: CALL ds_v1_asset_list_select('753','25409');
+2018-08-31 06:57:14: CALL ds_v1_activity_asset_mapping_update('107207','25409','753','TESTING 01 from pm','TESTING 01 from pm','2018-08-31 11:59:59','25409','2018-08-31 06:57:12');
+2018-08-31 06:57:14: CALL ds_v1_2_asset_timeline_transaction_insert('107207','25409','4576','864','753','309','0','','undefined','','{}','7.7','7.7','0','0','0','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','','','5','','','1.0','1.0','25409','124775347178732','1','0','2018-08-22 00:00:00','2018-08-31 06:57:12');
+2018-08-31 06:57:14: CALL ds_v1_activity_asset_mapping_update_last_differential('107207','25409','753','2018-08-31 06:57:12');
+2018-08-31 06:57:14: CALL ds_v1_activity_asset_mapping_select_participants('107207','753','0','50');
+2018-08-31 06:57:14: CALL ds_p1_activity_list_update_count_alter_duedate('107207','753','0','25409','2018-08-31 06:57:13');
+2018-08-31 06:57:14: CALL ds_p1_asset_list_select_phone_number_last_linked('9966626954','91');
+2018-08-31 06:57:14: CALL ds_v1_3_activity_timeline_transaction_insert('107207','25409','4576','864','753','309','0','2018-08-24 12:30:00','2018-08-31 11:59:59','','undefined','','{}','','7.7','1','0','0','0','0','0','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','','','5','','','1.0','1.0','25409','124775347178732','1','0','2018-08-22 00:00:00','2018-08-31 06:57:12');
+2018-08-31 06:57:15: CALL ds_p1_activity_timeline_transaction_select_count_due_date_alter('753','10','25409','2018-08-27 00:00:00','2018-09-02 23:59:59');
+2018-08-31 06:57:16: CALL ds_v1_asset_weekly_summary_transaction_insert('17','25409','4576','864','753','2018-08-27','2018-08-27','0','8','37.5','37.5','3','0','','','7.7','7.7','7.7','undefined','MIY','2018-08-22 00:00:00','undefined','undefined','5','undefined','undefined','undefined','undefined','25409','124775347178732','0','0','2018-08-22 00:00:00','2018-08-31 06:57:12');
+2018-08-31 06:57:16: CALL ds_p1_activity_timeline_transaction_select_count_due_date_alter('753','10','25409','2018-08-01 00:00:00','2018-08-31 23:59:59');
+2018-08-31 06:57:17: CALL ds_v1_asset_monthly_summary_transaction_insert('30','25409','4576','864','753','2018-08-01','2018-08-01','0','8','37.5','37.5','3','0','','','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','undefined','undefined','5','undefined','undefined','1.0','undefined','25409','124775347178732','0','0','2018-08-22 00:00:00','2018-08-31 06:57:12');
+2018-08-31 07:03:57: successfully redis encToken checking is done
+2018-08-31 07:03:57: producing to partition id: 0
+2018-08-31 07:03:57: Producer success callback message
+2018-08-31 07:03:57: 
+2018-08-31 07:04:08: CALL ds_v1_asset_list_update_location_v2('753','25409','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','25409','2018-08-31 07:04:03');
+2018-08-31 07:04:08: CALL ds_v1_activity_list_update('107207','753','TESTING 01 from pm','TESTING 01 from pm','2018-08-31 11:59:59','25409','2018-08-31 07:04:03');
+2018-08-31 07:04:08: CALL ds_v1_activity_list_history_insert('753','107207','403','2018-08-31 07:04:03');
+2018-08-31 07:04:13: CALL ds_v1_activity_list_select('107207','753');
+2018-08-31 07:04:13: CALL ds_v1_activity_asset_mapping_select_participants('107207','753','0','50');
+2018-08-31 07:04:13: CALL ds_p1_account_list_select('864');
+2018-08-31 07:04:13: CALL ds_v1_activity_asset_mapping_update('107207','25409','753','TESTING 01 from pm','TESTING 01 from pm','2018-08-31 11:59:59','25409','2018-08-31 07:04:03');
+2018-08-31 07:04:13: CALL ds_v1_2_asset_timeline_transaction_insert('107207','25409','4576','864','753','309','0','','undefined','','{}','7.7','7.7','0','0','0','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','','','5','','','1.0','1.0','25409','124775347178732','1','0','2018-08-22 00:00:00','2018-08-31 07:04:03');
+2018-08-31 07:04:14: CALL ds_v1_activity_asset_mapping_select_participants('107207','753','0','50');
+2018-08-31 07:04:14: CALL ds_v1_asset_list_select('753','25409');
+2018-08-31 07:04:14: CALL ds_v1_activity_asset_mapping_update_last_differential('107207','25409','753','2018-08-31 07:04:03');
+2018-08-31 07:04:14: CALL ds_p1_asset_list_select_phone_number_last_linked('9966626954','91');
+2018-08-31 07:04:14: CALL ds_p1_activity_list_update_count_alter_duedate('107207','753','0','25409','2018-08-31 07:04:13');
+2018-08-31 07:04:15: CALL ds_v1_3_activity_timeline_transaction_insert('107207','25409','4576','864','753','309','0','2018-08-24 12:30:00','2018-08-31 11:59:59','','undefined','','{}','','7.7','1','0','0','0','0','0','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','','','5','','','1.0','1.0','25409','124775347178732','1','0','2018-08-22 00:00:00','2018-08-31 07:04:03');
+2018-08-31 07:04:16: CALL ds_p1_activity_timeline_transaction_select_count_due_date_alter('753','10','25409','2018-08-27 00:00:00','2018-09-02 23:59:59');
+2018-08-31 07:04:16: CALL ds_v1_asset_weekly_summary_transaction_insert('17','25409','4576','864','753','2018-08-27','2018-08-27','0','9','33.33333333333333','33.33333333333333','3','0','','','7.7','7.7','7.7','undefined','MIY','2018-08-22 00:00:00','undefined','undefined','5','undefined','undefined','undefined','undefined','25409','124775347178732','0','0','2018-08-22 00:00:00','2018-08-31 07:04:03');
+2018-08-31 07:04:17: CALL ds_p1_activity_timeline_transaction_select_count_due_date_alter('753','10','25409','2018-08-01 00:00:00','2018-08-31 23:59:59');
+2018-08-31 07:04:17: CALL ds_v1_asset_monthly_summary_transaction_insert('30','25409','4576','864','753','2018-08-01','2018-08-01','0','9','33.33333333333333','33.33333333333333','3','0','','','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','undefined','undefined','5','undefined','undefined','1.0','undefined','25409','124775347178732','0','0','2018-08-22 00:00:00','2018-08-31 07:04:03');
+2018-08-31 07:04:42: successfully redis encToken checking is done
+2018-08-31 07:04:42: producing to partition id: 0
+2018-08-31 07:04:42: Producer success callback message
+2018-08-31 07:04:42: 
+2018-08-31 07:04:49: CALL ds_v1_asset_list_update_location_v2('753','25409','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','25409','2018-08-31 07:04:48');
+2018-08-31 07:04:49: CALL ds_v1_activity_list_update('107207','753','TESTING 01 from pm','TESTING 01 from pm','2018-08-31 11:59:59','25409','2018-08-31 07:04:48');
+2018-08-31 07:04:50: CALL ds_v1_activity_list_history_insert('753','107207','403','2018-08-31 07:04:48');
+2018-08-31 07:04:50: CALL ds_v1_activity_list_select('107207','753');
+2018-08-31 07:04:50: CALL ds_v1_activity_asset_mapping_select_participants('107207','753','0','50');
+2018-08-31 07:04:51: CALL ds_p1_account_list_select('864');
+2018-08-31 07:04:51: CALL ds_v1_activity_asset_mapping_update('107207','25409','753','TESTING 01 from pm','TESTING 01 from pm','2018-08-31 11:59:59','25409','2018-08-31 07:04:48');
+2018-08-31 07:04:51: CALL ds_v1_2_asset_timeline_transaction_insert('107207','25409','4576','864','753','309','0','','undefined','','{}','7.7','7.7','0','0','0','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','','','5','','','1.0','1.0','25409','124775347178732','1','0','2018-08-22 00:00:00','2018-08-31 07:04:48');
+2018-08-31 07:04:51: CALL ds_v1_activity_asset_mapping_select_participants('107207','753','0','50');
+2018-08-31 07:04:51: CALL ds_v1_asset_list_select('753','25409');
+2018-08-31 07:04:52: CALL ds_v1_activity_asset_mapping_update_last_differential('107207','25409','753','2018-08-31 07:04:48');
+2018-08-31 07:04:52: CALL ds_p1_activity_list_update_count_alter_duedate('107207','753','0','25409','2018-08-31 07:04:51');
+2018-08-31 07:04:52: CALL ds_p1_asset_list_select_phone_number_last_linked('9966626954','91');
+2018-08-31 07:04:52: CALL ds_v1_3_activity_timeline_transaction_insert('107207','25409','4576','864','753','309','0','2018-08-24 12:30:00','2018-08-31 11:59:59','','undefined','','{}','','7.7','1','0','0','0','0','0','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','','','5','','','1.0','1.0','25409','124775347178732','1','0','2018-08-22 00:00:00','2018-08-31 07:04:48');
+2018-08-31 07:04:53: CALL ds_p1_activity_timeline_transaction_select_count_due_date_alter('753','10','25409','2018-08-27 00:00:00','2018-09-02 23:59:59');
+2018-08-31 07:04:54: CALL ds_v1_asset_weekly_summary_transaction_insert('17','25409','4576','864','753','2018-08-27','2018-08-27','0','10','30','30','3','0','','','7.7','7.7','7.7','undefined','MIY','2018-08-22 00:00:00','undefined','undefined','5','undefined','undefined','undefined','undefined','25409','124775347178732','0','0','2018-08-22 00:00:00','2018-08-31 07:04:48');
+2018-08-31 07:04:54: CALL ds_p1_activity_timeline_transaction_select_count_due_date_alter('753','10','25409','2018-08-01 00:00:00','2018-08-31 23:59:59');
+2018-08-31 07:04:55: CALL ds_v1_asset_monthly_summary_transaction_insert('30','25409','4576','864','753','2018-08-01','2018-08-01','0','10','30','30','3','0','','','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','undefined','undefined','5','undefined','undefined','1.0','undefined','25409','124775347178732','0','0','2018-08-22 00:00:00','2018-08-31 07:04:48');
+2018-08-31 07:06:37: successfully redis encToken checking is done
+2018-08-31 07:06:37: producing to partition id: 0
+2018-08-31 07:06:37: Producer success callback message
+2018-08-31 07:06:37: 
+2018-08-31 07:06:42: CALL ds_v1_asset_list_update_location_v2('753','25409','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','25409','2018-08-31 07:06:38');
+2018-08-31 07:06:42: CALL ds_v1_activity_list_update('107207','753','TESTING 01 from pm','TESTING 01 from pm','2018-08-31 11:59:59','25409','2018-08-31 07:06:38');
+2018-08-31 07:06:43: CALL ds_v1_activity_list_history_insert('753','107207','403','2018-08-31 07:06:38');
+2018-08-31 07:06:47: CALL ds_v1_activity_list_select('107207','753');
+2018-08-31 07:06:48: CALL ds_v1_activity_asset_mapping_select_participants('107207','753','0','50');
+2018-08-31 07:06:48: CALL ds_p1_account_list_select('864');
+2018-08-31 07:06:48: CALL ds_v1_activity_asset_mapping_update('107207','25409','753','TESTING 01 from pm','TESTING 01 from pm','2018-08-31 11:59:59','25409','2018-08-31 07:06:38');
+2018-08-31 07:06:48: CALL ds_v1_2_asset_timeline_transaction_insert('107207','25409','4576','864','753','309','0','','undefined','','{}','7.7','7.7','0','0','0','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','','','5','','','1.0','1.0','25409','124775347178732','1','0','2018-08-22 00:00:00','2018-08-31 07:06:38');
+2018-08-31 07:06:48: CALL ds_v1_activity_asset_mapping_select_participants('107207','753','0','50');
+2018-08-31 07:06:49: CALL ds_v1_asset_list_select('753','25409');
+2018-08-31 07:06:49: CALL ds_v1_activity_asset_mapping_update_last_differential('107207','25409','753','2018-08-31 07:06:38');
+2018-08-31 07:06:49: CALL ds_p1_activity_list_update_count_alter_duedate('107207','753','0','25409','2018-08-31 07:06:48');
+2018-08-31 07:06:49: CALL ds_p1_asset_list_select_phone_number_last_linked('9966626954','91');
+2018-08-31 07:06:49: CALL ds_v1_3_activity_timeline_transaction_insert('107207','25409','4576','864','753','309','0','2018-08-24 12:30:00','2018-08-31 11:59:59','','undefined','','{}','','7.7','1','0','0','0','0','0','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','','','5','','','1.0','1.0','25409','124775347178732','1','0','2018-08-22 00:00:00','2018-08-31 07:06:38');
+2018-08-31 07:06:50: CALL ds_p1_activity_timeline_transaction_select_count_due_date_alter('753','10','25409','2018-08-27 00:00:00','2018-09-02 23:59:59');
+2018-08-31 07:06:51: CALL ds_v1_asset_weekly_summary_transaction_insert('17','25409','4576','864','753','2018-08-27','2018-08-27','0','11','27.27272727272727','27.27272727272727','3','0','','','7.7','7.7','7.7','undefined','MIY','2018-08-22 00:00:00','undefined','undefined','5','undefined','undefined','undefined','undefined','25409','124775347178732','0','0','2018-08-22 00:00:00','2018-08-31 07:06:38');
+2018-08-31 07:06:51: CALL ds_p1_activity_timeline_transaction_select_count_due_date_alter('753','10','25409','2018-08-01 00:00:00','2018-08-31 23:59:59');
+2018-08-31 07:06:52: CALL ds_v1_asset_monthly_summary_transaction_insert('30','25409','4576','864','753','2018-08-01','2018-08-01','0','11','27.27272727272727','27.27272727272727','3','0','','','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','undefined','undefined','5','undefined','undefined','1.0','undefined','25409','124775347178732','0','0','2018-08-22 00:00:00','2018-08-31 07:06:38');
+2018-08-31 07:10:03: successfully redis encToken checking is done
+2018-08-31 07:10:03: producing to partition id: 0
+2018-08-31 07:10:03: Producer success callback message
+2018-08-31 07:10:03: 
+2018-08-31 07:10:06: CALL ds_v1_asset_list_update_location_v2('753','25409','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','25409','2018-08-31 07:10:03');
+2018-08-31 07:10:06: CALL ds_v1_activity_list_update('107207','753','TESTING 01 from pm','TESTING 01 from pm','2018-08-31 11:59:59','25409','2018-08-31 07:10:03');
+2018-08-31 07:10:08: CALL ds_v1_activity_list_history_insert('753','107207','403','2018-08-31 07:10:03');
+2018-08-31 07:10:10: CALL ds_v1_activity_list_select('107207','753');
+2018-08-31 07:10:10: CALL ds_v1_activity_asset_mapping_select_participants('107207','753','0','50');
+2018-08-31 07:10:10: CALL ds_p1_account_list_select('864');
+2018-08-31 07:10:10: CALL ds_v1_activity_asset_mapping_update('107207','25409','753','TESTING 01 from pm','TESTING 01 from pm','2018-08-31 11:59:59','25409','2018-08-31 07:10:03');
+2018-08-31 07:10:10: CALL ds_v1_2_asset_timeline_transaction_insert('107207','25409','4576','864','753','309','0','','undefined','','{}','7.7','7.7','0','0','0','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','','','5','','','1.0','1.0','25409','124775347178732','1','0','2018-08-22 00:00:00','2018-08-31 07:10:03');
+2018-08-31 07:10:11: CALL ds_v1_activity_asset_mapping_select_participants('107207','753','0','50');
+2018-08-31 07:10:12: CALL ds_v1_asset_list_select('753','25409');
+2018-08-31 07:10:12: CALL ds_v1_activity_asset_mapping_update_last_differential('107207','25409','753','2018-08-31 07:10:03');
+2018-08-31 07:10:12: CALL ds_p1_asset_list_select_phone_number_last_linked('9966626954','91');
+2018-08-31 07:10:12: CALL ds_p1_activity_list_update_count_alter_duedate('107207','753','1','25409','2018-08-31 07:10:10');
+2018-08-31 07:10:13: CALL ds_v1_3_activity_timeline_transaction_insert('107207','25409','4576','864','753','309','0','2018-08-24 12:30:00','2018-08-31 11:59:59','','undefined','','{}','','7.7','1','1','0','0','0','0','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','','','5','','','1.0','1.0','25409','124775347178732','1','0','2018-08-22 00:00:00','2018-08-31 07:10:03');
+2018-08-31 07:10:14: CALL ds_p1_activity_timeline_transaction_select_count_due_date_alter('753','10','25409','2018-08-27 00:00:00','2018-09-02 23:59:59');
+2018-08-31 07:10:14: CALL ds_v1_asset_weekly_summary_transaction_insert('17','25409','4576','864','753','2018-08-27','2018-08-27','0','12','33.33333333333333','33.33333333333333','4','0','','','7.7','7.7','7.7','undefined','MIY','2018-08-22 00:00:00','undefined','undefined','5','undefined','undefined','undefined','undefined','25409','124775347178732','0','0','2018-08-22 00:00:00','2018-08-31 07:10:03');
+2018-08-31 07:10:15: CALL ds_p1_activity_timeline_transaction_select_count_due_date_alter('753','10','25409','2018-08-01 00:00:00','2018-08-31 23:59:59');
+2018-08-31 07:10:15: CALL ds_v1_asset_monthly_summary_transaction_insert('30','25409','4576','864','753','2018-08-01','2018-08-01','0','12','33.33333333333333','33.33333333333333','4','0','','','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','undefined','undefined','5','undefined','undefined','1.0','undefined','25409','124775347178732','0','0','2018-08-22 00:00:00','2018-08-31 07:10:03');
+2018-08-31 08:45:43: successfully redis encToken checking is done
+2018-08-31 08:45:43: producing to partition id: 2
+2018-08-31 08:46:03: successfully redis encToken checking is done
+2018-08-31 08:46:03: producing to partition id: 0
+2018-08-31 08:46:03: Producer success callback message
+2018-08-31 08:46:03: 
+2018-08-31 08:46:04: CALL ds_v1_asset_list_update_location_v2('753','25409','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','25409','2018-08-31 08:46:03');
+2018-08-31 08:46:04: CALL ds_v1_activity_list_update('107207','753','TESTING 01 from pm','TESTING 01 from pm','2018-08-31 11:59:59','25409','2018-08-31 08:46:03');
+2018-08-31 08:46:06: CALL ds_v1_activity_list_history_insert('753','107207','403','2018-08-31 08:46:03');
+2018-08-31 08:46:06: CALL ds_v1_activity_list_select('107207','753');
+2018-08-31 08:46:06: CALL ds_v1_activity_asset_mapping_select_participants('107207','753','0','50');
+2018-08-31 08:46:07: CALL ds_p1_account_list_select('864');
+2018-08-31 08:46:07: CALL ds_v1_activity_asset_mapping_update('107207','25409','753','TESTING 01 from pm','TESTING 01 from pm','2018-08-31 11:59:59','25409','2018-08-31 08:46:03');
+2018-08-31 08:46:07: CALL ds_v1_2_asset_timeline_transaction_insert('107207','25409','4576','864','753','309','0','','undefined','','{}','7.7','7.7','0','0','0','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','','','5','','','1.0','1.0','25409','124775347178732','1','0','2018-08-22 00:00:00','2018-08-31 08:46:03');
+2018-08-31 08:46:07: CALL ds_v1_activity_asset_mapping_select_participants('107207','753','0','50');
+2018-08-31 08:46:07: CALL ds_v1_asset_list_select('753','25409');
+2018-08-31 08:46:07: CALL ds_v1_activity_asset_mapping_update_last_differential('107207','25409','753','2018-08-31 08:46:03');
+2018-08-31 08:46:08: CALL ds_p1_asset_list_select_phone_number_last_linked('9966626954','91');
+2018-08-31 08:46:08: CALL ds_p1_activity_list_update_count_alter_duedate('107207','753','1','25409','2018-08-31 08:46:07');
+2018-08-31 08:46:09: CALL ds_v1_3_activity_timeline_transaction_insert('107207','25409','4576','864','753','309','0','2018-08-24 12:30:00','2018-08-31 11:59:59','','undefined','2018-08-23 02:43:28','{}','','7.7','1','1','0','0','0','0','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','','','5','','','1.0','1.0','25409','124775347178732','1','0','2018-08-22 00:00:00','2018-08-31 08:46:03');
+2018-08-31 08:46:10: CALL ds_p1_activity_timeline_transaction_select_count_due_date_alter('753','10','25409','2018-08-27 00:00:00','2018-09-02 23:59:59');
+2018-08-31 08:46:10: CALL ds_v1_asset_weekly_summary_transaction_insert('17','25409','4576','864','753','2018-08-27','2018-08-27','0','13','38.46153846153847','38.46153846153847','5','0','','','7.7','7.7','7.7','undefined','MIY','2018-08-22 00:00:00','undefined','undefined','5','undefined','undefined','undefined','undefined','25409','124775347178732','0','0','2018-08-22 00:00:00','2018-08-31 08:46:03');
+2018-08-31 08:46:10: CALL ds_p1_activity_timeline_transaction_select_count_due_date_alter('753','10','25409','2018-08-01 00:00:00','2018-08-31 23:59:59');
+2018-08-31 08:46:11: CALL ds_v1_asset_monthly_summary_transaction_insert('30','25409','4576','864','753','2018-08-01','2018-08-01','0','13','38.46153846153847','38.46153846153847','5','0','','','7.7','7.7','7.7','1','MIY','2018-08-22 00:00:00','undefined','undefined','5','undefined','undefined','1.0','undefined','25409','124775347178732','0','0','2018-08-22 00:00:00','2018-08-31 08:46:03');
+2018-08-31 08:47:26: successfully redis encToken checking is done
+2018-08-31 08:47:26: producing to partition id: 0
+2018-08-31 08:47:26: Producer success callback message
+2018-08-31 08:47:26: 
+2018-08-31 08:47:26: CALL ds_v1_asset_list_update_location_v2('753','25409','7.7','7.7','7.7','1','MIY','2018-08-31 12:12:12','25409','2018-08-31 08:47:26');
+2018-08-31 08:47:26: CALL ds_v1_activity_list_update('107207','753','TESTING 01 from pm','TESTING 01 from pm','2018-08-31 11:59:59','25409','2018-08-31 08:47:26');
+2018-08-31 08:47:27: CALL ds_v1_activity_list_select('107207','753');
+2018-08-31 08:47:27: CALL ds_v1_activity_list_history_insert('753','107207','403','2018-08-31 08:47:26');
+2018-08-31 08:47:27: CALL ds_v1_activity_asset_mapping_select_participants('107207','753','0','50');
+2018-08-31 08:47:27: CALL ds_p1_account_list_select('864');
+2018-08-31 08:47:27: CALL ds_v1_activity_asset_mapping_select_participants('107207','753','0','50');
+2018-08-31 08:47:27: CALL ds_v1_asset_list_select('753','25409');
+2018-08-31 08:47:27: CALL ds_v1_activity_asset_mapping_update('107207','25409','753','TESTING 01 from pm','TESTING 01 from pm','2018-08-31 11:59:59','25409','2018-08-31 08:47:26');
+2018-08-31 08:47:27: CALL ds_v1_2_asset_timeline_transaction_insert('107207','25409','4576','864','753','309','0','','undefined','','{}','7.7','7.7','0','0','0','7.7','7.7','7.7','1','MIY','2018-08-31 12:12:12','','','5','','','1.0','1.0','25409','124775347178732','1','0','2018-08-31 12:12:12','2018-08-31 08:47:26');
+2018-08-31 09:06:08: successfully redis encToken checking is done
+2018-08-31 09:06:08: producing to partition id: 0
+2018-08-31 09:06:08: Producer success callback message
+2018-08-31 09:06:08: 
+2018-08-31 09:06:15: CALL ds_v1_activity_list_update('107207','753','TESTING 01 from pm','TESTING 01 from pm','2018-08-31 11:59:59','25409','2018-08-31 09:06:14');
+2018-08-31 09:06:15: CALL ds_v1_asset_list_update_location_v2('753','25409','7.7','7.7','7.7','1','MIY','2018-08-31 12:12:12','25409','2018-08-31 09:06:14');
+2018-08-31 09:06:15: CALL ds_v1_activity_list_history_insert('753','107207','403','2018-08-31 09:06:14');
+2018-08-31 09:06:16: CALL ds_v1_activity_list_select('107207','753');
+2018-08-31 09:06:16: CALL ds_v1_activity_asset_mapping_select_participants('107207','753','0','50');
+2018-08-31 09:06:16: CALL ds_p1_account_list_select('864');
+2018-08-31 09:06:17: CALL ds_v1_activity_asset_mapping_update('107207','25409','753','TESTING 01 from pm','TESTING 01 from pm','2018-08-31 11:59:59','25409','2018-08-31 09:06:14');
+2018-08-31 09:06:17: CALL ds_v1_2_asset_timeline_transaction_insert('107207','25409','4576','864','753','309','0','','undefined','','{}','7.7','7.7','0','0','0','7.7','7.7','7.7','1','MIY','2018-08-31 12:12:12','','','5','','','1.0','1.0','25409','124775347178732','1','0','2018-08-31 12:12:12','2018-08-31 09:06:14');
+2018-08-31 09:06:17: CALL ds_v1_activity_asset_mapping_select_participants('107207','753','0','50');
+2018-08-31 09:06:17: CALL ds_v1_activity_asset_mapping_update_last_differential('107207','25409','753','2018-08-31 09:06:14');
+2018-08-31 09:06:17: CALL ds_v1_asset_list_select('753','25409');
+2018-08-31 09:06:18: CALL ds_p1_asset_list_select_phone_number_last_linked('9966626954','91');
+2018-08-31 09:06:18: CALL ds_p1_activity_list_update_count_alter_duedate('107207','753','0','25409','2018-08-31 09:06:16');
+2018-08-31 09:06:18: CALL ds_v1_3_activity_timeline_transaction_insert('107207','25409','4576','864','753','309','0','2018-08-24 12:30:00','2018-08-31 11:59:59','','undefined','2018-08-24 12:30:00','{}','','7.7','1','0','0','0','0','0','7.7','7.7','7.7','1','MIY','2018-08-31 12:12:12','','','5','','','1.0','1.0','25409','124775347178732','1','0','2018-08-31 12:12:12','2018-08-31 09:06:14');
+2018-08-31 09:06:19: CALL ds_p1_activity_timeline_transaction_select_count_due_date_alter('753','10','25409','2018-08-27 00:00:00','2018-09-02 23:59:59');
+2018-08-31 09:06:20: CALL ds_v1_asset_weekly_summary_transaction_insert('17','25409','4576','864','753','2018-08-27','2018-08-27','0','15','33.33333333333333','33.33333333333333','5','0','','','7.7','7.7','7.7','undefined','MIY','2018-08-31 12:12:12','undefined','undefined','5','undefined','undefined','undefined','undefined','25409','124775347178732','0','0','2018-08-31 12:12:12','2018-08-31 09:06:14');
+2018-08-31 09:06:20: CALL ds_p1_activity_timeline_transaction_select_count_due_date_alter('753','10','25409','2018-08-01 00:00:00','2018-08-31 23:59:59');
+2018-08-31 09:06:21: CALL ds_v1_asset_monthly_summary_transaction_insert('30','25409','4576','864','753','2018-08-01','2018-08-01','0','15','33.33333333333333','33.33333333333333','5','0','','','7.7','7.7','7.7','1','MIY','2018-08-31 12:12:12','undefined','undefined','5','undefined','undefined','1.0','undefined','25409','124775347178732','0','0','2018-08-31 12:12:12','2018-08-31 09:06:14');
