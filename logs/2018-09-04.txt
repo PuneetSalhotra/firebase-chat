@@ -1,0 +1,38 @@
+2018-09-04 17:43:00: Redis encToken checking failed
+2018-09-04 17:43:00: 
+2018-09-04 17:43:11: successfully redis encToken checking is done
+2018-09-04 17:43:12: CALL ds_p1_activity_asset_mapping_select_unread_counts_phone_number('9000202225','91','0','0','50');
+2018-09-04 17:43:13: CALL ds_p1_asset_list_select_phone_number_all('0','9000202225','91');
+2018-09-04 17:43:14: CALL ds_p1_activity_asset_mapping_select_dayplan_count_phone_number('9000202225','91','2018-09-04 00:00:00','2018-09-04 23:59:59','0','0','50');
+2018-09-04 17:43:15: CALL ds_p1_activity_asset_mapping_select_past_due_count_phone_number('9000202225','91','2018-09-04 17:43:14','0','0','50');
+2018-09-04 17:43:15: 
+2018-09-04 17:49:12: successfully redis encToken checking is done
+2018-09-04 17:49:13: CALL ds_p1_activity_asset_mapping_select_unread_counts_phone_number('9000202225','91','0','0','50');
+2018-09-04 17:49:14: CALL ds_p1_asset_list_select_phone_number_all('0','9000202225','91');
+2018-09-04 17:49:15: CALL ds_p1_activity_asset_mapping_select_dayplan_count_phone_number('9000202225','91','2018-09-04 00:00:00','2018-09-04 23:59:59','0','0','50');
+2018-09-04 17:49:16: CALL ds_p1_activity_asset_mapping_select_past_due_count_phone_number('9000202225','91','2018-09-04 17:49:15','0','0','50');
+2018-09-04 17:49:16: 
+2018-09-04 17:51:33: successfully redis encToken checking is done
+2018-09-04 17:51:35: CALL ds_p1_activity_asset_mapping_select_unread_counts_phone_number('9000202225','91','0','0','50');
+2018-09-04 17:51:36: CALL ds_p1_asset_list_select_phone_number_all('0','9000202225','91');
+2018-09-04 17:51:37: CALL ds_p1_activity_asset_mapping_select_dayplan_count_phone_number('9000202225','91','2018-09-04 00:00:00','2018-09-04 23:59:59','0','0','50');
+2018-09-04 17:51:38: CALL ds_p1_activity_asset_mapping_select_past_due_count_phone_number('9000202225','91','2018-09-04 17:51:37','0','0','50');
+2018-09-04 17:51:38: 
+2018-09-04 17:56:44: successfully redis encToken checking is done
+2018-09-04 17:56:46: CALL ds_p1_activity_asset_mapping_select_unread_counts_phone_number('9000202225','91','0','0','50');
+2018-09-04 17:56:47: CALL ds_p1_asset_list_select_phone_number_all('0','9000202225','91');
+2018-09-04 17:58:35: successfully redis encToken checking is done
+2018-09-04 17:58:36: CALL ds_p1_activity_asset_mapping_select_unread_counts_phone_number('9000202225','91','0','0','50');
+2018-09-04 17:58:37: CALL ds_p1_asset_list_select_phone_number_all('0','9000202225','91');
+2018-09-04 18:01:37: successfully redis encToken checking is done
+2018-09-04 18:01:38: CALL ds_p1_activity_asset_mapping_select_unread_counts_phone_number('9000202225','91','0','0','50');
+2018-09-04 18:01:39: CALL ds_p1_asset_list_select_phone_number_all('0','9000202225','91');
+2018-09-04 18:01:40: CALL ds_p1_activity_asset_mapping_select_dayplan_count_phone_number('9000202225','91','2018-09-03 18:30:00','2018-09-03 18:30:00','0','0','50');
+2018-09-04 18:01:41: CALL ds_p1_activity_asset_mapping_select_past_due_count_phone_number('9000202225','91','2018-09-04 18:01:40','0','0','50');
+2018-09-04 18:01:41: 
+2018-09-04 18:02:19: successfully redis encToken checking is done
+2018-09-04 18:02:20: CALL ds_p1_activity_asset_mapping_select_unread_counts_phone_number('9000202225','91','0','0','50');
+2018-09-04 18:02:21: CALL ds_p1_asset_list_select_phone_number_all('0','9000202225','91');
+2018-09-04 18:02:22: CALL ds_p1_activity_asset_mapping_select_dayplan_count_phone_number('9000202225','91','2018-09-03 18:30:00','2018-09-04 18:29:59','0','0','50');
+2018-09-04 18:02:23: CALL ds_p1_activity_asset_mapping_select_past_due_count_phone_number('9000202225','91','2018-09-04 18:02:22','0','0','50');
+2018-09-04 18:02:23: 

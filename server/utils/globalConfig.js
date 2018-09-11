@@ -50,8 +50,7 @@ if (mode === 'dev') {
     config.kafkaIPThree = {kafkaHost: 'kafka1:9094'};
     
     //Kafka Topics
-    config.kafkaActivitiesTopic = 'desker-activities';
-    //config.kafkaActivitiesTopic = 'desker-test';
+    config.kafkaActivitiesTopic = 'desker-activities';    
     config.kafkaFormWidgetTopic = 'desker-form-widgets';
     config.consumerGroup = "desker-activities-consumer-group-v2";
     
@@ -129,16 +128,14 @@ if (mode === 'prod') {
     config.slave1Ip = 'readreplica1.citeodhwc7z9.us-east-1.rds.amazonaws.com';
     config.slave2Ip = 'readreplica2.citeodhwc7z9.us-east-1.rds.amazonaws.com';
     
-    config.dbUser = 'apiuser';
-    config.database = 'desker_staging';
-    //config.database = 'desker';
+    config.dbUser = 'apiuser';    
+    config.database = 'desker';
     config.dbPassword = 'apidbuser';
 
     config.conLimit = 10;
 
-    //Redis
-    config.redisIp = 'dev-redis.apppnf.0001.use1.cache.amazonaws.com';
-    //config.redisIp = 'rediscluster1.apppnf.ng.0001.use1.cache.amazonaws.com';
+    //Redis    
+    config.redisIp = 'rediscluster1.apppnf.ng.0001.use1.cache.amazonaws.com';
     config.redisPort = 6379;
 
     //Kafka Brokers Config
@@ -146,10 +143,9 @@ if (mode === 'prod') {
     config.kafkaIPTwo = {kafkaHost: 'kafka2:9092'};
     config.kafkaIPThree = {kafkaHost: 'kafka3:9092'};
     
-    //Kafka Topics
-    //config.kafkaActivitiesTopic = 'desker-activities';    
-    //config.kafkaFormWidgetTopic = 'desker-form-widgets';
-    config.kafkaActivitiesTopic = 'desker-test';
+    //Kafka Topics    
+    config.kafkaActivitiesTopic = 'desker-activities-v2';
+    //config.kafkaFormWidgetTopic = 'desker-form-widgets';    
     
     config.consumerGroup = "desker-activities-consumer-group-v2";
     
