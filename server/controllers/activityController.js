@@ -308,6 +308,37 @@ function ActivityController(objCollection) {
                                 }
                             });
                             break;
+
+                        case 16: // Chats
+                            // 
+                            // req.body.asset_id       => Creator
+                            // req.body.owner_asset_id => Owner
+                            // 
+                            // Sanity check
+                            // 1. The owner_asset_id must exist and must be non-zero
+                            if (!req.body.hasOwnProperty('owner_asset_id') || Number(req.body.owner_asset_id) === 0) {
+                                let data = 'The request parameter owner_asset_id must exist and must be non-zero.';
+                                res.send(responseWrapper.getResponse(true, data, -3206, req.body));
+                                return;
+                            }
+                            // 2. Check if asset_id (Creator) is less than the owner_asset_id (Owner).
+                            // 
+                            if (Number(req.body.asset_id) > Number(req.body.owner_asset_id)) {
+                                let data = 'The asset_id (Creator) must be less than the owner_asset_id (Owner).';
+                                res.send(responseWrapper.getResponse(true, data, -3206, req.body));
+                                return;
+                            }
+                            addActivity(req.body, function (err, activityId) {
+                                if (err === false) {
+                                    res.send(responseWrapper.getResponse(false, {activity_id: activityId, message_unique_id: req.body.message_unique_id}, 200, req.body));
+                                } else {
+                                    (activityId === 0 ) ?
+                                        res.send(responseWrapper.getResponse(false, {activity_id: 0, message_unique_id: req.body.message_unique_id}, -7998, req.body)):
+                                        res.send(responseWrapper.getResponse(false, {activity_id: 0, message_unique_id: req.body.message_unique_id}, -5998, req.body));
+                                }
+                            });
+                            break;
+
                         case 37: //Reservation PAM                   
                             cacheWrapper.getActivityId(function (err, activityId) {
                                    if (err) {
