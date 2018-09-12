@@ -82,6 +82,9 @@ function ActivityService(objectCollection) {
                         case 15: //video conference
                             activityStreamTypeId = 1601;
                             break;
+                        case 16: //video conference
+                            activityStreamTypeId = 23001;
+                            break;
                         case 28: // post-it
                             activityStreamTypeId = 901;
                             break;
