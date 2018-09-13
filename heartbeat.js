@@ -11,7 +11,7 @@ function callPasscodeAlter() {
                         
     var options = { form : newRequest }
 
-    makeRequest.put('http://localhost:3000/r1/asset/passcode/alter/v1', 
+    makeRequest.put('https://api.desker.cloud/r1/asset/passcode/alter/v1', 
         options, 
         function (error, response, body) {
             console.log('body:', body);
