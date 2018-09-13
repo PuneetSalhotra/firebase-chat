@@ -11,7 +11,7 @@ function ActivityTimelineService(objectCollection) {
     var util = objectCollection.util;
     var forEachAsync = objectCollection.forEachAsync;
     var activityPushService = objectCollection.activityPushService;
-    var queueWrapper = objectCollection.queueWrapper;
+    //var queueWrapper = objectCollection.queueWrapper;
 
     this.addTimelineTransaction = function (request, callback) {
 
@@ -24,11 +24,14 @@ function ActivityTimelineService(objectCollection) {
         if (activityTypeCategoryId === 9 && activityStreamTypeId === 705) {   // add form case
             var formDataJson = JSON.parse(request.activity_timeline_collection);
             request.form_id = formDataJson[0]['form_id'];
-            console.log('form id extracted from json is: ' + formDataJson[0]['form_id']);
-            var lastObject = formDataJson[formDataJson.length - 1]
-            console.log('Last object : ', lastObject)
+            //console.log('form id extracted from json is: ' + formDataJson[0]['form_id']);
+            global.logger.write('debug', 'form id extracted from json is: ' + formDataJson[0]['form_id'], {}, request);
+            var lastObject = formDataJson[formDataJson.length - 1];
+            //console.log('Last object : ', lastObject)
+            global.logger.write('debug', 'Last object : ' + lastObject, {}, request);
             if (lastObject.hasOwnProperty('field_value')) {
-                console.log('Has the field value in the last object')
+                //console.log('Has the field value in the last object')
+                global.logger.write('debug', 'Has the field value in the last object', {}, request);
                 //remote Analytics
                 if (request.form_id == 325) {
                     monthlySummaryTransInsert(request).then(() => {
@@ -49,7 +52,8 @@ function ActivityTimelineService(objectCollection) {
         try {
             var formDataJson = JSON.parse(request.activity_timeline_collection);
         } catch (exception) {
-            console.log(exception);
+            //console.log(exception);
+            global.logger.write('debug', exception, {}, request);
         }
 
         var isAddToTimeline = true;
@@ -86,7 +90,8 @@ function ActivityTimelineService(objectCollection) {
                             });
                         }
                     } else {
-                        console.log('asset_reference is not availale')
+                        //console.log('asset_reference is not availale');
+                        global.logger.write('debug', 'asset_reference is not available', {}, request);
                     }
 
 
@@ -98,7 +103,8 @@ function ActivityTimelineService(objectCollection) {
     
     //This is to support the feature - Not to increase unread count during timeline entry
     this.addTimelineTransactionV1 = function (request, callback) {
-        console.log('In addTimelineTransactionV1');
+        //console.log('In addTimelineTransactionV1');
+        global.logger.write('debug', 'In addTimelineTransactionV1', {}, request);
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         var activityTypeCategoryId = Number(request.activity_type_category_id);
@@ -107,11 +113,14 @@ function ActivityTimelineService(objectCollection) {
         if (activityTypeCategoryId === 9 && activityStreamTypeId === 705) {   // add form case
             var formDataJson = JSON.parse(request.activity_timeline_collection);
             request.form_id = formDataJson[0]['form_id'];
-            console.log('form id extracted from json is: ' + formDataJson[0]['form_id']);
+            //console.log('form id extracted from json is: ' + formDataJson[0]['form_id']);
+            global.logger.write('debug', 'form id extracted from json is: ' + formDataJson[0]['form_id'], {}, request);
             var lastObject = formDataJson[formDataJson.length - 1]
-            console.log('Last object : ', lastObject)
+            //console.log('Last object : ', lastObject)
+            global.logger.write('debug', 'Last object : ' + lastObject, {}, request);
             if (lastObject.hasOwnProperty('field_value')) {
-                console.log('Has the field value in the last object')
+                //console.log('Has the field value in the last object')
+                global.logger.write('debug', 'Has the field value in the last object', {}, request);
                 //remote Analytics
                 if (request.form_id == 325) {
                     monthlySummaryTransInsert(request).then(() => {
@@ -132,7 +141,8 @@ function ActivityTimelineService(objectCollection) {
         try {
             var formDataJson = JSON.parse(request.activity_timeline_collection);
         } catch (exception) {
-            console.log(exception);
+            //console.log(exception);
+            global.logger.write('debug', exception, {}, request);
         }
 
         var isAddToTimeline = true;
@@ -164,7 +174,8 @@ function ActivityTimelineService(objectCollection) {
                             });
                         }
                     } else {
-                        console.log('asset_reference is not availale')
+                        //console.log('asset_reference is not availale');
+                        global.logger.write('debug', 'asset_reference is not available', {}, request);
                     }
 
 
@@ -272,7 +283,8 @@ function ActivityTimelineService(objectCollection) {
             var queryString = util.getQueryString('ds_v1_activity_form_transaction_select_timecard_stats', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
-                    console.log('getFormTransTimeCardsStats : \n', data, "\n");
+                    //console.log('getFormTransTimeCardsStats : \n', data, "\n");
+                    global.logger.write('debug', 'getFormTransTimeCardsStats : \n' + data + "\n", {}, request);
                     (err === false) ? resolve(data) : reject(err);
                 });
             }
@@ -424,7 +436,8 @@ function ActivityTimelineService(objectCollection) {
             pubnubMsg.organization_id = request.organization_id;
             pubnubMsg.desk_asset_id = request.asset_id;
             pubnubMsg.activity_type_category_id = request.activity_type_category_id || 0;
-            console.log('PubNub Message : ', pubnubMsg);
+            //console.log('PubNub Message : ', pubnubMsg);
+            global.logger.write('debug', 'PubNub Message : ' +  pubnubMsg, {}, request);
             pubnubWrapper.push(request.asset_id, pubnubMsg);
             pubnubWrapper.push(request.organization_id, pubnubMsg);
         }
@@ -977,7 +990,8 @@ function ActivityTimelineService(objectCollection) {
 
     var addFormEntries = function (request, callback) {
 
-        console.log('\x1b[32m%s\x1b[0m', 'Inside the addFormEntries() function.');
+        //console.log('\x1b[32m%s\x1b[0m', 'Inside the addFormEntries() function.');
+        global.logger.write('debug', '\x1b[32m%s\x1b[0m', 'Inside the addFormEntries() function.', {}, request);
 
         var formDataJson = JSON.parse(request.activity_timeline_collection);
         var approvalFields = new Array();
@@ -1016,7 +1030,8 @@ function ActivityTimelineService(objectCollection) {
                     ''  //IN p_location_datetime DATETIME                            26
                     );
 
-            console.log('\x1b[32m addFormEntries params - \x1b[0m', params);        
+            //console.log('\x1b[32m addFormEntries params - \x1b[0m', params);
+            global.logger.write('debug', '\x1b[32m addFormEntries params - \x1b[0m' + params, {}, request);
             
             var dataTypeId = Number(row.field_data_type_id);
             switch (dataTypeId) {

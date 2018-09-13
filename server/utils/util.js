@@ -76,7 +76,8 @@ function Util() {
         //messageString = encodeURI(messageString);
         messageString = encodeURIComponent(messageString);
         var url = "http://api.mvaayoo.com/mvaayooapi/MessageCompose?user=junaid.m@grene.in:greneapple&senderID=PUDMNK&receipientno=" + countryCode + "" + phoneNumber + "&dcs=0&msgtxt=" + messageString + "&state=4";
-        console.log('URL : ', url);
+        //console.log('URL : ', url);
+        global.logger.write('debug', 'URL : ' + url, {}, {});
         
         request(url, function (error, response, body) {
             var res = {};
@@ -116,12 +117,15 @@ function Util() {
         messageString = encodeURI(messageString);
         //var url = "http://api-alerts.solutionsinfini.com/v3/?method=sms&api_key=A85da7898dc8bd4d79fdd62cd6f5cc4ec&to=" + countryCode + "" + phoneNumber + "&sender=BLUFLK&format=json&message=" + messageString;
         var url = "http://api-alerts.solutionsinfini.com/v3/?method=sms&api_key=A9113d0c40f299b66cdf5cf654bfc61b8&to=" + countryCode + "" + phoneNumber + "&sender=DESKER&format=json&message=" + messageString;
-        console.log(url);
+        //console.log(url);
+        global.logger.write('debug', url, {}, {});
         request(url, function (error, response, body) {
             var foo = JSON.parse(body);
             
-            console.log('error : ', error);            
-            console.log('body : ' , body);
+            //console.log('error : ', error);
+            //console.log('body : ' , body);
+            global.logger.write('debug', 'error : ' + error, {}, {});
+            global.logger.write('debug', 'body : ' + body, {}, {});
             
             var res = {};
             if (typeof foo != 'undefined' && foo.status === 1) {
@@ -654,10 +658,10 @@ function Util() {
         return moment.duration(value)._data;
     };
     
-    this.getNoOfDays = function (timeString1, timeString2) {
+    /*this.getNoOfDays = function (timeString1, timeString2) {
         var value = moment(timeString1, "YYYY-MM-DD HH:mm:ss").diff(moment(timeString2, "YYYY-MM-DD HH:mm:ss"), 'days');
         return value;
-    };
+    };*/
     
     this.getDayStartDatetime = function() {
         var value = moment().startOf('day').utcOffset("-05:30").format('YYYY-MM-DD HH:mm:ss');
@@ -669,7 +673,7 @@ function Util() {
         return value;
     };
     
-    this.getGivenDayStartDatetime = function(timeString) {
+    /*this.getGivenDayStartDatetime = function(timeString) {
         var value = moment(timeString, "YYYY-MM-DD HH:mm:ss").format('YYYY-MM-DD 00:00:00');
         return value;
     };
@@ -677,7 +681,7 @@ function Util() {
     this.getGivenDayEndDatetime = function(timeString) {
         var value = moment(timeString, "YYYY-MM-DD HH:mm:ss").format('YYYY-MM-DD 23:59:59');
         return value;
-    };
+    };*/
     
     this.getDayStartDatetimeIST = function() {
         var value = moment().tz('Asia/Kolkata').startOf('day').format('YYYY-MM-DD HH:mm:ss');
@@ -842,7 +846,7 @@ function Util() {
 
     this.getUniqueArray = function (a) {
         return Array.from(new Set(a));
-    }
+    };
     
     this.writeLogs = function (data) {
         var date = this.getCurrentUTCTime();
@@ -850,7 +854,7 @@ function Util() {
         var logFilePath;
         
         if(global.mode === 'prod') {
-            locationInServer = '/api-final-efs/node/production_desker_api/';
+            locationInServer = global.config.efsPath+ 'node/production_desker_api/';
             logFilePath = locationInServer + 'logs/' + this.getCurrentDate() + '.txt';
         } else {
             logFilePath = 'logs/' + this.getCurrentDate() + '.txt';

@@ -20,7 +20,8 @@ function FormConfigController(objCollection) {
                 // got positive response    
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                console.log('did not get proper rseponse');
+                //console.log('did not get proper rseponse');
+                global.logger.write('debug', 'did not get proper response', {}, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -34,7 +35,8 @@ function FormConfigController(objCollection) {
                 // got positive response    
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                console.log('did not get proper rseponse');
+                //console.log('did not get proper rseponse');
+                global.logger.write('debug', 'did not get proper response', {}, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -48,7 +50,8 @@ function FormConfigController(objCollection) {
                 // got positive response    
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                console.log('did not get proper rseponse');
+                //console.log('did not get proper rseponse');
+                global.logger.write('debug', 'did not get proper response', {}, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -62,7 +65,8 @@ function FormConfigController(objCollection) {
                 // got positive response    
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                console.log('did not get proper rseponse');
+                //console.log('did not get proper rseponse');
+                global.logger.write('debug', 'did not get proper response', {}, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -76,7 +80,8 @@ function FormConfigController(objCollection) {
                 // got positive response    
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                console.log('did not get proper rseponse');
+                //console.log('did not get proper rseponse');
+                global.logger.write('debug', 'did not get proper response', {}, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -108,7 +113,7 @@ function FormConfigController(objCollection) {
 
 
     //Added By Nani Kalyan for BETA
-    app.post('/' + global.config.version + '/form/register/access/workforce/list', function (req, res) {
+    /*app.post('/' + global.config.version + '/form/register/access/workforce/list', function (req, res) {
         formConfigService.getRegisterForms(req.body, function (err, data, statusCode) {
             if (err === false) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
@@ -117,7 +122,7 @@ function FormConfigController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
-    });
+    });*/
 
     // Endpoint to fetch specific Timecard Forms (all, 325, 800 or 801)
     app.post('/' + global.config.version + '/form/access/asset/timecard/list', function (req, res) {

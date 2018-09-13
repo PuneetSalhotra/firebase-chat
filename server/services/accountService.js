@@ -465,7 +465,7 @@ function AccountService(objectCollection) {
         }
     };   
 
-    this.fetchCustomerServiceAgentsOnCrmFloor = function (request, callback) {
+    /*this.fetchCustomerServiceAgentsOnCrmFloor = function (request, callback) {
         // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
         // IN p_asset_type_category_id BIGINT(20), IN p_start_from BIGINT(20),
         // IN p_limit_value TINYINT(4)
@@ -483,7 +483,7 @@ function AccountService(objectCollection) {
                 (err === false) ? callback(false, data, 200): callback(true, err, -9999);
             });
         }
-    };
+    };*/
     
 }
 ;

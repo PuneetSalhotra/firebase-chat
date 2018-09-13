@@ -267,6 +267,36 @@ function PamListingController(objCollection) {
     		res.send(responseWrapper.getResponse(err, data, -999, req.body));
         });    		
     });
+    
+    app.post('/' + global.config.version + '/pam/user/authenticate', function (req, res) {
+    	pamListingService.userAuthenticate(req.body).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        });    		
+    });
+    
+    app.post('/' + global.config.version + '/pam/covers/between/dates', function (req, res) {
+    	pamListingService.coversBetweenDates(req.body).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        });    		
+    });
+    
+    app.post('/' + global.config.version + '/pam/get/activity/cover', function (req, res) {
+    	pamListingService.getActivityDetails(req.body).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        });    		
+    });
 }
 ;
 module.exports = PamListingController;

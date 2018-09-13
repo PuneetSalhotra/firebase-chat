@@ -652,7 +652,8 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
         
         var duration = util.differenceDatetimes(request.timeline_transaction_datetime, request.datetime_log);
-        console.log('Duration in Seconds : ', duration);
+        //console.log('Duration in Seconds : ', duration);
+        global.logger.write('debug', 'Duration in Seconds : ' + duration, {}, request);
 
         var paramsArr = new Array(
                 activityId,
@@ -991,7 +992,8 @@ function ActivityCommonService(db, util, forEachAsync) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
-                    console.log('DAta in inventory check : ', data);
+                    //console.log('DAta in inventory check : ', data);
+                    global.logger.write('debug', 'Data in inventory check : ' + data, {}, request);
                     if (data.length > 0) {
                         var ingredients = new Array();
                         forEachAsync(data, function (next, x) {
@@ -1020,8 +1022,10 @@ function ActivityCommonService(db, util, forEachAsync) {
                                     });
 
                                 }).then(() => {
-                                    console.log('stationIdArrays: ', stationIdArrays);
-                                    console.log('TempArray: ', tempArray);
+                                    //console.log('stationIdArrays: ', stationIdArrays);
+                                    //console.log('TempArray: ', tempArray);
+                                    global.logger.write('debug', 'stationIdArrays: ' + stationIdArrays, {}, request);
+                                    global.logger.write('debug', 'TempArray: ' + tempArray, {}, request);
                                     tempArray.forEach(function (item, index) {
                                         //console.log('util.getFrequency(item'+item+',tempArray) : ' , util.getFrequency(item, tempArray))
                                         //console.log('stationIdArrays.length : ', stationIdArrays.length)
@@ -1124,7 +1128,8 @@ function ActivityCommonService(db, util, forEachAsync) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log('data.length :' + data.length);                
-                console.log('data : ', data);
+                //console.log('data : ', data);
+                global.logger.write('debug', 'data : '+ data, {}, request);
                 if (data.length > 0) {
                     callback(true, data);
                 } else {
@@ -1145,7 +1150,8 @@ function ActivityCommonService(db, util, forEachAsync) {
         var queryString = util.getQueryString('ds_v1_asset_list_passcode_check', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
-                console.log('data : ', data);
+                //console.log('data : ', data);
+                global.logger.write('debug', 'data : '+ data, {}, request);
                 if (data.length > 0) {
                     callback(true, data);
                 } else {
@@ -1169,7 +1175,8 @@ function ActivityCommonService(db, util, forEachAsync) {
         var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_analytic_counts', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
-                console.log('DAta : ', data);
+                //console.log('DAta : ', data);
+                global.logger.write('debug', 'data : '+ data, {}, request);
                 if (err === false) {
                     if (data.length > 0) {
                         callback(false, data);
@@ -1193,7 +1200,8 @@ function ActivityCommonService(db, util, forEachAsync) {
         var queryString = util.getQueryString('ds_v1_asset_list_select_occupied_desks_count', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
-                console.log('getOccupiedDeskCounts : ', data);
+                //console.log('getOccupiedDeskCounts : ', data);
+                global.logger.write('debug', 'getOccupiedDeskCounts : ' + data, {}, request);
                 (err === false) ? callback(false, data) : callback(true, err);
             });
         }
@@ -1501,7 +1509,8 @@ function ActivityCommonService(db, util, forEachAsync) {
                                     pamGetAssetDetails(request).then((data)=>{
                                         tableNames += data[0].asset_first_name + "-";
                                         
-                                        console.log('data[0].asset_inline_data : ' , data[0].asset_inline_data);
+                                        //console.log('data[0].asset_inline_data : ' , data[0].asset_inline_data);
+                                        global.logger.write('debug', 'data[0].asset_inline_data : ' , data[0].asset_inline_data, {}, request);
                                         var inlineJson = JSON.parse(data[0].asset_inline_data);
                                         noOfGuests += util.replaceDefaultNumber(inlineJson.element_cover_capacity);
                                         next();
@@ -1518,6 +1527,10 @@ function ActivityCommonService(db, util, forEachAsync) {
                          console.log('countryCode: ', countryCode);
                          console.log('phoneNumber : ', phoneNumber);
                          console.log('tableNames : ', tableNames);
+                         global.logger.write('debug', 'memberName : ' + memberName, {}, request);
+                         global.logger.write('debug', 'countryCode: ' + countryCode, {}, request);
+                         global.logger.write('debug', 'phoneNumber : ' + phoneNumber, {}, request);
+                         global.logger.write('debug', 'tableNames : '+ tableNames, {}, request);
                          
                          var expiryDateTime = util.addUnitsToDateTime(util.replaceDefaultDatetime(request.event_start_datetime),5.5,'hours');
                          //expiryDateTime = util.getDatewithndrdth(expiryDateTime);
@@ -1540,15 +1553,18 @@ function ActivityCommonService(db, util, forEachAsync) {
 	                    	  text += " Your reservation will be forfeited at 12am if no one from the group is present. \nWe look forward to hosting you/ your group. \nAssuring you of a great experience, \nPUDDING & MINK !!";
 
                          }
-                         console.log('SMS text : \n', text);
+                         //console.log('SMS text : \n', text);
+                         global.logger.write('debug', 'SMS text : \n' + text, {}, request);
                          util.pamSendSmsMvaayoo(text, countryCode, phoneNumber, function(err,res){
                                 if(err === false) {
-                                    console.log('Message sent!',res);
+                                    //console.log('Message sent!',res);
+                                    global.logger.write('debug', 'Message sent!' + res, {}, request);
                                  }
                          });
                          util.pamSendSmsMvaayoo(text, 91, 6309386175, function(err,res){
                                 if(err === false) {
-                                    console.log('Message sent to Admin!', res);
+                                    //console.log('Message sent to Admin!', res);
+                                    global.logger.write('debug', 'Message sent to Admin!' + res, {}, request);
                                 }                                     
                              });
                          return callback(false, 200);
@@ -1599,7 +1615,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 if (err === false)
                 {
                     var participantCount = data[0].participant_count;
-                    console.log('participant count retrieved from query is: ' + participantCount);
+                    //console.log('participant count retrieved from query is: ' + participantCount);
                     global.logger.write('debug','participant count retrieved from query is: ' + participantCount, request)
                     paramsArr = new Array(
                             activityId,
@@ -1731,7 +1747,8 @@ function ActivityCommonService(db, util, forEachAsync) {
             var refinedParticipantList = new Array();
             
             //console.log('beforerefinedParticipantList : ', request);
-            console.log('beforerefinedParticipantList length: ', request.length);            
+            //console.log('beforerefinedParticipantList length: ', request.length);
+            global.logger.write('debug', 'beforerefinedParticipantList length: ' + request.length, {}, request);
             
             forEachAsync(request, function (next, rowData) {
                 var paramsArr = new Array(
@@ -1743,8 +1760,10 @@ function ActivityCommonService(db, util, forEachAsync) {
                     db.executeQuery(1, queryString, request, function (err, data) {
                         if (err === false) {
                             if(data.length > 0){
-                                console.log("Asset - " + data[0].asset_id + " - " + data[0].operating_asset_first_name +" - Active Organization is : " + data[0].organization_id);
-                                console.log("Asset - " + data[0].asset_id + " - " + data[0].operating_asset_first_name +" - Organization in participant List: " , rowData['organization_id']);
+                                //console.log("Asset - " + data[0].asset_id + " - " + data[0].operating_asset_first_name +" - Active Organization is : " + data[0].organization_id);
+                                //console.log("Asset - " + data[0].asset_id + " - " + data[0].operating_asset_first_name +" - Organization in participant List: " , rowData['organization_id']);
+                 global.logger.write('debug', "Asset - " + data[0].asset_id + " - " + data[0].operating_asset_first_name +" - Active Organization is : " + data[0].organization_id, {}, request);
+                 global.logger.write('debug', "Asset - " + data[0].asset_id + " - " + data[0].operating_asset_first_name +" - Organization in participant List: " , rowData['organization_id'], {}, request);
                                 
                                 if(data[0].organization_id == rowData['organization_id']) {
                                     refinedParticipantList.push(rowData);
@@ -1760,7 +1779,8 @@ function ActivityCommonService(db, util, forEachAsync) {
                     });
                 }
             }).then(()=>{
-                console.log('refinedParticipantList : ', refinedParticipantList.length);
+                //console.log('refinedParticipantList : ', refinedParticipantList.length);
+                global.logger.write('debug', 'refinedParticipantList : ' + refinedParticipantList.length, {}, request);
                 resolve(refinedParticipantList);
             });
         });
@@ -1855,9 +1875,12 @@ function ActivityCommonService(db, util, forEachAsync) {
                 this.getActivityDetails(request, request.activity_parent_id, (err, activityData)=>{
                     var projectEndDtTime = util.replaceDefaultDatetime(activityData[0].activity_datetime_end_deferred);
 
-                    console.log('projectEndDtTime : ', projectEndDtTime);
-                    console.log('taskProjectsEndDtTime : ', taskProjectsEndDtTime);
-                    console.log('Math.sign(util.differenceDatetimes(' + taskProjectsEndDtTime+ ', ' + projectEndDtTime  + '): ', Math.sign(util.differenceDatetimes(taskProjectsEndDtTime, projectEndDtTime)));
+                    //console.log('projectEndDtTime : ', projectEndDtTime);
+                    //console.log('taskProjectsEndDtTime : ', taskProjectsEndDtTime);
+                    //console.log('Math.sign(util.differenceDatetimes(' + taskProjectsEndDtTime+ ', ' + projectEndDtTime  + '): ', Math.sign(util.differenceDatetimes(taskProjectsEndDtTime, projectEndDtTime)));
+                    global.logger.write('debug', 'projectEndDtTime : ' + projectEndDtTime, {}, request);
+                    global.logger.write('debug', 'taskProjectsEndDtTime : '+ taskProjectsEndDtTime, {}, request);
+                    global.logger.write('debug', 'Math.sign(util.differenceDatetimes(' + taskProjectsEndDtTime+ ', ' + projectEndDtTime  + '): ' + Math.sign(util.differenceDatetimes(taskProjectsEndDtTime, projectEndDtTime)), {}, request);
                     if((Math.sign(util.differenceDatetimes(taskProjectsEndDtTime, projectEndDtTime)) !== 0)) {
                         //Call alter cover for that project
                         //Add timeline Entry
@@ -1867,7 +1890,8 @@ function ActivityCommonService(db, util, forEachAsync) {
                     }
                 });
             } else {
-                console.log('There are no tasks in the project - project id - ', request.activity_parent_id);
+                //console.log('There are no tasks in the project - project id - ', request.activity_parent_id);
+                global.logger.write('debug', 'There are no tasks in the project - project id - ' + request.activity_parent_id, {}, request);
             }           
         });
     };
@@ -1889,7 +1913,8 @@ function ActivityCommonService(db, util, forEachAsync) {
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     if(err === false) {
-                     console.log('DATA : ', data);
+                     //console.log('DATA : ', data);
+                     global.logger.write('debug', 'DATA : ' + data, {}, request);
                         resolve(data)   
                     } else {
                      reject(err);
@@ -1899,7 +1924,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         });        
     };
     
-    this.getActivityListDateRange = function (request, callback) {
+    /*this.getActivityListDateRange = function (request, callback) {
         var paramsArr = new Array(
                 request.organization_id,
                 request.asset_id,
@@ -1912,7 +1937,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 (err === false) ? callback(false, data) : callback(err, false);
             });
         }
-    };
+    };*/
     
     //Can use this function for both inmail and postit
     this.updateInMailResponse = function (request, activityFlagResponseonTimeFlag, callback) {

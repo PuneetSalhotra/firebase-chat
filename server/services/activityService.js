@@ -82,6 +82,9 @@ function ActivityService(objectCollection) {
                         case 15: //video conference
                             activityStreamTypeId = 1601;
                             break;
+                        case 16: //video conference
+                            activityStreamTypeId = 23001;
+                            break;
                         case 28: // post-it
                             activityStreamTypeId = 901;
                             break;
@@ -828,6 +831,37 @@ function ActivityService(objectCollection) {
                         activityChannelCategoryId
                     );
                     break;
+                case 16: // Chat
+                    var ownerAssetID = request.owner_asset_id;
+                    
+                    paramsArr = new Array(
+                        request.activity_id,
+                        request.activity_title,
+                        request.activity_description,
+                        (request.activity_inline_data),
+                        "",
+                        ownerAssetID,
+                        request.activity_datetime_start,
+                        request.activity_datetime_end,
+                        activityStatusId,
+                        request.activity_type_id,
+                        request.activity_parent_id,
+                        request.asset_id,
+                        request.workforce_id,
+                        request.account_id,
+                        request.organization_id,
+                        request.message_unique_id, //request.asset_id + new Date().getTime() + getRandomInt(), //message unique id
+                        request.flag_retry,
+                        request.flag_offline,
+                        request.asset_id,
+                        request.datetime_log, // server log date time   
+                        activityFormId,
+                        0,
+                        activityChannelId,
+                        activityChannelCategoryId
+                    );
+                    break;
+                    
                     //PAM
                 case 37:
                     activitySubTypeId = 0;
@@ -931,6 +965,46 @@ function ActivityService(objectCollection) {
                                     }
                                 });
                             }
+                        } else if ((activityTypeCategoryId === 16) && (request.asset_id !== ownerAssetID)) {
+                            // Chats
+                            // 
+                            // Handle the owner's activity_asset_mapping entry in this block. The creator's 
+                            // activity_asset_mapping entry will be handled in the next activity_asset_mapping 
+                            // insert call inside the assetActivityListInsertAddActivity() function.
+                            // 
+                            let paramsArr = new Array(
+                                request.activity_id,
+                                ownerAssetID,
+                                request.owner_workforce_id || request.workforce_id,
+                                request.account_id,
+                                request.organization_id,
+                                56, // request.participant_access_id: Owner
+                                request.message_unique_id,
+                                request.flag_retry,
+                                request.flag_offline,
+                                request.asset_id,
+                                request.datetime_log,
+                                0 //Field Id
+                                //'',
+                                //-1
+                            );
+                            //var queryString = util.getQueryString('ds_v1_activity_asset_mapping_insert_asset_assign_appr_ingre', paramsArr);
+                            let queryString = util.getQueryString('ds_v1_activity_asset_mapping_insert_asset_assign_appr', paramsArr);
+                            if (queryString !== '') {
+                                db.executeQuery(0, queryString, request, function (err, data) {
+                                    if (err === false) {
+                                        activityCommonService.updateLeadAssignedDatetime(request, request.asset_id, function (err, data) {
+
+                                        });
+                                        callback(false, true);
+                                        return;
+                                    } else {
+                                        callback(err, false);
+                                        return;
+                                    }
+                                });
+                            }
+
                         } else {
                             
                             // TimeCard Form Submission for Swipe In

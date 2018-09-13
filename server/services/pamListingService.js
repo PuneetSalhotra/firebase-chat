@@ -799,7 +799,8 @@ function PamListingService(objectCollection) {
                  	'activity_status_id': util.replaceDefaultNumber(row['activity_status_id']),
                 	'activity_status_name': util.replaceDefaultString(row['activity_status_name']),
                  	'activity_status_type_id': util.replaceDefaultNumber(row['activity_status_type_id']),
-                	'activity_status_type_name': util.replaceDefaultString(row['activity_status_type_name'])   			                  
+                	'activity_status_type_name': util.replaceDefaultString(row['activity_status_type_name']),
+                	'activity_datetime_last_updated': util.replaceDefaultDatetime(row['activity_datetime_last_updated'])			                  
                 };
                 responseArr.push(rowData);
                 next();
@@ -1013,6 +1014,80 @@ function PamListingService(objectCollection) {
 	            	//console.log("err "+err);
 	               if(err === false) {
 	        			resolve(data);	        			      			  
+                    } else {
+	                   reject(err);
+	               }
+	            });
+	   		}
+        });
+    };
+    
+    this.userAuthenticate = function (request) {
+		return new Promise((resolve, reject)=>{
+	        var paramsArr = new Array(
+	        		request.organization_id,
+	        		request.account_id,
+	        		request.workforce_id,
+	        		request.asset_type_category_id,
+					request.username,
+					request.password
+	                );
+	
+	        var queryString = util.getQueryString('pm_v1_asset_list_select_user_authenticate', paramsArr);
+	        if (queryString != '') {
+	            db.executeQuery(1, queryString, request, function (err, data) {
+	            	//console.log("err "+err);
+	               if(err === false) {
+	               		console.log('data: '+data.length);
+	               		resolve(data);        				        			      			  
+                    } else {
+	                   reject(err);
+	               }
+	            });
+	   		}
+        });
+    };
+    
+   this.coversBetweenDates = function (request) {
+		return new Promise((resolve, reject)=>{
+	        var paramsArr = new Array(
+	        		request.organization_id,
+	        		request.account_id,
+	        		request.event_activity_id,
+	        		request.is_date,
+					request.start_datetime,
+					request.end_datetime
+	                );
+	
+	        var queryString = util.getQueryString('pm_v1_activity_list_select_covers_between_dates', paramsArr);
+	        if (queryString != '') {
+	            db.executeQuery(1, queryString, request, function (err, data) {
+	            	//console.log("err "+err);
+	               if(err === false) {
+	               		console.log('data: '+data.length);
+	               		resolve(data);        				        			      			  
+                    } else {
+	                   reject(err);
+	               }
+	            });
+	   		}
+        });
+    };
+    
+    this.getActivityDetails = function (request) {
+		return new Promise((resolve, reject)=>{
+	        var paramsArr = new Array(	        		
+	        		request.activity_id,
+	        		request.organization_id
+	                );
+	
+	        var queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
+	        if (queryString != '') {
+	            db.executeQuery(1, queryString, request, function (err, data) {
+	            	//console.log("err "+err);
+	               if(err === false) {
+	               		console.log('data: '+data.length);
+	               		resolve(data);        				        			      			  
                     } else {
 	                   reject(err);
 	               }

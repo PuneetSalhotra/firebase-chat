@@ -1670,6 +1670,66 @@ function ActivityListingService(objCollection) {
         }
     };
 
+    this.checkIfChatExists = function (request, callback) {
+        // Parameters: 
+        // IN p_organization_id BIGINT(20), IN p_creator_asset_id BIGINT(20), 
+        // IN p_owner_asset_id BIGINT(20)
+        // 
+        let paramsArr = new Array(
+            request.organization_id,
+            request.creator_asset_id,
+            request.owner_asset_id
+        );
+        let queryString = util.getQueryString('ds_p1_activity_list_select_asset_chat', paramsArr);
+        if (queryString !== '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (err === false) {
+                    // Verify if a chat exists
+                    if (data.length > 0) {
+                        // Chat exists
+                        callback(false, {
+                            isChatExists: true,
+                            data: data
+                        }, 200);
+                    } else {
+                        // Chat doesn't exist
+                        callback(false, {
+                            isChatExists: false,
+                            data: data
+                        }, 200);
+                    }
+                } else {
+                    // Error executing the query
+                    callback(err, false, -9999);
+                }
+            });
+        }
+    };
+
+    this.fetchRecentChatList = function (request, callback) {
+        // Parameters: 
+        // IN p_organization_id BIGINT(20), IN p_asset_id BIGINT(20), 
+        // IN p_start_from BIGINT(20), IN p_limit_value SMALLINT(6)
+        // 
+        let paramsArr = new Array(
+            request.organization_id,
+            request.asset_id,
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+        let queryString = util.getQueryString('ds_p1_activity_list_select_asset_recent_chats', paramsArr);
+        if (queryString !== '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (err === false) {
+                    callback(false, data, 200);
+                } else {
+                    // Error executing the query
+                    callback(err, false, -9999);
+                }
+            });
+        }
+    };
+
 }
 ;
 
