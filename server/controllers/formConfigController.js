@@ -20,7 +20,8 @@ function FormConfigController(objCollection) {
                 // got positive response    
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                console.log('did not get proper rseponse');
+                //console.log('did not get proper rseponse');
+                global.logger.write('debug', 'did not get proper response', {}, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -34,7 +35,8 @@ function FormConfigController(objCollection) {
                 // got positive response    
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                console.log('did not get proper rseponse');
+                //console.log('did not get proper rseponse');
+                global.logger.write('debug', 'did not get proper response', {}, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -48,7 +50,8 @@ function FormConfigController(objCollection) {
                 // got positive response    
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                console.log('did not get proper rseponse');
+                //console.log('did not get proper rseponse');
+                global.logger.write('debug', 'did not get proper response', {}, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -62,7 +65,8 @@ function FormConfigController(objCollection) {
                 // got positive response    
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                console.log('did not get proper rseponse');
+                //console.log('did not get proper rseponse');
+                global.logger.write('debug', 'did not get proper response', {}, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -76,7 +80,8 @@ function FormConfigController(objCollection) {
                 // got positive response    
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                console.log('did not get proper rseponse');
+                //console.log('did not get proper rseponse');
+                global.logger.write('debug', 'did not get proper response', {}, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }

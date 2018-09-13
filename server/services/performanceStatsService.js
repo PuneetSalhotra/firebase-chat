@@ -30,7 +30,8 @@ function PerformanceStatsService(objectCollection) {
         var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_analytic_counts', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
-                console.log('DAta : ', data);
+                //console.log('DAta : ', data);
+                global.logger.write('debug', 'Data : ' + data, {}, request);
                 if (err === false) {
                     if(data.length > 0){
                         callback(false, data);                                                
@@ -55,7 +56,8 @@ function PerformanceStatsService(objectCollection) {
         var queryString = util.getQueryString('ds_p1_asset_monthly_summary_transaction_select', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
-                console.log('Data : ', data);
+                //console.log('Data : ', data);
+                global.logger.write('debug', 'Data : ' + data, {}, request);
                 if (err === false) {
                     if(data.length > 0){
                         callback(false, data,200); 

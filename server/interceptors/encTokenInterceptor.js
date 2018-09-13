@@ -9,10 +9,12 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
         cacheWrapper.getServiceId(req.url, function (err, result) {
 
             if (err) {
-                console.log('Unable to get the service Id')
+                //console.log('Unable to get the service Id')
+                global.logger.write('debug', 'Unable to get the service Id', {}, req.body);
                 req.body.service_id = 0;
             } else {
-                console.log('Service Id : ' + result)
+                //console.log('Service Id : ' + result)
+                global.logger.write('debug', 'Service Id : ' + result, {}, req.body);
                 req.body.service_id = result;
                 var bundleTransactionId = uuid.v1();
                 req.body.bundle_transaction_id = bundleTransactionId;
@@ -91,25 +93,27 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                                     req.body['module'] = 'asset';
                                 }
                             }
-                            console.log('Module : ' + req.body['module']);
+                            //console.log('Module : ' + req.body['module']);
+                            global.logger.write('debug', 'Module : ' + req.body['module'], {}, req.body);
+                            
                             var asset_id = req.body.auth_asset_id || req.body.asset_id;
                                                     
                             //cacheWrapper.getTokenAuth(req.body.asset_id, function (err, encToken) {
                             cacheWrapper.getTokenAuth(asset_id, function (err, encToken) {
                                 if (err) {
-                                    console.log("redis token Checking error:");
-                                    global.logger.write('appError', 'Redis token Checking error', err, req.body);
+                                    //console.log("redis token Checking error:");                                    
+                                    global.logger.write('appError', 'Redis token Checking error : ' + err, err, req.body);
                                     res.send(responseWrapper.getResponse(null, {}, -7998, req.body));
                                     return;
                                 } else {
                                     console.log(encToken);
                                     if (encToken === req.body.asset_token_auth) {
-                                        console.log("successfully redis encToken checking is done");
+                                        //console.log("successfully redis encToken checking is done");
                                         global.logger.write('debug', 'successfully redis encToken checking is done', {}, req.body);
                                         next();
                                     } else {
-                                        console.log('redis encToken checking failed : ' + err);
-                                        global.logger.write('serverError', 'Redis encToken checking failed', {}, req.body);
+                                        //console.log('redis encToken checking failed : ' + err);
+                                        global.logger.write('serverError', 'Redis encToken checking failed : ' + err, {}, req.body);
                                         res.send(responseWrapper.getResponse(null, {}, -3204, req.body));
                                         return;
                                     }

@@ -11,7 +11,8 @@ function statsController(objCollection) {
             if (!err) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                console.log("err: ", err);
+                //console.log("err: ", err);
+                global.logger.write('debug', 'err: ' + err, {}, req.body);
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })
@@ -22,7 +23,8 @@ function statsController(objCollection) {
             if (!err) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                console.log("err: ", err);
+                //console.log("err: ", err);
+                global.logger.write('debug', 'err: ' + err, {}, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -34,7 +36,8 @@ function statsController(objCollection) {
             if (!err) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                console.log("err: ", err);
+                //console.log("err: ", err);
+                global.logger.write('debug', 'err: ' + err, {}, req.body);
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })

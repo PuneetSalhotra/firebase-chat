@@ -20,9 +20,12 @@ function PubnubPush() {
             }
             
              pubnub.publish(publishConfig, function(status, response) {
-                console.log('STATUS : ' , status);
-                console.log('');
-                console.log('RESPONSE : ' , response);
+                //console.log('STATUS : ' , status);
+                //console.log('');
+                //console.log('RESPONSE : ' , response);
+                
+                global.logger.write('debug', 'STATUS : ' + status, {}, {});                
+                global.logger.write('debug', 'RESPONSE : ' + response, {}, {});
             });
         }      
 };

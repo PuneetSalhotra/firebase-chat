@@ -22,8 +22,7 @@ function UtilityController(objCollection) {
     //Bharat Requirement
     app.post('/' + global.config.version + '/send/email', function (req, res) {
         var otp = util.randomInt(1111,9999);
-        otp = otp.toString();
-        console.log('In Post method');
+        otp = otp.toString();        
         util.sendEmail('bharat@desker.co',otp,JSON.stringify(req.body),'',function (err, data) {
         if (err === false) {
           res.send(responseWrapper.getResponse(err, data.response, 200, req.body));          
@@ -36,8 +35,7 @@ function UtilityController(objCollection) {
     //Bharat Requirement
     app.get('/' + global.config.version + '/send/email', function (req, res) {
         var otp = util.randomInt(1111,9999);
-        otp = otp.toString();
-        console.log('In GET method');
+        otp = otp.toString();        
         util.sendEmail('bharat@desker.co',otp,JSON.stringify(req.query),'',function (err, data) {
         if (err === false) {
           res.send(responseWrapper.getResponse(err, data.response, 200, req.body));          
@@ -49,7 +47,8 @@ function UtilityController(objCollection) {
     
     //VNK webhook
     app.post('/' + global.config.version + '/vnk', function (req, res) {
-        console.log('Request : ', req.body);
+        //console.log('Request : ', req.body);
+        global.logger.write('debug', 'Request : ' + req.body, {}, req.body);
         req.body.country_code = '91';
         req.body.to_phone_number = '9966626954';
         req.body.from_phone_number = '+15107094638';
@@ -66,7 +65,8 @@ function UtilityController(objCollection) {
     
     //VNK webhook
     app.get('/' + global.config.version + '/vnk', function (req, res) {
-        console.log('Request : ', req.body);
+        //console.log('Request : ', req.body);
+        global.logger.write('debug', 'Request : ' + req.body, {}, req.body);
         req.body.country_code = '91';
         req.body.to_phone_number = '9966626954';
         req.body.from_phone_number = '+15107094638';
@@ -97,7 +97,8 @@ function UtilityController(objCollection) {
         var domesticSmsMode = global.config.domestic_sms_mode;
         var internationalSmsMode = global.config.international_sms_mode;
         
-        console.log('Request params : ', request);
+        //console.log('Request params : ', request);
+        global.logger.write('debug', 'Request params : ' + request, {}, request);
         var text;
         
         if(!request.hasOwnProperty("task_title")) {
@@ -113,26 +114,34 @@ function UtilityController(objCollection) {
             }         
         }
         
-        console.log("sms Text : " + text);
+        //console.log("sms Text : " + text);
+        global.logger.write('debug', 'sms Text : ' + text, {}, request);
         
         if (request.country_code == 91) {
-            console.log('Sending Domestic SMS');
+            //console.log('Sending Domestic SMS');
+            global.logger.write('debug', 'Sending Domestic SMS', {}, request);
             fs.readFile(`${__dirname}/../utils/domesticSmsMode.txt`, function(err, data){
-                (err)? console.log(err) : domesticSmsMode = Number(data.toString());
+                (err)? 
+                    global.logger.write('debug', err, {}, request) :
+                    //console.log(err) : 
+                    domesticSmsMode = Number(data.toString());
+            
                     switch (domesticSmsMode) {
                                 case 1: // mvaayoo                        
                                     util.sendSmsMvaayoo(text, request.country_code, request.phone_number, function (error, data) {
                                         if (error)
-                                            console.log(error);
-                                            console.log(data);
-                                            global.logger.write('trace', data, error, request)
+                                            //console.log(error);
+                                            //console.log(data);                                            
+                                            global.logger.write('debug', error, {}, request);
+                                            global.logger.write('trace', data, error, request);                                            
                                     });
                                     break;                                
                                 case 3:// sinfini                                    
                                     util.sendSmsSinfini(text, request.country_code, request.phone_number, function (error, data) {
                                         if (error)
-                                            console.log(error);
-                                            console.log(data);
+                                            //console.log(error);
+                                            //console.log(data);
+                                            global.logger.write('debug', error, {}, request);
                                             global.logger.write('trace', data, error, request)
                                     });
                                     break;
@@ -141,11 +150,14 @@ function UtilityController(objCollection) {
                     
         } else {
             fs.readFile(`${__dirname}/../utils/internationalSmsMode.txt`, function(err, data){
-                (err)? console.log(err) : internationalSmsMode = Number(data.toString());
+                (err)? 
+                    global.logger.write('debug', err, {}, request) :
+                    //console.log(err) : 
+                    internationalSmsMode = Number(data.toString());
                 
                 // send international sms                    
-                //global.logger.write('came inside else case', request, 'device', 'trace');
-                console.log('Sending International SMS');
+                //console.log('Sending International SMS');
+                global.logger.write('debug', 'Sending International SMS', {}, request);
                 switch (internationalSmsMode) {
                         case 1: util.sendInternationalTwilioSMS(text, request.country_code, request.phone_number, function (error, data) {
                                     if (error)
