@@ -315,7 +315,15 @@ function ActivityController(objCollection) {
                             // req.body.owner_asset_id => Owner
                             // 
                             // Sanity check
+                            // 0. This service uses auth_asset_id for token authentication
+                            // 
+                            if (!req.body.hasOwnProperty('auth_asset_id')) {
+                                let data = 'Please use the request parameter auth_asset_id for token authentication.';
+                                res.send(responseWrapper.getResponse(true, data, -3206, req.body));
+                                return;
+                            }
                             // 1. The owner_asset_id must exist and must be non-zero
+                            // 
                             if (!req.body.hasOwnProperty('owner_asset_id') || Number(req.body.owner_asset_id) === 0) {
                                 let data = 'The request parameter owner_asset_id must exist and must be non-zero.';
                                 res.send(responseWrapper.getResponse(true, data, -3206, req.body));
