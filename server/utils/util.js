@@ -875,8 +875,13 @@ function Util() {
             logFilePath = 'logs/' + this.getCurrentDate() + '.txt';
         }
         
+        if(typeof data === 'object') {            
+            console.log('JSON.stringify(data) : ' + JSON.stringify(data));
+            data = JSON.stringify(data);
+        }
+        
         var data_to_add = date + ': ' + data;
-        console.log(data);        
+        console.log(data);
         if (fs.existsSync(logFilePath)) {
             fs.appendFile(logFilePath, os.EOL + data_to_add, function (err, fd) {
                 if (err)
