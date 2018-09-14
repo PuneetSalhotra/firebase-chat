@@ -90,6 +90,8 @@ var Consumer = function () {
                 activityCommonService.checkingMSgUniqueId(request, (err, data)=>{
                     if(err === false) {
                         consumingMsg(message, kafkaMsgId, objCollection).then(()=>{});
+                    } else {
+                        activityCommonService.duplicateMsgUniqueIdInsert(request, (err, data)=>{});
                     }
                 });
             }

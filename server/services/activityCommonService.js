@@ -1992,7 +1992,25 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
     };
     
-
+    this.duplicateMsgUniqueIdInsert = function(request, callback) {        
+        var paramsArr = new Array(
+                request.message_unique_id,
+                request,
+                "",
+                request.asset_id,
+                request.workforce_id,
+                request.account_id,
+                request.organization_id,
+                util.getCurrentUTCTime()
+                );
+        var queryString = util.getQueryString('ds_p1_asset_invalid_message_transaction_insert', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {                
+                (err === false) ? callback(false, data) : callback(true, {});
+            });
+        }
+    };
+    
 }
 ;
 
