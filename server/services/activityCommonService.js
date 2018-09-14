@@ -1993,10 +1993,13 @@ function ActivityCommonService(db, util, forEachAsync) {
     };
     
     this.duplicateMsgUniqueIdInsert = function(request, callback) {        
+        var arr = new Array();
+        arr.push(request);
+                    
         var paramsArr = new Array(
                 request.message_unique_id,
-                request,
-                "",
+                JSON.stringify(arr),
+                "{}",
                 request.asset_id,
                 request.workforce_id,
                 request.account_id,
@@ -2005,8 +2008,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 );
         var queryString = util.getQueryString('ds_p1_asset_invalid_message_transaction_insert', paramsArr);
         if (queryString != '') {
-            db.executeQuery(0, queryString, request, function (err, data) {                
-                global.logger.write('debug', 'In duplicateMsgUniqueIdInsert : ' + data, {}, request);
+            db.executeQuery(0, queryString, request, function (err, data) {                                
                 (err === false) ? callback(false, data) : callback(true, {});
             });
         }
