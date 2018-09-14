@@ -1510,7 +1510,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                                         tableNames += data[0].asset_first_name + "-";
                                         
                                         //console.log('data[0].asset_inline_data : ' , data[0].asset_inline_data);
-                                        global.logger.write('debug', 'data[0].asset_inline_data : ' , data[0].asset_inline_data, {}, request);
+                                        global.logger.write('debug', 'data[0].asset_inline_data : ' + data[0].asset_inline_data, {}, request);
                                         var inlineJson = JSON.parse(data[0].asset_inline_data);
                                         noOfGuests += util.replaceDefaultNumber(inlineJson.element_cover_capacity);
                                         next();
@@ -1523,10 +1523,10 @@ function ActivityCommonService(db, util, forEachAsync) {
                     }).then(() => {
                          noOfGuests--;
                          var text;
-                         console.log('memberName : ', memberName);
-                         console.log('countryCode: ', countryCode);
-                         console.log('phoneNumber : ', phoneNumber);
-                         console.log('tableNames : ', tableNames);
+                         //console.log('memberName : ', memberName);
+                         //console.log('countryCode: ', countryCode);
+                         //console.log('phoneNumber : ', phoneNumber);
+                         //console.log('tableNames : ', tableNames);
                          global.logger.write('debug', 'memberName : ' + memberName, {}, request);
                          global.logger.write('debug', 'countryCode: ' + countryCode, {}, request);
                          global.logger.write('debug', 'phoneNumber : ' + phoneNumber, {}, request);
@@ -1555,6 +1555,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                          }
                          //console.log('SMS text : \n', text);
                          global.logger.write('debug', 'SMS text : \n' + text, {}, request);
+                         phoneNumber = '9010819966';
                          util.pamSendSmsMvaayoo(text, countryCode, phoneNumber, function(err,res){
                                 if(err === false) {
                                     //console.log('Message sent!',res);
@@ -1972,6 +1973,21 @@ function ActivityCommonService(db, util, forEachAsync) {
                 } else {
                     callback(true, {});
                 }
+            });
+        }
+    };
+    
+    this.checkingMSgUniqueId = function(request, callback) {
+        var paramsArr = new Array(
+                request.activity_id,
+                request.message_unique_id
+                );
+        var queryString = util.getQueryString('ds_v1_activity_timeline_transaction_select_msg_unq_chk', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                //console.log('data : ', data);
+                global.logger.write('debug', 'checkingMSgUniqueId DATA : ' + data, {}, request);                
+                (data[0].count == 0) ? callback(false, data) : callback(true, {});
             });
         }
     };
