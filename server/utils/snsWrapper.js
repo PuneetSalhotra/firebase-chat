@@ -29,6 +29,14 @@ var AwsSns = function () {
             aps.type = message.extra_data.type;
         }
 
+        // Clicking on the push notification should take the 
+        // user to the corresponding activity
+        if (message.hasOwnProperty('activity_id') && message.hasOwnProperty('activity_type_category_id')) {
+            GCMjson.data.activity_id = message.activity_id;
+            GCMjson.data.activity_type_category_id = message.activity_type_category_id;
+            
+        }
+
         /*var params = {
             MessageStructure: 'json',
             Message: JSON.stringify({
