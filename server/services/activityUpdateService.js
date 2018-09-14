@@ -725,16 +725,22 @@ function ActivityUpdateService(objectCollection) {
                     newRequest.activity_inline_data = request.activity_inline_data;
                     newRequest.message_unique_id = request.message_unique_id;
 
-                    console.log('newRequest: ', newRequest);
+                    // console.log('newRequest: ', newRequest);
+                    global.logger.write('debug', 'newRequest: ' + JSON.stringify(newRequest, null, 2), {}, request);
 
                     var options = {
                         form: newRequest
                     }
 
                     makeRequest.post(global.config.portalBaseUrl + global.config.version + '/asset/update/details', options, function (error, response, body) {
-                        console.log('body:', body);
+                        // console.log('body:', body);
+                        global.logger.write('debug', 'body: ' + body, {}, request);
+
                         body = JSON.parse(body);
-                        console.log('error : ', error);
+
+                        // console.log('error : ', error);
+                        global.logger.write('debug', error, error, request);
+
                         var resp = {
                             status: body.status,
                             service_id: body.service_id || 0,
@@ -742,7 +748,9 @@ function ActivityUpdateService(objectCollection) {
                             response: body.response
                         };
                         //res.send(resp);
-                        console.log(resp);
+                        // console.log(resp);
+                        global.logger.write('debug', 'resp: ' + JSON.stringify(resp, null, 2), {}, request);
+
                     });
 
                     /*getCoWorkerActivityId(request, function (err, coworkerData) {
@@ -938,7 +946,9 @@ function ActivityUpdateService(objectCollection) {
                                                 db.executeQuery(1, queryString, request, function (err, result) {
                                                     if (err === false) {
                                                         var newEndEstimatedDatetime = result[0]['activity_datetime_end_estimated'];
-                                                        console.log('setting new datetime for contact as ' + newEndEstimatedDatetime);
+                                                        // console.log('setting new datetime for contact as ' + newEndEstimatedDatetime);
+                                                        global.logger.write('debug', 'Setting new datetime for contact as: ' + newEndEstimatedDatetime, {}, request);
+
                                                         coverAlterJson.description = {
                                                             old: activityData[0]['activity_datetime_end_estimated'],
                                                             new: newEndEstimatedDatetime
@@ -1002,57 +1012,78 @@ function ActivityUpdateService(objectCollection) {
                     let parsedActivityCoverData = JSON.parse(request.activity_cover_data);
                     let taskDateTimeDiffInHours, dueDateThreshhold;
 
-                    console.log('\x1b[34m parsedActivityCoverData.duedate.old :\x1b[0m ', parsedActivityCoverData.duedate.old);
-                    console.log('\x1b[34m parsedActivityCoverData.duedate.new :\x1b[0m ', parsedActivityCoverData.duedate.new);
+                    // console.log('\x1b[34m parsedActivityCoverData.duedate.old :\x1b[0m ', parsedActivityCoverData.duedate.old);
+                    // console.log('\x1b[34m parsedActivityCoverData.duedate.new :\x1b[0m ', parsedActivityCoverData.duedate.new);
+
+                    global.logger.write('debug', 'parsedActivityCoverData.duedate.old: ' + parsedActivityCoverData.duedate.old, {}, request);
+                    global.logger.write('debug', 'parsedActivityCoverData.duedate.new: ' + parsedActivityCoverData.duedate.new, {}, request);
+
                     // If due date is updated then update count of due date changes
                     if (parsedActivityCoverData.duedate.old !== parsedActivityCoverData.duedate.new) {
                         //get the activity Details
                         activityCommonService.getActivityDetails(request, 0, function (err, activityData) {
                             if (err === false) {
-                                
-                                console.log('\x1b[32m activity_datetime_start_expected in DB :\x1b[0m ' , util.replaceDefaultDatetime(activityData[0].activity_datetime_start_expected));
-                                console.log('\x1b[32m activity_datetime_end_deferred in DB: \x1b[0m' , util.replaceDefaultDatetime(activityData[0].activity_datetime_end_deferred));
-                                        
+
+                                // console.log('\x1b[32m activity_datetime_start_expected in DB :\x1b[0m ' , util.replaceDefaultDatetime(activityData[0].activity_datetime_start_expected));
+                                // console.log('\x1b[32m activity_datetime_end_deferred in DB: \x1b[0m' , util.replaceDefaultDatetime(activityData[0].activity_datetime_end_deferred));
+
+                                global.logger.write('debug', 'activity_datetime_start_expected in DB: ' + util.replaceDefaultDatetime(activityData[0].activity_datetime_start_expected), {}, request);
+                                global.logger.write('debug', 'activity_datetime_end_deferred in DB: ' + util.replaceDefaultDatetime(activityData[0].activity_datetime_end_deferred), {}, request);
+
                                 taskDateTimeDiffInHours = util.differenceDatetimes(
                                     parsedActivityCoverData.duedate.old,
-                                    util.replaceDefaultDatetime(activityData[0].activity_datetime_start_expected)                                
+                                    util.replaceDefaultDatetime(activityData[0].activity_datetime_start_expected)
                                 );
                                 // 1 Hour => 60 min => 3600 s => 3600000 ms
                                 taskDateTimeDiffInHours = Number(taskDateTimeDiffInHours / 3600000);
-                                console.log('\x1b[34m taskDateTimeDiffInHours:\x1b[0m ', taskDateTimeDiffInHours);
+
+                                // console.log('\x1b[34m taskDateTimeDiffInHours:\x1b[0m ', taskDateTimeDiffInHours);
+                                global.logger.write('debug', 'taskDateTimeDiffInHours: ' + taskDateTimeDiffInHours, {}, request);
 
                                 // Fetch account_config_due_date_hours from the account_list table
                                 activityCommonService.retrieveAccountList(request, function (error, data) {
                                     if (!error && Object.keys(data).length) {
                                         // Check whether the difference between date of duedate change and old
                                         // duedate is within the % threshhold value returned in account_config_due_date_hours
-                                                           
-                                        console.log('\x1b[32m difference between: datetime_log :\x1b[0m ' , request.datetime_log);
-                                        console.log('\x1b[32m end defferred time: \x1b[0m' , util.replaceDefaultDatetime(activityData[0].activity_datetime_end_deferred));
+
+                                        // console.log('\x1b[32m difference between: datetime_log :\x1b[0m ' , request.datetime_log);
+                                        // console.log('\x1b[32m end defferred time: \x1b[0m' , util.replaceDefaultDatetime(activityData[0].activity_datetime_end_deferred));
+
+                                        global.logger.write('debug', 'difference between: datetime_log: ' + request.datetime_log, {}, request);
+                                        global.logger.write('debug', 'end defferred time: ' + util.replaceDefaultDatetime(activityData[0].activity_datetime_end_deferred), {}, request);
+
                                         //let datetimeDifference = moment(activityData[0].activity_datetime_end_expected).diff(moment().utc());
-                                        
+
                                         let changeDurationInHours;
                                         let flag_ontime = 0; // Default: 'not on time'
-                                        if(request.track_gps_datetime <= util.replaceDefaultDatetime(activityData[0].activity_datetime_end_deferred)) {
-                                             changeDurationInHours  = util.differenceDatetimes(
-                                                    parsedActivityCoverData.duedate.old,
-                                                    request.track_gps_datetime
-                                                );
-                                             
-                                             changeDurationInHours = Number(changeDurationInHours / 3600000);
-                                             console.log('\x1b[32m change Duration In Hours:\x1b[0m ', changeDurationInHours)
-                                             
-                                             dueDateThreshhold = (Number(data[0].account_config_due_date_hours) / 100) * taskDateTimeDiffInHours;
-                                             console.log('\x1b[32m account_config_due_date_hours [threshhold % from DB] :\x1b[0m ', Number(data[0].account_config_due_date_hours));
-                                             console.log('\x1b[32m Calculated dueDateThreshhold:\x1b[0m ', dueDateThreshhold);
+                                        if (request.track_gps_datetime <= util.replaceDefaultDatetime(activityData[0].activity_datetime_end_deferred)) {
+                                            changeDurationInHours = util.differenceDatetimes(
+                                                parsedActivityCoverData.duedate.old,
+                                                request.track_gps_datetime
+                                            );
 
-                                             console.log(changeDurationInHours +' >= '+ Number(dueDateThreshhold))
-                                             if (changeDurationInHours >= Number(dueDateThreshhold)) {
+                                            changeDurationInHours = Number(changeDurationInHours / 3600000);
+                                            //  console.log('\x1b[32m change Duration In Hours:\x1b[0m ', changeDurationInHours)
+                                            global.logger.write('debug', 'Change Duration In Hours: ' + changeDurationInHours, {}, request);
+
+                                            dueDateThreshhold = (Number(data[0].account_config_due_date_hours) / 100) * taskDateTimeDiffInHours;
+
+                                            //  console.log('\x1b[32m account_config_due_date_hours [threshhold % from DB] :\x1b[0m ', Number(data[0].account_config_due_date_hours));
+                                            //  console.log('\x1b[32m Calculated dueDateThreshhold:\x1b[0m ', dueDateThreshhold);
+                                            //  console.log(changeDurationInHours +' >= '+ Number(dueDateThreshhold))
+
+                                            global.logger.write('debug', 'account_config_due_date_hours [threshhold % from DB]: ' + Number(data[0].account_config_due_date_hours), {}, request);
+                                            global.logger.write('debug', 'Calculated dueDateThreshhold: ' + dueDateThreshhold, {}, request);
+                                            global.logger.write('debug', changeDurationInHours + ' >= ' + Number(dueDateThreshhold), {}, request);
+
+                                            if (changeDurationInHours >= Number(dueDateThreshhold)) {
                                                 flag_ontime = 1; // Set to 'on time'                                        
-                                             }
+                                            }
                                         }
-                                       
-                                        console.log('\x1b[32m flag_ontime :\x1b[0m ', flag_ontime);
+
+                                        // console.log('\x1b[32m flag_ontime :\x1b[0m ', flag_ontime);
+                                        global.logger.write('debug', 'flag_ontime: ' + flag_ontime, {}, request);
+
                                         activityListUpdateDueDateAlterCount(request, flag_ontime)
                                             .then(() => {
                                                 request.entity_tinyint_1 = 1; // Due date change
@@ -1060,11 +1091,11 @@ function ActivityUpdateService(objectCollection) {
                                                 request.entity_datetime_1 = parsedActivityCoverData.duedate.old;
                                                 request.entity_datetime_2 = parsedActivityCoverData.duedate.new;
                                                 //entity text 3  Add the cut off date time
-                                                request.activity_timeline_title = 
-                                                    util.subtractUnitsFromDateTime(parsedActivityCoverData.duedate.old, 
-                                                                                   Number(dueDateThreshhold),
-                                                                                   'hours'
-                                                                                  ); //entitytext3 in timelinetransaction insert
+                                                request.activity_timeline_title =
+                                                    util.subtractUnitsFromDateTime(parsedActivityCoverData.duedate.old,
+                                                        Number(dueDateThreshhold),
+                                                        'hours'
+                                                    ); //entitytext3 in timelinetransaction insert
 
                                                 return activityCommonService.asyncActivityTimelineTransactionInsert(request, {}, activityStreamTypeId);
                                             })
@@ -1079,9 +1110,14 @@ function ActivityUpdateService(objectCollection) {
                                             .then((data) => {
 
                                                 let percentageScore = (Number(data[0].ontime_count) / Number(data[0].total_count)) * 100;
-                                                console.log('\x1b[32m ontime_count:\x1b[0m ', Number(data[0].ontime_count));
-                                                console.log('\x1b[32m total_count:\x1b[0m ', Number(data[0].total_count));
-                                                console.log('\x1b[32m Weekly Summary (percentageScore):\x1b[0m ', percentageScore);
+                                                // console.log('\x1b[32m ontime_count:\x1b[0m ', Number(data[0].ontime_count));
+                                                // console.log('\x1b[32m total_count:\x1b[0m ', Number(data[0].total_count));
+                                                // console.log('\x1b[32m Weekly Summary (percentageScore):\x1b[0m ', percentageScore);
+
+                                                global.logger.write('debug', 'ontime_count: ' + Number(data[0].ontime_count), {}, request);
+                                                global.logger.write('debug', 'total_count: ' + Number(data[0].total_count), {}, request);
+                                                global.logger.write('debug', 'Weekly Summary (percentageScore): ' + percentageScore, {}, request);
+
                                                 // Weekly Summary Update
                                                 activityCommonService.weeklySummaryInsert(request, {
                                                     summary_id: 17,
@@ -1107,9 +1143,14 @@ function ActivityUpdateService(objectCollection) {
                                             .then((data) => {
 
                                                 let percentageScore = (Number(data[0].ontime_count) / Number(data[0].total_count)) * 100;
-                                                console.log('\x1b[32m ontime_count:\x1b[0m ', Number(data[0].ontime_count));
-                                                console.log('\x1b[32m total_count:\x1b[0m ', Number(data[0].total_count));
-                                                console.log('\x1b[32m Monthly Summary (percentageScore):\x1b[0m ', percentageScore);
+                                                // console.log('\x1b[32m ontime_count:\x1b[0m ', Number(data[0].ontime_count));
+                                                // console.log('\x1b[32m total_count:\x1b[0m ', Number(data[0].total_count));
+                                                // console.log('\x1b[32m Monthly Summary (percentageScore):\x1b[0m ', percentageScore);
+
+                                                global.logger.write('debug', 'ontime_count: ' + Number(data[0].ontime_count), {}, request);
+                                                global.logger.write('debug', 'total_count: ' + Number(data[0].total_count), {}, request);
+                                                global.logger.write('debug', 'Monthly Summary (percentageScore): ' + percentageScore, {}, request);
+
                                                 // Monthly Summary Update
                                                 activityCommonService.monthlySummaryInsert(request, {
                                                     summary_id: 30,
@@ -1124,11 +1165,15 @@ function ActivityUpdateService(objectCollection) {
                                                     entity_text_2: ''
 
                                                 }).catch((err) => {
-                                                    console.log('\x1b[31m Error:\x1b[0m', err)
+                                                    // console.log('\x1b[31m Error:\x1b[0m', err)
+                                                    global.logger.write('debug', 'Error ' + err, err, request);
+
                                                 });
 
                                             }).catch((err) => {
-                                                console.log('\x1b[31m Error:\x1b[0m', err)
+                                                // console.log('\x1b[31m Error:\x1b[0m', err)
+                                                global.logger.write('debug', 'Error ' + err, err, request);
+
                                             });
                                     }
                                 });
@@ -1137,7 +1182,8 @@ function ActivityUpdateService(objectCollection) {
                         });
 
                     } else {
-                        console.log('Else Part');
+                        // console.log('Else Part');
+                        global.logger.write('debug', 'Else Part', {}, request);
                     }
                 }
 
@@ -1221,7 +1267,9 @@ function ActivityUpdateService(objectCollection) {
 
     function callAlterActivityCover(request, coverAlterJson, activityTypeCategoryId) {
         return new Promise((resolve, reject) => {
-            console.log('coverAlterJson : ', coverAlterJson);
+            // console.log('coverAlterJson : ', coverAlterJson);
+            global.logger.write('debug', 'coverAlterJson: ' + JSON.stringify(coverAlterJson, null, 2), {}, request);
+
             var event = {
                 name: "alterActivityCover",
                 service: "activityUpdateService",
@@ -1277,7 +1325,8 @@ function ActivityUpdateService(objectCollection) {
 
         activityCommonService.getActivityDetails(request, 0, function (err, data) { //One
             if (err === false) {
-                console.log('data[0].activity_owner_asset_id :' + data[0].activity_owner_asset_id);
+                // console.log('data[0].activity_owner_asset_id :' + data[0].activity_owner_asset_id);
+                global.logger.write('debug', 'data[0].activity_owner_asset_id: ' + data[0].activity_owner_asset_id, {}, request);
 
                 //creator asset id and lead asset id if it mathces 29 shouldn't be called
 
@@ -1346,7 +1395,8 @@ function ActivityUpdateService(objectCollection) {
                                 // Update the access role Id of the existing participant
                                 activityAssetMappingUpdateAssetAccess(request)
                                     .catch((err) => {
-                                        console.log("Error updating the existing participant as owner: ", err);
+                                        // console.log("Error updating the existing participant as owner: ", err);
+                                        global.logger.write('debug', 'Error updating the existing participant as owner: ' + err, err, request);
                                     });
 
                                 activityListAlterOwner(request, function (err, data) {
@@ -1669,7 +1719,7 @@ function ActivityUpdateService(objectCollection) {
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         var activityTypeCategoryId = Number(request.activity_type_category_id);
-        
+
         //activityCommonService.responseRateUnreadCount(request, request.activity_id, function (err, data) {});
 
         activityCommonService.resetAssetUnreadCount(request, request.activity_id, function (err, data) {
@@ -1680,7 +1730,9 @@ function ActivityUpdateService(objectCollection) {
                     pubnubMsg.organization_id = request.organization_id;
                     pubnubMsg.desk_asset_id = request.asset_id;
                     pubnubMsg.activity_type_category_id = request.activity_type_category_id || 0;
-                    console.log('PubNub Message : ', pubnubMsg);
+                    // console.log('PubNub Message : ', pubnubMsg);
+                    global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg, null, 2), {}, request);
+
                     activityPushService.pubNubPush(request, pubnubMsg, function (err, data) {});
                 }
             }
@@ -1688,28 +1740,30 @@ function ActivityUpdateService(objectCollection) {
 
         if (Number(request.device_os_id) === 5) {
             decreaseUnreadCntsInMobile(request).then(() => {}).catch((err) => {
-                console.log('Error in decreaseUnreadCntsInMobile : ', err);
+                // console.log('Error in decreaseUnreadCntsInMobile : ', err);
+                global.logger.write('debug', 'Error in decreaseUnreadCntsInMobile: ' + err, err, request);
+
             });
         }
-        
-        if(request.url.includes('v1')) {
-            if(activityTypeCategoryId === 10 || activityTypeCategoryId === 11 || activityTypeCategoryId === 5 ||
-                    activityTypeCategoryId === 6 || activityTypeCategoryId === 29 || activityTypeCategoryId === 43 ||
-                    activityTypeCategoryId === 44) {
+
+        if (request.url.includes('v1')) {
+            if (activityTypeCategoryId === 10 || activityTypeCategoryId === 11 || activityTypeCategoryId === 5 ||
+                activityTypeCategoryId === 6 || activityTypeCategoryId === 29 || activityTypeCategoryId === 43 ||
+                activityTypeCategoryId === 44) {
                 activityCommonService.retrieveAccountList(request, (err, data) => {
-                    if (err === false) {                    
+                    if (err === false) {
                         request.config_resp_hours = data[0].account_config_response_hours;
-                        
+
                         activityCommonService.responseRateUnreadCount(request, request.activity_id, function (err, data) {
-                            if(err === false){
-                                updateFilesPS(request).then(()=>{});
+                            if (err === false) {
+                                updateFilesPS(request).then(() => {});
                             }
                         });
                     }
                 });
             }
         }
-      
+
         activityPushService.sendPush(request, objectCollection, 0, function () {});
 
         //New Productivity Score
@@ -1731,7 +1785,7 @@ function ActivityUpdateService(objectCollection) {
             next();
         }); */
     };
-    
+
     function decreaseUnreadCntsInMobile(request) {
         return new Promise((resolve, reject) => {
             var paramsArr = new Array(
@@ -1748,53 +1802,63 @@ function ActivityUpdateService(objectCollection) {
             }
         });
     }
-    
+
     //To calculate New Productivity Score files
     function updateFilesPS(request) {
-        return new Promise((resolve, reject) => {           
-            
+        return new Promise((resolve, reject) => {
+
             //Updating monthly summary Data
-            getResponseRateForFiles(request, 1).then((monthlyData)=>{
-                    console.log('Monthly Data : ', monthlyData);
+            getResponseRateForFiles(request, 1).then((monthlyData) => {
+                // console.log('Monthly Data : ', monthlyData);
+                global.logger.write('debug', 'Monthly Data: ' + JSON.stringify(monthlyData, null, 2), {}, request);
 
-                    var percentage = 0;
-                    var noOfReceivedFileUpdates = monthlyData[0].countReceivedUpdates;
-                    var noOfRespondedFileUpdates = monthlyData[0].countRespondedOntimeUpdates;
+                var percentage = 0;
+                var noOfReceivedFileUpdates = monthlyData[0].countReceivedUpdates;
+                var noOfRespondedFileUpdates = monthlyData[0].countRespondedOntimeUpdates;
 
-                    if (noOfReceivedFileUpdates != 0) {                                                
-                            percentage = (noOfRespondedFileUpdates / noOfReceivedFileUpdates) * 100;
-                    }
+                if (noOfReceivedFileUpdates != 0) {
+                    percentage = (noOfRespondedFileUpdates / noOfReceivedFileUpdates) * 100;
+                }
 
-                    console.log('Number Of ReceivedFileUpdates : ' + noOfReceivedFileUpdates);
-                    console.log('Number Of RespondedFileUpdates : ' + noOfRespondedFileUpdates);
-                    console.log('Percentage : ' + percentage);
+                // console.log('Number Of ReceivedFileUpdates : ' + noOfReceivedFileUpdates);
+                // console.log('Number Of RespondedFileUpdates : ' + noOfRespondedFileUpdates);
+                // console.log('Percentage : ' + percentage);
 
-                    //Insert into monthly summary table
-                    var monthlyCollection = {};
-                    monthlyCollection.summary_id = 32;
-                    monthlyCollection.asset_id = request.asset_id;
-                    monthlyCollection.entity_bigint_1 = noOfReceivedFileUpdates; //denominator
-                    monthlyCollection.entity_double_1 = percentage; //percentage value
-                    monthlyCollection.entity_decimal_1 = percentage; //percentage value
-                    monthlyCollection.entity_decimal_3 = noOfRespondedFileUpdates; //numerator
-                    activityCommonService.monthlySummaryInsert(request, monthlyCollection, (err, data) => {});                                
-             });
+                global.logger.write('debug', 'Number Of ReceivedFileUpdates: ' + noOfReceivedFileUpdates, {}, request);
+                global.logger.write('debug', 'Number Of RespondedFileUpdates: ' + noOfRespondedFileUpdates, {}, request);
+                global.logger.write('debug', 'Percentage: ' + percentage, {}, request);
 
-             //Updating weekly summary Data
-             getResponseRateForFiles(request, 2).then((weeklyData)=>{
+                //Insert into monthly summary table
+                var monthlyCollection = {};
+                monthlyCollection.summary_id = 32;
+                monthlyCollection.asset_id = request.asset_id;
+                monthlyCollection.entity_bigint_1 = noOfReceivedFileUpdates; //denominator
+                monthlyCollection.entity_double_1 = percentage; //percentage value
+                monthlyCollection.entity_decimal_1 = percentage; //percentage value
+                monthlyCollection.entity_decimal_3 = noOfRespondedFileUpdates; //numerator
+                activityCommonService.monthlySummaryInsert(request, monthlyCollection, (err, data) => {});
+            });
+
+            //Updating weekly summary Data
+            getResponseRateForFiles(request, 2).then((weeklyData) => {
                 console.log('Weekly Data : ', weeklyData);
+                global.logger.write('debug', 'Weekly Data: ' + JSON.stringify(weeklyData, null, 2), {}, request);
 
                 var percentage = 0;
                 var noOfReceivedFileUpdates = weeklyData[0].countReceivedUpdates;
                 var noOfRespondedFileUpdates = weeklyData[0].countRespondedOntimeUpdates;
 
-                if (noOfReceivedFileUpdates != 0) {                                                
+                if (noOfReceivedFileUpdates != 0) {
                     percentage = (noOfRespondedFileUpdates / noOfReceivedFileUpdates) * 100;
                 }
 
-                console.log('Number Of ReceivedFileUpdates : ' + noOfReceivedFileUpdates);
-                console.log('Number Of RespondedFileUpdates : ' + noOfRespondedFileUpdates);
-                console.log('Percentage : ' + percentage);
+                // console.log('Number Of ReceivedFileUpdates : ' + noOfReceivedFileUpdates);
+                // console.log('Number Of RespondedFileUpdates : ' + noOfRespondedFileUpdates);
+                // console.log('Percentage : ' + percentage);
+
+                global.logger.write('debug', 'Number Of ReceivedFileUpdates : ' + noOfReceivedFileUpdates, {}, request);
+                global.logger.write('debug', 'Number Of RespondedFileUpdates : ' + noOfRespondedFileUpdates, {}, request);
+                global.logger.write('debug', 'Percentage : ' + percentage, {}, request);
 
                 //Insert into weekly summary table
                 var weeklyCollection = {};
@@ -1805,17 +1869,17 @@ function ActivityUpdateService(objectCollection) {
                 weeklyCollection.entity_decimal_1 = percentage;
                 weeklyCollection.entity_decimal_3 = noOfRespondedFileUpdates;
                 activityCommonService.weeklySummaryInsert(request, weeklyCollection, (err, data) => {});
-                });               
-             
-         }); //closing the promise        
+            });
+
+        }); //closing the promise        
     };
-    
+
     function getResponseRateForFiles(request, flag) { ////flag = 1 means monthly and flag = 2 means weekly
         return new Promise((resolve, reject) => {
             var startDate;
             var endDate;
 
-            if(flag === 1) {
+            if (flag === 1) {
                 startDate = util.getStartDateTimeOfMonth();
                 endDate = util.getEndDateTimeOfMonth();
             } else {
@@ -1826,7 +1890,7 @@ function ActivityUpdateService(objectCollection) {
                 request.organization_id,
                 request.asset_id,
                 startDate,
-                endDate                
+                endDate
             );
             var queryString = util.getQueryString('ds_v1_asset_update_transaction_select_response_rate', paramsArr);
             if (queryString != '') {
@@ -1871,7 +1935,7 @@ function ActivityUpdateService(objectCollection) {
                                             var noOfReceivedInmails = countsData[0].countReceivedInmails;
                                             var noOfRespondedInmails = countsData[0].countOntimeRespondedInmails;
 
-                                            if (noOfReceivedInmails != 0) {                                                
+                                            if (noOfReceivedInmails != 0) {
                                                 percentage = (noOfRespondedInmails / noOfReceivedInmails) * 100;
                                             }
 
@@ -1887,12 +1951,12 @@ function ActivityUpdateService(objectCollection) {
                                             monthlyCollection.entity_double_1 = percentage; //percentage value
                                             monthlyCollection.entity_decimal_1 = percentage; //percentage value
                                             monthlyCollection.entity_decimal_3 = noOfRespondedInmails; //numerator
-                                            activityCommonService.monthlySummaryInsert(request, monthlyCollection, (err, data) => {});                                           
+                                            activityCommonService.monthlySummaryInsert(request, monthlyCollection, (err, data) => {});
 
                                             resolve();
                                         }
                                     }); //getInmailCounts Monthly                            
-                                    
+
                                     //Get the inmail Counts Weekly
                                     activityCommonService.getInmailCounts(request, 2, (err, countsData) => {
                                         if (err === false) {
@@ -1900,7 +1964,7 @@ function ActivityUpdateService(objectCollection) {
                                             var noOfReceivedInmails = countsData[0].countReceivedInmails;
                                             var noOfRespondedInmails = countsData[0].countOntimeRespondedInmails;
 
-                                            if (noOfReceivedInmails != 0) {                                                
+                                            if (noOfReceivedInmails != 0) {
                                                 percentage = (noOfRespondedInmails / noOfReceivedInmails) * 100;
                                             }
 
@@ -1921,7 +1985,7 @@ function ActivityUpdateService(objectCollection) {
                                             resolve();
                                         }
                                     }); //getInmailCounts Weekly
-                                    
+
                                 }
                             }); //updateInmailResponse                            
                         }
@@ -2157,12 +2221,13 @@ function ActivityUpdateService(objectCollection) {
 
                                     queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
                                         if (err) {
-                                            console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                                            global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent", err, request);
+                                            // console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
+                                            global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent: " + err, err, request);
                                             throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                                         } else {
                                             console.log("archiveAssetAndActivity service raised: ", event);
-                                            global.logger.write('debug', "archiveAssetAndActivity service raised: ", event, request);
+                                            global.logger.write('debug', 'archiveAssetAndActivity service raised: ' + JSON.stringify(event, null, 2), event, request);
+
                                         }
                                     });
                                 }
@@ -2189,7 +2254,8 @@ function ActivityUpdateService(objectCollection) {
                     datetime_log: util.getCurrentUTCTime(),
                     message_unique_id: Number(request.message_unique_id)
                 };
-                console.log("coWorkerActivityData: ", coWorkerActivityData);
+                // console.log("coWorkerActivityData: ", coWorkerActivityData);
+                global.logger.write('debug', 'coWorkerActivityData: ' + JSON.stringify(coWorkerActivityData, null, 2), coWorkerActivityData, request);
                 // 4.1 Reset the desk details in the inline data and also in the asset 
                 // columns in the row data of the co-worker contact card activity of the operating employee
                 // 
@@ -2452,12 +2518,12 @@ function ActivityUpdateService(objectCollection) {
 
                         queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
                             if (err) {
-                                console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                                global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent", err, request);
+                                // console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
+                                global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent: " + err, err, request);
                                 throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                             } else {
-                                console.log("removeEmployeetoDeskMapping service raised: ", event);
-                                global.logger.write('debug', "removeEmployeetoDeskMapping service raised: ", event, request);
+                                // console.log("removeEmployeetoDeskMapping service raised: ", event);
+                                global.logger.write('debug', "removeEmployeetoDeskMapping service raised: " + JSON.stringify(event, null, 2), event, request);
                                 callback(false, request)
                             }
                         });
