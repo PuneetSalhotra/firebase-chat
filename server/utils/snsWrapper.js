@@ -59,7 +59,7 @@ var AwsSns = function () {
                 global.logger.write('debug', err, {}, {});
             else
                 //console.log(data);           // successful response
-                global.logger.write('debug', data, {}, {});
+                global.logger.write('debug', 'Notification Sent : ' + JSON.stringify(data, null, 2), {}, {});
         });
     };
     
