@@ -230,7 +230,9 @@ function ActivityService(objectCollection) {
                                                         db.executeQuery(1, queryString, request, function (err, result) {
                                                             if (err === false) {
                                                                 var newEndEstimatedDatetime = result[0]['activity_datetime_end_estimated'];
-                                                                console.log('setting new datetime for contact as ' + newEndEstimatedDatetime);
+                                                                // console.log('setting new datetime for contact as ' + newEndEstimatedDatetime);
+                                                                global.logger.write('debug', 'setting new datetime for contact as ' + newEndEstimatedDatetime, {}, request);
+
                                                                 coverAlterJson.description = {
                                                                     old: activityData[0]['activity_datetime_end_estimated'],
                                                                     new: newEndEstimatedDatetime
@@ -289,12 +291,15 @@ function ActivityService(objectCollection) {
 
                             } // end parent activity id condition
 
-                            console.log('request - ', request);
+                            // console.log('request - ', request);
+                            global.logger.write('debug', 'request - ' + JSON.stringify(request, null, 2), {}, request);
 
                             if (request.activity_parent_id == 95670) { //For Marketing Manager reference //PROD - 95670 ; Staging - 93256
                                 //Create a timeline entry on this task
                                 setTimeout(function () {
-                                    console.log('Delayed for 2s');
+                                    // console.log('Delayed for 2s');
+                                    global.logger.write('debug', 'Delayed for 2s', {}, request);
+
                                     createTimelineEntry(request).then(() => {});
                                 }, 2000);
                             }
@@ -315,7 +320,9 @@ function ActivityService(objectCollection) {
                             });
                             return;
                         } else {
-                            console.log("not inserted to asset activity list");
+                            // console.log("not inserted to asset activity list");
+                            global.logger.write('debug', "not inserted to asset activity list", {}, request);
+
                             callback(false, responseactivityData, 200);
                         }
                     });
@@ -326,7 +333,7 @@ function ActivityService(objectCollection) {
             });
         }).catch((err) => {
             //console.log(err);
-            global.logger.write('serverError', '', err, request);
+            global.logger.write('serverError', err, err, request);
         });
     };
 
@@ -439,7 +446,9 @@ function ActivityService(objectCollection) {
 
     function callAlterActivityCover(request, coverAlterJson, activityTypeCategoryId) {
         return new Promise((resolve, reject) => {
-            console.log('coverAlterJson : ', coverAlterJson);
+            // console.log('coverAlterJson : ', coverAlterJson);
+            global.logger.write('debug', 'coverAlterJson: ' + JSON.stringify(coverAlterJson, null, 2), {}, request);
+
             var event = {
                 name: "alterActivityCover",
                 service: "activityUpdateService",
@@ -539,7 +548,9 @@ function ActivityService(objectCollection) {
         var itemOrderCount = (request.hasOwnProperty('item_order_count')) ? request.item_order_count : '0';
 
         if (activityTypeCategoryId === 38) {
-            console.log('Inside sendPush');
+            // console.log('Inside sendPush');
+            global.logger.write('debug', 'Inside sendPush', {}, request);
+
             sendPushPam(request).then(() => {});
         }
 
@@ -551,7 +562,9 @@ function ActivityService(objectCollection) {
                     reserveCode = util.randomInt(50001, 99999).toString();
                     activityCommonService.checkingUniqueCode(request, reserveCode, (err, data) => {
                         if (err === false) {
-                            console.log('activitySubTypeName : ' + data);
+                            // console.log('activitySubTypeName : ' + data);
+                            global.logger.write('debug', 'activitySubTypeName : ' + data, {}, request);
+
                             activitySubTypeName = data;
                             responseactivityData.reservation_code = data;
                             activityCommonService.getActivityDetails(request, request.activity_parent_id, function (err, resp) {
@@ -1108,11 +1121,14 @@ function ActivityService(objectCollection) {
         };
         queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
             if (err) {
-                console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                //global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent", err, request);
+                // console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
+                global.logger.write('debug', err, err, request);
+                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent : ' + resp, err, request);
+                
                 throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
             } else {
-                console.log('\x1b[36m%s\x1b[0m', 'Successfullly raised SWIPE IN activity event.');
+                // console.log('\x1b[36m%s\x1b[0m', 'Successfullly raised SWIPE IN activity event.');
+                global.logger.write('debug', 'Successfullly raised SWIPE IN activity event.', {}, request);
             }
         });
     }
@@ -1161,11 +1177,14 @@ function ActivityService(objectCollection) {
                             }
                             next();
                         }).then(() => {
-                            console.log('ARNS : ', data);
+                            // console.log('ARNS : ', data);
+                            global.logger.write('debug', 'ARNS: ' + JSON.stringify(data, null, 2), {}, request);
+
                             if (data.length > 0) {
                                 activityPushService.pamSendPush(request, data, objectCollection, function (err, resp) {});
                             } else {
                                 console.log('No arns');
+                                global.logger.write('debug', 'No arns', {}, request);
                             }
 
                             resolve();
@@ -1904,7 +1923,8 @@ function ActivityService(objectCollection) {
             activityTimelineCollection.activity_reference = [];
             activityTimelineCollection.form_approval_field_reference = [];
 
-            console.log("activityTimelineCollection : ", JSON.stringify(activityTimelineCollection));
+            // console.log("activityTimelineCollection : ", JSON.stringify(activityTimelineCollection));
+            global.logger.write('debug', 'activityTimelineCollection' + JSON.stringify(activityTimelineCollection, null, 2), {}, request);
 
             newRequest.activity_stream_type_id = 325;
             newRequest.signedup_asset_id = request.signedup_asset_id;
@@ -1920,8 +1940,9 @@ function ActivityService(objectCollection) {
 
             queueWrapper.raiseActivityEvent(event, newRequest.activity_id, (err, resp) => {
                 if (err) {
-                    console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                    //global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent", err, request);
+                    // console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
+                    global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+
                     //res.send(responseWrapper.getResponse(false, {}, -5999,req.body));
                     throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                 } else {}
@@ -2107,8 +2128,11 @@ function ActivityService(objectCollection) {
                 if (err === false) {
                     var dueDate = util.replaceDefaultDatetime(data[0].activity_datetime_end_deferred);
                     
-                    console.log('util.getCurrentUTCTime() : ', util.getCurrentUTCTime());
-                    console.log('dueDate : ', dueDate);
+                    // console.log('util.getCurrentUTCTime() : ', util.getCurrentUTCTime());
+                    // console.log('dueDate : ', dueDate);
+
+                    global.logger.write('debug', 'util.getCurrentUTCTime(): ' + util.getCurrentUTCTime(), {}, request);
+                    global.logger.write('debug', 'dueDate: ' + dueDate, {}, request);
                     
                     if(request.hasOwnProperty('set_flag')) {
                         if(request.set_flag == 0) {
@@ -2464,6 +2488,8 @@ function ActivityService(objectCollection) {
                                         collection.datetime_end = util.getEndDateTimeOfMonth(); // getting monthly data
                                         activityCommonService.getAssetAverageRating(request, collection).then((assetAverageRating) => {
                                             console.log(assetAverageRating)
+                                            global.logger.write('debug', 'assetAverageRating' + assetAverageRating, {}, request);
+
                                             var monthlySummaryCollection = {};
                                             monthlySummaryCollection.summary_id = 19;
                                             monthlySummaryCollection.asset_id = request.lead_asset_id;
@@ -2552,9 +2578,13 @@ function ActivityService(objectCollection) {
         var count = Number(acceptanceStats.weekly_acceptance_stats[0].count);
         var percentage = (totalCount > 0) ? (count / totalCount) * 100 : 0;
         
-        console.log('weekly Count : ', count);
-        console.log('weekly Total Count : ', totalCount);
-        console.log('weekly Percentage : ', percentage);
+        // console.log('weekly Count : ', count);
+        // console.log('weekly Total Count : ', totalCount);
+        // console.log('weekly Percentage : ', percentage);
+
+        global.logger.write('debug', 'weekly Count: ' + count, {}, request);
+        global.logger.write('debug', 'weekly Total Count: ' + totalCount, {}, request);
+        global.logger.write('debug', 'weekly Percentage: ' + percentage, {}, request);
         
         collection.summary_id = summaryIds.weekly;
         collection.asset_id = request.asset_id;
@@ -2569,9 +2599,13 @@ function ActivityService(objectCollection) {
             count = Number(acceptanceStats.monthly_acceptance_stats[0].count);
             percentage = (totalCount > 0) ? (count / totalCount) * 100 : 0;
             
-            console.log('monthly Count : ', count);
-            console.log('monthly Total Count : ', totalCount);
-            console.log('monthly Percentage : ', percentage);
+            // console.log('monthly Count : ', count);
+            // console.log('monthly Total Count : ', totalCount);
+            // console.log('monthly Percentage : ', percentage);
+
+            global.logger.write('debug', 'monthly Count: ' + count, {}, request);
+            global.logger.write('debug', 'monthly Total Count: ' + totalCount, {}, request);
+            global.logger.write('debug', 'monthly Percentage: ' + percentage, {}, request);
             
             collection.summary_id = summaryIds.monthly;
             collection.entity_bigint_1 = totalCount;
@@ -2619,7 +2653,8 @@ function ActivityService(objectCollection) {
 
         //new Promise(resolve,reject){
         //activityCommonService.getActivityDetails(request, 0, function (err, activityData) {
-        console.log('data ' + request.activity_inline_data);
+        // console.log('data ' + request.activity_inline_data);
+        global.logger.write('debug', 'data ' + request.activity_inline_data, {}, request);
 
         var option_id = JSON.parse(request.activity_inline_data).option_id;
 
@@ -2634,14 +2669,21 @@ function ActivityService(objectCollection) {
                 });
 
             }).then(() => {
-                console.log("IN THEN");
+                // console.log("IN THEN");
+                global.logger.write('debug', 'IN THEN', {}, request);
 
                 if (JSON.parse(request.activity_inline_data).hasOwnProperty('item_choice_price_tax')) {
                     var arr = JSON.parse(request.activity_inline_data).item_choice_price_tax;
-                    console.log('arr' + arr[0].activity_id);
+
+                    // console.log('arr' + arr[0].activity_id);
+                    global.logger.write('debug', 'arr: ' + arr[0].activity_id, {}, request);
+
                     var choice_option = 2;
                     forEachAsync(arr, function (next, x1) {
-                        console.log('arr[key1].activity_id ' + x1.activity_id);
+
+                        // console.log('arr[key1].activity_id ' + x1.activity_id);
+                        global.logger.write('debug', 'arr[key1].activity_id: ' + x1.activity_id, {}, request);
+
                         choice_option++;
                         //var quantity = x1.quantity;
                         activityCommonService.getAllParticipantsforField(request, x1.activity_id, 1).then((rows) => {
@@ -2650,8 +2692,13 @@ function ActivityService(objectCollection) {
                                 x2.access_role_id = 123;
                                 x2.field_id = choice_option;
                                 x2.option_id = x1.quantity; //
-                                console.log('parent_activity_title ' + x2.parent_activity_title);
-                                console.log('choice quantity: ' + x2.option_id);
+                                
+                                // console.log('parent_activity_title ' + x2.parent_activity_title);
+                                // console.log('choice quantity: ' + x2.option_id);
+
+                                global.logger.write('debug', 'parent_activity_title: ' + x2.parent_activity_title, {}, request);
+                                global.logger.write('debug', 'choice quantity: ' + x2.option_id, {}, request);
+
                                 activityCommonService.orderIngredientsAssign(request, x2).then(() => {
                                     next();
                                 });
@@ -2708,9 +2755,8 @@ function ActivityService(objectCollection) {
                 if (err === false) {
                     //  console.log(data);
                 } else {
-                    //console.log(data)
-                    console.log(err);
-                    global.logger.write('serverError', '' + err, request)
+                    // console.log(err);
+                    global.logger.write('serverError', err, err, request);
 
                 }
             });
