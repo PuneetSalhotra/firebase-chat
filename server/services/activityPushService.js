@@ -13,6 +13,12 @@ function ActivityPushService(objectCollection) {
         //msg.type = 'activity_unread';
         msg.activity_type_category_id = 0;
 
+        // Include activity_id and its category id in the push message
+        if (request.hasOwnProperty('activity_id') && request.hasOwnProperty('activity_type_category_id')) {
+            pushString.activity_id = request.activity_id;
+            pushString.activity_type_category_id = request.activity_type_category_id;
+        }
+
         var activityTypeCategoryId = Number(request.activity_type_category_id);
         objectCollection.activityCommonService.getActivityDetails(request, 0, function (err, activityData) {
             if (err === false) {
@@ -307,7 +313,7 @@ function ActivityPushService(objectCollection) {
                     //console.log('PubMSG : ', pubnubMsg);
                     //console.log('pushStringObj : ', pushStringObj);
                     global.logger.write('debug', 'PubMSG : ' + pubnubMsg, {}, request);
-                    global.logger.write('debug', 'pushStringObj : ' + pushStringObj, {}, request);
+                    global.logger.write('debug', 'pushStringObj : ' + JSON.stringify(pushStringObj), {}, request);
                     if (Object.keys(pushStringObj).length > 0) {
                         objectCollection.forEachAsync(pushReceivers, function (next, rowData) {
                             objectCollection.cacheWrapper.getAssetMap(rowData.assetId, function (err, assetMap) {
