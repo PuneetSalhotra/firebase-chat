@@ -24,8 +24,8 @@ function PubnubPush() {
                 //console.log('');
                 //console.log('RESPONSE : ' , response);
                 
-                global.logger.write('debug', 'STATUS : ' + status, {}, {});                
-                global.logger.write('debug', 'RESPONSE : ' + response, {}, {});
+                global.logger.write('debug', status, {}, {});                
+                global.logger.write('debug', response, {}, {});
             });
         }      
 };

@@ -704,7 +704,8 @@ function AssetService(objectCollection) {
                     if (err === false) {
                         // got data now parse it..                          
                         if (data.length > 0) {
-                            console.log("data[0].asset_phone_passcode: ", data[0].asset_phone_passcode);
+                            //console.log("data[0].asset_phone_passcode: ", data[0].asset_phone_passcode);
+                            global.logger.write('debug', "data[0].asset_phone_passcode: " + data[0].asset_phone_passcode, {}, request);
                             var dbVerifyCode = 0;
                             verificationType === 3 ? dbVerifyCode = util.replaceDefaultNumber(data[0].asset_email_password) : dbVerifyCode = util.replaceDefaultNumber(data[0].asset_phone_passcode);
                             //asset_password_expiry_datetime --> for email 
@@ -723,12 +724,17 @@ function AssetService(objectCollection) {
                         } else {
                             getPasscodeForNewPhonenumber(phoneNumber, request)
                                 .then(function (data) {
-                                    console.log("data[0].phone_passcode: ", Number(data[0].phone_passcode));
-                                    console.log("verificationCode: ", Number(verificationCode));
+                                    //console.log("data[0].phone_passcode: ", Number(data[0].phone_passcode));
+                                    //console.log("verificationCode: ", Number(verificationCode));
+                                    
+                                    global.logger.write('debug', "data[0].phone_passcode: " + Number(data[0].phone_passcode), {}, request);
+                                    global.logger.write('debug', "verificationCode: " + Number(verificationCode), {}, request);
+                                    
                                     if (Number(data[0].phone_passcode) === Number(verificationCode)) {
                                         // Set verification status  to true
                                         setPasscodeVerificationStatusForNewPhonenumber(data[0].phone_passcode_transaction_id, true, request);
                                         console.log("******* PASSCODE VERIFIED *******");
+                                        global.logger.write('debug', "******* PASSCODE VERIFIED *******", {}, request);
                                         callback(false, {
                                             data: []
                                         }, 200)
@@ -757,7 +763,7 @@ function AssetService(objectCollection) {
 
     function getPasscodeForNewPhonenumber(phoneNumber, request) {
         return new Promise(function (resolve, reject) {
-            console.log("Inside getPasscodeForNewPhonenumber");
+            //console.log("Inside getPasscodeForNewPhonenumber");
             // IN p_phone_number VARCHAR(50), IN phone_country_code SMALLINT(6)
 
             var paramsArr = new Array(
@@ -767,7 +773,8 @@ function AssetService(objectCollection) {
             var queryString = util.getQueryString('ds_p1_phone_passcode_transaction_select', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
-                    console.log("ds_p1_phone_passcode_transaction_select data: ", data);
+                    //console.log("ds_p1_phone_passcode_transaction_select data: ", data);
+                    global.logger.write('debug', "ds_p1_phone_passcode_transaction_select data: " + data, {}, request);
                     (!err) ? resolve(data): reject(err);
                 });
             }
@@ -776,7 +783,7 @@ function AssetService(objectCollection) {
 
     function setPasscodeVerificationStatusForNewPhonenumber(phonePasscodeTransactionID, isPasscodeVerified, request) {
         return new Promise(function (resolve, reject) {
-            console.log("Inside setPasscodeVerificationStatusForNewPhonenumber");
+            //console.log("Inside setPasscodeVerificationStatusForNewPhonenumber");
             // IN p_phone_passcode_transaction_id BIGINT(20), IN p_phone_passcode_is_verified TINYINT(4), 
             // IN p_phone_passcode_verification_datetime DATETIME
 
@@ -789,7 +796,8 @@ function AssetService(objectCollection) {
             var queryString = util.getQueryString('ds_p1_phone_passcode_transaction_update_verified', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
-                    console.log("ds_p1_phone_passcode_transaction_update_verified data: ", data);
+                    //console.log("ds_p1_phone_passcode_transaction_update_verified data: ", data);
+                    global.logger.write('debug', "ds_p1_phone_passcode_transaction_update_verified data:: " + data, {}, request);
                     (!err) ? resolve(data): reject(err);
                 });
             }
@@ -830,7 +838,7 @@ function AssetService(objectCollection) {
                 if (countryCode === 91) {
 
                     fs.readFile(`${__dirname}/../utils/domesticSmsMode.txt`, function (err, data) {
-                        (err) ? console.log(err): domesticSmsMode = Number(data.toString());
+                        (err) ? global.logger.write('debug', err, {}, request): domesticSmsMode = Number(data.toString());
                         
                         /*   case 1: // mvaayoo                        
                                 util.sendSmsMvaayoo(smsString, countryCode, phoneNumber, function (error, data) {
@@ -877,7 +885,7 @@ function AssetService(objectCollection) {
                 } else {
 
                     fs.readFile(`${__dirname}/../utils/internationalSmsMode.txt`, function (err, data) {
-                        (err) ? console.log(err): internationalSmsMode = Number(data.toString());
+                        (err) ? global.logger.write('debug', err, {}, request): internationalSmsMode = Number(data.toString());
                         
                          /* case 1:
                                 util.sendInternationalTwilioSMS(smsString, countryCode, phoneNumber, function (error, data) {
@@ -916,11 +924,12 @@ function AssetService(objectCollection) {
                 break;
             case 2: //Make a call                
                 fs.readFile(`${__dirname}/../utils/phoneCall.txt`, function (err, data) {
-                    (err) ? console.log(err): phoneCall = Number(data.toString());
+                    (err) ? global.logger.write('debug', err, {}, request): phoneCall = Number(data.toString());
 
                     switch (phoneCall) {
                         case 1: //Nexmo
-                            console.log('Making Nexmo Call');
+                            //console.log('Making Nexmo Call');
+                            global.logger.write('debug', 'Making Nexmo Call', {}, request);
                             var passcode = request.passcode;
                             passcode = passcode.split("");
                             passcode = passcode.toString();
@@ -932,7 +941,8 @@ function AssetService(objectCollection) {
                             text += ". I repeat, your passcode for Desker App is, " + passcode;
                             text += ". I repeat, your passcode for Desker App is, " + passcode;
                             text += ". I repeat, your passcode for Desker App is, " + passcode;
-                            console.log('Text: ' + text);
+                            //console.log('Text: ' + text);
+                            global.logger.write('debug', 'Text: ' + text, {}, request);
 
                             util.makeCallNexmo(text, request.passcode, countryCode, phoneNumber, function (error, data) {
                                 if (error)
@@ -943,7 +953,8 @@ function AssetService(objectCollection) {
                             break;
 
                         case 2: //Twilio
-                            console.log('Making Twilio Call');
+                            //console.log('Making Twilio Call');
+                            global.logger.write('debug', 'Making Twilio Call', {}, request);
                             var passcode = request.passcode;
                             passcode = passcode.split("");
 
@@ -954,7 +965,8 @@ function AssetService(objectCollection) {
                             text += ". I repeat, your passcode for Desker App is, " + passcode;
                             text += ". I repeat, your passcode for Desker App is, " + passcode;
                             text += ". I repeat, your passcode for Desker App is, " + passcode;
-                            console.log('Text: ' + text);
+                            //console.log('Text: ' + text);
+                            global.logger.write('debug', 'Text: ' + text, {}, request);
                             util.MakeCallTwilio(text, request.passcode, countryCode, phoneNumber, function (error, data) {
                                 if (error)
                                     console.log(error);
@@ -1181,7 +1193,8 @@ function AssetService(objectCollection) {
         );
 
         if (request.hasOwnProperty('timezone_offset')) {
-            console.log('\x1b[36m timezone_offset parameter found \x1b[0m');
+            //console.log('\x1b[36m timezone_offset parameter found \x1b[0m');
+            global.logger.write('debug', '\x1b[36m timezone_offset parameter found \x1b[0m', {}, request);
             paramsArr.push(request.timezone_offset);
 
             // IN p_asset_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_device_hardware_id VARCHAR(300), 
@@ -1216,7 +1229,8 @@ function AssetService(objectCollection) {
                 // ASSET ID - DESK
                 activityCommonService.getAssetDetails(request, (err, data, statusCode) => {
                     if (err === false) {
-                        console.log('\x1b[36mAsset Signup count:\x1b[0m ', data.asset_count_signup);
+                        //console.log('\x1b[36mAsset Signup count:\x1b[0m ', data.asset_count_signup);
+                        global.logger.write('debug', '\x1b[36mAsset Signup count:\x1b[0m ' + data.asset_count_signup, {}, request);
                         request.asset_count_signup = data.asset_count_signup;
 
                         if (data.asset_count_signup > 0) {
@@ -1226,7 +1240,8 @@ function AssetService(objectCollection) {
                             assetListUpdateSignupCnt(request, assetId).then(() => {});
                             //Create a Task in a given Project and add an update
                             //Asset_id, operating_asset_name, organization_name, workforce_name
-                            console.log('Create a Task for Paramesh');
+                            //console.log('Create a Task for Paramesh');
+                            global.logger.write('debug', 'Create a Task for Paramesh', {}, request);
                             var newRequest = {};
 
                             newRequest.organization_id = 336;
@@ -1262,8 +1277,8 @@ function AssetService(objectCollection) {
 
                             cacheWrapper.getActivityId(function (err, activityId) {
                                 if (err) {
-                                    console.log(err);
-                                    //global.logger.write('debug','',err,req);                                    
+                                    //console.log(err);
+                                    global.logger.write('debug',err,err,request);
                                 } else {
                                     newRequest.activity_id = activityId;
                                     var event = {
@@ -1274,11 +1289,11 @@ function AssetService(objectCollection) {
                                     };
                                     queueWrapper.raiseActivityEvent(event, activityId, (err, resp) => {
                                         if (err) {
-                                            console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                                            //global.logger.write('serverError','Error in queueWrapper raiseActivityEvent',resp,req);                                                
+                                            //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
+                                            global.logger.write('serverError','Error in queueWrapper raiseActivityEvent : ' + resp,resp,request);
                                         } else {
-                                            console.log("new activityId is : " + activityId);
-                                            //global.logger.write('debug',"new activityId is :" + activityId,{}, newRequest);
+                                            //console.log("new activityId is : " + activityId);
+                                            global.logger.write('debug',"new activityId is :" + activityId,{}, newRequest);
                                         }
                                     });
                                 }
@@ -1292,7 +1307,8 @@ function AssetService(objectCollection) {
                 newRequest.asset_id = request.operating_asset_id;
 
                 activityCommonService.getAssetDetails(newRequest, (err, data, statusCode) => {
-                    console.log('\x1b[36mOperating Asset Signup count:\x1b[0m ', data.asset_count_signup);
+                    //console.log('\x1b[36mOperating Asset Signup count:\x1b[0m ', data.asset_count_signup);
+                    global.logger.write('debug','\x1b[36mOperating Asset Signup count:\x1b[0m ' + data.asset_count_signup,{}, newRequest);
                     newRequest.asset_count_signup = data.asset_count_signup;
 
                     assetListUpdateSignupCnt(request, assetId).then(() => {});
@@ -1766,11 +1782,17 @@ function AssetService(objectCollection) {
                 var requestAssetStatusId = util.replaceDefaultNumber(request.asset_clocked_status_id);
                 var retrievedAssetStatusDateTime = util.replaceDefaultDatetime(x.data.asset_status_datetime);
 
-                console.log('requestAssetSessionStatusId : ' + requestAssetSessionStatusId);
-                console.log('retrievedAssetSessionStatusId : ' + retrievedAssetSessionStatusId);
+                //console.log('requestAssetSessionStatusId : ' + requestAssetSessionStatusId);
+                //console.log('retrievedAssetSessionStatusId : ' + retrievedAssetSessionStatusId);
 
-                console.log('requestAssetStatusId Clocked : ' + requestAssetStatusId);
-                console.log('retrievedAssetStatusId Clocked : ' + retrievedAssetStatusId);
+                //console.log('requestAssetStatusId Clocked : ' + requestAssetStatusId);
+                //console.log('retrievedAssetStatusId Clocked : ' + retrievedAssetStatusId);
+                
+                global.logger.write('debug', 'requestAssetSessionStatusId : ' + requestAssetSessionStatusId, {}, request);
+                global.logger.write('debug', 'retrievedAssetSessionStatusId : ' + retrievedAssetSessionStatusId, {}, request);
+                
+                global.logger.write('debug', 'requestAssetStatusId Clocked : ' + requestAssetStatusId, {}, request);
+                global.logger.write('debug', 'retrievedAssetStatusId Clocked : ' + retrievedAssetStatusId, {}, request);
 
                 request['first_name'] = x.data.asset_first_name;
                 request['last_name'] = x.data.asset_last_name;
@@ -1789,9 +1811,14 @@ function AssetService(objectCollection) {
                                 //update log
                                 var ms = util.differenceDatetimes(dateTimeLog, retrievedAssetSessionStatusDateTime);
                                 var sec = ms * 0.001;
-                                console.log('Seconds : ' + sec);
-                                console.log('requested DAteTime : ' + dateTimeLog);
-                                console.log('retrievedAssetSessionStatusDateTime : ' + retrievedAssetSessionStatusDateTime);
+                                //console.log('Seconds : ' + sec);
+                                //console.log('requested DAteTime : ' + dateTimeLog);
+                                //console.log('retrievedAssetSessionStatusDateTime : ' + retrievedAssetSessionStatusDateTime);
+                                
+                                global.logger.write('debug', 'Seconds : ' + sec, {}, request);
+                                global.logger.write('debug', 'requested DAteTime : ' + dateTimeLog, {}, request);
+                                global.logger.write('debug', 'retrievedAssetSessionStatusDateTime : ' + retrievedAssetSessionStatusDateTime, {}, request);
+                                
                                 request['seconds'] = Math.round(sec);
                                 global.logger.writeSession(request);
 
@@ -1803,9 +1830,14 @@ function AssetService(objectCollection) {
                         //Update the Log
                         var ms = util.differenceDatetimes(dateTimeLog, retrievedAssetSessionStatusDateTime);
                         var sec = ms * 0.001;
-                        console.log('Seconds : ' + sec);
-                        console.log('requested DAteTime : ' + dateTimeLog);
-                        console.log('retrievedAssetSessionStatusDateTime : ' + retrievedAssetSessionStatusDateTime);
+                        //console.log('Seconds : ' + sec);
+                        //console.log('requested DAteTime : ' + dateTimeLog);
+                        //console.log('retrievedAssetSessionStatusDateTime : ' + retrievedAssetSessionStatusDateTime);
+                        
+                        global.logger.write('debug', 'Seconds : ' + sec, {}, request);
+                        global.logger.write('debug', 'requested DAteTime : ' + dateTimeLog, {}, request);
+                        global.logger.write('debug', 'retrievedAssetSessionStatusDateTime : ' + retrievedAssetSessionStatusDateTime, {}, request);
+                        
                         request['seconds'] = Math.round(sec);
                         global.logger.writeSession(request);
 
@@ -2358,9 +2390,14 @@ function AssetService(objectCollection) {
                             A2 = resp[0].totalOrgHours; //Total Organization Hours
                             A3 = resp[0].totalAssetHours; //Total Employee Hours
 
-                            console.log('A1 :', A1);
-                            console.log('A2 :', A2);
-                            console.log('A3 :', A3);
+                            //console.log('A1 :', A1);
+                            //console.log('A2 :', A2);
+                            //console.log('A3 :', A3);
+                            
+                            global.logger.write('debug', 'A1 :' + A1, {}, request);
+                            global.logger.write('debug', 'A2 :' + A2, {}, request);
+                            global.logger.write('debug', 'A3 :' + A3, {}, request);
+                            
 
                             (A1 == 0 || A2 == 0) ? X = -1: X = ((A3 / (A2 / A1)) * 100);
 
@@ -2374,10 +2411,16 @@ function AssetService(objectCollection) {
                             E1 = resp[0].countAllVideo;
                             E2 = resp[0].countMissedVideo;
 
-                            console.log('D1 :', D1);
-                            console.log('D2 :', D2);
-                            console.log('E1 :', E1);
-                            console.log('E2 :', E2);
+                            //console.log('D1 :', D1);
+                            //console.log('D2 :', D2);
+                            //console.log('E1 :', E1);
+                            //console.log('E2 :', E2);
+                            
+                            global.logger.write('debug', 'D1 :' + D1, {}, request);
+                            global.logger.write('debug', 'D2 :' + D2, {}, request);
+                            global.logger.write('debug', 'E1 :' + E1, {}, request);
+                            global.logger.write('debug', 'E2 :' + E2, {}, request);
+                            
 
                             ((D1 + E1) == 0) ? Y = -1: Y = ((((D1 + E1) - (D2 + E2)) / (D1 + E1)) * 100);
 
@@ -2390,10 +2433,15 @@ function AssetService(objectCollection) {
                             G1 = resp[0].countCreatedProjects;
                             G3 = resp[0].countCompletedProjects;
 
-                            console.log('F1 :', F1);
-                            console.log('F3 :', F3);
-                            console.log('G1 :', G1);
-                            console.log('G3 :', G3);
+                            //console.log('F1 :', F1);
+                            //console.log('F3 :', F3);
+                            //console.log('G1 :', G1);
+                            //console.log('G3 :', G3);
+                            
+                            global.logger.write('debug', 'F1 :' + F1, {}, request);
+                            global.logger.write('debug', 'F3 :' + F3, {}, request);
+                            global.logger.write('debug', 'G1 :' + G1, {}, request);
+                            global.logger.write('debug', 'G3 :' + G3, {}, request);
 
                             ((F1 + G1) == 0) ? Z = -1: Z = (((F3 + G3) / (F1 + G1)) * 100);
 
@@ -2651,7 +2699,8 @@ function AssetService(objectCollection) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
-                    console.log('unread counts: ', data);
+                    //console.log('unread counts: ', data);
+                    global.logger.write('debug', 'unread counts: ' + data, {}, request);
                     forEachAsync(data, (next, row) => {
                         allAssetIds.push(row.asset_id);
                         row.unread_count = row.count; //Adding the unread_count parameter in the response                
@@ -2669,11 +2718,13 @@ function AssetService(objectCollection) {
                         if (queryString != '') {
                             db.executeQuery(1, queryString, request, function (err, selectData) {
                                 if (err === false) {
-                                    console.log(selectData.length);
+                                    //console.log(selectData.length);
+                                    global.logger.write('debug', selectData.length, {}, request);
                                     forEachAsync(selectData, (next, rowData) => {
                                         finalAssetIds.push(rowData.asset_id);
                                         if (allAssetIds.includes(rowData.asset_id)) {
-                                            console.log(rowData.asset_id + ' is there.');
+                                            //console.log(rowData.asset_id + ' is there.');
+                                            global.logger.write('debug', rowData.asset_id + ' is there.', {}, request);
                                             next();
                                         } else {
                                             formatActiveAccountsCountData(rowData, (err, formatedData) => {
@@ -2682,19 +2733,24 @@ function AssetService(objectCollection) {
                                             });
                                         }
                                     }).then(() => {
-                                        console.log('All Asset Ids : ', allAssetIds);
-                                        console.log('final Asset Ids : ', finalAssetIds);
+                                        //console.log('All Asset Ids : ', allAssetIds);
+                                        //console.log('final Asset Ids : ', finalAssetIds);
+                                        
+                                        global.logger.write('debug', 'All Asset Ids : ' + allAssetIds, {}, request);
+                                        global.logger.write('debug', 'final Asset Ids : ' + finalAssetIds, {}, request);
 
                                         forEachAsync(response, (next, rowData) => {
                                             if (finalAssetIds.includes(rowData.asset_id)) {
-                                                console.log(rowData.asset_id);
+                                                //console.log(rowData.asset_id);
+                                                global.logger.write('debug', rowData.asset_id, {}, request);
                                                 finalResponse.push(rowData);
                                             }
                                             next();
                                         }).then(() => {
 
                                             dayPlanCnt(request).then((dayPlanCnt) => {
-                                                console.log('DayPlanCnt : ', dayPlanCnt);
+                                                //console.log('DayPlanCnt : ', dayPlanCnt);
+                                                global.logger.write('debug', 'DayPlanCnt : ' + dayPlanCnt, {}, request);
 
                                                 forEachAsync(dayPlanCnt, (next, dayPlanrowData) => {
                                                     dayPlanAssetIds.push(dayPlanrowData.asset_id);
@@ -2719,7 +2775,8 @@ function AssetService(objectCollection) {
 
                                                 }).then(() => {
                                                     pastDueCnt(request).then((pastDueCnt) => {
-                                                        console.log('pastDueCnt : ', pastDueCnt);
+                                                        //console.log('pastDueCnt : ', pastDueCnt);
+                                                        global.logger.write('debug', 'pastDueCnt : ' + pastDueCnt, {}, request);
 
                                                         forEachAsync(pastDueCnt, (next, pastDuerowData) => {
                                                             pastDueAssetIds.push(pastDuerowData.asset_id);
@@ -2944,7 +3001,8 @@ function AssetService(objectCollection) {
                 asyncRetrieveAssetWeeklySummaryParams(request)
                 .then((data) => {
                     // Run through each of the summary entries returned
-                    console.log("data: ", data);
+                    //console.log("data: ", data);
+                    global.logger.write('debug', "data: " + data, {}, request);
                     let responseRateTotalCount = 0;
                     let responseRateOnTimeCount = 0;
 
@@ -3000,7 +3058,8 @@ function AssetService(objectCollection) {
 
                     let numOfResponseRateEntries = 0;
                     // Run through each of the summary entries returned
-                    console.log("data: ", data);
+                    //console.log("data: ", data);
+                    global.logger.write('debug', "data: " + data, {}, request);
                     data.forEach((summaryEntry) => {
                         // 
                         switch (Number(summaryEntry.monthly_summary_id)) {
