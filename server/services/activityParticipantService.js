@@ -15,22 +15,24 @@ function ActivityParticipantService(objectCollection) {
 
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
-        activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
+        activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) {});
         var paramsArr = new Array(
-                request.organization_id,
-                request.activity_id,
-                request.datetime_differential,
-                request.page_start,
-                util.replaceQueryLimit(request.page_limit)
-                );
+            request.organization_id,
+            request.activity_id,
+            request.datetime_differential,
+            request.page_start,
+            util.replaceQueryLimit(request.page_limit)
+        );
         var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_participants_differential', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
                     formatParticipantList(data, function (err, response) {
                         if (err === false)
-                            callback(false, {data: response}, 200);
-                    });                    
+                            callback(false, {
+                                data: response
+                            }, 200);
+                    });
                     return;
                 } else {
                     // some thing is wrong and have to be dealt
@@ -83,11 +85,11 @@ function ActivityParticipantService(objectCollection) {
             iterateAddParticipant(participantCollection, index, maxIndex, function (err, data) {
                 if (err === false) {
                     if (index === maxIndex) {
-                        updateParticipantCount(request.activity_id, request.organization_id, request, function (err, data) { });                        
+                        updateParticipantCount(request.activity_id, request.organization_id, request, function (err, data) {});
                     }
                 } else {
                     //console.log("something is not wright in adding a participant");
-                    global.logger.write('serverError','something is not wright in adding a participant', {},request)
+                    global.logger.write('serverError', 'something is not wright in adding a participant', {}, request)
                 }
             });
         };
@@ -101,9 +103,9 @@ function ActivityParticipantService(objectCollection) {
                     addParticipant(request, participantData, newRecordStatus, function (err, data) {
                         if (err === false) {
                             //console.log("participant successfully added");
-                            global.logger.write('debug','participant successfully added', {},request)
+                            global.logger.write('debug', 'participant successfully added', {}, request)
                             //check participant is active in last 48 hrs or not
-                            if(activityTypeCategroyId === 28 || activityTypeCategroyId === 8){
+                            if (activityTypeCategroyId === 28 || activityTypeCategroyId === 8) {
                                 activityPushService.sendSMSNotification(request, objectCollection, participantData.asset_id, function () {});
                             }
                             var nextIndex = index + 1;
@@ -113,14 +115,14 @@ function ActivityParticipantService(objectCollection) {
                             callback(false, true);
                         } else {
                             //console.log(err);
-                            global.logger.write('serverError','' + err, {},request)
+                            global.logger.write('serverError', '' + err, {}, request)
                             callback(true, false);
                         }
                     }.bind(this));
                 } else {
                     if (alreadyAssignedStatus > 0) {
                         //console.log("participant already assigned");
-                        global.logger.write('debug','participant already assigned', {}, request)
+                        global.logger.write('debug', 'participant already assigned', {}, request)
                         var nextIndex = index + 1;
                         if (nextIndex <= maxIndex) {
                             loopAddParticipant(participantCollection, nextIndex, maxIndex);
@@ -153,105 +155,104 @@ function ActivityParticipantService(objectCollection) {
                     activityStreamTypeId = 1106;
                     break;
                     //Added by Nani Kalyan
-                case 8:    //Mail
+                case 8: //Mail
                     activityStreamTypeId = 1703;
                     break;
                     //////////////////////////////
                 case 9: //form
                     activityStreamTypeId = 702;
                     break;
-                case 10:    //document
+                case 10: //document
                     activityStreamTypeId = 306;
                     break;
-                case 11:    //folder
+                case 11: //folder
                     activityStreamTypeId = 1403;
                     break;
-                case 14:    //voice call
+                case 14: //voice call
                     activityStreamTypeId = 803; //Added by Nani kalyan
                     break;
-                case 15:    //video conference
+                case 15: //video conference
                     activityStreamTypeId = 1603; //Added by Nani kalyan
                     break;
-                case 28:    // post-it
+                case 28: // post-it
                     activityStreamTypeId = 902;
                     break;
-                case 29:    // External Contact Card - Supplier
+                case 29: // External Contact Card - Supplier
                     activityStreamTypeId = 1206;
                     break;
-                case 30:    //contact group
+                case 30: //contact group
                     activityStreamTypeId = 1301;
                     break;
                     //Added by Nani Kalyan
-                case 31:    //Calendar Event
+                case 31: //Calendar Event
                     activityStreamTypeId = 504;
                     break;
                     //Added by Nani Kalyan
-                case 32:    //Customer Request
+                case 32: //Customer Request
                     activityStreamTypeId = 603;
                     break;
                     //Added by Nani Kalyan
-                case 33:    //Visitor Request
+                case 33: //Visitor Request
                     activityStreamTypeId = 1303;
                     break;
                     //Added by Nani Kalyan
-                case 34:    //Time Card
+                case 34: //Time Card
                     activityStreamTypeId = 1503;
                     break;
                     //////////////////////////////////
-                //PAM
-                case 36:    //Menu Item
+                    //PAM
+                case 36: //Menu Item
                     activityStreamTypeId = 19002;
                     break;
-                case 37:    //Reservation
+                case 37: //Reservation
                     activityStreamTypeId = 18002;
                     break;
-                case 38:    //Item Order
+                case 38: //Item Order
                     activityStreamTypeId = 21002;
                     break;
-                case 39:    //Inventory
+                case 39: //Inventory
                     activityStreamTypeId = 20002;
                     break;
-                case 40:    //Payment
+                case 40: //Payment
                     activityStreamTypeId = 22005;
                     break;
-                case 41:    //Event
+                case 41: //Event
                     activityStreamTypeId = 17002;
                     break;
                 default:
-                    activityStreamTypeId = 2;   //by default so that we know
+                    activityStreamTypeId = 2; //by default so that we know
                     //console.log('adding streamtype id 2');
-                    global.logger.write('debug','adding streamtype id 2', {},request)
+                    global.logger.write('debug', 'adding streamtype id 2', {}, request)
                     break;
 
-            }
-            ;
+            };
         }
 
         var logDatetime = util.getCurrentUTCTime();
         var sendSMSNotification = 0;
         request['datetime_log'] = logDatetime;
         request['activity_streamtype_id'] = activityStreamTypeId;
-        activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
+        activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) {});
         var index = 0;
         var activityParticipantCollection = JSON.parse(request.activity_participant_collection);
         var maxIndex = activityParticipantCollection.length - 1;
         //var maxIndex = request.activity_participant_collection.length - 1;                
-        iterateAddParticipant(activityParticipantCollection, index, maxIndex, function (err, data) {            
-            if(activityTypeCategroyId == 37) {                    
-                    var newRequest = Object.assign({}, request);
-                    activityCommonService.sendSmsCodeParticipant(newRequest, function(err, data){});
-                }
-                
+        iterateAddParticipant(activityParticipantCollection, index, maxIndex, function (err, data) {
+            if (activityTypeCategroyId == 37) {
+                var newRequest = Object.assign({}, request);
+                activityCommonService.sendSmsCodeParticipant(newRequest, function (err, data) {});
+            }
+
             if (err === false && data === true) {
                 //callback(false, {}, 200);
                 callback(false, true);
                 if (maxIndex === index) {
-                    updateParticipantCount(request.activity_id, request.organization_id, request, function (err, data) { });
-                    activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });                    
-                }                
+                    updateParticipantCount(request.activity_id, request.organization_id, request, function (err, data) {});
+                    activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) {});
+                }
             } else {
                 //console.log("something is not wright in adding a participant");
-                global.logger.write('serverError','something is not wright in adding a participant', {},request)
+                global.logger.write('serverError', 'something is not wright in adding a participant', {}, request)
             }
         });
     };
@@ -263,12 +264,12 @@ function ActivityParticipantService(objectCollection) {
             iterateUnassignParticipant(participantCollection, index, maxIndex, function (err, data) {
                 if (err === false) {
                     if (index === maxIndex) {
-                        updateParticipantCount(request.activity_id, request.organization_id, request, function (err, data) { });
-                        activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
+                        updateParticipantCount(request.activity_id, request.organization_id, request, function (err, data) {});
+                        activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) {});
                     }
                 } else {
                     //console.log("something is not wright in unassign a participant");
-                    global.logger.write('serverError','something is not wright in unassign a participant', {},request)
+                    global.logger.write('serverError', 'something is not wright in unassign a participant', {}, request)
                 }
             });
         };
@@ -278,7 +279,7 @@ function ActivityParticipantService(objectCollection) {
             unassignAssetFromActivity(request, participantData, function (err, data) {
                 if (err === false) {
                     //console.log("participant successfully un-assigned");
-                    global.logger.write('debug','participant successfully un-assigned', {},request)
+                    global.logger.write('debug', 'participant successfully un-assigned', {}, request)
                     var nextIndex = index + 1;
                     if (nextIndex <= maxIndex) {
                         loopUnassignParticipant(participantCollection, nextIndex, maxIndex);
@@ -286,7 +287,7 @@ function ActivityParticipantService(objectCollection) {
                     callback(false, true);
                 } else {
                     //console.log(err);
-                    global.logger.write('serverError','',err, request)
+                    global.logger.write('serverError', '', err, request)
                     callback(true, false);
                 }
             }.bind(this));
@@ -311,59 +312,58 @@ function ActivityParticipantService(objectCollection) {
                     activityStreamTypeId = 1109;
                     break;
                     //Added by Nani Kalyan
-                case 8:    //Mail
+                case 8: //Mail
                     activityStreamTypeId = 1704;
                     break;
                     ////////////////////////////////
                 case 9: //form
                     activityStreamTypeId = 707;
                     break;
-                case 10:    //document
+                case 10: //document
                     activityStreamTypeId = 308;
                     break;
-                case 11:    //folder
+                case 11: //folder
                     activityStreamTypeId = 1405;
                     break;
-                case 14:    //voice call
+                case 14: //voice call
                     activityStreamTypeId = 805; //Added by Nani Kalyan
                     break;
-                case 15:    //video conference
+                case 15: //video conference
                     activityStreamTypeId = 1605; //Added by Nani Kalyan
                     break;
-                case 28:    // post-it
+                case 28: // post-it
                     activityStreamTypeId = 906;
                     break;
-                case 29:    // External Contact Card - Supplier
+                case 29: // External Contact Card - Supplier
                     activityStreamTypeId = 1209;
                     break;
-                case 30:    //contact group
+                case 30: //contact group
                     activityStreamTypeId = 1301;
                     break;
                     //Added by Nani Kalyan
-                case 31:    //Calendar Event
+                case 31: //Calendar Event
                     activityStreamTypeId = 506;
                     break;
                     //Added by Nani Kalyan
-                case 32:    //Customer Request
+                case 32: //Customer Request
                     activityStreamTypeId = 605;
                     break;
                     //Added by Nani Kalyan
-                case 33:    //Visitor Request
+                case 33: //Visitor Request
                     activityStreamTypeId = 1305;
                     break;
                     //Added by Nani Kalyan
-                case 34:    //Time Card
+                case 34: //Time Card
                     activityStreamTypeId = 1505;
                     break;
                     ////////////////////////////////////////
                 default:
-                    activityStreamTypeId = 3;   //by default so that we know
+                    activityStreamTypeId = 3; //by default so that we know
                     //console.log('adding streamtype id 3');
-                    global.logger.write('debug','adding streamtype id 3', {},request)
+                    global.logger.write('debug', 'adding streamtype id 3', {}, request)
                     break;
 
-            }
-            ;
+            };
         }
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
@@ -376,12 +376,12 @@ function ActivityParticipantService(objectCollection) {
             if (err === false && data === true) {
                 //callback(false, {}, 200);
                 if (maxIndex === index) {
-                    updateParticipantCount(request.activity_id, request.organization_id, request, function (err, data) { });
-                    activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
+                    updateParticipantCount(request.activity_id, request.organization_id, request, function (err, data) {});
+                    activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) {});
                 }
             } else {
                 //console.log("something is not wright in adding a participant");
-                global.logger.write('serverError','something is not wright in adding a participant', {},request)
+                global.logger.write('serverError', 'something is not wright in adding a participant', {}, request)
             }
         });
     };
@@ -393,12 +393,12 @@ function ActivityParticipantService(objectCollection) {
                 if (err === false) {
                     if (index === maxIndex) {
                         activityCommonService.updateActivityLogDiffDatetime(request, 0, function (err, data) {
-                            activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
+                            activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) {});
                         });
                     }
                 } else {
                     //console.log("something is not wright in unassign a participant");
-                    global.logger.write('serverError','something is not wright in unassign a participant', {},request)
+                    global.logger.write('serverError', 'something is not wright in unassign a participant', {}, request)
                 }
             });
         };
@@ -408,7 +408,7 @@ function ActivityParticipantService(objectCollection) {
             updateAssetParticipantAccess(request, participantData, function (err, data) {
                 if (err === false) {
                     //console.log("participant successfully updated");
-                    global.logger.write('debug','participant successfully updated', {},request)
+                    global.logger.write('debug', 'participant successfully updated', {}, request)
                     var nextIndex = index + 1;
                     if (nextIndex <= maxIndex) {
                         loopUpdateParticipantAccess(participantCollection, nextIndex, maxIndex);
@@ -416,7 +416,7 @@ function ActivityParticipantService(objectCollection) {
                     callback(false, true);
                 } else {
                     //console.log(err);
-                    global.logger.write('serverError','',err, request)
+                    global.logger.write('serverError', '', err, request)
                     callback(true, false);
                 }
             }.bind(this));
@@ -427,15 +427,15 @@ function ActivityParticipantService(objectCollection) {
             var activityTypeCategroyId = Number(request.activity_type_category_id);
             switch (activityTypeCategroyId) {
                 case 2: // notepad 
-                    activityStreamTypeId = 4;//adding a default value
+                    activityStreamTypeId = 4; //adding a default value
                     break;
                 case 3: //plant
                     break;
                 case 4: //employee id card
-                    activityStreamTypeId = 4;    // adding a default value                    
+                    activityStreamTypeId = 4; // adding a default value                    
                     break;
                 case 5: //Co-worker Contact Card
-                    activityStreamTypeId = 4;   // adding a default value
+                    activityStreamTypeId = 4; // adding a default value
                     break;
                 case 6: //  External Contact Card - Customer
                     activityStreamTypeId = 4; // adding a default value
@@ -443,53 +443,52 @@ function ActivityParticipantService(objectCollection) {
                 case 9: //form
                     activityStreamTypeId = 703;
                     break;
-                case 10:    //document
+                case 10: //document
                     activityStreamTypeId = 307;
                     break;
-                case 11:    //folder
+                case 11: //folder
                     activityStreamTypeId = 1404;
                     break;
-                case 14:    //voice call
+                case 14: //voice call
                     activityStreamTypeId = 804; //Added by Nani Kalyan
                     break;
-                case 15:    //video conference
+                case 15: //video conference
                     activityStreamTypeId = 1604; //Added by Nani Kalyan
                     break;
-                case 28:    // post-it
+                case 28: // post-it
                     //activityStreamTypeId = 4;   // adding a default value
                     activityStreamTypeId = 905; //Added by Nani Kalyan
                     break;
-                case 29:    // External Contact Card - Supplier
-                    activityStreamTypeId = 4;   // adding a default value
+                case 29: // External Contact Card - Supplier
+                    activityStreamTypeId = 4; // adding a default value
                     break;
-                case 30:    //contact group
-                    activityStreamTypeId = 4;   // adding a default value
+                case 30: //contact group
+                    activityStreamTypeId = 4; // adding a default value
                     break;
                     //Added by Nani Kalyan
-                case 31:    //Calendar Event
+                case 31: //Calendar Event
                     activityStreamTypeId = 505;
                     break;
                     //Added by Nani Kalyan
-                case 32:    //Customer Request
+                case 32: //Customer Request
                     activityStreamTypeId = 604;
                     break;
                     //Added by Nani Kalyan
-                case 33:    //Visitor Request
+                case 33: //Visitor Request
                     activityStreamTypeId = 1304;
                     break;
                     //Added by Nani Kalyan
-                case 34:    //Visitor Request
+                case 34: //Visitor Request
                     activityStreamTypeId = 1504;
                     break;
                     /////////////////////////////////
                 default:
-                    activityStreamTypeId = 4;   //by default so that we know
+                    activityStreamTypeId = 4; //by default so that we know
                     //console.log('adding streamtype id 4');
-                    global.logger.write('debug','adding streamtype id 4', {},request)
+                    global.logger.write('debug', 'adding streamtype id 4', {}, request)
                     break;
 
-            }
-            ;
+            };
         }
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
@@ -504,16 +503,16 @@ function ActivityParticipantService(objectCollection) {
                 //callback(false, {}, 200);
                 if (maxIndex === index) {
                     activityCommonService.updateActivityLogDiffDatetime(request, 0, function (err, data) {
-                        activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
-                    });                    
+                        activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) {});
+                    });
                 }
             } else {
                 //console.log("something is not wright in adding a participant");
-                global.logger.write('serverError','something is not wright in adding a participant', {},request)
+                global.logger.write('serverError', 'something is not wright in adding a participant', {}, request)
             }
         });
     };
-    
+
     var addParticipant = function (request, participantData, newRecordStatus, callback) {
         var fieldId = 0;
         if (participantData.hasOwnProperty('field_id')) {
@@ -539,12 +538,12 @@ function ActivityParticipantService(objectCollection) {
                         }
 
                     }
-                    
+
                     //PAM
-                    if(activityTypeCategoryId == 39 || activityTypeCategoryId == 38) {
-                        assignUnassignParticipantPam(request, participantData,1,function(err, resp){}); //1 for assign
+                    if (activityTypeCategoryId == 39 || activityTypeCategoryId == 38) {
+                        assignUnassignParticipantPam(request, participantData, 1, function (err, resp) {}); //1 for assign
                     }
-                    
+
                     activityCommonService.assetActivityListHistoryInsert(request, participantData.asset_id, 0, function (err, restult) {
 
                     });
@@ -556,7 +555,7 @@ function ActivityParticipantService(objectCollection) {
 
         } else {
             //console.log('re-assigining to the archived row');
-            global.logger.write('debug','re-assigining to the archived row', {},request)
+            global.logger.write('debug', 're-assigining to the archived row', {}, request)
             activityAssetMappingUpdateParticipantReAssign(request, participantData, function (err, data) {
                 if (err === false) {
                     activityPushService.sendPush(request, objectCollection, participantData.asset_id, function () {});
@@ -571,15 +570,15 @@ function ActivityParticipantService(objectCollection) {
                                 });
                             } else {
                                 //console.log('either documnent or a file');
-                                global.logger.write('debug','either documnent or a file', {},request)
+                                global.logger.write('debug', 'either documnent or a file', {}, request)
                             }
                         }
-                        
+
                         //PAM
-                    if(activityTypeCategoryId == 39 || activityTypeCategoryId == 38) {
-                        assignUnassignParticipantPam(request, participantData, 1, function(err, resp){}); //1 for assign
-                    }
-                    
+                        if (activityTypeCategoryId == 39 || activityTypeCategoryId == 38) {
+                            assignUnassignParticipantPam(request, participantData, 1, function (err, resp) {}); //1 for assign
+                        }
+
                     });
                     callback(false, true);
                 } else {
@@ -588,159 +587,156 @@ function ActivityParticipantService(objectCollection) {
             });
         }
     };
-    
-    var assignUnassignParticipantPam = function(request, participantData, status, callback) {
-        updateActivityListOwnerLeadPam(request, participantData, status, function(err, data){
-                            if(err === false) { //You will get it from participant collection
-                                if(participantData.asset_category_id == 32 || 
-                                        participantData.asset_category_id == 33 || 
-                                            participantData.asset_category_id == 34 ||
-                                                participantData.asset_category_id == 35
-                                        ) {
-                                            activityCommonService.activityListHistoryInsert(request,409, function(){});
-                                        }
-                                else if(participantData.asset_category_id == 41) {
-                                    activityCommonService.activityListHistoryInsert(request,410, function(){});
-                                }
-                            }
-                                
-                        })
-                        
-                        activityCommonService.getAllParticipants(request, function(err, participantsData){
-                            if(err === false) {
-                                    if(participantsData.length > 0){
-                                            if(status === 0) {
-                                                participantData.asset_id = 0;
-                                               }
-                                            participantsData.forEach(function (rowData, index) {
-                                                    
-                                                    paramsArr = new Array(
-                                                            request.activity_id,
-                                                            rowData['asset_id'], 
-                                                            participantData.asset_id, //have to take from participant collection
-                                                            request.organization_id,
-                                                            request.activity_type_category_id,
-                                                            participantData.asset_category_id, // have to take from participant collection
-                                                            0, //request.flag
-                                                            request.asset_id,
-                                                            request.datetime_log
-                                                            );
-                                                    queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_owner_lead_pam', paramsArr);
-                                                    db.executeQuery(0, queryString, request, function (error, queryResponse) { });
-                                                }, this);
-                                            callback(false, true);
-                                }
-                            }
-                            
-                        });
+
+    var assignUnassignParticipantPam = function (request, participantData, status, callback) {
+        updateActivityListOwnerLeadPam(request, participantData, status, function (err, data) {
+            if (err === false) { //You will get it from participant collection
+                if (participantData.asset_category_id == 32 ||
+                    participantData.asset_category_id == 33 ||
+                    participantData.asset_category_id == 34 ||
+                    participantData.asset_category_id == 35
+                ) {
+                    activityCommonService.activityListHistoryInsert(request, 409, function () {});
+                } else if (participantData.asset_category_id == 41) {
+                    activityCommonService.activityListHistoryInsert(request, 410, function () {});
+                }
+            }
+
+        })
+
+        activityCommonService.getAllParticipants(request, function (err, participantsData) {
+            if (err === false) {
+                if (participantsData.length > 0) {
+                    if (status === 0) {
+                        participantData.asset_id = 0;
+                    }
+                    participantsData.forEach(function (rowData, index) {
+
+                        paramsArr = new Array(
+                            request.activity_id,
+                            rowData['asset_id'],
+                            participantData.asset_id, //have to take from participant collection
+                            request.organization_id,
+                            request.activity_type_category_id,
+                            participantData.asset_category_id, // have to take from participant collection
+                            0, //request.flag
+                            request.asset_id,
+                            request.datetime_log
+                        );
+                        queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_owner_lead_pam', paramsArr);
+                        db.executeQuery(0, queryString, request, function (error, queryResponse) {});
+                    }, this);
+                    callback(false, true);
+                }
+            }
+
+        });
     };
-    
-    var updateActivityListOwnerLeadPam = function(request, participantCollection, status, callback) {
+
+    var updateActivityListOwnerLeadPam = function (request, participantCollection, status, callback) {
         var flag = (status === 1) ? 1 : 0;
         var paramsArr = new Array(
-                request.activity_id,
-                participantCollection.asset_id,
-                request.organization_id,
-                request.activity_type_category_id,
-                participantCollection.asset_category_id,
-                flag, //unassign = 0 and assign 1
-                request.asset_id,
-                request.datetime_log
-                );
+            request.activity_id,
+            participantCollection.asset_id,
+            request.organization_id,
+            request.activity_type_category_id,
+            participantCollection.asset_category_id,
+            flag, //unassign = 0 and assign 1
+            request.asset_id,
+            request.datetime_log
+        );
         var queryString = util.getQueryString("ds_v1_activity_list_update_owner_lead_pam", paramsArr);
         if (queryString != '') {
 
             db.executeQuery(0, queryString, request, function (err, data) {
-                if (err === false)
-                {
+                if (err === false) {
                     callback(false, true);
                     return;
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError','',err, request)
+                    global.logger.write('serverError', '', err, request)
                     return;
                 }
             });
         }
     }
-    
+
     //BETA
-    this.updateParticipantTimestamp = function(request, callback) {
+    this.updateParticipantTimestamp = function (request, callback) {
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
-        
+
         //Update the collaborator joining timestamp
-        updateTimeStamp(request, function(err, data){
-            if(err === false) {
-            //Insert update collaborator joining timestamp log in history
-            activityCommonService.assetActivityListHistoryInsert(request, request.target_asset_id, 504, function (err, restult) {});
-            
-            //Update the asset_datetime_last_seen of the current collaborator
-            activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
-            
-            //Add timeline entry in asset timeline
-            activityCommonService.assetTimelineTransactionInsert(request, {}, 1609, function (err, data) { });
+        updateTimeStamp(request, function (err, data) {
+            if (err === false) {
+                //Insert update collaborator joining timestamp log in history
+                activityCommonService.assetActivityListHistoryInsert(request, request.target_asset_id, 504, function (err, restult) {});
+
+                //Update the asset_datetime_last_seen of the current collaborator
+                activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) {});
+
+                //Add timeline entry in asset timeline
+                activityCommonService.assetTimelineTransactionInsert(request, {}, 1609, function (err, data) {});
             }
-            
+
         });
     };
-    
+
     //BETA
     var updateTimeStamp = function (request, callback) {
-            var paramsArr = new Array(
-                request.activity_id,
-                request.target_asset_id,
-                request.organization_id,
-                request.joining_datetime,
-                request.asset_id,
-                request.datetime_log
-                );
+        var paramsArr = new Array(
+            request.activity_id,
+            request.target_asset_id,
+            request.organization_id,
+            request.joining_datetime,
+            request.asset_id,
+            request.datetime_log
+        );
         var queryString = util.getQueryString("ds_v1_activity_asset_mapping_update_joining_datetime", paramsArr);
         if (queryString !== '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
                     callback(false, true);
                 } else {
-                    global.logger.write('serverError','' + err, request);
-                    callback(true, err);                
+                    global.logger.write('serverError', '' + err, request);
+                    callback(true, err);
                 }
             });
         }
-    };   
+    };
 
     var activityAssetMappingInsertParticipantAssign = function (request, participantData, callback) {
         var fieldId = 0;
         var quantityUnitType = (request.hasOwnProperty('quantity_unit_type')) ? request.quantity_unit_type : '';
         var quantityUnitValue = (request.hasOwnProperty('quantity_unit_value')) ? request.quantity_unit_value : -1;
-        
+
         if (participantData.hasOwnProperty('field_id')) {
             fieldId = participantData.field_id;
         }
         var paramsArr = new Array(
-                request.activity_id,
-                participantData.asset_id,
-                participantData.workforce_id,
-                participantData.account_id,
-                participantData.organization_id,
-                participantData.access_role_id,
-                participantData.message_unique_id,
-                request.flag_retry,
-                request.flag_offline,
-                request.asset_id,
-                request.datetime_log,
-                fieldId,
-                quantityUnitType,
-                quantityUnitValue
-                );
+            request.activity_id,
+            participantData.asset_id,
+            participantData.workforce_id,
+            participantData.account_id,
+            participantData.organization_id,
+            participantData.access_role_id,
+            participantData.message_unique_id,
+            request.flag_retry,
+            request.flag_offline,
+            request.asset_id,
+            request.datetime_log,
+            fieldId,
+            quantityUnitType,
+            quantityUnitValue
+        );
         var queryString = util.getQueryString("ds_v1_activity_asset_mapping_insert_asset_assign_appr_ingre", paramsArr);
         //var queryString = util.getQueryString("ds_v1_activity_asset_mapping_insert_asset_assign_appr", paramsArr);
 
         if (queryString !== '') {
 
             db.executeQuery(0, queryString, request, function (err, data) {
-                if (err === false)
-                {
+                if (err === false) {
                     //PAM
                     /*if(request.activity_type_category_id == 37 && participantData.asset_category_id == 30) {
                         console.log('data[0].dateTimeEndEstimatedActivity : ' + data[0].dateTimeEndEstimatedActivity);
@@ -755,13 +751,13 @@ function ActivityParticipantService(objectCollection) {
                         smsText+= " . Note that this reservation code is only valid till "+ expDatetime + " .";
                         console.log('SMS text : \n', smsText);
                         util.pamSendSmsMvaayoo(smsText, data[0].countryCode, data[0].phoneNumber, function(err,res){});
-                    }*/                  
+                    }*/
                     callback(false, true);
                     return;
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError','' + err, request)
+                    global.logger.write('serverError', '' + err, request)
                     return;
                 }
             });
@@ -774,26 +770,25 @@ function ActivityParticipantService(objectCollection) {
             fieldId = participantData.field_id;
         }
         var paramsArr = new Array(
-                request.activity_id,
-                participantData.asset_id,
-                participantData.organization_id,
-                fieldId,
-                request.asset_id,
-                request.datetime_log
-                );
+            request.activity_id,
+            participantData.asset_id,
+            participantData.organization_id,
+            fieldId,
+            request.asset_id,
+            request.datetime_log
+        );
         var queryString = util.getQueryString("ds_v1_activity_asset_mapping_update_reassign_participant_appr", paramsArr);
 
         if (queryString !== '') {
 
             db.executeQuery(0, queryString, request, function (err, data) {
-                if (err === false)
-                {
+                if (err === false) {
                     callback(false, true);
                     return;
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError','' + err, request)
+                    global.logger.write('serverError', '' + err, request)
                     return;
                 }
             });
@@ -804,26 +799,25 @@ function ActivityParticipantService(objectCollection) {
         //IN p_activity_id BIGINT(20), IN p_asset_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
 
         var paramsArr = new Array(
-                request.activity_id,
-                participantData.asset_id,
-                request.organization_id,
-                request.asset_id,
-                request.datetime_log
-                        
-                );
+            request.activity_id,
+            participantData.asset_id,
+            request.organization_id,
+            request.asset_id,
+            request.datetime_log
+
+        );
         var queryString = util.getQueryString("ds_v1_activity_asset_mapping_update_asset_unassign", paramsArr);
 
         if (queryString != '') {
 
             db.executeQuery(0, queryString, request, function (err, data) {
-                if (err === false)
-                {
+                if (err === false) {
                     callback(false, true);
                     return;
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError','' + err, request)
+                    global.logger.write('serverError', '' + err, request)
                     return;
                 }
             });
@@ -832,27 +826,25 @@ function ActivityParticipantService(objectCollection) {
 
     var updateParticipantCount = function (activityId, organizationId, request, callback) {
         var paramsArr = new Array(
-                activityId,
-                organizationId
-                );
+            activityId,
+            organizationId
+        );
         var queryString = util.getQueryString("ds_v1_activity_asset_mapping_select_participant_count", paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
-                if (err === false)
-                {
+                if (err === false) {
                     var participantCount = data[0].participant_count;
                     //console.log('participant count retrieved from query is: ' + participantCount);
-                    global.logger.write('debug','participant count retrieved from query is: ' + participantCount, request)
+                    global.logger.write('debug', 'participant count retrieved from query is: ' + participantCount, request)
                     paramsArr = new Array(
-                            activityId,
-                            organizationId,
-                            participantCount
-                            );
+                        activityId,
+                        organizationId,
+                        participantCount
+                    );
                     queryString = util.getQueryString("ds_v1_1_activity_list_update_participant_count", paramsArr);
                     if (queryString != '') {
                         db.executeQuery(0, queryString, request, function (err, data) {
-                            if (err === false)
-                            {
+                            if (err === false) {
                                 activityCommonService.getAllParticipants(request, function (err, participantsData) {
 
                                     if (err === false && participantsData.length > 0) {
@@ -860,12 +852,12 @@ function ActivityParticipantService(objectCollection) {
                                         participantsData.forEach(function (rowData, index) {
 
                                             paramsArr = new Array(
-                                                    activityId,
-                                                    rowData.asset_id,
-                                                    request.organization_id,
-                                                    participantCount,
-                                                    request.datetime_log
-                                                    );
+                                                activityId,
+                                                rowData.asset_id,
+                                                request.organization_id,
+                                                participantCount,
+                                                request.datetime_log
+                                            );
                                             queryString = util.getQueryString('ds_v1_1_activity_asset_mapping_update_participant_count', paramsArr);
 
                                             if (queryString != '') {
@@ -891,7 +883,7 @@ function ActivityParticipantService(objectCollection) {
                             } else {
                                 callback(err, false);
                                 //console.log(err);
-                                global.logger.write('serverError','' + err, request)
+                                global.logger.write('serverError', '' + err, request)
                                 return;
                             }
                         });
@@ -899,7 +891,7 @@ function ActivityParticipantService(objectCollection) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError','' + err, request)
+                    global.logger.write('serverError', '' + err, request)
                     return;
                 }
             });
@@ -907,7 +899,7 @@ function ActivityParticipantService(objectCollection) {
     };
 
     var unassignAssetFromActivity = function (request, participantData, callback) {
-        var fieldId = 0;        
+        var fieldId = 0;
         if (participantData.hasOwnProperty('field_id')) {
             fieldId = participantData.field_id;
         }
@@ -932,9 +924,9 @@ function ActivityParticipantService(objectCollection) {
                             }
                         }
                         //PAM
-                    if(activityTypeCategoryId == 39 || activityTypeCategoryId == 38) {
-                        assignUnassignParticipantPam(request, participantData,0,function(err, resp){}); //1 for unassign
-                    }
+                        if (activityTypeCategoryId == 39 || activityTypeCategoryId == 38) {
+                            assignUnassignParticipantPam(request, participantData, 0, function (err, resp) {}); //1 for unassign
+                        }
                     }
                 });
 
@@ -983,48 +975,47 @@ function ActivityParticipantService(objectCollection) {
         //IN p_activity_id BIGINT(20), IN p_asset_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
 
         var paramsArr = new Array(
-                request.activity_id,
-                participantData.asset_id,
-                participantData.organization_id,
-                participantData.access_role_id,
-                request.asset_id,
-                request.datetime_log
-                );
+            request.activity_id,
+            participantData.asset_id,
+            participantData.organization_id,
+            participantData.access_role_id,
+            request.asset_id,
+            request.datetime_log
+        );
 
         var queryString = util.getQueryString("ds_v1_activity_asset_mapping_update_asset_aceess", paramsArr);
 
         if (queryString != '') {
 
             db.executeQuery(0, queryString, request, function (err, data) {
-                if (err === false)
-                {
+                if (err === false) {
                     callback(false, true);
                     return;
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError','',err, request)
+                    global.logger.write('serverError', '', err, request)
                     return;
                 }
             });
         }
     };
 
-    this.addInviteeAsParticipantToIdCard = function(request, callback) {
+    this.addInviteeAsParticipantToIdCard = function (request, callback) {
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
-        
+
         var activityParticipantCollection = JSON.parse(request.activity_participant_collection);
-        
-        activityAssetMappingInsertParticipantAssign(request, activityParticipantCollection[0], function(err, data) {
-            if(err === false) {                
+
+        activityAssetMappingInsertParticipantAssign(request, activityParticipantCollection[0], function (err, data) {
+            if (err === false) {
                 callback(false, {}, 200);
             } else {
                 callback(true, {}, -9999);
             }
         });
-    };    
+    };
 
-}
-;
+};
+
 module.exports = ActivityParticipantService;

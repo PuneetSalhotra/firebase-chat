@@ -19,8 +19,8 @@ function ActivityListingController(objCollection) {
                 // got positive response    
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                console.log('did not get proper response');
-                global.logger.write('response','did not get proper response',err,req.body);
+                // console.log('did not get proper response');
+                global.logger.write('response', 'Did not get a proper response', err, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -34,8 +34,8 @@ function ActivityListingController(objCollection) {
                 // got positive response    
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                console.log('did not get proper response');
-                global.logger.write('response','did not get proper response',err,req.body);
+                // console.log('did not get proper response');
+                global.logger.write('response', 'Did not get a proper response', err, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -48,8 +48,8 @@ function ActivityListingController(objCollection) {
                 // got positive response    
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                console.log('did not get proper response');
-                global.logger.write('response','did not get proper response',err,req.body);
+                // console.log('did not get proper response');
+                global.logger.write('response', 'Did not get a proper response', err, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -62,8 +62,8 @@ function ActivityListingController(objCollection) {
                 // got positive response    
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                console.log('did not get proper response');
-                global.logger.write('response','did not get proper response',err,req.body);
+                // console.log('did not get proper response');
+                global.logger.write('response', 'Did not get a proper response', err, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -76,8 +76,8 @@ function ActivityListingController(objCollection) {
                 // got positive response    
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                console.log('did not get proper response');
-                global.logger.write('response','did not get proper response',err,req.body);
+                // console.log('did not get proper response');
+                global.logger.write('response', 'Did not get a proper response', err, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -91,8 +91,8 @@ function ActivityListingController(objCollection) {
                 // got positive response    
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                console.log('did not get proper response');
-                global.logger.write('response','did not get proper response',err,req.body);
+                // console.log('did not get proper response');
+                global.logger.write('response', 'Did not get a proper response', err, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -120,8 +120,8 @@ function ActivityListingController(objCollection) {
                 // got positive response    
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                console.log('did not get proper response');
-                global.logger.write('response','did not get proper response',err,req.body);
+                // console.log('did not get proper response');
+                global.logger.write('response', 'Did not get a proper response', err, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -135,8 +135,8 @@ function ActivityListingController(objCollection) {
                 // got positive response    
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                console.log('did not get proper response');
-                global.logger.write('response','did not get proper response',err,req.body);
+                // console.log('did not get proper response');
+                global.logger.write('response', 'Did not get a proper response', err, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -149,8 +149,8 @@ function ActivityListingController(objCollection) {
                 // got positive response    
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                console.log('did not get proper response');
-                global.logger.write('response','did not get proper response',err,req.body);
+                // console.log('did not get proper response');
+                global.logger.write('response', 'Did not get a proper response', err, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -163,8 +163,8 @@ function ActivityListingController(objCollection) {
                 // got positive response    
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                console.log('did not get proper response');
-                global.logger.write('response','did not get proper response',err,req.body);
+                // console.log('did not get proper response');
+                global.logger.write('response', 'Did not get a proper response', err, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -177,8 +177,8 @@ function ActivityListingController(objCollection) {
                 // got positive response  
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                console.log('did not get proper response');
-                global.logger.write('response','did not get proper response',err,req.body);
+                // console.log('did not get proper response');
+                global.logger.write('response', 'Did not get a proper response', err, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -191,8 +191,8 @@ function ActivityListingController(objCollection) {
                 // got positive response  
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                console.log('did not get proper response');
-                global.logger.write('response','did not get proper response',err,req.body);
+                // console.log('did not get proper response');
+                global.logger.write('response', 'Did not get a proper response', err, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -206,7 +206,9 @@ function ActivityListingController(objCollection) {
                 // got positive response    
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                console.log('did not get proper rseponse');
+                // console.log('did not get proper rseponse');
+                global.logger.write('response', 'Did not get a proper response', err, req.body);
+                
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -220,7 +222,9 @@ function ActivityListingController(objCollection) {
                 // got positive response    
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                console.log('did not get proper rseponse');
+                // console.log('did not get proper rseponse');
+                global.logger.write('response', 'Did not get a proper response', err, req.body);
+                
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -234,7 +238,9 @@ function ActivityListingController(objCollection) {
                 // got positive response    
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                console.log('did not get proper rseponse');
+                // console.log('did not get proper rseponse');
+                global.logger.write('response', 'Did not get a proper response', err, req.body);
+                
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -248,7 +254,9 @@ function ActivityListingController(objCollection) {
                 // got positive response    
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                console.log('did not get proper rseponse');
+                // console.log('did not get proper rseponse');
+                global.logger.write('response', 'Did not get a proper response', err, req.body);
+                
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -262,7 +270,9 @@ function ActivityListingController(objCollection) {
                 // got positive response    
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                console.log('did not get proper rseponse');
+                // console.log('did not get proper rseponse');
+                global.logger.write('response', 'Did not get a proper response', err, req.body);
+                
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -276,7 +286,9 @@ function ActivityListingController(objCollection) {
                 // got positive response    
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                console.log('did not get proper rseponse');
+                // console.log('did not get proper rseponse');
+                global.logger.write('response', 'Did not get a proper response', err, req.body);
+                
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }

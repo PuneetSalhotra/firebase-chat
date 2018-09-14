@@ -9,7 +9,7 @@ function Logger() {
 
     var sqs = new SQS();
     var util = new Util();
-    
+
     /*var winston = require('winston');
     require('winston-daily-rotate-file');
 
@@ -30,25 +30,25 @@ function Logger() {
         transport
       ]
     });*/
-    
-    this.write = function (level, message, object,request) {
+
+    this.write = function (level, message, object, request) {
         var loggerCollection = {
             message: message,
-            object: object,            
+            object: object,
             level: level,
             request: request,
             environment: global.mode, //'prod'
-            log:'log'
+            log: 'log'
         };
         util.writeLogs(message); //Using our own logic
         //logger.info(message); //Winston rotational logs
         var loggerCollectionString = JSON.stringify(loggerCollection);
         sqs.produce(loggerCollectionString, function (err, response) {
-            if(err)
-                console.log("error is: "+ err);            
-            });
+            if (err)
+                console.log("error is: " + err);
+        });
     };
-    
+
     this.writeSession = function (request) {
         var loggerCollection = {
             message: request,
@@ -58,10 +58,9 @@ function Logger() {
         };
         var loggerCollectionString = JSON.stringify(loggerCollection);
         sqs.produce(loggerCollectionString, function (err, response) {
-            if(err)
-                console.log("error is: "+ err);            
-            });
+            if (err)
+                console.log("error is: " + err);
+        });
     };
-}
-;
+};
 module.exports = Logger;

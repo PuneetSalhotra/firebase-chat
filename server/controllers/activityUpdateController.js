@@ -40,10 +40,10 @@ function ActivityUpdateController(objCollection) {
                                     cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                         if (err) {
                                             //console.log("error in setting in asset parity");
-                                            global.logger.write('serverError',"error in setting in asset parity",err,req.body);
+                                            global.logger.write('serverError', "error in setting in asset parity", err, req.body);
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('debug',"asset parity is set successfully",{},req.body);
+                                            global.logger.write('debug', "asset parity is set successfully", {}, req.body);
 
                                     });
                                 }
@@ -56,7 +56,9 @@ function ActivityUpdateController(objCollection) {
         };
         try {
             JSON.parse(req.body.activity_inline_data);
-            console.log('json is fine');
+            // console.log('json is fine');
+            global.logger.write('debug', "json is fine", {}, req.body);
+
         } catch (exeption) {
             res.send(responseWrapper.getResponse(false, {}, -3308,req.body));
             return;
@@ -278,7 +280,9 @@ function ActivityUpdateController(objCollection) {
                     } else {
                         if (status) {     // proceed                            
                             forEachAsync(activityArray, function (next, rowData) {
-                                console.log(rowData);
+                                // console.log(rowData);
+                                global.logger.write('debug', 'rowData: ' + JSON.stringify(rowData, null, 2), {}, req.body);
+
                                 proceedUnreadUpdate(rowData);
                                 next();
                             });
@@ -290,7 +294,9 @@ function ActivityUpdateController(objCollection) {
 
             } else if (deviceOsId === 5) {
                 forEachAsync(activityArray, function (next, rowData) {
-                                console.log(rowData);
+                                // console.log(rowData);
+                                global.logger.write('debug', 'rowData: ' + JSON.stringify(rowData, null, 2), {}, req.body);
+
                                 proceedUnreadUpdate(rowData);
                                 next();
                             });
@@ -361,7 +367,9 @@ function ActivityUpdateController(objCollection) {
                     } else {
                         if (status) {     // proceed                            
                             forEachAsync(activityArray, function (next, rowData) {
-                                console.log(rowData);
+                                // console.log(rowData);
+                                global.logger.write('debug', 'rowData: ' + JSON.stringify(rowData, null, 2), {}, req.body);
+
                                 proceedUnreadUpdate(rowData);
                                 next();
                             });
@@ -373,7 +381,9 @@ function ActivityUpdateController(objCollection) {
 
             } else if (deviceOsId === 5) {
                 forEachAsync(activityArray, function (next, rowData) {
-                                console.log(rowData);
+                                // console.log(rowData);
+                                global.logger.write('debug', 'rowData: ' + JSON.stringify(rowData, null, 2), {}, req.body);
+
                                 proceedUnreadUpdate(rowData);
                                 next();
                             });
@@ -593,7 +603,7 @@ function ActivityUpdateController(objCollection) {
                     }, -7998, req.body));
                 } else {
                     if (status) { // proceed
-                        console.log("calling deleteAccountFromWorkforce");
+                        // console.log("calling deleteAccountFromWorkforce");
                         global.logger.write('debug', 'calling deleteAccountFromWorkforce', {}, req.body);
                         // Raise event
                         initiateServiceToDeleteUserFromWorkforce(req.body, function (err, data) {
@@ -646,7 +656,7 @@ function ActivityUpdateController(objCollection) {
 
             queueWrapper.raiseActivityEvent(event, reqBody.asset_id, function (err, resp) {
                 if (err) {
-                    console.log('Error in queueWrapper raiseActivityEvent : ' + err)
+                    // console.log('Error in queueWrapper raiseActivityEvent : ' + err)
                     global.logger.write('serverError', 'Error in queueWrapper raiseActivityEvent', err, reqBody);
                     callback(true, {})
                 } else {
@@ -655,16 +665,16 @@ function ActivityUpdateController(objCollection) {
                             //incr the asset_message_counter                        
                             cacheWrapper.setAssetParity(reqBody.asset_id, reqBody.asset_message_counter, function (err, status) {
                                 if (err) {
-                                    console.log("error in setting in asset parity");
+                                    // console.log("error in setting in asset parity");
                                     global.logger.write('serverError', 'error in setting in asset parity', err, reqBody);
                                 } else
-                                    console.log("asset parity is set successfully")
+                                    // console.log("asset parity is set successfully")
                                     global.logger.write('debug', "asset parity is set successfully", {}, reqBody);
 
                             });
                         }
                     }
-                    console.log("populateDataForRemovingUserFromOrg service raised: ", event);
+                    // console.log("populateDataForRemovingUserFromOrg service raised: ", event);
                     global.logger.write('debug', "populateDataForRemovingUserFromOrg service raised: ", event, reqBody);
                     callback(false, {});
                 }
