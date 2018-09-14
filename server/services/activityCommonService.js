@@ -2006,6 +2006,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         var queryString = util.getQueryString('ds_p1_asset_invalid_message_transaction_insert', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {                
+                global.logger.write('debug', 'In duplicateMsgUniqueIdInsert : ' + data, {}, request);
                 (err === false) ? callback(false, data) : callback(true, {});
             });
         }
