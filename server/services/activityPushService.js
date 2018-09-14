@@ -286,7 +286,8 @@ function ActivityPushService(objectCollection) {
         pushStringObj.station_category_id = request.activity_channel_category_id;
 
         data.forEach(function (arn, index) {
-            console.log(arn);
+            //console.log(arn);
+            global.logger.write('debug', arn, {}, request);
             objectCollection.sns.pamPublish(pushStringObj, 1, arn);
         });
     };
@@ -299,31 +300,37 @@ function ActivityPushService(objectCollection) {
 
     this.sendPush = function (request, objectCollection, pushAssetId, callback) {
         var proceedSendPush = function (pushReceivers, senderName) {
-            console.log('pushReceivers.length : ', pushReceivers.length);
+            //console.log('pushReceivers.length : ', pushReceivers.length);
+            global.logger.write('debug', 'pushReceivers.length : ' + pushReceivers.length, {}, request);
             if (pushReceivers.length > 0) {
                 getPushString(request, objectCollection, senderName, function (err, pushStringObj, pubnubMsg, smsString) {
-                    console.log('PubMSG : ', pubnubMsg);
-                    console.log('pushStringObj : ', pushStringObj);
+                    //console.log('PubMSG : ', pubnubMsg);
+                    //console.log('pushStringObj : ', pushStringObj);
+                    global.logger.write('debug', 'PubMSG : ' + pubnubMsg, {}, request);
+                    global.logger.write('debug', 'pushStringObj : ' + pushStringObj, {}, request);
                     if (Object.keys(pushStringObj).length > 0) {
                         objectCollection.forEachAsync(pushReceivers, function (next, rowData) {
                             objectCollection.cacheWrapper.getAssetMap(rowData.assetId, function (err, assetMap) {
-                                console.log(rowData.assetId, ' is asset for which we are about to send push');
+                                //console.log(rowData.assetId, ' is asset for which we are about to send push');
                                 //console.log('Asset Map : ', assetMap);
                                 global.logger.write('debug', rowData.assetId + ' is asset for which we are about to send push', {}, request);
                                 if (Object.keys(assetMap).length > 0) {
                                     getAssetBadgeCount(request, objectCollection, assetMap.asset_id, assetMap.organization_id, function (err, badgeCount) {
-                                        console.log(badgeCount, ' is badge count obtained from db');
-                                        console.log(assetMap);
-                                        console.log(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn);
-                                        global.logger.write('debug', badgeCount + ' is badge count obtained from db', {}, request)
-                                        global.logger.write('debug', pushStringObj + objectCollection.util.replaceOne(badgeCount) + assetMap.asset_push_arn, {}, request)
+                                        //console.log(badgeCount, ' is badge count obtained from db');
+                                        //console.log(assetMap);
+                                        //console.log(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn);
+                                        global.logger.write('debug', badgeCount + ' is badge count obtained from db', {}, request);
+                                        global.logger.write('debug', assetMap, {}, request);
+                                        global.logger.write('debug', pushStringObj + objectCollection.util.replaceOne(badgeCount) + assetMap.asset_push_arn, {}, request);
                                         switch (rowData.pushType) {
                                             case 'pub':
-                                                console.log('pubnubMsg :', pubnubMsg);
+                                                //console.log('pubnubMsg :', pubnubMsg);
+                                                global.logger.write('debug', 'pubnubMsg :' + pubnubMsg, {}, request);
                                                 if (pubnubMsg.activity_type_category_id != 0) {
                                                     pubnubMsg.organization_id = rowData.organizationId;
                                                     pubnubMsg.desk_asset_id = rowData.assetId;
-                                                    console.log('PubNub Message : ', pubnubMsg);
+                                                    //console.log('PubNub Message : ', pubnubMsg);
+                                                    global.logger.write('debug', 'pubnubMsg :' + pubnubMsg, {}, request);
                                                     pubnubWrapper.push(rowData.organizationId, pubnubMsg);
                                                     pubnubWrapper.push(rowData.assetId, pubnubMsg);
                                                 }
@@ -333,7 +340,8 @@ function ActivityPushService(objectCollection) {
                                                 if (pubnubMsg.activity_type_category_id != 0) {
                                                     pubnubMsg.organization_id = rowData.organizationId;
                                                     pubnubMsg.desk_asset_id = rowData.assetId;
-                                                    console.log('PubNub Message : ', pubnubMsg);
+                                                    //console.log('PubNub Message : ', pubnubMsg);
+                                                    global.logger.write('debug', 'pubnubMsg :' + pubnubMsg, {}, request);
                                                     pubnubWrapper.push(rowData.organizationId, pubnubMsg);
                                                     pubnubWrapper.push(rowData.assetId, pubnubMsg);
                                                 }
@@ -344,7 +352,8 @@ function ActivityPushService(objectCollection) {
                                     if (pubnubMsg.activity_type_category_id != 0) {
                                         pubnubMsg.organization_id = rowData.organizationId;
                                         pubnubMsg.desk_asset_id = rowData.assetId
-                                        console.log('PubNub Message : ', pubnubMsg);
+                                        //console.log('PubNub Message : ', pubnubMsg);
+                                        global.logger.write('debug', 'PubNub Message :' + pubnubMsg, {}, request);
                                         pubnubWrapper.push(rowData.organizationId, pubnubMsg);
                                         pubnubWrapper.push(rowData.assetId, pubnubMsg);
                                     }
@@ -355,21 +364,26 @@ function ActivityPushService(objectCollection) {
                             callback(false, true);
                         });
                     } else if (Object.keys(pubnubMsg).length > 0) {
-                        console.log('Sending PubNub push Alone');
+                        //console.log('Sending PubNub push Alone');
+                        global.logger.write('debug', 'Sending PubNub push Alone', {}, request);
                         objectCollection.forEachAsync(pushReceivers, function (next, rowData) {
                             objectCollection.cacheWrapper.getAssetMap(rowData.assetId, function (err, assetMap) {
-                                console.log(rowData.assetId, ' is asset for which we are about to send push');
-                                console.log('Asset Map : ', assetMap);
+                                //console.log(rowData.assetId, ' is asset for which we are about to send push');
+                                //console.log('Asset Map : ', assetMap);
                                 global.logger.write('debug', rowData.assetId + ' is asset for which we are about to send push', {}, request);
+                                global.logger.write('debug', assetMap, {}, request);
                                 if (Object.keys(assetMap).length > 0) {
-                                    console.log('rowData : ', rowData);
+                                    //console.log('rowData : ', rowData);
+                                    global.logger.write('debug', rowData, {}, request);
                                     switch (rowData.pushType) {
                                         case 'pub':
-                                            console.log('pubnubMsg :', pubnubMsg);
+                                            //console.log('pubnubMsg :', pubnubMsg);
+                                            global.logger.write('debug', 'pubnubMsg : ' + pubnubMsg, {}, request);
                                             if (pubnubMsg.activity_type_category_id != 0) {
                                                 pubnubMsg.organization_id = rowData.organizationId;
                                                 pubnubMsg.desk_asset_id = rowData.assetId;
-                                                console.log('PubNub Message : ', pubnubMsg);
+                                                //console.log('PubNub Message : ', pubnubMsg);
+                                                global.logger.write('debug', 'PubNub Message : ' + pubnubMsg, {}, request);
                                                 pubnubWrapper.push(rowData.organizationId, pubnubMsg);
                                                 pubnubWrapper.push(rowData.assetId, pubnubMsg);
                                             }
@@ -409,7 +423,8 @@ function ActivityPushService(objectCollection) {
                                         asset_id: rowData['asset_id']
                                     };
                                     objectCollection.activityCommonService.getAssetDetails(reqobj, function (err, data, resp) {
-                                        console.log('SESSION DATA : ', data.asset_session_status_id);
+                                        //console.log('SESSION DATA : ', data.asset_session_status_id);
+                                        global.logger.write('debug', 'SESSION DATA : ' + data.asset_session_status_id, {}, request);
                                         if (err === false) {
                                             switch (data.asset_session_status_id) {
                                                 case 8:
@@ -451,7 +466,8 @@ function ActivityPushService(objectCollection) {
                                         asset_id: rowData['asset_id']
                                     };
                                     objectCollection.activityCommonService.getAssetDetails(reqobj, function (err, data, resp) {
-                                        console.log('SESSION DATA : ', data.asset_session_status_id);
+                                        //console.log('SESSION DATA : ', data.asset_session_status_id);
+                                        global.logger.write('debug', 'SESSION DATA : ' + data.asset_session_status_id, {}, request);
                                         if (err === false) {
                                             switch (data.asset_session_status_id) {
                                                 case 8:
@@ -489,7 +505,8 @@ function ActivityPushService(objectCollection) {
                             });
                         }
                     }).catch((err) => {
-                        console.log("Unable to retrieve the Receiver's asset phone number : ", err);
+                        //console.log("Unable to retrieve the Receiver's asset phone number : ", err);
+                        global.logger.write('debug', "Unable to retrieve the Receiver's asset phone number : " + err, {}, request);
                     });
             }
         });
@@ -517,7 +534,8 @@ function ActivityPushService(objectCollection) {
                         var senderName = senderData['operating_asset_first_name'] + ' ' + senderData['operating_asset_last_name'];
                         getPushString(request, objectCollection, senderName, function (err, pushStringObj, pubnubMsg, smsString) {
 
-                            console.log('SMS String : ', smsString);
+                            //console.log('SMS String : ', smsString);
+                            global.logger.write('debug', 'SMS String : '+ smsString, {}, request);
 
                              objectCollection.util.sendSmsSinfini(smsString, RecieverData.operating_asset_phone_country_code, RecieverData.operating_asset_phone_number, function () {
 
@@ -540,7 +558,8 @@ function ActivityPushService(objectCollection) {
 
                 });
             } else {
-                console.log('active in last 48 hrs');
+                //console.log('active in last 48 hrs');
+                global.logger.write('debug', 'active in last 48 hrs', {}, request);
             }
 
         });

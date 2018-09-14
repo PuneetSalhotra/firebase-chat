@@ -158,9 +158,11 @@ function Util() {
                 res['status'] = 0;
                 res['message'] = "Message not sent";
             }
-            console.log(res);
+            //console.log(res);
+            global.logger.write('debug', res, {}, request);
             if (err) {
-                console.log('err : ', err);
+                //console.log('err : ', err);
+                global.logger.write('debug', err, {}, request);
                 callback(err, false);
             } else {
                 callback(false, res);
@@ -178,17 +180,22 @@ function Util() {
           const to = '+' + countryCode + phoneNumber;
           const text = messageString;
           
-          console.log('To : ', to);
-          console.log('Text : ', text);          
+          //console.log('To : ', to);
+          //console.log('Text : ', text);
+          
+          global.logger.write('debug', 'To : ' + to, {}, request);
+          global.logger.write('debug', 'Text : ' + text, {}, request);
 
           nexmo.message.sendSms(from, to, text, (error, response) => {
                 if(error) {
                   throw error;
                 } else if(response.messages[0].status != '0') {
-                  console.error(response);
+                  //console.error(response);
+                  global.logger.write('debug', response, {}, request);
                   throw 'Nexmo returned back a non-zero status';
                 } else {
-                  console.log(response);
+                  //console.log(response);
+                  global.logger.write('debug', response, {}, request);
                 }
           });
     };
@@ -234,8 +241,12 @@ function Util() {
         xmlText +="<Say voice='alice'>"+text+"</Say>"
         xmlText += "</Response>"
         
-        console.log('xmlText : ' + xmlText);
-        console.log(global.config.mobileBaseUrl + global.config.version + '/account/voice_'+passcode);
+        //console.log('xmlText : ' + xmlText);
+        //console.log(global.config.mobileBaseUrl + global.config.version + '/account/voice_'+passcode);
+        
+        global.logger.write('debug', 'xmlText : ' + xmlText, {}, request);
+        global.logger.write('debug', global.config.mobileBaseUrl + global.config.version + '/account/voice_'+passcode, {}, request);
+        
         fs.writeFile(global.config.efsPath + 'twiliovoicesxmlfiles/voice_'+passcode+'.xml', xmlText, function (err) {        
           if (err) {
               throw err;
@@ -321,9 +332,11 @@ function Util() {
         jsonText += messageString;
         jsonText += '"}]';
                 
-        console.log('jsonText : ' + jsonText);
+        //console.log('jsonText : ' + jsonText);
+        global.logger.write('debug', 'jsonText : ' + jsonText, {}, {});
         let answerUrl = global.config.mobileBaseUrl + global.config.version + '/account/nexmo/voice_'+passcode+'.json?file=voice_'+passcode+'.json';
-        console.log('Answer Url : ', answerUrl);
+        //console.log('Answer Url : ', answerUrl);
+        global.logger.write('debug', 'Answer Url : ' + answerUrl, {}, {});
         fs.writeFile(global.config.efsPath + 'nexmovoicesjsonfiles/voice_'+passcode+'.json', jsonText, function (err) {        
           if (err) {
               throw err;
@@ -343,7 +356,8 @@ function Util() {
                   console.error(error)
                   callback(true, error, -3502);
                 } else {
-                  console.log('makeCallNexmo response: ', response);
+                  //console.log('makeCallNexmo response: ', response);
+                  global.logger.write('debug', 'makeCallNexmo response: ' + response, {}, request);
                   callback(false, response, 200);
                 }
             });
@@ -699,8 +713,8 @@ function Util() {
         var input = moment().tz(timezone).startOf('day');
         var format = 'YYYY-MM-DD HH:mm:ss';
         var value = moment.tz(input, format, timezone).utc().format('YYYY-MM-DD HH:mm:ss');
-        console.log('TimeZone : ', timezone);
-        console.log('Start DateTime in given timezone: ', value);        
+        //console.log('TimeZone : ', timezone);
+        //console.log('Start DateTime in given timezone: ', value);        
         return value;
     };
     
@@ -710,8 +724,8 @@ function Util() {
         var input = moment().tz(timezone).endOf('day');
         var format = 'YYYY-MM-DD HH:mm:ss';
         var value = moment.tz(input, format, timezone).utc().format('YYYY-MM-DD HH:mm:ss');
-        console.log('TimeZone : ', timezone);
-        console.log('End DateTime in given timezone: ', value);
+        //console.log('TimeZone : ', timezone);
+        //console.log('End DateTime in given timezone: ', value);
         return value;
     };
     
@@ -812,7 +826,8 @@ function Util() {
             if (error) {
                 callback(true, error);
             } else {
-                console.log('Message sent: ' + info.response);
+                //console.log('Message sent: ' + info.response);
+                global.logger.write('debug', 'Message sent: ' + info.response, {}, request);
                 callback(false, info);
             }
         });
@@ -861,7 +876,7 @@ function Util() {
         }
         
         var data_to_add = date + ': ' + data;
-        console.log(data);
+        console.log(data);        
         if (fs.existsSync(logFilePath)) {
             fs.appendFile(logFilePath, os.EOL + data_to_add, function (err, fd) {
                 if (err)
