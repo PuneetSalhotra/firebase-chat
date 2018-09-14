@@ -9,7 +9,11 @@ function Logger() {
 
     var sqs = new SQS();
     var util = new Util();
-    
+    var targetAssetIDs = [
+        20771,
+        20770
+    ];
+
     /*var winston = require('winston');
     require('winston-daily-rotate-file');
 
@@ -30,25 +34,42 @@ function Logger() {
         transport
       ]
     });*/
-    
-    this.write = function (level, message, object,request) {
+
+    this.write = function (level, message, object, request) {
+        var isTargeted = false;
         var loggerCollection = {
             message: message,
-            object: object,            
+            object: object,
             level: level,
             request: request,
             environment: global.mode, //'prod'
-            log:'log'
+            log: 'log'
         };
-        util.writeLogs(message); //Using our own logic
+        // util.writeLogs(message); //Using our own logic
+
+        if (request.hasOwnProperty('body')) {
+            if (targetAssetIDs.includes(Number(request.body.asset_id)) || targetAssetIDs.includes(Number(request.body.auth_asset_id))) {
+                isTargeted = true;
+            }
+
+        } else if (request.hasOwnProperty('asset_id') || request.hasOwnProperty('auth_asset_id')) {
+            if (targetAssetIDs.includes(Number(request.asset_id)) || targetAssetIDs.includes(Number(request.auth_asset_id))) {
+                isTargeted = true;
+            }
+        } else {
+            isTargeted = false;
+        }
+        
+        util.writeLogs(message, isTargeted); //Using our own logic
+
         //logger.info(message); //Winston rotational logs
         var loggerCollectionString = JSON.stringify(loggerCollection);
         sqs.produce(loggerCollectionString, function (err, response) {
-            if(err)
-                console.log("error is: "+ err);            
-            });
+            if (err)
+                console.log("error is: " + err);
+        });
     };
-    
+
     this.writeSession = function (request) {
         var loggerCollection = {
             message: request,
@@ -58,10 +79,9 @@ function Logger() {
         };
         var loggerCollectionString = JSON.stringify(loggerCollection);
         sqs.produce(loggerCollectionString, function (err, response) {
-            if(err)
-                console.log("error is: "+ err);            
-            });
+            if (err)
+                console.log("error is: " + err);
+        });
     };
-}
-;
+};
 module.exports = Logger;
