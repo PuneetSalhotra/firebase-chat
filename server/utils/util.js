@@ -898,23 +898,23 @@ function Util() {
                     console.log('Error while writing data to file', err);
             });
         }
-    };
 
-    // Targeted logging
-    if (isTargeted === true && (global.mode === 'prod' || global.mode === 'dev')) {
-        if (fs.existsSync(targetedLogFilePath)) {
-            fs.appendFile(targetedLogFilePath, os.EOL + data_to_add, function (err, fd) {
-                if (err)
-                    console.log('Error while writing data to file', err);
-            });
+        // Targeted logging
+        if (isTargeted === true && (global.mode === 'prod' || global.mode === 'dev')) {
+            if (fs.existsSync(targetedLogFilePath)) {
+                fs.appendFile(targetedLogFilePath, os.EOL + data_to_add, function (err, fd) {
+                    if (err)
+                        console.log('Error while writing data to file', err);
+                });
 
-        } else {
-            fs.writeFile(targetedLogFilePath, data_to_add, function (err, fd) {
-                if (err)
-                    console.log('Error while writing data to file', err);
-            });
+            } else {
+                fs.writeFile(targetedLogFilePath, data_to_add, function (err, fd) {
+                    if (err)
+                        console.log('Error while writing data to file', err);
+                });
+            }
         }
-    }
+    };
 
 };
 
