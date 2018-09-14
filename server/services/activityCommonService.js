@@ -1986,7 +1986,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log('data : ', data);
-                global.logger.write('debug', 'checkingMSgUniqueId DATA : ' + data, {}, request);                
+                global.logger.write('debug', data, {}, request);
                 (data[0].count == 0) ? callback(false, data) : callback(true, {});
             });
         }
