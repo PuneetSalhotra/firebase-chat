@@ -25,7 +25,7 @@ function Util() {
     this.hasValidActivityId = function (request) {
         if (request.hasOwnProperty('activity_id')) {
             var returnValue;
-            (this.replaceZero(request.activity_id) <= 0) ? returnValue = false : returnValue = true;
+            (this.replaceZero(request.activity_id) <= 0) ? returnValue = false: returnValue = true;
             return returnValue;
         } else
             return false;
@@ -34,7 +34,7 @@ function Util() {
     this.hasValidGenericId = function (request, parameter) {
         var returnValue;
         if (request.hasOwnProperty(parameter)) {
-            (this.replaceZero(request[parameter]) <= 0) ? returnValue = false : returnValue = true;
+            (this.replaceZero(request[parameter]) <= 0) ? returnValue = false: returnValue = true;
             return returnValue;
         } else
             return false;
@@ -45,7 +45,7 @@ function Util() {
             var returnValue = false;
             var messageCounter = this.replaceZero(request.asset_message_counter);
             //console.log('after replacing ' + messageCounter);
-            (messageCounter === 0) ? returnValue = false : returnValue = true;
+            (messageCounter === 0) ? returnValue = false: returnValue = true;
             //console.log('returning ' + returnValue);
             return returnValue;
         } else
@@ -53,7 +53,7 @@ function Util() {
     };
 
     this.sendSmsMvaayoo = function (messageString, countryCode, phoneNumber, callback) {
-//        console.log("inside sendSmsMvaayoo");
+        //        console.log("inside sendSmsMvaayoo");
         messageString = encodeURI(messageString);
         var url = "http://api.mvaayoo.com/mvaayooapi/MessageCompose?user=junaid.m@grene.in:greneapple&senderID=DESKER&receipientno=" + countryCode + "" + phoneNumber + "&dcs=0&msgtxt=" + messageString + "&state=4";
 
@@ -71,14 +71,14 @@ function Util() {
             callback(false, res);
         });
     };
-    
+
     this.pamSendSmsMvaayoo = function (messageString, countryCode, phoneNumber, callback) {
         //messageString = encodeURI(messageString);
         messageString = encodeURIComponent(messageString);
         var url = "http://api.mvaayoo.com/mvaayooapi/MessageCompose?user=junaid.m@grene.in:greneapple&senderID=PUDMNK&receipientno=" + countryCode + "" + phoneNumber + "&dcs=0&msgtxt=" + messageString + "&state=4";
         //console.log('URL : ', url);
         global.logger.write('debug', 'URL : ' + url, {}, {});
-        
+
         request(url, function (error, response, body) {
             var res = {};
             if (typeof body != 'undefined' && body.indexOf('Status=0') > -1) {
@@ -121,12 +121,12 @@ function Util() {
         global.logger.write('debug', url, {}, {});
         request(url, function (error, response, body) {
             var foo = JSON.parse(body);
-            
+
             //console.log('error : ', error);
             //console.log('body : ' , body);
             global.logger.write('debug', 'error : ' + error, {}, {});
             global.logger.write('debug', 'body : ' + body, {}, {});
-            
+
             var res = {};
             if (typeof foo != 'undefined' && foo.status === 1) {
                 res['status'] = 1;
@@ -147,7 +147,7 @@ function Util() {
         var client = new twilio.RestClient(accountSid, authToken);
         client.messages.create({
             body: messageString,
-            to: '+'+countryCode + '' + phoneNumber, // Text this number
+            to: '+' + countryCode + '' + phoneNumber, // Text this number
             from: '+1 810-637-5928' // From a valid Twilio number
         }, function (err, message) {
             var res = {};
@@ -166,105 +166,104 @@ function Util() {
                 callback(err, false);
             } else {
                 callback(false, res);
-            }        
+            }
         });
     };
-    
+
     this.sendInternationalNexmoSMS = function (messageString, countryCode, phoneNumber, callback) {
         const nexmo = new Nexmo({
             apiKey: global.config.nexmoAPIKey,
             apiSecret: global.config.nexmoSecretKey
-          });
-          
-          const from = 'DESKER';
-          const to = '+' + countryCode + phoneNumber;
-          const text = messageString;
-          
-          //console.log('To : ', to);
-          //console.log('Text : ', text);
-          
-          global.logger.write('debug', 'To : ' + to, {}, request);
-          global.logger.write('debug', 'Text : ' + text, {}, request);
+        });
 
-          nexmo.message.sendSms(from, to, text, (error, response) => {
-                if(error) {
-                  throw error;
-                } else if(response.messages[0].status != '0') {
-                  //console.error(response);
-                  global.logger.write('debug', response, {}, request);
-                  throw 'Nexmo returned back a non-zero status';
-                } else {
-                  //console.log(response);
-                  global.logger.write('debug', response, {}, request);
-                }
-          });
+        const from = 'DESKER';
+        const to = '+' + countryCode + phoneNumber;
+        const text = messageString;
+
+        //console.log('To : ', to);
+        //console.log('Text : ', text);
+
+        global.logger.write('debug', 'To : ' + to, {}, request);
+        global.logger.write('debug', 'Text : ' + text, {}, request);
+
+        nexmo.message.sendSms(from, to, text, (error, response) => {
+            if (error) {
+                throw error;
+            } else if (response.messages[0].status != '0') {
+                //console.error(response);
+                global.logger.write('debug', response, {}, request);
+                throw 'Nexmo returned back a non-zero status';
+            } else {
+                //console.log(response);
+                global.logger.write('debug', response, {}, request);
+            }
+        });
     };
-    
-    this.getPhoneNumbers = function(request, callback){
+
+    this.getPhoneNumbers = function (request, callback) {
         var accountSid = 'ACbe16c5becf34df577de71b253fa3ffe4';
         var authToken = "73ec15bf2eecd3ead2650d4d6768b8cd";
         var client = new twilio.RestClient(accountSid, authToken);
-        
+
         var country = request.country;
-	//var areaCode = request.area_code;
-	//console.log(country,'/n', areaCode);
-	
-	client.availablePhoneNumbers(country).local.list({
-  		//areaCode: areaCode
-	}, function(err, data) {
-			(data.available_phone_numbers.length > 0) ? callback(false, data, 200) : callback(false, [], 200);
-	});
+        //var areaCode = request.area_code;
+        //console.log(country,'/n', areaCode);
+
+        client.availablePhoneNumbers(country).local.list({
+            //areaCode: areaCode
+        }, function (err, data) {
+            (data.available_phone_numbers.length > 0) ? callback(false, data, 200): callback(false, [], 200);
+        });
     }
-    
-    this.purchaseNumber = function(request, callback){
+
+    this.purchaseNumber = function (request, callback) {
         var accountSid = 'ACbe16c5becf34df577de71b253fa3ffe4';
         var authToken = "73ec15bf2eecd3ead2650d4d6768b8cd";
         var client = new twilio.RestClient(accountSid, authToken);
-        
+
         var phoneNumber = request.phone_number;
 
-	client.incomingPhoneNumbers.create({
+        client.incomingPhoneNumbers.create({
             phoneNumber: phoneNumber
-  	}, function(err, purchasedNumber) {
-                (err) ? callback(false, err.message, -3401): callback(false, purchasedNumber, 200);
-                });
+        }, function (err, purchasedNumber) {
+            (err) ? callback(false, err.message, -3401): callback(false, purchasedNumber, 200);
+        });
     }
-    
-    this.MakeCallTwilio = function(text, passcode, countryCode, phoneNumber, callback){
+
+    this.MakeCallTwilio = function (text, passcode, countryCode, phoneNumber, callback) {
         var accountSid = global.config.twilioAccountSid; // Your Account SID from www.twilio.com/console
         var authToken = global.config.twilioAuthToken; // Your Auth Token from www.twilio.com/console
         const client = require('twilio')(accountSid, authToken);
-        var toNumber = '+'+countryCode + phoneNumber;
-                
+        var toNumber = '+' + countryCode + phoneNumber;
+
         var xmlText = "<?xml version='1.0' encoding='UTF-8'?>";
         xmlText += "<Response>"
-        xmlText +="<Say voice='alice'>"+text+"</Say>"
+        xmlText += "<Say voice='alice'>" + text + "</Say>"
         xmlText += "</Response>"
-        
+
         //console.log('xmlText : ' + xmlText);
         //console.log(global.config.mobileBaseUrl + global.config.version + '/account/voice_'+passcode);
-        
+
         global.logger.write('debug', 'xmlText : ' + xmlText, {}, request);
-        global.logger.write('debug', global.config.mobileBaseUrl + global.config.version + '/account/voice_'+passcode, {}, request);
-        
-        fs.writeFile(global.config.efsPath + 'twiliovoicesxmlfiles/voice_'+passcode+'.xml', xmlText, function (err) {        
-          if (err) {
-              throw err;
-          } else {
-              client.calls.create(
-                {
-                  url: global.config.mobileBaseUrl + global.config.version + '/account/voice_'+passcode,
-                  to: toNumber,
-                  from: '+1 810-637-5928' // From a valid Twilio number                  
-                },
-                (err, call) => {
-                    (err) ? callback(false, err.message, -3401): callback(false, call, 200);          
-                }
-              );
-          }          
-        });        
+        global.logger.write('debug', global.config.mobileBaseUrl + global.config.version + '/account/voice_' + passcode, {}, request);
+
+        fs.writeFile(global.config.efsPath + 'twiliovoicesxmlfiles/voice_' + passcode + '.xml', xmlText, function (err) {
+            if (err) {
+                throw err;
+            } else {
+                client.calls.create({
+                        url: global.config.mobileBaseUrl + global.config.version + '/account/voice_' + passcode,
+                        to: toNumber,
+                        from: '+1 810-637-5928' // From a valid Twilio number                  
+                    },
+                    (err, call) => {
+                        (err) ? callback(false, err.message, -3401): callback(false, call, 200);
+                    }
+                );
+            }
+        });
     };
-        
+
     this.sendSMS = function (messageString, countryCode, phoneNumber, callback) {
         if (countryCode == 91) {
             var domestic_sms_mode = global.config.domestic_sms_mode;
@@ -320,51 +319,51 @@ function Util() {
         });
     };*/
 
-    this.makeCallNexmo = function (messageString, passcode, countryCode, phoneNumber, callback) {        
+    this.makeCallNexmo = function (messageString, passcode, countryCode, phoneNumber, callback) {
         const nexmo = new Nexmo({
             apiKey: global.config.nexmoAPIKey,
             apiSecret: global.config.nexmoSecretKey,
             applicationId: global.config.nexmpAppliationId,
             privateKey: `${__dirname}/private.key`
         });
-                
+
         var jsonText = '[{ "action": "talk", "voiceName": "Russell","text":"';
         jsonText += messageString;
         jsonText += '"}]';
-                
+
         //console.log('jsonText : ' + jsonText);
         global.logger.write('debug', 'jsonText : ' + jsonText, {}, {});
-        let answerUrl = global.config.mobileBaseUrl + global.config.version + '/account/nexmo/voice_'+passcode+'.json?file=voice_'+passcode+'.json';
+        let answerUrl = global.config.mobileBaseUrl + global.config.version + '/account/nexmo/voice_' + passcode + '.json?file=voice_' + passcode + '.json';
         //console.log('Answer Url : ', answerUrl);
         global.logger.write('debug', 'Answer Url : ' + answerUrl, {}, {});
-        fs.writeFile(global.config.efsPath + 'nexmovoicesjsonfiles/voice_'+passcode+'.json', jsonText, function (err) {        
-          if (err) {
-              throw err;
-          } else {
-              nexmo.calls.create({
-                from: {
-                  type: 'phone',
-                  number: 123456789
-                },
-                to: [{
-                  type: 'phone',
-                  number: countryCode + "" + phoneNumber,
-                }],
-                answer_url: [answerUrl]
-              }, (error, response) => {
-                if (error) {
-                  console.error(error)
-                  callback(true, error, -3502);
-                } else {
-                  //console.log('makeCallNexmo response: ', response);
-                  global.logger.write('debug', 'makeCallNexmo response: ' + response, {}, request);
-                  callback(false, response, 200);
-                }
-            });
-          }          
+        fs.writeFile(global.config.efsPath + 'nexmovoicesjsonfiles/voice_' + passcode + '.json', jsonText, function (err) {
+            if (err) {
+                throw err;
+            } else {
+                nexmo.calls.create({
+                    from: {
+                        type: 'phone',
+                        number: 123456789
+                    },
+                    to: [{
+                        type: 'phone',
+                        number: countryCode + "" + phoneNumber,
+                    }],
+                    answer_url: [answerUrl]
+                }, (error, response) => {
+                    if (error) {
+                        console.error(error)
+                        callback(true, error, -3502);
+                    } else {
+                        //console.log('makeCallNexmo response: ', response);
+                        global.logger.write('debug', 'makeCallNexmo response: ' + response, {}, request);
+                        callback(false, response, 200);
+                    }
+                });
+            }
         });
     };
-        
+
     this.decodeSpecialChars = function (string) {
         if (typeof string === 'string') {
             string = string.replace(";sqt;", "'");
@@ -384,7 +383,7 @@ function Util() {
         var now = moment().utc().format("YYYY-MM-DD HH:mm:ss");
         return now;
     };
-    
+
     this.getCurrentISTTime = function () {
         var now = moment().tz('Asia/Kolkata').format("YYYY-MM-DD HH:mm:ss");
         return now;
@@ -399,32 +398,32 @@ function Util() {
         var now = moment().utc().format("YYYY-MM-DD");
         return now;
     };
-    
+
     this.getCurrentMonth = function () {
         var now = moment().utc().format("MM");
         return now;
     };
-    
+
     this.getCurrentYear = function () {
         var now = moment().utc().format("YYYY");
         return now;
     };
-    
+
     this.getCurrentUTCTimestamp = function () {
         var now = moment().utc().valueOf();
         return now;
     };
-    
+
     this.getStartDayOfMonth = function () {
         var value = moment().startOf('month').format("YYYY-MM-DD");
         return value;
     };
-    
+
     this.getStartDayOfPrevMonth = function () {
         var value = moment().startOf('month').subtract(1, 'month').format("YYYY-MM-DD");
         return value;
     };
-    
+
     this.getStartDayOfWeek = function () {
         var value = moment().startOf('week').add(1, 'days').format("YYYY-MM-DD");
         return value;
@@ -434,7 +433,7 @@ function Util() {
         var value = moment().startOf('week').add(1, 'days').format("YYYY-MM-DD HH:mm:ss");
         return value;
     };
-    
+
     this.getEndDayOfWeek = function () {
         var value = moment().endOf('week').format("YYYY-MM-DD");
         return value;
@@ -444,17 +443,17 @@ function Util() {
         var value = moment().endOf('week').add(1, 'days').format("YYYY-MM-DD HH:mm:ss");
         return value;
     };
-    
+
     this.getStartDayOfPrevWeek = function () {
         var value = moment().startOf('week').add(1, 'days').subtract(7, 'days').format("YYYY-MM-DD");
         return value;
     };
-    
+
     this.getStartDateTimeOfMonth = function () {
         var value = moment().startOf('month').format("YYYY-MM-DD HH:mm:ss");
         return value;
     };
-    
+
     this.getEndDateTimeOfMonth = function () {
         var value = moment().endOf('month').format("YYYY-MM-DD HH:mm:ss");
         return value;
@@ -471,15 +470,15 @@ function Util() {
         var dateTimeString = year + "-" + month + "-" + dateVal + " " + hours + ":" + min + ":" + sec;
         return dateTimeString;
     };
-    
+
     this.getcurrentTimeInMilliSecs = function () {
         var date = new Date();
         var year = date.getFullYear();
-        
+
         var month = date.getMonth();
         month++;
         month = (month < 10 ? '0' : '') + month;
-        
+
         var dateVal = date.getDate();
         var hours = date.getHours();
         var min = date.getMinutes();
@@ -493,9 +492,9 @@ function Util() {
         var queryString = "CALL " + callName + "(";
         paramsArr.forEach(function (item, index) {
             if (typeof item === 'string' || item instanceof String)
-                item = item.replace(/'/g, "\\'")    // escaping single quote                   
-                        .replace(/\"/g, '\\"')         // escaping \" from UI
-                        .replace(/\n/g, '\\n');
+                item = item.replace(/'/g, "\\'") // escaping single quote                   
+                .replace(/\"/g, '\\"') // escaping \" from UI
+                .replace(/\n/g, '\\n');
             if (index === (paramsArr.length - 1))
                 queryString = queryString + "'" + item + "'";
             else
@@ -526,10 +525,10 @@ function Util() {
         return messageUniqueId;
     };
 
-    this.replaceDefaultNumber = function (value) {        
+    this.replaceDefaultNumber = function (value) {
         if (value === undefined || value === null || value === '' || isNaN(value))
-            return Number(-1);        
-        else           
+            return Number(-1);
+        else
             return Number(value);
     };
 
@@ -568,7 +567,7 @@ function Util() {
         else
             return value;
     };
-    
+
     this.replaceDefaultJSON = function (value) {
         if (value === undefined || value === null || value === '')
             return {};
@@ -606,7 +605,7 @@ function Util() {
         var value = moment(timeString).format("YYYY-MM-DD");
         return value;
     };
-    
+
     this.getFormatedSlashDate = function (timeString) {
         var value = moment(timeString).format("DD/MM/YYYY");
         return value;
@@ -616,12 +615,12 @@ function Util() {
         var value = moment(timeString).format("HH:mm:ss");
         return value;
     };
-    
+
     this.getFormatedLogYear = function (timeString) {
         var value = moment(timeString).format("YYYY");
         return value;
     };
-    
+
     this.getFormatedLogMonth = function (timeString) {
         var value = moment(timeString).format("MM");
         return value;
@@ -631,19 +630,19 @@ function Util() {
         var value = moment(timeString).valueOf();
         return value;
     };
-    
-    this.getDatetimewithAmPm = function(timeString) {
+
+    this.getDatetimewithAmPm = function (timeString) {
         var value = moment(timeString).format("YYYY-MM-DD hh:mm A");
         return value;
     };
 
-    this.getDatewithndrdth = function(timeString) {
+    this.getDatewithndrdth = function (timeString) {
         var value = moment(timeString).format("MMM Do");
         return value;
     };
-    
+
     this.addDays = function (timeString, days) {
-        var value = moment(timeString, "YYYY-MM-DD HH:mm:ss").add(days, 'days').format("YYYY-MM-DD HH:mm:ss");        
+        var value = moment(timeString, "YYYY-MM-DD HH:mm:ss").add(days, 'days').format("YYYY-MM-DD HH:mm:ss");
         return value;
     };
 
@@ -656,7 +655,7 @@ function Util() {
         var value = moment(timeString, "YYYY-MM-DD HH:mm:ss").subtract(days, 'days').format("YYYY-MM-DD HH:mm:ss");
         return value;
     };
-    
+
     this.subtractUnitsFromDateTime = function (timeString, days, unit) {
         var value = moment(timeString, "YYYY-MM-DD HH:mm:ss").subtract(days, unit).format("YYYY-MM-DD HH:mm:ss");
         return value;
@@ -664,29 +663,29 @@ function Util() {
 
     this.differenceDatetimes = function (timeString1, timeString2) {
         var value = moment(timeString1, "YYYY-MM-DD HH:mm:ss").diff(moment(timeString2, "YYYY-MM-DD HH:mm:ss"));
-        return value;        
+        return value;
     };
-    
+
     this.differenceDatetime = function (timeString1, timeString2) {
         var value = moment(timeString1, "YYYY-MM-DD HH:mm:ss").diff(moment(timeString2, "YYYY-MM-DD HH:mm:ss"));
         return moment.duration(value)._data;
     };
-    
+
     /*this.getNoOfDays = function (timeString1, timeString2) {
         var value = moment(timeString1, "YYYY-MM-DD HH:mm:ss").diff(moment(timeString2, "YYYY-MM-DD HH:mm:ss"), 'days');
         return value;
     };*/
-    
-    this.getDayStartDatetime = function() {
+
+    this.getDayStartDatetime = function () {
         var value = moment().startOf('day').utcOffset("-05:30").format('YYYY-MM-DD HH:mm:ss');
         return value;
     };
-    
-    this.getDayEndDatetime = function() {
+
+    this.getDayEndDatetime = function () {
         var value = moment().endOf('day').utcOffset("-05:30").format('YYYY-MM-DD HH:mm:ss');
         return value;
     };
-    
+
     /*this.getGivenDayStartDatetime = function(timeString) {
         var value = moment(timeString, "YYYY-MM-DD HH:mm:ss").format('YYYY-MM-DD 00:00:00');
         return value;
@@ -696,20 +695,20 @@ function Util() {
         var value = moment(timeString, "YYYY-MM-DD HH:mm:ss").format('YYYY-MM-DD 23:59:59');
         return value;
     };*/
-    
-    this.getDayStartDatetimeIST = function() {
+
+    this.getDayStartDatetimeIST = function () {
         var value = moment().tz('Asia/Kolkata').startOf('day').format('YYYY-MM-DD HH:mm:ss');
         return value;
     };
-    
-    this.getDayEndDatetimeIST = function() {
+
+    this.getDayEndDatetimeIST = function () {
         var value = moment().tz('Asia/Kolkata').endOf('day').format('YYYY-MM-DD HH:mm:ss');
         return value;
     };
-    
+
     //getDay start time based on the TimeZone
-    this.getDayStartDatetimeTZ = function(timezone) {
-        (timezone === "") ? timezone = 'Asia/Kolkata' : timezone = timezone;
+    this.getDayStartDatetimeTZ = function (timezone) {
+        (timezone === "") ? timezone = 'Asia/Kolkata': timezone = timezone;
         var input = moment().tz(timezone).startOf('day');
         var format = 'YYYY-MM-DD HH:mm:ss';
         var value = moment.tz(input, format, timezone).utc().format('YYYY-MM-DD HH:mm:ss');
@@ -717,10 +716,10 @@ function Util() {
         //console.log('Start DateTime in given timezone: ', value);        
         return value;
     };
-    
+
     //getDay end time based on the TimeZone
-    this.getDayEndDatetimeTZ = function(timezone) {
-        (timezone === "") ? timezone = 'Asia/Kolkata' : timezone = timezone;
+    this.getDayEndDatetimeTZ = function (timezone) {
+        (timezone === "") ? timezone = 'Asia/Kolkata': timezone = timezone;
         var input = moment().tz(timezone).endOf('day');
         var format = 'YYYY-MM-DD HH:mm:ss';
         var value = moment.tz(input, format, timezone).utc().format('YYYY-MM-DD HH:mm:ss');
@@ -728,38 +727,38 @@ function Util() {
         //console.log('End DateTime in given timezone: ', value);
         return value;
     };
-    
-    this.isDateBetween = function(startDt, endDt, compareDt) {
+
+    this.isDateBetween = function (startDt, endDt, compareDt) {
         var compareDate = moment(compareDt, "YYYY-MM-DD HH:mm:ss");
-        var startDate   = moment(startDt, "YYYY-MM-DD HH:mm:ss");
-        var endDate     = moment(endDt, "YYYY-MM-DD HH:mm:ss");
+        var startDate = moment(startDt, "YYYY-MM-DD HH:mm:ss");
+        var endDate = moment(endDt, "YYYY-MM-DD HH:mm:ss");
 
         var value = compareDate.isBetween(startDate, endDate);
         return value;
     };
-    
-    this.getUniqueValuesOfArray = function(arr) {
+
+    this.getUniqueValuesOfArray = function (arr) {
         return Array.from(new Set(arr));
     }
-    
-    this.getMinValueOfArray = function(arr) {
+
+    this.getMinValueOfArray = function (arr) {
         return Math.min(arr);
     }
-    
-    this.getMaxValueOfArray = function(arr) {
+
+    this.getMaxValueOfArray = function (arr) {
         return Math.max(arr);
     }
-    
-    this.getFrequency = function(element, arr) {
-        var cnt=0;
-        arr.forEach(function(item, index){ 
-            if(element == item) {
+
+    this.getFrequency = function (element, arr) {
+        var cnt = 0;
+        arr.forEach(function (item, index) {
+            if (element == item) {
                 cnt++;
-            }                                                                                       
-           })
+            }
+        })
         return cnt;
     }
-    
+
     this.cleanPhoneNumber = function (phone) {
 
         if (typeof phone === 'string') {
@@ -862,41 +861,61 @@ function Util() {
     this.getUniqueArray = function (a) {
         return Array.from(new Set(a));
     };
-    
-    this.writeLogs = function (data) {
+
+    this.writeLogs = function (data, isTargeted) {
         var date = this.getCurrentUTCTime();
         var locationInServer;
         var logFilePath;
-        
-        if(global.mode === 'prod') {
-            locationInServer = global.config.efsPath+ 'node/production_desker_api/';
+        var targetedLogFilePath;
+
+        if (global.mode === 'prod') {
+            locationInServer = global.config.efsPath + 'node/production_desker_api/';
             logFilePath = locationInServer + 'logs/' + this.getCurrentDate() + '.txt';
+            targetedLogFilePath = locationInServer + 'targeted_logs/' + this.getCurrentDate() + '.txt';
+
         } else {
             logFilePath = 'logs/' + this.getCurrentDate() + '.txt';
+            // Development | Not Staging
+            targetedLogFilePath = 'targeted_logs/' + this.getCurrentDate() + '.txt';
         }
-        
-        if(typeof data === 'object') {            
+
+        if (typeof data === 'object') {
             console.log('JSON.stringify(data) : ' + JSON.stringify(data));
             data = JSON.stringify(data);
         }
-        
+
         var data_to_add = date + ': ' + data;
         console.log(data);
         if (fs.existsSync(logFilePath)) {
             fs.appendFile(logFilePath, os.EOL + data_to_add, function (err, fd) {
                 if (err)
-                    console.log('Error while writing data to file', err);                
+                    console.log('Error while writing data to file', err);
             });
-            
+
         } else {
             fs.writeFile(logFilePath, data_to_add, function (err, fd) {
                 if (err)
-                    console.log('Error while writing data to file', err);                
-            });            
-        }        
+                    console.log('Error while writing data to file', err);
+            });
+        }
+
+        // Targeted logging
+        if (isTargeted === true && (global.mode === 'prod' || global.mode === 'dev')) {
+            if (fs.existsSync(targetedLogFilePath)) {
+                fs.appendFile(targetedLogFilePath, os.EOL + data_to_add, function (err, fd) {
+                    if (err)
+                        console.log('Error while writing data to file', err);
+                });
+
+            } else {
+                fs.writeFile(targetedLogFilePath, data_to_add, function (err, fd) {
+                    if (err)
+                        console.log('Error while writing data to file', err);
+                });
+            }
+        }
     };
-    
-}
-;
+
+};
 
 module.exports = Util;
