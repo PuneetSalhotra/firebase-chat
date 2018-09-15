@@ -13,12 +13,6 @@ function ActivityPushService(objectCollection) {
         //msg.type = 'activity_unread';
         msg.activity_type_category_id = 0;
 
-        // Include activity_id and its category id in the push message
-        if (request.hasOwnProperty('activity_id') && request.hasOwnProperty('activity_type_category_id')) {
-            pushString.activity_id = request.activity_id;
-            pushString.activity_type_category_id = request.activity_type_category_id;
-        }
-
         var activityTypeCategoryId = Number(request.activity_type_category_id);
         objectCollection.activityCommonService.getActivityDetails(request, 0, function (err, activityData) {
             if (err === false) {
@@ -259,6 +253,18 @@ function ActivityPushService(objectCollection) {
                     case 34: //Time Card
                         break;
                 };
+                
+                // Include activity_id and its category id in the push message, if there is a
+                // push notification intended for a specific servie. So, the client can redirect
+                // users to the specific activity (Task, Meeting, etc.) in the app.
+                if (Object.keys(pushString).length > 0 &&
+                    request.hasOwnProperty('activity_id') &&
+                    request.hasOwnProperty('activity_type_category_id')) {
+                    // 
+                    pushString.activity_id = request.activity_id;
+                    pushString.activity_type_category_id = request.activity_type_category_id;
+                }
+                
                 callback(false, pushString, msg, smsString);
             } else {
                 callback(true, {}, msg, smsString);
