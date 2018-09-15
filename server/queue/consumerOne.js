@@ -88,9 +88,11 @@ var Consumer = function () {
                 consumingMsg(message, kafkaMsgId, objCollection).then(()=>{});
             } else {
                 activityCommonService.checkingMSgUniqueId(request, (err, data)=>{
+                    global.logger.write('debug', 'err from checkingMSgUniqueId : ' + err, {}, request);
                     if(err === false) {
                         consumingMsg(message, kafkaMsgId, objCollection).then(()=>{});
                     } else {
+                        global.logger.write('debug', 'Before calling this duplicateMsgUniqueIdInsert', {}, request);
                         activityCommonService.duplicateMsgUniqueIdInsert(request, (err, data)=>{});
                     }
                 });
