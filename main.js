@@ -45,6 +45,39 @@ redisClient.on('error', function (error) {
     console.log(error);
 });
 
+// Targetted logging:
+// Verify from 
+app.use(function (req, res, next) {
+    // Initialize
+    req.body.isTargeted = false;
+    req.isTargeted = false;
+
+    // For all 
+    if (req.body.hasOwnProperty('asset_id')) {
+        cacheWrapper.IsAssetIDTargeted(req.body.asset_id, function (err, reply) {
+            if (err) {
+                next();
+            } else if (reply == 1) {
+                req.body.isTargeted = true;
+                req.isTargeted = true;
+            }
+        })
+    }
+
+    if (req.body.hasOwnProperty('auth_asset_id')) {
+        cacheWrapper.IsAssetIDTargeted(req.body.auth_asset_id, function (err, reply) {
+            if (err) {
+                next();
+            } else if (reply == 1) {
+                req.body.isTargeted = true;
+                req.isTargeted = true;
+            }
+        })
+    }
+
+    next()
+})
+
 function connectToKafkaBroker(cnt){
     console.log("redis is connected");
     var kafkaClient = new kafka.KafkaClient(kafkaIps[cnt]);

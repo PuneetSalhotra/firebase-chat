@@ -47,18 +47,10 @@ function Logger() {
         };
         // util.writeLogs(message); //Using our own logic
 
-        if (request.hasOwnProperty('body')) {
-            if (targetAssetIDs.includes(Number(request.body.asset_id)) || targetAssetIDs.includes(Number(request.body.auth_asset_id))) {
-                isTargeted = true;
-            }
-
-        } else if (request.hasOwnProperty('asset_id') || request.hasOwnProperty('auth_asset_id')) {
-            if (targetAssetIDs.includes(Number(request.asset_id)) || targetAssetIDs.includes(Number(request.auth_asset_id))) {
-                isTargeted = true;
-            }
-        } else {
-            isTargeted = false;
-        }
+        if (request.hasOwnProperty('isTargeted') && request.isTargeted) {
+            isTargeted = true;
+        
+        } 
         
         util.writeLogs(message, isTargeted); //Using our own logic
 

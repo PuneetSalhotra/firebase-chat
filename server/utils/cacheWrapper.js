@@ -173,6 +173,18 @@ function CacheWrapper(client) {
         });
     };
     
+    this.IsAssetIDTargeted = function (asset_id, callback) {
+        client.SISMEMBER("targeted_logging_asset_ids", asset_id, (err, reply) => {
+            if (err) {
+                console.log("Error: ", err);
+                callback(true, err);
+            } else {
+                callback(false, reply);
+                console.log("Reply: ", reply);
+                console.log("TypeOf Reply: ", typeof reply);
+            }
+        })
+    };
 
 }
 
