@@ -1,6 +1,6 @@
 node_modules
 /server/pam/com
-#/server/utils/globalConfig.js
+/server/utils/globalConfig.js
 cluster.js
 consumerCluster.js
 consumerClusterOne.js

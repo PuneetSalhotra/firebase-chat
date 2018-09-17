@@ -1096,6 +1096,60 @@ function PamListingService(objectCollection) {
         });
     };
     
+      
+    this.getMemberVisitedCount = function (request) {
+			return new Promise((resolve, reject)=>{
+	        var paramsArr = new Array(
+	        		request.organization_id,
+	        		request.account_id,
+	        		request.member_asset_id,
+	        		request.visited_count,
+	        		request.page_start,
+	        		request.page_limit
+	                );
+	
+	        var queryString = util.getQueryString('pm_v1_pam_order_list_select_visit_counts', paramsArr);
+	        if (queryString != '') {
+	            db.executeQuery(1, queryString, request, function (err, data) {
+	            	//console.log("err "+err);
+	               if(err === false) {
+	               		console.log('data: '+data.length);
+	               		resolve(data);        				        			      			  
+                    } else {
+	                   reject(err);
+	               }
+	            });
+	   		}
+        });
+    };
+    
+    this.getReservationWiseBilling = function (request) {
+			return new Promise((resolve, reject)=>{
+	        var paramsArr = new Array(
+	        		request.organization_id,
+	        		request.account_id,
+					request.event_activity_id,
+					request.is_date,
+					request.start_date,
+					request.end_date,
+					request.start_limit,
+					request.end_limit
+	                );
+	
+	        var queryString = util.getQueryString('pm_v1_pam_event_billing_select_reservation_billing', paramsArr);
+	        if (queryString != '') {
+	            db.executeQuery(1, queryString, request, function (err, data) {
+	            	//console.log("err "+err);
+	               if(err === false) {
+	               		console.log('data: '+data.length);
+	               		resolve(data);        				        			      			  
+                    } else {
+	                   reject(err);
+	               }
+	            });
+	   		}
+        });
+    };
 };
 
 module.exports = PamListingService;

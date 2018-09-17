@@ -9,16 +9,6 @@ function Logger() {
 
     var sqs = new SQS();
     var util = new Util();
-    var targetAssetIDs = [
-        20770, // Ben
-        20771, // Ben
-        9026, // Bharat Krishna Masimukku
-        9027, // VP - Cloud & Infra (Bharat)
-        9030, // Manager-Data & Middleware (Sai Kiran)
-        9109, // Sai Kiran Gangam
-        9166, // Nani Kalyan V
-        9167 // Sr. Software Engg (Nani Kalyan)
-    ];
 
     /*var winston = require('winston');
     require('winston-daily-rotate-file');
@@ -52,18 +42,10 @@ function Logger() {
             log: 'log'
         };
 
-        if (request.hasOwnProperty('body')) {
-            if (targetAssetIDs.includes(Number(request.body.asset_id)) || targetAssetIDs.includes(Number(request.body.auth_asset_id))) {
-                isTargeted = true;
-            }
-
-        } else if (request.hasOwnProperty('asset_id') || request.hasOwnProperty('auth_asset_id')) {
-            if (targetAssetIDs.includes(Number(request.asset_id)) || targetAssetIDs.includes(Number(request.auth_asset_id))) {
-                isTargeted = true;
-            }
-        } else {
-            isTargeted = false;
-        }
+        if (request.hasOwnProperty('isTargeted') && request.isTargeted) {
+            isTargeted = true;
+        
+        } 
 
         util.writeLogs(message, isTargeted); //Using our own logic
 
