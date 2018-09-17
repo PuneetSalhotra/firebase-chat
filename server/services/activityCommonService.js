@@ -543,6 +543,20 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityText1 = "";
                 entityText2 = request.activity_timeline_text;
                 break;
+            case 23002:   // Telephone Module: Altered the status of the chat
+            case 23003:   // Telephone Module: Added an update to the chat
+            case 23004:   // Telephone Module: Voice call started
+            case 23005:   // Telephone Module: Voice call answered
+            case 23006:   // Telephone Module: Voice call ended
+            case 23007:   // Telephone Module: Voice call Missed
+            case 23008:   // Telephone Module: Video call started
+            case 23009:   // Telephone Module: Video call answered
+            case 23010:   // Telephone Module: Video call ended
+            case 23011:   // Telephone Module: Video call Missed
+                activityTimelineCollection = request.activity_timeline_collection;
+                entityText1 = "";
+                entityText2 = request.activity_timeline_text;
+                break;    
             default:
                 entityTypeId = 0;
                 entityText1 = "";
