@@ -159,7 +159,7 @@ if (mode === 'staging') {
     //Kafka Topics
     config.kafkaActivitiesTopic = 'staging-desker-activities';
     //config.kafkaFormWidgetTopic = 'desker-form-widgets';
-    config.consumerGroup = "desker-activities-consumer-group-v2";
+    config.consumerGroup = "desker-activities-consumer-group-staging";
     
     //IOS Push
     config.iosPushMode = 'dev';    // currently shouuld be in dev
@@ -211,9 +211,9 @@ if (mode === 'preprod') {
     config.kafkaIPThree = {kafkaHost: 'kafka3:9092'};
     
     //Kafka Topics
-    config.kafkaActivitiesTopic = 'desker-activities-v2';
+    config.kafkaActivitiesTopic = 'preprod-desker-activities';
     //config.kafkaFormWidgetTopic = 'desker-form-widgets';
-    config.consumerGroup = "desker-activities-consumer-group-v2";
+    config.consumerGroup = "desker-activities-consumer-group-preprod";
     
     //IOS Push
     config.iosPushMode = 'prod';
