@@ -114,10 +114,10 @@ if (mode === 'dev') {
     config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/Desker-staging"; //Staging SQS QUEUE
     
     //Portal Service URL
-    config.portalBaseUrl = "http://staging.portal.desker.cloud/";
+    config.portalBaseUrl = "https://stagingportal.desker.cloud/";
     
     //Mobile Service URL
-    config.mobileBaseUrl = "http://staging.api.desker.cloud/";
+    config.mobileBaseUrl = "https://stagingapi.desker.cloud/";
     
     //making twilio, Nexmo Calls
     config.efsPath = "/api-staging-efs/";
@@ -168,10 +168,10 @@ if (mode === 'staging') {
     config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/Desker-staging"; //Staging SQS QUEUE
     
     //Portal Service URL
-    config.portalBaseUrl = "http://staging.portal.desker.cloud/";
+    config.portalBaseUrl = "https://stagingportal.desker.cloud/";
     
     //Mobile Service URL
-    config.mobileBaseUrl = "http://staging.api.desker.cloud/";
+    config.mobileBaseUrl = "https://stagingapi.desker.cloud/";
     
     //making twilio, Nexmo Calls
     config.efsPath = "/api-staging-efs/";
@@ -222,10 +222,10 @@ if (mode === 'preprod') {
     config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/desker-logging-staging"; //Prod SQS QUEUE - DONT confuse with the naming Convention
     
     //Portal Service URL
-    config.portalBaseUrl = "https://portal.desker.cloud/";
+    config.portalBaseUrl = "https://preprodportal.desker.cloud/";
     
     //Mobile Service URL
-    config.mobileBaseUrl = "https://api.desker.cloud/";
+    config.mobileBaseUrl = "https://preprodapi.desker.cloud/";
     
     //making twilio, Nexmo Calls
     config.efsPath = "/api-staging-efs/";

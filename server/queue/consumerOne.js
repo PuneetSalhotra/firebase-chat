@@ -85,6 +85,8 @@ var Consumer = function () {
             //console.log('Request params : ' , request);
             
             if(Number(request.organization_id) === 351) {
+                global.logger.write('debug', 'This is PAM Request : ' + request, {}, {});
+                global.logger.write('debug', request, {}, {});
                 consumingMsg(message, kafkaMsgId, objCollection).then(()=>{});
             } else {
                 activityCommonService.checkingMSgUniqueId(request, (err, data)=>{
