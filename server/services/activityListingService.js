@@ -1739,7 +1739,9 @@ function ActivityListingService(objCollection) {
             request.start_from || 0,
             request.limit_value || 50
         );
-        let queryString = util.getQueryString('ds_p1_activity_list_select_asset_recent_chats', paramsArr);
+        // Replaced 'ds_p1_activity_list_select_asset_recent_chats' 
+        // with 'ds_p1_activity_asset_mapping_select_recent_chats'
+        let queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_recent_chats', paramsArr);
         if (queryString !== '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {

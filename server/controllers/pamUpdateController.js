@@ -210,6 +210,14 @@ function PamUpdateController(objCollection) {
         	res.send(responseWrapper.getResponse(err, {}, -998, req.body));
     	});
     });
+    
+    app.put('/' + global.config.version + '/pam/activity/status/alter/nonqueue', function (req, res) {
+     	pamUpdateService.alterActivityStatus(req.body, function (err, data) {
+     		console.log("NonQueue: Alter Status completed");
+        });
+     	
+     	res.send(responseWrapper.getResponse({}, {}, 200,req.body));
+    });
 }
 
 module.exports = PamUpdateController;

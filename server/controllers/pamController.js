@@ -434,6 +434,14 @@ function PamController(objCollection) {
             });
         
     });
+    
+    app.post('/' + global.config.version + '/pam/activity/participant/access/set/nonqueue', function (req, res) {
+    	console.log(req.body);
+        pamService.pamAssignParticipant((req.body), function(err,data){
+    		   	console.log("NonQueue: Participant Assign Completed");
+    	});
+        res.send(responseWrapper.getResponse({},{}, 200, req.body)); 
+    });
 }
 ;
 module.exports = PamController;
