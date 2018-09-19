@@ -880,7 +880,7 @@ function Util() {
         }
 
         if (typeof data === 'object') {
-            console.log('JSON.stringify(data) : ' + JSON.stringify(data));
+            // console.log('JSON.stringify(data) : ' + JSON.stringify(data));
             data = JSON.stringify(data);
         }
 
