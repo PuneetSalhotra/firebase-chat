@@ -570,7 +570,7 @@ function Util() {
 
     this.replaceDefaultJSON = function (value) {
         if (value === undefined || value === null || value === '')
-            return {};
+            return '{}';
         else
             return value;
     };
