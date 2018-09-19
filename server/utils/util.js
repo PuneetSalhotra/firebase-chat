@@ -875,7 +875,7 @@ function Util() {
 
         } else {
             logFilePath = 'logs/' + this.getCurrentDate() + '.txt';
-            // Development | Not Staging
+            // Development and Pre-Production | Not Staging
             targetedLogFilePath = 'targeted_logs/' + this.getCurrentDate() + '.txt';
         }
 
@@ -900,7 +900,7 @@ function Util() {
         }
 
         // Targeted logging
-        if (isTargeted === true && (global.mode === 'prod' || global.mode === 'dev')) {
+        if (isTargeted === true && (global.mode === 'prod' || global.mode === 'preprod' || global.mode === 'dev')) {
             if (fs.existsSync(targetedLogFilePath)) {
                 fs.appendFile(targetedLogFilePath, os.EOL + data_to_add, function (err, fd) {
                     if (err)
