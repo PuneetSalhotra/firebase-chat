@@ -140,13 +140,13 @@ var AwsSns = function () {
                     if (flag == 0) {
                         //console.log('Flag is 0. Creating IOS Dev for Grene Robotics Account VOIP Push');
                         global.logger.write('debug', 'Flag is 0. Creating IOS Dev for Grene Robotics Account VOIP Push', {}, {});
-                        platformApplicationArn = global.config.platformApplicationIosDevGR;
+                        platformApplicationArn = global.config.platformApplicationIosDevGR;                        
                     } else {
                         //console.log('Flag is 1. Creating IOS Prod for Grene Robotics Account VOIP Push');
                         global.logger.write('debug', 'Flag is 1. Creating IOS Prod for Grene Robotics Account VOIP Push', {}, {});
-                        platformApplicationArn = global.config.platformApplicationIosProdGR;
+                        platformApplicationArn = global.config.platformApplicationIosProdGR;                        
                     }
-                } else { //flagAppAccount == 2 i.e. Grene Robotics World Desk normal IOS Push
+                } else if (flagAppAccount == 2){ //flagAppAccount == 2 i.e. Grene Robotics World Desk normal IOS Push
                     if (flag == 0) {
                         //console.log('Flag is 0. Creating IOS Dev for Grene Robotics Account Plain Push');
                         global.logger.write('debug', 'Flag is 0. Creating IOS Dev for Grene Robotics Account Plain Push', {}, {});
@@ -155,6 +155,16 @@ var AwsSns = function () {
                         //console.log('Flag is 1. Creating IOS Prod for Grene Robotics Account Plain Push');
                         global.logger.write('debug', 'Flag is 1. Creating IOS Prod for Grene Robotics Account Plain Push', {}, {});
                         platformApplicationArn = global.config.platformApplicationIosWorldDeskProdGR;
+                    }
+                } else if (flagAppAccount == 3){ //flagAppAccount == 3 i.e. Grene Robotics World Desk VOIP IOS Push New //XCODE 10 20-09-2018
+                    if (flag == 0) {
+                        //console.log('Flag is 0. Creating IOS Dev for Grene Robotics Account Plain Push');
+                        global.logger.write('debug', 'Flag is 0. Creating IOS Dev for Grene Robotics Account VOIP Push - new certificate', {}, {});
+                        platformApplicationArn = global.config.platformApplicationIosVOIPDev;
+                    } else {
+                        //console.log('Flag is 1. Creating IOS Prod for Grene Robotics Account Plain Push');
+                        global.logger.write('debug', 'Flag is 1. Creating IOS Prod for Grene Robotics Account VOIP Push - new certificate', {}, {});
+                        platformApplicationArn = global.config.platformApplicationIosVOIPProd;
                     }
                 }
                 break;
