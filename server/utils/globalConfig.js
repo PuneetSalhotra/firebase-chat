@@ -18,14 +18,14 @@ if (mode === 'local') {
     
     //Ports Config
     config.version = 'r1';
-    config.servicePort = 3000;
-    config.standAlonePamServicePort = 3100;
+    config.servicePort = 7000;
+    config.standAlonePamServicePort = 7100;
 
-    config.consumerOne = 3200;
-    config.consumerTwo = 3201;
-    config.consumerThree = 3202;
+    config.consumerOne = 7200;
+    config.consumerTwo = 7201;
+    config.consumerThree = 7202;
 
-    config.sqsConsumer = 3300;
+    config.sqsConsumer = 7300;
 
     //Mysql Config
     config.masterIp = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
@@ -52,7 +52,7 @@ if (mode === 'local') {
     //Kafka Topics
     config.kafkaActivitiesTopic = 'desker-activities';    
     config.kafkaFormWidgetTopic = 'desker-form-widgets';
-    config.consumerGroup = "desker-activities-consumer-group-v2";
+    config.consumerGroup = "desker-activities-consumer-group";
     
     //IOS Push
     config.iosPushMode = 'dev';
@@ -125,6 +125,59 @@ if (mode === 'dev') {
     config.efsPath = "/api-staging-efs/";
 }
 
+if (mode === 'dev') {
+    
+    //Ports Config
+    config.version = 'rd';
+    config.servicePort = 3000;
+    config.standAlonePamServicePort = 3100;
+
+    config.consumerOne = 3200;
+    config.consumerTwo = 3201;
+    config.consumerThree = 3202;
+
+    config.sqsConsumer = 3300;
+
+    //Mysql Config
+    config.masterIp = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
+    config.slave1Ip = 'readreplica1.citeodhwc7z9.us-east-1.rds.amazonaws.com';
+    config.slave2Ip = 'readreplica2.citeodhwc7z9.us-east-1.rds.amazonaws.com';
+
+    config.dbUser = 'apiuser';
+    config.database = 'desker_staging';
+    config.dbPassword = 'apidbuser';
+    config.conLimit = 10;
+
+    //Redis Config
+    config.redisIp = 'dev-redis.apppnf.0001.use1.cache.amazonaws.com';
+    config.redisPort = 6379;   
+    
+    //Kafka Brokers Config
+    config.kafkaIPOne = {kafkaHost: 'kafka1:9092'};
+    config.kafkaIPTwo = {kafkaHost: 'kafka2:9092'};
+    config.kafkaIPThree = {kafkaHost: 'kafka3:9092'};
+    
+    //Kafka Topics
+    config.kafkaActivitiesTopic = 'desker-test';
+    //config.kafkaFormWidgetTopic = 'desker-form-widgets';
+    config.consumerGroup = "desker-activities-consumer-group-dev";
+    
+    //IOS Push
+    config.iosPushMode = 'dev';
+    
+    //SQS Queue
+    config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/Desker-staging"; //Staging SQS QUEUE
+    
+    //Portal Service URL
+    config.portalBaseUrl = "https://stagingportal.desker.cloud/";
+    
+    //Mobile Service URL
+    config.mobileBaseUrl = "https://stagingapi.desker.cloud/";
+    
+    //making twilio, Nexmo Calls
+    config.efsPath = "/api-staging-efs/";
+}
+
 if (mode === 'staging') {
     
     //Ports Config
@@ -135,6 +188,8 @@ if (mode === 'staging') {
     config.consumerOne = 4200;
     config.consumerTwo = 4201;
     config.consumerThree = 4202;
+    
+    config.sqsConsumer = 4300;
     
     //Mysql Config
     config.masterIp = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
@@ -159,7 +214,7 @@ if (mode === 'staging') {
     //Kafka Topics
     config.kafkaActivitiesTopic = 'staging-desker-activities';
     //config.kafkaFormWidgetTopic = 'desker-form-widgets';
-    config.consumerGroup = "desker-activities-consumer-group-v2";
+    config.consumerGroup = "desker-activities-consumer-group-staging";
     
     //IOS Push
     config.iosPushMode = 'dev';    // currently shouuld be in dev
@@ -168,10 +223,64 @@ if (mode === 'staging') {
     config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/Desker-staging"; //Staging SQS QUEUE
     
     //Portal Service URL
-    config.portalBaseUrl = "http://staging.portal.desker.cloud/";
+    config.portalBaseUrl = "https://stagingportal.desker.cloud/";
     
     //Mobile Service URL
-    config.mobileBaseUrl = "http://staging.api.desker.cloud/";
+    config.mobileBaseUrl = "https://stagingapi.desker.cloud/";
+    
+    //making twilio, Nexmo Calls
+    config.efsPath = "/api-staging-efs/";
+}
+
+if (mode === 'preprod') {
+    
+    //Ports Config
+    config.version = 'r1';
+    config.servicePort = 6000;
+    config.standAlonePamServicePort = 6100;
+
+    config.consumerOne = 6200;
+    config.consumerTwo = 6201;
+    config.consumerThree = 6202;
+    
+    config.sqsConsumer = 6300;
+    
+    //Mysql Config
+    config.masterIp = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
+    config.slave1Ip = 'readreplica1.citeodhwc7z9.us-east-1.rds.amazonaws.com';
+    config.slave2Ip = 'readreplica2.citeodhwc7z9.us-east-1.rds.amazonaws.com';
+
+    config.dbUser = 'apiuser';
+    config.database = 'desker';
+    config.dbPassword = 'apidbuser';
+
+    config.conLimit = 10;
+
+    //Redis Config
+    config.redisIp = 'rediscluster1.apppnf.ng.0001.use1.cache.amazonaws.com';
+    config.redisPort = 6379;    
+
+    //Kafka Brokers Config
+    config.kafkaIPOne = {kafkaHost: 'kafka1:9092'};
+    config.kafkaIPTwo = {kafkaHost: 'kafka2:9092'};
+    config.kafkaIPThree = {kafkaHost: 'kafka3:9092'};
+    
+    //Kafka Topics
+    config.kafkaActivitiesTopic = 'preprod-desker-activities';
+    //config.kafkaFormWidgetTopic = 'desker-form-widgets';
+    config.consumerGroup = "desker-activities-consumer-group-preprod";
+    
+    //IOS Push
+    config.iosPushMode = 'prod';
+    
+    //SQS Queue
+    config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/desker-logging-staging"; //Prod SQS QUEUE - DONT confuse with the naming Convention
+    
+    //Portal Service URL
+    config.portalBaseUrl = "https://preprodportal.desker.cloud/";
+    
+    //Mobile Service URL
+    config.mobileBaseUrl = "https://preprodapi.desker.cloud/";
     
     //making twilio, Nexmo Calls
     config.efsPath = "/api-staging-efs/";

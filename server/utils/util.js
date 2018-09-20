@@ -570,7 +570,7 @@ function Util() {
 
     this.replaceDefaultJSON = function (value) {
         if (value === undefined || value === null || value === '')
-            return {};
+            return '{}';
         else
             return value;
     };
@@ -872,9 +872,16 @@ function Util() {
             locationInServer = global.config.efsPath + 'node/production_desker_api/';
             logFilePath = locationInServer + 'logs/' + this.getCurrentDate() + '.txt';
             targetedLogFilePath = locationInServer + 'targeted_logs/' + this.getCurrentDate() + '.txt';
+
         } else {
             logFilePath = 'logs/' + this.getCurrentDate() + '.txt';
+            // Development and Pre-Production | Not Staging
             targetedLogFilePath = 'targeted_logs/' + this.getCurrentDate() + '.txt';
+        }
+
+        if (typeof data === 'object') {
+            // console.log('JSON.stringify(data) : ' + JSON.stringify(data));
+            data = JSON.stringify(data);
         }
 
         var data_to_add = date + ': ' + data;
@@ -893,7 +900,7 @@ function Util() {
         }
 
         // Targeted logging
-        if (isTargeted === true && (global.mode === 'prod' || global.mode === 'dev')) {
+        if (isTargeted === true && (global.mode === 'prod' || global.mode === 'preprod' || global.mode === 'dev')) {
             if (fs.existsSync(targetedLogFilePath)) {
                 fs.appendFile(targetedLogFilePath, os.EOL + data_to_add, function (err, fd) {
                     if (err)

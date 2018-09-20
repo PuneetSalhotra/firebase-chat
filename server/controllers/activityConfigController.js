@@ -23,7 +23,7 @@ function ActivityConfigController(objCollection) {
 
             } else {
                 //console.log('did not get proper rseponse');
-                global.logger.write('response','did not get proper response',err,req.body);
+                global.logger.write('response', err, {}, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode,req.body));
             }
@@ -42,7 +42,7 @@ function ActivityConfigController(objCollection) {
 
             } else {
                 //console.log('did not get proper rseponse');
-                global.logger.write('response','did not get proper response',err,req.body);
+                global.logger.write('response', err, {}, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode,req.body));
             }
@@ -61,7 +61,7 @@ function ActivityConfigController(objCollection) {
 
             } else {
                 //console.log('did not get proper respone');
-                global.logger.write('response','did not get proper response', err,req.body);
+                global.logger.write('response', err, {}, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode,req.body));
             }

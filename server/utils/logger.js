@@ -9,10 +9,6 @@ function Logger() {
 
     var sqs = new SQS();
     var util = new Util();
-    var targetAssetIDs = [
-        20771,
-        20770
-    ];
 
     /*var winston = require('winston');
     require('winston-daily-rotate-file');
@@ -45,13 +41,11 @@ function Logger() {
             environment: global.mode, //'prod'
             log: 'log'
         };
-        // util.writeLogs(message); //Using our own logic
 
         if (request.hasOwnProperty('isTargeted') && request.isTargeted) {
             isTargeted = true;
         
         } 
-        
         util.writeLogs(message, isTargeted); //Using our own logic
 
         //logger.info(message); //Winston rotational logs

@@ -454,11 +454,15 @@ function ActivityListingService(objCollection) {
                                         (monthly_summary.unread_update_response_rate > 0) ? denominator++ : monthly_summary.unread_update_response_rate = 0;
                                                                                
                                         
-                                        console.log('Denominator after processing : ' + denominator);
+                                        // console.log('Denominator after processing : ' + denominator);
                                         //console.log('monthly_summary.owned_tasks_response : ' + monthly_summary.owned_tasks_response);
                                         //console.log('monthly_summary.inmail_response_rate : ' + monthly_summary.inmail_response_rate);
-                                        console.log('monthly_summary.completion_rate : ' + monthly_summary.completion_rate);
-                                        console.log('monthly_summary.unread_update_response_rate : ' + monthly_summary.unread_update_response_rate);
+                                        // console.log('monthly_summary.completion_rate : ' + monthly_summary.completion_rate);
+                                        // console.log('monthly_summary.unread_update_response_rate : ' + monthly_summary.unread_update_response_rate);
+                                        
+                                        global.logger.write('debug', 'Denominator after processing: ' + denominator, {}, request);
+                                        global.logger.write('debug', 'monthly_summary.completion_rate: ' + monthly_summary.completion_rate, {}, request);
+                                        global.logger.write('debug', 'monthly_summary.unread_update_response_rate: ' + monthly_summary.unread_update_response_rate, {}, request);
                                         
                                         if(denominator == 0) {
                                             monthly_summary.average_value = -1;
@@ -581,6 +585,8 @@ function ActivityListingService(objCollection) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, coworkerData) {
                 console.log(coworkerData);
+                global.logger.write('debug', 'coworkerData' + JSON.stringify(coworkerData, null, 2), {}, request);
+
                 if (err === false) {
                     if (coworkerData.length > 0) {
                         formatActivityListing(coworkerData, function (err, finalCoworkerData) {
@@ -950,13 +956,17 @@ function ActivityListingService(objCollection) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
-                    console.log('Data of pending count : ', data);
+                    // console.log('Data of pending count : ', data);
+                    global.logger.write('debug', 'Data of pending count: ' + JSON.stringify(data, null, 2), {}, request);
+
                     (data.length > 0) ? taskCnt = data[0].count : taskCnt = 0;
                     getCatGrpCts(request).then((resp) => {
                         resp.push({count: taskCnt, activity_type_category_id: 101, activity_type_category_name: 'Task'});
                         callback(false, resp, 200);
                     }).catch((err) => {
-                        console.log(err);
+                        // console.log(err);
+                        global.logger.write('debug', err, err, request);
+
                         callback(err, false, -9999);
                     })
                 } else {
@@ -994,7 +1004,9 @@ function ActivityListingService(objCollection) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
-                    console.log('Data of pending count : ', data);
+                    // console.log('Data of pending count : ', data);
+                    global.logger.write('debug', 'Data of pending count: ' + JSON.stringify(data, null, 2), {}, request);
+
                     (data.length > 0) ? taskCnt = data[0].count : taskCnt = 0;
                     getCatGrpCts(request).then((resp) => {
                         
@@ -1021,7 +1033,9 @@ function ActivityListingService(objCollection) {
                                             //resp.push(response);                            
                                             callback(false, responseArray, 200);
                                         }).catch((err) => {
-                                            console.log(err);
+                                            // console.log(err);
+                                            global.logger.write('debug', err, err, request);
+
                                             callback(err, false, -9999);
                                         });
                                     });                                    
@@ -1029,7 +1043,9 @@ function ActivityListingService(objCollection) {
                             
                         
                     }).catch((err) => {
-                        console.log(err);
+                        // console.log(err);
+                        global.logger.write('debug', err, err, request);
+
                         callback(err, false, -9999);
                     })
                 } else {
@@ -1122,7 +1138,9 @@ function ActivityListingService(objCollection) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
-                    console.log('Inmail pending count : ', data);
+                    // console.log('Inmail pending count : ', data);
+                    global.logger.write('debug', 'Inmail pending count: ' + JSON.stringify(data, null, 2), {}, request);
+
                     (data.length > 0) ? callback(false, data, 200) : callback(false, {}, 200);
                 } else {
                     callback(err, false, -9999);
@@ -1271,7 +1289,9 @@ function ActivityListingService(objCollection) {
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, resp) {
                     if (err === false) {
-                        console.log('Data of group counts : ', resp);
+                        // console.log('Data of group counts : ', resp);
+                        global.logger.write('debug', 'Data of group counts: ' + JSON.stringify(resp, null, 2), {}, request);
+
                         return resolve(resp);
                         /*forEachAsync(resp, (next, row)=>{                            
                             if(row.activity_type_category_id == 11) {
@@ -1313,7 +1333,9 @@ function ActivityListingService(objCollection) {
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, resp) {
                     if (err === false) {
-                        console.log('Badge Counts : ', resp);
+                        // console.log('Badge Counts : ', resp);
+                        global.logger.write('debug', 'Badge Counts: ' + JSON.stringify(resp, null, 2), {}, request);
+
                         return resolve(resp);
                     } else {
                         return reject(err);
@@ -1717,7 +1739,9 @@ function ActivityListingService(objCollection) {
             request.start_from || 0,
             request.limit_value || 50
         );
-        let queryString = util.getQueryString('ds_p1_activity_list_select_asset_recent_chats', paramsArr);
+        // Replaced 'ds_p1_activity_list_select_asset_recent_chats' 
+        // with 'ds_p1_activity_asset_mapping_select_recent_chats'
+        let queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_recent_chats', paramsArr);
         if (queryString !== '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {

@@ -46,16 +46,19 @@ redisClient.on('error', function (error) {
 });
 
 // Targetted logging:
-// Verify from 
+// For every incoming request, check in Redis whether
+// the asset_id is included in the targeted_logging_asset_ids set 
+// for targetted logging or not.
 app.use(function (req, res, next) {
-    // Initialize
+    // Initialize. Default to false.
     req.body.isTargeted = false;
     req.isTargeted = false;
 
-    // For all 
+    // For requests which use asset_id for authentication
     if (req.body.hasOwnProperty('asset_id')) {
         cacheWrapper.IsAssetIDTargeted(req.body.asset_id, function (err, reply) {
             if (err) {
+                // Ignore if there's an error
                 next();
             } else if (reply == 1) {
                 req.body.isTargeted = true;
@@ -64,9 +67,11 @@ app.use(function (req, res, next) {
         })
     }
 
+    // For requests which use auth_asset_id for authentication
     if (req.body.hasOwnProperty('auth_asset_id')) {
         cacheWrapper.IsAssetIDTargeted(req.body.auth_asset_id, function (err, reply) {
             if (err) {
+                // Ignore if there's an error
                 next();
             } else if (reply == 1) {
                 req.body.isTargeted = true;

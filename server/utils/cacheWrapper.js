@@ -172,16 +172,22 @@ function CacheWrapper(client) {
             }
         });
     };
-    
+
+    // Check whether a given asset_id is included for targetted logging
+    // Currently, the asset_ids are added to or removed from the redis 
+    // set targeted_logging_asset_ids manually. If these operations 
+    // need to be handled via servicess, use:
+    // SADD: For adding to the set
+    // SREM: For removing from the set
+    // Ref: https://redis.io/commands/sadd
     this.IsAssetIDTargeted = function (asset_id, callback) {
         client.SISMEMBER("targeted_logging_asset_ids", asset_id, (err, reply) => {
             if (err) {
-                console.log("Error: ", err);
                 callback(true, err);
+                
             } else {
                 callback(false, reply);
-                console.log("Reply: ", reply);
-                console.log("TypeOf Reply: ", typeof reply);
+                
             }
         })
     };

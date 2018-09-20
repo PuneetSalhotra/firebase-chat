@@ -192,13 +192,16 @@ function AccountController(objCollection) {
     
     //Voice XML for TWILIO
     app.post('/' + global.config.version + '/account/voice*', function (req, res) {
-        console.log('VNK : ' , req.body);
+        // console.log('VNK : ' , req.body);
+        global.logger.write('debug', 'VNK : ' + JSON.stringify(req.body, null, 2), {}, req);
         var x = req.body.url;
         x = x.split("/");
-        console.log('x[3] : ' + x[3]);
+        // console.log('x[3] : ' + x[3]);
+        global.logger.write('debug', 'x[3] : ' + x[3], {}, req);
         
         var file = global.config.efsPath + 'twiliovoicesxmlfiles/' + x[3] + '.xml';
-        console.log(file);               
+        // console.log(file);               
+        global.logger.write('debug', 'Voice XML for TWILIO: ' + file, {}, req);
         
         fs.readFile(file,function (err, data) {
           if (err) {
@@ -214,9 +217,12 @@ function AccountController(objCollection) {
     
     //Voice JSON for NEXMO
     app.get('/' + global.config.version + '/account/nexmo/voice*', function (req, res) {
-        console.log('Request.query : ' , req.body);
+        // console.log('Request.query : ' , req.body);
+        global.logger.write('debug', 'Request.query : ' + JSON.stringify(req.body, null, 2), {}, req);
+
         var file = global.config.efsPath + 'nexmovoicesjsonfiles/' + req.query.file;
-        console.log(file);       
+        // console.log(file);       
+        global.logger.write('debug', 'Voice JSON file for NEXMO: ' + file, {}, req);
      
         fs.readFile(file,function (err, data) {
           if (err) {
@@ -231,21 +237,25 @@ function AccountController(objCollection) {
     
     //Webhook for NEXMO
     app.post('/' + global.config.version + '/account/webhook/nexmo', function (req, res) {
-        console.log('Nexmo webhook req.body : ', req.body)
+        // console.log('Nexmo webhook req.body : ', req.body)
+        global.logger.write('debug', 'Nexmo webhook req.body: ' + JSON.stringify(req.body, null, 2), {}, req);
         res.send(responseWrapper.getResponse(false, req.body, 200, req.body));        
     });
     
     //Send SMS
     app.post('/' + global.config.version + '/account/send/sms', function (req, res) {
         var request = req.body;
-        console.log('Request params : ', request);
+        // console.log('Request params : ', request);
+        global.logger.write('debug', 'Request params: ' + JSON.stringify(request, null, 2), {}, request);
         
         /*var text = "Hey "+ request.receiver_name +" , "+ request.sender_name+" has requested your participation in "+request.task_title+" using the Desker App, ";
             text += "it's due by " + request.due_date + ". Download the App from http://desker.co/download.";*/
                 
-        util.sendSmsSinfini(request.message, request.country_code, request.phone_number, function(err,res){
-                console.log(err,'\n',res);                 
-            });
+        util.sendSmsSinfini(request.message, request.country_code, request.phone_number, function (err, res) {
+            // console.log(err,'\n',res);
+            global.logger.write('debug', 'Sinfini Error: ' + JSON.stringify(err, null, 2), {}, request);
+            global.logger.write('debug', 'Sinfini Response: ' + JSON.stringify(res, null, 2), {}, request);
+        });
             
         res.send(responseWrapper.getResponse(false, {}, 200, req.body));
      });

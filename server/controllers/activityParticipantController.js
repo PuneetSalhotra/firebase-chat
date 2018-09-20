@@ -25,6 +25,8 @@ function ActivityParticipantController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode,req.body));
             } else {
                 //console.log('did not get proper response');
+                global.logger.write('debug', 'Did not get proper response', err, req);
+
                 data = new Array();
                 res.send(responseWrapper.getResponse(err, data, statusCode));
             }
@@ -50,7 +52,9 @@ function ActivityParticipantController(objCollection) {
         if(productId == 2) {
             activityCommonService.getActivityDetails(req.body, 0, function(err, data){
                 var x = data[0].activity_type_category_id;                
-                console.log('X : ', data[0].activity_type_category_id);                
+                // console.log('X : ', data[0].activity_type_category_id);
+                global.logger.write('debug', 'X : ' + data[0].activity_type_category_id, {}, req.body);
+
                 req.body.activity_type_category_id = x;
             });
         }
@@ -76,10 +80,11 @@ function ActivityParticipantController(objCollection) {
                                     cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                         if (err) {
                                             //console.log("error in setting in asset parity");
-                                            global.logger.write('serverError',"error in setting in asset parity",err,req.body);
+                                            global.logger.write('serverError', "Error in setting in asset parity", err, req.body);
+
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('debug',"asset parity is set successfully",{},req.body);
+                                            global.logger.write('debug', "Asset parity is set successfully", {}, req.body);
 
                                     });
                                 }
@@ -111,7 +116,9 @@ function ActivityParticipantController(objCollection) {
                 if(productId == 2) {
                     activityCommonService.getActivityDetails(req.body, 0, function(err, data){
                         var x = data[0].activity_type_category_id;                
-                        console.log('X : ', data[0].activity_type_category_id);
+                        // console.log('X : ', data[0].activity_type_category_id);
+                        global.logger.write('debug', 'X : ' + data[0].activity_type_category_id, {}, req.body);
+
                         req.body.activity_type_category_id = x;
                         
                         proceedParticipantAccessSet();
@@ -156,10 +163,10 @@ function ActivityParticipantController(objCollection) {
                                     cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                         if (err) {
                                             //console.log("error in setting in asset parity");
-                                            global.logger.write('serverError',"error in setting in asset parity",err,req.body);
+                                            global.logger.write('serverError', "Error in setting asset parity", err, req.body);
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('debug',"asset parity is set successfully",{},req.body);
+                                            global.logger.write('debug', "Asset parity is set successfully", {}, req.body);
 
                                     });
                                 }
@@ -173,7 +180,9 @@ function ActivityParticipantController(objCollection) {
         };
         try {
             JSON.parse(req.body.activity_participant_collection);
-            console.log('no exception so far');
+            // console.log('no exception so far');
+            global.logger.write('debug', "No exception so far", {}, req.body);
+
         } catch (exeption) {
             res.send(responseWrapper.getResponse(false, {}, -3308,req.body));
             return;
@@ -232,10 +241,10 @@ function ActivityParticipantController(objCollection) {
                                     cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                         if (err) {
                                             //console.log("error in setting in asset parity");
-                                            global.logger.write('serverError',"error in setting in asset parity",err,req.body);
+                                            global.logger.write('serverError', "Error in setting in asset parity", err, req.body);
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('debug',"asset parity is set successfully",{},req.body);
+                                            global.logger.write('debug', "Asset parity is set successfully", {}, req.body);
 
                                     });
                                 }
@@ -302,10 +311,10 @@ function ActivityParticipantController(objCollection) {
                                     cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                         if (err) {
                                             //console.log("error in setting in asset parity");
-                                            global.logger.write('serverError',"error in setting in asset parity",err,req.body);
+                                            global.logger.write('serverError', "Error in setting in asset parity", err, req.body);
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('debug',"asset parity is set successfully",{},req.body);
+                                            global.logger.write('debug', "Asset parity is set successfully", {}, req.body);
 
                                     });
                                 }
@@ -373,10 +382,11 @@ function ActivityParticipantController(objCollection) {
                                     cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                         if (err) {
                                             //console.log("error in setting in asset parity");
-                                            global.logger.write('serverError',"error in setting in asset parity",err,req.body);
+                                            global.logger.write('serverError', "Error in setting in asset parity", err, req.body);
+
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('debug',"asset parity is set successfully",{},req.body);
+                                            global.logger.write('debug', "Asset parity is set successfully", {}, req.body);
 
                                     });
                                 }
