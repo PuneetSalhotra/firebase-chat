@@ -456,6 +456,9 @@ function ActivityCommonService(db, util, forEachAsync) {
             messageUniqueId = participantData.message_unique_id;
         }
 
+        global.logger.write('debug', 'streamTypeId: ' + streamTypeId, {}, request);
+        global.logger.write('debug', 'typeof streamTypeId: ' + typeof streamTypeId, {}, request);
+
         switch (streamTypeId) {
             case 4: // activity updated
                 entityTypeId = 0;
@@ -558,6 +561,9 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityText2 = "";
                 break;
         };
+        
+        global.logger.write('debug', 'activityTimelineCollection : ', {}, request);
+        global.logger.write('debug', activityTimelineCollection, {}, request);
 
         var paramsArr = new Array(
             request.activity_id,
