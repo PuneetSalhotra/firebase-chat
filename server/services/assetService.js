@@ -3151,6 +3151,12 @@ function AssetService(objectCollection) {
             }
         });
     };
+    
+    this.nanikalyan = function(request, callback) {
+        sss.uploadFile(request, (response) => {
+            callback(false , response);
+        });
+    }
 
 }
 

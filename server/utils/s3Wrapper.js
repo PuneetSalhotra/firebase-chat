@@ -152,9 +152,21 @@ var AwsSss = function () {
                    resolve(true)
                 }
             });
-        })
+        });
     }
      
+    this.uploadFile  = function (request, callback){
+        var params = {
+            Body: 'client.pdf',
+            Bucket: "desker-9166-20180126-11192367", 
+            Key: "client5.pdf"
+            //ContentType: 'application/pdf',
+            //ContentEncoding: 'UTF-8'
+           };
+        s3.putObject(params, function(err, data) {
+             console.log(err, data);
+           });           
+    }
     
   };
   
