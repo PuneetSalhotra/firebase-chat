@@ -321,6 +321,7 @@ function PamController(objCollection) {
     });
     
     app.post('/' + global.config.version + '/pam/activity/participant/access/set', function (req, res) {
+        global.logger.write('debug', 'PAM::/pam/activity/participant/access/set::'+req.body, {}, req); 
         var assetMessageCounter = 0;
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))
