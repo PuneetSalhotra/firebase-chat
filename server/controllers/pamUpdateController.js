@@ -121,6 +121,9 @@ function PamUpdateController(objCollection) {
     
     //Activity Status Alter
     app.put('/' + global.config.version + '/pam/activity/status/alter', function (req, res) {
+        
+        global.logger.write('debug', 'PAM::/pam/activity/status/alter::'+req.body, {}, req); 
+        
         var assetMessageCounter = 0;
         var deviceOsId = 0;
         var activityData = {activity_id: req.body.activity_id, message_unique_id: req.body.message_unique_id}; //BETA
