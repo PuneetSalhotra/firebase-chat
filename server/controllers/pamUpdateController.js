@@ -212,8 +212,13 @@ function PamUpdateController(objCollection) {
     });
     
     app.put('/' + global.config.version + '/pam/activity/status/alter/nonqueue', function (req, res) {
+    	global.logger.write('debug', ':::::::::::::::::::SERVICE START:::::::::::::::::::::', {}, req);
+    	global.logger.write('debug', '/pam/activity/status/alter/nonqueue', {}, req);
+    	global.logger.write('debug', req.body, {}, req);    
+    	
      	pamUpdateService.alterActivityStatus(req.body, function (err, data) {
-     		console.log("NonQueue: Alter Status completed");
+     		global.logger.write('debug', ':::::::::::::::::::NONQUEUE: ALTER STATUS COMPLETED:::::::::::::::::::::', {}, req);
+     		global.logger.write('debug', ':::::::::::::::::::SERVICE END:::::::::::::::::::::', {}, req);
         });
      	
      	res.send(responseWrapper.getResponse({}, {}, 200,req.body));
