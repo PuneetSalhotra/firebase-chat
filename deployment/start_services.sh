@@ -9,7 +9,7 @@ then
   mode=preprod pm2 reload startPreProdProcesses.yml
 elif [ "$DEPLOYMENT_GROUP_NAME" == "DeskerApiCode-Production" ] 
 then
-  cd /api-itsnotan-efs/node/production_desker_api/2018-09-24-01/
+  cd /api-itsnotan-efs/node/production_desker_api/2018-09-27-01/
   mode=prod pm2 reload startProdProcesses.yml
   sleep 2
   cd /api-final-efs/node/production_portal_api
