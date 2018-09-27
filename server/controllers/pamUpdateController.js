@@ -122,7 +122,7 @@ function PamUpdateController(objCollection) {
     //Activity Status Alter
     app.put('/' + global.config.version + '/pam/activity/status/alter', function (req, res) {
         
-        global.logger.write('debug', 'PAM::/pam/activity/status/alter::'+req.body, {}, req); 
+        //global.logger.write('debug', 'PAM::/pam/activity/status/alter::'+req.body, {}, req); 
         
         var assetMessageCounter = 0;
         var deviceOsId = 0;
@@ -215,13 +215,13 @@ function PamUpdateController(objCollection) {
     });
     
     app.put('/' + global.config.version + '/pam/activity/status/alter/nonqueue', function (req, res) {
-    	global.logger.write('debug', ':::::::::::::::::::SERVICE START:::::::::::::::::::::', {}, req);
-    	global.logger.write('debug', '/pam/activity/status/alter/nonqueue', {}, req);
-    	global.logger.write('debug', req.body, {}, req);    
+    	//global.logger.write('debug', ':::::::::::::::::::SERVICE START:::::::::::::::::::::', {}, req);
+    	//global.logger.write('debug', '/pam/activity/status/alter/nonqueue', {}, req);
+    	//global.logger.write('debug', req.body, {}, req);    
     	
      	pamUpdateService.alterActivityStatus(req.body, function (err, data) {
-     		global.logger.write('debug', ':::::::::::::::::::NONQUEUE: ALTER STATUS COMPLETED:::::::::::::::::::::', {}, req);
-     		global.logger.write('debug', ':::::::::::::::::::SERVICE END:::::::::::::::::::::', {}, req);
+     		//global.logger.write('debug', ':::::::::::::::::::NONQUEUE: ALTER STATUS COMPLETED:::::::::::::::::::::', {}, req);
+     		//global.logger.write('debug', ':::::::::::::::::::SERVICE END:::::::::::::::::::::', {}, req);
         });
      	
      	res.send(responseWrapper.getResponse({}, {}, 200,req.body));
