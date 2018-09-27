@@ -481,7 +481,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             case 1507: // text message    --> Time Card
                 entityTypeId = 0;
                 entityText1 = ""
-                entityText2 = request.activity_timeline_text;
+                entityText2 = JSON.stringify(request.activity_timeline_text);
                 break;
             case 311: // image    --> file
             case 608: // image    --> Customer Request
@@ -553,7 +553,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             case 23011: // Telephone Module: Video call Missed
                 activityTimelineCollection = request.activity_timeline_collection;
                 entityText1 = "";
-                entityText2 = request.activity_timeline_text;
+                entityText2 = JSON.stringify(request.activity_timeline_text);
                 break;
             default:
                 entityTypeId = 0;

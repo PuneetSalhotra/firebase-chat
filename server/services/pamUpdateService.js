@@ -290,15 +290,19 @@ function PamUpdateService(objectCollection) {
         activityCommonService.updateAssetLocation(request, function (err, data) {});
         activityListUpdateStatus(request).then(()=>{
             if(activityTypeCategroyId == 38) {
-                    switch(Number(request.activity_status_type_id)) {
-                        case 106:
+            	console.log('request.activity_status_type_id: '+request.activity_status_type_id );
+                    switch(Number(request.activity_status_type_id)) {                    	
+                        case 106: if (request.served_at_bar == 1) {
+                            			itemOrderAlterStatus(request).then(() => {});
+                        			}
+                        case 125: updateStatusDateTimes(request).then(()=>{});
+                        		  break;		
                         case 105: itemOrderAlterStatus(request).then(()=>{});
                                   updateStatusDateTimes(request).then(()=>{});
                                   break;                        
-                        case 125: updateStatusDateTimes(request).then(()=>{});
-                                  break;
+                        
                     }
-                }                
+                }               
 
                 assetActivityListUpdateStatus(request, activityStatusId, activityStatusTypeId, function (err, data) { });
                 activityCommonService.activityListHistoryInsert(request, 402, function (err, result) { });

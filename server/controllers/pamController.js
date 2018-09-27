@@ -321,6 +321,7 @@ function PamController(objCollection) {
     });
     
     app.post('/' + global.config.version + '/pam/activity/participant/access/set', function (req, res) {
+        global.logger.write('debug', 'PAM::/pam/activity/participant/access/set::'+req.body, {}, req); 
         var assetMessageCounter = 0;
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))
@@ -436,9 +437,14 @@ function PamController(objCollection) {
     });
     
     app.post('/' + global.config.version + '/pam/activity/participant/access/set/nonqueue', function (req, res) {
-    	console.log(req.body);
+    	global.logger.write('debug', ':::::::::::::::::::SERVICE START:::::::::::::::::::::', {}, req);
+    	global.logger.write('debug', '/pam/activity/participant/access/set/nonqueue', {}, req);
+    	global.logger.write('debug', req.body, {}, req);    	
+    	
         pamService.pamAssignParticipant((req.body), function(err,data){
-    		   	console.log("NonQueue: Participant Assign Completed");
+    		   	//console.log("NonQueue: Participant Assign Completed");
+    		   	global.logger.write('debug', 'NON QUEUE: PARTICIPANT ASSIGN COMPLETED', {}, req);
+    		   	global.logger.write('debug', ':::::::::::::::::::SERVICE END:::::::::::::::::::::', {}, req);
     	});
         res.send(responseWrapper.getResponse({},{}, 200, req.body)); 
     });

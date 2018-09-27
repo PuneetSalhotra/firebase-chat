@@ -454,7 +454,7 @@ function ActivityTimelineService(objectCollection) {
             pubnubMsg.type = 'activity_unread';
             pubnubMsg.organization_id = request.organization_id;
             pubnubMsg.desk_asset_id = request.asset_id;
-            pubnubMsg.activity_type_category_id = request.activity_type_category_id || 0;
+            pubnubMsg.activity_type_category_id = (Number(request.activity_type_category_id)) === 16 ? 0 : request.activity_type_category_id;
             //console.log('PubNub Message : ', pubnubMsg);
             global.logger.write('debug', 'PubNub Message : ' +  pubnubMsg, {}, request);
             pubnubWrapper.push(request.asset_id, pubnubMsg);
