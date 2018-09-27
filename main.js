@@ -45,6 +45,29 @@ redisClient.on('error', function (error) {
     console.log(error);
 });
 
+app.use(function (req, res, next) {
+    // Check whether asset_message_counter exists:
+    if (req.body.hasOwnProperty('asset_message_counter')) {
+        // Then, check if a valid message_unique_id exists:
+        if (!req.body.hasOwnProperty('message_unique_id') ||
+            req.body.message_unique_id === undefined ||
+            req.body.message_unique_id === null ||
+            req.body.message_unique_id === '') {
+            // Let the client know that they have goofed up.
+            res.send({
+                status: -3206,
+                service_id: 0,
+                gmt_time: (new Util()).getCurrentUTCTime(),
+                response: 'Empty/No message_unique_id request parameter found.'
+            });
+            return;
+        }
+    }
+
+    // Move on the next middleware
+    next()
+});
+
 // Targetted logging:
 // For every incoming request, check in Redis whether
 // the asset_id is included in the targeted_logging_asset_ids set 
