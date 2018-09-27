@@ -354,25 +354,50 @@ function ActivityPushService(objectCollection) {
                                         global.logger.write('debug', assetMap, {}, request);
                                         global.logger.write('debug', pushStringObj + objectCollection.util.replaceOne(badgeCount) + assetMap.asset_push_arn, {}, request);
                                         switch (rowData.pushType) {
-                                            case 'pub':
-                                                //console.log('pubnubMsg :', pubnubMsg);
-                                                global.logger.write('debug', 'pubnubMsg :' + JSON.stringify(pubnubMsg, null, 2), {}, request);
-                                                if (pubnubMsg.activity_type_category_id != 0) {
-                                                    pubnubMsg.organization_id = rowData.organizationId;
-                                                    pubnubMsg.desk_asset_id = rowData.assetId;
-                                                    //console.log('PubNub Message : ', pubnubMsg);
-                                                    global.logger.write('debug', 'pubnubMsg :' + JSON.stringify(pubnubMsg, null, 2), {}, request);
-                                                    pubnubWrapper.push(rowData.organizationId, pubnubMsg);
-                                                    pubnubWrapper.push(rowData.assetId, pubnubMsg);
-                                                }
-                                                //break;
-                                            case 'sns':
+                                            // case 'pub':
+                                            //     //console.log('pubnubMsg :', pubnubMsg);
+                                            //     global.logger.write('debug', 'pubnubMsg :' + JSON.stringify(pubnubMsg, null, 2), {}, request);
+                                            //     if (pubnubMsg.activity_type_category_id != 0) {
+                                            //         pubnubMsg.organization_id = rowData.organizationId;
+                                            //         pubnubMsg.desk_asset_id = rowData.assetId;
+                                            //         //console.log('PubNub Message : ', pubnubMsg);
+                                            //         global.logger.write('debug', 'pubnubMsg :' + JSON.stringify(pubnubMsg, null, 2), {}, request);
+                                            //         pubnubWrapper.push(rowData.organizationId, pubnubMsg);
+                                            //         pubnubWrapper.push(rowData.assetId, pubnubMsg);
+                                            //     }
+                                            //     //break;
+                                            // case 'sns':
+                                            //     objectCollection.sns.publish(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn);
+                                            //     if (pubnubMsg.activity_type_category_id != 0) {
+                                            //         pubnubMsg.organization_id = rowData.organizationId;
+                                            //         pubnubMsg.desk_asset_id = rowData.assetId;
+                                            //         //console.log('PubNub Message : ', pubnubMsg);
+                                            //         global.logger.write('debug', 'pubnubMsg :' + JSON.stringify(pubnubMsg, null, 2), {}, request);
+                                            //         pubnubWrapper.push(rowData.organizationId, pubnubMsg);
+                                            //         pubnubWrapper.push(rowData.assetId, pubnubMsg);
+                                            //     }
+                                            //     break;
+                                            default:
+                                                //SNS
                                                 objectCollection.sns.publish(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn);
                                                 if (pubnubMsg.activity_type_category_id != 0) {
                                                     pubnubMsg.organization_id = rowData.organizationId;
                                                     pubnubMsg.desk_asset_id = rowData.assetId;
                                                     //console.log('PubNub Message : ', pubnubMsg);
-                                                    global.logger.write('debug', 'pubnubMsg :' + JSON.stringify(pubnubMsg, null, 2), {}, request);
+                                                    global.logger.write('debug', 'pubnubMsg :', {}, request);
+                                                    global.logger.write('debug', pubnubMsg, {}, request);
+                                                    pubnubWrapper.push(rowData.organizationId, pubnubMsg);
+                                                    pubnubWrapper.push(rowData.assetId, pubnubMsg);
+                                                }
+                                                //PUB
+                                                //console.log('pubnubMsg :', pubnubMsg);
+                                                global.logger.write('debug', 'pubnubMsg :', pubnubMsg, {}, request);
+                                                if (pubnubMsg.activity_type_category_id != 0) {
+                                                    pubnubMsg.organization_id = rowData.organizationId;
+                                                    pubnubMsg.desk_asset_id = rowData.assetId;
+                                                    //console.log('PubNub Message : ', pubnubMsg);
+                                                    global.logger.write('debug', 'pubnubMsg :', {}, request);
+                                                    global.logger.write('debug', pubnubMsg, {}, request);
                                                     pubnubWrapper.push(rowData.organizationId, pubnubMsg);
                                                     pubnubWrapper.push(rowData.assetId, pubnubMsg);
                                                 }
@@ -441,10 +466,21 @@ function ActivityPushService(objectCollection) {
                 var senderName = '';
                 var reqobj = {};
                 
+                global.logger.write('debug', 'request params in the activityPush Service', {}, request);
+                global.logger.write('debug', request, {}, request);
+
                 objectCollection.activityCommonService.getAssetActiveAccount(participantsList)
                     .then((newParticipantsList) => {
                         if (pushAssetId > 0) {
+
+                            global.logger.write('debug', 'pushAssetId: ' + pushAssetId, {}, request);
+
                             objectCollection.forEachAsync(newParticipantsList, function (next, rowData) {
+
+                                global.logger.write('debug', 'Number(request.asset_id): ' + JSON.stringify(request.asset_id), {}, request);
+                                global.logger.write('debug', 'Number(rowData[asset_id]): ' + JSON.stringify(rowData['asset_id']), {}, request);
+                                global.logger.write('debug', 'Expression: ' + JSON.stringify(Number(request.asset_id) === Number(rowData['asset_id'])), {}, request);
+
                                 if (Number(request.asset_id) === Number(rowData['asset_id'])) { // sender details in this condition
                                     senderName = rowData['operating_asset_first_name'] + ' ' + rowData['operating_asset_last_name'];
                                     next();
@@ -491,6 +527,11 @@ function ActivityPushService(objectCollection) {
                             });
                         } else {
                             objectCollection.forEachAsync(newParticipantsList, function (next, rowData) {
+
+                                global.logger.write('debug', 'Number(request.asset_id): ' + JSON.stringify(request.asset_id), {}, request);
+                                global.logger.write('debug', 'Number(rowData[asset_id]): ' + JSON.stringify(rowData['asset_id']), {}, request);
+                                global.logger.write('debug', 'Expression: ' + JSON.stringify(Number(request.asset_id) !== Number(rowData['asset_id'])), {}, request);
+                                
                                 if (Number(request.asset_id) !== Number(rowData['asset_id'])) {
                                     reqobj = {
                                         organization_id: rowData['organization_id'],
