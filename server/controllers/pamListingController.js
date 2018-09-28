@@ -318,6 +318,15 @@ function PamListingController(objCollection) {
         });    		
     });
     
+    app.post('/' + global.config.version + '/pam/member/reservation/list', function (req, res) {
+    	pamListingService.getMemberReservations(req.body).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        });    		
+    });
 }
 ;
 module.exports = PamListingController;

@@ -351,6 +351,11 @@ config.platformApplicationIosWorldDeskDevGR = 'arn:aws:sns:us-east-1:43050686499
 config.platformApplicationIosWorldDeskProdGR = "arn:aws:sns:us-east-1:430506864995:app/APNS/worldDeskProd";
 config.platformApplicationAndroid = "arn:aws:sns:us-east-1:430506864995:app/GCM/deskerAndroid";
 config.platformApplicationWindows = 'arn:aws:sns:us-east-1:430506864995:app/WNS/deskerWindows';
+
+//New VOIP Push platform endpoints
+config.platformApplicationIosVOIPDev = 'arn:aws:sns:us-east-1:430506864995:app/APNS_VOIP/wDeskProdNew';
+config.platformApplicationIosVOIPProd = 'arn:aws:sns:us-east-1:430506864995:app/APNS_VOIP_SANDBOX/wDeskDevNew';
+
 config.twilioAccountSid = "AC66cabb9ae7db92bbf7e6113ff2eeabad";
 config.twilioAuthToken = "7d4f9ee9f8122d2a7129e13fdaefd919";
 config.nexmoAPIKey = "533696c3";
