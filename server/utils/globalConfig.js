@@ -88,8 +88,8 @@ if (mode === 'dev') {
     // config.slave2Ip = 'readreplica2.citeodhwc7z9.us-east-1.rds.amazonaws.com';
 
     config.dbUser = 'apiuser';
-    //config.database = 'desker';// desker_staging
-    config.database = 'desker_staging';
+    config.database = 'desker';// desker_staging
+    // config.database = 'desker_staging';
     config.dbPassword = 'apidbuser';
     config.conLimit = 10;
 
@@ -149,7 +149,8 @@ if (mode === 'dev') {
     config.conLimit = 10;
 
     //Redis Config
-    config.redisIp = 'dev-redis.apppnf.0001.use1.cache.amazonaws.com';
+    // config.redisIp = 'dev-redis.apppnf.0001.use1.cache.amazonaws.com';
+    config.redisIp = 'rediscluster1.apppnf.ng.0001.use1.cache.amazonaws.com';
     config.redisPort = 6379;   
     
     //Kafka Brokers Config
