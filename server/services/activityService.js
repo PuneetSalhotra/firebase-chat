@@ -12,6 +12,8 @@ function ActivityService(objectCollection) {
     var queueWrapper = objectCollection.queueWrapper;
     var activityPushService = objectCollection.activityPushService;
     var responseactivityData = {}
+    const suzukiPdfEngine = require('../utils/suzukiPdfGenerationEngine');
+
     this.addActivity = function (request, callback) {
 
         var logDatetime = util.getCurrentUTCTime();
@@ -326,6 +328,78 @@ function ActivityService(objectCollection) {
                             callback(false, responseactivityData, 200);
                         }
                     });
+
+                    // Suzuki Form Submissions PDF Generation Logic
+                    // 
+                    // 
+                    if (activityTypeCategroyId === 9 && (
+                            Number(request.activity_form_id) === 815 ||
+                            Number(request.activity_form_id) === 816 ||
+                            Number(request.activity_form_id) === 817 ||
+                            Number(request.activity_form_id) === 818 ||
+                            Number(request.activity_form_id) === 819 ||
+                            Number(request.activity_form_id) === 820
+                        )) {
+                        // Fetch Contact Card information
+                        activityCommonService.getActivityDetails(request, request.activity_parent_id, (err, data) => {
+                            if (!err) {
+
+                                var contactCardInlineData = JSON.parse(data[0].activity_inline_data);
+
+                                request.contact_reference_name = data[0].activity_title;
+                                request.contact_reference_address = contactCardInlineData.contact_location;
+                                request.contact_reference_contact_number = contactCardInlineData.contact_phone_number;
+                                request.contact_reference_email = contactCardInlineData.contact_email_id;
+
+                                // Fetch contact file's first collaborator (non-creator):
+                                // 
+                                activityCommonService.fetchContactFileFirstCollaborator(request, request.activity_parent_id, (err, collaboratorData) => {
+                                    if (collaboratorData.length > 0) {
+                                        // console.log("collaboratorData: ", collaboratorData);
+                                        request.contact_executive_name = collaboratorData[0].operating_asset_first_name;
+                                        request.contact_executive_contact_number = '+ ' + collaboratorData[0].operating_asset_phone_country_code + ' ' + collaboratorData[0].operating_asset_phone_number;
+                                        request.log_datetime = util.getCurrentUTCTime();
+
+                                    } else {
+                                        console.log("No sales executive");
+                                    }
+
+                                    // Generate PDF Proforma Invoice and Upload to AWS S3
+                                    suzukiPdfEngine(request, request.activity_form_id, JSON.parse(request.activity_inline_data), data[0].activity_master_data, (err, activityMasterData, reportURL) => {
+                                        activityCommonService.updateActivityMasterData(request, request.activity_parent_id, activityMasterData, () => {});
+
+                                        // Update contact_report_url in the Contact Card activity's inline data
+
+                                        contactCardInlineData.contact_report_url = reportURL;
+
+                                        // Fire the Inline Alter service
+                                        var newRequest = Object.assign(request);
+                                        newRequest.activity_id = request.activity_parent_id;
+                                        newRequest.activity_inline_data = JSON.stringify(contactCardInlineData);
+                                        newRequest.activity_type_category_id = 6;
+
+                                        const event = {
+                                            name: "alterActivityInline",
+                                            service: "activityUpdateService",
+                                            method: "alterActivityInline",
+                                            payload: newRequest
+                                        };
+
+                                        queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
+                                            if (err) {
+                                                console.log('Error in queueWrapper raiseActivityEvent : ', err)
+                                                console.log('Response from queueWrapper raiseActivityEvent : ', resp)
+
+                                                throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+                                            }
+                                        });
+                                    });
+                                });
+                            }
+                        })
+                    }
+                    // 
+                    //
                 } else {
                     callback(err, responseactivityData, -9999);
                     return;
