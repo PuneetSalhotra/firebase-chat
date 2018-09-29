@@ -277,12 +277,12 @@ function generatePdfAndUpload(request, form_id, formSubmissionData, activityForm
     });
 
     // Update Contact Reference's Email Field:
-    pdfDocumentDefinition.content[2].table.body[3][1] = request.contact_email_id || '-';
+    pdfDocumentDefinition.content[2].table.body[3][1] = request.contact_reference_email || '-';
 
     // Update Executive's Details:
     pdfDocumentDefinition.content[4].table.body[0][1] = request.contact_executive_name || '-';
     pdfDocumentDefinition.content[4].table.body[1][1] = request.contact_executive_contact_number || '-';
-    pdfDocumentDefinition.content[4].table.body[2][1] = request.log_datetime || '-';
+    pdfDocumentDefinition.content[4].table.body[2][1] = request.invoice_date || '-';
     pdfDocumentDefinition.content[4].table.body[3][1] = request.activity_parent_id || '-';
     pdfDocumentDefinition.content[4].table.body[4][1] = '29AAFCA2076E1ZT';
 
