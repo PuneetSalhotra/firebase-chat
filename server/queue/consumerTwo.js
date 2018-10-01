@@ -26,7 +26,8 @@ var Consumer = function () {
     var activityCommonService = new ActivityCommonService(db, util, forEachAsync);
     var activityPushService = new ActivityPushService();
     
-    console.log('global.config.kafkaIPOne : ', global.config.kafkaIPTwo.kafkaHost);
+    //console.log('global.config.kafkaIPOne : ', global.config.kafkaIPTwo.kafkaHost);
+    global.logger.write('debug', 'global.config.kafkaIPTwo : ' + global.config.kafkaIPTwo.kafkaHost, {}, {});
     
     const options = {
       groupId: global.config.consumerGroup,
@@ -43,7 +44,8 @@ var Consumer = function () {
     const ConsumerGroup = kafka.ConsumerGroup;
     const consumerGroup1 = new ConsumerGroup(options, [global.config.kafkaActivitiesTopic]);
 
-    console.log(global.config.kafkaActivitiesTopic);
+    //console.log(global.config.kafkaActivitiesTopic);
+    global.logger.write('debug', global.config.kafkaActivitiesTopic, {}, {});
 
     var cli = new kafka.KafkaClient(global.config.kafkaIPOne,global.config.kafkaIPTwo,global.config.kafkaIPThree);
     var kafkaProducer = new KafkaProducer(cli);
@@ -81,12 +83,12 @@ var Consumer = function () {
             //console.log('Request params : ' , request);
             
             if(Number(request.organization_id) === 351) {
-                global.logger.write('debug', 'This is PAM Request : ' + request, {}, {});
+                global.logger.write('debug', 'This is PAM Request : ' , request, {}, {});
                 global.logger.write('debug', request, {}, {});
                 consumingMsg(message, kafkaMsgId, objCollection).then(()=>{});
             } else {
                 activityCommonService.checkingMSgUniqueId(request, (err, data)=>{
-                    global.logger.write('debug', 'err from checkingMSgUniqueId : ' + err, {}, request);
+                    global.logger.write('debug', 'err from checkingMSgUniqueId : ' , err, {}, request);
                     if(err === false) {
                         consumingMsg(message, kafkaMsgId, objCollection).then(()=>{});
                     } else {
@@ -222,7 +224,7 @@ var Consumer = function () {
                         //console.log('data : ' + data);
                         //console.log('kafkaMsgId : ' + kafkaMsgId);
                         //console.log('Received message.offset : ' + message.offset);
-                        global.logger.write('debug', 'data : ' + data, {}, {});
+                        global.logger.write('debug', 'data : ' , data, {}, {});
                         global.logger.write('debug', 'kafkaMsgId : ' + kafkaMsgId, {}, {});
                         global.logger.write('debug', 'Received message.offset : ' + message.offset, {}, {});
                         

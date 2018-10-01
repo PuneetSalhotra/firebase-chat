@@ -2,6 +2,9 @@
  * author: Sri Sai Venkatesh
  */
 const pubnubWrapper = new (require('../utils/pubnubWrapper'))(); //BETA
+//var PDFDocument = require('pdfkit');
+var fs = require('fs');
+//var AwsSss = require('../utils/s3Wrapper');
 
 function ActivityTimelineService(objectCollection) {
 
@@ -437,7 +440,7 @@ function ActivityTimelineService(objectCollection) {
             pubnubMsg.desk_asset_id = request.asset_id;
             pubnubMsg.activity_type_category_id = request.activity_type_category_id || 0;
             //console.log('PubNub Message : ', pubnubMsg);
-            global.logger.write('debug', 'PubNub Message : ' +  pubnubMsg, {}, request);
+            global.logger.write('debug', 'PubNub Message : ' ,  pubnubMsg, {}, request);
             pubnubWrapper.push(request.asset_id, pubnubMsg);
             pubnubWrapper.push(request.organization_id, pubnubMsg);
         }
@@ -1201,7 +1204,7 @@ function ActivityTimelineService(objectCollection) {
             callback(false, approvalFields);
         });
     };
-
+    
 
 }
 ;
