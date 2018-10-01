@@ -78,6 +78,25 @@ function ActivityTimelineService(objectCollection) {
                         activityCommonService.updateActivityLogLastUpdatedDatetime(request, 0, function (err, data) { }): //To increase unread cnt for marketing manager
                         activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) { });
                     
+                    // Telephone module
+                    // 23003 => Added an update to the chat
+                    if (activityTypeCategoryId === 16 && activityStreamTypeId === 23003) {
+                        
+                        // Update last updated and last differential datetime for the sender
+                        activityCommonService.activityAssetMappingUpdateLastUpdateDateTimeOnly(request, function (err, data) {
+                            activityCommonService.getActivityDetails(request, request.activity_id, function(err, data) {
+                                
+                                // Replace/append the new chat message to the existing inline data
+                                var updatedActivityInlineData = JSON.parse(data[0].activity_inline_data);
+                                updatedActivityInlineData.message = JSON.parse(request.activity_timeline_collection);
+                                
+                                // Update the activity's inline data with the last send chat message
+                                activityCommonService.activityAssetMappingUpdateInlineDataOnly(request, JSON.stringify(updatedActivityInlineData), () => {});
+                            });
+                            
+                        });
+                    }
+
                     if (formDataJson.hasOwnProperty('asset_reference')) {
                         if (formDataJson.asset_reference.length > 0) {
                             forEachAsync(formDataJson.asset_reference, function (next, rowData) {                                
@@ -438,7 +457,7 @@ function ActivityTimelineService(objectCollection) {
             pubnubMsg.type = 'activity_unread';
             pubnubMsg.organization_id = request.organization_id;
             pubnubMsg.desk_asset_id = request.asset_id;
-            pubnubMsg.activity_type_category_id = request.activity_type_category_id || 0;
+            pubnubMsg.activity_type_category_id = (Number(request.activity_type_category_id)) === 16 ? 0 : request.activity_type_category_id;
             //console.log('PubNub Message : ', pubnubMsg);
             global.logger.write('debug', 'PubNub Message : ' ,  pubnubMsg, {}, request);
             pubnubWrapper.push(request.asset_id, pubnubMsg);

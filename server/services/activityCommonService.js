@@ -480,7 +480,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             case 1507: // text message    --> Time Card
                 entityTypeId = 0;
                 entityText1 = ""
-                entityText2 = request.activity_timeline_text;
+                entityText2 = JSON.stringify(request.activity_timeline_text);
                 break;
             case 311: // image    --> file
             case 608: // image    --> Customer Request
@@ -552,7 +552,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             case 23011: // Telephone Module: Video call Missed
                 activityTimelineCollection = request.activity_timeline_collection;
                 entityText1 = "";
-                entityText2 = request.activity_timeline_text;
+                entityText2 = JSON.stringify(request.activity_timeline_text);
                 break;
             default:
                 entityTypeId = 0;
@@ -2014,6 +2014,52 @@ function ActivityCommonService(db, util, forEachAsync) {
         );
         var queryString = util.getQueryString('ds_p1_asset_invalid_message_transaction_insert', paramsArr);
         if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                (err === false) ? callback(false, data): callback(true, {});
+            });
+        }
+    };
+
+    // Update the last updated and differential datetime for an asset.
+    // This is currently being used by the telephone module to update the same
+    // for the sender's asset_id
+    this.activityAssetMappingUpdateLastUpdateDateTimeOnly = function (request, callback) {
+        // IN p_activity_id BIGINT(20), IN p_asset_id BIGINT(20), 
+        // IN p_organization_id BIGINT(20), IN p_last_updated_datetime DATETIME
+
+        var paramsArr = new Array(
+            request.activity_id,
+            request.asset_id,
+            request.organization_id,
+            util.getCurrentUTCTime() // request.track_gps_datetime
+        );
+        var queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_last_update_dt_only', paramsArr);
+        if (queryString !== '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                (err === false) ? callback(false, data): callback(true, {});
+            });
+        }
+    };
+
+    // Update an activity's inline data in the activity_asset_mapping and activity_list
+    // table. Currently used by the telephone module to update the last message that is 
+    // sent.
+    this.activityAssetMappingUpdateInlineDataOnly = function (request, updatedActivityInlineData, callback) {
+        // IN p_activity_id BIGINT(20), IN p_asset_id BIGINT(20), IN p_organization_id BIGINT(20), 
+        // IN p_activity_inline_data JSON, IN p_pipe_separated_string VARCHAR(1200), 
+        // IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+
+        var paramsArr = new Array(
+            request.activity_id,
+            request.asset_id,
+            request.organization_id,
+            updatedActivityInlineData,
+            '', // request.pipe_separated_string
+            request.asset_id,
+            util.getCurrentUTCTime() // request.log_datetime
+        );
+        var queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_inline_data_only', paramsArr);
+        if (queryString !== '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 (err === false) ? callback(false, data): callback(true, {});
             });
