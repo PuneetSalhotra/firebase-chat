@@ -457,10 +457,10 @@ function statsController(objCollection) {
                 var responseJSON = {
                     not_set: [{
                         date: '2018-09-23 00:00:00',
-                        value: 0
+                        count: 0
                     }, {
                         date: '2018-09-24 00:00:00',
-                        value: 0
+                        count: 0
                     }, {
                         date: '2018-09-25 00:00:00',
                         count: 0
@@ -488,10 +488,10 @@ function statsController(objCollection) {
                     }],
                     cancelled: [{
                         date: '2018-09-23 00:00:00',
-                        value: 5
+                        count: 5
                     }, {
                         date: '2018-09-24 00:00:00',
-                        value: 9
+                        count: 9
                     }, {
                         date: '2018-09-25 00:00:00',
                         count: 9
@@ -519,10 +519,10 @@ function statsController(objCollection) {
                     }],
                     resubmit: [{
                         date: '2018-09-23 00:00:00',
-                        value: 0
+                        count: 0
                     }, {
                         date: '2018-09-24 00:00:00',
-                        value: 0
+                        count: 0
                     }, {
                         date: '2018-09-25 00:00:00',
                         count: 0
@@ -550,10 +550,10 @@ function statsController(objCollection) {
                     }],
                     reinitiate: [{
                         date: '2018-09-23 00:00:00',
-                        value: 0
+                        count: 0
                     }, {
                         date: '2018-09-24 00:00:00',
-                        value: 0
+                        count: 0
                     }, {
                         date: '2018-09-25 00:00:00',
                         count: 0
@@ -581,10 +581,10 @@ function statsController(objCollection) {
                     }],
                     approved: [{
                         date: '2018-09-23 00:00:00',
-                        value: 121
+                        count: 121
                     }, {
                         date: '2018-09-24 00:00:00',
-                        value: 119
+                        count: 119
                     }, {
                         date: '2018-09-25 00:00:00',
                         count: 116
@@ -612,10 +612,10 @@ function statsController(objCollection) {
                     }],
                     feasibility_check: [{
                         date: '2018-09-23 00:00:00',
-                        value: 0
+                        count: 0
                     }, {
                         date: '2018-09-24 00:00:00',
-                        value: 0
+                        count: 0
                     }, {
                         date: '2018-09-25 00:00:00',
                         count: 0
@@ -643,10 +643,10 @@ function statsController(objCollection) {
                     }],
                     document_validation: [{
                         date: '2018-09-23 00:00:00',
-                        value: 0
+                        count: 0
                     }, {
                         date: '2018-09-24 00:00:00',
-                        value: 0
+                        count: 0
                     }, {
                         date: '2018-09-25 00:00:00',
                         count: 0
