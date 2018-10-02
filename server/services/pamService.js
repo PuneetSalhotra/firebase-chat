@@ -1053,7 +1053,9 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
         iterateAddParticipant(activityParticipantCollection, index, maxIndex, function (err, data) {
 	      	  if(activityTypeCategroyId == 37) {                    
 	              var newRequest = Object.assign({}, request);
-	              activityCommonService.sendSmsCodeParticipant(newRequest, function(err, data){});
+			  if(request.hasOwnProperty('is_non_queue')){
+	              		activityCommonService.sendSmsCodeParticipant(newRequest, function(err, data){});
+				}
 	          }
             if (err === false && data === true) {
                 if (maxIndex === index) {
