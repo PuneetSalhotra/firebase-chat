@@ -440,7 +440,7 @@ function PamController(objCollection) {
     	//global.logger.write('debug', ':::::::::::::::::::SERVICE START:::::::::::::::::::::', {}, req);
     	//global.logger.write('debug', '/pam/activity/participant/access/set/nonqueue', {}, req);
     	//global.logger.write('debug', req.body, {}, req);    	
-    	
+    	req.body.is_non_queue = 1;
         pamService.pamAssignParticipant((req.body), function(err,data){
     		   	//console.log("NonQueue: Participant Assign Completed");
     		//   	global.logger.write('debug', 'NON QUEUE: PARTICIPANT ASSIGN COMPLETED', {}, req);
