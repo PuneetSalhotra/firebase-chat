@@ -1054,7 +1054,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
 	      	  if(activityTypeCategroyId == 37) {                    
 	              var newRequest = Object.assign({}, request);
 			  if(request.hasOwnProperty('is_non_queue')){
-	              		activityCommonService.sendSmsCodeParticipant(newRequest, function(err, data){});
+	              		sendSmsCodeParticipant(newRequest, function(err, data){});
 				}
 	          }
             if (err === false && data === true) {
@@ -3056,6 +3056,124 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                 }
             });
         }
+    };
+	
+        function sendSmsCodeParticipant(request, callback){
+    	
+            var reservationCode;
+            var expiryDatetime;
+            var tableNames = "";
+            var noOfGuests = 0;
+            var cnt = 0;
+            
+            var memberName;
+            var countryCode;
+            var phoneNumber;                      
+            var reservationCreatedDatetime;
+            
+            var participantData = JSON.parse(request.activity_participant_collection);
+                    forEachAsync(participantData, function (next, row) {
+                        cnt++;                                              
+                        if(row.asset_category_id == 30){
+                            getActivityDetails(request).then((resp)=>{                               
+                                reservationCode = resp[0].activity_sub_type_name;
+                                expiryDatetime = util.replaceDefaultDatetime(resp[0].activity_datetime_end_estimated);
+                                reservationCreatedDatetime = util.addUnitsToDateTime(util.replaceDefaultDatetime(resp[0].activity_datetime_created),5.5,'hours');
+                                console.log("reservationCreatedDatetime: "+reservationCreatedDatetime);
+                                
+                                request.work_station_asset_id = row.asset_id;
+                                pamGetAssetDetails(request).then((data)=>{                                        
+                                    phoneNumber = util.replaceDefaultNumber(data[0].asset_phone_number);
+                                    countryCode = util.replaceDefaultNumber(data[0].asset_phone_country_code);
+                                    memberName = util.replaceDefaultString(data[0].asset_first_name);
+                                    next();
+                                });                            
+                            });                           
+                                                     
+                        } else if(row.asset_category_id == 31){
+                                request.work_station_asset_id = row.asset_id;
+                                    pamGetAssetDetails(request).then((data)=>{
+                                        tableNames += data[0].asset_first_name + "-";
+                                        
+                                        console.log('data[0].asset_inline_data : ' , data[0].asset_inline_data);
+                                        var inlineJson = JSON.parse(data[0].asset_inline_data);
+                                        noOfGuests += util.replaceDefaultNumber(inlineJson.element_cover_capacity);
+                                        next();
+                                    });
+                                                              
+                        } else {
+                            next();
+                        }                       
+                        
+                    }).then(() => {
+                         noOfGuests--;
+                         var text;
+                         console.log('memberName : ', memberName);
+                         console.log('countryCode: ', countryCode);
+                         console.log('phoneNumber : ', phoneNumber);
+                         console.log('tableNames : ', tableNames);
+                         
+                         var expiryDateTime = util.addUnitsToDateTime(util.replaceDefaultDatetime(request.event_start_datetime),5.5,'hours');
+                         //expiryDateTime = util.getDatewithndrdth(expiryDateTime);
+                         expiryDateTime = util.getFormatedSlashDate(expiryDateTime);
+                         
+                         if(request.hasOwnProperty('reserv_at_item_order')) {
+                            text = "Dear "+memberName+","+" Your code was used to make an order a few minutes ago.";
+                             text += " If you are not at Pudding \& Mink right now, please whatsapp / call us at 916309386175 immediately. Pudding & Mink";
+                         } else {
+  	                       	  text = "Dear "+memberName+","+" Thank you for patronizing PUDDING & MINK! \nTable number "+tableNames+" is reserved for you/ your group on "+expiryDateTime+".";
+	                    	  text += " Your reservation code is "+reservationCode+"."+" Do feel free to forward this message to your other guests, so they may use the same code to enter. \nPlease note the entry is from the parking level @ Radisson Blu Plaza, Banjara Hills.";
+	                    	  text += " Your reservation will be forfeited at 12am if no one from the group is present. \nWe look forward to hosting you/ your group. \nAssuring you of a great experience, \nPUDDING & MINK !!";
+
+                         }
+                         console.log('SMS text : \n', text);
+                         //phoneNumber = '7680000368';
+                         
+                         util.pamSendSmsMvaayoo(text, countryCode, phoneNumber, function(err,res){
+                                if(err === false) {
+                                    console.log('Message sent!',res);
+                                 }
+                         });
+                         
+                         util.pamSendSmsMvaayoo(text, 91, 6309386175, function(err,res){
+                                if(err === false) {
+                                    console.log('Message sent to Admin!', res);
+                                }                                     
+                             });
+                         return callback(false, 200);
+                         });                             
+   };
+   
+      function pamGetAssetDetails(request) {
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                351, //request.organization_id,
+                request.work_station_asset_id
+                );
+            var queryString = util.getQueryString('ds_v1_asset_list_select', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {                    
+                    (err === false)? resolve(data) : reject(err);
+                });
+            }
+        });
+    };
+    
+      function getActivityDetails(request){
+        return new Promise((resolve, reject)=>{
+            var paramsArr;
+            paramsArr = new Array(
+                        request.activity_id,
+                        request.organization_id
+                        );
+
+            var queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false)? resolve(data) : reject(err);
+                });
+            }
+        });        
     };
 }
 ;
