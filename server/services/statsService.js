@@ -239,10 +239,10 @@ function StatsService(objCollection) {
             request.date_start,
             request.date_end
         );
-        var queryString = util.getQueryString('ds_p1_activity_list_select_form_count_activity_status', paramsArr);
+        var queryString = util.getQueryString('ds_p1_1_activity_list_select_form_count_activity_status', paramsArr);
         if (queryString !== '') {
             db.executeQuery(1, queryString, request, function (err, data) {
-                (err === false) ? callback(false, data, 500): callback(true, {}, -9998);
+                (err === false) ? callback(false, data, 200): callback(true, {}, -9998);
             });
         }
     };
@@ -260,7 +260,7 @@ function StatsService(objCollection) {
             request.date_start,
             request.date_end
         );
-        var queryString = util.getQueryString('ds_p1_activity_form_transaction_select_vodafone_form_value', paramsArr);
+        var queryString = util.getQueryString('ds_p1_1_activity_form_transaction_select_vodafone_form_value', paramsArr);
         if (queryString !== '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 (err === false) ? callback(false, data, 200): callback(true, {}, -9998);
@@ -282,7 +282,7 @@ function StatsService(objCollection) {
             request.date_start,
             request.date_end
         );
-        var queryString = util.getQueryString('ds_p1_activity_form_transaction_select_vodafone_form_value_day', paramsArr);
+        var queryString = util.getQueryString('ds_p1_1_activity_form_transaction_select_vodafone_form_value_day', paramsArr);
         if (queryString !== '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 (err === false) ? callback(false, data, 200): callback(true, {}, -9998);
@@ -304,7 +304,7 @@ function StatsService(objCollection) {
             request.date_start,
             request.date_end
         );
-        var queryString = util.getQueryString('ds_p1_activity_list_select_form_count_activity_status_day', paramsArr);
+        var queryString = util.getQueryString('ds_p1_1_activity_list_select_form_count_activity_status_day', paramsArr);
         if (queryString !== '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 (err === false) ? callback(false, data, 200): callback(true, {}, -9998);
