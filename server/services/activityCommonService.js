@@ -456,6 +456,9 @@ function ActivityCommonService(db, util, forEachAsync) {
             messageUniqueId = participantData.message_unique_id;
         }
 
+        global.logger.write('debug', 'streamTypeId: ' + streamTypeId, {}, request);
+        global.logger.write('debug', 'typeof streamTypeId: ' + typeof streamTypeId, {}, request);
+
         switch (streamTypeId) {
             case 4: // activity updated
                 entityTypeId = 0;
@@ -558,6 +561,9 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityText2 = "";
                 break;
         };
+        
+        global.logger.write('debug', 'activityTimelineCollection : ', {}, request);
+        global.logger.write('debug', activityTimelineCollection, {}, request);
 
         var paramsArr = new Array(
             request.activity_id,
@@ -1766,7 +1772,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                                 //console.log("Asset - " + data[0].asset_id + " - " + data[0].operating_asset_first_name +" - Active Organization is : " + data[0].organization_id);
                                 //console.log("Asset - " + data[0].asset_id + " - " + data[0].operating_asset_first_name +" - Organization in participant List: " , rowData['organization_id']);
                                 global.logger.write('debug', "Asset - " + data[0].asset_id + " - " + data[0].operating_asset_first_name + " - Active Organization is : " + data[0].organization_id, {}, request);
-                                global.logger.write('debug', "Asset - " + data[0].asset_id + " - " + data[0].operating_asset_first_name + " - Organization in participant List: ", rowData['organization_id'], {}, request);
+                                global.logger.write('debug', "Asset - " + data[0].asset_id + " - " + data[0].operating_asset_first_name + " - Organization in participant List: " + rowData['organization_id'], {}, request);
 
                                 if (data[0].organization_id == rowData['organization_id']) {
                                     refinedParticipantList.push(rowData);
