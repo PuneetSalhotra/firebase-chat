@@ -1176,6 +1176,58 @@ function PamListingService(objectCollection) {
 	   		}
         });
     };
+	
+     this.getReservationOrders = function (request) {
+			return new Promise((resolve, reject)=>{
+	        var paramsArr = new Array(
+	        		request.organization_id,
+	        		request.account_id,
+	        		request.reservation_activity_id,
+					request.is_sort,
+					request.start_limit,
+					request.end_limit
+	                );
+	
+	        var queryString = util.getQueryString('pm_v1_pam_order_list_select_reservation_orders', paramsArr);
+	        if (queryString != '') {
+	            db.executeQuery(1, queryString, request, function (err, data) {
+	            	//console.log("err "+err);
+	               if(err === false) {
+	               		console.log('data: '+data.length);
+	               		resolve(data);        				        			      			  
+                    } else {
+	                   reject(err);
+	               }
+	            });
+	   		}
+        });
+    };
+    
+    this.getUnpaidReservations = function (request) {
+			return new Promise((resolve, reject)=>{
+	        var paramsArr = new Array(
+	        		request.organization_id,
+	        		request.account_id,
+	        		request.member_asset_id,
+					request.is_asset,
+					request.start_limit,
+					request.end_limit
+	                );
+	
+	        var queryString = util.getQueryString('pm_v1_pam_event_billing_select_unpaid_reservations', paramsArr);
+	        if (queryString != '') {
+	            db.executeQuery(1, queryString, request, function (err, data) {
+	            	//console.log("err "+err);
+	               if(err === false) {
+	               		console.log('data: '+data.length);
+	               		resolve(data);        				        			      			  
+                    } else {
+	                   reject(err);
+	               }
+	            });
+	   		}
+        });
+    };
 };
 
 module.exports = PamListingService;
