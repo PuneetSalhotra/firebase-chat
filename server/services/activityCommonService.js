@@ -116,7 +116,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             // ds_v1_activity_asset_mapping_update_last_updated_datetime ---> updates activity_datetime_last_updated, asset_datetime_last_differential, asset_unread_updates_count
             queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_last_updated_datetime', paramsArr);
         }
-        
+
         global.logger.write('debug', "Calling updateActivityLogLastUpdatedDatetimeAsset", {}, request);
         global.logger.write('debug', queryString, {}, request);
 
@@ -569,7 +569,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityText2 = "";
                 break;
         };
-        
+
         global.logger.write('debug', 'activityTimelineCollection : ', {}, request);
         global.logger.write('debug', activityTimelineCollection, {}, request);
 
@@ -2076,6 +2076,46 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
     };
 
+    // Update activity_master_data. This is being used for storing the pdfMake's 
+    // document definition in a JSON Format for Suzuki
+    this.updateActivityMasterData = function (request, activityId, activityMasterData, callback) {
+        // IN p_activity_id BIGINT(20), IN p_organization_id BIGINT(20), 
+        // IN p_activity_master_data JSON
+        var paramsArr = new Array(
+            activityId,
+            request.organization_id,
+            activityMasterData
+        );
+        var queryString = util.getQueryString('ds_p1_activity_list_update_master_data', paramsArr);
+        if (queryString !== '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                if (err === false) {
+                    callback(false, data);
+                } else {
+                    callback(err, false);
+                }
+            });
+        }
+    };
+
+    // Fetch contact file's first collaborator (non-creator):
+    this.fetchContactFileFirstCollaborator = function (request, activityId, callback) {
+        // IN p_activity_id BIGINT(20), IN p_organization_id BIGINT(20), 
+        // IN p_start_from SMALLINT(6), IN p_limit_value TINYINT(4)
+
+        var paramsArr = new Array(
+            activityId,
+            request.organization_id,
+            0,
+            1
+        );
+        var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_non_creator_participants', paramsArr);
+        if (queryString !== '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                (err === false) ? callback(false, data): callback(true, {});
+            });
+        }
+    };
     // [VODAFONE] Check the rules table
     this.activityStatusValidationMappingSelectTrigger = function (request, callback) {
         // IN p_form_id BIGINT(20), IN p_activity_status_id BIGINT(20), IN p_organization_id BIGINT(20)
