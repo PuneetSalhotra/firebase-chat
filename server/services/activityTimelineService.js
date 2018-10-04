@@ -1074,16 +1074,20 @@ function ActivityTimelineService(objectCollection) {
                 case 8:     //Scale (0 to 5)
                     params[11] = row.field_value;
                     break;
-                case 9:     //Reference - Organization
-                case 10:    //Reference - Building
-                case 11:    //Reference - Floor
-                case 12:    //Reference - Person
-                case 13:    //Reference - Vehicle
-                case 14:    //Reference - Room
-                case 15:    //Reference - Desk
-                case 16:    //Reference - Assistant
+                case 9:     // Reference - Organization
+                case 10:    // Reference - Building
+                case 11:    // Reference - Floor
+                case 12:    // Reference - Person
+                case 13:    // Reference - Vehicle
+                case 14:    // Reference - Room
+                case 15:    // Reference - Desk
+                case 16:    // Reference - Assistant
                     //params[12] = row.field_value;
                     params[13] = row.field_value;
+                    break;
+                case 50:    // Reference - File
+                    params[13] = Number(JSON.parse(row.field_value).activity_id); // p_entity_bigint_1
+                    params[18] = row.field_value; // p_entity_text_1
                     break;
                 case 17:    //Location
                     var location = row.field_value.split('|');
@@ -1135,7 +1139,8 @@ function ActivityTimelineService(objectCollection) {
                 case 31:    //Cloud Document Link
                     params[18] = row.field_value;
                     break;
-                case 32:    //PDF Document
+                case 32:    // PDF Document
+                case 51:    // PDF Scan
                     params[18] = row.field_value;
                     break;
                 case 33:    //Single Selection List
