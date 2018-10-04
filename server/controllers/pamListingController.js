@@ -327,6 +327,26 @@ function PamListingController(objCollection) {
     		res.send(responseWrapper.getResponse(err, data, -999, req.body));
         });    		
     });
+    
+   app.post('/' + global.config.version + '/pam/reservation/order/list', function (req, res) {
+    	pamListingService.getReservationOrders(req.body).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        });    		
+    });
+    
+    app.post('/' + global.config.version + '/pam/members/unpaid/list', function (req, res) {
+    	pamListingService.getUnpaidReservations(req.body).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        });    		
+    });
 }
 ;
 module.exports = PamListingController;
