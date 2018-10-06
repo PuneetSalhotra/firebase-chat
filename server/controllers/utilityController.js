@@ -34,8 +34,9 @@ function UtilityController(objCollection) {
 
     // Vodafone - Order Management - PoC
     app.post('/' + global.config.version + '/send/email/v1', function (req, res) {
-        let emailSubject = JSON.stringify(req.body.email_subject);
-        let emailBody = JSON.stringify(req.body.email_body);
+        let emailSubject = req.body.email_subject;
+        let emailBody = req.body.email_body;
+        let htmlTemplate = request.html_template
         let emailReceiver = JSON.stringify(req.body.email_receiver);
 
         util.sendEmailV1(req.body, emailReceiver, emailSubject, emailBody, '', function (err, data) {
