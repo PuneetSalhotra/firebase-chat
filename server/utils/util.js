@@ -861,7 +861,7 @@ function Util() {
             mailOptions.attachments = [
                 {
                     // use URL as an attachment
-                    filename: 'service_request_form.pdf',
+                    filename: request.attachment_name, // 'service_request_form.pdf',
                     path: request.attachment_url
                 }
             ]
