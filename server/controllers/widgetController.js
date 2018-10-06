@@ -56,7 +56,9 @@ function WidgetController(objCollection) {
 
         vodafoneCustomerServiceFlow(req.body, objCollection.activityCommonService, objCollection, (err, data, statusCode) => {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.send(responseWrapper.getResponse(err, {
+                    activity_id: data
+                }, statusCode, req.body));
             } else {
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));

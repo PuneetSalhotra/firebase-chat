@@ -54,7 +54,8 @@ function vodafoneCustomerServiceFlow(request, activityCommonService, objectColle
         track_gps_status: 0,
         service_version: 1.0,
         app_version: "2.5.5",
-        device_os_id: 1
+        device_os_id: 5,
+        url: '/activity/add/v1'
     };
 
     cacheWrapper.getActivityId(function (err, activityId) {
