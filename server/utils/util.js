@@ -891,7 +891,7 @@ function Util() {
             text: text,
             html: htmlTemplate,
         };
-        console.log("msg: ", msg);
+        // console.log("msg: ", msg);
 
         sgMail.send(msg)
             .then((sendGridResponse) => {
