@@ -33,7 +33,7 @@ function UtilityController(objCollection) {
     });
 
     // Vodafone - Order Management - PoC - SMTP
-    app.post('/' + global.config.version + '/send/email/v2', function (req, res) {
+    app.post('/' + global.config.version + '/send/email/v1', function (req, res) {
         let emailSubject = req.body.email_subject;
         let emailBody = req.body.email_body;
         let htmlTemplate = req.body.html_template
@@ -49,7 +49,7 @@ function UtilityController(objCollection) {
     });
 
     // Vodafone - Order Management - PoC - SendGrid
-    app.post('/' + global.config.version + '/send/email/v1', function (req, res) {
+    app.post('/' + global.config.version + '/send/email/v2', function (req, res) {
         let emailSubject = req.body.email_subject;
         let emailBody = req.body.email_body;
         let htmlTemplate = req.body.html_template
