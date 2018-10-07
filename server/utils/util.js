@@ -10,10 +10,12 @@ var tz = require('moment-timezone');
 const Nexmo = require('nexmo');
 var fs = require('fs');
 var os = require('os');
-/*let efsPath = '/api-cdci-efs/';
-if(global.mode === 'staging') {
-    efsPath = '/api-staging-efs/';
-}*/
+
+// SendGrid
+const sgMail = require('@sendgrid/mail');
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
+// 
 
 function Util() {
 
@@ -878,6 +880,26 @@ function Util() {
             }
         });
         return;
+    };
+    
+    // 
+    this.sendEmailV2 = function (request, email, subject, text, htmlTemplate, callback) {
+        const msg = {
+            to: email,
+            from: 'vodafone_idea@grenerobotics.com',
+            subject: subject,
+            text: text,
+            html: htmlTemplate,
+        };
+        console.log("msg: ", msg);
+
+        sgMail.send(msg)
+            .then((sendGridResponse) => {
+                return callback(false, sendGridResponse);
+            })
+            .catch((error) => {
+                return callback(true, error);
+            });
     };
 
     this.getRedableFormatLogDate = function (timeString, type) {

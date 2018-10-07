@@ -48,6 +48,22 @@ function UtilityController(objCollection) {
         });
     });
 
+    // Vodafone - Order Management - PoC
+    app.post('/' + global.config.version + '/send/email/v2', function (req, res) {
+        let emailSubject = req.body.email_subject;
+        let emailBody = req.body.email_body;
+        let htmlTemplate = req.body.html_template
+        let emailReceiver = req.body.email_receiver;
+
+        util.sendEmailV2(req.body, emailReceiver, emailSubject, emailBody, htmlTemplate, function (err, data) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, 200, req.body));
+            } else {
+                res.send(responseWrapper.getResponse(err, data, -100, req.body));
+            }
+        });
+    });
+
     //Bharat Requirement
     app.get('/' + global.config.version + '/send/email', function (req, res) {
         var otp = util.randomInt(1111, 9999);
