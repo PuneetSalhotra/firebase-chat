@@ -35,6 +35,9 @@ function ActivityCommonService(db, util, forEachAsync) {
             50
         );
         var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_other_participants', paramsArr);
+        global.logger.write('debug', "getAllParticipantsExceptAsset", {}, request);
+        global.logger.write('debug', queryString, {}, request);
+
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
@@ -113,6 +116,10 @@ function ActivityCommonService(db, util, forEachAsync) {
             // ds_v1_activity_asset_mapping_update_last_updated_datetime ---> updates activity_datetime_last_updated, asset_datetime_last_differential, asset_unread_updates_count
             queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_last_updated_datetime', paramsArr);
         }
+
+        global.logger.write('debug', "Calling updateActivityLogLastUpdatedDatetimeAsset", {}, request);
+        global.logger.write('debug', queryString, {}, request);
+
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
@@ -456,8 +463,9 @@ function ActivityCommonService(db, util, forEachAsync) {
             messageUniqueId = participantData.message_unique_id;
         }
 
-        global.logger.write('debug', 'streamTypeId ' + streamTypeId, {}, {});
-        
+        global.logger.write('debug', 'streamTypeId: ' + streamTypeId, {}, request);
+        global.logger.write('debug', 'typeof streamTypeId: ' + typeof streamTypeId, {}, request);
+
         switch (streamTypeId) {
             case 4: // activity updated
                 entityTypeId = 0;
@@ -499,6 +507,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityTypeId = 0;
                 entityText1 = request.form_transaction_id;
                 entityText2 = request.activity_timeline_collection;
+                activityTimelineCollection = request.activity_timeline_collection;
                 formTransactionId = request.form_transaction_id;
                 formId = request.form_id;
                 dataTypeId = 37; //static for all form submissions
@@ -560,8 +569,9 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityText2 = "";
                 break;
         };
-        
-        global.logger.write('debug', 'activityTimelineCollection ' + activityTimelineCollection, {}, {});
+
+        global.logger.write('debug', 'activityTimelineCollection : ', {}, request);
+        global.logger.write('debug', activityTimelineCollection, {}, request);
 
         var paramsArr = new Array(
             request.activity_id,
@@ -1392,8 +1402,8 @@ function ActivityCommonService(db, util, forEachAsync) {
                 request.workforce_id,
                 request.account_id,
                 request.organization_id,
-                util.getStartDayOfWeek(), //entity_date_1, //WEEK
-                util.getStartDayOfWeek(),
+                collection.startDateTimeOfWeek || util.getStartDayOfWeek(), //entity_date_1, //WEEK
+                collection.endDateTimeOfWeek || util.getStartDayOfWeek(),
                 collection.entity_tinyint_1 || 0,
                 collection.entity_bigint_1 || 0,
                 collection.entity_double_1 || 0,
@@ -1439,8 +1449,8 @@ function ActivityCommonService(db, util, forEachAsync) {
                 request.workforce_id,
                 request.account_id,
                 request.organization_id,
-                util.getStartDayOfMonth(), //entity_date_1,    //Monthly Month start Date
-                util.getStartDayOfMonth(),
+                collection.startDateTimeOfMonth || util.getStartDayOfMonth(), //entity_date_1,    //Monthly Month start Date
+                collection.endDateTimeOfMonth || util.getStartDayOfMonth(),
                 collection.entity_tinyint_1 || 0,
                 collection.entity_bigint_1 || 0,
                 collection.entity_double_1 || 0,
@@ -2064,6 +2074,142 @@ function ActivityCommonService(db, util, forEachAsync) {
                 (err === false) ? callback(false, data): callback(true, {});
             });
         }
+    };
+
+    // Update activity_master_data. This is being used for storing the pdfMake's 
+    // document definition in a JSON Format for Suzuki
+    this.updateActivityMasterData = function (request, activityId, activityMasterData, callback) {
+        // IN p_activity_id BIGINT(20), IN p_organization_id BIGINT(20), 
+        // IN p_activity_master_data JSON
+        var paramsArr = new Array(
+            activityId,
+            request.organization_id,
+            activityMasterData
+        );
+        var queryString = util.getQueryString('ds_p1_activity_list_update_master_data', paramsArr);
+        if (queryString !== '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                if (err === false) {
+                    callback(false, data);
+                } else {
+                    callback(err, false);
+                }
+            });
+        }
+    };
+
+    // Fetch contact file's first collaborator (non-creator):
+    this.fetchContactFileFirstCollaborator = function (request, activityId, callback) {
+        // IN p_activity_id BIGINT(20), IN p_organization_id BIGINT(20), 
+        // IN p_start_from SMALLINT(6), IN p_limit_value TINYINT(4)
+
+        var paramsArr = new Array(
+            activityId,
+            request.organization_id,
+            0,
+            1
+        );
+        var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_non_creator_participants', paramsArr);
+        if (queryString !== '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                (err === false) ? callback(false, data): callback(true, {});
+            });
+        }
+    };
+    // [VODAFONE] Check the rules table
+    this.activityStatusValidationMappingSelectTrigger = function (request, callback) {
+        // IN p_form_id BIGINT(20), IN p_activity_status_id BIGINT(20), IN p_organization_id BIGINT(20)
+
+        var paramsArr = new Array(
+            request.form_id,
+            request.activity_status_id,
+            request.organization_id
+        );
+        var queryString = util.getQueryString('ds_p1_activity_status_validation_mapping_select_trigger', paramsArr);
+        if (queryString !== '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                (err === false) ? callback(false, data): callback(true, {});
+            });
+        }
+    };
+
+    // [VODAFONE] For this activity, get the earliest most timestamp of the source status
+    this.activityTimelineTxnSelectActivityStatus = function (request, activityStatusId, flag) {
+        // IN p_organization_id bigint(20), IN p_activity_id bigint(20), 
+        // IN p_activity_status_id BIGINT(20), IN p_flag SMALLINT(6), 
+        // IN p_start_from bigint(20), IN p_limit_value TINYINT(4)
+
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                request.organization_id,
+                request.activity_id,
+                activityStatusId,
+                flag,
+                0, // start_from
+                1 // limit_value
+            );
+            var queryString = util.getQueryString('ds_p1_activity_timeline_transaction_select_activity_status', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data): reject(err);
+                });
+            }
+        });
+    };
+
+    // [VODAFONE] Check in activity_status_change_transaction table if there is a row existing for 
+    // the combination of form_id, activity_id, source status and target status. If there is no existing 
+    // row, insert a new row in the table for the combination of activity_id, source status and the target 
+    // status. Else update the existing row with the generated duration value
+    this.activityStatusChangeTxnInsert = function (request, duration, statusCollection) {
+        // IN p_organization_id BIGINT(20), IN p_activity_id BIGINT(20), IN p_from_status_id BIGINT(20), 
+        // IN p_to_status_id BIGINT(20), IN p_from_status_datetime DATETIME, IN p_to_status_datetime 
+        // DATETIME, IN p_duration DECIMAL(16,4), IN p_log_datetime DATETIME, IN p_log_asset_id BIGINT(20)
+
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                request.organization_id,
+                request.activity_id,
+                statusCollection.from_status_id,
+                statusCollection.to_status_id,
+                statusCollection.from_status_datetime,
+                statusCollection.to_status_datetime,
+                duration,
+                util.getCurrentUTCTime(),
+                request.asset_id
+            );
+            var queryString = util.getQueryString('ds_p1_activity_status_change_transaction_insert', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data): reject(err);
+                });
+            }
+        });
+    };
+
+    // [VODAFONE] 
+    this.activityStatusChangeTxnSelectAverage = function (request, flag, statusCollection) {
+        // IN p_from_activity_status_id BIGINT(20), IN to_activity_status_id BIGINT(20), 
+        // IN p_form_id BIGINT(20),IN p_organization_id BIGINT(20), IN p_flag SMALLINT(4), 
+        // IN p_datetime_start DATETIME, IN p_datetime_end DATETIME
+
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                statusCollection.from_status_id,
+                statusCollection.to_status_id,
+                request.form_id,
+                request.organization_id,
+                flag,
+                statusCollection.datetime_start,
+                statusCollection.datetime_end
+            );
+            var queryString = util.getQueryString('ds_p1_activity_status_change_transaction_select_average', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data): reject(err);
+                });
+            }
+        });
     };
 
 };

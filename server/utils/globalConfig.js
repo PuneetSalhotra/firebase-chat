@@ -299,7 +299,7 @@ config.platformApplicationWindows = 'arn:aws:sns:us-east-1:430506864995:app/WNS/
 
 //New VOIP Push platform endpoints
 config.platformApplicationIosVOIPDev = 'arn:aws:sns:us-east-1:430506864995:app/APNS_VOIP_SANDBOX/wDeskDevNew';
-config.platformApplicationIosVOIPProd = 'arn:aws:sns:us-east-1:430506864995:app/APNS_VOIP/wDeskProdNew'; 
+config.platformApplicationIosVOIPProd = 'arn:aws:sns:us-east-1:430506864995:app/APNS_VOIP/wDeskProdNew';
 
 config.twilioAccountSid = "AC66cabb9ae7db92bbf7e6113ff2eeabad";
 config.twilioAuthToken = "7d4f9ee9f8122d2a7129e13fdaefd919";
@@ -309,8 +309,8 @@ config.nexmpAppliationId = "33635cb2-5497-4d69-831e-dcb533449e84";
 
 config.smtp_host = 'retail.smtp.com';
 config.smtp_port = '2525';
-config.smtp_user = 'donotreply@blueflock.com';
-config.smtp_pass = '%*^$#r@@t';
+config.smtp_user = 'vodafone_idea@grenerobotics.com';
+config.smtp_pass = 'foxtrot111';
 
 config.cassandraCredentialsDev = {
     ip: '192.168.7.120',

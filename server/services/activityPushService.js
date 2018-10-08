@@ -75,8 +75,18 @@ function ActivityPushService(objectCollection) {
                     case 9: // Form
                         switch (request.url) {
                             case '/' + global.config.version + '/activity/timeline/entry/add':
+
+                                msg.activity_type_category_id = 9
+                                msg.type = 'activity_unread'
+                                msg.organization_id = request.organization_id;
+
                                 break;
                             case '/' + global.config.version + '/activity/status/alter':
+
+                                msg.activity_type_category_id = 9
+                                msg.type = 'activity_unread'
+                                msg.organization_id = request.organization_id;
+
                                 break;
                             case '/' + global.config.version + '/activity/participant/access/set':
                                 msg.activity_type_category_id = 9;
@@ -445,6 +455,18 @@ function ActivityPushService(objectCollection) {
                                                 //console.log('PubNub Message : ', pubnubMsg);
                                                 global.logger.write('debug', 'PubNub Message : ', {}, request);
                                                 global.logger.write('debug', pubnubMsg, {}, request);
+                                                pubnubWrapper.push(rowData.organizationId, pubnubMsg);
+                                                pubnubWrapper.push(rowData.assetId, pubnubMsg);
+                                            }
+                                            break;
+                                        default:
+                                            //console.log('pubnubMsg :', pubnubMsg);
+                                            global.logger.write('debug', 'pubnubMsg : ' + pubnubMsg, {}, request);
+                                            if (pubnubMsg.activity_type_category_id != 0) {
+                                                pubnubMsg.organization_id = rowData.organizationId;
+                                                pubnubMsg.desk_asset_id = rowData.assetId;
+                                                //console.log('PubNub Message : ', pubnubMsg);
+                                                global.logger.write('debug', 'PubNub Message : ' + pubnubMsg, {}, request);
                                                 pubnubWrapper.push(rowData.organizationId, pubnubMsg);
                                                 pubnubWrapper.push(rowData.assetId, pubnubMsg);
                                             }
