@@ -7,3 +7,4 @@ consumerClusterOne.js
 consumerClusterTwo.js
 consumerClusterThree.js
 logs
+package-lock.json
