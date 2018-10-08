@@ -10,10 +10,12 @@ var tz = require('moment-timezone');
 const Nexmo = require('nexmo');
 var fs = require('fs');
 var os = require('os');
-/*let efsPath = '/api-cdci-efs/';
-if(global.mode === 'staging') {
-    efsPath = '/api-staging-efs/';
-}*/
+
+// SendGrid
+const sgMail = require('@sendgrid/mail');
+sgMail.setApiKey('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');
+
+// 
 
 function Util() {
 
@@ -813,7 +815,7 @@ function Util() {
 
         // setup e-mail data with unicode symbols
         var mailOptions = {
-            from: 'BlueFlock <' + global.config.smtp_user + '>', // sender address
+            from: 'Desker <' + global.config.smtp_user + '>', // sender address
             to: email, // list of receivers
             subject: subject, // Subject line
             text: text, // plaintext body
@@ -831,6 +833,73 @@ function Util() {
             }
         });
         return;
+    };
+
+    this.sendEmailV1 = function (request, email, subject, text, htmlTemplate, callback) {
+        var smtpConfig = {
+            host: global.config.smtp_host,
+            port: global.config.smtp_port,
+            secure: false, // use SSL
+            auth: {
+                user: global.config.smtp_user,
+                pass: global.config.smtp_pass
+            }
+        };
+        htmlTemplate = request.html_template
+        // create reusable transporter object using the default SMTP transport
+        var transporter = nodemailer.createTransport(smtpConfig);
+
+        // setup e-mail data with unicode symbols
+        var mailOptions = {
+            from: 'Vodafon - Idea <' + global.config.smtp_user + '>', // sender address
+            to: email, // list of receivers
+            subject: subject, // Subject line
+            text: text, // plaintext body
+            html: htmlTemplate, // html body,
+            
+        };
+
+        if (request.hasOwnProperty('attachment_url')) {
+            mailOptions.attachments = [
+                {
+                    // use URL as an attachment
+                    filename: request.attachment_name, // 'service_request_form.pdf',
+                    path: request.attachment_url
+                }
+            ]
+        }
+
+        // send mail with defined transport object
+        transporter.sendMail(mailOptions, function (error, info) {
+            if (error) {
+                callback(true, error);
+            } else {
+                //console.log('Message sent: ' + info.response);
+                global.logger.write('debug', 'Message sent: ' + info.response, {}, request);
+                callback(false, info);
+            }
+        });
+        return;
+    };
+    
+    // 
+    this.sendEmailV2 = function (request, email, subject, text, htmlTemplate, callback) {
+        const msg = {
+            to: email,
+            from: 'Vodafone - Idea <vodafone_idea@grenerobotics.com>',
+            subject: subject,
+            text: text,
+            html: htmlTemplate,
+        };
+        // console.log("msg: ", msg);
+
+        sgMail.send(msg)
+            .then((sendGridResponse) => {
+                return callback(false, sendGridResponse);
+            })
+            .catch((error) => {
+                return callback(true, error);
+            });
     };
 
     this.getRedableFormatLogDate = function (timeString, type) {
