@@ -158,6 +158,11 @@ function ActivityService(objectCollection) {
                                 addIngredients(request);
                             }
 
+                            if (activityTypeCategroyId === 40) {
+                            	if(request.hasOwnProperty('is_room_posting'))
+                            	activityCommonService.processReservationBilling(request, request.activity_parent_id).then(()=>{});
+                            }
+                            
                             activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
 
                             });
