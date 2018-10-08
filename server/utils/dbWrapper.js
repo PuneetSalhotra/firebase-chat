@@ -115,7 +115,7 @@ var executeRecursiveQuery = function (flag, start, limit, callName, paramsArr, c
         paramsArr.pop();
         paramsArr.pop();
 
-        executeQuery(flag, queryString, function (err, data) {
+        executeQuery(flag, queryString, {}, function (err, data) {
             if (err) {
                 callback(err, returnData);
             } else {
