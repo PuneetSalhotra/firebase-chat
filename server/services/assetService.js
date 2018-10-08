@@ -1390,6 +1390,8 @@ function AssetService(objectCollection) {
 
     this.addAsset = function (request, callback) {
         var responseDataCollection = {};
+        var contactActivityInlineData = JSON.parse(request.activity_inline_data);
+        request.workforce_id = contactActivityInlineData.contact_workforce_id;
 
         //check if phone number and cc of the new contact exist in the activity type id ...
         checkIfContactAssetExistV1(request, 0, function (err, contactAssetData) {
@@ -1398,7 +1400,7 @@ function AssetService(objectCollection) {
                 if (contactAssetData.length > 0) {
                     console.log('contactAssetData: ', contactAssetData);
                     responseDataCollection.asset_id = contactAssetData[0]['asset_id'];
-
+                    
                     activityCommonService.workforceAssetTypeMappingSelectCategory(request, 45, function (err, assetTypeData, statusCode) {
                         
                         checkIfContactAssetExistV1(request, Number(assetTypeData[0].asset_type_id), function (err, contactAssetData) {
@@ -1634,9 +1636,9 @@ function AssetService(objectCollection) {
             activityInlineData.contact_asset_type_id, // asset type id
             request.operating_asset_id || 0,
             0,
-            request.workforce_id,
-            request.account_id,
-            request.organization_id,
+            activityInlineData.contact_workforce_id || request.workforce_id,
+            activityInlineData.contact_account_id || request.account_id,
+            activityInlineData.contact_organization_id || request.organization_id,
             request.asset_id,
             request.datetime_log
         );

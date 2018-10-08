@@ -64,7 +64,7 @@ if (mode === 'local') {
     config.portalBaseUrl = "http://staging.portal.desker.cloud/";
     
     //Mobile Service URL
-    config.mobileBaseUrl = "http://localhost:3000/";
+    config.mobileBaseUrl = "http://localhost:7000/";
     
     //making twilio, Nexmo Calls
     config.efsPath = "/";

@@ -14,6 +14,7 @@ function ActivityService(objectCollection) {
     var responseactivityData = {}
     const suzukiPdfEngine = require('../utils/suzukiPdfGenerationEngine');
     const vodafoneStatusUpdate = require('../utils/vodafoneStatusUpdateFlow');
+    const vodafoneFormSubmissionFlow = require('../utils/vodafoneFormSubmissionFlow');
 
     this.addActivity = function (request, callback) {
 
@@ -402,6 +403,15 @@ function ActivityService(objectCollection) {
                     }
                     // 
                     //
+                    // Vodafone Flow on Form Submission
+                    // 
+                    // 
+                    if (activityTypeCategroyId === 9 && Number(request.activity_form_id) === 837) {
+                        console.log("\x1b[35m [Log] Calling vodafoneFormSubmissionFlow \x1b[0m")
+                        vodafoneFormSubmissionFlow(request, activityCommonService, objectCollection, () => {});
+                    }
+                    // 
+                    // 
                 } else {
                     callback(err, responseactivityData, -9999);
                     return;
