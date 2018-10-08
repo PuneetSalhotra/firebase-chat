@@ -2212,6 +2212,26 @@ function ActivityCommonService(db, util, forEachAsync) {
         });
     };
 
+    // Fetching the Asset Type ID for a given organisation/workforce and asset type category ID
+    this.workforceAssetTypeMappingSelectCategory = function (request, assetTypeCategoryId, callback) {
+        // IN p_organization_id bigint(20), IN p_account_id bigint(20), IN p_workforce_id bigint(20), 
+        // IN p_asset_type_category_id SMALLINT(6), IN p_start_from SMALLINT(6), IN p_limit_value TINYINT(4)
+
+        var paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            assetTypeCategoryId,
+            0,
+            1
+        );
+        var queryString = util.getQueryString('ds_p1_workforce_asset_type_mapping_select_category', paramsArr);
+        if (queryString !== '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                (err === false) ? callback(false, data, 200): callback(err, data, -9998);
+            });
+        }
+    };
 };
 
 

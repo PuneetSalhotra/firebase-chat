@@ -1392,11 +1392,34 @@ function AssetService(objectCollection) {
         var responseDataCollection = {};
 
         //check if phone number and cc of the new contact exist in the activity type id ...
-        checkIfContactAssetExist(request, function (err, contactAssetData) {
+        checkIfContactAssetExistV1(request, 0, function (err, contactAssetData) {
             if (err === false) {
+                console.log('\x1b[36m [Existing Asset ID Check] contactAssetData: \x1b[0m', contactAssetData);
                 if (contactAssetData.length > 0) {
+                    console.log('contactAssetData: ', contactAssetData);
                     responseDataCollection.asset_id = contactAssetData[0]['asset_id'];
-                    callback(false, responseDataCollection, 200);
+
+                    activityCommonService.workforceAssetTypeMappingSelectCategory(request, 45, function (err, assetTypeData, statusCode) {
+                        
+                        checkIfContactAssetExistV1(request, Number(assetTypeData[0].asset_type_id), function (err, contactAssetData) {
+                            console.log('\x1b[36m [Existing Desk Asset ID Check] contactAssetData: \x1b[0m', contactAssetData);
+                            responseDataCollection.desk_asset_id = contactAssetData[0]['asset_id'];
+
+                            getContactActivityid(request, responseDataCollection.desk_asset_id, function (err, contactActivityData) {
+                                if (contactActivityData.length > 0) {
+                                    responseDataCollection.activity_id = contactActivityData[0]['activity_id'];
+                                }
+                                callback(false, responseDataCollection, 200);
+                            });
+                        });
+
+                    });
+
+                    // getContactActivityid(request, contactAssetData[0]['asset_id'], function (err, contactActivityData) {
+                    //     responseDataCollection.activity_id = contactActivityData[0]['activity_id'];
+                    //     callback(false, responseDataCollection, 200);
+                    // });
+                    // callback(false, responseDataCollection, 200);
                     /*
                      getContactActivityid(request, contactAssetData[0]['asset_id'], function (err, contactActivityData) {
                      if (err === false) {
@@ -1417,7 +1440,39 @@ function AssetService(objectCollection) {
                     createAsset(request, function (err, newAssetId) {
                         if (err === false) {
                             responseDataCollection.asset_id = newAssetId;
-                            callback(false, responseDataCollection, 200);
+                            console.log('\x1b[36m [New Asset ID Created] responseDataCollection: \x1b[0m', responseDataCollection);  
+
+                            // For a contact card file activity
+                            if (Number(request.activity_type_category_id) === 6) {
+                                
+                                // Fetch asset_type_id for creating the service desk
+                                activityCommonService.workforceAssetTypeMappingSelectCategory(request, 45, function (err, assetTypeData, statusCode) {
+                                    if (!err) {
+                                        // Create the service desk
+                                        var newRequestObject = Object.assign(request);
+                                        var contactCardActivityInlineData = JSON.parse(request.activity_inline_data);
+                                        contactCardActivityInlineData.contact_asset_type_id = assetTypeData[0].asset_type_id;
+
+                                        newRequestObject.operating_asset_id = newAssetId;
+                                        newRequestObject.asset_description = "Service Desk";
+                                        newRequestObject.activity_inline_data = JSON.stringify(contactCardActivityInlineData);
+
+                                        createAsset(newRequestObject, function name(err, newDeskAssetId) {
+                                            responseDataCollection.desk_asset_id = newDeskAssetId;
+                                            console.log('\x1b[36m [New Desk Asset ID Created] responseDataCollection: \x1b[0m', responseDataCollection);
+
+                                            callback(false, responseDataCollection, 200);
+                                        });
+
+                                    } else {
+                                        return callback(false, responseDataCollection, 200);
+                                    }
+                                });
+
+                            } else {
+                                callback(false, responseDataCollection, 200);
+                            }
+                            // callback(false, responseDataCollection, 200);
                         } else {
                             callback(err, {}, -9998);
                         }
@@ -1507,6 +1562,33 @@ function AssetService(objectCollection) {
         }
     };
 
+    var checkIfContactAssetExistV1 = function (request, contactAssetTypeId, callback) {
+
+        var activityInlineData = JSON.parse(request.activity_inline_data);
+        if (contactAssetTypeId === 0) {
+            contactAssetTypeId = activityInlineData.contact_asset_type_id;
+        }
+        var paramsArr = new Array(
+            request.organization_id,
+            activityInlineData.contact_phone_number,
+            activityInlineData.contact_phone_country_code,
+            contactAssetTypeId
+        );
+
+        var queryString = util.getQueryString('ds_v1_asset_list_select_asset_type_phone_number', paramsArr);
+        if (queryString != '') {
+            //global.logger.write(queryString, request, 'asset', 'trace');
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (err === false) {
+                    callback(false, data);
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, false);
+                }
+            });
+        }
+    };
+
     var deleteAsset = function (request, callback) {
         var paramsArr = new Array(
             request.target_asset_id,
@@ -1529,12 +1611,19 @@ function AssetService(objectCollection) {
 
 
     var assetListInsertAddAsset = function (request, callback) {
+        // IN p_asset_first_name VARCHAR(50), IN p_asset_last_name VARCHAR(50), 
+        // IN p_asset_description VARCHAR(150), IN p_customer_unique_id VARCHAR(50), 
+        // IN p_asset_image_path VARCHAR(300), IN p_asset_inline_data JSON, 
+        // IN p_country_code SMALLINT(6), IN p_phone_number VARCHAR(20), IN p_email_id VARCHAR(50), 
+        // IN p_timezone_id SMALLINT(6), IN p_asset_type_id BIGINT(20), IN p_operating_asset_id BIGINT(20), 
+        // IN p_manager_asset_id BIGINT(20), IN p_workforce_id BIGINT(20), IN p_account_id  BIGINT(20), 
+        // IN p_organization_id BIGINT(20), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
 
         var activityInlineData = JSON.parse(request.activity_inline_data);
         var paramsArr = new Array(
             activityInlineData.contact_first_name,
             activityInlineData.contact_last_name,
-            "",
+            request.asset_description || "",
             0,
             activityInlineData.contact_profile_picture,
             request.activity_inline_data, //p_asset_inline_data
@@ -1543,7 +1632,7 @@ function AssetService(objectCollection) {
             activityInlineData.contact_email_id,
             22,
             activityInlineData.contact_asset_type_id, // asset type id
-            0,
+            request.operating_asset_id || 0,
             0,
             request.workforce_id,
             request.account_id,
