@@ -1,9 +1,5 @@
 #Pass arguments from command line
-if [ "$DEPLOYMENT_GROUP_NAME" == "DeskerApiCode-Staging" ]
-then
-  cd /api-staging-efs/node/staging_desker_api/
-  mode=staging pm2 reload startStagProcesses.yml
-elif [ "$DEPLOYMENT_GROUP_NAME" == "DeskerMobileApiPreProdApp-Group" ]
+if [ "$DEPLOYMENT_GROUP_NAME" == "DeskerMobileApiPreProdApp-Group" ]
 then
   cd /api-staging-efs/node/preprod_desker_api/
   mode=preprod pm2 reload startPreProdProcesses.yml

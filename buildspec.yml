@@ -13,8 +13,6 @@ phases:
     commands:      
   build:
     commands:
-      - mode=staging pm2 start startStagProcesses.yml
-      - sleep 5
       - mode=preprod pm2 start startPreProdProcesses.yml
       - sleep 5
       - mode=prod pm2 start startProdProcesses.yml
