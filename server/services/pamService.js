@@ -3118,7 +3118,8 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                          expiryDateTime = util.getFormatedSlashDate(expiryDateTime);
                          
                          if(request.hasOwnProperty('reserv_at_item_order')) {
-                            text = "Dear "+memberName+","+" Your code was used to make an order a few minutes ago.";
+                            //text = "Dear "+memberName+","+" Your code was used to make an order a few minutes ago.";
+			    text = "Dear "+memberName+","+" Your code was used to make an order at "+reservationCreatedDatetime+".";
                              text += " If you are not at Pudding \& Mink right now, please whatsapp / call us at 916309386175 immediately. Pudding & Mink";
                          } else {
   	                       	  text = "Dear "+memberName+","+" Thank you for patronizing PUDDING & MINK! \nTable number "+tableNames+" is reserved for you/ your group on "+expiryDateTime+".";
