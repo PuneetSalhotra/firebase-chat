@@ -317,7 +317,9 @@ function ActivityTimelineService(objectCollection) {
                                         // console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
                                         global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);                                        
                                         throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
-                                    } else {}
+                                    } else {
+                                        activityCommonService.updateActivityLogLastUpdatedDatetime(newRequestOne, 30983, function (err, data) { });
+                                    }
 
                                     resolve();
                                 });                              
