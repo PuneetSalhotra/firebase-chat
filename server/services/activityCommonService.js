@@ -1992,6 +1992,210 @@ function ActivityCommonService(db, util, forEachAsync) {
             });
         }
     };
+    
+        this.processReservationBilling = function (request, idReservation){
+    	return new Promise((resolve, reject)=>{
+	    	if(request.hasOwnProperty('is_report')){
+	    		//get the member of the reservation
+	    		//get the discount of the member
+	    		var start_from = 0;
+	    		var limit_value = 50;
+	    		var row_count = 0;
+				getReservationMemberDiscount(request, idReservation).then((data)=>{
+						console.log(data[0].memberDiscount); 
+						console.log(data.length); 
+						
+						getReservationOrders(request, idReservation).then((orderData)=>{
+							console.log(orderData.length);
+	
+							getReservationBilling(request, idReservation, data[0].memberDiscount, orderData).then((resevationBillAmount)=>{
+								console.log('resevationBill '+resevationBillAmount);
+								global.logger.write('debug','resevationBill '+resevationBillAmount, {},request);
+								pamEventBillingInsert(request, data[0].idEvent, data[0].titleEvent, idReservation, data[0].nameReservation, data[0].idActivityStatusType, data[0].nameActivityStatusType, data[0].idMember, data[0].nameMember, resevationBillAmount)
+								resolve(true);
+							});
+						});
+				});
+				
+	    	}else{    
+	    		if(request.hasOwnProperty('is_room_posting'))
+	    		pamEventBillingInsert(request, 0, '', idReservation, '', 0, '', 0, '', 0);
+	    		resolve(true);
+	    	}
+    	});
+    };
+    
+    function getReservationMemberDiscount(request, idReservation){
+		return new Promise((resolve, reject)=>{
+	        var paramsArr = new Array(
+	        		request.organization_id,
+	        		request.account_id,
+	        		30,
+	        		idReservation
+	                );
+	
+	        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_reservation_member', paramsArr);
+	        if (queryString != '') {
+	            db.executeQuery(1, queryString, request, function (err, data) {
+	            	//console.log("err "+err);
+	               if(err === false) {	               		
+	               		resolve(data);        				        			      			  
+                    } else {
+	                   reject(err);
+	               }
+	            });
+	   		}
+        });
+    };
+   
+    function getReservationOrders(request, idReservation){
+		return new Promise((resolve, reject)=>{
+	        var paramsArr = new Array(
+	        		request.organization_id,
+	        		request.account_id,
+	        		idReservation,
+	        		38
+	                );	        
+	        var queryString = 'pm_v1_activity_list_select_reservation_orders';
+	        if (queryString != '') {
+	            db.executeRecursiveQuery(1, 0, 50, queryString, paramsArr, function (err, data) {
+	            	console.log("err "+err);
+	               if(err === false) {
+	               		//console.log('data: '+data[0].length);
+	               		//console.log('data: '+data[1].length);
+	               		//console.log('data: '+data[2].length);
+	               		resolve(data);        				        			      			  
+                    } else {
+	                   reject(err);
+	               }
+	            });
+	   		}
+        });
+    };
+    
+    function getReservationBilling(request, idReservation, discount, orderData){
+    	return new Promise((resolve, reject)=>{    		
+			 var total_mrp = 0;
+			 var total_discount = 0;
+			 var total_tax = 0;			 
+			 var total_price = 0;
+			 var item_discount = 0;
+			 
+				forEachAsync(orderData, (next, rowData)=>{  
+					console.log(rowData.length);
+					forEachAsync(rowData, (next1, rowData1)=>{ 
+						//console.log(JSON.parse(rowData1.activity_inline_data).activity_type_id);
+						//
+						var cost = 0;
+					 	var tax_percent = 0;
+					 	var dis_amount = 0;
+						var tax_amount = 0;
+					 	
+						if(JSON.parse(rowData1.activity_inline_data).is_full_bottle == 0) {
+							cost = rowData1.activity_priority_enabled * JSON.parse(rowData1.activity_inline_data).item_price;
+							//console.log("cost1", cost);
+						}else if(JSON.parse(rowData1.activity_inline_data).is_full_bottle == 1){
+							cost = rowData1.activity_priority_enabled * JSON.parse(rowData1.activity_inline_data).item_full_price;
+							//console.log("cost2", cost);
+						}
+						
+						item_discount = discount;
+						
+						if(rowData1.form_id == 1)
+							item_discount = 0;
+						
+						dis_amount =  (cost * item_discount)/100;
+						total_mrp = total_mrp + cost;
+						 
+						cost = cost - dis_amount;
+						tax_percent= JSON.parse(rowData1.activity_inline_data).tax;
+						tax_amount = (cost * tax_percent)/100;
+						cost = cost + tax_amount;
+						
+						total_price = total_price + cost;
+						total_tax = total_tax + tax_amount;
+						total_discount = total_discount + dis_amount;
+
+						if(JSON.parse(rowData1.activity_inline_data).hasOwnProperty('item_choice_price_tax'))
+						{
+							var arr = JSON.parse(rowData1.activity_inline_data).item_choice_price_tax;
+							for (key in arr)
+							{
+								var choice_cost = 0;
+								var dis_amount = 0;
+								var choice_tax_amount = 0;
+								
+								choice_cost = arr[key].quantity * arr[key].price;
+								total_mrp = total_mrp + choice_cost;
+
+								item_discount = discount;
+								
+								if(arr[key].hasOwnProperty('form_id')){
+									if(arr[key].form_id == 1)
+										item_discount = 0;
+								}
+								
+								dis_amount =  (choice_cost * item_discount)/100;
+								
+								choice_cost = choice_cost - dis_amount;
+								
+								
+								choice_tax= arr[key].tax;
+								
+								choice_tax_amount = (choice_cost * choice_tax)/100;
+								choice_cost = choice_cost + choice_tax_amount;
+								
+								total_price = total_price + choice_cost;
+								total_tax = total_tax + choice_tax_amount;
+								total_discount = total_discount + dis_amount;
+
+							}
+						}
+						
+						//
+						next1();
+					}).then(()=>{
+						next();
+					})
+				}).then(()=>{
+					console.log("Reservation "+idReservation+" is done");
+					global.logger.write('debug','Reservation '+idReservation+' is done', {},request);
+					resolve(total_price);
+				});
+			 
+			 
+    	});
+    };
+
+    function pamEventBillingInsert(request, idEvent, nameEvent, idReservation, nameReservation, idStatusType, nameStatusType, idMember, nameMember, billingAmount) {
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                idEvent,
+                nameEvent,
+                idReservation,
+                nameReservation,
+                idStatusType,
+                nameStatusType,
+                idMember,
+                nameMember,
+                billingAmount,
+                request.datetime_log
+                );
+            var queryString = util.getQueryString("pm_v1_1_pam_event_billing_insert", paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {                  
+                   if(err === false){                	   
+                	   resolve();
+                   }else{
+                	   reject(err);
+                   }
+                });
+            }
+        })
+    }
 
     this.checkingMSgUniqueId = function (request, callback) {
         var paramsArr = new Array(
