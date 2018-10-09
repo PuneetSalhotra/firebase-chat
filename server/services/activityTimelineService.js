@@ -287,13 +287,39 @@ function ActivityTimelineService(objectCollection) {
                         queueWrapper.raiseActivityEvent(event, newRequest.activity_id, (err, resp) => {
                             if (err) {
                                 // console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-
-                                //res.send(responseWrapper.getResponse(false, {}, -5999,req.body));
+                                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);                                
                                 throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
-                            } else {}
+                            } else { 
+                                var newRequestOne = Object.assign(newRequest);
+                                var activityParticipantCollection = [{
+                                        "organization_id": 856,
+                                        "account_id": 971,
+                                        "workforce_id": 5336,
+                                        "asset_id": 30983,
+                                        "activity_id": request.activity_id,                                        
+                                        "asset_type_category_id": 3,
+                                        "asset_type_id": 122940
+                                    }];
+                                newRequestOne.activity_participant_collection = JSON.stringify(activityParticipantCollection);
+                                newRequestOne.message_unique_id = util.getMessageUniqueId(31035);
+                                
+                                var event = {
+                                    name: "assignParticipnt",
+                                    service: "activityParticipantService",
+                                    method: "assignCoworker",
+                                    payload: newRequestOne
+                                };
 
-                            resolve();
+                                queueWrapper.raiseActivityEvent(event, newRequest.activity_id, (err, resp) => {
+                                    if (err) {
+                                        // console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
+                                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);                                        
+                                        throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+                                    } else {}
+
+                                    resolve();
+                                });                              
+                            }                            
                         });
                     } 
                     
