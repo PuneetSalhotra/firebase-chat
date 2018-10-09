@@ -298,10 +298,12 @@ function ActivityTimelineService(objectCollection) {
                                         "asset_id": 30983,
                                         "activity_id": request.activity_id,                                        
                                         "asset_type_category_id": 3,
-                                        "asset_type_id": 122940
+                                        "asset_type_id": 122940,
+                                        "access_role_id": 29
                                     }];
                                 newRequestOne.activity_participant_collection = JSON.stringify(activityParticipantCollection);
                                 newRequestOne.message_unique_id = util.getMessageUniqueId(31035);
+                                newRequestOne.url = "/" + global.config.version + "/activity/participant/access/set";
                                 
                                 var event = {
                                     name: "assignParticipnt",
