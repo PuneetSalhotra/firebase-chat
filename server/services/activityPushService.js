@@ -94,6 +94,13 @@ function ActivityPushService(objectCollection) {
                                 pushString.title = senderName;
                                 pushString.description = 'Form has been shared for approval';
                                 break;
+                                
+                            case '/' + global.config.version + '/activity/timeline/entry/add/vodafone':
+                                msg.activity_type_category_id = 9;
+                                msg.type = 'activity_unread';
+                                pushString.title = senderName;
+                                pushString.description = 'Form has been shared';
+                                break;
                         };
                         break;
                     case 10: // Folders                        
