@@ -26,7 +26,8 @@ var Consumer = function () {
     var activityCommonService = new ActivityCommonService(db, util, forEachAsync);
     var activityPushService = new ActivityPushService();
     
-    console.log('global.config.kafkaIPOne : ', global.config.kafkaIPOne.kafkaHost);
+    //console.log('global.config.kafkaIPOne : ', global.config.kafkaIPOne.kafkaHost);
+    global.logger.write('debug', 'global.config.kafkaIPOne : ' + global.config.kafkaIPOne.kafkaHost, {}, {});
     
     const options = {
       groupId: global.config.consumerGroup,
@@ -43,7 +44,8 @@ var Consumer = function () {
     const ConsumerGroup = kafka.ConsumerGroup;
     const consumerGroup1 = new ConsumerGroup(options, [global.config.kafkaActivitiesTopic]);
 
-    console.log(global.config.kafkaActivitiesTopic);
+    //console.log(global.config.kafkaActivitiesTopic);
+    global.logger.write('debug', global.config.kafkaActivitiesTopic, {}, {});
 
     var cli = new kafka.KafkaClient(global.config.kafkaIPOne,global.config.kafkaIPTwo,global.config.kafkaIPThree);
     var kafkaProducer = new KafkaProducer(cli);
@@ -53,7 +55,8 @@ var Consumer = function () {
             return resolve();
         kafkaProducer.on('ready', resolve);
     }).then(() => {
-        console.log('Kafka Producer ready!!');
+        //console.log('Kafka Producer ready!!');
+        global.logger.write('debug', 'Kafka Producer ready!!', {}, {});
 
         var queueWrapper = new QueueWrapper(kafkaProducer);
         var objCollection = {
@@ -68,20 +71,48 @@ var Consumer = function () {
         };
 
         consumerGroup1.on('message', function (message) {
-            console.log(`topic ${message.topic} partition ${message.partition} offset ${message.offset}`);
+            //console.log(`topic ${message.topic} partition ${message.partition} offset ${message.offset}`);
+            global.logger.write('debug', `topic ${message.topic} partition ${message.partition} offset ${message.offset}`, {}, {});
             var kafkaMsgId = message.topic + '_' + message.partition + '_' + message.offset;
-            console.log('kafkaMsgId : ' + kafkaMsgId);
+            //console.log('kafkaMsgId : ' + kafkaMsgId);
+            global.logger.write('debug', 'kafkaMsgId : ' + kafkaMsgId, {}, {});
             
-            console.log('getting this key from Redis : ' , message.topic + '_' + message.partition);
+            //console.log('getting this key from Redis : ' , message.topic + '_' + message.partition);
+            global.logger.write('debug', 'getting this key from Redis : ' + message.topic + '_' + message.partition, {}, {});
+            
+            var messageJson = JSON.parse(message.value);
+            var request = messageJson['payload'];
+            //console.log('Request params : ' , request);
+            
+            if(Number(request.organization_id) === 351) {
+                global.logger.write('debug', 'This is PAM Request : ' + request, {}, {});
+                global.logger.write('debug', request, {}, {});
+                consumingMsg(message, kafkaMsgId, objCollection).then(()=>{});
+            } else {
+                activityCommonService.checkingMSgUniqueId(request, (err, data)=>{
+                    global.logger.write('debug', 'err from checkingMSgUniqueId : ' + err, {}, request);
+                    if(err === false) {
+                        consumingMsg(message, kafkaMsgId, objCollection).then(()=>{});
+                    } else {
+                        global.logger.write('debug', 'Before calling this duplicateMsgUniqueIdInsert', {}, request);
+                        activityCommonService.duplicateMsgUniqueIdInsert(request, (err, data)=>{});
+                    }
+                });
+            }
+            
             //Checking the kafkaMessage is already processed or not by looking into Redis
-            cacheWrapper.getKafkaMessageUniqueId(message.topic + '_' + message.partition, function(err, data){
+            /*cacheWrapper.getKafkaMessageUniqueId(message.topic + '_' + message.partition, function(err, data){
                 if(err === false) {
-                        console.log('data : ' + data);
-                        console.log('kafkaMsgId : ' + kafkaMsgId);
-                        console.log('Received message.offset : ' + message.offset);
+                        //console.log('data : ' + data);
+                        //console.log('kafkaMsgId : ' + kafkaMsgId);
+                        //console.log('Received message.offset : ' + message.offset);
+                        global.logger.write('debug', 'data : ' + data, {}, {});
+                        global.logger.write('debug', 'kafkaMsgId : ' + kafkaMsgId, {}, {});
+                        global.logger.write('debug', 'Received message.offset : ' + message.offset, {}, {});
                         
                         if(data < message.offset) { //I think this should be greater than to current offset
-                                console.log(message.value);
+                                //console.log(message.value);
+                                global.logger.write('debug', message.value, {}, {});
 
                                 try {
                                     var messageJson = JSON.parse(message.value);
@@ -96,9 +127,11 @@ var Consumer = function () {
                                         serviceObjectCollection[serviceFile] = serviceObj;
                                         serviceObj[method](messageJson['payload'], function (err, data) {
                                             if (err) {
-                                                console.log(err);
+                                                //console.log(err);
+                                                global.logger.write('debug', err, {}, {});
                                             } else {
-                                                console.log(data);
+                                                //console.log(data);
+                                                global.logger.write('debug', data, {}, {});
                                                 
                                                 //Commit the offset
                                                 commitingOffset(message).then(()=>{}).catch((err)=>{ console.log(err);});
@@ -109,9 +142,11 @@ var Consumer = function () {
                                     } else {
                                         serviceObjectCollection[serviceName][method](messageJson['payload'], function (err, data) {
                                             if (err) {
-                                                console.log(err);
+                                                //console.log(err);
+                                                global.logger.write('debug', err, {}, {});
                                             } else {
-                                                console.log(data);
+                                                //console.log(data);
+                                                global.logger.write('debug', data, {}, {});
                                                 //Commit the offset
                                                 commitingOffset(message).then(()=>{}).catch((err)=>{ console.log(err);});
                                                 
@@ -125,29 +160,35 @@ var Consumer = function () {
                                             console.log(exception);
                                         }            
                         } else {
-                            console.log('Message Already Read!');
+                            //console.log('Message Already Read!');
+                            global.logger.write('debug', 'Message Already Read!', {}, {});
                         }
                         } else {
-                            console.log('Error in checking kafkaMessageUniqueID : ' + err);
+                            //console.log('Error in checking kafkaMessageUniqueID : ' + err);
+                            global.logger.write('debug', 'Error in checking kafkaMessageUniqueID : ' + err, {}, {});
                         }                                                    
-                });
+                });*/
             });
 
         consumerGroup1.on('connect', function (err, data) {
             //console.log("running consumer partition number: " + partitionId);
-            console.log("Connected to Kafka Host");
+            //console.log("Connected to Kafka Host");
+            global.logger.write('debug', "Connected to Kafka Host", {}, {});
         });
 
         consumerGroup1.on('error', function (err) {
-            console.log('err => ' + err);
+            //console.log('err => ' + err);
+            global.logger.write('debug', 'err => ' + err, {}, {});
         });
 
         consumerGroup1.on('offsetOutOfRange', function (err) {
-            console.log('offsetOutOfRange => ' + JSON.stringify(err));
+            //console.log('offsetOutOfRange => ' + JSON.stringify(err));
+            global.logger.write('debug', 'offsetOutOfRange => ' + JSON.stringify(err), {}, {});
         });
 
         kafkaProducer.on('error', function (error) {
-            console.log(error);
+            //console.log(error);
+            global.logger.write('debug', error, {}, {});
         });
 
     });
@@ -161,10 +202,12 @@ var Consumer = function () {
                                 metadata: 'm', //default 'm'
                                 }], (err, data) => {
                                      if(err) {
-                                        console.log("err:" + err);
+                                        //console.log("err:" + err);
+                                        global.logger.write('debug', "err:" + err, {}, {});
                                         reject(err);
                                      } else {
-                                        console.log('successfully offset '+ message.offset +' is committed');                                        
+                                        //console.log('successfully offset '+ message.offset +' is committed');
+                                        global.logger.write('debug', 'successfully offset '+ message.offset +' is committed', {}, {});
                                         resolve();
                                      }  
                                 });
@@ -176,14 +219,96 @@ var Consumer = function () {
             //Setting the processed KafkaMessageUniqueId in the Redis
             cacheWrapper.setKafkaMessageUniqueId(message.topic + '_' + message.partition, message.offset, (err, data)=>{
                 if(err === false) {
-                    console.log('Successfully set the Kafka message Unique Id in Redis');
+                    //console.log('Successfully set the Kafka message Unique Id in Redis');
+                    global.logger.write('debug', 'Successfully set the Kafka message Unique Id in Redis', {}, {});
                     resolve();
                 } else {
-                    console.log('Unable to set the Kafka message Unique Id in the Redis : ' + err);
+                    //console.log('Unable to set the Kafka message Unique Id in the Redis : ' + err);
+                    global.logger.write('debug', 'Unable to set the Kafka message Unique Id in the Redis : ' + err, {}, {});
                     reject(err);
                 }
             });
         });
     }
+    
+    function consumingMsg(message, kafkaMsgId, objCollection) {
+        return new Promise((resolve, reject)=>{
+            cacheWrapper.getKafkaMessageUniqueId(message.topic + '_' + message.partition, function(err, data){
+                if(err === false) {
+                        //console.log('data : ' + data);
+                        //console.log('kafkaMsgId : ' + kafkaMsgId);
+                        //console.log('Received message.offset : ' + message.offset);
+                        global.logger.write('debug', 'data : ' + data, {}, {});
+                        global.logger.write('debug', 'kafkaMsgId : ' + kafkaMsgId, {}, {});
+                        global.logger.write('debug', 'Received message.offset : ' + message.offset, {}, {});
+                        
+                        if(data < message.offset) { //I think this should be greater than to current offset
+                                //console.log(message.value);
+                                global.logger.write('debug', message.value, {}, {});
+
+                                try {
+                                    var messageJson = JSON.parse(message.value);
+                                    var serviceFile = messageJson.service;
+                                    var serviceName = messageJson.service;
+                                    var method = messageJson['method'];
+
+                                    if (!serviceObjectCollection.hasOwnProperty(messageJson['service'])) {
+                                        var jsFile = "../services/" + serviceFile;
+                                        var newClass = require(jsFile);
+                                        var serviceObj = eval("new " + newClass + "(objCollection)");
+                                        serviceObjectCollection[serviceFile] = serviceObj;
+                                        serviceObj[method](messageJson['payload'], function (err, data) {
+                                            if (err) {
+                                                //console.log(err);
+                                                global.logger.write('debug', err, {}, {});
+                                                resolve();
+                                            } else {
+                                                //console.log(data);
+                                                global.logger.write('debug', data, {}, {});
+                                                
+                                                //Commit the offset
+                                                commitingOffset(message).then(()=>{}).catch((err)=>{ console.log(err);});
+                                                //Store the read kafak message ID in the redis
+                                                setkafkaMsgId(message).then(()=>{}).catch((err)=>{ console.log(err);});
+                                                resolve();
+                                            }
+                                            });                                             
+                                    } else {
+                                        serviceObjectCollection[serviceName][method](messageJson['payload'], function (err, data) {
+                                            if (err) {
+                                                //console.log(err);
+                                                global.logger.write('debug', err, {}, {});
+                                                resolve();
+                                            } else {
+                                                //console.log(data);
+                                                global.logger.write('debug', data, {}, {});
+                                                //Commit the offset
+                                                commitingOffset(message).then(()=>{}).catch((err)=>{ console.log(err);});
+                                                
+                                                //Store the read kafak message ID in the redis
+                                                setkafkaMsgId(message).then(()=>{}).catch((err)=>{ console.log(err);});
+                                                resolve();
+                                            }
+                                        });                    
+                                    }
+                                        
+                                    } catch (exception) {
+                                            console.log(exception);
+                                            resolve();
+                                        }            
+                        } else {
+                            //console.log('Message Already Read!');
+                            global.logger.write('debug', 'Message Already Read!', {}, {});
+                            resolve();
+                        }
+                        } else {
+                            //console.log('Error in checking kafkaMessageUniqueID : ' + err);
+                            global.logger.write('debug', 'Error in checking kafkaMessageUniqueID : ' + err, {}, {});
+                            resolve();
+                        }                                                    
+                });                
+        });        
+    }
+    
 };
 module.exports = Consumer;

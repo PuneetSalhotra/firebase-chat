@@ -12,11 +12,11 @@ function AccountService(objectCollection) {
 
     this.getAdminAssets = function (request, callback) {
         var paramsArr = new Array(
-                request.organization_id,
-                request.account_id,
-                request.page_start,
-                request.page_limit
-                );
+            request.organization_id,
+            request.account_id,
+            request.page_start,
+            request.page_limit
+        );
         var queryString = util.getQueryString('ds_p1_asset_list_select_all_admin_desks', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
@@ -24,7 +24,9 @@ function AccountService(objectCollection) {
                     //console.log(data);
                     formatAssetCoverData(data, function (error, data) {
                         if (error === false)
-                            callback(false, {data: data}, 200);
+                            callback(false, {
+                                data: data
+                            }, 200);
                     });
                 } else {
                     callback(false, {}, 200);
@@ -35,12 +37,12 @@ function AccountService(objectCollection) {
 
     this.getDeskMappingAssets = function (request, callback) {
         var paramsArr = new Array(
-                request.organization_id,
-                request.asset_id,
-                5, // static value
-                request.page_start,
-                request.page_limit
-                );
+            request.organization_id,
+            request.asset_id,
+            5, // static value
+            request.page_start,
+            request.page_limit
+        );
         var queryString = util.getQueryString('ds_p1_asset_access_mapping_select_user_level_all', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
@@ -48,7 +50,9 @@ function AccountService(objectCollection) {
                     //console.log(data);
                     formatAssetAccountDataLevel(data, function (error, data) {
                         if (error === false)
-                            callback(false, {data: data}, 200);
+                            callback(false, {
+                                data: data
+                            }, 200);
                     });
                 } else {
                     callback(false, {}, 200);
@@ -56,21 +60,25 @@ function AccountService(objectCollection) {
             });
         }
     };
-    
+
     this.retrieveAccountList = function (request, callback) {
         var paramsArr = new Array(
-                request.account_id
-                //request.page_start,
-                //request.page_limit
-                );
+            request.account_id
+            //request.page_start,
+            //request.page_limit
+        );
         var queryString = util.getQueryString('ds_p1_account_list_select', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (data.length > 0) {
-                    console.log(data);
+                    // console.log(data);
+                    global.logger.write('debug', 'retrieveAccountList data: ' + JSON.stringify(data, null, 2), {}, request);
+
                     formatAccountAccessList(data, function (error, data) {
                         if (error === false)
-                            callback(false, {data: data}, 200);
+                            callback(false, {
+                                data: data
+                            }, 200);
                     });
                 } else {
                     callback(false, {}, 200);
@@ -85,24 +93,26 @@ function AccountService(objectCollection) {
         request['datetime_log'] = logDatetime;
 
         var paramsArr = new Array(
-                request.organization_id,
-                request.account_id,
-                request.user_id,
-                request.user_name,
-                request.user_password,
-                request.user_customer_type,
-                request.user_role_flag,
-                request.user_status_flag,
-                request.user_currency_code,
-                request.user_vat_rate,
-                logDatetime,
-                request.asset_id
-                );
+            request.organization_id,
+            request.account_id,
+            request.user_id,
+            request.user_name,
+            request.user_password,
+            request.user_customer_type,
+            request.user_role_flag,
+            request.user_status_flag,
+            request.user_currency_code,
+            request.user_vat_rate,
+            logDatetime,
+            request.asset_id
+        );
         var queryString = util.getQueryString('ds_p1_account_list_update_user_details', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (!err) {
-                    callback(false, {data: data}, 200);
+                    callback(false, {
+                        data: data
+                    }, 200);
                     accountListHistoryInsert(request, 1003, function () {});
                 } else {
                     callback(false, {}, -9998);
@@ -117,19 +127,21 @@ function AccountService(objectCollection) {
         request['datetime_log'] = logDatetime;
 
         var paramsArr = new Array(
-                request.organization_id,
-                request.account_id,
-                request.mailing_address_collection,
-                request.mailing_postbox_id,
-                request.mailing_postbox_name,
-                logDatetime,
-                request.asset_id
-                );
+            request.organization_id,
+            request.account_id,
+            request.mailing_address_collection,
+            request.mailing_postbox_id,
+            request.mailing_postbox_name,
+            logDatetime,
+            request.asset_id
+        );
         var queryString = util.getQueryString('ds_p1_account_list_update_mailing_address', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (!err) {
-                    callback(false, {data: data}, 200);
+                    callback(false, {
+                        data: data
+                    }, 200);
                     accountListHistoryInsert(request, 1003, function () {});
                 } else {
                     callback(false, {}, -9998);
@@ -144,18 +156,20 @@ function AccountService(objectCollection) {
         request['datetime_log'] = logDatetime;
 
         var paramsArr = new Array(
-                request.organization_id,
-                request.account_id,
-                request.account_address,
-                request.account_forwarding_address,
-                logDatetime,
-                request.asset_id
-                );
+            request.organization_id,
+            request.account_id,
+            request.account_address,
+            request.account_forwarding_address,
+            logDatetime,
+            request.asset_id
+        );
         var queryString = util.getQueryString('ds_p1_account_list_update_forwarding_address', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (!err) {
-                    callback(false, {data: data}, 200);
+                    callback(false, {
+                        data: data
+                    }, 200);
                     accountListHistoryInsert(request, 1003, function () {});
                 } else {
                     callback(false, {}, -9998);
@@ -163,26 +177,28 @@ function AccountService(objectCollection) {
             });
         }
     };
-    
+
     this.updateAccountPhone = function (request, callback) {
 
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
 
         var paramsArr = new Array(
-                request.organization_id,
-                request.account_id,
-                request.account_phone_country_code,
-                request.account_phone_number,
-                request.account_phone_number_collection,
-                logDatetime,
-                request.asset_id
-                );
+            request.organization_id,
+            request.account_id,
+            request.account_phone_country_code,
+            request.account_phone_number,
+            request.account_phone_number_collection,
+            logDatetime,
+            request.asset_id
+        );
         var queryString = util.getQueryString('ds_p1_account_list_update_user_phone_number', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (!err) {
-                    callback(false, {data: data}, 200);
+                    callback(false, {
+                        data: data
+                    }, 200);
                     accountListHistoryInsert(request, 1003, function () {});
                 } else {
                     callback(false, {}, -9998);
@@ -304,7 +320,7 @@ function AccountService(objectCollection) {
             callback(false, responseArr);
         });
     };
-    
+
     var formatAccountAccessList = function (data, callback) {
         var responseArr = new Array();
         forEachAsync(data, function (next, rowData) {
@@ -362,8 +378,8 @@ function AccountService(objectCollection) {
                 "account_mail_user_role_flag": util.replaceDefaultNumber(rowData['account_mail_user_role_flag']),
                 "account_mail_user_customer_type": util.replaceDefaultString(rowData['account_mail_user_customer_type']),
                 "account_mail_user_status_flag": util.replaceDefaultNumber(rowData['account_mail_user_status_flag']),
-                "account_mail_forwarding_address": JSON.parse(util.replaceDefaultString(rowData['account_mail_forwarding_address'])  || "{}"),
-                "account_mail_mailing_address": JSON.parse(util.replaceDefaultString(rowData['account_mail_mailing_address'])  || "{}"),
+                "account_mail_forwarding_address": JSON.parse(util.replaceDefaultString(rowData['account_mail_forwarding_address']) || "{}"),
+                "account_mail_mailing_address": JSON.parse(util.replaceDefaultString(rowData['account_mail_mailing_address']) || "{}"),
                 "account_mail_postbox_id": util.replaceDefaultNumber(rowData['account_mail_postbox_id']),
                 "account_mail_postbox_name": util.replaceDefaultString(rowData['account_mail_postbox_name']),
                 "account_mail_user_vat_rate": util.replaceDefaultNumber(rowData['account_mail_user_vat_rate']),
@@ -372,7 +388,7 @@ function AccountService(objectCollection) {
                 "account_billing_customer_id": util.replaceDefaultNumber(rowData['account_billing_customer_id']),
                 "account_billing_customer_email": util.replaceDefaultString(rowData['account_billing_customer_email']),
                 "account_billing_customer_billing_address": util.replaceDefaultString(rowData['account_billing_customer_billing_address']),
-                "account_billing_customer_currency": util.replaceDefaultString(rowData['account_billing_customer_currency']), 
+                "account_billing_customer_currency": util.replaceDefaultString(rowData['account_billing_customer_currency']),
                 "account_billing_subscription_id": util.replaceDefaultNumber(rowData['account_billing_subscription_id']),
                 "account_billing_subscription_status": util.replaceDefaultString(rowData['account_billing_subscription_status']),
                 "account_billing_subscription_date": util.replaceDefaultDatetime(rowData['account_billing_subscription_date']),
@@ -399,11 +415,11 @@ function AccountService(objectCollection) {
 
     var accountListHistoryInsert = function (request, updateTypeId, callback) {
         var paramsArr = new Array(
-                request.account_id,
-                request.organization_id,
-                updateTypeId,
-                request.datetime_log // server log date time
-                );
+            request.account_id,
+            request.organization_id,
+            updateTypeId,
+            request.datetime_log // server log date time
+        );
 
         var queryString = util.getQueryString('ds_p1_account_list_history_insert', paramsArr);
         if (queryString != '') {
@@ -417,12 +433,12 @@ function AccountService(objectCollection) {
             });
         }
     };
-    
-    this.loggingCommunicationReq = function(request, callback) {
+
+    this.loggingCommunicationReq = function (request, callback) {
         var paramsArr = new Array(
-                util.getCurrentUTCTime(),
-                JSON.stringify(request)
-                );
+            util.getCurrentUTCTime(),
+            JSON.stringify(request)
+        );
 
         var queryString = util.getQueryString('ds_p1_communication_transaction_insert', paramsArr);
         if (queryString != '') {
@@ -431,12 +447,12 @@ function AccountService(objectCollection) {
             });
         }
     };
-    
-    this.getLoggingCommunicationReq = function(request, callback) {
+
+    this.getLoggingCommunicationReq = function (request, callback) {
         var paramsArr = new Array(
-                request.start_from,
-                request.limit_value
-                );
+            request.start_from,
+            request.limit_value
+        );
 
         var queryString = util.getQueryString('ds_p1_communication_transaction_select', paramsArr);
         if (queryString != '') {
@@ -445,17 +461,17 @@ function AccountService(objectCollection) {
             });
         }
     };
-    
-    this.setAccountConfigValues = function(request, callback) {
+
+    this.setAccountConfigValues = function (request, callback) {
         var paramsArr = new Array(
-                request.organization_id,
-                request.account_id,
-                request.config_response_time,
-                request.config_office_hours, 
-                request.config_due_date,
-                util.getCurrentUTCTime(),
-                request.log_asset_id
-                );
+            request.organization_id,
+            request.account_id,
+            request.config_response_time,
+            request.config_office_hours,
+            request.config_due_date,
+            util.getCurrentUTCTime(),
+            request.log_asset_id
+        );
 
         var queryString = util.getQueryString('ds_p1_account_list_update_config_values', paramsArr);
         if (queryString != '') {
@@ -463,9 +479,28 @@ function AccountService(objectCollection) {
                 (err === false) ? callback(false, {}, 200): callback(true, err, -9999);
             });
         }
-    };   
-    
-}
-;
+    };
+
+    /*this.fetchCustomerServiceAgentsOnCrmFloor = function (request, callback) {
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
+        // IN p_asset_type_category_id BIGINT(20), IN p_start_from BIGINT(20),
+        // IN p_limit_value TINYINT(4)
+        var paramsArr = new Array(
+            request.organization_id,
+            0, // request.account_id,
+            19, // request.asset_type_category_id,
+            0, // request.start_from,
+            50 // request.limit_value,
+        );
+
+        var queryString = util.getQueryString('ds_p1_asset_access_mapping_select_asset_type_access', paramsArr);
+        if (queryString !== '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                (err === false) ? callback(false, data, 200): callback(true, err, -9999);
+            });
+        }
+    };*/
+
+};
 
 module.exports = AccountService;

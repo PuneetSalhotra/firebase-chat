@@ -11,10 +11,11 @@ function ActivityTimelineService(objectCollection) {
     var util = objectCollection.util;
     var forEachAsync = objectCollection.forEachAsync;
     var activityPushService = objectCollection.activityPushService;
-    var queueWrapper = objectCollection.queueWrapper;
+    //var queueWrapper = objectCollection.queueWrapper;
 
     this.addTimelineTransaction = function (request, callback) {
 
+        const self = this;
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         var activityTypeCategoryId = Number(request.activity_type_category_id);
@@ -23,11 +24,14 @@ function ActivityTimelineService(objectCollection) {
         if (activityTypeCategoryId === 9 && activityStreamTypeId === 705) {   // add form case
             var formDataJson = JSON.parse(request.activity_timeline_collection);
             request.form_id = formDataJson[0]['form_id'];
-            console.log('form id extracted from json is: ' + formDataJson[0]['form_id']);
-            var lastObject = formDataJson[formDataJson.length - 1]
-            console.log('Last object : ', lastObject)
+            //console.log('form id extracted from json is: ' + formDataJson[0]['form_id']);
+            global.logger.write('debug', 'form id extracted from json is: ' + formDataJson[0]['form_id'], {}, request);
+            var lastObject = formDataJson[formDataJson.length - 1];
+            //console.log('Last object : ', lastObject)
+            global.logger.write('debug', 'Last object : ' + lastObject, {}, request);
             if (lastObject.hasOwnProperty('field_value')) {
-                console.log('Has the field value in the last object')
+                //console.log('Has the field value in the last object')
+                global.logger.write('debug', 'Has the field value in the last object', {}, request);
                 //remote Analytics
                 if (request.form_id == 325) {
                     monthlySummaryTransInsert(request).then(() => {
@@ -48,7 +52,8 @@ function ActivityTimelineService(objectCollection) {
         try {
             var formDataJson = JSON.parse(request.activity_timeline_collection);
         } catch (exception) {
-            console.log(exception);
+            //console.log(exception);
+            global.logger.write('debug', exception, {}, request);
         }
 
         var isAddToTimeline = true;
@@ -59,6 +64,7 @@ function ActivityTimelineService(objectCollection) {
                 if (err) {
 
                 } else {
+
                     activityPushService.sendPush(request, objectCollection, 0, function () {});
                     activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) { });
 
@@ -69,6 +75,25 @@ function ActivityTimelineService(objectCollection) {
                         activityCommonService.updateActivityLogLastUpdatedDatetime(request, 0, function (err, data) { }): //To increase unread cnt for marketing manager
                         activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) { });
                     
+                    // Telephone module
+                    // 23003 => Added an update to the chat
+                    if (activityTypeCategoryId === 16 && activityStreamTypeId === 23003) {
+                        
+                        // Update last updated and last differential datetime for the sender
+                        activityCommonService.activityAssetMappingUpdateLastUpdateDateTimeOnly(request, function (err, data) {
+                            activityCommonService.getActivityDetails(request, request.activity_id, function(err, data) {
+                                
+                                // Replace/append the new chat message to the existing inline data
+                                var updatedActivityInlineData = JSON.parse(data[0].activity_inline_data);
+                                updatedActivityInlineData.message = JSON.parse(request.activity_timeline_collection);
+                                
+                                // Update the activity's inline data with the last send chat message
+                                activityCommonService.activityAssetMappingUpdateInlineDataOnly(request, JSON.stringify(updatedActivityInlineData), () => {});
+                            });
+                            
+                        });
+                    }
+
                     if (formDataJson.hasOwnProperty('asset_reference')) {
                         if (formDataJson.asset_reference.length > 0) {
                             forEachAsync(formDataJson.asset_reference, function (next, rowData) {                                
@@ -84,7 +109,8 @@ function ActivityTimelineService(objectCollection) {
                             });
                         }
                     } else {
-                        console.log('asset_reference is not availale')
+                        //console.log('asset_reference is not availale');
+                        global.logger.write('debug', 'asset_reference is not available', {}, request);
                     }
 
 
@@ -96,7 +122,8 @@ function ActivityTimelineService(objectCollection) {
     
     //This is to support the feature - Not to increase unread count during timeline entry
     this.addTimelineTransactionV1 = function (request, callback) {
-        console.log('In addTimelineTransactionV1');
+        //console.log('In addTimelineTransactionV1');
+        global.logger.write('debug', 'In addTimelineTransactionV1', {}, request);
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         var activityTypeCategoryId = Number(request.activity_type_category_id);
@@ -105,11 +132,14 @@ function ActivityTimelineService(objectCollection) {
         if (activityTypeCategoryId === 9 && activityStreamTypeId === 705) {   // add form case
             var formDataJson = JSON.parse(request.activity_timeline_collection);
             request.form_id = formDataJson[0]['form_id'];
-            console.log('form id extracted from json is: ' + formDataJson[0]['form_id']);
+            //console.log('form id extracted from json is: ' + formDataJson[0]['form_id']);
+            global.logger.write('debug', 'form id extracted from json is: ' + formDataJson[0]['form_id'], {}, request);
             var lastObject = formDataJson[formDataJson.length - 1]
-            console.log('Last object : ', lastObject)
+            //console.log('Last object : ', lastObject)
+            global.logger.write('debug', 'Last object : ' + lastObject, {}, request);
             if (lastObject.hasOwnProperty('field_value')) {
-                console.log('Has the field value in the last object')
+                //console.log('Has the field value in the last object')
+                global.logger.write('debug', 'Has the field value in the last object', {}, request);
                 //remote Analytics
                 if (request.form_id == 325) {
                     monthlySummaryTransInsert(request).then(() => {
@@ -130,7 +160,8 @@ function ActivityTimelineService(objectCollection) {
         try {
             var formDataJson = JSON.parse(request.activity_timeline_collection);
         } catch (exception) {
-            console.log(exception);
+            //console.log(exception);
+            global.logger.write('debug', exception, {}, request);
         }
 
         var isAddToTimeline = true;
@@ -162,7 +193,8 @@ function ActivityTimelineService(objectCollection) {
                             });
                         }
                     } else {
-                        console.log('asset_reference is not availale')
+                        //console.log('asset_reference is not availale');
+                        global.logger.write('debug', 'asset_reference is not available', {}, request);
                     }
 
 
@@ -270,7 +302,8 @@ function ActivityTimelineService(objectCollection) {
             var queryString = util.getQueryString('ds_v1_activity_form_transaction_select_timecard_stats', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
-                    console.log('getFormTransTimeCardsStats : \n', data, "\n");
+                    //console.log('getFormTransTimeCardsStats : \n', data, "\n");
+                    global.logger.write('debug', 'getFormTransTimeCardsStats : \n' + data + "\n", {}, request);
                     (err === false) ? resolve(data) : reject(err);
                 });
             }
@@ -421,8 +454,9 @@ function ActivityTimelineService(objectCollection) {
             pubnubMsg.type = 'activity_unread';
             pubnubMsg.organization_id = request.organization_id;
             pubnubMsg.desk_asset_id = request.asset_id;
-            pubnubMsg.activity_type_category_id = request.activity_type_category_id || 0;
-            console.log('PubNub Message : ', pubnubMsg);
+            pubnubMsg.activity_type_category_id = (Number(request.activity_type_category_id)) === 16 ? 0 : request.activity_type_category_id;
+            //console.log('PubNub Message : ', pubnubMsg);
+            global.logger.write('debug', 'PubNub Message : ' +  pubnubMsg, {}, request);
             pubnubWrapper.push(request.asset_id, pubnubMsg);
             pubnubWrapper.push(request.organization_id, pubnubMsg);
         }
@@ -430,12 +464,18 @@ function ActivityTimelineService(objectCollection) {
             activityCommonService.resetAssetUnreadCount(request, 0, function (err, data) {});
         }*/
         
-        switch(Number(request.activity_type_category_id)) {
-            case 8: break;
-            case 10: break;
-            case 11: break;
-            default: activityCommonService.resetAssetUnreadCount(request, 0, function (err, data) {});
-                     break;
+        switch (Number(request.activity_type_category_id)) {
+            case 8:
+                break;
+            case 9: // Form
+                break;
+            case 10:
+                break;
+            case 11:
+                break;
+            default:
+                activityCommonService.resetAssetUnreadCount(request, 0, function (err, data) {});
+                break;
         }
         activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
         var activityTypeCategoryId = util.replaceZero(request.activity_type_category_id);
@@ -974,6 +1014,10 @@ function ActivityTimelineService(objectCollection) {
     };
 
     var addFormEntries = function (request, callback) {
+
+        //console.log('\x1b[32m%s\x1b[0m', 'Inside the addFormEntries() function.');
+        global.logger.write('debug', '\x1b[32m%s\x1b[0m', 'Inside the addFormEntries() function.', {}, request);
+
         var formDataJson = JSON.parse(request.activity_timeline_collection);
         var approvalFields = new Array();
         forEachAsync(formDataJson, function (next, row) {
@@ -992,7 +1036,7 @@ function ActivityTimelineService(objectCollection) {
                     request.account_id, //7
                     request.organization_id, //8
                     '', //IN p_entity_date_1 DATE                                   9
-                    '', //IN p_entity_datetime_1 DATETIME                           10
+                    request.entity_datetime_1 || '', //IN p_entity_datetime_1 DATETIME            10
                     '', //IN p_entity_tinyint_1 TINYINT(4)                          11
                     '', //IN p_entity_tinyint_2 TINYINT(4)                          12 BETA
                     '', //IN p_entity_bigint_1 BIGINT(20)                           13
@@ -1008,9 +1052,12 @@ function ActivityTimelineService(objectCollection) {
                     '', //IN p_location_gps_accuracy DOUBLE(16,4)                   23
                     '', //IN p_location_gps_enabled TINYINT(1)                      24
                     '', //IN p_location_address VARCHAR(300)                        25
-                    '' //IN p_location_datetime DATETIME                            26
+                    ''  //IN p_location_datetime DATETIME                            26
                     );
 
+            //console.log('\x1b[32m addFormEntries params - \x1b[0m', params);
+            global.logger.write('debug', '\x1b[32m addFormEntries params - \x1b[0m' + params, {}, request);
+            
             var dataTypeId = Number(row.field_data_type_id);
             switch (dataTypeId) {
                 case 1:     // Date
@@ -1033,16 +1080,20 @@ function ActivityTimelineService(objectCollection) {
                 case 8:     //Scale (0 to 5)
                     params[11] = row.field_value;
                     break;
-                case 9:     //Reference - Organization
-                case 10:    //Reference - Building
-                case 11:    //Reference - Floor
-                case 12:    //Reference - Person
-                case 13:    //Reference - Vehicle
-                case 14:    //Reference - Room
-                case 15:    //Reference - Desk
-                case 16:    //Reference - Assistant
+                case 9:     // Reference - Organization
+                case 10:    // Reference - Building
+                case 11:    // Reference - Floor
+                case 12:    // Reference - Person
+                case 13:    // Reference - Vehicle
+                case 14:    // Reference - Room
+                case 15:    // Reference - Desk
+                case 16:    // Reference - Assistant
                     //params[12] = row.field_value;
                     params[13] = row.field_value;
+                    break;
+                case 50:    // Reference - File
+                    params[13] = Number(JSON.parse(row.field_value).activity_id); // p_entity_bigint_1
+                    params[18] = row.field_value; // p_entity_text_1
                     break;
                 case 17:    //Location
                     var location = row.field_value.split('|');
@@ -1094,7 +1145,8 @@ function ActivityTimelineService(objectCollection) {
                 case 31:    //Cloud Document Link
                     params[18] = row.field_value;
                     break;
-                case 32:    //PDF Document
+                case 32:    // PDF Document
+                case 51:    // PDF Scan
                     params[18] = row.field_value;
                     break;
                 case 33:    //Single Selection List
@@ -1126,11 +1178,13 @@ function ActivityTimelineService(objectCollection) {
             params.push(row.message_unique_id);                                 // IN p_log_message_unique_id VARCHAR(50)
             params.push(request.flag_retry);                                    // IN p_log_retry TINYINT(1)
             params.push(request.flag_offline);                                  // IN p_log_offline TINYINT(1)
-            params.push(request.track_gps_datetime);                            // IN p_transaction_datetime DATETIME
+            params.push(util.getCurrentUTCTime());                              // IN p_transaction_datetime DATETIME
             params.push(request.datetime_log);                                  // IN p_log_datetime DATETIME
+            params.push(request.entity_datetime_2);                             // IN p_entity_datetime_2 DATETIME
 
             //var queryString = util.getQueryString('ds_v1_activity_form_transaction_insert', params);
-            var queryString = util.getQueryString('ds_v1_1_activity_form_transaction_insert', params); //BETA
+            // var queryString = util.getQueryString('ds_v1_1_activity_form_transaction_insert', params); //BETA
+            var queryString = util.getQueryString('ds_v1_2_activity_form_transaction_insert', params); //BETA
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     next();
