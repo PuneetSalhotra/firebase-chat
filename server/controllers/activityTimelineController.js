@@ -261,6 +261,12 @@ function ActivityTimelineController(objCollection) {
 
     //This is for Vodafone Demo
     app.post('/' + global.config.version + '/activity/timeline/entry/add/vodafone', function (req, res) {
+        
+        req.body.organization_id = 856;
+        req.body.account_id = 971;
+        req.body.workforce_id = 5344;
+        req.body.activity_stream_type_id = 325;
+        
         var assetMessageCounter = 0;
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))
@@ -305,8 +311,9 @@ function ActivityTimelineController(objCollection) {
                             return;
                         }
                 });            
-        };
-        if (req.body.hasOwnProperty('activity_stream_type_id') && req.body.activity_stream_type_id > 0) {
+        };        
+        
+        if (req.body.hasOwnProperty('activity_stream_type_id') && req.body.activity_stream_type_id > 0) {            
             if (util.hasValidActivityId(req.body)) {
                 if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5) {
                     cacheWrapper.checkAssetParity(req.body.asset_id, (assetMessageCounter), function (err, status) {

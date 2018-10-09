@@ -205,9 +205,8 @@ function ActivityTimelineService(objectCollection) {
     };
 
 
-    this.addTimelineTransactionVodafone = function (request, callback) {
-
-        
+    this.addTimelineTransactionVodafone = function (request, callback) {       
+                        
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         var activityTypeCategoryId = Number(request.activity_type_category_id) || 9;
