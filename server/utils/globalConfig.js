@@ -64,7 +64,7 @@ if (mode === 'local') {
     config.portalBaseUrl = "http://staging.portal.desker.cloud/";
     
     //Mobile Service URL
-    config.mobileBaseUrl = "http://localhost:3000/";
+    config.mobileBaseUrl = "http://localhost:7000/";
     
     //making twilio, Nexmo Calls
     config.efsPath = "/";
@@ -298,8 +298,8 @@ config.platformApplicationAndroid = "arn:aws:sns:us-east-1:430506864995:app/GCM/
 config.platformApplicationWindows = 'arn:aws:sns:us-east-1:430506864995:app/WNS/deskerWindows';
 
 //New VOIP Push platform endpoints
-config.platformApplicationIosVOIPDev = 'arn:aws:sns:us-east-1:430506864995:app/APNS_VOIP/wDeskProdNew';
-config.platformApplicationIosVOIPProd = 'arn:aws:sns:us-east-1:430506864995:app/APNS_VOIP_SANDBOX/wDeskDevNew';
+config.platformApplicationIosVOIPDev = 'arn:aws:sns:us-east-1:430506864995:app/APNS_VOIP_SANDBOX/wDeskDevNew';
+config.platformApplicationIosVOIPProd = 'arn:aws:sns:us-east-1:430506864995:app/APNS_VOIP/wDeskProdNew';
 
 config.twilioAccountSid = "AC66cabb9ae7db92bbf7e6113ff2eeabad";
 config.twilioAuthToken = "7d4f9ee9f8122d2a7129e13fdaefd919";
