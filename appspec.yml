@@ -7,7 +7,7 @@ files:
   - source: .
     destination: /api-staging-efs/node/preprod_desker_api
   - source: .
-    destination: /api-itsnotan-efs/node/production_desker_api/2018-10-08-01
+    destination: /api-itsnotan-efs/node/production_desker_api/2018-10-09-01
 permissions:
   - object: /api-staging-efs/node/preprod_desker_api/deployment
     owner: nanikalyan
