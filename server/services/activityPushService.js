@@ -74,7 +74,17 @@ function ActivityPushService(objectCollection) {
                         break;
                     case 9: // Form
                         switch (request.url) {
+                            case '/' + global.config.version + '/activity/add':
+                            case '/' + global.config.version + '/activity/add/v1':
+                                
+                                pushString.title = senderName;
+                                pushString.description = 'Has submitted a form: ' + activityTitle;
+                                
+                                break;
                             case '/' + global.config.version + '/activity/timeline/entry/add':
+
+                                pushString.title = senderName;
+                                pushString.description = 'Has added an update to the form: ' + activityTitle;
 
                                 msg.activity_type_category_id = 9
                                 msg.type = 'activity_unread'
@@ -82,6 +92,9 @@ function ActivityPushService(objectCollection) {
 
                                 break;
                             case '/' + global.config.version + '/activity/status/alter':
+
+                                pushString.title = senderName;
+                                pushString.description = 'Status changed for form: ' + activityTitle;
 
                                 msg.activity_type_category_id = 9
                                 msg.type = 'activity_unread'
