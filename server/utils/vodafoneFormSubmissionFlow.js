@@ -2,6 +2,7 @@
 const moment = require('moment');
 const pubnubWrapper = new(require('./pubnubWrapper'))();
 const makeRequest = require('request');
+const vodafoneSendEmail = require('./vodafoneSendEmail');
 
 function vodafoneFormSubmissionFlow(request, activityCommonService, objectCollection, callback) {
 
@@ -25,24 +26,27 @@ function vodafoneFormSubmissionFlow(request, activityCommonService, objectCollec
     formData.forEach(formEntry => {
         switch (Number(formEntry.field_id)) {
 
-            case 5020: // Company (Customer)Name
+            case 5020: // 837 | Company (Customer)Name
                 contactCompany = formEntry.field_value;
                 break;
 
-            case 5023: // Name
+            case 5023: // 837 | Name
+            case 5276: // 844 | Name
                 firstName = formEntry.field_value;
                 break;
 
-            case 5024: // Contact Number
+            case 5024: // 837 | Contact Number
+            case 5277: // 844 | Contact Number
                 contactPhoneCountryCode = String(formEntry.field_value).split('||')[0];
                 contactPhoneNumber = String(formEntry.field_value).split('||')[1];
                 break;
 
-            case 5025: // Email
+            case 5025: // 837 | Email
+            case 5278: // 844 | Email
                 contactEmailId = formEntry.field_value;
                 break;
 
-            case 5029: // Designation
+            case 5029: // 837 | Designation
                 contactDesignation = formEntry.field_value;
                 break;
         }
@@ -138,6 +142,19 @@ function vodafoneFormSubmissionFlow(request, activityCommonService, objectCollec
             const assetID = body.response.asset_id;
             const DeskAssetID = body.response.desk_asset_id;
 
+            // Check for form_id
+            if (Number(request.activity_form_id) === 844) {
+                // Send the email to the customer's email
+                vodafoneSendEmail(request, objectCollection, {
+                    firstName,
+                    contactPhoneCountryCode,
+                    contactPhoneNumber,
+                    contactEmailId,
+                    customerServiceDeskAssetID: DeskAssetID
+                }, () => {})
+                return callback();
+            }
+
             let addParticipantRequest = {
                 organization_id: 856,
                 account_id: 971,
@@ -197,8 +214,20 @@ function vodafoneFormSubmissionFlow(request, activityCommonService, objectCollec
                     console.log("\x1b[35m [ERROR] Raising queue activity raised for adding Service Desk as a participant. \x1b[0m")
                 } else {
                     console.log("\x1b[35m Queue activity raised for adding Service Desk as a participant. \x1b[0m")
+
+                    // Send the email to the customer's email
+                    vodafoneSendEmail(request, objectCollection, {
+                        firstName,
+                        contactPhoneCountryCode,
+                        contactPhoneNumber,
+                        contactEmailId,
+                        customerServiceDeskAssetID: DeskAssetID
+                    }, () => {})
                 }
             });
+
+
+
         }
         callback();
     });

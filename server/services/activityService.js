@@ -406,7 +406,7 @@ function ActivityService(objectCollection) {
                     // Vodafone Flow on Form Submission
                     // 
                     // 
-                    if (activityTypeCategroyId === 9 && Number(request.activity_form_id) === 837) {
+                    if (activityTypeCategroyId === 9 && (Number(request.activity_form_id) === 837 || Number(request.activity_form_id) === 844)) {
                         console.log("\x1b[35m [Log] Calling vodafoneFormSubmissionFlow \x1b[0m")
                         vodafoneFormSubmissionFlow(request, activityCommonService, objectCollection, () => {});
                     }
