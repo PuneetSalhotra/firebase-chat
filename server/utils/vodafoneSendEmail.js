@@ -47,15 +47,15 @@ function vodafoneSendEmail(request, objectCollection, customerCollection, callba
             case 8:
                 /// Only Label
                 fieldHTML += "<table style='width: 100%;margin-top:5px; '><tr><td style='width: 100%;padding: 5px 5px 5px 10px;font-size: 10px;'>";
-                fieldHTML += formEntry.field_name;
+                fieldHTML += unescape(formEntry.field_name);
                 fieldHTML += "</td></tr>  </table>";
                 break;
 
             default:
                 fieldHTML += "<table style='width: 100%;margin-top:5px; '><tr><td style='width: 100%;border: 1px solid #cbcbcb;padding: 5px 5px 5px 10px;background: #e3e3e3;font-size: 10px;'>";
-                fieldHTML += formEntry.field_name;
+                fieldHTML += unescape(formEntry.field_name);
                 fieldHTML += "</td></tr> <tr><td style='border: 1px solid #cbcbcb;border-top: 0px;padding: 5px 5px 5px 10px;font-size: 12px;'>";
-                fieldHTML += formEntry.field_value;
+                fieldHTML += unescape(formEntry.field_value);
                 fieldHTML += "</td></tr> </table>";
                 break;
         }
