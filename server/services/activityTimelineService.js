@@ -267,30 +267,8 @@ function ActivityTimelineService(objectCollection) {
                         activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) { });
                     
                     if(request.auth_asset_id == 31035 && request.flag_status_alter == 1) {
-                        var newRequest = Object.assign(request);
-                        newRequest.organization_id = 856;
-                        newRequest.account_id = 971;
-                        newRequest.workforce_id = 5344;
                         
-                        newRequest.activity_status_id = 278803;
-                        newRequest.activity_status_type_id = 22;
-                        
-                        newRequest.message_unique_id = util.getMessageUniqueId(31035);
-                                                                    
-                        var event = {
-                            name: "alterActivityStatus",
-                            service: "activityService",
-                            method: "alterActivityStatus",
-                            payload: newRequest
-                        };
-
-                        queueWrapper.raiseActivityEvent(event, newRequest.activity_id, (err, resp) => {
-                            if (err) {
-                                // console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);                                
-                                throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
-                            } else { 
-                                var newRequestOne = Object.assign(newRequest);
+                        var newRequestOne = Object.assign(request);
                                 var activityParticipantCollection = [{
                                         "organization_id": 856,
                                         "account_id": 971,
@@ -301,6 +279,10 @@ function ActivityTimelineService(objectCollection) {
                                         "asset_type_id": 122940,
                                         "access_role_id": 29
                                     }];
+                                newRequestOne.organization_id = 856;
+                                newRequestOne.account_id = 971;
+                                newRequestOne.workforce_id = 5344;    
+                            
                                 newRequestOne.activity_participant_collection = JSON.stringify(activityParticipantCollection);
                                 newRequestOne.message_unique_id = util.getMessageUniqueId(31035);
                                 newRequestOne.url = "/" + global.config.version + "/activity/participant/access/set";
@@ -312,19 +294,36 @@ function ActivityTimelineService(objectCollection) {
                                     payload: newRequestOne
                                 };
 
-                                queueWrapper.raiseActivityEvent(event, newRequest.activity_id, (err, resp) => {
+                                queueWrapper.raiseActivityEvent(event, newRequestOne.activity_id, (err, resp) => {
                                     if (err) {
                                         // console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
                                         global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);                                        
                                         throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                                     } else {
-                                        activityCommonService.updateActivityLogLastUpdatedDatetime(newRequestOne, 30983, function (err, data) { });
-                                    }
+                                        var newRequest = Object.assign(newRequestOne);                                     
 
+                                        newRequest.activity_status_id = 278803;
+                                        newRequest.activity_status_type_id = 22;
+                                        newRequest.message_unique_id = util.getMessageUniqueId(31035);
+                                        newRequest.url = "/" + global.config.version + "/activity/status/alter";
+
+                                        var event = {
+                                            name: "alterActivityStatus",
+                                            service: "activityService",
+                                            method: "alterActivityStatus",
+                                            payload: newRequest
+                                        };
+
+                                        queueWrapper.raiseActivityEvent(event, newRequest.activity_id, (err, resp) => {
+                                            if (err) {
+                                                // console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
+                                                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);                                
+                                                throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+                                            } else {}                            
+                                        });
+                                    }
                                     resolve();
-                                });                              
-                            }                            
-                        });
+                                });                        
                     } 
                     
                     // Telephone module
