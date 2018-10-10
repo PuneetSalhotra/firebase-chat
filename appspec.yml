@@ -5,27 +5,13 @@ version: 0.0
 os: linux
 files:
   - source: .
-    destination: /api-staging-efs/node/staging_desker_api
-  - source: .
-    destination: /api-staging-efs/node/preprod_desker_api
-  - source: .
-    destination: /api-itsnotan-efs/node/production_desker_api/2018-10-04-02
+    destination: /api-staging-efs/node/staging_desker_pam_api
 permissions:
-  - object: /api-staging-efs/node/staging_desker_api/deployment
+  - object: /api-staging-efs/node/staging_desker_pam_api/deployment
     owner: nanikalyan
     mode: 777
     type:
-      - directory
-  - object: /api-staging-efs/node/preprod_desker_api/deployment
-    owner: nanikalyan
-    mode: 777
-    type:
-      - directory
-  - object: /api-itsnotan-efs/node/production_desker_api/2018-10-04-02/deployment
-    owner: nanikalyan
-    mode: 777
-    type:
-      - directory
+      - directory  
 hooks:
   BeforeInstall:
     - location: deployment/install_dependencies.sh
