@@ -17,6 +17,11 @@ function vodafoneSendEmail(request, objectCollection, customerCollection, callba
         activity_id: Number(request.activity_id),
         type: 'approval'
     }
+
+    if (String(customerCollection.contactEmailId).includes('%40')) {
+        customerCollection.contactEmailId = String(customerCollection.contactEmailId).replace(/%40/g, "@");
+    }
+
     const encodedString = Buffer.from(JSON.stringify(jsonString)).toString('base64');
 
     const baseUrlApprove = "https://preprodmydesk.desker.co/#/customapproval/" + encodedString;
