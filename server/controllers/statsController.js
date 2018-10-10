@@ -5,6 +5,7 @@ function statsController(objCollection) {
     var responseWrapper = objCollection.responseWrapper;
     var app = objCollection.app;
     var statsService = new StatsService(objCollection);
+    var util = objCollection.util;
 
     app.post('/' + global.config.version + '/stats/signup/count', function statsSignUpCountReqHandler(req, res) {
         statsService.getSignUpCountStats(req.body, function statsSignUpCountCallback(err, data, statusCode) {
@@ -379,22 +380,22 @@ function statsController(objCollection) {
                         value: 0
                     }, {
                         date: '2018-10-03 00:00:00',
-                        value: 1340000
+                        value: 804000 //Original Value 1340000
                     }, {
                         date: '2018-10-04 00:00:00',
-                        value: 2450000
+                        value: 1470000 //Original Value 2450000
                     }, {
                         date: '2018-10-05 00:00:00',
-                        value: 5340000
+                        value: 3204000 //Original Value 5340000
                     }, {
                         date: '2018-10-06 00:00:00',
-                        value: 7650000
+                        value: 4590000 //Original Value 7650000
                     }, {
                         date: '2018-10-07 00:00:00',
-                        value: 10900000
+                        value: 6540000 //Original Value 10900000
                     }, {
                         date: '2018-10-08 00:00:00',
-                        value: 12560000
+                        value: 7536000 //Original Value 12560000
                     }],
                     customer_approval: [{
                         date: '2018-09-29 00:00:00',
@@ -410,22 +411,22 @@ function statsController(objCollection) {
                         value: 0
                     }, {
                         date: '2018-10-03 00:00:00',
-                        value: 1340000
+                        value: 536000 //Original Value 1340000
                     }, {
                         date: '2018-10-04 00:00:00',
-                        value: 2450000
+                        value: 980000//Original Value 2450000
                     }, {
                         date: '2018-10-05 00:00:00',
-                        value: 5340000
+                        value: 2136000 //Original Value 5340000
                     }, {
                         date: '2018-10-06 00:00:00',
-                        value: 7650000
+                        value: 3060000 //Original Value 7650000
                     }, {
                         date: '2018-10-07 00:00:00',
-                        value: 10900000
+                        value: 4360000 //Original Value 10900000
                     }, {
                         date: '2018-10-08 00:00:00',
-                        value: 12560000
+                        value: 5024000 //Original Value 12560000
                     }]
                 };
                 // 
@@ -433,56 +434,56 @@ function statsController(objCollection) {
                     switch (Number(row.activity_status_id)) {
                         case 278803: // Document Validation
                             responseJSON.document_validation.push({
-                                date: row.date,
+                                date: util.replaceDefaultDatetime(row.date),
                                 value: row.value
                             });
                             break;
 
                         case 278421: // Customer Approval
                             responseJSON.customer_approval.push({
-                                date: row.date,
+                                date: util.replaceDefaultDatetime(row.date),
                                 value: row.value
                             });
                             break;
 
                         case 278417: // Resubmit
                             responseJSON.resubmit.push({
-                                date: row.date,
+                                date: util.replaceDefaultDatetime(row.date),
                                 value: row.value
                             });
                             break;
 
                         case 278416: // Feasibility Check
                             responseJSON.feasibility_check.push({
-                                date: row.date,
+                                date: util.replaceDefaultDatetime(row.date),
                                 value: row.value
                             });
                             break;
 
                         case 278419: // Approved
                             responseJSON.approved.push({
-                                date: row.date,
+                                date: util.replaceDefaultDatetime(row.date),
                                 value: row.value
                             });
                             break;
 
                         case 278418: // Reinitiate
                             responseJSON.reinitiate.push({
-                                date: row.date,
+                                date: util.replaceDefaultDatetime(row.date),
                                 value: row.value
                             });
                             break;
 
                         case 278420: // Cancelled
                             responseJSON.cancelled.push({
-                                date: row.date,
+                                date: util.replaceDefaultDatetime(row.date),
                                 count: row.value
                             });
                             break;
 
                         case 0: // Not Set
                             responseJSON.not_set.push({
-                                date: row.date,
+                                date: util.replaceDefaultDatetime(row.date),
                                 value: row.value
                             });
                             break;
@@ -704,22 +705,22 @@ function statsController(objCollection) {
                         count: 0
                     }, {
                         date: '2018-10-03 00:00:00',
-                        count: 11
+                        count: 7 //Original Value 11
                     }, {
                         date: '2018-10-04 00:00:00',
-                        count: 21
+                        count: 13 //Original Value 21
                     }, {
                         date: '2018-10-05 00:00:00',
-                        count: 51
+                        count: 31 //Original Value 51
                     }, {
                         date: '2018-10-06 00:00:00',
-                        count: 67
+                        count: 40 //Original Value 67
                     }, {
                         date: '2018-10-07 00:00:00',
-                        count: 98
+                        count: 59 //Original Value 98
                     }, {
                         date: '2018-10-08 00:00:00',
-                        count: 124
+                        count: 74 //Original Value 124
                     }],
                     customer_approval: [{
                         date: '2018-09-29 00:00:00',
@@ -735,22 +736,22 @@ function statsController(objCollection) {
                         count: 0
                     }, {
                         date: '2018-10-03 00:00:00',
-                        count: 11
+                        count: 4 //Original Value 11
                     }, {
                         date: '2018-10-04 00:00:00',
-                        count: 21
+                        count: 8 //Original Value 21
                     }, {
                         date: '2018-10-05 00:00:00',
-                        count: 51
+                        count: 20 //Original Value 51
                     }, {
                         date: '2018-10-06 00:00:00',
-                        count: 67
+                        count: 27 //Original Value 67
                     }, {
                         date: '2018-10-07 00:00:00',
-                        count: 98
+                        count: 39 //Original Value 98
                     }, {
                         date: '2018-10-08 00:00:00',
-                        count: 124
+                        count: 50 //Original Value 124
                     }]
                 };
                 // 
@@ -758,56 +759,56 @@ function statsController(objCollection) {
                     switch (Number(row.activity_status_id)) {
                         case 278803: // Document Validation
                             responseJSON.document_validation.push({
-                                date: row.date,
+                                date: util.replaceDefaultDatetime(row.date),
                                 count: row.count
                             });
                             break;
 
                         case 278421: // Customer Approval
                             responseJSON.customer_approval.push({
-                                date: row.date,
+                                date: util.replaceDefaultDatetime(row.date),
                                 count: row.count
                             });
                             break;
 
                         case 278417: // Resubmit
                             responseJSON.resubmit.push({
-                                date: row.date,
+                                date: util.replaceDefaultDatetime(row.date),
                                 count: row.count
                             });
                             break;
 
                         case 278416: // Feasibility Check
                             responseJSON.feasibility_check.push({
-                                date: row.date,
+                                date: util.replaceDefaultDatetime(row.date),
                                 count: row.count
                             });
                             break;
 
                         case 278419: // Approved
                             responseJSON.approved.push({
-                                date: row.date,
+                                date: util.replaceDefaultDatetime(row.date),
                                 count: row.count
                             });
                             break;
 
                         case 278418: // Reinitiate
                             responseJSON.reinitiate.push({
-                                date: row.date,
+                                date: util.replaceDefaultDatetime(row.date),
                                 count: row.count
                             });
                             break;
 
                         case 278420: // Cancelled
                             responseJSON.cancelled.push({
-                                date: row.date,
+                                date: util.replaceDefaultDatetime(row.date),
                                 count: row.count
                             });
                             break;
 
                         case 0: // Not Set
                             responseJSON.not_set.push({
-                                date: row.date,
+                                date: util.replaceDefaultDatetime(row.date),
                                 count: row.count
                             });
                             break;
