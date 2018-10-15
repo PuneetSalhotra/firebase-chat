@@ -82,7 +82,7 @@ var Consumer = function () {
             var request = messageJson['payload'];
             //console.log('Request params : ' , request);
             
-            if(Number(request.organization_id) === 351) {
+            /*if(Number(request.organization_id) === 351) {
                 global.logger.write('debug', 'This is PAM Request : ' , request, {}, {});
                 global.logger.write('debug', request, {}, {});
                 consumingMsg(message, kafkaMsgId, objCollection).then(()=>{});
@@ -96,7 +96,19 @@ var Consumer = function () {
                         activityCommonService.duplicateMsgUniqueIdInsert(request, (err, data)=>{});
                     }
                 });
-            }
+            }*/
+            
+            activityCommonService.checkingMSgUniqueId(request, (err, data)=>{
+                    global.logger.write('debug', 'err from checkingMSgUniqueId : ' + err, {}, request);
+                    if(err === false) {
+                        global.logger.write('debug', 'Consuming the message', {}, request);
+                        activityCommonService.msgUniqueIdInsert(request, (err, data)=>{});
+                        consumingMsg(message, kafkaMsgId, objCollection).then(()=>{});
+                    } else {
+                        global.logger.write('debug', 'Before calling this duplicateMsgUniqueIdInsert', {}, request);
+                        activityCommonService.duplicateMsgUniqueIdInsert(request, (err, data)=>{});
+                    }
+            });
             
             //Checking the kafkaMessage is already processed or not by looking into Redis
             /*cacheWrapper.getKafkaMessageUniqueId(message.topic + '_' + message.partition, function(err, data){
