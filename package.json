@@ -11,6 +11,7 @@
   "author": "venkatesh",
   "contributors": [],
   "dependencies": {
+    "@sendgrid/mail": "^6.3.1",
     "aws-sdk": "^2.283.1",
     "body-parser": "1.14.1",
     "bunyan": "1.8.1",

@@ -245,12 +245,26 @@ function ActivityController(objCollection) {
                                 if (err === false) {
                                     if (statusCode === 200) {   // go ahead and create a contact activity id
                                         var newAssetId = data.asset_id;
+                                        var newDeskAssetId = data.desk_asset_id;
+
+                                        if (data.hasOwnProperty('activity_id')) {
+                                            // Do not create the activity and return the existing details
+                                            console.log('\x1b[36m Activity ID Exists \x1b[0m', ); 
+                                            res.send(responseWrapper.getResponse(false, data, 200, req.body));
+                                            return;
+                                        }
+
+                                        // If no activity_id exists for this phone number
                                         var contactJson = eval('(' + req.body.activity_inline_data + ')');
-                                        contactJson['contact_asset_id'] = newAssetId;
+                                        contactJson['contact_asset_id'] = newDeskAssetId;
                                         req.body.activity_inline_data = JSON.stringify(contactJson);
                                         addActivity(req.body, function (err, activityId) {
                                             if (err === false) {
-                                                var responseDataCollection = {asset_id: newAssetId, activity_id: activityId};
+                                                var responseDataCollection = {
+                                                    asset_id: newAssetId,
+                                                    desk_asset_id: newDeskAssetId,
+                                                    activity_id: activityId
+                                                };
                                                 res.send(responseWrapper.getResponse(false, responseDataCollection, 200, req.body));
                                             } else {
                                                 global.logger.write('debug', err, err, req);
