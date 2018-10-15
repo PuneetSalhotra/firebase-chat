@@ -13,8 +13,8 @@ function ActivityService(objectCollection) {
     var activityPushService = objectCollection.activityPushService;
     var responseactivityData = {}
     const suzukiPdfEngine = require('../utils/suzukiPdfGenerationEngine');
-    const vodafoneStatusUpdate = require('../utils/vodafoneStatusUpdateFlow');
-    const vodafoneFormSubmissionFlow = require('../utils/vodafoneFormSubmissionFlow');
+    // const vodafoneStatusUpdate = require('../utils/vodafoneStatusUpdateFlow');
+    // const vodafoneFormSubmissionFlow = require('../utils/vodafoneFormSubmissionFlow');
 
     this.addActivity = function (request, callback) {
 
@@ -406,10 +406,10 @@ function ActivityService(objectCollection) {
                     // Vodafone Flow on Form Submission
                     // 
                     // 
-                    if (activityTypeCategroyId === 9 && (Number(request.activity_form_id) === 837 || Number(request.activity_form_id) === 844)) {
-                        console.log("\x1b[35m [Log] Calling vodafoneFormSubmissionFlow \x1b[0m")
-                        vodafoneFormSubmissionFlow(request, activityCommonService, objectCollection, () => {});
-                    }
+                    // if (activityTypeCategroyId === 9 && (Number(request.activity_form_id) === 837 || Number(request.activity_form_id) === 844)) {
+                    //     console.log("\x1b[35m [Log] Calling vodafoneFormSubmissionFlow \x1b[0m")
+                    //     vodafoneFormSubmissionFlow(request, activityCommonService, objectCollection, () => {});
+                    // }
                     // 
                     // 
                 } else {
@@ -1862,35 +1862,35 @@ function ActivityService(objectCollection) {
                 // 
                 // 
                 // Send a PubNub push
-                var pubnubMsg = {};
-                pubnubMsg.type = 'activity_unread';
-                pubnubMsg.organization_id = request.organization_id;
-                pubnubMsg.desk_asset_id = request.asset_id;
-                pubnubMsg.activity_type_category_id = 9;
-                global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg, null, 2), {}, request);
+                // var pubnubMsg = {};
+                // pubnubMsg.type = 'activity_unread';
+                // pubnubMsg.organization_id = request.organization_id;
+                // pubnubMsg.desk_asset_id = request.asset_id;
+                // pubnubMsg.activity_type_category_id = 9;
+                // global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg, null, 2), {}, request);
 
-                activityPushService.pubNubPush(request, pubnubMsg, function (err, data) {
-                    global.logger.write('debug', 'PubNub Push sent.', {}, request);
-                    global.logger.write('debug', data, {}, request);
-                });
+                // activityPushService.pubNubPush(request, pubnubMsg, function (err, data) {
+                //     global.logger.write('debug', 'PubNub Push sent.', {}, request);
+                //     global.logger.write('debug', data, {}, request);
+                // });
                 // 
                 //
-                global.logger.write('debug', JSON.stringify(activityTypeCategoryId), {}, request);
-                global.logger.write('debug', JSON.stringify(activityStatusId), {}, request);
-                global.logger.write('debug', 'OUTSIDE Calling vodafoneStatusUpdate...', {}, request);
+                // global.logger.write('debug', JSON.stringify(activityTypeCategoryId), {}, request);
+                // global.logger.write('debug', JSON.stringify(activityStatusId), {}, request);
+                // global.logger.write('debug', 'OUTSIDE Calling vodafoneStatusUpdate...', {}, request);
 
                 // activityFormId === 837
-                if (activityStatusId === 278416 || activityStatusId === 278417 || activityStatusId === 278418 || activityStatusId === 278419 || activityStatusId === 278420 || activityStatusId === 278421) {
-                    // Call the VODAFONE logic method (in a separate file)
-                    // activityCommonService.activityTimelineTransactionInsert(request, {}, 305, function (err, data) {
-                    //     console.log('\x1b[36mCalling the vodafoneStatusUpdate file.\x1b[0m');
-                    //     vodafoneStatusUpdate(request, activityCommonService, objectCollection);
-                    // });
-                    global.logger.write('debug', 'Calling vodafoneStatusUpdate...', {}, request);
-                    vodafoneStatusUpdate(request, activityCommonService, objectCollection);
+                // if (activityStatusId === 278416 || activityStatusId === 278417 || activityStatusId === 278418 || activityStatusId === 278419 || activityStatusId === 278420 || activityStatusId === 278421) {
+                //     // Call the VODAFONE logic method (in a separate file)
+                //     // activityCommonService.activityTimelineTransactionInsert(request, {}, 305, function (err, data) {
+                //     //     console.log('\x1b[36mCalling the vodafoneStatusUpdate file.\x1b[0m');
+                //     //     vodafoneStatusUpdate(request, activityCommonService, objectCollection);
+                //     // });
+                //     global.logger.write('debug', 'Calling vodafoneStatusUpdate...', {}, request);
+                //     vodafoneStatusUpdate(request, activityCommonService, objectCollection);
 
 
-                }
+                // }
                 // 
                 // 
                 updateProjectStatusCounts(request).then(() => {});
