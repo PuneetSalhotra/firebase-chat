@@ -1,6 +1,0 @@
-apps:
-  - name : "Main"
-    script   : ./main.js
-    instances: 2    
-    exec_mode: cluster
-  

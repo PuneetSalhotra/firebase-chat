@@ -3241,8 +3241,9 @@ function AssetService(objectCollection) {
                 });
             }
         });
-    };
-
+    };   
+    
+    
 }
 
 module.exports = AssetService;

@@ -367,8 +367,10 @@ function ActivityPushService(objectCollection) {
                 getPushString(request, objectCollection, senderName, function (err, pushStringObj, pubnubMsg, smsString) {
                     //console.log('PubMSG : ', pubnubMsg);
                     //console.log('pushStringObj : ', pushStringObj);
-                    global.logger.write('debug', 'PubMSG : ' + JSON.stringify(pubnubMsg, null, 2), {}, request);
-                    global.logger.write('debug', 'pushStringObj : ' + JSON.stringify(pushStringObj, null, 2), {}, request);
+                    global.logger.write('debug', 'PubMSG : ' , pubnubMsg, pubnubMsg, request);
+                    global.logger.write('debug', pubnubMsg, {}, request);
+                    global.logger.write('debug', 'pushStringObj : ' + pushStringObj, {}, request);
+                    global.logger.write('debug', pushStringObj, {}, request);
                     if (Object.keys(pushStringObj).length > 0) {
                         objectCollection.forEachAsync(pushReceivers, function (next, rowData) {
                             objectCollection.cacheWrapper.getAssetMap(rowData.assetId, function (err, assetMap) {

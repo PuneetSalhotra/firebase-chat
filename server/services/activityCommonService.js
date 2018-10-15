@@ -1995,15 +1995,32 @@ function ActivityCommonService(db, util, forEachAsync) {
     
     this.checkingMSgUniqueId = function (request, callback) {
         var paramsArr = new Array(
-            request.activity_id,
-            request.message_unique_id
+            request.message_unique_id,
+            request.asset_id
         );
-        var queryString = util.getQueryString('ds_v1_activity_timeline_transaction_select_msg_unq_chk', paramsArr);
+        //var queryString = util.getQueryString('ds_v1_activity_timeline_transaction_select_msg_unq_chk', paramsArr);
+        var queryString = util.getQueryString('ds_p1_asset_message_unique_id_transaction_select', paramsArr);        
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log('data : ', data);
-                global.logger.write('debug', JSON.stringify(data, null, 2), {}, request);
-                (data[0].count == 0) ? callback(false, data): callback(true, {});
+                global.logger.write('debug', data, {}, request);
+                (data.length > 0) ? callback(true, {}) : callback(false, data);
+            });
+        }
+    };
+    
+    this.msgUniqueIdInsert = function (request, callback) {
+        var paramsArr = new Array(
+            request.message_unique_id,
+            request.asset_id,
+            request.activity_id,
+            request.form_transaction_id
+        );        
+        var queryString = util.getQueryString('ds_p1_asset_message_unique_id_transaction_insert', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                global.logger.write('debug', data, {}, request);
+                (err == false) ? callback(false, data): callback(true, {});
             });
         }
     };
