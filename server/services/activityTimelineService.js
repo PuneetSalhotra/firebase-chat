@@ -28,7 +28,7 @@ function ActivityTimelineService(objectCollection) {
             global.logger.write('debug', 'form id extracted from json is: ' + formDataJson[0]['form_id'], {}, request);
             var lastObject = formDataJson[formDataJson.length - 1];
             //console.log('Last object : ', lastObject)
-            global.logger.write('debug', 'Last object : ' + lastObject, {}, request);
+            global.logger.write('debug', 'Last object : ' + JSON.stringify(lastObject, null, 2), {}, request);
             if (lastObject.hasOwnProperty('field_value')) {
                 //console.log('Has the field value in the last object')
                 global.logger.write('debug', 'Has the field value in the last object', {}, request);
@@ -136,7 +136,7 @@ function ActivityTimelineService(objectCollection) {
             global.logger.write('debug', 'form id extracted from json is: ' + formDataJson[0]['form_id'], {}, request);
             var lastObject = formDataJson[formDataJson.length - 1]
             //console.log('Last object : ', lastObject)
-            global.logger.write('debug', 'Last object : ' + lastObject, {}, request);
+            global.logger.write('debug', 'Last object : ' + JSON.stringify(lastObject, null, 2), {}, request);
             if (lastObject.hasOwnProperty('field_value')) {
                 //console.log('Has the field value in the last object')
                 global.logger.write('debug', 'Has the field value in the last object', {}, request);
