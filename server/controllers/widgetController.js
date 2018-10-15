@@ -9,7 +9,6 @@ function WidgetController(objCollection) {
 
     var responseWrapper = objCollection.responseWrapper;
     var app = objCollection.app;
-    const vodafoneCustomerServiceFlow = require('../utils/vodafoneCustomerServiceFlow');
     
     var widgetService = new WidgetService(objCollection);
     
@@ -51,23 +50,6 @@ function WidgetController(objCollection) {
             }
         });
     });
-
-    app.post('/' + global.config.version + '/vodafone/workflow/customer_service', function (req, res) {
-
-        vodafoneCustomerServiceFlow(req.body, objCollection.activityCommonService, objCollection, (err, data, statusCode) => {
-            if (err === false) {
-                res.send(responseWrapper.getResponse(err, {
-                    activity_id: data
-                }, statusCode, req.body));
-            } else {
-                data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
-            }
-        });
-
-    });
-
-
 
 
 }

@@ -309,8 +309,8 @@ config.nexmpAppliationId = "33635cb2-5497-4d69-831e-dcb533449e84";
 
 config.smtp_host = 'retail.smtp.com';
 config.smtp_port = '2525';
-config.smtp_user = 'vodafone_idea@grenerobotics.com';
-config.smtp_pass = 'foxtrot111';
+config.smtp_user = 'donotreply@blueflock.com';
+config.smtp_pass = '%*^$#r@@t';
 
 config.cassandraCredentialsDev = {
     ip: '192.168.7.120',
