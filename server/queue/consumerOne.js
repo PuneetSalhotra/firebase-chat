@@ -84,13 +84,13 @@ var Consumer = function () {
             var request = messageJson['payload'];
             //console.log('Request params : ' , request);
             
-            if(Number(request.organization_id) === 351) {
-                global.logger.write('debug', 'This is PAM Request : ' + request, {}, {});
+            /*if(Number(request.organization_id) === 351) {
+                global.logger.write('debug', 'This is PAM Request : ' , request, {}, {});
                 global.logger.write('debug', request, {}, {});
                 consumingMsg(message, kafkaMsgId, objCollection).then(()=>{});
             } else {
                 activityCommonService.checkingMSgUniqueId(request, (err, data)=>{
-                    global.logger.write('debug', 'err from checkingMSgUniqueId : ' + err, {}, request);
+                    global.logger.write('debug', 'err from checkingMSgUniqueId : ' , err, {}, request);
                     if(err === false) {
                         consumingMsg(message, kafkaMsgId, objCollection).then(()=>{});
                     } else {
@@ -98,7 +98,19 @@ var Consumer = function () {
                         activityCommonService.duplicateMsgUniqueIdInsert(request, (err, data)=>{});
                     }
                 });
-            }
+            }*/
+            
+            activityCommonService.checkingMSgUniqueId(request, (err, data)=>{
+                    global.logger.write('debug', 'err from checkingMSgUniqueId : ' + err, {}, request);
+                    if(err === false) {
+                        global.logger.write('debug', 'Consuming the message', {}, request);
+                        activityCommonService.msgUniqueIdInsert(request, (err, data)=>{});
+                        consumingMsg(message, kafkaMsgId, objCollection).then(()=>{});
+                    } else {
+                        global.logger.write('debug', 'Before calling this duplicateMsgUniqueIdInsert', {}, request);
+                        activityCommonService.duplicateMsgUniqueIdInsert(request, (err, data)=>{});
+                    }
+            });
             
             //Checking the kafkaMessage is already processed or not by looking into Redis
             /*cacheWrapper.getKafkaMessageUniqueId(message.topic + '_' + message.partition, function(err, data){
@@ -224,7 +236,7 @@ var Consumer = function () {
                     resolve();
                 } else {
                     //console.log('Unable to set the Kafka message Unique Id in the Redis : ' + err);
-                    global.logger.write('debug', 'Unable to set the Kafka message Unique Id in the Redis : ' + err, {}, {});
+                    global.logger.write('debug', 'Unable to set the Kafka message Unique Id in the Redis : ' , err, {}, {});
                     reject(err);
                 }
             });
@@ -238,8 +250,8 @@ var Consumer = function () {
                         //console.log('data : ' + data);
                         //console.log('kafkaMsgId : ' + kafkaMsgId);
                         //console.log('Received message.offset : ' + message.offset);
-                        global.logger.write('debug', 'data : ' + data, {}, {});
-                        global.logger.write('debug', 'kafkaMsgId : ' + kafkaMsgId, {}, {});
+                        global.logger.write('debug', 'data : ' , data, {}, {});
+                        global.logger.write('debug', 'kafkaMsgId : ' , kafkaMsgId, {}, {});
                         global.logger.write('debug', 'Received message.offset : ' + message.offset, {}, {});
                         
                         if(data < message.offset) { //I think this should be greater than to current offset

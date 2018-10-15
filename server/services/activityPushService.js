@@ -367,8 +367,10 @@ function ActivityPushService(objectCollection) {
                 getPushString(request, objectCollection, senderName, function (err, pushStringObj, pubnubMsg, smsString) {
                     //console.log('PubMSG : ', pubnubMsg);
                     //console.log('pushStringObj : ', pushStringObj);
-                    global.logger.write('debug', 'PubMSG : ' + JSON.stringify(pubnubMsg, null, 2), {}, request);
-                    global.logger.write('debug', 'pushStringObj : ' + JSON.stringify(pushStringObj, null, 2), {}, request);
+                    global.logger.write('debug', 'PubMSG : ' , pubnubMsg, pubnubMsg, request);
+                    global.logger.write('debug', pubnubMsg, {}, request);
+                    global.logger.write('debug', 'pushStringObj : ' + pushStringObj, {}, request);
+                    global.logger.write('debug', pushStringObj, {}, request);
                     if (Object.keys(pushStringObj).length > 0) {
                         objectCollection.forEachAsync(pushReceivers, function (next, rowData) {
                             objectCollection.cacheWrapper.getAssetMap(rowData.assetId, function (err, assetMap) {
@@ -439,7 +441,8 @@ function ActivityPushService(objectCollection) {
                                         pubnubMsg.organization_id = rowData.organizationId;
                                         pubnubMsg.desk_asset_id = rowData.assetId
                                         //console.log('PubNub Message : ', pubnubMsg);
-                                        global.logger.write('debug', 'PubNub Message :' + pubnubMsg, {}, request);
+                                        global.logger.write('debug', 'PubNub Message :', {}, request);
+                                        global.logger.write('debug', pubnubMsg, {}, request);
                                         pubnubWrapper.push(rowData.organizationId, pubnubMsg);
                                         pubnubWrapper.push(rowData.assetId, pubnubMsg);
                                     }
@@ -464,12 +467,14 @@ function ActivityPushService(objectCollection) {
                                     switch (rowData.pushType) {
                                         case 'pub':
                                             //console.log('pubnubMsg :', pubnubMsg);
-                                            global.logger.write('debug', 'pubnubMsg : ' + pubnubMsg, {}, request);
+                                            global.logger.write('debug', 'pubnubMsg : ', {}, request);
+                                            global.logger.write('debug', pubnubMsg, {}, request);
                                             if (pubnubMsg.activity_type_category_id != 0) {
                                                 pubnubMsg.organization_id = rowData.organizationId;
                                                 pubnubMsg.desk_asset_id = rowData.assetId;
                                                 //console.log('PubNub Message : ', pubnubMsg);
-                                                global.logger.write('debug', 'PubNub Message : ' + pubnubMsg, {}, request);
+                                                global.logger.write('debug', 'PubNub Message : ', {}, request);
+                                                global.logger.write('debug', pubnubMsg, {}, request);
                                                 pubnubWrapper.push(rowData.organizationId, pubnubMsg);
                                                 pubnubWrapper.push(rowData.assetId, pubnubMsg);
                                             }

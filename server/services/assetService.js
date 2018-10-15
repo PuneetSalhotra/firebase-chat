@@ -2791,7 +2791,7 @@ function AssetService(objectCollection) {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
                     //console.log('unread counts: ', data);
-                    global.logger.write('debug', 'unread counts: ' + data, {}, request);
+                    global.logger.write('debug', 'unread counts: ' , data, data, request);
                     forEachAsync(data, (next, row) => {
                         allAssetIds.push(row.asset_id);
                         row.unread_count = row.count; //Adding the unread_count parameter in the response                
@@ -2841,7 +2841,7 @@ function AssetService(objectCollection) {
 
                                             dayPlanCnt(request).then((dayPlanCnt) => {
                                                 //console.log('DayPlanCnt : ', dayPlanCnt);
-                                                global.logger.write('debug', 'DayPlanCnt : ' + dayPlanCnt, {}, request);
+                                                global.logger.write('debug', 'DayPlanCnt : ' , dayPlanCnt, dayPlanCnt, request);
 
                                                 forEachAsync(dayPlanCnt, (next, dayPlanrowData) => {
                                                     dayPlanAssetIds.push(dayPlanrowData.asset_id);
@@ -2867,7 +2867,7 @@ function AssetService(objectCollection) {
                                                 }).then(() => {
                                                     pastDueCnt(request).then((pastDueCnt) => {
                                                         //console.log('pastDueCnt : ', pastDueCnt);
-                                                        global.logger.write('debug', 'pastDueCnt : ' + pastDueCnt, {}, request);
+                                                        global.logger.write('debug', 'pastDueCnt : ' , pastDueCnt, pastDueCnt, request);
 
                                                         forEachAsync(pastDueCnt, (next, pastDuerowData) => {
                                                             pastDueAssetIds.push(pastDuerowData.asset_id);
@@ -3241,8 +3241,9 @@ function AssetService(objectCollection) {
                 });
             }
         });
-    };
-
+    };   
+    
+    
 }
 
 module.exports = AssetService;
