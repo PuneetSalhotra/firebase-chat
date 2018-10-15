@@ -5,6 +5,7 @@ function statsController(objCollection) {
     var responseWrapper = objCollection.responseWrapper;
     var app = objCollection.app;
     var statsService = new StatsService(objCollection);
+    var util = objCollection.util;
 
     app.post('/' + global.config.version + '/stats/signup/count', function statsSignUpCountReqHandler(req, res) {
         statsService.getSignUpCountStats(req.body, function statsSignUpCountCallback(err, data, statusCode) {
@@ -44,13 +45,12 @@ function statsController(objCollection) {
     });
 
     // [VODAFONE] Get breakdown for count of orders on the basis of status of the order
-    app.post('/' + global.config.version + '/stats/form/orders/count', function (req, res) {
+    /*app.post('/' + global.config.version + '/stats/form/orders/count', function (req, res) {
         statsService.activityListSelectFormCountActivityStatus(req.body, function (err, data, statusCode) {
             if (!err) {
                 console.log("data: ", data);
 
-                var responseJSON = [
-                    {
+                var responseJSON = [{
                         "count": 0,
                         "form_id": 837,
                         "activity_status_id": 0,
@@ -87,49 +87,60 @@ function statsController(objCollection) {
                         "activity_status_name": "Cancelled"
                     },
                     {
-                        "count": 372,
+                        "count": 149,
+                        "form_id": 837,
+                        "activity_status_id": 278803,
+                        "activity_status_name": "Document Validation"
+                    },
+                    {
+                        "count": 223,
                         "form_id": 837,
                         "activity_status_id": 278421,
-                        "activity_status_name": "Document Validation"
+                        "activity_status_name": "Customer Approval"
                     }
                 ];
 
                 if (data.length > 0) {
                     data.forEach((row) => {
                         switch (Number(row.activity_status_id)) {
-                            case 278421: // Document Validation
-                                responseJSON[6].count = Number(row.count) + 372;;
+                            case 278421: // Customer Approval
+                                responseJSON[7].count = Number(row.count) + 223;;
 
                                 break;
-    
+
+                            case 278803: // Document Validation
+                                responseJSON[6].count = Number(row.count) + 149;;
+
+                                break;
+
                             case 278417: // Resubmit
                                 responseJSON[2].count = Number(row.count) + 58;
                                 break;
-    
+
                             case 278416: // Feasibility Check
                                 responseJSON[1].count = Number(row.count) + 121;
                                 break;
-    
+
                             case 278419: // Approved
                                 responseJSON[4].count = Number(row.count) + 625;
                                 break;
-    
+
                             case 278418: // Reinitiate
                                 responseJSON[3].count = Number(row.count) + 4;
                                 break;
-    
+
                             case 278420: // Cancelled
                                 responseJSON[5].count = Number(row.count) + 33;
                                 break;
-    
+
                             case 0: // Not Set
                                 row.count = Number(row.count);
                                 responseJSON[0].count = 0;
                                 break;
                         }
-                        
-                    });   
-                } 
+
+                    });
+                }
 
                 res.send(responseWrapper.getResponse(err, responseJSON, statusCode, req.body));
             } else {
@@ -151,7 +162,8 @@ function statsController(objCollection) {
                 data[0].reinitiate = Number(data[0].reinitiate) + 495000;
                 data[0].approved = Number(data[0].approved) + 59395000;
                 data[0].feasibility_check = Number(data[0].feasibility_check) + 12680000;
-                data[0].document_validation = Number(data[0].document_validation) + 40240000;
+                data[0].document_validation = Number(data[0].document_validation) + 24144000;
+                data[0].customer_approval = Number(data[0].customer_approval) + 16096000;
                 data[0].total_value = Number(data[0].total_value) + 124942000;
 
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
@@ -169,24 +181,6 @@ function statsController(objCollection) {
             if (!err) {
                 var responseJSON = {
                     not_set: [{
-                        date: '2018-09-23 00:00:00',
-                        value: 0
-                    }, {
-                        date: '2018-09-24 00:00:00',
-                        value: 0
-                    }, {
-                        date: '2018-09-25 00:00:00',
-                        value: 0
-                    }, {
-                        date: '2018-09-26 00:00:00',
-                        value: 0
-                    }, {
-                        date: '2018-09-27 00:00:00',
-                        value: 0
-                    }, {
-                        date: '2018-09-28 00:00:00',
-                        value: 0
-                    }, {
                         date: '2018-09-29 00:00:00',
                         value: 0
                     }, {
@@ -197,91 +191,91 @@ function statsController(objCollection) {
                         value: 0
                     }, {
                         date: '2018-10-02 00:00:00',
+                        value: 0
+                    }, {
+                        date: '2018-10-03 00:00:00',
+                        value: 0
+                    }, {
+                        date: '2018-10-04 00:00:00',
+                        value: 0
+                    }, {
+                        date: '2018-10-05 00:00:00',
+                        value: 0
+                    }, {
+                        date: '2018-10-06 00:00:00',
+                        value: 0
+                    }, {
+                        date: '2018-10-07 00:00:00',
+                        value: 0
+                    }, {
+                        date: '2018-10-08 00:00:00',
                         value: 0
                     }],
                     cancelled: [{
-                        date: '2018-09-23 00:00:00',
+                        date: '2018-09-29 00:00:00',
                         value: 675000
                     }, {
-                        date: '2018-09-24 00:00:00',
+                        date: '2018-09-30 00:00:00',
                         value: 1500000
                     }, {
-                        date: '2018-09-25 00:00:00',
+                        date: '2018-10-01 00:00:00',
                         value: 1650000
                     }, {
-                        date: '2018-09-26 00:00:00',
+                        date: '2018-10-02 00:00:00',
                         value: 250000
                     }, {
-                        date: '2018-09-27 00:00:00',
+                        date: '2018-10-03 00:00:00',
                         value: 660000
                     }, {
-                        date: '2018-09-28 00:00:00',
+                        date: '2018-10-04 00:00:00',
                         value: 346000
                     }, {
-                        date: '2018-09-29 00:00:00',
+                        date: '2018-10-05 00:00:00',
                         value: 0
                     }, {
-                        date: '2018-09-30 00:00:00',
+                        date: '2018-10-06 00:00:00',
                         value: 0
                     }, {
-                        date: '2018-10-01 00:00:00',
+                        date: '2018-10-07 00:00:00',
                         value: 0
                     }, {
-                        date: '2018-10-02 00:00:00',
+                        date: '2018-10-08 00:00:00',
                         value: 0
                     }],
                     resubmit: [{
-                        date: '2018-09-23 00:00:00',
-                        value: 0
-                    }, {
-                        date: '2018-09-24 00:00:00',
-                        value: 0
-                    }, {
-                        date: '2018-09-25 00:00:00',
-                        value: 0
-                    }, {
-                        date: '2018-09-26 00:00:00',
-                        value: 0
-                    }, {
-                        date: '2018-09-27 00:00:00',
-                        value: 265000
-                    }, {
-                        date: '2018-09-28 00:00:00',
-                        value: 130000
-                    }, {
                         date: '2018-09-29 00:00:00',
-                        value: 876000
+                        value: 0
                     }, {
                         date: '2018-09-30 00:00:00',
-                        value: 3250000
+                        value: 0
                     }, {
                         date: '2018-10-01 00:00:00',
-                        value: 2530000
+                        value: 0
                     }, {
                         date: '2018-10-02 00:00:00',
+                        value: 0
+                    }, {
+                        date: '2018-10-03 00:00:00',
+                        value: 265000
+                    }, {
+                        date: '2018-10-04 00:00:00',
+                        value: 130000
+                    }, {
+                        date: '2018-10-05 00:00:00',
+                        value: 876000
+                    }, {
+                        date: '2018-10-06 00:00:00',
+                        value: 3250000
+                    }, {
+                        date: '2018-10-07 00:00:00',
+                        value: 2530000
+                    }, {
+                        date: '2018-10-08 00:00:00',
                         value: 0
                     }],
                     reinitiate: [{
-                        date: '2018-09-23 00:00:00',
-                        value: 0
-                    }, {
-                        date: '2018-09-24 00:00:00',
-                        value: 0
-                    }, {
-                        date: '2018-09-25 00:00:00',
-                        value: 0
-                    }, {
-                        date: '2018-09-26 00:00:00',
-                        value: 0
-                    }, {
-                        date: '2018-09-27 00:00:00',
-                        value: 135000
-                    }, {
-                        date: '2018-09-28 00:00:00',
-                        value: 240000
-                    }, {
                         date: '2018-09-29 00:00:00',
-                        value: 120000
+                        value: 0
                     }, {
                         date: '2018-09-30 00:00:00',
                         value: 0
@@ -290,150 +284,206 @@ function statsController(objCollection) {
                         value: 0
                     }, {
                         date: '2018-10-02 00:00:00',
+                        value: 0
+                    }, {
+                        date: '2018-10-03 00:00:00',
+                        value: 135000
+                    }, {
+                        date: '2018-10-04 00:00:00',
+                        value: 240000
+                    }, {
+                        date: '2018-10-05 00:00:00',
+                        value: 120000
+                    }, {
+                        date: '2018-10-06 00:00:00',
+                        value: 0
+                    }, {
+                        date: '2018-10-07 00:00:00',
+                        value: 0
+                    }, {
+                        date: '2018-10-08 00:00:00',
                         value: 0
                     }],
                     approved: [{
-                        date: '2018-09-23 00:00:00',
+                        date: '2018-09-29 00:00:00',
                         value: 12825000
                     }, {
-                        date: '2018-09-24 00:00:00',
+                        date: '2018-09-30 00:00:00',
                         value: 9000000
                     }, {
-                        date: '2018-09-25 00:00:00',
+                        date: '2018-10-01 00:00:00',
                         value: 11250000
                     }, {
-                        date: '2018-09-26 00:00:00',
+                        date: '2018-10-02 00:00:00',
                         value: 9750000
                     }, {
-                        date: '2018-09-27 00:00:00',
+                        date: '2018-10-03 00:00:00',
                         value: 8870000
                     }, {
-                        date: '2018-09-28 00:00:00',
+                        date: '2018-10-04 00:00:00',
                         value: 7700000
                     }, {
-                        date: '2018-09-29 00:00:00',
+                        date: '2018-10-05 00:00:00',
                         value: 0
                     }, {
-                        date: '2018-09-30 00:00:00',
+                        date: '2018-10-06 00:00:00',
                         value: 0
                     }, {
-                        date: '2018-10-01 00:00:00',
+                        date: '2018-10-07 00:00:00',
                         value: 0
                     }, {
-                        date: '2018-10-02 00:00:00',
+                        date: '2018-10-08 00:00:00',
                         value: 0
                     }],
                     feasibility_check: [{
-                        date: '2018-09-23 00:00:00',
-                        value: 0
-                    }, {
-                        date: '2018-09-24 00:00:00',
-                        value: 0
-                    }, {
-                        date: '2018-09-25 00:00:00',
-                        value: 0
-                    }, {
-                        date: '2018-09-26 00:00:00',
-                        value: 0
-                    }, {
-                        date: '2018-09-27 00:00:00',
-                        value: 2120000
-                    }, {
-                        date: '2018-09-28 00:00:00',
-                        value: 3100000
-                    }, {
                         date: '2018-09-29 00:00:00',
-                        value: 5100000
+                        value: 0
                     }, {
                         date: '2018-09-30 00:00:00',
-                        value: 2360000
+                        value: 0
                     }, {
                         date: '2018-10-01 00:00:00',
                         value: 0
                     }, {
                         date: '2018-10-02 00:00:00',
+                        value: 0
+                    }, {
+                        date: '2018-10-03 00:00:00',
+                        value: 2120000
+                    }, {
+                        date: '2018-10-04 00:00:00',
+                        value: 3100000
+                    }, {
+                        date: '2018-10-05 00:00:00',
+                        value: 5100000
+                    }, {
+                        date: '2018-10-06 00:00:00',
+                        value: 2360000
+                    }, {
+                        date: '2018-10-07 00:00:00',
+                        value: 0
+                    }, {
+                        date: '2018-10-08 00:00:00',
                         value: 0
                     }],
                     document_validation: [{
-                        date: '2018-09-23 00:00:00',
-                        value: 0
-                    }, {
-                        date: '2018-09-24 00:00:00',
-                        value: 0
-                    }, {
-                        date: '2018-09-25 00:00:00',
-                        value: 0
-                    }, {
-                        date: '2018-09-26 00:00:00',
-                        value: 0
-                    }, {
-                        date: '2018-09-27 00:00:00',
-                        value: 1340000
-                    }, {
-                        date: '2018-09-28 00:00:00',
-                        value: 2450000
-                    }, {
                         date: '2018-09-29 00:00:00',
-                        value: 5340000
+                        value: 0
                     }, {
                         date: '2018-09-30 00:00:00',
-                        value: 7650000
+                        value: 0
                     }, {
                         date: '2018-10-01 00:00:00',
-                        value: 10900000
+                        value: 0
                     }, {
                         date: '2018-10-02 00:00:00',
-                        value: 12560000
+                        value: 0
+                    }, {
+                        date: '2018-10-03 00:00:00',
+                        value: 804000 //Original Value 1340000
+                    }, {
+                        date: '2018-10-04 00:00:00',
+                        value: 1470000 //Original Value 2450000
+                    }, {
+                        date: '2018-10-05 00:00:00',
+                        value: 3204000 //Original Value 5340000
+                    }, {
+                        date: '2018-10-06 00:00:00',
+                        value: 4590000 //Original Value 7650000
+                    }, {
+                        date: '2018-10-07 00:00:00',
+                        value: 6540000 //Original Value 10900000
+                    }, {
+                        date: '2018-10-08 00:00:00',
+                        value: 7536000 //Original Value 12560000
+                    }],
+                    customer_approval: [{
+                        date: '2018-09-29 00:00:00',
+                        value: 0
+                    }, {
+                        date: '2018-09-30 00:00:00',
+                        value: 0
+                    }, {
+                        date: '2018-10-01 00:00:00',
+                        value: 0
+                    }, {
+                        date: '2018-10-02 00:00:00',
+                        value: 0
+                    }, {
+                        date: '2018-10-03 00:00:00',
+                        value: 536000 //Original Value 1340000
+                    }, {
+                        date: '2018-10-04 00:00:00',
+                        value: 980000//Original Value 2450000
+                    }, {
+                        date: '2018-10-05 00:00:00',
+                        value: 2136000 //Original Value 5340000
+                    }, {
+                        date: '2018-10-06 00:00:00',
+                        value: 3060000 //Original Value 7650000
+                    }, {
+                        date: '2018-10-07 00:00:00',
+                        value: 4360000 //Original Value 10900000
+                    }, {
+                        date: '2018-10-08 00:00:00',
+                        value: 5024000 //Original Value 12560000
                     }]
                 };
                 // 
                 data.forEach((row) => {
                     switch (Number(row.activity_status_id)) {
-                        case 278421: // Document Validation
+                        case 278803: // Document Validation
                             responseJSON.document_validation.push({
-                                date: row.date,
+                                date: util.replaceDefaultDatetime(row.date),
+                                value: row.value
+                            });
+                            break;
+
+                        case 278421: // Customer Approval
+                            responseJSON.customer_approval.push({
+                                date: util.replaceDefaultDatetime(row.date),
                                 value: row.value
                             });
                             break;
 
                         case 278417: // Resubmit
                             responseJSON.resubmit.push({
-                                date: row.date,
+                                date: util.replaceDefaultDatetime(row.date),
                                 value: row.value
                             });
                             break;
 
                         case 278416: // Feasibility Check
                             responseJSON.feasibility_check.push({
-                                date: row.date,
+                                date: util.replaceDefaultDatetime(row.date),
                                 value: row.value
                             });
                             break;
 
                         case 278419: // Approved
                             responseJSON.approved.push({
-                                date: row.date,
+                                date: util.replaceDefaultDatetime(row.date),
                                 value: row.value
                             });
                             break;
 
                         case 278418: // Reinitiate
                             responseJSON.reinitiate.push({
-                                date: row.date,
+                                date: util.replaceDefaultDatetime(row.date),
                                 value: row.value
                             });
                             break;
 
                         case 278420: // Cancelled
                             responseJSON.cancelled.push({
-                                date: row.date,
+                                date: util.replaceDefaultDatetime(row.date),
                                 count: row.value
                             });
                             break;
 
                         case 0: // Not Set
                             responseJSON.not_set.push({
-                                date: row.date,
+                                date: util.replaceDefaultDatetime(row.date),
                                 value: row.value
                             });
                             break;
@@ -456,24 +506,6 @@ function statsController(objCollection) {
             if (!err) {
                 var responseJSON = {
                     not_set: [{
-                        date: '2018-09-23 00:00:00',
-                        count: 0
-                    }, {
-                        date: '2018-09-24 00:00:00',
-                        count: 0
-                    }, {
-                        date: '2018-09-25 00:00:00',
-                        count: 0
-                    }, {
-                        date: '2018-09-26 00:00:00',
-                        count: 0
-                    }, {
-                        date: '2018-09-27 00:00:00',
-                        count: 0
-                    }, {
-                        date: '2018-09-28 00:00:00',
-                        count: 0
-                    }, {
                         date: '2018-09-29 00:00:00',
                         count: 0
                     }, {
@@ -484,91 +516,91 @@ function statsController(objCollection) {
                         count: 0
                     }, {
                         date: '2018-10-02 00:00:00',
+                        count: 0
+                    }, {
+                        date: '2018-10-03 00:00:00',
+                        count: 0
+                    }, {
+                        date: '2018-10-04 00:00:00',
+                        count: 0
+                    }, {
+                        date: '2018-10-05 00:00:00',
+                        count: 0
+                    }, {
+                        date: '2018-10-06 00:00:00',
+                        count: 0
+                    }, {
+                        date: '2018-10-07 00:00:00',
+                        count: 0
+                    }, {
+                        date: '2018-10-08 00:00:00',
                         count: 0
                     }],
                     cancelled: [{
-                        date: '2018-09-23 00:00:00',
-                        count: 5
-                    }, {
-                        date: '2018-09-24 00:00:00',
-                        count: 9
-                    }, {
-                        date: '2018-09-25 00:00:00',
-                        count: 9
-                    }, {
-                        date: '2018-09-26 00:00:00',
-                        count: 3
-                    }, {
-                        date: '2018-09-27 00:00:00',
-                        count: 5
-                    }, {
-                        date: '2018-09-28 00:00:00',
-                        count: 2
-                    }, {
                         date: '2018-09-29 00:00:00',
-                        count: 0
+                        count: 5
                     }, {
                         date: '2018-09-30 00:00:00',
-                        count: 0
+                        count: 9
                     }, {
                         date: '2018-10-01 00:00:00',
-                        count: 0
+                        count: 9
                     }, {
                         date: '2018-10-02 00:00:00',
+                        count: 3
+                    }, {
+                        date: '2018-10-03 00:00:00',
+                        count: 5
+                    }, {
+                        date: '2018-10-04 00:00:00',
+                        count: 2
+                    }, {
+                        date: '2018-10-05 00:00:00',
+                        count: 0
+                    }, {
+                        date: '2018-10-06 00:00:00',
+                        count: 0
+                    }, {
+                        date: '2018-10-07 00:00:00',
+                        count: 0
+                    }, {
+                        date: '2018-10-08 00:00:00',
                         count: 0
                     }],
                     resubmit: [{
-                        date: '2018-09-23 00:00:00',
-                        count: 0
-                    }, {
-                        date: '2018-09-24 00:00:00',
-                        count: 0
-                    }, {
-                        date: '2018-09-25 00:00:00',
-                        count: 0
-                    }, {
-                        date: '2018-09-26 00:00:00',
-                        count: 0
-                    }, {
-                        date: '2018-09-27 00:00:00',
-                        count: 2
-                    }, {
-                        date: '2018-09-28 00:00:00',
-                        count: 1
-                    }, {
                         date: '2018-09-29 00:00:00',
-                        count: 6
+                        count: 0
                     }, {
                         date: '2018-09-30 00:00:00',
-                        count: 28
+                        count: 0
                     }, {
                         date: '2018-10-01 00:00:00',
-                        count: 21
+                        count: 0
                     }, {
                         date: '2018-10-02 00:00:00',
+                        count: 0
+                    }, {
+                        date: '2018-10-03 00:00:00',
+                        count: 2
+                    }, {
+                        date: '2018-10-04 00:00:00',
+                        count: 1
+                    }, {
+                        date: '2018-10-05 00:00:00',
+                        count: 6
+                    }, {
+                        date: '2018-10-06 00:00:00',
+                        count: 28
+                    }, {
+                        date: '2018-10-07 00:00:00',
+                        count: 21
+                    }, {
+                        date: '2018-10-08 00:00:00',
                         count: 0
                     }],
                     reinitiate: [{
-                        date: '2018-09-23 00:00:00',
-                        count: 0
-                    }, {
-                        date: '2018-09-24 00:00:00',
-                        count: 0
-                    }, {
-                        date: '2018-09-25 00:00:00',
-                        count: 0
-                    }, {
-                        date: '2018-09-26 00:00:00',
-                        count: 0
-                    }, {
-                        date: '2018-09-27 00:00:00',
-                        count: 1
-                    }, {
-                        date: '2018-09-28 00:00:00',
-                        count: 2
-                    }, {
                         date: '2018-09-29 00:00:00',
-                        count: 1
+                        count: 0
                     }, {
                         date: '2018-09-30 00:00:00',
                         count: 0
@@ -577,150 +609,206 @@ function statsController(objCollection) {
                         count: 0
                     }, {
                         date: '2018-10-02 00:00:00',
+                        count: 0
+                    }, {
+                        date: '2018-10-03 00:00:00',
+                        count: 1
+                    }, {
+                        date: '2018-10-04 00:00:00',
+                        count: 2
+                    }, {
+                        date: '2018-10-05 00:00:00',
+                        count: 1
+                    }, {
+                        date: '2018-10-06 00:00:00',
+                        count: 0
+                    }, {
+                        date: '2018-10-07 00:00:00',
+                        count: 0
+                    }, {
+                        date: '2018-10-08 00:00:00',
                         count: 0
                     }],
                     approved: [{
-                        date: '2018-09-23 00:00:00',
+                        date: '2018-09-29 00:00:00',
                         count: 121
                     }, {
-                        date: '2018-09-24 00:00:00',
+                        date: '2018-09-30 00:00:00',
                         count: 119
                     }, {
-                        date: '2018-09-25 00:00:00',
+                        date: '2018-10-01 00:00:00',
                         count: 116
                     }, {
-                        date: '2018-09-26 00:00:00',
+                        date: '2018-10-02 00:00:00',
                         count: 127
                     }, {
-                        date: '2018-09-27 00:00:00',
+                        date: '2018-10-03 00:00:00',
                         count: 77
                     }, {
-                        date: '2018-09-28 00:00:00',
+                        date: '2018-10-04 00:00:00',
                         count: 65
                     }, {
-                        date: '2018-09-29 00:00:00',
+                        date: '2018-10-05 00:00:00',
                         count: 0
                     }, {
-                        date: '2018-09-30 00:00:00',
+                        date: '2018-10-06 00:00:00',
                         count: 0
                     }, {
-                        date: '2018-10-01 00:00:00',
+                        date: '2018-10-07 00:00:00',
                         count: 0
                     }, {
-                        date: '2018-10-02 00:00:00',
+                        date: '2018-10-08 00:00:00',
                         count: 0
                     }],
                     feasibility_check: [{
-                        date: '2018-09-23 00:00:00',
-                        count: 0
-                    }, {
-                        date: '2018-09-24 00:00:00',
-                        count: 0
-                    }, {
-                        date: '2018-09-25 00:00:00',
-                        count: 0
-                    }, {
-                        date: '2018-09-26 00:00:00',
-                        count: 0
-                    }, {
-                        date: '2018-09-27 00:00:00',
-                        count: 20
-                    }, {
-                        date: '2018-09-28 00:00:00',
-                        count: 30
-                    }, {
                         date: '2018-09-29 00:00:00',
-                        count: 49
+                        count: 0
                     }, {
                         date: '2018-09-30 00:00:00',
-                        count: 22
+                        count: 0
                     }, {
                         date: '2018-10-01 00:00:00',
                         count: 0
                     }, {
                         date: '2018-10-02 00:00:00',
+                        count: 0
+                    }, {
+                        date: '2018-10-03 00:00:00',
+                        count: 20
+                    }, {
+                        date: '2018-10-04 00:00:00',
+                        count: 30
+                    }, {
+                        date: '2018-10-05 00:00:00',
+                        count: 49
+                    }, {
+                        date: '2018-10-06 00:00:00',
+                        count: 22
+                    }, {
+                        date: '2018-10-07 00:00:00',
+                        count: 0
+                    }, {
+                        date: '2018-10-08 00:00:00',
                         count: 0
                     }],
                     document_validation: [{
-                        date: '2018-09-23 00:00:00',
-                        count: 0
-                    }, {
-                        date: '2018-09-24 00:00:00',
-                        count: 0
-                    }, {
-                        date: '2018-09-25 00:00:00',
-                        count: 0
-                    }, {
-                        date: '2018-09-26 00:00:00',
-                        count: 0
-                    }, {
-                        date: '2018-09-27 00:00:00',
-                        count: 11
-                    }, {
-                        date: '2018-09-28 00:00:00',
-                        count: 21
-                    }, {
                         date: '2018-09-29 00:00:00',
-                        count: 51
+                        count: 0
                     }, {
                         date: '2018-09-30 00:00:00',
-                        count: 67
+                        count: 0
                     }, {
                         date: '2018-10-01 00:00:00',
-                        count: 98
+                        count: 0
                     }, {
                         date: '2018-10-02 00:00:00',
-                        count: 124
+                        count: 0
+                    }, {
+                        date: '2018-10-03 00:00:00',
+                        count: 7 //Original Value 11
+                    }, {
+                        date: '2018-10-04 00:00:00',
+                        count: 13 //Original Value 21
+                    }, {
+                        date: '2018-10-05 00:00:00',
+                        count: 31 //Original Value 51
+                    }, {
+                        date: '2018-10-06 00:00:00',
+                        count: 40 //Original Value 67
+                    }, {
+                        date: '2018-10-07 00:00:00',
+                        count: 59 //Original Value 98
+                    }, {
+                        date: '2018-10-08 00:00:00',
+                        count: 74 //Original Value 124
+                    }],
+                    customer_approval: [{
+                        date: '2018-09-29 00:00:00',
+                        count: 0
+                    }, {
+                        date: '2018-09-30 00:00:00',
+                        count: 0
+                    }, {
+                        date: '2018-10-01 00:00:00',
+                        count: 0
+                    }, {
+                        date: '2018-10-02 00:00:00',
+                        count: 0
+                    }, {
+                        date: '2018-10-03 00:00:00',
+                        count: 4 //Original Value 11
+                    }, {
+                        date: '2018-10-04 00:00:00',
+                        count: 8 //Original Value 21
+                    }, {
+                        date: '2018-10-05 00:00:00',
+                        count: 20 //Original Value 51
+                    }, {
+                        date: '2018-10-06 00:00:00',
+                        count: 27 //Original Value 67
+                    }, {
+                        date: '2018-10-07 00:00:00',
+                        count: 39 //Original Value 98
+                    }, {
+                        date: '2018-10-08 00:00:00',
+                        count: 50 //Original Value 124
                     }]
                 };
                 // 
                 data.forEach((row) => {
                     switch (Number(row.activity_status_id)) {
-                        case 278421: // Document Validation
+                        case 278803: // Document Validation
                             responseJSON.document_validation.push({
-                                date: row.date,
+                                date: util.replaceDefaultDatetime(row.date),
+                                count: row.count
+                            });
+                            break;
+
+                        case 278421: // Customer Approval
+                            responseJSON.customer_approval.push({
+                                date: util.replaceDefaultDatetime(row.date),
                                 count: row.count
                             });
                             break;
 
                         case 278417: // Resubmit
                             responseJSON.resubmit.push({
-                                date: row.date,
+                                date: util.replaceDefaultDatetime(row.date),
                                 count: row.count
                             });
                             break;
 
                         case 278416: // Feasibility Check
                             responseJSON.feasibility_check.push({
-                                date: row.date,
+                                date: util.replaceDefaultDatetime(row.date),
                                 count: row.count
                             });
                             break;
 
                         case 278419: // Approved
                             responseJSON.approved.push({
-                                date: row.date,
+                                date: util.replaceDefaultDatetime(row.date),
                                 count: row.count
                             });
                             break;
 
                         case 278418: // Reinitiate
                             responseJSON.reinitiate.push({
-                                date: row.date,
+                                date: util.replaceDefaultDatetime(row.date),
                                 count: row.count
                             });
                             break;
 
                         case 278420: // Cancelled
                             responseJSON.cancelled.push({
-                                date: row.date,
+                                date: util.replaceDefaultDatetime(row.date),
                                 count: row.count
                             });
                             break;
 
                         case 0: // Not Set
                             responseJSON.not_set.push({
-                                date: row.date,
+                                date: util.replaceDefaultDatetime(row.date),
                                 count: row.count
                             });
                             break;
@@ -803,7 +891,7 @@ function statsController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })
-    });
+    });*/
 }
 
 module.exports = statsController;

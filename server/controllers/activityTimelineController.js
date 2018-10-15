@@ -363,6 +363,119 @@ function ActivityTimelineController(objCollection) {
 
     });
 
+
+    //This is for Vodafone Demo
+    /*app.post('/' + global.config.version + '/activity/timeline/entry/add/vodafone', function (req, res) {
+        
+        req.body.organization_id = 856;
+        req.body.account_id = 971;
+        req.body.workforce_id = 5344;
+        req.body.activity_stream_type_id = 325;
+        
+        var assetMessageCounter = 0;
+        var deviceOsId = 0;
+        if (req.body.hasOwnProperty('asset_message_counter'))
+            assetMessageCounter = Number(req.body.asset_message_counter);
+        if (req.body.hasOwnProperty('device_os_id'))
+            deviceOsId = Number(req.body.device_os_id);
+        var streamTypeId = Number(req.body.activity_stream_type_id);
+
+        var proceedActivityTimelineAdd = function (formTransactionId) {
+
+            var event = {
+                name: "addTimelineTransaction",
+                service: "activityTimelineService",
+                method: "addTimelineTransactionVodafone",
+                payload: req.body
+            };
+            queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp)=>{
+                        if(err) {
+                            //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
+                            //global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);                            
+                            res.send(responseWrapper.getResponse(true, {}, -5999,req.body));
+                            throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+                        } else {
+                            if (req.hasOwnProperty('device_os_id')) {
+                                if (Number(req.device_os_id) !== 5) {
+                                    //incr the asset_message_counter                        
+                                    cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
+                                        if (err) {
+                                            //console.log("error in setting in asset parity");
+                                            global.logger.write('serverError',"error in setting in asset parity",err,req.body);
+                                        } else
+                                            //console.log("asset parity is set successfully")
+                                            global.logger.write('debug',"asset parity is set successfully",{},req.body);
+
+                                    });
+                                }
+                            }
+                            if (formTransactionId > 0)
+                                res.send(responseWrapper.getResponse(false, {form_transaction_id: formTransactionId}, 200,req.body));
+                            else
+                                res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                            return;
+                        }
+                });            
+        };        
+        
+        if (req.body.hasOwnProperty('activity_stream_type_id') && req.body.activity_stream_type_id > 0) {            
+            if (util.hasValidActivityId(req.body)) {
+                if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5) {
+                    cacheWrapper.checkAssetParity(req.body.asset_id, (assetMessageCounter), function (err, status) {
+                        if (err) {
+                            res.send(responseWrapper.getResponse(false, {}, -7998,req.body));
+                        } else {
+                            if (status) {     // proceed
+                                if (streamTypeId === 705) { // submit form case   
+                                    proceedActivityTimelineAdd(Number(req.body.form_transaction_id));
+                                    cacheWrapper.setMessageUniqueIdLookup(req.body.message_unique_id, req.body.form_transaction_id, function (err, status) {
+                                        if (err) {
+                                            console.log("error in setting in message unique id look up");
+                                        } else
+                                            console.log("message unique id look up is set successfully");
+                                    });
+
+                                } else {
+                                    req.body.flag_timeline_entry = 1;
+                                    proceedActivityTimelineAdd(0);//passing formTransactionId as 0
+                                }
+                                cacheWrapper.setAssetParity(req.body.asset_id, req.body.asset_message_counter, function (err, status) {
+                                    if (err) {
+                                        console.log("error in setting in asset parity");
+                                    } else
+                                        console.log("asset parity is set successfully")
+
+                                });
+                            } else {  // this is a duplicate hit,
+                                console.log('this is a duplicate hit');
+                                res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                            }
+                        }
+                    });
+
+                } else if (deviceOsId === 5) {
+
+                    //proceedActivityTimelineAdd(0);//passing formTransactionId as o
+                    if (streamTypeId === 705) {
+                        proceedActivityTimelineAdd(Number(req.body.form_transaction_id));
+                    } else {
+                        req.body.flag_timeline_entry = 1;
+                        proceedActivityTimelineAdd(0);//passing formTransactionId as 0
+
+                    }
+                } else {
+                    res.send(responseWrapper.getResponse(false, {}, -3304,req.body));
+                }
+            } else {
+                res.send(responseWrapper.getResponse(false, {}, -3301,req.body));
+            }
+        } else {
+            res.send(responseWrapper.getResponse(false, {}, -3305,req.body));
+        }
+
+    });*/
+    
+    
     app.post('/' + global.config.version + '/activity/timeline/entry/comment/add', function (req, res) {
         var assetMessageCounter = 0;
         var deviceOsId = 0;

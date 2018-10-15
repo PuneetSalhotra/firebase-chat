@@ -64,7 +64,7 @@ if (mode === 'local') {
     config.portalBaseUrl = "http://staging.portal.desker.cloud/";
     
     //Mobile Service URL
-    config.mobileBaseUrl = "http://localhost:3000/";
+    config.mobileBaseUrl = "http://localhost:7000/";
     
     //making twilio, Nexmo Calls
     config.efsPath = "/";
@@ -226,6 +226,60 @@ if (mode === 'preprod') {
     
     //Mobile Service URL
     config.mobileBaseUrl = "https://preprodapi.desker.cloud/";
+    
+    //making twilio, Nexmo Calls
+    config.efsPath = "/api-staging-efs/";
+}
+
+if (mode === 'vodafone') {
+    
+    //Ports Config
+    config.version = 'r1';
+    config.servicePort = 6000;
+    config.standAlonePamServicePort = 6100;
+
+    config.consumerOne = 6200;
+    config.consumerTwo = 6201;
+    config.consumerThree = 6202;
+    
+    config.sqsConsumer = 6300;
+    
+    //Mysql Config
+    config.masterIp = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
+    config.slave1Ip = 'readreplica1.citeodhwc7z9.us-east-1.rds.amazonaws.com';
+    config.slave2Ip = 'readreplica2.citeodhwc7z9.us-east-1.rds.amazonaws.com';
+
+    config.dbUser = 'apiuser';
+    config.database = 'desker';
+    config.dbPassword = 'apidbuser';
+
+    config.conLimit = 10;
+
+    //Redis Config
+    config.redisIp = 'rediscluster1.apppnf.ng.0001.use1.cache.amazonaws.com';
+    config.redisPort = 6379;    
+
+    //Kafka Brokers Config
+    config.kafkaIPOne = {kafkaHost: 'kafka1:9092'};
+    config.kafkaIPTwo = {kafkaHost: 'kafka2:9092'};
+    config.kafkaIPThree = {kafkaHost: 'kafka3:9092'};
+    
+    //Kafka Topics
+    config.kafkaActivitiesTopic = 'vodafone-desker-activities';
+    //config.kafkaFormWidgetTopic = 'desker-form-widgets';
+    config.consumerGroup = "desker-activities-consumer-group-vodafone";
+    
+    //IOS Push
+    config.iosPushMode = 'prod';
+    
+    //SQS Queue
+    config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/desker-logging-staging"; //Prod SQS QUEUE - DONT confuse with the naming Convention
+    
+    //Portal Service URL
+    config.portalBaseUrl = "https://preprodportal.desker.cloud/";
+    
+    //Mobile Service URL
+    config.mobileBaseUrl = "http://localhost:6000/";
     
     //making twilio, Nexmo Calls
     config.efsPath = "/api-staging-efs/";
