@@ -190,10 +190,6 @@ function PamListingService(objectCollection) {
         });
     };
 
-    this.eventReport = function (request, callback) {
-        callback(false, {}, 200);
-    };
-
     this.assetTimeline = function (request, callback) {
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;

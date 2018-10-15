@@ -1992,7 +1992,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             });
         }
     };
-
+    
     this.checkingMSgUniqueId = function (request, callback) {
         var paramsArr = new Array(
             request.activity_id,
@@ -2210,6 +2210,36 @@ function ActivityCommonService(db, util, forEachAsync) {
                 });
             }
         });
+    };
+    
+    this.processReservationBilling = function (request, idReservation){
+    	return new Promise((resolve, reject)=>{
+    		if(request.hasOwnProperty('is_room_posting'))
+    			pamEventBillingUpdate(request, idReservation);
+    		resolve(true);
+    	});
+    };    
+
+    function pamEventBillingUpdate(request, idReservation) {
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,                
+                idReservation,
+                request.datetime_log
+                );
+            var queryString = util.getQueryString("pm_v1_pam_event_billing_update", paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {                  
+                   if(err === false){                	   
+                	   resolve();
+                   }else{
+                	   reject(err);
+                   }
+                });
+            }
+        })
     };
 
     // Fetching the Asset Type ID for a given organisation/workforce and asset type category ID

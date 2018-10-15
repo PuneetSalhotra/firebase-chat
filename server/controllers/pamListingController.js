@@ -36,18 +36,6 @@ function PamListingController(objCollection) {
         });
     });
     
-    
-    app.post('/' + global.config.version + '/pam/event/report', function (req, res) {
-        pamListingService.eventReport(req.body, function (err, data, statusCode) {
-            if (err === false) {    
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
-            } else {                
-                data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
-            }
-        });
-    });
-    
     app.post('/' + global.config.version + '/pam/event/payment/export', function (req, res) {
         res.send(responseWrapper.getResponse(false, {}, 200, req.body));
     });

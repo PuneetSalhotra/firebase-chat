@@ -10,6 +10,7 @@ function WidgetController(objCollection) {
     var responseWrapper = objCollection.responseWrapper;
     var app = objCollection.app;
     //const vodafoneCustomerServiceFlow = require('../utils/vodafoneCustomerServiceFlow');
+
     
     var widgetService = new WidgetService(objCollection);
     
@@ -66,9 +67,6 @@ function WidgetController(objCollection) {
         });
 
     }); */
-
-
-
 
 }
 
