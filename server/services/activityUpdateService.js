@@ -734,7 +734,7 @@ function ActivityUpdateService(objectCollection) {
 
                     makeRequest.post(global.config.portalBaseUrl + global.config.version + '/asset/update/details', options, function (error, response, body) {
                         // console.log('body:', body);
-                        global.logger.write('debug', 'body: ' + body, {}, request);
+                        global.logger.write('debug', 'body: ' + JSON.stringify(body), {}, request);
 
                         body = JSON.parse(body);
 
@@ -1166,13 +1166,13 @@ function ActivityUpdateService(objectCollection) {
 
                                                 }).catch((err) => {
                                                     // console.log('\x1b[31m Error:\x1b[0m', err)
-                                                    global.logger.write('debug', 'Error ' + err, err, request);
+                                                    global.logger.write('debug', 'Error ' + JSON.stringify(err, null, 2), err, request);
 
                                                 });
 
                                             }).catch((err) => {
                                                 // console.log('\x1b[31m Error:\x1b[0m', err)
-                                                global.logger.write('debug', 'Error ' + err, err, request);
+                                                global.logger.write('debug', 'Error ' + JSON.stringify(err, null, 2), err, request);
 
                                             });
                                     }
@@ -1741,7 +1741,7 @@ function ActivityUpdateService(objectCollection) {
         if (Number(request.device_os_id) === 5) {
             decreaseUnreadCntsInMobile(request).then(() => {}).catch((err) => {
                 // console.log('Error in decreaseUnreadCntsInMobile : ', err);
-                global.logger.write('debug', 'Error in decreaseUnreadCntsInMobile: ' + err, err, request);
+                global.logger.write('debug', 'Error in decreaseUnreadCntsInMobile: ' + JSON.stringify(err), err, request);
 
             });
         }
@@ -2222,7 +2222,7 @@ function ActivityUpdateService(objectCollection) {
                                     queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
                                         if (err) {
                                             // console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                                            global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent: " + err, err, request);
+                                            global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent: " + JSON.stringify(err), err, request);
                                             throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                                         } else {
                                             console.log("archiveAssetAndActivity service raised: ", event);
@@ -2519,7 +2519,7 @@ function ActivityUpdateService(objectCollection) {
                         queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
                             if (err) {
                                 // console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                                global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent: " + err, err, request);
+                                global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent: " + JSON.stringify(err), err, request);
                                 throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                             } else {
                                 // console.log("removeEmployeetoDeskMapping service raised: ", event);
