@@ -52,7 +52,7 @@ function WidgetController(objCollection) {
         });
     });
 
-    app.post('/' + global.config.version + '/vodafone/workflow/customer_service', function (req, res) {
+    /*app.post('/' + global.config.version + '/vodafone/workflow/customer_service', function (req, res) {
 
         vodafoneCustomerServiceFlow(req.body, objCollection.activityCommonService, objCollection, (err, data, statusCode) => {
             if (err === false) {
@@ -65,7 +65,7 @@ function WidgetController(objCollection) {
             }
         });
 
-    });
+    }); */
 
 
 

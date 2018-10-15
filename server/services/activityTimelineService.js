@@ -217,7 +217,7 @@ function ActivityTimelineService(objectCollection) {
     };
 
 
-    this.addTimelineTransactionVodafone = function (request, callback) {       
+    /*this.addTimelineTransactionVodafone = function (request, callback) {       
                         
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
@@ -357,7 +357,7 @@ function ActivityTimelineService(objectCollection) {
                         });
                     }*/
 
-                    if (formDataJson.hasOwnProperty('asset_reference')) {
+                    /*if (formDataJson.hasOwnProperty('asset_reference')) {
                         if (formDataJson.asset_reference.length > 0) {
                             forEachAsync(formDataJson.asset_reference, function (next, rowData) {                                
                                 switch (Number(request.activity_type_category_id)) {
@@ -381,7 +381,7 @@ function ActivityTimelineService(objectCollection) {
             });
         }
         callback(false, {}, 200);
-    };
+    };*/
     
     //MONTHLY Remote Analytics
     //Insert into monthly summary table
