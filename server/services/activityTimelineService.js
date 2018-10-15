@@ -12,7 +12,7 @@ function ActivityTimelineService(objectCollection) {
     var forEachAsync = objectCollection.forEachAsync;
     var activityPushService = objectCollection.activityPushService;
     var queueWrapper = objectCollection.queueWrapper;
-    const vodafoneFormSubmissionFlow = require('../utils/vodafoneFormSubmissionFlow');
+    //const vodafoneFormSubmissionFlow = require('../utils/vodafoneFormSubmissionFlow');
 
     this.addTimelineTransaction = function (request, callback) {
 
@@ -49,14 +49,14 @@ function ActivityTimelineService(objectCollection) {
             });
 
             // Trigger Email For Vodafone CAF Form Submission
-            if (Number(request.form_id) === 844) {
+            /*if (Number(request.form_id) === 844) {
                 // Jugaad work. Please optimize this
                 console.log("\x1b[35m [Log] Calling vodafoneFormSubmissionFlow \x1b[0m")
                 request.activity_inline_data = request.activity_timeline_collection;
                 request.activity_form_id = 844;
                 vodafoneFormSubmissionFlow(request, activityCommonService, objectCollection, () => {});
 
-            }
+            } */
 
         } else {
             request.form_id = 0;
