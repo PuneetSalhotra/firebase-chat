@@ -654,7 +654,7 @@ function ActivityService(objectCollection) {
                     activityCommonService.checkingUniqueCode(request, reserveCode, (err, data) => {
                         if (err === false) {
                             // console.log('activitySubTypeName : ' + data);
-                            global.logger.write('debug', 'activitySubTypeName : ' + data, {}, request);
+                            global.logger.write('debug', 'activitySubTypeName : ' + JSON.stringify(data, null, 2), {}, request);
 
                             activitySubTypeName = data;
                             responseactivityData.reservation_code = data;
@@ -1214,7 +1214,7 @@ function ActivityService(objectCollection) {
             if (err) {
                 // console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
                 global.logger.write('debug', err, err, request);
-                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent : ' + resp, err, request);
+                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent : ' + JSON.stringify(resp, null, 2), err, request);
                 
                 throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
             } else {
@@ -1392,7 +1392,7 @@ function ActivityService(objectCollection) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', '', err, request)
+                    global.logger.write('serverError', err, err, request)
                     return;
                 }
             });

@@ -481,7 +481,7 @@ function ActivityTimelineService(objectCollection) {
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     //console.log('getFormTransTimeCardsStats : \n', data, "\n");
-                    global.logger.write('debug', 'getFormTransTimeCardsStats : \n' + data + "\n", {}, request);
+                    global.logger.write('debug', 'getFormTransTimeCardsStats : \n' + JSON.stringify(data, null, 2) + "\n", {}, request);
                     (err === false) ? resolve(data) : reject(err);
                 });
             }
@@ -634,7 +634,7 @@ function ActivityTimelineService(objectCollection) {
             pubnubMsg.desk_asset_id = request.asset_id;
             pubnubMsg.activity_type_category_id = (Number(request.activity_type_category_id)) === 16 ? 0 : request.activity_type_category_id;
             //console.log('PubNub Message : ', pubnubMsg);
-            global.logger.write('debug', 'PubNub Message : ' +  pubnubMsg, {}, request);
+            global.logger.write('debug', 'PubNub Message : ' +  JSON.stringify(pubnubMsg, null, 2), {}, request);
             pubnubWrapper.push(request.asset_id, pubnubMsg);
             pubnubWrapper.push(request.organization_id, pubnubMsg);
         }
@@ -1194,7 +1194,7 @@ function ActivityTimelineService(objectCollection) {
     var addFormEntries = function (request, callback) {
 
         //console.log('\x1b[32m%s\x1b[0m', 'Inside the addFormEntries() function.');
-        global.logger.write('debug', '\x1b[32m%s\x1b[0m', 'Inside the addFormEntries() function.', {}, request);
+        global.logger.write('debug', '\x1b[32m Inside the addFormEntries() function. \x1b[0m', {}, request);
 
         var formDataJson = JSON.parse(request.activity_timeline_collection);
         var approvalFields = new Array();
@@ -1234,7 +1234,7 @@ function ActivityTimelineService(objectCollection) {
                     );
 
             //console.log('\x1b[32m addFormEntries params - \x1b[0m', params);
-            global.logger.write('debug', '\x1b[32m addFormEntries params - \x1b[0m' + params, {}, request);
+            global.logger.write('debug', '\x1b[32m addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
             
             var dataTypeId = Number(row.field_data_type_id);
             switch (dataTypeId) {

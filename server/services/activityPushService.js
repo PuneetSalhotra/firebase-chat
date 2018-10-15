@@ -649,7 +649,7 @@ function ActivityPushService(objectCollection) {
                         getPushString(request, objectCollection, senderName, function (err, pushStringObj, pubnubMsg, smsString) {
 
                             //console.log('SMS String : ', smsString);
-                            global.logger.write('debug', 'SMS String : '+ smsString, {}, request);
+                            global.logger.write('debug', 'SMS String : ' + JSON.stringify(smsString), {}, request);
 
                              objectCollection.util.sendSmsSinfini(smsString, RecieverData.operating_asset_phone_country_code, RecieverData.operating_asset_phone_number, function () {
 

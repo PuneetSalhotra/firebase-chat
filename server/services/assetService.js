@@ -774,7 +774,7 @@ function AssetService(objectCollection) {
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     //console.log("ds_p1_phone_passcode_transaction_select data: ", data);
-                    global.logger.write('debug', "ds_p1_phone_passcode_transaction_select data: " + data, {}, request);
+                    global.logger.write('debug', "ds_p1_phone_passcode_transaction_select data: " + JSON.stringify(data, null, 2), {}, request);
                     (!err) ? resolve(data): reject(err);
                 });
             }
@@ -797,7 +797,7 @@ function AssetService(objectCollection) {
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     //console.log("ds_p1_phone_passcode_transaction_update_verified data: ", data);
-                    global.logger.write('debug', "ds_p1_phone_passcode_transaction_update_verified data:: " + data, {}, request);
+                    global.logger.write('debug', "ds_p1_phone_passcode_transaction_update_verified data: " + JSON.stringify(data, null, 2), {}, request);
                     (!err) ? resolve(data): reject(err);
                 });
             }
@@ -2827,8 +2827,8 @@ function AssetService(objectCollection) {
                                         //console.log('All Asset Ids : ', allAssetIds);
                                         //console.log('final Asset Ids : ', finalAssetIds);
                                         
-                                        global.logger.write('debug', 'All Asset Ids : ' + allAssetIds, {}, request);
-                                        global.logger.write('debug', 'final Asset Ids : ' + finalAssetIds, {}, request);
+                                        global.logger.write('debug', 'All Asset Ids : ' + JSON.stringify(allAssetIds), {}, request);
+                                        global.logger.write('debug', 'final Asset Ids : ' + JSON.stringify(finalAssetIds), {}, request);
 
                                         forEachAsync(response, (next, rowData) => {
                                             if (finalAssetIds.includes(rowData.asset_id)) {
@@ -3093,7 +3093,7 @@ function AssetService(objectCollection) {
                 .then((data) => {
                     // Run through each of the summary entries returned
                     //console.log("data: ", data);
-                    global.logger.write('debug', "data: " + data, {}, request);
+                    global.logger.write('debug', "data: " + JSON.stringify(data, null, 2), {}, request);
                     let responseRateTotalCount = 0;
                     let responseRateOnTimeCount = 0;
 
@@ -3150,7 +3150,7 @@ function AssetService(objectCollection) {
                     let numOfResponseRateEntries = 0;
                     // Run through each of the summary entries returned
                     //console.log("data: ", data);
-                    global.logger.write('debug', "data: " + data, {}, request);
+                    global.logger.write('debug', "data: " + JSON.stringify(data, null, 2), {}, request);
                     data.forEach((summaryEntry) => {
                         // 
                         switch (Number(summaryEntry.monthly_summary_id)) {

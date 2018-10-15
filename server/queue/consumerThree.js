@@ -86,7 +86,7 @@ var Consumer = function () {
                 consumingMsg(message, kafkaMsgId, objCollection).then(()=>{});
             } else {
                 activityCommonService.checkingMSgUniqueId(request, (err, data)=>{
-                    global.logger.write('debug', 'err from checkingMSgUniqueId : ' + err, {}, request);
+                    global.logger.write('debug', 'err from checkingMSgUniqueId : ' + JSON.stringify(err), {}, request);
                     if(err === false) {
                         consumingMsg(message, kafkaMsgId, objCollection).then(()=>{});
                     } else {
@@ -162,7 +162,7 @@ var Consumer = function () {
 
         consumerGroup1.on('error', function (err) {
             //console.log('err => ' + err);
-            global.logger.write('debug', 'err => ' + err, {}, {});
+            global.logger.write('debug', 'err => ' + JSON.stringify(err), {}, {});
         });
 
         consumerGroup1.on('offsetOutOfRange', function (err) {
@@ -187,7 +187,7 @@ var Consumer = function () {
                                 }], (err, data) => {
                                      if(err) {
                                         //console.log("err:" + err);
-                                        global.logger.write('debug', "err:" + err, {}, {});
+                                        global.logger.write('debug', "err:" + JSON.stringify(err), {}, {});
                                         reject(err);
                                      } else {
                                         //console.log('successfully offset '+ message.offset +' is committed');
@@ -222,7 +222,7 @@ var Consumer = function () {
                         //console.log('data : ' + data);
                         //console.log('kafkaMsgId : ' + kafkaMsgId);
                         //console.log('Received message.offset : ' + message.offset);
-                        global.logger.write('debug', 'data : ' + data, {}, {});
+                        global.logger.write('debug', 'data : ' + JSON.stringify(data), {}, {});
                         global.logger.write('debug', 'kafkaMsgId : ' + kafkaMsgId, {}, {});
                         global.logger.write('debug', 'Received message.offset : ' + message.offset, {}, {});
                         
@@ -287,7 +287,7 @@ var Consumer = function () {
                         }
                         } else {
                             //console.log('Error in checking kafkaMessageUniqueID : ' + err);
-                            global.logger.write('debug', 'Error in checking kafkaMessageUniqueID : ' + err, {}, {});
+                            global.logger.write('debug', 'Error in checking kafkaMessageUniqueID : ' + JSON.stringify(err), {}, {});
                             resolve();
                         }                                                    
                 });                
