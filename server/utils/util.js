@@ -124,8 +124,8 @@ function Util() {
 
             //console.log('error : ', error);
             //console.log('body : ' , body);
-            global.logger.write('debug', 'error : ' + error, {}, {});
-            global.logger.write('debug', 'body : ' + body, {}, {});
+            global.logger.write('debug', 'error : ' + JSON.stringify(error), {}, {});
+            global.logger.write('debug', 'body : ' + JSON.stringify(body), {}, {});
 
             var res = {};
             if (typeof foo != 'undefined' && foo.status === 1) {
@@ -356,7 +356,7 @@ function Util() {
                         callback(true, error, -3502);
                     } else {
                         //console.log('makeCallNexmo response: ', response);
-                        global.logger.write('debug', 'makeCallNexmo response: ' + response, {}, request);
+                        global.logger.write('debug', 'makeCallNexmo response: ' + JSON.stringify(response), {}, request);
                         callback(false, response, 200);
                     }
                 });
@@ -826,7 +826,7 @@ function Util() {
                 callback(true, error);
             } else {
                 //console.log('Message sent: ' + info.response);
-                global.logger.write('debug', 'Message sent: ' + info.response, {}, request);
+                global.logger.write('debug', 'Message sent: ' + JSON.stringify(info.response), {}, request);
                 callback(false, info);
             }
         });

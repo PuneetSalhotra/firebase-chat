@@ -774,7 +774,7 @@ function AssetService(objectCollection) {
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     //console.log("ds_p1_phone_passcode_transaction_select data: ", data);
-                    global.logger.write('debug', "ds_p1_phone_passcode_transaction_select data: " + data, {}, request);
+                    global.logger.write('debug', "ds_p1_phone_passcode_transaction_select data: " + JSON.stringify(data, null, 2), {}, request);
                     (!err) ? resolve(data): reject(err);
                 });
             }
@@ -797,7 +797,7 @@ function AssetService(objectCollection) {
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     //console.log("ds_p1_phone_passcode_transaction_update_verified data: ", data);
-                    global.logger.write('debug', "ds_p1_phone_passcode_transaction_update_verified data:: " + data, {}, request);
+                    global.logger.write('debug', "ds_p1_phone_passcode_transaction_update_verified data: " + JSON.stringify(data, null, 2), {}, request);
                     (!err) ? resolve(data): reject(err);
                 });
             }
@@ -2791,7 +2791,7 @@ function AssetService(objectCollection) {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
                     //console.log('unread counts: ', data);
-                    global.logger.write('debug', 'unread counts: ' , data, data, request);
+                    global.logger.write('debug', 'unread counts: ' + JSON.stringify(data, null, 2), {}, request);
                     forEachAsync(data, (next, row) => {
                         allAssetIds.push(row.asset_id);
                         row.unread_count = row.count; //Adding the unread_count parameter in the response                
@@ -2827,8 +2827,8 @@ function AssetService(objectCollection) {
                                         //console.log('All Asset Ids : ', allAssetIds);
                                         //console.log('final Asset Ids : ', finalAssetIds);
                                         
-                                        global.logger.write('debug', 'All Asset Ids : ' + allAssetIds, {}, request);
-                                        global.logger.write('debug', 'final Asset Ids : ' + finalAssetIds, {}, request);
+                                        global.logger.write('debug', 'All Asset Ids : ' + JSON.stringify(allAssetIds), {}, request);
+                                        global.logger.write('debug', 'final Asset Ids : ' + JSON.stringify(finalAssetIds), {}, request);
 
                                         forEachAsync(response, (next, rowData) => {
                                             if (finalAssetIds.includes(rowData.asset_id)) {
@@ -2841,7 +2841,7 @@ function AssetService(objectCollection) {
 
                                             dayPlanCnt(request).then((dayPlanCnt) => {
                                                 //console.log('DayPlanCnt : ', dayPlanCnt);
-                                                global.logger.write('debug', 'DayPlanCnt : ' , dayPlanCnt, dayPlanCnt, request);
+                                                global.logger.write('debug', 'DayPlanCnt : ' + JSON.stringify(dayPlanCnt), {}, request);
 
                                                 forEachAsync(dayPlanCnt, (next, dayPlanrowData) => {
                                                     dayPlanAssetIds.push(dayPlanrowData.asset_id);
@@ -2867,7 +2867,7 @@ function AssetService(objectCollection) {
                                                 }).then(() => {
                                                     pastDueCnt(request).then((pastDueCnt) => {
                                                         //console.log('pastDueCnt : ', pastDueCnt);
-                                                        global.logger.write('debug', 'pastDueCnt : ' , pastDueCnt, pastDueCnt, request);
+                                                        global.logger.write('debug', 'pastDueCnt : ' + JSON.stringify(pastDueCnt), {}, request);
 
                                                         forEachAsync(pastDueCnt, (next, pastDuerowData) => {
                                                             pastDueAssetIds.push(pastDuerowData.asset_id);
@@ -3093,7 +3093,7 @@ function AssetService(objectCollection) {
                 .then((data) => {
                     // Run through each of the summary entries returned
                     //console.log("data: ", data);
-                    global.logger.write('debug', "data: " + data, {}, request);
+                    global.logger.write('debug', "data: " + JSON.stringify(data, null, 2), {}, request);
                     let responseRateTotalCount = 0;
                     let responseRateOnTimeCount = 0;
 
@@ -3150,7 +3150,7 @@ function AssetService(objectCollection) {
                     let numOfResponseRateEntries = 0;
                     // Run through each of the summary entries returned
                     //console.log("data: ", data);
-                    global.logger.write('debug', "data: " + data, {}, request);
+                    global.logger.write('debug', "data: " + JSON.stringify(data, null, 2), {}, request);
                     data.forEach((summaryEntry) => {
                         // 
                         switch (Number(summaryEntry.monthly_summary_id)) {

@@ -93,7 +93,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 } else {
                     callback(true, false);
                     //console.log(err);
-                    global.logger.write('serverError', '', err, request)
+                    global.logger.write('serverError', JSON.stringify(err), err, request)
                     return;
                 }
             });
@@ -397,7 +397,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', '', err, request)
+                    global.logger.write('serverError', JSON.stringify(err), err, request)
                     return;
                 }
             });
@@ -625,7 +625,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', '', err, request)
+                    global.logger.write('serverError', JSON.stringify(err), err, request)
                     return;
                 }
             });
@@ -1013,7 +1013,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
                     //console.log('DAta in inventory check : ', data);
-                    global.logger.write('debug', 'Data in inventory check : ' + data, {}, request);
+                    global.logger.write('debug', 'Data in inventory check : ' + JSON.stringify(data, null, 2), {}, request);
                     if (data.length > 0) {
                         var ingredients = new Array();
                         forEachAsync(data, function (next, x) {
@@ -1044,8 +1044,8 @@ function ActivityCommonService(db, util, forEachAsync) {
                                 }).then(() => {
                                     //console.log('stationIdArrays: ', stationIdArrays);
                                     //console.log('TempArray: ', tempArray);
-                                    global.logger.write('debug', 'stationIdArrays: ' + stationIdArrays, {}, request);
-                                    global.logger.write('debug', 'TempArray: ' + tempArray, {}, request);
+                                    global.logger.write('debug', 'stationIdArrays: ' + JSON.stringify(stationIdArrays, null, 2), {}, request);
+                                    global.logger.write('debug', 'TempArray: ' + JSON.stringify(tempArray, null, 2), {}, request);
                                     tempArray.forEach(function (item, index) {
                                         //console.log('util.getFrequency(item'+item+',tempArray) : ' , util.getFrequency(item, tempArray))
                                         //console.log('stationIdArrays.length : ', stationIdArrays.length)
@@ -1149,7 +1149,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log('data.length :' + data.length);                
                 //console.log('data : ', data);
-                global.logger.write('debug', 'data : ' + data, {}, request);
+                global.logger.write('debug', 'data : ' + JSON.stringify(data, null, 2), {}, request);
                 if (data.length > 0) {
                     callback(true, data);
                 } else {
@@ -1171,7 +1171,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log('data : ', data);
-                global.logger.write('debug', 'data : ' + data, {}, request);
+                global.logger.write('debug', 'data : ' + JSON.stringify(data, null, 2), {}, request);
                 if (data.length > 0) {
                     callback(true, data);
                 } else {
@@ -1196,7 +1196,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log('DAta : ', data);
-                global.logger.write('debug', 'data : ' + data, {}, request);
+                global.logger.write('debug', 'data : ' + JSON.stringify(data, null, 2), {}, request);
                 if (err === false) {
                     if (data.length > 0) {
                         callback(false, data);
@@ -1221,7 +1221,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log('getOccupiedDeskCounts : ', data);
-                global.logger.write('debug', 'getOccupiedDeskCounts : ' + data, {}, request);
+                global.logger.write('debug', 'getOccupiedDeskCounts : ' + JSON.stringify(data, null, 2), {}, request);
                 (err === false) ? callback(false, data): callback(true, err);
             });
         }
@@ -1386,7 +1386,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 } else {
                     callback(err, false, false);
                     //console.log(err);
-                    global.logger.write('serverError', '' + err, request)
+                    global.logger.write('serverError', err, {}, request)
                     return;
                 }
             });
@@ -1577,13 +1577,13 @@ function ActivityCommonService(db, util, forEachAsync) {
             util.pamSendSmsMvaayoo(text, countryCode, phoneNumber, function (err, res) {
                 if (err === false) {
                     //console.log('Message sent!',res);
-                    global.logger.write('debug', 'Message sent!' + res, {}, request);
+                    global.logger.write('debug', 'Message sent!' + JSON.stringify(res, null, 2), {}, request);
                 }
             });
             util.pamSendSmsMvaayoo(text, 91, 6309386175, function (err, res) {
                 if (err === false) {
                     //console.log('Message sent to Admin!', res);
-                    global.logger.write('debug', 'Message sent to Admin!' + res, {}, request);
+                    global.logger.write('debug', 'Message sent to Admin!' + JSON.stringify(res, null, 2), {}, request);
                 }
             });
             return callback(false, 200);
@@ -1673,7 +1673,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                             } else {
                                 callback(err, false);
                                 //console.log(err);
-                                global.logger.write('serverError', '' + err, request)
+                                global.logger.write('serverError', err, {}, request)
                                 return;
                             }
                         });
@@ -1681,7 +1681,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', '' + err, request)
+                    global.logger.write('serverError', err, {}, request)
                     return;
                 }
             });
@@ -1931,7 +1931,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     if (err === false) {
                         //console.log('DATA : ', data);
-                        global.logger.write('debug', 'DATA : ' + data, {}, request);
+                        global.logger.write('debug', 'DATA : ' + JSON.stringify(data, null, 2), {}, request);
                         resolve(data)
                     } else {
                         reject(err);
