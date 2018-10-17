@@ -103,8 +103,7 @@ if (mode === 'dev') {
     config.kafkaIPThree = {kafkaHost: 'kafka3:9092'};
     
     //Kafka Topics
-    config.kafkaActivitiesTopic = 'desker-test';
-    //config.kafkaFormWidgetTopic = 'desker-form-widgets';
+    config.kafkaActivitiesTopic = 'dev-desker-activities';    
     config.consumerGroup = "desker-activities-consumer-group-dev";
     
     //IOS Push
