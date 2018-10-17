@@ -152,7 +152,7 @@ var AwsSss = function () {
                    resolve(true)
                 }
             });
-        })
+        });
     }
      
     

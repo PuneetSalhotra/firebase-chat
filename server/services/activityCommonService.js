@@ -35,6 +35,9 @@ function ActivityCommonService(db, util, forEachAsync) {
             50
         );
         var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_other_participants', paramsArr);
+        global.logger.write('debug', "getAllParticipantsExceptAsset", {}, request);
+        global.logger.write('debug', queryString, {}, request);
+
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
@@ -90,7 +93,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 } else {
                     callback(true, false);
                     //console.log(err);
-                    global.logger.write('serverError', '', err, request)
+                    global.logger.write('serverError', JSON.stringify(err), err, request)
                     return;
                 }
             });
@@ -113,6 +116,10 @@ function ActivityCommonService(db, util, forEachAsync) {
             // ds_v1_activity_asset_mapping_update_last_updated_datetime ---> updates activity_datetime_last_updated, asset_datetime_last_differential, asset_unread_updates_count
             queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_last_updated_datetime', paramsArr);
         }
+
+        global.logger.write('debug', "Calling updateActivityLogLastUpdatedDatetimeAsset", {}, request);
+        global.logger.write('debug', queryString, {}, request);
+
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
@@ -390,7 +397,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', '', err, request)
+                    global.logger.write('serverError', JSON.stringify(err), err, request)
                     return;
                 }
             });
@@ -456,6 +463,9 @@ function ActivityCommonService(db, util, forEachAsync) {
             messageUniqueId = participantData.message_unique_id;
         }
 
+        global.logger.write('debug', 'streamTypeId: ' + streamTypeId, {}, request);
+        global.logger.write('debug', 'typeof streamTypeId: ' + typeof streamTypeId, {}, request);
+
         switch (streamTypeId) {
             case 4: // activity updated
                 entityTypeId = 0;
@@ -497,6 +507,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityTypeId = 0;
                 entityText1 = request.form_transaction_id;
                 entityText2 = request.activity_timeline_collection;
+                activityTimelineCollection = request.activity_timeline_collection;
                 formTransactionId = request.form_transaction_id;
                 formId = request.form_id;
                 dataTypeId = 37; //static for all form submissions
@@ -559,6 +570,9 @@ function ActivityCommonService(db, util, forEachAsync) {
                 break;
         };
 
+        global.logger.write('debug', 'activityTimelineCollection : ', {}, request);
+        global.logger.write('debug', activityTimelineCollection, {}, request);
+
         var paramsArr = new Array(
             request.activity_id,
             assetId,
@@ -611,7 +625,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', '', err, request)
+                    global.logger.write('serverError', JSON.stringify(err), err, request)
                     return;
                 }
             });
@@ -999,7 +1013,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
                     //console.log('DAta in inventory check : ', data);
-                    global.logger.write('debug', 'Data in inventory check : ' + data, {}, request);
+                    global.logger.write('debug', 'Data in inventory check : ' + JSON.stringify(data, null, 2), {}, request);
                     if (data.length > 0) {
                         var ingredients = new Array();
                         forEachAsync(data, function (next, x) {
@@ -1030,8 +1044,8 @@ function ActivityCommonService(db, util, forEachAsync) {
                                 }).then(() => {
                                     //console.log('stationIdArrays: ', stationIdArrays);
                                     //console.log('TempArray: ', tempArray);
-                                    global.logger.write('debug', 'stationIdArrays: ' + stationIdArrays, {}, request);
-                                    global.logger.write('debug', 'TempArray: ' + tempArray, {}, request);
+                                    global.logger.write('debug', 'stationIdArrays: ' + JSON.stringify(stationIdArrays, null, 2), {}, request);
+                                    global.logger.write('debug', 'TempArray: ' + JSON.stringify(tempArray, null, 2), {}, request);
                                     tempArray.forEach(function (item, index) {
                                         //console.log('util.getFrequency(item'+item+',tempArray) : ' , util.getFrequency(item, tempArray))
                                         //console.log('stationIdArrays.length : ', stationIdArrays.length)
@@ -1135,7 +1149,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log('data.length :' + data.length);                
                 //console.log('data : ', data);
-                global.logger.write('debug', 'data : ' + data, {}, request);
+                global.logger.write('debug', 'data : ' + JSON.stringify(data, null, 2), {}, request);
                 if (data.length > 0) {
                     callback(true, data);
                 } else {
@@ -1157,7 +1171,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log('data : ', data);
-                global.logger.write('debug', 'data : ' + data, {}, request);
+                global.logger.write('debug', 'data : ' + JSON.stringify(data, null, 2), {}, request);
                 if (data.length > 0) {
                     callback(true, data);
                 } else {
@@ -1182,7 +1196,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log('DAta : ', data);
-                global.logger.write('debug', 'data : ' + data, {}, request);
+                global.logger.write('debug', 'data : ' + JSON.stringify(data, null, 2), {}, request);
                 if (err === false) {
                     if (data.length > 0) {
                         callback(false, data);
@@ -1207,7 +1221,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log('getOccupiedDeskCounts : ', data);
-                global.logger.write('debug', 'getOccupiedDeskCounts : ' + data, {}, request);
+                global.logger.write('debug', 'getOccupiedDeskCounts : ' + JSON.stringify(data, null, 2), {}, request);
                 (err === false) ? callback(false, data): callback(true, err);
             });
         }
@@ -1372,7 +1386,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 } else {
                     callback(err, false, false);
                     //console.log(err);
-                    global.logger.write('serverError', '' + err, request)
+                    global.logger.write('serverError', err, {}, request)
                     return;
                 }
             });
@@ -1388,8 +1402,8 @@ function ActivityCommonService(db, util, forEachAsync) {
                 request.workforce_id,
                 request.account_id,
                 request.organization_id,
-                util.getStartDayOfWeek(), //entity_date_1, //WEEK
-                util.getStartDayOfWeek(),
+                collection.startDateTimeOfWeek || util.getStartDayOfWeek(), //entity_date_1, //WEEK
+                collection.endDateTimeOfWeek || util.getStartDayOfWeek(),
                 collection.entity_tinyint_1 || 0,
                 collection.entity_bigint_1 || 0,
                 collection.entity_double_1 || 0,
@@ -1435,8 +1449,8 @@ function ActivityCommonService(db, util, forEachAsync) {
                 request.workforce_id,
                 request.account_id,
                 request.organization_id,
-                util.getStartDayOfMonth(), //entity_date_1,    //Monthly Month start Date
-                util.getStartDayOfMonth(),
+                collection.startDateTimeOfMonth || util.getStartDayOfMonth(), //entity_date_1,    //Monthly Month start Date
+                collection.endDateTimeOfMonth || util.getStartDayOfMonth(),
                 collection.entity_tinyint_1 || 0,
                 collection.entity_bigint_1 || 0,
                 collection.entity_double_1 || 0,
@@ -1563,13 +1577,13 @@ function ActivityCommonService(db, util, forEachAsync) {
             util.pamSendSmsMvaayoo(text, countryCode, phoneNumber, function (err, res) {
                 if (err === false) {
                     //console.log('Message sent!',res);
-                    global.logger.write('debug', 'Message sent!' + res, {}, request);
+                    global.logger.write('debug', 'Message sent!' + JSON.stringify(res, null, 2), {}, request);
                 }
             });
             util.pamSendSmsMvaayoo(text, 91, 6309386175, function (err, res) {
                 if (err === false) {
                     //console.log('Message sent to Admin!', res);
-                    global.logger.write('debug', 'Message sent to Admin!' + res, {}, request);
+                    global.logger.write('debug', 'Message sent to Admin!' + JSON.stringify(res, null, 2), {}, request);
                 }
             });
             return callback(false, 200);
@@ -1659,7 +1673,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                             } else {
                                 callback(err, false);
                                 //console.log(err);
-                                global.logger.write('serverError', '' + err, request)
+                                global.logger.write('serverError', err, {}, request)
                                 return;
                             }
                         });
@@ -1667,7 +1681,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', '' + err, request)
+                    global.logger.write('serverError', err, {}, request)
                     return;
                 }
             });
@@ -1766,7 +1780,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                                 //console.log("Asset - " + data[0].asset_id + " - " + data[0].operating_asset_first_name +" - Active Organization is : " + data[0].organization_id);
                                 //console.log("Asset - " + data[0].asset_id + " - " + data[0].operating_asset_first_name +" - Organization in participant List: " , rowData['organization_id']);
                                 global.logger.write('debug', "Asset - " + data[0].asset_id + " - " + data[0].operating_asset_first_name + " - Active Organization is : " + data[0].organization_id, {}, request);
-                                global.logger.write('debug', "Asset - " + data[0].asset_id + " - " + data[0].operating_asset_first_name + " - Organization in participant List: ", rowData['organization_id'], {}, request);
+                                global.logger.write('debug', "Asset - " + data[0].asset_id + " - " + data[0].operating_asset_first_name + " - Organization in participant List: " + rowData['organization_id'], {}, request);
 
                                 if (data[0].organization_id == rowData['organization_id']) {
                                     refinedParticipantList.push(rowData);
@@ -1917,7 +1931,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     if (err === false) {
                         //console.log('DATA : ', data);
-                        global.logger.write('debug', 'DATA : ' + data, {}, request);
+                        global.logger.write('debug', 'DATA : ' + JSON.stringify(data, null, 2), {}, request);
                         resolve(data)
                     } else {
                         reject(err);
@@ -1978,18 +1992,35 @@ function ActivityCommonService(db, util, forEachAsync) {
             });
         }
     };
-
+    
     this.checkingMSgUniqueId = function (request, callback) {
         var paramsArr = new Array(
-            request.activity_id,
-            request.message_unique_id
+            request.message_unique_id,
+            request.asset_id
         );
-        var queryString = util.getQueryString('ds_v1_activity_timeline_transaction_select_msg_unq_chk', paramsArr);
+        //var queryString = util.getQueryString('ds_v1_activity_timeline_transaction_select_msg_unq_chk', paramsArr);
+        var queryString = util.getQueryString('ds_p1_asset_message_unique_id_transaction_select', paramsArr);        
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log('data : ', data);
                 global.logger.write('debug', data, {}, request);
-                (data[0].count == 0) ? callback(false, data): callback(true, {});
+                (data.length > 0) ? callback(true, {}) : callback(false, data);
+            });
+        }
+    };
+    
+    this.msgUniqueIdInsert = function (request, callback) {
+        var paramsArr = new Array(
+            request.message_unique_id,
+            request.asset_id,
+            request.activity_id,
+            request.form_transaction_id
+        );        
+        var queryString = util.getQueryString('ds_p1_asset_message_unique_id_transaction_insert', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                global.logger.write('debug', data, {}, request);
+                (err == false) ? callback(false, data): callback(true, {});
             });
         }
     };
@@ -2083,7 +2114,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             });
         }
     };
-    
+
     // Fetch contact file's first collaborator (non-creator):
     this.fetchContactFileFirstCollaborator = function (request, activityId, callback) {
         // IN p_activity_id BIGINT(20), IN p_organization_id BIGINT(20), 
@@ -2102,7 +2133,152 @@ function ActivityCommonService(db, util, forEachAsync) {
             });
         }
     };
+    // [VODAFONE] Check the rules table
+    this.activityStatusValidationMappingSelectTrigger = function (request, callback) {
+        // IN p_form_id BIGINT(20), IN p_activity_status_id BIGINT(20), IN p_organization_id BIGINT(20)
 
+        var paramsArr = new Array(
+            request.form_id,
+            request.activity_status_id,
+            request.organization_id
+        );
+        var queryString = util.getQueryString('ds_p1_activity_status_validation_mapping_select_trigger', paramsArr);
+        if (queryString !== '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                (err === false) ? callback(false, data): callback(true, {});
+            });
+        }
+    };
+
+    // [VODAFONE] For this activity, get the earliest most timestamp of the source status
+    this.activityTimelineTxnSelectActivityStatus = function (request, activityStatusId, flag) {
+        // IN p_organization_id bigint(20), IN p_activity_id bigint(20), 
+        // IN p_activity_status_id BIGINT(20), IN p_flag SMALLINT(6), 
+        // IN p_start_from bigint(20), IN p_limit_value TINYINT(4)
+
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                request.organization_id,
+                request.activity_id,
+                activityStatusId,
+                flag,
+                0, // start_from
+                1 // limit_value
+            );
+            var queryString = util.getQueryString('ds_p1_activity_timeline_transaction_select_activity_status', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data): reject(err);
+                });
+            }
+        });
+    };
+
+    // [VODAFONE] Check in activity_status_change_transaction table if there is a row existing for 
+    // the combination of form_id, activity_id, source status and target status. If there is no existing 
+    // row, insert a new row in the table for the combination of activity_id, source status and the target 
+    // status. Else update the existing row with the generated duration value
+    this.activityStatusChangeTxnInsert = function (request, duration, statusCollection) {
+        // IN p_organization_id BIGINT(20), IN p_activity_id BIGINT(20), IN p_from_status_id BIGINT(20), 
+        // IN p_to_status_id BIGINT(20), IN p_from_status_datetime DATETIME, IN p_to_status_datetime 
+        // DATETIME, IN p_duration DECIMAL(16,4), IN p_log_datetime DATETIME, IN p_log_asset_id BIGINT(20)
+
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                request.organization_id,
+                request.activity_id,
+                statusCollection.from_status_id,
+                statusCollection.to_status_id,
+                statusCollection.from_status_datetime,
+                statusCollection.to_status_datetime,
+                duration,
+                util.getCurrentUTCTime(),
+                request.asset_id
+            );
+            var queryString = util.getQueryString('ds_p1_activity_status_change_transaction_insert', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data): reject(err);
+                });
+            }
+        });
+    };
+
+    // [VODAFONE] 
+    this.activityStatusChangeTxnSelectAverage = function (request, flag, statusCollection) {
+        // IN p_from_activity_status_id BIGINT(20), IN to_activity_status_id BIGINT(20), 
+        // IN p_form_id BIGINT(20),IN p_organization_id BIGINT(20), IN p_flag SMALLINT(4), 
+        // IN p_datetime_start DATETIME, IN p_datetime_end DATETIME
+
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                statusCollection.from_status_id,
+                statusCollection.to_status_id,
+                request.form_id,
+                request.organization_id,
+                flag,
+                statusCollection.datetime_start,
+                statusCollection.datetime_end
+            );
+            var queryString = util.getQueryString('ds_p1_activity_status_change_transaction_select_average', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data): reject(err);
+                });
+            }
+        });
+    };
+    
+    this.processReservationBilling = function (request, idReservation){
+    	return new Promise((resolve, reject)=>{
+    		if(request.hasOwnProperty('is_room_posting'))
+    			pamEventBillingUpdate(request, idReservation);
+    		resolve(true);
+    	});
+    };    
+
+    function pamEventBillingUpdate(request, idReservation) {
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,                
+                idReservation,
+                request.datetime_log
+                );
+            var queryString = util.getQueryString("pm_v1_pam_event_billing_update", paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {                  
+                   if(err === false){                	   
+                	   resolve();
+                   }else{
+                	   reject(err);
+                   }
+                });
+            }
+        })
+    };
+
+    // Fetching the Asset Type ID for a given organisation/workforce and asset type category ID
+    this.workforceAssetTypeMappingSelectCategory = function (request, assetTypeCategoryId, callback) {
+        // IN p_organization_id bigint(20), IN p_account_id bigint(20), IN p_workforce_id bigint(20), 
+        // IN p_asset_type_category_id SMALLINT(6), IN p_start_from SMALLINT(6), IN p_limit_value TINYINT(4)
+
+        var paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            assetTypeCategoryId,
+            0,
+            1
+        );
+        var queryString = util.getQueryString('ds_p1_workforce_asset_type_mapping_select_category', paramsArr);
+        if (queryString !== '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                (err === false) ? callback(false, data, 200): callback(err, data, -9998);
+            });
+        }
+    };
 };
 
 

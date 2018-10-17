@@ -3,20 +3,27 @@
  */
 
 function QueueWrapper(producer) {
+    
+    producer.on('brokersChanged', function (error) {
+            //console.log('brokersChanged : ', error);
+            global.logger.write('debug','brokersChanged : ' + error, {}, event.payload);
+        });
+        
+    producer.on('error', function (err) {
+            global.logger.write('serverError','Producer send error message : ' + err,err, event.payload)
+            //console.log('Producer send error message: ' + err);
+            callback(true, err)
+            //return false;
+        });
 
     this.raiseActivityEvent = function (event, activityId, callback) {
-        var partition = Number(activityId) % 3;
-        //var partition = 0;
+        //var partition = Number(activityId) % 3;
+        var partition = 0;
         //console.log("producing to partition id: " + partition);        
         global.logger.write('debug','producing to partition id: ' + partition, {}, event.payload);
         var payloads = [
             {topic: global.config.kafkaActivitiesTopic, messages: JSON.stringify((event)), partition: partition, key: partition}
         ];
-        
-        producer.on('brokersChanged', function (error) {
-            //console.log('brokersChanged : ', error);
-            global.logger.write('debug','brokersChanged : ' + error, {}, event.payload);
-        });
         
         producer.send(payloads, function (err, data) {
             if (err) {
@@ -30,13 +37,7 @@ function QueueWrapper(producer) {
             }                
             //return true;
         });
-
-        producer.on('error', function (err) {
-            global.logger.write('serverError','Producer send error message : ' + err,err, event.payload)
-            //console.log('Producer send error message: ' + err);
-            callback(true, err)
-            //return false;
-        });
+        
     };
     
 this.raiseFormWidgetEvent = function (event, activityId) {

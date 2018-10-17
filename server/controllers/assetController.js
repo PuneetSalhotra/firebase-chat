@@ -484,6 +484,17 @@ function AssetController(objCollection) {
             }
         });
     });
+    
+    app.post('/' + global.config.version + '/account/nani/kalyan', function (req, res) {
+        assetService.nanikalyan(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });    
 
 }
 module.exports = AssetController;

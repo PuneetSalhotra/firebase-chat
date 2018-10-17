@@ -89,7 +89,7 @@ function ActivityParticipantService(objectCollection) {
                     }
                 } else {
                     //console.log("something is not wright in adding a participant");
-                    global.logger.write('serverError', 'something is not wright in adding a participant', {}, request)
+                    global.logger.write('serverError', 'something is not right in adding a participant', {}, request)
                 }
             });
         };
@@ -252,7 +252,7 @@ function ActivityParticipantService(objectCollection) {
                 }
             } else {
                 //console.log("something is not wright in adding a participant");
-                global.logger.write('serverError', 'something is not wright in adding a participant', {}, request)
+                global.logger.write('serverError', 'something is not right in adding a participant', {}, request)
             }
         });
     };
@@ -287,7 +287,7 @@ function ActivityParticipantService(objectCollection) {
                     callback(false, true);
                 } else {
                     //console.log(err);
-                    global.logger.write('serverError', '', err, request)
+                    global.logger.write('serverError', err, err, request)
                     callback(true, false);
                 }
             }.bind(this));
@@ -381,7 +381,7 @@ function ActivityParticipantService(objectCollection) {
                 }
             } else {
                 //console.log("something is not wright in adding a participant");
-                global.logger.write('serverError', 'something is not wright in adding a participant', {}, request)
+                global.logger.write('serverError', 'something is not right in adding a participant', {}, request)
             }
         });
     };
@@ -416,7 +416,7 @@ function ActivityParticipantService(objectCollection) {
                     callback(false, true);
                 } else {
                     //console.log(err);
-                    global.logger.write('serverError', '', err, request)
+                    global.logger.write('serverError', err, err, request)
                     callback(true, false);
                 }
             }.bind(this));
@@ -508,7 +508,7 @@ function ActivityParticipantService(objectCollection) {
                 }
             } else {
                 //console.log("something is not wright in adding a participant");
-                global.logger.write('serverError', 'something is not wright in adding a participant', {}, request)
+                global.logger.write('serverError', 'something is not right in adding a participant', {}, request)
             }
         });
     };
@@ -655,7 +655,7 @@ function ActivityParticipantService(objectCollection) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', '', err, request)
+                    global.logger.write('serverError', err, err, request)
                     return;
                 }
             });
@@ -699,7 +699,7 @@ function ActivityParticipantService(objectCollection) {
                 if (err === false) {
                     callback(false, true);
                 } else {
-                    global.logger.write('serverError', '' + err, request);
+                    global.logger.write('serverError', err, {}, request);
                     callback(true, err);
                 }
             });
@@ -757,7 +757,7 @@ function ActivityParticipantService(objectCollection) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', '' + err, request)
+                    global.logger.write('serverError', err, {}, request)
                     return;
                 }
             });
@@ -788,7 +788,7 @@ function ActivityParticipantService(objectCollection) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', '' + err, request)
+                    global.logger.write('serverError', err, {}, request)
                     return;
                 }
             });
@@ -817,7 +817,7 @@ function ActivityParticipantService(objectCollection) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', '' + err, request)
+                    global.logger.write('serverError', err, {}, request)
                     return;
                 }
             });
@@ -883,7 +883,7 @@ function ActivityParticipantService(objectCollection) {
                             } else {
                                 callback(err, false);
                                 //console.log(err);
-                                global.logger.write('serverError', '' + err, request)
+                                global.logger.write('serverError', err, {}, request)
                                 return;
                             }
                         });
@@ -891,7 +891,7 @@ function ActivityParticipantService(objectCollection) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', '' + err, request)
+                    global.logger.write('serverError', err, {}, request)
                     return;
                 }
             });
@@ -994,7 +994,7 @@ function ActivityParticipantService(objectCollection) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', '', err, request)
+                    global.logger.write('serverError', err, err, request)
                     return;
                 }
             });
