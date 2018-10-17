@@ -30,6 +30,13 @@ function Logger() {
         transport
       ]
     });*/
+    var log4js = require('log4js');
+    log4js.configure({
+        appenders: { logfile: { type: 'file', filename: '../logs/logfile.log', maxLogSize: 10485760, backups: 5, compress: true } },
+        categories: { default: { appenders: ['logfile'], level: 'debug' } }
+    });
+
+    var logger = log4js.getLogger();
 
     this.write = function (level, message, object, request) {
         var isTargeted = false;
@@ -46,7 +53,10 @@ function Logger() {
             isTargeted = true;
         
         } 
-        util.writeLogs(message, isTargeted); //Using our own logic
+
+        //util.writeLogs(message, isTargeted); //Using our own logic
+        util.writeLogs(message, isTargeted);
+        logger.debug(message);
 
         //logger.info(message); //Winston rotational logs
         var loggerCollectionString = JSON.stringify(loggerCollection);

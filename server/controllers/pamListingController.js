@@ -36,18 +36,6 @@ function PamListingController(objCollection) {
         });
     });
     
-    
-    app.post('/' + global.config.version + '/pam/event/report', function (req, res) {
-        pamListingService.eventReport(req.body, function (err, data, statusCode) {
-            if (err === false) {    
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
-            } else {                
-                data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
-            }
-        });
-    });
-    
     app.post('/' + global.config.version + '/pam/event/payment/export', function (req, res) {
         res.send(responseWrapper.getResponse(false, {}, 200, req.body));
     });
@@ -320,6 +308,26 @@ function PamListingController(objCollection) {
     
     app.post('/' + global.config.version + '/pam/member/reservation/list', function (req, res) {
     	pamListingService.getMemberReservations(req.body).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        });    		
+    });
+    
+   app.post('/' + global.config.version + '/pam/reservation/order/list', function (req, res) {
+    	pamListingService.getReservationOrders(req.body).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        });    		
+    });
+    
+    app.post('/' + global.config.version + '/pam/members/unpaid/list', function (req, res) {
+    	pamListingService.getUnpaidReservations(req.body).then((data)=>{   
     		//console.log(data);
     		res.send(responseWrapper.getResponse({}, data, 200, req.body));
     	}).catch((err) => { 

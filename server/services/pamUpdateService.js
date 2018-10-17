@@ -304,6 +304,14 @@ function PamUpdateService(objectCollection) {
                     }
                 }               
 
+		if(request.hasOwnProperty('is_room_posting')){
+		     if(activityTypeCategroyId == 37) {
+		         if(request.activity_status_type_id == 99) {                    	
+		            	activityCommonService.processReservationBilling(request, request.activity_id).then(()=>{});
+		          }
+		       }
+	            }
+		
                 assetActivityListUpdateStatus(request, activityStatusId, activityStatusTypeId, function (err, data) { });
                 activityCommonService.activityListHistoryInsert(request, 402, function (err, result) { });
                 activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {});

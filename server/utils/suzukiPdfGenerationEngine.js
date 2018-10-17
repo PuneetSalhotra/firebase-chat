@@ -1,3 +1,4 @@
+const moment = require('moment');
 const aws = require('aws-sdk');
 aws.config.loadFromPath(`${__dirname}/configS3.json`);
 
@@ -60,9 +61,12 @@ var pdfDocumentDefinition = {
             }
         },
         {
+            text: '\n\n\n\n\n'
+        },
+        {
             style: 'tableExample',
             table: {
-                heights: [20, 40, 40, 40, 40, 40, 40, 40, 40, 40],
+                heights: [20, 30, 30, 30, 30, 30, 30, 30, 30, 30],
                 widths: [100, 100, 100, 100, 100, 100, 100],
                 body: [
                     ['Models', 'ACCESS125-DRUM', 'ACCESS125-DISC', 'ACCSPL DISC', 'HAYATE', 'GIXXER 155', 'INTRUDER 155'],
@@ -85,11 +89,14 @@ var pdfDocumentDefinition = {
         },
         {
             text: 'For Aryan Autoagencies Pvt Ltd.',
-            style: 'subheader'
+            style: 'authorisedSignatory'
+        },
+        {
+            text: '\n\n\n'
         },
         {
             text: '(Authorised Signatory)',
-            style: 'subheader'
+            style: 'authorisedSignatory'
         },
 
     ],
@@ -106,7 +113,12 @@ var pdfDocumentDefinition = {
             margin: [0, 10, 0, 5]
         },
         tableExample: {
+            fontSize: 11,
             margin: [0, 5, 0, 15]
+        },
+        authorisedSignatory: {
+            fontSize: 14,
+            margin: [0, 10, 0, 5]
         }
     },
     pageOrientation: 'landscape',
@@ -115,6 +127,8 @@ var pdfDocumentDefinition = {
 var a = pdfDocumentDefinition;
 
 function generatePdfAndUpload(request, form_id, formSubmissionData, activityFormDataInDB, callback) {
+
+    const pdfFilePath = `pdfs/${request.activity_parent_id}.pdf`;
 
     console.log("form_id: ", form_id);
     // console.log("formSubmissionData: ", formSubmissionData);
@@ -191,7 +205,7 @@ function generatePdfAndUpload(request, form_id, formSubmissionData, activityForm
             case 4819: // 818 => Ex Showroom Price
             case 4831: // 819 => Ex Showroom Price
             case 4843: // 820 => Ex Showroom Price
-                pdfDocumentDefinition.content[5].table.body[2][tableIndex] = formEntry.field_value;
+                pdfDocumentDefinition.content[6].table.body[2][tableIndex] = formEntry.field_value;
                 onTheRoadPrice += Number(formEntry.field_value);
                 break;
 
@@ -201,7 +215,7 @@ function generatePdfAndUpload(request, form_id, formSubmissionData, activityForm
             case 4820: // 818 => Life Time Tax
             case 4832: // 819 => Life Time Tax
             case 4844: // 820 => Life Time Tax
-                pdfDocumentDefinition.content[5].table.body[3][tableIndex] = formEntry.field_value;
+                pdfDocumentDefinition.content[6].table.body[3][tableIndex] = formEntry.field_value;
                 onTheRoadPrice += Number(formEntry.field_value);
                 break;
 
@@ -211,7 +225,7 @@ function generatePdfAndUpload(request, form_id, formSubmissionData, activityForm
             case 4821: // 818 => Comprehensive Insurance
             case 4833: // 819 => Comprehensive Insurance
             case 4845: // 820 => Comprehensive Insurance
-                pdfDocumentDefinition.content[5].table.body[4][tableIndex] = formEntry.field_value;
+                pdfDocumentDefinition.content[6].table.body[4][tableIndex] = formEntry.field_value;
                 onTheRoadPrice += Number(formEntry.field_value);
                 break;
 
@@ -221,7 +235,7 @@ function generatePdfAndUpload(request, form_id, formSubmissionData, activityForm
             case 4822: // 818 => Registration Charges
             case 4834: // 819 => Registration Charges
             case 4846: // 820 => Registration Charges
-                pdfDocumentDefinition.content[5].table.body[5][tableIndex] = formEntry.field_value;
+                pdfDocumentDefinition.content[6].table.body[5][tableIndex] = formEntry.field_value;
                 onTheRoadPrice += Number(formEntry.field_value);
                 break;
 
@@ -231,7 +245,7 @@ function generatePdfAndUpload(request, form_id, formSubmissionData, activityForm
             case 4823: // 818 => Smart Card/Postal Charges
             case 4835: // 819 => Smart Card/Postal Charges
             case 4847: // 820 => Smart Card/Postal Charges
-                pdfDocumentDefinition.content[5].table.body[6][tableIndex] = formEntry.field_value;
+                pdfDocumentDefinition.content[6].table.body[6][tableIndex] = formEntry.field_value;
                 onTheRoadPrice += Number(formEntry.field_value);
                 break;
 
@@ -241,7 +255,7 @@ function generatePdfAndUpload(request, form_id, formSubmissionData, activityForm
             case 4824: // 818 => Number Plate with Painting
             case 4836: // 819 => Number Plate with Painting
             case 4848: // 820 => Number Plate with Painting
-                pdfDocumentDefinition.content[5].table.body[7][tableIndex] = formEntry.field_value;
+                pdfDocumentDefinition.content[6].table.body[7][tableIndex] = formEntry.field_value;
                 onTheRoadPrice += Number(formEntry.field_value);
                 break;
 
@@ -251,7 +265,7 @@ function generatePdfAndUpload(request, form_id, formSubmissionData, activityForm
             case 4825: // 818 => Extended Warranty
             case 4837: // 819 => Extended Warranty
             case 4849: // 820 => Extended Warranty
-                pdfDocumentDefinition.content[5].table.body[8][tableIndex] = formEntry.field_value;
+                pdfDocumentDefinition.content[6].table.body[8][tableIndex] = formEntry.field_value;
                 onTheRoadPrice += Number(formEntry.field_value);
                 break;
 
@@ -282,12 +296,12 @@ function generatePdfAndUpload(request, form_id, formSubmissionData, activityForm
     // Update Executive's Details:
     pdfDocumentDefinition.content[4].table.body[0][1] = request.contact_executive_name || '-';
     pdfDocumentDefinition.content[4].table.body[1][1] = request.contact_executive_contact_number || '-';
-    pdfDocumentDefinition.content[4].table.body[2][1] = request.invoice_date || '-';
+    pdfDocumentDefinition.content[4].table.body[2][1] = moment(request.invoice_date).utcOffset("+05:30").format('YYYY-MM-DD HH:mm:ss') || '-';
     pdfDocumentDefinition.content[4].table.body[3][1] = request.activity_parent_id || '-';
     pdfDocumentDefinition.content[4].table.body[4][1] = '29AAFCA2076E1ZT';
 
     // Update on-the-road price:
-    pdfDocumentDefinition.content[5].table.body[9][tableIndex] = onTheRoadPrice;
+    pdfDocumentDefinition.content[6].table.body[9][tableIndex] = onTheRoadPrice;
 
     // Update activityFormDataInDB
     activityFormDataInDB = JSON.stringify(pdfDocumentDefinition);
@@ -302,7 +316,7 @@ function generatePdfAndUpload(request, form_id, formSubmissionData, activityForm
     // Upload file to S3
     pdfWriteStream.on('close', () => {
         var params = {
-            Body: fs.createReadStream('pdfs/122593.pdf'),
+            Body: fs.createReadStream(pdfFilePath),
             Bucket: "desker-9166-20180126-11192367",
             Key: `${request.activity_parent_id}.pdf`,
             ContentType: 'application/pdf',

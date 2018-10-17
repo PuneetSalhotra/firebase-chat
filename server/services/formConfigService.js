@@ -364,6 +364,42 @@ function FormConfigService(objCollection) {
             });
         }
     };
+    
+    
+    this.getSearchUserForms = function (request, callback) {
+
+        let paramsArr = new Array(
+            request.organization_id, 
+            request.account_id, 
+            request.workforce_id, 
+            request.asset_id, 
+            request.form_id,
+            request.is_search, 
+            request.search_string, 
+            request.activity_status_type_id, 
+            request.start_datetime, 
+            request.end_datetime, 
+            request.start_from, 
+            request.limit_value || 50
+        );
+        let queryString = util.getQueryString('ds_p1_activity_list_select_asset_forms', paramsArr);
+        if (queryString !== '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (!err) {                   
+                    //console.log('Retrieved Data: ', data);
+                    if(data.length > 0 ) {
+                        activityCommonService.formatFormDataCollection(data, function (err, formattedData) {
+                            (err === false) ? callback(false, { data: formattedData}, 200) : callback(true, {}, -9999);
+                            });
+                        } else {
+                            callback(false, {}, 200);
+                        }
+                    } else {
+                        callback(err, data, -9999)
+                    }
+            });
+        }
+    };
 
 };
 

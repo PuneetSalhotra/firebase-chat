@@ -4,16 +4,7 @@
 
 var mysql = require('mysql');
 
-var clusterConfig = {
-  removeNodeErrorCount: 1, // Remove the node immediately when connection fails.
-  defaultSelector: 'ORDER'
-};
-
-var writeCluster = mysql.createPoolCluster();
-var readCluster = mysql.createPoolCluster(clusterConfig);
-
-//Adding Master
-writeCluster.add('MASTER', {
+var masterDbPool = mysql.createPool({
     connectionLimit: global.config.conLimit,
     host: global.config.masterIp,
     user: global.config.dbUser,
@@ -22,8 +13,42 @@ writeCluster.add('MASTER', {
     debug: false
 });
 
+ var slave1DbPool = mysql.createPool({
+ connectionLimit: global.config.conLimit,
+ host: global.config.slave1Ip,
+ user: global.config.dbUser,
+ password: global.config.dbPassword,
+ database: global.config.database,
+ debug: false
+ });
+ 
+//var slave1DbPool = masterDbPool;
+
+/* var slave2DbPool = mysql.createPool({
+ connectionLimit: global.config.conLimit,
+ host: global.config.slave2Ip,
+ user: global.config.dbUser,
+ password: global.config.dbPassword,
+ database: global.config.database,
+ debug: false
+ });
+ */
+var slave2DbPool = masterDbPool;
+
+var poolCluster = mysql.createPoolCluster();
+
+//Adding Master
+poolCluster.add('MASTER', {
+    connectionLimit: global.config.conLimit,
+    host: global.config.slave1Ip,
+    user: global.config.dbUser,
+    password: global.config.dbPassword,
+    database: global.config.database,
+    debug: false
+});
+    
 //Adding Slave
-readCluster.add('SLAVE1', {
+poolCluster.add('SLAVE1', {
     connectionLimit: global.config.conLimit,
     host: global.config.slave1Ip,
     user: global.config.dbUser,
@@ -32,16 +57,8 @@ readCluster.add('SLAVE1', {
     debug: false
 });
 
-//Adding Master
-readCluster.add('MASTER', {
-    connectionLimit: global.config.conLimit,
-    host: global.config.masterIp,
-    user: global.config.dbUser,
-    password: global.config.dbPassword,
-    database: global.config.database,
-    debug: false
-});
-    
+
+
 var executeQuery = function (flag, queryString, request, callback) {
 
     /*
@@ -53,21 +70,29 @@ var executeQuery = function (flag, queryString, request, callback) {
     var conPool;
     switch (flag) {
         case 0:
-            conPool = writeCluster;
+            conPool = masterDbPool;
 //            console.log('master pool is selected');
             break;
         case 1:
-            conPool = readCluster;
+            conPool = slave1DbPool;
 //            console.log('slave1 pool is selected');
-            break;        
+            break;
+        case 2:
+            conPool = slave2DbPool;
+//            console.log('slave2 pool is selected');
+            break;
+        case 3:
+            console.log('Selecting the pool-cluster');
+            conPool = poolCluster;
+            break;
     }
-    
-    try {        
+
+    try {
         conPool.getConnection(function (err, conn) {
             if (err) {                
-                global.logger.write('serverError','ERROR WHILE GETTING CONNECTON - ' + err, err, request);
+                global.logger.write('serverError','ERROR WHILE GETTING CONNECTON - ' + err, err, request);                
                 /*if(flag == 1) {
-                    conPool = writeCluster;
+                    conPool = masterDbPool;
                     global.logger.write('serverError','Connecting to Master DB - ', {}, request);
                     retrieveFromMasterDbPool(conPool, queryString, request).then((result)=>{
                         callback(false, result);
@@ -83,8 +108,7 @@ var executeQuery = function (flag, queryString, request, callback) {
                 callback(err, false);
                 return;
             } else {
-                global.logger.write('debug','conPool flag - ' + flag, {}, request);
-                global.logger.write('debug','Connection is: ' + conn.config.host, {}, request);                
+                console.log('Connection is: ', conn.config.host);
                 conn.query(queryString, function (err, rows, fields) {
                     if (!err) {   
                         //console.log(queryString);
@@ -110,10 +134,10 @@ var executeQuery = function (flag, queryString, request, callback) {
     }
 };
 
-/*function retrieveFromMasterDbPool(conPool, queryString, request){
+function retrieveFromMasterDbPool(conPool, queryString, request){
     return new Promise((resolve, reject)=>{
         try {
-            poolCluster.getConnection(conPool, function (err, conn) {
+            conPool.getConnection(function (err, conn) {
                 if (err) {                    
                     global.logger.write('serverError','ERROR WHILE GETTING CONNECTON - ' + err, err, request);                    
                     reject(err);
@@ -137,7 +161,7 @@ var executeQuery = function (flag, queryString, request, callback) {
             global.logger.write('serverError','Exception Occurred - ' + exception, exception, request);
         }
     });
-}*/
+}
 
 var getQueryString = function (callName, paramsArr) {
 
