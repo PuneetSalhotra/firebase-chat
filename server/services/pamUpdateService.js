@@ -312,6 +312,11 @@ function PamUpdateService(objectCollection) {
 		       }
 	        //    }
 		
+		if(activityTypeCategroyId == 38) {            		
+            		//console.log('pamOrderListUpdate:'+activityTypeCategroyId);
+		        activityCommonService.pamOrderListUpdate(request, request.activity_id).then(()=>{});            		
+            	}
+		
                 assetActivityListUpdateStatus(request, activityStatusId, activityStatusTypeId, function (err, data) { });
                 activityCommonService.activityListHistoryInsert(request, 402, function (err, result) { });
                 activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {});
