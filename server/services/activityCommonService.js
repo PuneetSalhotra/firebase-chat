@@ -2242,6 +2242,27 @@ function ActivityCommonService(db, util, forEachAsync) {
         })
     };
 
+     this.pamOrderListUpdate = function (request, idOrder) {
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,                
+                idOrder,
+                request.datetime_log
+                );
+            var queryString = util.getQueryString("pm_v1_pam_order_list_update", paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {                  
+                   if(err === false){                	   
+                	   resolve();
+                   }else{
+                	   reject(err);
+                   }
+                });
+            }
+        })
+    };
 };
 
 
