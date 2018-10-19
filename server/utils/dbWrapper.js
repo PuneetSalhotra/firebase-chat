@@ -181,6 +181,20 @@ var executeRecursiveQuery = function (flag, start, limit, callName, paramsArr, c
     checkAndFetchRecords(start);
 };
 
+process.on('exit', (err)=>{    
+    global.logger.write('debug','Closing the poolCluster : ' + err, {}, {});
+    writeCluster.end();
+    readCluster.end();    
+    global.logger.write('debug','Closed the poolCluster : ' + err, {}, {});
+});
+
+//Ctrl+C Event
+process.on('SIGINT', ()=>{ process.exit(); });
+
+//PID kill; PM2 Restart; nodemon Restart
+process.on('SIGUSR1', ()=>{ process.exit(); });
+process.on('SIGUSR2', ()=>{ process.exit(); });
+
 module.exports = {
     executeQuery: executeQuery,
     executeRecursiveQuery: executeRecursiveQuery
