@@ -218,11 +218,11 @@ function AccountController(objCollection) {
     //Voice JSON for NEXMO
     app.get('/' + global.config.version + '/account/nexmo/voice*', function (req, res) {
         // console.log('Request.query : ' , req.body);
-        global.logger.write('debug', 'Request.query : ' + JSON.stringify(req.body, null, 2), {}, req);
+        //global.logger.write('debug', 'Request.query : ' + JSON.stringify(req.body, null, 2), {}, req);
 
         var file = global.config.efsPath + 'nexmovoicesjsonfiles/' + req.query.file;
         // console.log(file);       
-        global.logger.write('debug', 'Voice JSON file for NEXMO: ' + file, {}, req);
+        //global.logger.write('debug', 'Voice JSON file for NEXMO: ' + file, {}, req);
      
         fs.readFile(file,function (err, data) {
           if (err) {
@@ -238,7 +238,7 @@ function AccountController(objCollection) {
     //Webhook for NEXMO
     app.post('/' + global.config.version + '/account/webhook/nexmo', function (req, res) {
         // console.log('Nexmo webhook req.body : ', req.body)
-        global.logger.write('debug', 'Nexmo webhook req.body: ' + JSON.stringify(req.body, null, 2), {}, req);
+        //global.logger.write('debug', 'Nexmo webhook req.body: ' + JSON.stringify(req.body, null, 2), {}, req);
         res.send(responseWrapper.getResponse(false, req.body, 200, req.body));        
     });
     

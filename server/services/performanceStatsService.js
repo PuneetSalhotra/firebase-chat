@@ -31,7 +31,7 @@ function PerformanceStatsService(objectCollection) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log('DAta : ', data);
-                global.logger.write('debug', 'Data : ' + data, {}, request);
+                global.logger.write('debug', 'Data : ' + JSON.stringify(data, null, 2), {}, request);
                 if (err === false) {
                     if(data.length > 0){
                         callback(false, data);                                                
@@ -57,7 +57,7 @@ function PerformanceStatsService(objectCollection) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log('Data : ', data);
-                global.logger.write('debug', 'Data : ' + data, {}, request);
+                global.logger.write('debug', 'Data : ' + JSON.stringify(data, null, 2), {}, request);
                 if (err === false) {
                     if(data.length > 0){
                         callback(false, data,200); 

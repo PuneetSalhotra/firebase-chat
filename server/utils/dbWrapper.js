@@ -61,11 +61,22 @@ var executeQuery = function (flag, queryString, request, callback) {
 
     try {
         conPool.getConnection(function (err, conn) {
-            if (err) {
-                //console.log('ERROR WHILE GETTING CONNECTON : ', err);
-                global.logger.write('serverError','ERROR WHILE GETTING CONNECTON - ' + err, err, request);
-                callback(err, false);
-                return;
+            if (err) {                
+                global.logger.write('serverError','ERROR WHILE GETTING CONNECTON - ' + err, err, request);                
+                if(flag == 1) {
+                    conPool = masterDbPool;
+                    global.logger.write('serverError','Connecting to Master DB - ', {}, request);
+                    retrieveFromMasterDbPool(conPool, queryString, request).then((result)=>{
+                        callback(false, result);
+                        return;
+                    }).catch((err)=>{                        
+                        callback(err, false);
+                        return;
+                    });
+                } else {
+                    callback(err, false);
+                    return;
+                }                                
             } else {
                 conn.query(queryString, function (err, rows, fields) {
                     if (!err) {   
@@ -92,6 +103,35 @@ var executeQuery = function (flag, queryString, request, callback) {
     }
 };
 
+function retrieveFromMasterDbPool(conPool, queryString, request){
+    return new Promise((resolve, reject)=>{
+        try {
+            conPool.getConnection(function (err, conn) {
+                if (err) {                    
+                    global.logger.write('serverError','ERROR WHILE GETTING CONNECTON - ' + err, err, request);                    
+                    reject(err);
+                    
+                } else {
+                    conn.query(queryString, function (err, rows, fields) {
+                        if (!err) {   
+                            global.logger.write('debug',queryString, {},request);
+                            conn.release();
+                            resolve(rows[0]);                            
+                        } else {
+                            global.logger.write('serverError', 'SOME ERROR IN QUERY | ' + queryString, err, request);
+                            global.logger.write('serverError', err, err, request);
+                            conn.release();
+                            reject(err);
+                        }
+                    });
+                }
+            });
+        } catch (exception) {            
+            global.logger.write('serverError','Exception Occurred - ' + exception, exception, request);
+        }
+    });
+}
+
 var getQueryString = function (callName, paramsArr) {
 
     var queryString = "CALL " + callName + "(";
@@ -116,7 +156,7 @@ var executeRecursiveQuery = function (flag, start, limit, callName, paramsArr, c
         paramsArr.pop();
         paramsArr.pop();
 
-        executeQuery(flag, queryString, function (err, data) {
+        executeQuery(flag, queryString, {}, function (err, data) {
             if (err) {
                 callback(err, returnData);
             } else {
