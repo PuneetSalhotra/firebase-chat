@@ -35,13 +35,6 @@ function CassandraInterceptor(util, cassandraWrapper) {
 
         var module = messageCollection.hasOwnProperty("request") ? messageCollection.request.module : '';
         
-        /*if(messageCollection.hasOwnProperty("request")) {
-            module = messageCollection.request.module;
-        } else if(messageCollection.hasOwnProperty("object")){
-            module = messageCollection.object.module;
-        } else {
-            module = '';
-        }*/
         
         switch (module) {
 
@@ -223,24 +216,6 @@ function CassandraInterceptor(util, cassandraWrapper) {
     };
     
     sessionsByAsset = function(messageCollection,Id,tableName, callback) {
-        
-         /*var query = "SELECT dursec FROM " + tableName + 
-                    " WHERE astid=" + messageCollection.request.asset_id + 
-                    " and year="+ util.getFormatedLogYear(messageCollection.request.datetime_log) 
-        
-            
-         cassandraWrapper.executeQuery(messageCollection, query, function (err, data) {
-            if (err) {
-                callback(false, data);
-                return;
-            } else {
-                var sec = messageCollection.request.seconds;
-                /*var x =JSON.parse(JSON.stringify(data));
-                //console.log('x.rows.length : ' + x.rows.length)
-                if(x.rows.length > 0) {
-                    //console.log('HRS : ' + (x.rows[0].hrs === 'undefined')?0:x.rows[0].hrs);
-                    sec = (x.rows[0].dursec === 'undefined')? sec: (x.rows[0].dursec + sec);
-                }*/
             
         var query = "UPDATE " + tableName + " SET ";
                     query += "id=" + Id + ",";
@@ -284,8 +259,6 @@ function CassandraInterceptor(util, cassandraWrapper) {
             }
         });            
         };
-         //});
-     //};
     
     sessionsByWorkHours = function(messageCollection, Id, tableName, callback) {
         
@@ -357,6 +330,6 @@ function CassandraInterceptor(util, cassandraWrapper) {
             }
         });           
     };
-}
-;
+};
+
 module.exports = CassandraInterceptor;
