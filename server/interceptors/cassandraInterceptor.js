@@ -6,7 +6,7 @@ const TimeUuid = require('cassandra-driver').types.TimeUuid;
 
 function CassandraInterceptor(util, cassandraWrapper) {
     var uuid = require('uuid');
-    
+
     var logLevel = {
         request: 1,
         response: 2,
@@ -34,8 +34,8 @@ function CassandraInterceptor(util, cassandraWrapper) {
         var logDate = util.getCurrentUTCTime();
 
         var module = messageCollection.hasOwnProperty("request") ? messageCollection.request.module : '';
-        
-        
+
+
         switch (module) {
 
             case 'device':
@@ -191,69 +191,69 @@ function CassandraInterceptor(util, cassandraWrapper) {
             }
         });
     };
-    
-    
+
+
     this.logSessionData = function (messageCollection, callback) {
         var logTimestamp = util.getCurrentUTCTime();
         var logDate = util.getCurrentDate();
         var Id = uuid.v1();
-        
+
         console.log('In logSessioData Function messageCollection : \n' + JSON.stringify(messageCollection));
         console.log('messageCollection.request.asset_clocked_status_id :' + messageCollection.request.asset_clocked_status_id)
-        if(messageCollection.request.asset_assigned_status_id > 0) {
-            sessionsByAsset(messageCollection, Id,'sessions_by_asset',callback);
-            sessionsByAsset(messageCollection, Id,'sessions_by_workforce',callback);
-            sessionsByAsset(messageCollection, Id,'sessions_by_account',callback);
-            sessionsByAsset(messageCollection, Id,'sessions_by_organization',callback);
-        } 
-        
-        if(messageCollection.request.asset_clocked_status_id > 0) {
-            sessionsByWorkHours(messageCollection, Id,'workhrs_by_asset',callback);
-            sessionsByWorkHours(messageCollection, Id,'workhrs_by_workforce',callback)
-            sessionsByWorkHours(messageCollection, Id,'workhrs_by_account',callback)
-            sessionsByWorkHours(messageCollection, Id,'workhrs_by_organization',callback)
+        if (messageCollection.request.asset_assigned_status_id > 0) {
+            sessionsByAsset(messageCollection, Id, 'sessions_by_asset', callback);
+            sessionsByAsset(messageCollection, Id, 'sessions_by_workforce', callback);
+            sessionsByAsset(messageCollection, Id, 'sessions_by_account', callback);
+            sessionsByAsset(messageCollection, Id, 'sessions_by_organization', callback);
         }
-        
-        if(messageCollection.request.asset_session_status_id > 0) {
-            
+
+        if (messageCollection.request.asset_clocked_status_id > 0) {
+            sessionsByWorkHours(messageCollection, Id, 'workhrs_by_asset', callback);
+            sessionsByWorkHours(messageCollection, Id, 'workhrs_by_workforce', callback)
+            sessionsByWorkHours(messageCollection, Id, 'workhrs_by_account', callback)
+            sessionsByWorkHours(messageCollection, Id, 'workhrs_by_organization', callback)
         }
-    
+
+        if (messageCollection.request.asset_session_status_id > 0) {
+
+        }
+
     };
-    
-    sessionsByAsset = function(messageCollection,Id,tableName, callback) {
-            
+
+    function sessionsByAsset(messageCollection, Id, tableName, callback) {
+
         var query = "UPDATE " + tableName + " SET ";
-                    query += "id=" + Id + ",";
-                    query += "dt='" + util.getFormatedLogDate(messageCollection.request.datetime_log) + "',";
-                    query += "month=" + util.getFormatedLogMonth(messageCollection.request.datetime_log) + ",";
-                    //query += "year=" + util.getFormatedLogYear(messageCollection.request.datetime_log) + ",";
-                    query += "stm=" + messageCollection.request.seconds + ",";
-                    query += "slat=" + messageCollection.request.track_latitude + ",";
-                    query += "slng=" + messageCollection.request.track_longitude + ",";
-                    query += "etm=" + messageCollection.request.seconds + ",";
-                    query += "elat=" + messageCollection.request.track_latitude + ",";
-                    query += "elng=" + messageCollection.request.track_longitude + ",";
-                    query += "dursec=" + messageCollection.request.seconds + ",";
-                    query += "frstnm='" +messageCollection.request.first_name + "',";
-                    query += "lstnm='" + messageCollection.request.last_name + "',";
-                    //query += "astid=" + messageCollection.request.asset_id + ",";
-                    query += "wkfid=" + messageCollection.request.workforce_id + ",";
-                    query += "wkfnm='" + messageCollection.request.workforce_name + "',";
-                    query += "accid=" + messageCollection.request.account_id + ",";
-                    query += "accnm='" + messageCollection.request.account_name + "',";
-                    query += "orgid=" + messageCollection.request.organization_id + ",";
-                    query += "orgnm='" + messageCollection.request.organization_name + "',";
-                    query += "devid='" + messageCollection.request.asset_hardware_os_id  + "',";
-                    query += "devmdl='" + messageCollection.request.asset_hardware_model  + "',";
-                    query += "devman='" + messageCollection.request.asset_hardware_manufacturer  + "',";
-                    query += "devos='" + messageCollection.request.device_os_id  + "',";
-                    query += "devtyp='" + messageCollection.request.asset_hardware_os_version  + "',";
-                    query += "lnktime='" + messageCollection.request.datetime_log  + "',";
-                    query += "vrsn='" + messageCollection.request.service_version  + "'";
-                    //query += "lgtime=" + "'" +messageCollection.request.datetime_log + "'";
-                    query += "  WHERE astid="+messageCollection.request.asset_id;
-            query += " and year="+util.getFormatedLogYear(messageCollection.request.datetime_log)+" and lgtime='"+messageCollection.request.datetime_log + "';";
-                        
+        query += "id=" + Id + ",";
+        query += "dt='" + util.getFormatedLogDate(messageCollection.request.datetime_log) + "',";
+        query += "month=" + util.getFormatedLogMonth(messageCollection.request.datetime_log) + ",";
+        //query += "year=" + util.getFormatedLogYear(messageCollection.request.datetime_log) + ",";
+        query += "stm=" + messageCollection.request.seconds + ",";
+        query += "slat=" + messageCollection.request.track_latitude + ",";
+        query += "slng=" + messageCollection.request.track_longitude + ",";
+        query += "etm=" + messageCollection.request.seconds + ",";
+        query += "elat=" + messageCollection.request.track_latitude + ",";
+        query += "elng=" + messageCollection.request.track_longitude + ",";
+        query += "dursec=" + messageCollection.request.seconds + ",";
+        query += "frstnm='" + messageCollection.request.first_name + "',";
+        query += "lstnm='" + messageCollection.request.last_name + "',";
+        //query += "astid=" + messageCollection.request.asset_id + ",";
+        query += "wkfid=" + messageCollection.request.workforce_id + ",";
+        query += "wkfnm='" + messageCollection.request.workforce_name + "',";
+        query += "accid=" + messageCollection.request.account_id + ",";
+        query += "accnm='" + messageCollection.request.account_name + "',";
+        query += "orgid=" + messageCollection.request.organization_id + ",";
+        query += "orgnm='" + messageCollection.request.organization_name + "',";
+        query += "devid='" + messageCollection.request.asset_hardware_os_id + "',";
+        query += "devmdl='" + messageCollection.request.asset_hardware_model + "',";
+        query += "devman='" + messageCollection.request.asset_hardware_manufacturer + "',";
+        query += "devos='" + messageCollection.request.device_os_id + "',";
+        query += "devtyp='" + messageCollection.request.asset_hardware_os_version + "',";
+        query += "lnktime='" + messageCollection.request.datetime_log + "',";
+        query += "vrsn='" + messageCollection.request.service_version + "'";
+        //query += "lgtime=" + "'" +messageCollection.request.datetime_log + "'";
+        query += "  WHERE astid=" + messageCollection.request.asset_id;
+        query += " and year=" + util.getFormatedLogYear(messageCollection.request.datetime_log) + " and lgtime='" + messageCollection.request.datetime_log + "';";
+
         cassandraWrapper.executeQuery(messageCollection, query, function (err, data) {
             if (!err) {
                 callback(false, true);
@@ -262,78 +262,78 @@ function CassandraInterceptor(util, cassandraWrapper) {
                 callback(true, false);
                 return;
             }
-        });            
-        };
-    
-    sessionsByWorkHours = function(messageCollection, Id, tableName, callback) {
-        
-        var query = "SELECT hrs FROM " + tableName + 
-                    " WHERE astid=" + messageCollection.request.asset_id + 
-                    " and year="+ util.getFormatedLogYear(messageCollection.request.datetime_log) +";";
+        });
+    };
+
+    function sessionsByWorkHours(messageCollection, Id, tableName, callback) {
+
+        var query = "SELECT hrs FROM " + tableName +
+            " WHERE astid=" + messageCollection.request.asset_id +
+            " and year=" + util.getFormatedLogYear(messageCollection.request.datetime_log) + ";";
         //console.log(query);
-        
+
         cassandraWrapper.executeQuery(messageCollection, query, function (err, data) {
             if (err) {
                 callback(false, data);
                 return;
             } else {
                 var hrs = messageCollection.request.hours;
-                var x =JSON.parse(JSON.stringify(data));
+                var x = JSON.parse(JSON.stringify(data));
                 //console.log('x.rows.length : ' + x.rows.length)
-                if(x.rows.length > 0) {
+                if (x.rows.length > 0) {
                     //console.log('HRS : ' + (x.rows[0].hrs === 'undefined')?0:x.rows[0].hrs);
-                    hrs = (x.rows[0].hrs === 'undefined')? hrs: x.rows[0].hrs + hrs;
-                }                
-                
-                var query = "UPDATE " + tableName + " SET ";
-            query += "id=" + Id  + ",";
-            query += "dt=" + "'" + util.getFormatedLogDate(messageCollection.request.datetime_log) + "',";
-            query += "month=" + util.getFormatedLogMonth(messageCollection.request.datetime_log) + ",";
-            //query += "year=" + util.getFormatedLogYear(messageCollection.request.datetime_log) + ",";
-            //query += "tm='" + messageCollection.request.start_time  + "',";
-            query += "tm='" + messageCollection.request.datetime_log + "',";
-            query += "hrs=" + hrs  + ",";
-            query += "lat=" + messageCollection.request.track_latitude  + ",";
-            query += "lng=" + messageCollection.request.track_longitude  + ",";
-            query += "acc=" + messageCollection.request.track_gps_accuracy  + ",";
-            query += "addr='" + messageCollection.request.track_gps_location  + "',";
-            query += "gps=" + ((messageCollection.request.track_gps_status === 1) ? true:false)  + ",";          
-            query += "frstnm=" + "'" + messageCollection.request.first_name + "',";
-            query += "lstnm=" + "'" + messageCollection.request.last_name + "',";
-            //query += "astid=" + messageCollection.request.asset_id  + ",";
-            query += "wkfid=" + messageCollection.request.workforce_id  + ",";
-            query += "wkfnm=" + "'" + messageCollection.request.workforce_name+ "',";
-            query += "accid=" + messageCollection.request.account_id  + ",";
-            query += "accnm=" + "'" + messageCollection.request.account_name+ "',";
-            query += "orgid=" + messageCollection.request.organization_id  + ",";
-            query += "orgnm=" + "'" + messageCollection.request.organization_name+ "',";
-            query += "devid='" + messageCollection.request.asset_hardware_os_id  + "',";
-            query += "devmdl='" + messageCollection.request.asset_hardware_model  + "',";
-            query += "devman='" + messageCollection.request.asset_hardware_manufacturer  + "',";
-            query += "devos='" + messageCollection.request.device_os_id  + "',";
-            query += "devtyp='" + messageCollection.request.asset_hardware_os_version  + "',";
-            query += "lnktime='" + messageCollection.request.datetime_log  + "',";
-            query += "vrsn='" + messageCollection.request.service_version  + "'";
-            //query += "lgtime=" + "'" +messageCollection.request.datetime_log + "'";
-            query += "  WHERE astid="+messageCollection.request.asset_id;
-            query += " and year="+util.getFormatedLogYear(messageCollection.request.datetime_log)+" and lgtime='"+messageCollection.request.datetime_log + "';";
-            
-            //console.log('Query : ' + query);
-
-            cassandraWrapper.executeQuery(messageCollection, query, function (err, data) {
-                if (!err) {
-                    callback(false, data);
-                    return;
-                } else {
-                    callback(true, err);
-                    return;
+                    hrs = (x.rows[0].hrs === 'undefined') ? hrs : x.rows[0].hrs + hrs;
                 }
-            });
-        
-        callback(true, err);
-        return;
+
+                var query = "UPDATE " + tableName + " SET ";
+                query += "id=" + Id + ",";
+                query += "dt=" + "'" + util.getFormatedLogDate(messageCollection.request.datetime_log) + "',";
+                query += "month=" + util.getFormatedLogMonth(messageCollection.request.datetime_log) + ",";
+                //query += "year=" + util.getFormatedLogYear(messageCollection.request.datetime_log) + ",";
+                //query += "tm='" + messageCollection.request.start_time  + "',";
+                query += "tm='" + messageCollection.request.datetime_log + "',";
+                query += "hrs=" + hrs + ",";
+                query += "lat=" + messageCollection.request.track_latitude + ",";
+                query += "lng=" + messageCollection.request.track_longitude + ",";
+                query += "acc=" + messageCollection.request.track_gps_accuracy + ",";
+                query += "addr='" + messageCollection.request.track_gps_location + "',";
+                query += "gps=" + ((messageCollection.request.track_gps_status === 1) ? true : false) + ",";
+                query += "frstnm=" + "'" + messageCollection.request.first_name + "',";
+                query += "lstnm=" + "'" + messageCollection.request.last_name + "',";
+                //query += "astid=" + messageCollection.request.asset_id  + ",";
+                query += "wkfid=" + messageCollection.request.workforce_id + ",";
+                query += "wkfnm=" + "'" + messageCollection.request.workforce_name + "',";
+                query += "accid=" + messageCollection.request.account_id + ",";
+                query += "accnm=" + "'" + messageCollection.request.account_name + "',";
+                query += "orgid=" + messageCollection.request.organization_id + ",";
+                query += "orgnm=" + "'" + messageCollection.request.organization_name + "',";
+                query += "devid='" + messageCollection.request.asset_hardware_os_id + "',";
+                query += "devmdl='" + messageCollection.request.asset_hardware_model + "',";
+                query += "devman='" + messageCollection.request.asset_hardware_manufacturer + "',";
+                query += "devos='" + messageCollection.request.device_os_id + "',";
+                query += "devtyp='" + messageCollection.request.asset_hardware_os_version + "',";
+                query += "lnktime='" + messageCollection.request.datetime_log + "',";
+                query += "vrsn='" + messageCollection.request.service_version + "'";
+                //query += "lgtime=" + "'" +messageCollection.request.datetime_log + "'";
+                query += "  WHERE astid=" + messageCollection.request.asset_id;
+                query += " and year=" + util.getFormatedLogYear(messageCollection.request.datetime_log) + " and lgtime='" + messageCollection.request.datetime_log + "';";
+
+                //console.log('Query : ' + query);
+
+                cassandraWrapper.executeQuery(messageCollection, query, function (err, data) {
+                    if (!err) {
+                        callback(false, data);
+                        return;
+                    } else {
+                        callback(true, err);
+                        return;
+                    }
+                });
+
+                callback(true, err);
+                return;
             }
-        });           
+        });
     };
 };
 
