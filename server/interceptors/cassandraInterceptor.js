@@ -60,6 +60,11 @@ function CassandraInterceptor(util, cassandraWrapper) {
         const transactionId = TimeUuid.now();
         var logLevelId = (logLevel[messageCollection.level]) ? logLevel[messageCollection.level] : 0;
 
+        let dbCall = '';
+        if (String(messageCollection.request.message).includes('CALL ')) {
+            dbCall = messageCollection.request.message;
+        }
+
         const query = `INSERT INTO transactionsbyactivity (actvtyid, actvtyttle, asstid, asstname, bndlid, crtd, date, dbcall, dbparams, dbrs, devcntrycd, devphnnmbr, lvlid, lvlnm, msg, recid, req, reqtime, res, rescode, ressts, restime, stktrc, url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
         let queryParams = [
             (messageCollection.request.hasOwnProperty("activity_id")) ? messageCollection.request.activity_id : 0, // actvtyid
