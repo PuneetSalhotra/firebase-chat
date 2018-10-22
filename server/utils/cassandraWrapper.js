@@ -48,6 +48,8 @@ function CassandraWrapper() {
                         break;
                     case 'dev':
                     case 'local':
+                    case 'staging':
+                    case 'preprod':
                         connectionResource = sessionClientDev;
                         break;
                 }
@@ -59,6 +61,8 @@ function CassandraWrapper() {
                         break;
                     case 'dev':
                     case 'local':
+                    case 'staging':
+                    case 'preprod':
                         connectionResource = logClientDev;
                         break;
                 }
