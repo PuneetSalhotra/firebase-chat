@@ -26,7 +26,7 @@ var consume = function () {
             if (data.hasOwnProperty("Messages")) {
 
                 var deletMesageHandle = data['Messages'][0].ReceiptHandle;
-                //console.log("messge body is: "+ data['Messages'][0].Body);
+                console.log("****** ****** messge body is: ****** ******: \n", data['Messages'][0].Body);
                 //try {
                 var body = data['Messages'][0].Body;
                 var messageCollection = JSON.parse(body);
@@ -93,13 +93,10 @@ process.on('error', (err) => {
     throw new Error('error');
 });
 
-//setInterval(consume, 1000);
-setInterval(checkingCassandraInstance, 1000);
+setInterval(checkingCassandraInstance, 500);
 
 var http = require('http')
 http.createServer((req, res) => {
     res.write('I am Alive');
     res.end();
 }).listen(global.config.sqsConsumer);
-
-//module.exports = checkingCassandraInstance;

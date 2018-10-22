@@ -2,7 +2,7 @@
  * author: A Sri Sai Venkatesh
  */
 
-const TimeUuid = require('cassandra-driver').types.TimeUuid;
+// const TimeUuid = require('cassandra-driver').types.TimeUuid;
 
 function CassandraInterceptor(util, cassandraWrapper) {
     var uuid = require('uuid');
@@ -51,21 +51,22 @@ function CassandraInterceptor(util, cassandraWrapper) {
                 activityTransactionInsert(0, messageCollection, logDate, logTimestamp, callback);
                 break;
             default:
-                //console.log('messageCollection : ', messageCollection);
                 console.log('No Such Module exists : \n' + JSON.stringify(messageCollection.request, null, 2) + '\n\n');
         }
     };
 
     function deviceTransactionInsert(messageCollection, logDate, logTimestamp, callback) {
-        const transactionId = TimeUuid.now();
+
+        const transactionId = messageCollection.request.bundle_transaction_id || 0;
+        console.log("transactionId: ", transactionId);
         var logLevelId = (logLevel[messageCollection.level]) ? logLevel[messageCollection.level] : 0;
 
         let dbCall = '';
-        if (String(messageCollection.request.message).includes('CALL ')) {
-            dbCall = messageCollection.request.message;
+        if (String(messageCollection.message).includes('CALL ')) {
+            dbCall = messageCollection.message;
         }
 
-        const query = `INSERT INTO transactionsbyactivity (actvtyid, actvtyttle, asstid, asstname, bndlid, crtd, date, dbcall, dbparams, dbrs, devcntrycd, devphnnmbr, lvlid, lvlnm, msg, recid, req, reqtime, res, rescode, ressts, restime, stktrc, url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        const query = `INSERT INTO transactionsbydevice (actvtyid, actvtyttle, asstid, asstname, bndlid, crtd, date, dbcall, dbparams, dbrs, devcntrycd, devphnnmbr, lvlid, lvlnm, msg, recid, req, reqtime, res, rescode, ressts, restime, stktrc, url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
         let queryParams = [
             (messageCollection.request.hasOwnProperty("activity_id")) ? messageCollection.request.activity_id : 0, // actvtyid
             (messageCollection.request.hasOwnProperty("activity_title")) ? messageCollection.request.activity_title : '', // actvtyttle
@@ -81,15 +82,15 @@ function CassandraInterceptor(util, cassandraWrapper) {
             (messageCollection.request.hasOwnProperty("asset_phone_number")) ? messageCollection.request.asset_phone_number : '', // devphnnmbr
             (logLevel[messageCollection.level]) ? logLevel[messageCollection.level] : 0, // lvlid
             (messageCollection.hasOwnProperty("level")) ? messageCollection.level : '', // lvlnm
-            (messageCollection.request.hasOwnProperty("message")) ? messageCollection.request.message : '', // msg
+            (messageCollection.hasOwnProperty("message")) ? messageCollection.message : '', // msg
             transactionId, // recid
             JSON.stringify(messageCollection.request), // req
             util.getCurrentUTCTime(), // reqtime
-            (messageCollection.request.hasOwnProperty("response_data")) ? messageCollection.request.response : '', // res
+            (messageCollection.hasOwnProperty("object")) ? JSON.stringify(messageCollection.object) : '', // res
             (messageCollection.request.hasOwnProperty("response_code")) ? messageCollection.request.response_code : '', // rescode
             (messageCollection.request.hasOwnProperty("response_status")) ? messageCollection.request.response_status : false, // ressts
             util.getCurrentUTCTime(), // restime
-            (messageCollection.request.hasOwnProperty("stack_trace")) ? messageCollection.request.string_tokenizer : '', // stktrc
+            (messageCollection.request.hasOwnProperty("stack_trace")) ? messageCollection.request.stack_trace : '', // stktrc
             (messageCollection.request.hasOwnProperty("url")) ? messageCollection.request.url : '' // url
         ];
 
@@ -106,14 +107,16 @@ function CassandraInterceptor(util, cassandraWrapper) {
 
     function activityTransactionInsert(transactionType, messageCollection, logDate, logTimestamp, callback) {
         let dbCall = '';
-        if (String(messageCollection.request.message).includes('CALL ')) {
-            dbCall = messageCollection.request.message;
+        if (String(messageCollection.message).includes('CALL ')) {
+            dbCall = messageCollection.message;
         }
 
-        // var transactionId = uuid.v1();
-        const transactionId = TimeUuid.now();
+        const transactionId = messageCollection.request.bundle_transaction_id || 0;
+        console.log("transactionId: ", transactionId);
 
         if (transactionType === 1) {
+            console.log("\x1b[36m messageCollection.request.activity_id: \x1b[0m", messageCollection.request.activity_id);
+
             const query = `INSERT INTO transactionsbyactivity (actvtyid, actvtyttle, asstid, asstnm, bndlid, crtd, date, dbcall, dbparams, dbrs, devcntrycd, devphnnmbr, lvlid, lvlnm, msg, recid, req, reqtime, res, rescode, ressts, restime, stktrc, url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
             let queryParams = [
                 (messageCollection.request.hasOwnProperty("activity_id")) ? messageCollection.request.activity_id : 0, // actvtyid
@@ -130,15 +133,15 @@ function CassandraInterceptor(util, cassandraWrapper) {
                 (messageCollection.request.hasOwnProperty("asset_phone_number")) ? messageCollection.request.asset_phone_number : '', // devphnnmbr
                 (logLevel[messageCollection.level]) ? logLevel[messageCollection.level] : 0, // lvlid
                 (messageCollection.hasOwnProperty("level")) ? messageCollection.level : '', // lvlnm
-                (messageCollection.request.hasOwnProperty("message")) ? messageCollection.request.message : '', // msg
+                (messageCollection.hasOwnProperty("message")) ? messageCollection.message : '', // msg
                 transactionId, // recid
                 JSON.stringify(messageCollection.request), // req
                 util.getCurrentUTCTime(), // reqtime
-                (messageCollection.request.hasOwnProperty("response_data")) ? messageCollection.request.response : '', // res
+                (messageCollection.hasOwnProperty("object")) ? JSON.stringify(messageCollection.object) : '', // res
                 (messageCollection.request.hasOwnProperty("response_code")) ? messageCollection.request.response_code : '', // rescode
                 (messageCollection.request.hasOwnProperty("response_status")) ? messageCollection.request.response_status : false, // ressts
                 util.getCurrentUTCTime(), // restime
-                (messageCollection.request.hasOwnProperty("stack_trace")) ? messageCollection.request.string_tokenizer : '', // stktrc
+                (messageCollection.request.hasOwnProperty("stack_trace")) ? messageCollection.request.stack_trace : '', // stktrc
                 (messageCollection.request.hasOwnProperty("url")) ? messageCollection.request.url : '' // url
             ];
 
@@ -153,6 +156,7 @@ function CassandraInterceptor(util, cassandraWrapper) {
             });
         }
 
+        console.log("\x1b[36m messageCollection.request.asset_id: \x1b[0m", messageCollection.request.asset_id);
         const assetQuery = `INSERT INTO transactionsbyasset (actvtyid, actvtyttle, asstid, asstnm, bndlid, crtd, date, dbcall, dbparams, dbrs, devcntrycd, devphnnmbr, lvlid, lvlnm, msg, recid, req, reqtime, res, rescode, ressts, restime, stktrc, url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
         let assetQueryParams = [
             (messageCollection.request.hasOwnProperty("activity_id")) ? messageCollection.request.activity_id : 0, // actvtyid
@@ -169,15 +173,15 @@ function CassandraInterceptor(util, cassandraWrapper) {
             (messageCollection.request.hasOwnProperty("asset_phone_number")) ? messageCollection.request.asset_phone_number : '', // devphnnmbr
             (logLevel[messageCollection.level]) ? logLevel[messageCollection.level] : 0, // lvlid
             (messageCollection.hasOwnProperty("level")) ? messageCollection.level : '', // lvlnm
-            (messageCollection.request.hasOwnProperty("message")) ? messageCollection.request.message : '', // msg
+            (messageCollection.hasOwnProperty("message")) ? messageCollection.message : '', // msg
             transactionId, // recid
             JSON.stringify(messageCollection.request), // req
             util.getCurrentUTCTime(), // reqtime
-            (messageCollection.request.hasOwnProperty("response_data")) ? messageCollection.request.response : '', // res
+            (messageCollection.hasOwnProperty("object")) ? JSON.stringify(messageCollection.object) : '', // res
             (messageCollection.request.hasOwnProperty("response_code")) ? messageCollection.request.response_code : '', // rescode
             (messageCollection.request.hasOwnProperty("response_status")) ? messageCollection.request.response_status : false, // ressts
             util.getCurrentUTCTime(), // restime
-            (messageCollection.request.hasOwnProperty("stack_trace")) ? messageCollection.request.string_tokenizer : '', // stktrc
+            (messageCollection.request.hasOwnProperty("stack_trace")) ? messageCollection.request.stack_trace : '', // stktrc
             (messageCollection.request.hasOwnProperty("url")) ? messageCollection.request.url : '' // url
         ];
 
