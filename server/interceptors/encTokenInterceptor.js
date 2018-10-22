@@ -2,6 +2,7 @@
  * author: A Sri Sai Venkatesh
  */
 var uuid = require('uuid');
+const TimeUuid = require('cassandra-driver').types.TimeUuid;
 
 function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
 
@@ -16,7 +17,7 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                 //console.log('Service Id : ' + result)
                 global.logger.write('debug', 'Service Id : ' + JSON.stringify(result), {}, req.body);
                 req.body.service_id = result;
-                var bundleTransactionId = uuid.v1();
+                var bundleTransactionId = TimeUuid.now();
                 req.body.bundle_transaction_id = bundleTransactionId;
                 req.body.url = req.url;
                 if (req.body.url.includes('/' + global.config.version + '/account/')) {
