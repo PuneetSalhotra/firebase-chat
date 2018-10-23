@@ -238,7 +238,18 @@ var Consumer = function () {
 
                                     if (!serviceObjectCollection.hasOwnProperty(messageJson['service'])) {
                                         var jsFile = "../services/" + serviceFile;
-                                        var newClass = require(jsFile);
+                                        var newClass;
+                                        
+                                        try {
+                                            newClass = require(jsFile);
+                                        } catch(e) {
+                                            if(e.code === 'MODULE_NOT_FOUND') {
+                                                console.log('In Catch Block');
+                                                jsFile = "../vodafone/services/" + serviceFile;
+                                                newClass = require(jsFile);
+                                            }
+                                        }                                        
+                                
                                         var serviceObj = eval("new " + newClass + "(objCollection)");
                                         serviceObjectCollection[serviceFile] = serviceObj;
                                         serviceObj[method](messageJson['payload'], function (err, data) {
