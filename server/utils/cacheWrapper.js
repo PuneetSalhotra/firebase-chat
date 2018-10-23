@@ -1,16 +1,15 @@
-
 function CacheWrapper(client) {
 
-    this.getServiceId = function(url, callback) {
-      client.hget('service_map', url, function (err, reply) {
-          if (err) {
-              console.log(err);
-              callback(err, false);
-          } else {
-              callback(false, reply)
-          }
+    this.getServiceId = function (url, callback) {
+        client.hget('service_map', url, function (err, reply) {
+            if (err) {
+                console.log(err);
+                callback(err, false);
+            } else {
+                callback(false, reply)
+            }
         })
-      }
+    }
 
     this.getTokenAuth = function (assetId, callback) {
         client.hget('asset_map', assetId, function (err, reply) {
@@ -48,7 +47,7 @@ function CacheWrapper(client) {
             } else {
                 var collection = {};
                 if (typeof reply === 'string') {
-                    collection = JSON.parse(reply);                    
+                    collection = JSON.parse(reply);
                     callback(false, collection);
                 } else {
                     callback(false, false);
@@ -89,8 +88,8 @@ function CacheWrapper(client) {
         client.hget('asset_message_counter', assetId, function (err, reply) {
             if (err) {
                 console.log(err);
-                callback(err,false);
-            } else {                
+                callback(err, false);
+            } else {
                 callback(false, Number(reply));
             }
         });
@@ -149,23 +148,23 @@ function CacheWrapper(client) {
             }
         });
     };
-    
+
     this.setKafkaMessageUniqueId = function (messageUniqueId, value, callback) {
         client.hset('kafka_message_unique_id', messageUniqueId, value, function (err, reply) {
             if (err) {
                 console.log(err);
                 callback(true, err);
                 return;
-            } else {                
+            } else {
                 callback(false, reply);
                 return;
             }
         });
     };
-    
+
     this.getKafkaMessageUniqueId = function (partition, callback) {
         client.hget('kafka_message_unique_id', partition, function (err, reply) {
-            if(err) {
+            if (err) {
                 callback(true, err);
             } else {
                 callback(false, reply);
@@ -184,10 +183,10 @@ function CacheWrapper(client) {
         client.SISMEMBER("targeted_logging_asset_ids", asset_id, (err, reply) => {
             if (err) {
                 callback(true, err);
-                
+
             } else {
                 callback(false, reply);
-                
+
             }
         })
     };
