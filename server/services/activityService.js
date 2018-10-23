@@ -13,8 +13,8 @@ function ActivityService(objectCollection) {
     var activityPushService = objectCollection.activityPushService;
     var responseactivityData = {}
     const suzukiPdfEngine = require('../utils/suzukiPdfGenerationEngine');
-    // const vodafoneStatusUpdate = require('../utils/vodafoneStatusUpdateFlow');
-    // const vodafoneFormSubmissionFlow = require('../utils/vodafoneFormSubmissionFlow');
+    const vodafoneStatusUpdate = require('../utils/vodafoneStatusUpdateFlow');
+    //const vodafoneFormSubmissionFlow = require('../utils/vodafoneFormSubmissionFlow');
 
     this.addActivity = function (request, callback) {
 
@@ -411,10 +411,24 @@ function ActivityService(objectCollection) {
                     // Vodafone Flow on Form Submission
                     // 
                     // 
-                    // if (activityTypeCategroyId === 9 && (Number(request.activity_form_id) === 837 || Number(request.activity_form_id) === 844)) {
-                    //     console.log("\x1b[35m [Log] Calling vodafoneFormSubmissionFlow \x1b[0m")
-                    //     vodafoneFormSubmissionFlow(request, activityCommonService, objectCollection, () => {});
-                    // }
+                    if (activityTypeCategroyId === 9 && (Number(request.activity_form_id) === 837 || Number(request.activity_form_id) === 844)) {
+                        console.log("\x1b[35m [Log] Calling vodafoneFormSubmissionFlow \x1b[0m")
+                        //vodafoneFormSubmissionFlow(request, activityCommonService, objectCollection, () => {});
+                        var event = {
+                                name: "newOrderFormSubmission",
+                                service: "vodafoneService",
+                                method: "newOrderFormSubmission",
+                                payload: request
+                            };
+
+                        queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
+                            if (err) {
+                                // console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
+                                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);                                
+                                throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+                            } else {}                            
+                        });
+                    }
                     // 
                     // 
                 } else {
