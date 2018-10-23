@@ -16,7 +16,8 @@ function CassandraInterceptor(util, cassandraWrapper) {
         appError: 6,
         serverError: 7,
         fatal: 8,
-        dbresponse: 9
+        dbResponse: 9,
+        cacheResponse: 10
     };
 
     var sourceMap = {
@@ -68,7 +69,15 @@ function CassandraInterceptor(util, cassandraWrapper) {
 
         let dbCall = '';
         let dbResponse = '';
+
+        // For MySQL Query and Response
         if (String(messageCollection.message).includes('CALL ')) {
+            dbCall = messageCollection.message;
+            dbResponse = JSON.stringify(messageCollection.object) || '';
+        }
+
+        // For Redis Cache Query and Response
+        if (messageCollection.level === "cacheResponse") {
             dbCall = messageCollection.message;
             dbResponse = JSON.stringify(messageCollection.object) || '';
         }
@@ -115,7 +124,15 @@ function CassandraInterceptor(util, cassandraWrapper) {
     function activityTransactionInsert(transactionType, messageCollection, logDate, logTimestamp, callback) {
         let dbCall = '';
         let dbResponse = '';
+        
+        // For MySQL Query and Response
         if (String(messageCollection.message).includes('CALL ')) {
+            dbCall = messageCollection.message;
+            dbResponse = JSON.stringify(messageCollection.object) || '';
+        }
+
+        // For Redis Cache Query and Response
+        if (messageCollection.level === "cacheResponse") {
             dbCall = messageCollection.message;
             dbResponse = JSON.stringify(messageCollection.object) || '';
         }

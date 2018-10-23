@@ -81,13 +81,13 @@ var executeQuery = function (flag, queryString, request, callback) {
                 conn.query(queryString, function (err, rows, fields) {
                     if (!err) {
                         //console.log(queryString);
-                        global.logger.write('dbresponse', queryString, rows, request);
+                        global.logger.write('dbResponse', queryString, rows, request);
                         conn.release();
                         callback(false, rows[0]);
                         return;
                     } else {
                         //console.log('SOME ERROR IN QUERY | ', queryString);
-                        global.logger.write('dbresponse', 'SOME ERROR IN QUERY | ' + queryString, err, request);
+                        global.logger.write('dbResponse', 'SOME ERROR IN QUERY | ' + queryString, err, request);
                         //console.log(err);
                         global.logger.write('serverError', err, err, request);
                         conn.release();
