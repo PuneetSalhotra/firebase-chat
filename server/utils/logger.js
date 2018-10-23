@@ -49,7 +49,7 @@ function Logger() {
             log: 'log'
         };
 
-        if (request.hasOwnProperty('isTargeted') && request.isTargeted) {
+        if ((typeof request === 'object') && request.hasOwnProperty('isTargeted') && request.isTargeted) {
             isTargeted = true;
         
         } 
