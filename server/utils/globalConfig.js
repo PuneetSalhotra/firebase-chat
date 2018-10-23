@@ -374,7 +374,7 @@ config.cassandraCredentialsDev = {
     ip: '192.168.7.120',
     user: 'aamir',
     pwd: 'foxtrot88',
-    log_keyspace: 'deskerlog_staging',
+    log_keyspace: 'deskerlogv2_staging',
     session_keyspace: 'deskersession_staging'
 };
 

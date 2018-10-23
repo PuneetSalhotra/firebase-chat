@@ -13,15 +13,15 @@ var masterDbPool = mysql.createPool({
     debug: false
 });
 
- var slave1DbPool = mysql.createPool({
- connectionLimit: global.config.conLimit,
- host: global.config.slave1Ip,
- user: global.config.dbUser,
- password: global.config.dbPassword,
- database: global.config.database,
- debug: false
- });
- 
+var slave1DbPool = mysql.createPool({
+    connectionLimit: global.config.conLimit,
+    host: global.config.slave1Ip,
+    user: global.config.dbUser,
+    password: global.config.dbPassword,
+    database: global.config.database,
+    debug: false
+});
+
 //var slave1DbPool = masterDbPool;
 
 /* var slave2DbPool = mysql.createPool({
@@ -47,47 +47,47 @@ var executeQuery = function (flag, queryString, request, callback) {
     switch (flag) {
         case 0:
             conPool = masterDbPool;
-//            console.log('master pool is selected');
+            //            console.log('master pool is selected');
             break;
         case 1:
             conPool = slave1DbPool;
-//            console.log('slave1 pool is selected');
+            //            console.log('slave1 pool is selected');
             break;
         case 2:
             conPool = slave2DbPool;
-//            console.log('slave2 pool is selected');
+            //            console.log('slave2 pool is selected');
             break;
     }
 
     try {
         conPool.getConnection(function (err, conn) {
-            if (err) {                
-                global.logger.write('serverError','ERROR WHILE GETTING CONNECTON - ' + err, err, request);                
-                if(flag == 1) {
+            if (err) {
+                global.logger.write('serverError', 'ERROR WHILE GETTING CONNECTON - ' + err, err, request);
+                if (flag == 1) {
                     conPool = masterDbPool;
-                    global.logger.write('serverError','Connecting to Master DB - ', {}, request);
-                    retrieveFromMasterDbPool(conPool, queryString, request).then((result)=>{
+                    global.logger.write('serverError', 'Connecting to Master DB - ', {}, request);
+                    retrieveFromMasterDbPool(conPool, queryString, request).then((result) => {
                         callback(false, result);
                         return;
-                    }).catch((err)=>{                        
+                    }).catch((err) => {
                         callback(err, false);
                         return;
                     });
                 } else {
                     callback(err, false);
                     return;
-                }                                
+                }
             } else {
                 conn.query(queryString, function (err, rows, fields) {
-                    if (!err) {   
+                    if (!err) {
                         //console.log(queryString);
-                        global.logger.write('debug',queryString, {},request);
-                        conn.release();                        
+                        global.logger.write('dbResponse', queryString, rows, request);
+                        conn.release();
                         callback(false, rows[0]);
                         return;
                     } else {
                         //console.log('SOME ERROR IN QUERY | ', queryString);
-                        global.logger.write('serverError', 'SOME ERROR IN QUERY | ' + queryString, err, request);
+                        global.logger.write('dbResponse', 'SOME ERROR IN QUERY | ' + queryString, err, request);
                         //console.log(err);
                         global.logger.write('serverError', err, err, request);
                         conn.release();
@@ -99,24 +99,24 @@ var executeQuery = function (flag, queryString, request, callback) {
     } catch (exception) {
         //console.log(queryString);
         //console.log(exception);        
-        global.logger.write('serverError','Exception Occurred - ' + exception, exception, request);
+        global.logger.write('serverError', 'Exception Occurred - ' + exception, exception, request);
     }
 };
 
-function retrieveFromMasterDbPool(conPool, queryString, request){
-    return new Promise((resolve, reject)=>{
+function retrieveFromMasterDbPool(conPool, queryString, request) {
+    return new Promise((resolve, reject) => {
         try {
             conPool.getConnection(function (err, conn) {
-                if (err) {                    
-                    global.logger.write('serverError','ERROR WHILE GETTING CONNECTON - ' + err, err, request);                    
+                if (err) {
+                    global.logger.write('serverError', 'ERROR WHILE GETTING CONNECTON - ' + err, err, request);
                     reject(err);
-                    
+
                 } else {
                     conn.query(queryString, function (err, rows, fields) {
-                        if (!err) {   
-                            global.logger.write('debug',queryString, {},request);
+                        if (!err) {
+                            global.logger.write('debug', queryString, {}, request);
                             conn.release();
-                            resolve(rows[0]);                            
+                            resolve(rows[0]);
                         } else {
                             global.logger.write('serverError', 'SOME ERROR IN QUERY | ' + queryString, err, request);
                             global.logger.write('serverError', err, err, request);
@@ -126,8 +126,8 @@ function retrieveFromMasterDbPool(conPool, queryString, request){
                     });
                 }
             });
-        } catch (exception) {            
-            global.logger.write('serverError','Exception Occurred - ' + exception, exception, request);
+        } catch (exception) {
+            global.logger.write('serverError', 'Exception Occurred - ' + exception, exception, request);
         }
     });
 }

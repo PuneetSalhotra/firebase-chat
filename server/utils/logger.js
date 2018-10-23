@@ -32,8 +32,21 @@ function Logger() {
     });*/
     var log4js = require('log4js');
     log4js.configure({
-        appenders: { logfile: { type: 'file', filename: '../logs/logfile.log', maxLogSize: 10485760, backups: 5, compress: true } },
-        categories: { default: { appenders: ['logfile'], level: 'debug' } }
+        appenders: {
+            logfile: {
+                type: 'file',
+                filename: '../logs/logfile.log',
+                maxLogSize: 10485760,
+                backups: 5,
+                compress: true
+            }
+        },
+        categories: {
+            default: {
+                appenders: ['logfile'],
+                level: 'debug'
+            }
+        }
     });
 
     var logger = log4js.getLogger();
@@ -49,10 +62,10 @@ function Logger() {
             log: 'log'
         };
 
-        if (request.hasOwnProperty('isTargeted') && request.isTargeted) {
+        if ((typeof request === 'object') && request.hasOwnProperty('isTargeted') && request.isTargeted) {
             isTargeted = true;
-        
-        } 
+
+        }
 
         //util.writeLogs(message, isTargeted); //Using our own logic
         util.writeLogs(message, isTargeted);
