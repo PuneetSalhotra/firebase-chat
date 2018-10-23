@@ -15,7 +15,8 @@ function CassandraInterceptor(util, cassandraWrapper) {
         trace: 5,
         appError: 6,
         serverError: 7,
-        fatal: 8
+        fatal: 8,
+        dbresponse: 9
     };
 
     var sourceMap = {
@@ -66,8 +67,10 @@ function CassandraInterceptor(util, cassandraWrapper) {
         var logLevelId = (logLevel[messageCollection.level]) ? logLevel[messageCollection.level] : 0;
 
         let dbCall = '';
+        let dbResponse = '';
         if (String(messageCollection.message).includes('CALL ')) {
             dbCall = messageCollection.message;
+            dbResponse = JSON.stringify(messageCollection.object) || '';
         }
 
         const query = `INSERT INTO transactionsbydevice (actvtyid, actvtyttle, asstid, asstname, bndlid, crtd, date, dbcall, dbparams, dbrs, devcntrycd, devphnnmbr, lvlid, lvlnm, msg, recid, req, reqtime, res, rescode, ressts, restime, stktrc, url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
@@ -81,7 +84,7 @@ function CassandraInterceptor(util, cassandraWrapper) {
             util.getCurrentUTCTime(), // date
             dbCall, // dbcall
             '', // dbparams
-            '', // dbrs
+            dbResponse, // dbrs
             (messageCollection.request.hasOwnProperty("asset_phone_country_code")) ? messageCollection.request.asset_phone_country_code : '', // devcntrycd
             (messageCollection.request.hasOwnProperty("asset_phone_number")) ? messageCollection.request.asset_phone_number : '', // devphnnmbr
             (logLevel[messageCollection.level]) ? logLevel[messageCollection.level] : 0, // lvlid
@@ -111,8 +114,10 @@ function CassandraInterceptor(util, cassandraWrapper) {
 
     function activityTransactionInsert(transactionType, messageCollection, logDate, logTimestamp, callback) {
         let dbCall = '';
+        let dbResponse = '';
         if (String(messageCollection.message).includes('CALL ')) {
             dbCall = messageCollection.message;
+            dbResponse = JSON.stringify(messageCollection.object) || '';
         }
 
         const transactionId = messageCollection.request.bundle_transaction_id || 0;
@@ -135,7 +140,7 @@ function CassandraInterceptor(util, cassandraWrapper) {
                 util.getCurrentUTCTime(), // date
                 dbCall, // dbcall
                 '', // dbparams
-                '', // dbrs
+                dbResponse, // dbrs
                 (messageCollection.request.hasOwnProperty("asset_phone_country_code")) ? messageCollection.request.asset_phone_country_code : '', // devcntrycd
                 (messageCollection.request.hasOwnProperty("asset_phone_number")) ? messageCollection.request.asset_phone_number : '', // devphnnmbr
                 (logLevel[messageCollection.level]) ? logLevel[messageCollection.level] : 0, // lvlid
@@ -175,7 +180,7 @@ function CassandraInterceptor(util, cassandraWrapper) {
             util.getCurrentUTCTime(), // date
             dbCall, // dbcall
             '', // dbparams
-            '', // dbrs
+            dbResponse, // dbrs
             (messageCollection.request.hasOwnProperty("asset_phone_country_code")) ? messageCollection.request.asset_phone_country_code : '', // devcntrycd
             (messageCollection.request.hasOwnProperty("asset_phone_number")) ? messageCollection.request.asset_phone_number : '', // devphnnmbr
             (logLevel[messageCollection.level]) ? logLevel[messageCollection.level] : 0, // lvlid
