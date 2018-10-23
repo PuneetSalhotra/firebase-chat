@@ -2,7 +2,7 @@
  * author: A Sri Sai Venkatesh
  */
 
-// const TimeUuid = require('cassandra-driver').types.TimeUuid;
+const TimeUuid = require('cassandra-driver').types.TimeUuid;
 
 function CassandraInterceptor(util, cassandraWrapper) {
     var uuid = require('uuid');
@@ -59,6 +59,10 @@ function CassandraInterceptor(util, cassandraWrapper) {
 
         const transactionId = messageCollection.request.bundle_transaction_id || 0;
         console.log("transactionId: ", transactionId);
+        
+        const recordId = TimeUuid.now();
+        console.log("recordId: ", recordId);
+
         var logLevelId = (logLevel[messageCollection.level]) ? logLevel[messageCollection.level] : 0;
 
         let dbCall = '';
@@ -82,8 +86,8 @@ function CassandraInterceptor(util, cassandraWrapper) {
             (messageCollection.request.hasOwnProperty("asset_phone_number")) ? messageCollection.request.asset_phone_number : '', // devphnnmbr
             (logLevel[messageCollection.level]) ? logLevel[messageCollection.level] : 0, // lvlid
             (messageCollection.hasOwnProperty("level")) ? messageCollection.level : '', // lvlnm
-            (messageCollection.hasOwnProperty("message")) ? messageCollection.message : '', // msg
-            transactionId, // recid
+            (messageCollection.hasOwnProperty("message")) ? JSON.stringify(messageCollection.message) : '', // msg
+            recordId, // recid
             JSON.stringify(messageCollection.request), // req
             util.getCurrentUTCTime(), // reqtime
             (messageCollection.hasOwnProperty("object")) ? JSON.stringify(messageCollection.object) : '', // res
@@ -114,6 +118,9 @@ function CassandraInterceptor(util, cassandraWrapper) {
         const transactionId = messageCollection.request.bundle_transaction_id || 0;
         console.log("transactionId: ", transactionId);
 
+        const recordId = TimeUuid.now();
+        console.log("recordId: ", recordId);
+
         if (transactionType === 1) {
             console.log("\x1b[36m messageCollection.request.activity_id: \x1b[0m", messageCollection.request.activity_id);
 
@@ -133,8 +140,8 @@ function CassandraInterceptor(util, cassandraWrapper) {
                 (messageCollection.request.hasOwnProperty("asset_phone_number")) ? messageCollection.request.asset_phone_number : '', // devphnnmbr
                 (logLevel[messageCollection.level]) ? logLevel[messageCollection.level] : 0, // lvlid
                 (messageCollection.hasOwnProperty("level")) ? messageCollection.level : '', // lvlnm
-                (messageCollection.hasOwnProperty("message")) ? messageCollection.message : '', // msg
-                transactionId, // recid
+                (messageCollection.hasOwnProperty("message")) ? JSON.stringify(messageCollection.message) : '', // msg
+                recordId, // recid
                 JSON.stringify(messageCollection.request), // req
                 util.getCurrentUTCTime(), // reqtime
                 (messageCollection.hasOwnProperty("object")) ? JSON.stringify(messageCollection.object) : '', // res
@@ -173,8 +180,8 @@ function CassandraInterceptor(util, cassandraWrapper) {
             (messageCollection.request.hasOwnProperty("asset_phone_number")) ? messageCollection.request.asset_phone_number : '', // devphnnmbr
             (logLevel[messageCollection.level]) ? logLevel[messageCollection.level] : 0, // lvlid
             (messageCollection.hasOwnProperty("level")) ? messageCollection.level : '', // lvlnm
-            (messageCollection.hasOwnProperty("message")) ? messageCollection.message : '', // msg
-            transactionId, // recid
+            (messageCollection.hasOwnProperty("message")) ? JSON.stringify(messageCollection.message) : '', // msg
+            recordId, // recid
             JSON.stringify(messageCollection.request), // req
             util.getCurrentUTCTime(), // reqtime
             (messageCollection.hasOwnProperty("object")) ? JSON.stringify(messageCollection.object) : '', // res
