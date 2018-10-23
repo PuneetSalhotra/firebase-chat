@@ -61,7 +61,7 @@ function CassandraInterceptor(util, cassandraWrapper) {
 
         const transactionId = messageCollection.request.bundle_transaction_id || 0;
         console.log("transactionId: ", transactionId);
-        
+
         const recordId = TimeUuid.now();
         console.log("recordId: ", recordId);
 
@@ -124,7 +124,7 @@ function CassandraInterceptor(util, cassandraWrapper) {
     function activityTransactionInsert(transactionType, messageCollection, logDate, logTimestamp, callback) {
         let dbCall = '';
         let dbResponse = '';
-        
+
         // For MySQL Query and Response
         if (String(messageCollection.message).includes('CALL ')) {
             dbCall = messageCollection.message;
