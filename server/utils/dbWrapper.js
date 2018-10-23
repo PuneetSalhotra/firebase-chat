@@ -192,8 +192,8 @@ process.on('exit', (err)=>{
 process.on('SIGINT', ()=>{ process.exit(); });
 
 //PID kill; PM2 Restart; nodemon Restart
-process.on('SIGUSR1', ()=>{ process.exit(); });
-process.on('SIGUSR2', ()=>{ process.exit(); });
+//process.on('SIGUSR1', ()=>{ process.exit(); });
+//process.on('SIGUSR2', ()=>{ process.exit(); });
 
 module.exports = {
     executeQuery: executeQuery,
