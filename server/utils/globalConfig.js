@@ -61,7 +61,7 @@ if (mode === 'local') {
     config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/Desker-staging"; //Staging SQS QUEUE
     
     //Portal Service URL
-    config.portalBaseUrl = "http://staging.portal.desker.cloud/";
+    config.portalBaseUrl = "http://localhost:7001/";
     
     //Mobile Service URL
     config.mobileBaseUrl = "http://localhost:7000/";
