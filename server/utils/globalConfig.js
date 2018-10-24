@@ -61,7 +61,7 @@ if (mode === 'local') {
     config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/Desker-staging"; //Staging SQS QUEUE
     
     //Portal Service URL
-    config.portalBaseUrl = "http://staging.portal.desker.cloud/";
+    config.portalBaseUrl = "http://localhost:7001/";
     
     //Mobile Service URL
     config.mobileBaseUrl = "http://localhost:7000/";
@@ -103,8 +103,7 @@ if (mode === 'dev') {
     config.kafkaIPThree = {kafkaHost: 'kafka3:9092'};
     
     //Kafka Topics
-    config.kafkaActivitiesTopic = 'desker-test';
-    //config.kafkaFormWidgetTopic = 'desker-form-widgets';
+    config.kafkaActivitiesTopic = 'dev-desker-activities';    
     config.consumerGroup = "desker-activities-consumer-group-dev";
     
     //IOS Push

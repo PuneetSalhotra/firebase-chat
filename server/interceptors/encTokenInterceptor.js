@@ -72,6 +72,8 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                             next();
                             break;
                         case '/' + global.config.version + '/send/email':
+                        case '/' + global.config.version + '/wf/send/email':
+                        case '/' + global.config.version + '/wf/send/sms':
                             //req.body['module'] = 'asset';
                             // global.logger.write('request', JSON.stringify(req.body, null, 2), req.body, req.body);
                             next();
