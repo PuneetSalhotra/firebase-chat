@@ -174,36 +174,7 @@ function UtilityController(objCollection) {
         }       
           
         res.send(responseWrapper.getResponse(false, {}, 200, req.body));
-     });
-     
-     //Workflow Engine
-    app.post('/' + global.config.version + '/wf/send/email', function (req, res) {
-        var otp = util.randomInt(1111,9999);
-        otp = otp.toString();        
-        util.sendEmail('nani@desker.co',otp,JSON.stringify(req.body),'',function (err, data) {
-        if (err === false) {
-          res.send(responseWrapper.getResponse(err, data.response, 200, req.body));          
-        } else {
-          res.send(responseWrapper.getResponse(err, data.code, 200, req.body));
-        }
-        });
-    });
-    
-    //Workflow Engine
-    app.post('/' + global.config.version + '/wf/send/sms', function (req, res) {
-        var otp = util.randomInt(1111,9999);
-        otp = otp.toString();        
-        
-        util.sendSmsSinfini(otp, 91, 9966626954, function (error, data) {
-           if (error) {
-               global.logger.write('debug', error, {}, {});
-               global.logger.write('trace', data, error, {});               
-           }
-        res.send(responseWrapper.getResponse(error, data.response, 200, req.body));
-        });
-    });
-    
-    
+     }); 
     
 }
 module.exports = UtilityController;
