@@ -892,10 +892,11 @@ function Util() {
                     console.log('Error while writing data to file', err);
             });
 
-        } else {
+        } else {            
             fs.writeFile(logFilePath, data_to_add, function (err, fd) {
                 if (err)
                     console.log('Error while writing data to file', err);
+                fs.chmodSync(logFilePath, '777');
             });
         }
 

@@ -503,6 +503,11 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityText1 = request.form_transaction_id;
                 entityText2 = request.activity_timeline_collection;
                 break;
+            case 704: // form: status alter
+                entityTypeId = 0;
+                entityText2 = request.activity_timeline_collection;
+                activityTimelineCollection = request.activity_timeline_collection;
+                break;
             case 705: // form
                 entityTypeId = 0;
                 entityText1 = request.form_transaction_id;
