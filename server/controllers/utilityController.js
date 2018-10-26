@@ -45,7 +45,23 @@ function UtilityController(objCollection) {
         });
     });
 
-    // Vodafone - Order Management - PoC - SendGrid
+    // Developed during the Vodafone - Order Management - PoC - SMTP
+    app.post('/' + global.config.version + '/send/email/v1', function (req, res) {
+        let emailSubject = req.body.email_subject;
+        let emailBody = req.body.email_body;
+        let htmlTemplate = req.body.html_template
+        let emailReceiver = JSON.stringify(req.body.email_receiver);
+
+        util.sendEmailV1(req.body, emailReceiver, emailSubject, emailBody, htmlTemplate, function (err, data) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, 200, req.body));
+            } else {
+                res.send(responseWrapper.getResponse(err, data, -100, req.body));
+            }
+        });
+    });
+
+    // Developed during the Vodafone - Order Management - PoC - SendGrid
     app.post('/' + global.config.version + '/send/email/v2', function (req, res) {
         let emailSubject = req.body.email_subject;
         let emailBody = req.body.email_body;

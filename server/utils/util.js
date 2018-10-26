@@ -802,6 +802,51 @@ function Util() {
         return;
     };
 
+    this.sendEmailV1 = function (request, email, subject, text, htmlTemplate, callback) {
+        var smtpConfig = {
+            host: global.config.smtp_host,
+            port: global.config.smtp_port,
+            secure: false, // use SSL
+            auth: {
+                user: global.config.smtp_user,
+                pass: global.config.smtp_pass
+            }
+        };
+        htmlTemplate = request.html_template
+        // create reusable transporter object using the default SMTP transport
+        var transporter = nodemailer.createTransport(smtpConfig);
+
+        // setup e-mail data with unicode symbols
+        var mailOptions = {
+            from: 'Vodafon - Idea <' + global.config.smtp_user + '>', // sender address
+            to: email, // list of receivers
+            subject: subject, // Subject line
+            text: text, // plaintext body
+            html: htmlTemplate, // html body,
+
+        };
+
+        if (request.hasOwnProperty('attachment_url')) {
+            mailOptions.attachments = [{
+                // use URL as an attachment
+                filename: request.attachment_name, // 'service_request_form.pdf',
+                path: request.attachment_url
+            }]
+        }
+
+        // send mail with defined transport object
+        transporter.sendMail(mailOptions, function (error, info) {
+            if (error) {
+                callback(true, error);
+            } else {
+                //console.log('Message sent: ' + info.response);
+                global.logger.write('debug', 'Message sent: ' + info.response, {}, request);
+                callback(false, info);
+            }
+        });
+        return;
+    };
+
     // 
     this.sendEmailV2 = function (request, email, subject, text, htmlTemplate, callback) {
         const msg = {
