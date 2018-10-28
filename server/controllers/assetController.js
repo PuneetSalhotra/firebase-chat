@@ -264,36 +264,6 @@ function AssetController(objCollection) {
      
      });*/
 
-    //PAM 
-    /*app.put('/' + global.config.version + '/pam/asset/cover/alter/clockin', function (req, res) {
-     assetService.assetClockIn(req.body, function (err, data, statusCode) {
-     if (err === false) {
-     // got positive response    
-     res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
-     
-     } else {
-     //console.log('did not get proper rseponse');
-     data = {};
-     res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
-     }
-     });
-     });
-     
-     //PAM /asset/cover/alter/clockout
-     app.put('/' + global.config.version + '/pam/asset/cover/alter/clockout', function (req, res) {
-     assetService.assetClockOut(req.body, function (err, data, statusCode) {
-     if (err === false) {
-     // got positive response    
-     res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
-     
-     } else {
-     //console.log('did not get proper rseponse');
-     data = {};
-     res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
-     }
-     });
-     });*/
-
     //PAM
     app.post('/' + global.config.version + '/pam/asset_type/stats/onduty_total', function (req, res) {
         assetService.assetStatsOnDutyTotal(req.body, function (err, data, statusCode) {
@@ -484,7 +454,21 @@ function AssetController(objCollection) {
             }
         });
     });
-    
+
+    // Set default module for asset. Once set, the user is taken to the 
+    // set module by default, instead of to the desk.
+
+    app.post('/' + global.config.version + '/asset/module/default/set', function (req, res) {
+        assetService.setDefaultModuleForAsset(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+
     app.post('/' + global.config.version + '/account/nani/kalyan', function (req, res) {
         assetService.nanikalyan(req.body, function (err, data, statusCode) {
             if (err === false) {
@@ -494,7 +478,7 @@ function AssetController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
-    });    
+    });
 
 }
 module.exports = AssetController;
