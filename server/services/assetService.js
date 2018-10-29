@@ -3265,7 +3265,7 @@ function AssetService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_asset_list_update_default_module', paramsArr);
         if (queryString !== '') {
             db.executeQuery(0, queryString, request, function (err, data) {
-                (err) ? callback(false, data, 200): callback(true, err, -9999);
+                (err) ? callback(true, err, -9999): callback(false, data, 200);
             });
         }
     };

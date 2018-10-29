@@ -515,10 +515,10 @@ function AccountService(objectCollection) {
             util.getCurrentUTCTime(),
             request.asset_id
         );
-        const queryString = util.getQueryString('ds_p1_account_list_update_default_module', paramsArr);
+        const queryString = util.getQueryString('ds_p1_workforce_list_update_default_module', paramsArr);
         if (queryString !== '') {
             db.executeQuery(0, queryString, request, function (err, data) {
-                (err) ? callback(false, data, 200): callback(true, err, -9999);
+                (err) ? callback(true, err, -9999): callback(false, data, 200);
             });
         }
     };
@@ -539,7 +539,7 @@ function AccountService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_account_list_update_default_module', paramsArr);
         if (queryString !== '') {
             db.executeQuery(0, queryString, request, function (err, data) {
-                (err) ? callback(false, data, 200): callback(true, err, -9999);
+                (err) ? callback(true, err, -9999): callback(false, data, 200);
             });
         }
     };
