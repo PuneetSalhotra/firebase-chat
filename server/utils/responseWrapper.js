@@ -10,7 +10,7 @@ function ResponseWrapper(util) {
             response: data
         };
         
-        global.logger.write('response','',response,request);
+        global.logger.write('response', response, {}, request);
 
         return response;
     };

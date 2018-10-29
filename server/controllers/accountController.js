@@ -40,7 +40,7 @@ function AccountController(objCollection) {
         });
     });
 
-    app.put('/' + global.config.version + '/account/cover/update/email', function (req, res){
+    app.put('/' + global.config.version + '/account/cover/update/email', function (req, res) {
         accountService.updateAccountEmail(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response   
@@ -77,42 +77,42 @@ function AccountController(objCollection) {
         try {
             JSON.parse(req.body.account_forwarding_address);
             accountService.updateAccountForwardingAddress(req.body, function (err, data, statusCode) {
-            if (err === false) {
-                // got positive response   
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
-            } else {
-                //console.log('did not get proper rseponse');
-                data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
-            }
-        });
+                if (err === false) {
+                    // got positive response   
+                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                } else {
+                    //console.log('did not get proper rseponse');
+                    data = {};
+                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                }
+            });
         } catch (exeption) {
             res.send(responseWrapper.getResponse(false, {}, -3308, req.body));
             return;
         }
-        
+
     });
 
     app.put('/' + global.config.version + '/account/cover/update/phone', function (req, res) {
-        try{
+        try {
             JSON.parse(req.body.account_phone_number_collection);
             accountService.updateAccountPhone(req.body, function (err, data, statusCode) {
-            if (err === false) {
-                // got positive response   
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
-            } else {
-                //console.log('did not get proper rseponse');
-                data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
-            }
-        });
+                if (err === false) {
+                    // got positive response   
+                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                } else {
+                    //console.log('did not get proper rseponse');
+                    data = {};
+                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                }
+            });
         } catch (exeption) {
             res.send(responseWrapper.getResponse(false, {}, -3308, req.body));
             return;
         }
-        
+
     });
-    
+
     app.post('/' + global.config.version + '/account/access/list', function (req, res) {
         accountService.retrieveAccountList(req.body, function (err, data, statusCode) {
             if (err === false) {
@@ -125,7 +125,7 @@ function AccountController(objCollection) {
             }
         });
     });
-    
+
     //Twilio
     app.post('/' + global.config.version + '/account/twilio/getPhoneNumbers', function (req, res) {
         util.getPhoneNumbers(req.body, function (err, data, statusCode) {
@@ -137,7 +137,7 @@ function AccountController(objCollection) {
             }
         });
     });
-    
+
     //Twilio
     app.post('/' + global.config.version + '/account/twilio/purchaseNumber', function (req, res) {
         util.purchaseNumber(req.body, function (err, data, statusCode) {
@@ -149,7 +149,7 @@ function AccountController(objCollection) {
             }
         });
     });
-    
+
     //Twilio
     app.post('/' + global.config.version + '/account/twilio/makeCall', function (req, res) {
         util.twilioMakeCall(req.body, function (err, data, statusCode) {
@@ -161,35 +161,35 @@ function AccountController(objCollection) {
             }
         });
     });
-    
+
     //Loggin Communication request Service -- Bharat asked on 15th June
     app.post('/' + global.config.version + '/account/log/communication/request', function (req, res) {
         accountService.loggingCommunicationReq(req.body, function (err, data, statusCode) {
-                (err === false) ?
-                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body)):                    
-                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body));                
-            });        
+            (err === false) ?
+            res.send(responseWrapper.getResponse(err, data, statusCode, req.body)):
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+        });
     });
-    
-    
+
+
     //Loggin Communication request Service -- Bharat asked on 15th June
-    app.get('/' + global.config.version + '/account/log/communication/request', function (req, res) {        
+    app.get('/' + global.config.version + '/account/log/communication/request', function (req, res) {
         accountService.loggingCommunicationReq(req.query, function (err, data, statusCode) {
-                (err === false) ?
-                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body)):                    
-                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body));                
-            });        
+            (err === false) ?
+            res.send(responseWrapper.getResponse(err, data, statusCode, req.body)):
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+        });
     });
-    
+
     //Loggin Communication request Service -- Bharat asked on 16th June
     app.post('/' + global.config.version + '/account/log/communication/request/list', function (req, res) {
         accountService.getLoggingCommunicationReq(req.body, function (err, data, statusCode) {
-                (err === false) ?
-                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body)):                    
-                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
-            });        
+            (err === false) ?
+            res.send(responseWrapper.getResponse(err, data, statusCode, req.body)):
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+        });
     });
-    
+
     //Voice XML for TWILIO
     app.post('/' + global.config.version + '/account/voice*', function (req, res) {
         // console.log('VNK : ' , req.body);
@@ -198,23 +198,25 @@ function AccountController(objCollection) {
         x = x.split("/");
         // console.log('x[3] : ' + x[3]);
         global.logger.write('debug', 'x[3] : ' + x[3], {}, req);
-        
+
         var file = global.config.efsPath + 'twiliovoicesxmlfiles/' + x[3] + '.xml';
         // console.log(file);               
         global.logger.write('debug', 'Voice XML for TWILIO: ' + file, {}, req);
-        
-        fs.readFile(file,function (err, data) {
-          if (err) {
-              res.send(responseWrapper.getResponse(err, x[3] + ".xml is not there.", -3401, req.body));
-          } else {
-              res.writeHead(200, {'Content-Type': 'text/xml'});
-              res.write(data);
-              res.end();
-          }
-      });        
+
+        fs.readFile(file, function (err, data) {
+            if (err) {
+                res.send(responseWrapper.getResponse(err, x[3] + ".xml is not there.", -3401, req.body));
+            } else {
+                res.writeHead(200, {
+                    'Content-Type': 'text/xml'
+                });
+                res.write(data);
+                res.end();
+            }
+        });
     });
-    
-    
+
+
     //Voice JSON for NEXMO
     app.get('/' + global.config.version + '/account/nexmo/voice*', function (req, res) {
         // console.log('Request.query : ' , req.body);
@@ -223,125 +225,127 @@ function AccountController(objCollection) {
         var file = global.config.efsPath + 'nexmovoicesjsonfiles/' + req.query.file;
         // console.log(file);       
         //global.logger.write('debug', 'Voice JSON file for NEXMO: ' + file, {}, req);
-     
-        fs.readFile(file,function (err, data) {
-          if (err) {
-              res.send(responseWrapper.getResponse(err, file + " is not there.", -3501, req.body));
-          } else {
-              res.writeHead(200, {'Content-Type': 'application/json; charset=utf-8'});
-              res.write(data);
-              res.end();
-          }
-      });        
+
+        fs.readFile(file, function (err, data) {
+            if (err) {
+                res.send(responseWrapper.getResponse(err, file + " is not there.", -3501, req.body));
+            } else {
+                res.writeHead(200, {
+                    'Content-Type': 'application/json; charset=utf-8'
+                });
+                res.write(data);
+                res.end();
+            }
+        });
     });
-    
+
     //Webhook for NEXMO
     app.post('/' + global.config.version + '/account/webhook/nexmo', function (req, res) {
         // console.log('Nexmo webhook req.body : ', req.body)
         //global.logger.write('debug', 'Nexmo webhook req.body: ' + JSON.stringify(req.body, null, 2), {}, req);
-        res.send(responseWrapper.getResponse(false, req.body, 200, req.body));        
+        res.send(responseWrapper.getResponse(false, req.body, 200, req.body));
     });
-    
+
     //Send SMS
     app.post('/' + global.config.version + '/account/send/sms', function (req, res) {
         var request = req.body;
         // console.log('Request params : ', request);
         global.logger.write('debug', 'Request params: ' + JSON.stringify(request, null, 2), {}, request);
-        
+
         /*var text = "Hey "+ request.receiver_name +" , "+ request.sender_name+" has requested your participation in "+request.task_title+" using the Desker App, ";
             text += "it's due by " + request.due_date + ". Download the App from http://desker.co/download.";*/
-                
+
         util.sendSmsSinfini(request.message, request.country_code, request.phone_number, function (err, res) {
             // console.log(err,'\n',res);
             global.logger.write('debug', 'Sinfini Error: ' + JSON.stringify(err, null, 2), {}, request);
             global.logger.write('debug', 'Sinfini Response: ' + JSON.stringify(res, null, 2), {}, request);
         });
-            
+
         res.send(responseWrapper.getResponse(false, {}, 200, req.body));
-     });
+    });
 
-     /* GET SINFINI SMS delivery receipt  */
-     /*app.get('/' + global.config.version + '/sms-dlvry/sinfini', function (req, res) {
-         console.log("req.query: ", req.query);
+    /* GET SINFINI SMS delivery receipt  */
+    /*app.get('/' + global.config.version + '/sms-dlvry/sinfini', function (req, res) {
+        console.log("req.query: ", req.query);
 
-         if (req.query.status[0] === 'DELIVRD' || req.query.status[1] === 'DELIVRD') {
-             console.log("\x1b[32m[sinfini]\x1b[0m Message has been delivered.");
+        if (req.query.status[0] === 'DELIVRD' || req.query.status[1] === 'DELIVRD') {
+            console.log("\x1b[32m[sinfini]\x1b[0m Message has been delivered.");
 
-         } else if (req.query.custom === 'OTP') {
-             console.log("\x1b[31m[sinfini]\x1b[0m OTP has not been delivered.");
+        } else if (req.query.custom === 'OTP') {
+            console.log("\x1b[31m[sinfini]\x1b[0m OTP has not been delivered.");
 
-             let smsOptions = {
-                 type: req.query.custom, // Other types: 'NOTFCTN' | 'COLLBRTN' | 'INVTATN',
-                 countryCode: '',
-                 phoneNumber: req.query.mobile,
-                 verificationCode: req.query.custom1,
-                 failOver: true
-             };
-             smsEngine.emit('send-mvayoo-sms', smsOptions);
-         }
-         res.sendStatus(200);
-     });*/
-
-     /* GET TWILIO SMS delivery receipt */
-     /*app.post('/' + global.config.version + '/sms-dlvry/twilio', function (req, res) {
-         console.log("req.query: ", req.query);
-         console.log("req.body: ", req.body);
-         console.log("req.params: ", req.params);
-
-         if (req.body.SmsStatus === 'queued' || req.body.SmsStatus === 'sent') {
-            //  Irrelevant statuses
-             res.sendStatus(200);
-             return;
-         }
-
-         if (req.body.SmsStatus === 'delivered') {
-            console.log("\x1b[32m[twilio]\x1b[0m Message has been delivered.");
-         } else if (req.query.type === 'OTP' && (req.body.SmsStatus === 'failed' || req.body.SmsStatus === 'undelivered')) {
-            // Currently, the primay internationsal SMS service vendor is Twilio.
-            // Fail over to Nexmo.
             let smsOptions = {
-                type: req.query.type, // Other types: 'NOTFCTN' | 'COLLBRTN' | 'INVTATN',
+                type: req.query.custom, // Other types: 'NOTFCTN' | 'COLLBRTN' | 'INVTATN',
                 countryCode: '',
-                phoneNumber: req.query.ph,
-                verificationCode: req.query.vcode,
-                failOver: false
+                phoneNumber: req.query.mobile,
+                verificationCode: req.query.custom1,
+                failOver: true
             };
+            smsEngine.emit('send-mvayoo-sms', smsOptions);
+        }
+        res.sendStatus(200);
+    });*/
 
-            smsEngine.emit('send-nexmo-sms', smsOptions);
-         }
-         res.sendStatus(200);
-     });*/
+    /* GET TWILIO SMS delivery receipt */
+    /*app.post('/' + global.config.version + '/sms-dlvry/twilio', function (req, res) {
+        console.log("req.query: ", req.query);
+        console.log("req.body: ", req.body);
+        console.log("req.params: ", req.params);
+
+        if (req.body.SmsStatus === 'queued' || req.body.SmsStatus === 'sent') {
+           //  Irrelevant statuses
+            res.sendStatus(200);
+            return;
+        }
+
+        if (req.body.SmsStatus === 'delivered') {
+           console.log("\x1b[32m[twilio]\x1b[0m Message has been delivered.");
+        } else if (req.query.type === 'OTP' && (req.body.SmsStatus === 'failed' || req.body.SmsStatus === 'undelivered')) {
+           // Currently, the primay internationsal SMS service vendor is Twilio.
+           // Fail over to Nexmo.
+           let smsOptions = {
+               type: req.query.type, // Other types: 'NOTFCTN' | 'COLLBRTN' | 'INVTATN',
+               countryCode: '',
+               phoneNumber: req.query.ph,
+               verificationCode: req.query.vcode,
+               failOver: false
+           };
+
+           smsEngine.emit('send-nexmo-sms', smsOptions);
+        }
+        res.sendStatus(200);
+    });*/
 
     /* GET NEXMO SMS delivery receipt. */
-     /*app.get('/' + global.config.version + '/sms-dlvry/nexmo', function (req, res) {
+    /*app.get('/' + global.config.version + '/sms-dlvry/nexmo', function (req, res) {
 
-         if (req.query.status === 'delivered') {
-            console.log("\x1b[32m[nexmo]\x1b[0m Message has been delivered.");
-         } else if (req.query.type === 'OTP') {
-            // Currently, the primay internationsal SMS service vendor is Twilio.
-            // So, uncomment the following lines, when either a 3rd vendor is added or
-            // when Twilio becomes secondary and Nexmo becomes primary.
-            // let smsOptions = {
-            //     type: req.query.type, // Other types: 'NOTFCTN' | 'COLLBRTN' | 'INVTATN',
-            //     countryCode: '',
-            //     phoneNumber: req.query.ph,
-            //     verificationCode: req.query.vcode,
-            //     failOver: false
-            // };
+        if (req.query.status === 'delivered') {
+           console.log("\x1b[32m[nexmo]\x1b[0m Message has been delivered.");
+        } else if (req.query.type === 'OTP') {
+           // Currently, the primay internationsal SMS service vendor is Twilio.
+           // So, uncomment the following lines, when either a 3rd vendor is added or
+           // when Twilio becomes secondary and Nexmo becomes primary.
+           // let smsOptions = {
+           //     type: req.query.type, // Other types: 'NOTFCTN' | 'COLLBRTN' | 'INVTATN',
+           //     countryCode: '',
+           //     phoneNumber: req.query.ph,
+           //     verificationCode: req.query.vcode,
+           //     failOver: false
+           // };
 
-            // smsEngine.emit('send-XXXXXXX-sms', smsOptions);
-         }
-         res.sendStatus(200);
-     });*/
-     
-     
+           // smsEngine.emit('send-XXXXXXX-sms', smsOptions);
+        }
+        res.sendStatus(200);
+    });*/
+
+
     // Set Account Config Values
     app.put('/' + global.config.version + '/account/config/set', function (req, res) {
         accountService.setAccountConfigValues(req.body, function (err, data, statusCode) {
-                (err === false) ?
-                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body)):                    
-                    res.send(responseWrapper.getResponse(err, data, statusCode, req.body));                
-            });        
+            (err === false) ?
+            res.send(responseWrapper.getResponse(err, data, statusCode, req.body)):
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+        });
     });
 
     // Fetch available customer suppoer agent: POC Phase.
@@ -358,7 +362,31 @@ function AccountController(objCollection) {
             }
         });
     });*/
-     
+
+    // Set default landing module for a workforce.
+    app.post('/' + global.config.version + '/workforce/module/default/set', function (req, res) {
+        accountService.setDefaultModuleForWorkforce(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+
+    // Set default landing module for an account.
+    app.post('/' + global.config.version + '/account/module/default/set', function (req, res) {
+        accountService.setDefaultModuleForAccount(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+
 };
 
 module.exports = AccountController;
