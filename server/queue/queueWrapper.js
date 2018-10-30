@@ -6,7 +6,7 @@ function QueueWrapper(producer) {
 
     this.raiseActivityEvent = function (event, activityId, callback) {
         var partition = Number(activityId) % 3;
-        // var partition = 1;
+        //var partition = 0;
         //console.log("producing to partition id: " + partition);        
         global.logger.write('debug','producing to partition id: ' + partition, {}, event.payload);
         var payloads = [

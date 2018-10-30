@@ -10,27 +10,6 @@ function Logger() {
     var sqs = new SQS();
     var util = new Util();
 
-    /*var winston = require('winston');
-    require('winston-daily-rotate-file');
-
-    var transport = new (winston.transports.DailyRotateFile)({
-      filename: './logs/' + '%DATE%.log',
-      datePattern: 'YYYY-MM-DD-HH',
-      //zippedArchive: true,
-      //maxSize: '20m',
-      //maxFiles: '14d'
-    });
-
-    transport.on('rotate', function(oldFilename, newFilename) {
-      // do something fun
-    });
-
-    var logger = new (winston.Logger)({
-      transports: [
-        transport
-      ]
-    });*/
-
     this.write = function (level, message, object, request) {
         var isTargeted = false;
         var loggerCollection = {

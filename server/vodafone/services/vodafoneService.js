@@ -413,36 +413,7 @@ function VodafoneService(objectCollection) {
 
                 callback()
             });
-    }
-
-    //Document Validator = 122964; 
-    //Feasibility Checker = 122965; 
-    //Administrator (Account Manager) = 122992
-    this.leastLoadedDesk  = function(request) {
-        return new Promise((resolve, reject)=>{
-            var paramsArr = new Array(
-                request.flag,
-                request.form_id,
-                request.asset_type_id,
-                request.workforce_id,
-                request.account_id,
-                request.organization_id,
-                request.page_start || 0,
-                request.page_limit || 50            
-            );
-            var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_least_loaded_asset', paramsArr);
-            if (queryString != '') {
-                db.executeQuery(1, queryString, request, function (err, data) {
-                    if(err === false) {
-                     console.log('Dataa from DB: ', data);
-                     resolve(data)   
-                    } else {
-                     reject(err);
-                    }
-                });
-            }
-        });        
-    }
+    }    
     
     this.addFeasibilityChecker = function(request, callback) {
         
@@ -573,7 +544,7 @@ function VodafoneService(objectCollection) {
                     if(request.auth_asset_id == 31035 && request.flag_status_alter == 1) {
                         
                         request.asset_type_id = 122964;
-                        leastLoadedDesk(request).then((data)=>{
+                        leastLoadedDesk1(request).then((data)=>{
                             var lowestCnt = 99999;
                             var deskToBeAssigned;
 
@@ -654,6 +625,62 @@ function VodafoneService(objectCollection) {
             });
         }
         callback(false, {}, 200);
+    };
+    
+    
+    //Document Validator = 122964; 
+    //Feasibility Checker = 122965; 
+    //Administrator (Account Manager) = 122992
+    this.leastLoadedDesk  = function(request) {
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                request.flag,
+                request.form_id,
+                request.asset_type_id,
+                request.workforce_id,
+                request.account_id,
+                request.organization_id,
+                request.page_start || 0,
+                request.page_limit || 50            
+            );
+            var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_least_loaded_asset', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    if(err === false) {
+                     console.log('Dataa from DB: ', data);
+                     resolve(data)   
+                    } else {
+                     reject(err);
+                    }
+                });
+            }
+        });        
+    };
+    
+    function leastLoadedDesk1(request) {
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                request.flag,
+                request.form_id,
+                request.asset_type_id,
+                request.workforce_id,
+                request.account_id,
+                request.organization_id,
+                request.page_start || 0,
+                request.page_limit || 50            
+            );
+            var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_least_loaded_asset', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    if(err === false) {
+                     console.log('Dataa from DB: ', data);
+                     resolve(data)   
+                    } else {
+                     reject(err);
+                    }
+                });
+            }
+        });        
     };
     
 
