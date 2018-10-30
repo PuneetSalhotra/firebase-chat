@@ -64,7 +64,7 @@ if (mode === 'local') {
     config.iosPushMode = 'dev';
 
     //SQS Queue
-    config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/Desker-staging"; //Staging SQS QUEUE
+    config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/desker-logging-staging"; //Staging SQS QUEUE
 
     //Portal Service URL
     config.portalBaseUrl = "http://localhost:7001/";
@@ -122,7 +122,7 @@ if (mode === 'dev') {
     config.iosPushMode = 'dev';
 
     //SQS Queue
-    config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/Desker-staging"; //Staging SQS QUEUE
+    config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/desker-logging-staging"; //Staging SQS QUEUE
 
     //Portal Service URL
     config.portalBaseUrl = "https://stagingportal.desker.cloud/";
@@ -182,7 +182,7 @@ if (mode === 'staging') {
     config.iosPushMode = 'dev'; // currently shouuld be in dev
 
     //SQS Queue
-    config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/Desker-staging"; //Staging SQS QUEUE
+    config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/desker-logging-staging"; //Staging SQS QUEUE
 
     //Portal Service URL
     config.portalBaseUrl = "https://stagingportal.desker.cloud/";
@@ -242,7 +242,7 @@ if (mode === 'preprod') {
     config.iosPushMode = 'prod';
 
     //SQS Queue
-    config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/desker-logging-staging"; //Prod SQS QUEUE - DONT confuse with the naming Convention
+    config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/Desker-Logging-Production";
 
     //Portal Service URL
     config.portalBaseUrl = "https://preprodportal.desker.cloud/";
@@ -302,7 +302,7 @@ if (mode === 'vodafone') {
     config.iosPushMode = 'prod';
 
     //SQS Queue
-    config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/desker-logging-staging"; //Prod SQS QUEUE - DONT confuse with the naming Convention
+    config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/Desker-Logging-Production";
 
     //Portal Service URL
     config.portalBaseUrl = "https://preprodportal.desker.cloud/";
@@ -364,7 +364,7 @@ if (mode === 'prod') {
 
 
     //SQS QUEUE
-    config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/desker-logging-staging"; //Prod SQS QUEUE - DONT confuse with the naming Convention
+    config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/Desker-Logging-Production";
 
     //Portal Service URL
     config.portalBaseUrl = "https://portal.desker.cloud/";
