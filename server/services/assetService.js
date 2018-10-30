@@ -1407,16 +1407,27 @@ function AssetService(objectCollection) {
 
                         checkIfContactAssetExistV1(request, Number(assetTypeData[0].asset_type_id), function (err, contactAssetData) {
                             console.log('\x1b[36m [Existing Desk Asset ID Check] contactAssetData: \x1b[0m', contactAssetData);
-                            responseDataCollection.desk_asset_id = contactAssetData[0]['asset_id'];
 
-                            getContactActivityid(request, responseDataCollection.desk_asset_id, function (err, contactActivityData) {
-                                if (contactActivityData.length > 0) {
-                                    responseDataCollection.activity_id = contactActivityData[0]['activity_id'];
-                                }
-                                callback(false, responseDataCollection, 200);
-                            });
+                            // Check if a desk asset entry exists
+                            if (contactAssetData.length > 0) {
+
+                                responseDataCollection.desk_asset_id = contactAssetData[0]['asset_id'];
+                                
+                                // If a desk asset exists, look for the corresponding contact file activity_id
+                                getContactActivityid(request, responseDataCollection.desk_asset_id, function (err, contactActivityData) {
+                                    if (contactActivityData.length > 0) {
+                                        responseDataCollection.activity_id = contactActivityData[0]['activity_id'];
+                                    }
+                                    callback(false, responseDataCollection, 200);
+                                });
+
+                            } else {
+                                // If a desk asset and/or contact file activity doesn't
+                                // exist return just the contact's asset_id
+                                return callback(false, responseDataCollection, 200);
+                            }
+
                         });
-
                     });
 
                     // getContactActivityid(request, contactAssetData[0]['asset_id'], function (err, contactActivityData) {
