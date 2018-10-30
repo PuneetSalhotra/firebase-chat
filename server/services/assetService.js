@@ -1393,7 +1393,7 @@ function AssetService(objectCollection) {
     this.addAsset = function (request, callback) {
         var responseDataCollection = {};
         var contactActivityInlineData = JSON.parse(request.activity_inline_data);
-        request.workforce_id = contactActivityInlineData.contact_workforce_id;
+        request.workforce_id = contactActivityInlineData.contact_workforce_id || request.workforce_id;
 
         //check if phone number and cc of the new contact exist in the activity type id ...
         checkIfContactAssetExistV1(request, 0, function (err, contactAssetData) {
