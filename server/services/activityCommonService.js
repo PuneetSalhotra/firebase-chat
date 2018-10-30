@@ -254,7 +254,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
 
 
-        if (participantData.length > 0) {
+        if (Object.keys(participantData).length > 0) {
             organizationId = participantData.organization_id;
             accountId = participantData.account_id;
             workforceId = participantData.workforce_id;
@@ -352,7 +352,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         };
 
         var paramsArr = new Array(
-            request.activity_id,
+            request.activity_id || 0,
             assetId,
             workforceId,
             accountId,
@@ -455,7 +455,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
 
 
-        if (participantData.length > 0) {
+        if (Object.keys(participantData).length > 0) {
             organizationId = participantData.organization_id;
             accountId = participantData.account_id;
             workforceId = participantData.workforce_id;
