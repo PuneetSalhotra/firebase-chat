@@ -930,6 +930,10 @@ function Util() {
     this.getUniqueArray = function (a) {
         return Array.from(new Set(a));
     };
+    
+    this.getWorkFlowUrl = function(url) {
+        return url.slice(4);
+    }
 
     this.writeLogs = function (data, isTargeted) {
         var date = this.getCurrentUTCTime();

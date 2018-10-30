@@ -3,6 +3,7 @@
  */
 
 function ActivityCommonService(db, util, forEachAsync) {
+    
 
     this.getAllParticipants = function (request, callback) {
         var paramsArr = new Array(
@@ -2232,6 +2233,39 @@ function ActivityCommonService(db, util, forEachAsync) {
             });
         }
     };
+    
+    this.getWorkflowForAGivenUrl = function (request) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                request.organization_id,
+                request.worflow_trigger_url
+            );
+            var queryString = util.getQueryString('ds_p1_workflow_mapping_select_url', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data): reject(err);
+                });
+            }
+        });
+    };
+    
+    this.makeRequest = function (request, url, port) {
+        return new Promise((resolve, reject) => {
+            var options = {
+                form: request
+            };
+            
+            if(port == 0) {
+
+            } else {
+                makeRequest.post("http://localhost:"+ global.config.port + "/" + global.config.version + url , options, function (error, response, body) {
+                    resolve(body);
+                });
+            }
+
+        });
+    }
+    
 };
 
 

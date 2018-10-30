@@ -94,64 +94,8 @@ var Consumer = function () {
                         activityCommonService.duplicateMsgUniqueIdInsert(request, (err, data)=>{});
                     }
                 });
-            }
+            }            
             
-            //Checking the kafkaMessage is already processed or not by looking into Redis
-            /*cacheWrapper.getKafkaMessageUniqueId(message.topic + '_' + message.partition, function(err, data){
-                 if(err === false) {
-                        console.log('data : ', data);
-                        console.log('kafkaMsgId : ', kafkaMsgId);
-                        if(data < kafkaMsgId) {
-                                console.log(message.value);
-
-                                try {
-                                    var messageJson = JSON.parse(message.value);
-                                    var serviceFile = messageJson.service;
-                                    var serviceName = messageJson.service;
-                                    var method = messageJson['method'];
-
-                                    if (!serviceObjectCollection.hasOwnProperty(messageJson['service'])) {
-                                        var jsFile = "../services/" + serviceFile;
-                                        var newClass = require(jsFile);
-                                        var serviceObj = eval("new " + newClass + "(objCollection)");
-                                        serviceObjectCollection[serviceFile] = serviceObj;
-                                        serviceObj[method](messageJson['payload'], function (err, data) {
-                                            if (err) {
-                                                console.log(err);
-                                            } else {
-                                                console.log(data);
-                                                
-                                                //Commit the offset
-                                                commitingOffset(message).then(()=>{}).catch((err)=>{ console.log(err);});
-                                                //Store the read kafak message ID in the redis
-                                                setkafkaMsgId(message).then(()=>{}).catch((err)=>{ console.log(err);});
-                                            }
-                                            });                                             
-                                    } else {
-                                        serviceObjectCollection[serviceName][method](messageJson['payload'], function (err, data) {
-                                            if (err) {
-                                                console.log(err);
-                                            } else {
-                                                console.log(data);
-                                                //Commit the offset
-                                                commitingOffset(message).then(()=>{}).catch((err)=>{ console.log(err);});
-                                                
-                                                //Store the read kafak message ID in the redis
-                                                setkafkaMsgId(message).then(()=>{}).catch((err)=>{ console.log(err);});
-                                            }
-                                        });                    
-                                    }
-                                        
-                                    } catch (exception) {
-                                            console.log(exception);
-                                        }            
-                        } else {
-                            console.log('Message Already Read!');
-                        }
-                        } else {
-                            console.log('Error in checking kafkaMessageUniqueID : ' + err);
-                        }                                                    
-                });*/
             });
 
         consumerGroup1.on('connect', function (err, data) {
@@ -240,6 +184,7 @@ var Consumer = function () {
                                         var jsFile = "../services/" + serviceFile;
                                         var newClass;
                                         
+                                        global.logger.write('debug', 'jsFile : ' + jsFile, {}, {});
                                         try {
                                             newClass = require(jsFile);
                                         } catch(e) {

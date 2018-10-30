@@ -8,6 +8,8 @@ function VodafoneService(objectCollection) {
     const util = objectCollection.util;
     const db = objectCollection.db;
     const forEachAsync = objectCollection.forEachAsync;
+    const activityPushService = objectCollection.activityPushService;
+    const activityCommonService = objectCollection.activityCommonService;
     const makeRequest = require('request');
     
     this.getAdminAssets = function(request, callback) {
@@ -413,7 +415,9 @@ function VodafoneService(objectCollection) {
             });
     }
 
-    //Document Validator; Feasibility Checker; Administrator
+    //Document Validator = 122964; 
+    //Feasibility Checker = 122965; 
+    //Administrator (Account Manager) = 122992
     this.leastLoadedDesk  = function(request) {
         return new Promise((resolve, reject)=>{
             var paramsArr = new Array(
@@ -443,7 +447,7 @@ function VodafoneService(objectCollection) {
     this.addFeasibilityChecker = function(request, callback) {
         
         request.flag = 1;
-        request.asset_type_id = 122992; //Ask Sai; What the asset_type_id for feasibility checker
+        request.asset_type_id = 122965; 
         
         this.leastLoadedDesk(request).then((data)=>{
                 var lowestCnt = 99999;
@@ -467,18 +471,17 @@ function VodafoneService(objectCollection) {
                             "account_id": 971,
                             "activity_id": request.activity_id,
                             "asset_datetime_last_seen": "1970-01-01 00:00:00",
-                            "asset_first_name": "Feasibility Checker",
-                            "asset_id": 30998,
+                            "asset_first_name": deskToBeAssigned.asset_first_name, //"Feasibility Checker",
+                            "asset_id": deskToBeAssigned.asset_id, //30998
                             "asset_image_path": "",
                             "asset_last_name": "",
-                            "asset_phone_number": "8790254329",
-                            "asset_phone_number_code": "91",
+                            "asset_phone_number": deskToBeAssigned.operating_asset_phone_number,
+                            "asset_phone_number_code": deskToBeAssigned.operating_asset_phone_country_code,
                             "asset_type_category_id": 3,
                             "asset_type_id": 122940,
                             "field_id": 0,
-                            "log_asset_id": request.asset_id,
-                            "message_unique_id": "307471538376536307668",
-                            "operating_asset_first_name": "Kapil",
+                            "log_asset_id": request.asset_id,                            
+                            "operating_asset_first_name": deskToBeAssigned.operating_asset_first_name,
                             "organization_id": 856,
                             "workforce_id": 5336,
                         }];
@@ -511,6 +514,148 @@ function VodafoneService(objectCollection) {
         
         callback();
     };
+    
+    
+    this.addTimelineTransactionVodafone = function (request, callback) {       
+                        
+        var logDatetime = util.getCurrentUTCTime();
+        request['datetime_log'] = logDatetime;
+        var activityTypeCategoryId = Number(request.activity_type_category_id) || 9;
+        var activityStreamTypeId = Number(request.activity_stream_type_id) || 325;
+        activityCommonService.updateAssetLocation(request, function (err, data) {});
+        if (activityTypeCategoryId === 9 && activityStreamTypeId === 705) {   // add form case
+            var formDataJson = JSON.parse(request.activity_timeline_collection);
+            request.form_id = formDataJson[0]['form_id'];
+            //console.log('form id extracted from json is: ' + formDataJson[0]['form_id']);
+            global.logger.write('debug', 'form id extracted from json is: ' + formDataJson[0]['form_id'], {}, request);
+            var lastObject = formDataJson[formDataJson.length - 1];
+            //console.log('Last object : ', lastObject)
+            global.logger.write('debug', 'Last object : ' + lastObject, {}, request);
+            if (lastObject.hasOwnProperty('field_value')) {
+                //console.log('Has the field value in the last object')
+                global.logger.write('debug', 'Has the field value in the last object', {}, request);
+                //remote Analytics
+                if (request.form_id == 325) {
+                    //monthlySummaryTransInsert(request).then(() => {}); 
+                }
+            }
+            // add form entries
+            addFormEntries(request, function (err, approvalFieldsArr) {});
+        } else {
+            request.form_id = 0;
+        }
+        try {
+            var formDataJson = JSON.parse(request.activity_timeline_collection);
+        } catch (exception) {
+            //console.log(exception);
+            global.logger.write('debug', exception, {}, request);
+        }
+
+        var isAddToTimeline = true;
+        if (request.hasOwnProperty('flag_timeline_entry'))
+            isAddToTimeline = (Number(request.flag_timeline_entry)) > 0 ? true : false;
+        if (isAddToTimeline) {
+            activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
+                if (err) {
+
+                } else {
+
+                    activityPushService.sendPush(request, objectCollection, 0, function () {});
+                    activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) { });
+
+                    //updating log differential datetime for only this asset
+                    activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) { });
+                    
+                    (request.hasOwnProperty('signedup_asset_id')) ? 
+                        activityCommonService.updateActivityLogLastUpdatedDatetime(request, 0, function (err, data) { }): //To increase unread cnt for marketing manager
+                        activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) { });
+                    
+                    if(request.auth_asset_id == 31035 && request.flag_status_alter == 1) {
+                        
+                        request.asset_type_id = 122964;
+                        leastLoadedDesk(request).then((data)=>{
+                            var lowestCnt = 99999;
+                            var deskToBeAssigned;
+
+                            global.logger.write('debug', 'data.length : ' + data.length, {}, request);
+                            if(Number(data.length) > 0) {
+                                forEachAsync(data, (next, rowData)=>{                 
+                                    global.logger.write('debug', 'rowData.count : ' + rowData.count, {}, request);
+                                    global.logger.write('debug', 'lowestCnt : ' + lowestCnt, {}, request);
+
+                                    if(rowData.count < lowestCnt) {
+                                        lowestCnt = rowData.count;
+                                        deskToBeAssigned = rowData;
+                                    }
+                                    next();
+                                }).then(()=>{
+                                    var newRequestOne = Object.assign(request);
+                        
+                                    //Adding the Document Validator
+                                    var activityParticipantCollection = [{
+                                                    "organization_id": 856,
+                                                    "account_id": 971,
+                                                    "workforce_id": 5336,
+                                                    "asset_id": deskToBeAssigned.asset_id, //30983, ASK SAI
+                                                    "activity_id": request.activity_id,                                        
+                                                    "asset_type_category_id": 3,
+                                                    "asset_type_id": 122940,
+                                                    "access_role_id": 29
+                                                }];
+                                    newRequestOne.organization_id = 856;
+                                    newRequestOne.account_id = 971;
+                                    newRequestOne.workforce_id = 5344;    
+
+                                    newRequestOne.activity_participant_collection = JSON.stringify(activityParticipantCollection);
+                                    newRequestOne.message_unique_id = util.getMessageUniqueId(31035);
+                                    newRequestOne.url = "/" + global.config.version + "/activity/participant/access/set";
+
+                                    var event = {
+                                        name: "assignParticipnt",
+                                        service: "activityParticipantService",
+                                        method: "assignCoworker",
+                                        payload: newRequestOne
+                                        };
+
+                                    queueWrapper.raiseActivityEvent(event, newRequestOne.activity_id, (err, resp) => {
+                                        if (err) {
+                                            global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);                                        
+                                            throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+                                        } else {
+                                            //Altering the status to Document Validation
+                                            var newRequest = Object.assign(newRequestOne);                                     
+
+                                            newRequest.activity_status_id = 278803;
+                                            newRequest.activity_status_type_id = 22;
+                                            newRequest.message_unique_id = util.getMessageUniqueId(31035);
+                                            newRequest.url = "/" + global.config.version + "/activity/status/alter";
+
+                                            var event = {
+                                                name: "alterActivityStatus",
+                                                service: "activityService",
+                                                method: "alterActivityStatus",
+                                                payload: newRequest
+                                            };
+
+                                            queueWrapper.raiseActivityEvent(event, newRequest.activity_id, (err, resp) => {
+                                                if (err) {
+                                                    global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);                                
+                                                    throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+                                                } else {}                            
+                                            });
+                                        }
+                                     resolve();
+                                     });
+                                });
+                            }
+                        });                
+                    } 
+                }
+            });
+        }
+        callback(false, {}, 200);
+    };
+    
 
 };
 

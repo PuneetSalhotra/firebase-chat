@@ -260,7 +260,7 @@ function ActivityTimelineController(objCollection) {
 
 
     //This is for Vodafone Demo
-    app.post('/' + global.config.version + '/activity/timeline/entry/add/vodafone', function (req, res) {
+    /*app.post('/' + global.config.version + '/activity/timeline/entry/add/vodafone', function (req, res) {
         
         req.body.organization_id = 856;
         req.body.account_id = 971;
@@ -368,7 +368,7 @@ function ActivityTimelineController(objCollection) {
             res.send(responseWrapper.getResponse(false, {}, -3305,req.body));
         }
 
-    });
+    });*/
     
     
     app.post('/' + global.config.version + '/activity/timeline/entry/comment/add', function (req, res) {

@@ -12,7 +12,7 @@ function ActivityTimelineService(objectCollection) {
     var forEachAsync = objectCollection.forEachAsync;
     var activityPushService = objectCollection.activityPushService;
     var queueWrapper = objectCollection.queueWrapper;
-    const vodafoneFormSubmissionFlow = require('../utils/vodafoneFormSubmissionFlow');
+    //const vodafoneFormSubmissionFlow = require('../utils/vodafoneFormSubmissionFlow');
 
     this.addTimelineTransaction = function (request, callback) {
 
@@ -50,12 +50,21 @@ function ActivityTimelineService(objectCollection) {
 
             // Trigger Email For Vodafone CAF Form Submission
             if (Number(request.form_id) === 844) {
-                // Jugaad work. Please optimize this
                 console.log("\x1b[35m [Log] Calling vodafoneFormSubmissionFlow \x1b[0m")
                 request.activity_inline_data = request.activity_timeline_collection;
                 request.activity_form_id = 844;
-                vodafoneFormSubmissionFlow(request, activityCommonService, objectCollection, () => {});
-
+                //vodafoneFormSubmissionFlow(request, activityCommonService, objectCollection, () => {});
+                                
+                //MakeRequest to /vodafone/caf_form/add                               
+                request.worflow_trigger_url = util.getWorkFlowUrl(request.url);
+                global.logger.write('debug', 'worflow_trigger_url: ' + request.worflow_trigger_url, {}, request);
+                    
+                activityCommonService.getWorkflowForAGivenUrl(request).then((data)=>{
+                    global.logger.write('debug', 'workflow_execution_url: ' + data[0].workflow_execution_url, {}, request);
+                    activityCommonService.makeRequest(request, data[0].workflow_execution_url, 1).then((resp)=>{
+                        global.logger.write('debug', resp, {}, request);
+                    });
+                });
             }
 
         } else {
@@ -217,7 +226,7 @@ function ActivityTimelineService(objectCollection) {
     };
 
 
-    this.addTimelineTransactionVodafone = function (request, callback) {       
+    /*this.addTimelineTransactionVodafone = function (request, callback) {       
                         
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
@@ -338,25 +347,6 @@ function ActivityTimelineService(objectCollection) {
                                 });                        
                     } 
                     
-                    // Telephone module
-                    // 23003 => Added an update to the chat
-                    /*if (activityTypeCategoryId === 16 && activityStreamTypeId === 23003) {
-                        
-                        // Update last updated and last differential datetime for the sender
-                        activityCommonService.activityAssetMappingUpdateLastUpdateDateTimeOnly(request, function (err, data) {
-                            activityCommonService.getActivityDetails(request, request.activity_id, function(err, data) {
-                                
-                                // Replace/append the new chat message to the existing inline data
-                                var updatedActivityInlineData = JSON.parse(data[0].activity_inline_data);
-                                updatedActivityInlineData.message = JSON.parse(request.activity_timeline_collection);
-                                
-                                // Update the activity's inline data with the last send chat message
-                                activityCommonService.activityAssetMappingUpdateInlineDataOnly(request, JSON.stringify(updatedActivityInlineData), () => {});
-                            });
-                            
-                        });
-                    }*/
-
                     if (formDataJson.hasOwnProperty('asset_reference')) {
                         if (formDataJson.asset_reference.length > 0) {
                             forEachAsync(formDataJson.asset_reference, function (next, rowData) {                                
@@ -381,7 +371,7 @@ function ActivityTimelineService(objectCollection) {
             });
         }
         callback(false, {}, 200);
-    };
+    };*/
     
     //MONTHLY Remote Analytics
     //Insert into monthly summary table
