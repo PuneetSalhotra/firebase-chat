@@ -7,7 +7,7 @@ var VodafoneService = require("../services/vodafoneService");
 
 function VodafoneController(objCollection) {
 
-    const responseWrapper = objCollection.responseWrapper;
+    var responseWrapper = objCollection.responseWrapper;
     var app = objCollection.app;
     const util = objCollection.util;
     const cacheWrapper = objCollection.cacheWrapper;
@@ -68,11 +68,11 @@ function VodafoneController(objCollection) {
 
         queueWrapper.raiseActivityEvent(event, req.activity_id, (err, resp) => {
             if (err) {
-                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req);
+                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req.body);
                 res.send(responseWrapper.getResponse(err, {}, -5999, req));
                 throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
             } else {
-                res.send(responseWrapper.getResponse(err, {}, 200, req));
+                res.send(responseWrapper.getResponse(false, {}, 200, req.body));
             }                            
         });        
     });    
@@ -99,7 +99,7 @@ function VodafoneController(objCollection) {
         var proceedActivityTimelineAdd = function (formTransactionId) {
 
             var event = {
-                name: "vodafoneAddTimelineTransaction",
+                name: "vodafone",
                 service: "vodafoneService",
                 method: "addTimelineTransactionVodafone",
                 payload: req.body

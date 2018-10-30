@@ -10,34 +10,6 @@ function Logger() {
     var sqs = new SQS();
     var util = new Util();
 
-    /*var winston = require('winston');
-    require('winston-daily-rotate-file');
-
-    var transport = new (winston.transports.DailyRotateFile)({
-      filename: './logs/' + '%DATE%.log',
-      datePattern: 'YYYY-MM-DD-HH',
-      //zippedArchive: true,
-      //maxSize: '20m',
-      //maxFiles: '14d'
-    });
-
-    transport.on('rotate', function(oldFilename, newFilename) {
-      // do something fun
-    });
-
-    var logger = new (winston.Logger)({
-      transports: [
-        transport
-      ]
-    });*/
-    var log4js = require('log4js');
-    log4js.configure({
-        appenders: { logfile: { type: 'file', filename: '../logs/logfile.log', maxLogSize: 10485760, backups: 5, compress: true } },
-        categories: { default: { appenders: ['logfile'], level: 'debug' } }
-    });
-
-    var logger = log4js.getLogger();
-
     this.write = function (level, message, object, request) {
         var isTargeted = false;
         var loggerCollection = {

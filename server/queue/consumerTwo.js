@@ -82,22 +82,6 @@ var Consumer = function () {
             var request = messageJson['payload'];
             //console.log('Request params : ' , request);
             
-            /*if(Number(request.organization_id) === 351) {
-                global.logger.write('debug', 'This is PAM Request : ' , request, {}, {});
-                global.logger.write('debug', request, {}, {});
-                consumingMsg(message, kafkaMsgId, objCollection).then(()=>{});
-            } else {
-                activityCommonService.checkingMSgUniqueId(request, (err, data)=>{
-                    global.logger.write('debug', 'err from checkingMSgUniqueId : ' + JSON.stringify(err), {}, request);
-                    if(err === false) {
-                        consumingMsg(message, kafkaMsgId, objCollection).then(()=>{});
-                    } else {
-                        global.logger.write('debug', 'Before calling this duplicateMsgUniqueIdInsert', {}, request);
-                        activityCommonService.duplicateMsgUniqueIdInsert(request, (err, data)=>{});
-                    }
-                });
-            }*/
-            
             activityCommonService.checkingMSgUniqueId(request, (err, data)=>{
                     global.logger.write('debug', 'err from checkingMSgUniqueId : ' + err, {}, request);
                     if(err === false) {
@@ -108,7 +92,7 @@ var Consumer = function () {
                         global.logger.write('debug', 'Before calling this duplicateMsgUniqueIdInsert', {}, request);
                         activityCommonService.duplicateMsgUniqueIdInsert(request, (err, data)=>{});
                     }
-            });
+            });           
             
             });
 
