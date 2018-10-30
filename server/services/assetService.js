@@ -1621,7 +1621,12 @@ function AssetService(objectCollection) {
         // IN p_manager_asset_id BIGINT(20), IN p_workforce_id BIGINT(20), IN p_account_id  BIGINT(20), 
         // IN p_organization_id BIGINT(20), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
 
+               
         var activityInlineData = JSON.parse(request.activity_inline_data);
+        
+        console.log('HEre I am : activityInlineData.contact_workforce_id - ', activityInlineData.contact_workforce_id);
+        console.log('HEre I am : request.workforce_id - ', request.workforce_id);
+        
         var paramsArr = new Array(
             activityInlineData.contact_first_name,
             activityInlineData.contact_last_name,
