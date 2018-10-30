@@ -1412,7 +1412,7 @@ function AssetService(objectCollection) {
                             if (contactAssetData.length > 0) {
 
                                 responseDataCollection.desk_asset_id = contactAssetData[0]['asset_id'];
-                                
+
                                 // If a desk asset exists, look for the corresponding contact file activity_id
                                 getContactActivityid(request, responseDataCollection.desk_asset_id, function (err, contactActivityData) {
                                     if (contactActivityData.length > 0) {
