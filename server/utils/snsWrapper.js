@@ -176,7 +176,17 @@ var AwsSns = function () {
                         global.logger.write('debug', 'Flag is 1. Creating IOS Prod for Grene Robotics Account Service Desk Plain Push', {}, {});
                         platformApplicationArn = global.config.platformApplicationIosSDPushProd;
                     }
-                }                
+                } else if (flagAppAccount == 5){ //flagAppAccount == 5 i.e. PAM normal IOS Push
+                    if (flag == 0) {
+                        //console.log('Flag is 0. Creating IOS Dev for Grene Robotics Account Service Desk Plain Push');
+                        global.logger.write('debug', 'Flag is 0. Creating IOS Dev for PAM App Plain Push', {}, {});
+                        platformApplicationArn = global.config.platformApplicationIosPamPushDev;
+                    } else {
+                        //console.log('Flag is 1. Creating IOS Prod for Grene Robotics Account Service Desk Plain Push');
+                        global.logger.write('debug', 'Flag is 1. Creating IOS Prod for PAM App Plain Push', {}, {});
+                        platformApplicationArn = global.config.platformApplicationIosPamPushProd;
+                    }
+                }               
                 break;
             case 3: // windows
                 platformApplicationArn = global.config.platformApplicationWindows;
