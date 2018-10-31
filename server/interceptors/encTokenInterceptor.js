@@ -2,6 +2,7 @@
  * author: A Sri Sai Venkatesh
  */
 var uuid = require('uuid');
+const TimeUuid = require('cassandra-driver').types.TimeUuid;
 
 function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
 
@@ -16,7 +17,7 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                 //console.log('Service Id : ' + result)
                 global.logger.write('debug', 'Service Id : ' + JSON.stringify(result), {}, req.body);
                 req.body.service_id = result;
-                var bundleTransactionId = uuid.v1();
+                var bundleTransactionId = TimeUuid.now();
                 req.body.bundle_transaction_id = bundleTransactionId;
                 req.body.url = req.url;
                 if (req.body.url.includes('/' + global.config.version + '/account/')) {
@@ -38,9 +39,9 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                          */
                         case '/' + global.config.version + '/asset/passcode/alter':
                         case '/' + global.config.version + '/asset/passcode/alter/v1':
-                        //case '/' + global.config.version + '/sms-dlvry/sinfini':
-                        //case '/' + global.config.version + '/sms-dlvry/nexmo':
-                        //case '/' + global.config.version + '/sms-dlvry/twilio':
+                            //case '/' + global.config.version + '/sms-dlvry/sinfini':
+                            //case '/' + global.config.version + '/sms-dlvry/nexmo':
+                            //case '/' + global.config.version + '/sms-dlvry/twilio':
                             req.body['module'] = 'device';
                             global.logger.write('request', JSON.stringify(req.body, null, 2), req.body, req.body);
                             next();
@@ -59,7 +60,7 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                             req.body['module'] = 'asset';
                             global.logger.write('request', JSON.stringify(req.body, null, 2), req.body, req.body);
                             next();
-                            break;                            
+                            break;
                         case '/' + global.config.version + '/pam/asset/cover/alter/clockin':
                             req.body['module'] = 'asset';
                             global.logger.write('request', JSON.stringify(req.body, null, 2), req.body, req.body);
@@ -71,18 +72,20 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                             next();
                             break;
                         case '/' + global.config.version + '/send/email':
+                        case '/' + global.config.version + '/wf/send/email':
+                        case '/' + global.config.version + '/wf/send/sms':
                             //req.body['module'] = 'asset';
                             // global.logger.write('request', JSON.stringify(req.body, null, 2), req.body, req.body);
                             next();
                             break;
-                        
-                        // Stats cases
+
+                            // Stats cases
                         case '/' + global.config.version + '/stats/signup/count':
                         case '/' + global.config.version + '/stats/signup/list':
                         case '/' + global.config.version + '/stats/timeline/list':
                             next();
                             break;
-                        
+
                         default:
                             if (req.body.hasOwnProperty("activity_id")) {
                                 req.body['module'] = 'activity';
@@ -95,9 +98,9 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                             }
                             //console.log('Module : ' + req.body['module']);
                             global.logger.write('debug', 'Module : ' + req.body['module'], {}, req.body);
-                            
+
                             var asset_id = req.body.auth_asset_id || req.body.asset_id;
-                                                    
+
                             //cacheWrapper.getTokenAuth(req.body.asset_id, function (err, encToken) {
                             cacheWrapper.getTokenAuth(asset_id, function (err, encToken) {
                                 if (err) {
@@ -123,10 +126,10 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
 
                             break;
                     } //switch
-                }   //else
+                } //else
             } //else
         }) //getServiceId
     }) //app.use
-} // main function
-;
+}; // main function
+
 module.exports = EncTokenInterceptor;

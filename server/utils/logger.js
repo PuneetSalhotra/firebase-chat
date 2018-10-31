@@ -21,16 +21,12 @@ function Logger() {
             log: 'log'
         };
 
-        if (request.hasOwnProperty('isTargeted') && request.isTargeted) {
+        if ((typeof request === 'object') && request.hasOwnProperty('isTargeted') && request.isTargeted) {
             isTargeted = true;
-        
-        } 
+        }
 
-        //util.writeLogs(message, isTargeted); //Using our own logic
         util.writeLogs(message, isTargeted);
-        logger.debug(message);
-
-        //logger.info(message); //Winston rotational logs
+                
         var loggerCollectionString = JSON.stringify(loggerCollection);
         sqs.produce(loggerCollectionString, function (err, response) {
             if (err)
