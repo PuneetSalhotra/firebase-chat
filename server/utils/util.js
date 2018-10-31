@@ -851,7 +851,7 @@ function Util() {
     this.sendEmailV2 = function (request, email, subject, text, htmlTemplate, callback) {
         const msg = {
             to: email,
-            from: 'Vodafone - Idea <vodafone_idea@grenerobotics.com>',
+            from: request.email_sender, // 'Vodafone - Idea <vodafone_idea@grenerobotics.com>'
             subject: subject,
             text: text,
             html: htmlTemplate,
