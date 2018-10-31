@@ -13,17 +13,18 @@ function VodafoneController(objCollection) {
     const cacheWrapper = objCollection.cacheWrapper;
     const queueWrapper = objCollection.queueWrapper;
     var vodafoneService = new VodafoneService(objCollection);
-
+  
     //BOT 1
     app.post('/' + global.config.version + '/vodafone/neworder_form/add', function (req, res) {
+        req.body.message_unique_id = util.getMessageUniqueId(req.body.asset_id);
         var event = {
             name: "vodafone",
             service: "vodafoneService",
             method: "newOrderFormSubmission",
-            payload: req
+            payload: req.body
         };
 
-        queueWrapper.raiseActivityEvent(event, req.activity_id, (err, resp) => {
+        queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp) => {
             if (err) {
                 global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req);
                 res.send(responseWrapper.getResponse(err, {}, -5999, req));
@@ -38,14 +39,15 @@ function VodafoneController(objCollection) {
     
     //BOT 2
     app.post('/' + global.config.version + '/vodafone/caf_form/add', function (req, res) {
+        req.body.message_unique_id = util.getMessageUniqueId(req.body.asset_id);
         var event = {
             name: "vodafone",
             service: "vodafoneService",
             method: "newOrderFormSubmission",
-            payload: req
+            payload: req.body
         };
 
-        queueWrapper.raiseActivityEvent(event, req.activity_id, (err, resp) => {
+        queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp) => {
             if (err) {
                 global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req);
                 res.send(responseWrapper.getResponse(err, {}, -5999, req));
@@ -59,14 +61,15 @@ function VodafoneController(objCollection) {
         
     //BOT 4
     app.post('/' + global.config.version + '/vodafone/feasibility_checker/update', function (req, res) {
+        req.body.message_unique_id = util.getMessageUniqueId(req.body.asset_id);
         var event = {
             name: "vodafone",
             service: "vodafoneService",
             method: "addFeasibilityChecker",
-            payload: req
+            payload: req.body
         };
 
-        queueWrapper.raiseActivityEvent(event, req.activity_id, (err, resp) => {
+        queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp) => {
             if (err) {
                 global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req.body);
                 res.send(responseWrapper.getResponse(err, {}, -5999, req));
