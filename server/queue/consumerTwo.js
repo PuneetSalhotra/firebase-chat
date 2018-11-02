@@ -82,22 +82,6 @@ var Consumer = function () {
             var request = messageJson['payload'];
             //console.log('Request params : ' , request);
             
-            /*if(Number(request.organization_id) === 351) {
-                global.logger.write('debug', 'This is PAM Request : ' , request, {}, {});
-                global.logger.write('debug', request, {}, {});
-                consumingMsg(message, kafkaMsgId, objCollection).then(()=>{});
-            } else {
-                activityCommonService.checkingMSgUniqueId(request, (err, data)=>{
-                    global.logger.write('debug', 'err from checkingMSgUniqueId : ' + JSON.stringify(err), {}, request);
-                    if(err === false) {
-                        consumingMsg(message, kafkaMsgId, objCollection).then(()=>{});
-                    } else {
-                        global.logger.write('debug', 'Before calling this duplicateMsgUniqueIdInsert', {}, request);
-                        activityCommonService.duplicateMsgUniqueIdInsert(request, (err, data)=>{});
-                    }
-                });
-            }*/
-            
             activityCommonService.checkingMSgUniqueId(request, (err, data)=>{
                     global.logger.write('debug', 'err from checkingMSgUniqueId : ' + err, {}, request);
                     if(err === false) {
@@ -108,64 +92,8 @@ var Consumer = function () {
                         global.logger.write('debug', 'Before calling this duplicateMsgUniqueIdInsert', {}, request);
                         activityCommonService.duplicateMsgUniqueIdInsert(request, (err, data)=>{});
                     }
-            });
+            });           
             
-            //Checking the kafkaMessage is already processed or not by looking into Redis
-            /*cacheWrapper.getKafkaMessageUniqueId(message.topic + '_' + message.partition, function(err, data){
-                 if(err === false) {
-                        console.log('data : ' + data);
-                        console.log('kafkaMsgId : ' + kafkaMsgId);
-                        if(data < kafkaMsgId) {
-                                console.log(message.value);
-
-                                try {
-                                    var messageJson = JSON.parse(message.value);
-                                    var serviceFile = messageJson.service;
-                                    var serviceName = messageJson.service;
-                                    var method = messageJson['method'];
-
-                                    if (!serviceObjectCollection.hasOwnProperty(messageJson['service'])) {
-                                        var jsFile = "../services/" + serviceFile;
-                                        var newClass = require(jsFile);
-                                        var serviceObj = eval("new " + newClass + "(objCollection)");
-                                        serviceObjectCollection[serviceFile] = serviceObj;
-                                        serviceObj[method](messageJson['payload'], function (err, data) {
-                                            if (err) {
-                                                console.log(err);
-                                            } else {
-                                                console.log(data);
-                                                
-                                                //Commit the offset
-                                                commitingOffset(message).then(()=>{}).catch((err)=>{ console.log(err);});
-                                                //Store the read kafak message ID in the redis
-                                                setkafkaMsgId(message).then(()=>{}).catch((err)=>{ console.log(err);});
-                                            }
-                                            });                                             
-                                    } else {
-                                        serviceObjectCollection[serviceName][method](messageJson['payload'], function (err, data) {
-                                            if (err) {
-                                                console.log(err);
-                                            } else {
-                                                console.log(data);
-                                                //Commit the offset
-                                                commitingOffset(message).then(()=>{}).catch((err)=>{ console.log(err);});
-                                                
-                                                //Store the read kafak message ID in the redis
-                                                setkafkaMsgId(message).then(()=>{}).catch((err)=>{ console.log(err);});
-                                            }
-                                        });                    
-                                    }
-                                        
-                                    } catch (exception) {
-                                            console.log(exception);
-                                        }            
-                        } else {
-                            console.log('Message Already Read!');
-                        }
-                        } else {
-                            console.log('Error in checking kafkaMessageUniqueID : ' + err);
-                        }                                                    
-                });*/
             });
 
         consumerGroup1.on('connect', function (err, data) {
@@ -252,7 +180,19 @@ var Consumer = function () {
 
                                     if (!serviceObjectCollection.hasOwnProperty(messageJson['service'])) {
                                         var jsFile = "../services/" + serviceFile;
-                                        var newClass = require(jsFile);
+                                        var newClass;
+                                        
+                                        global.logger.write('debug', 'jsFile : ' + jsFile, {}, {});
+                                        try {
+                                            newClass = require(jsFile);
+                                        } catch(e) {
+                                            if(e.code === 'MODULE_NOT_FOUND') {
+                                                console.log('In Catch Block');
+                                                jsFile = "../vodafone/services/" + serviceFile;
+                                                newClass = require(jsFile);
+                                            }
+                                        }                                        
+                                
                                         var serviceObj = eval("new " + newClass + "(objCollection)");
                                         serviceObjectCollection[serviceFile] = serviceObj;
                                         serviceObj[method](messageJson['payload'], function (err, data) {

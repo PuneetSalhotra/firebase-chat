@@ -12,9 +12,7 @@ function ActivityService(objectCollection) {
     var queueWrapper = objectCollection.queueWrapper;
     var activityPushService = objectCollection.activityPushService;
     var responseactivityData = {}
-    const suzukiPdfEngine = require('../utils/suzukiPdfGenerationEngine');
-    // const vodafoneStatusUpdate = require('../utils/vodafoneStatusUpdateFlow');
-    // const vodafoneFormSubmissionFlow = require('../utils/vodafoneFormSubmissionFlow');
+    const suzukiPdfEngine = require('../utils/suzukiPdfGenerationEngine');     
 
     this.addActivity = function (request, callback) {
 
@@ -411,10 +409,21 @@ function ActivityService(objectCollection) {
                     // Vodafone Flow on Form Submission
                     // 
                     // 
-                    // if (activityTypeCategroyId === 9 && (Number(request.activity_form_id) === 837 || Number(request.activity_form_id) === 844)) {
-                    //     console.log("\x1b[35m [Log] Calling vodafoneFormSubmissionFlow \x1b[0m")
-                    //     vodafoneFormSubmissionFlow(request, activityCommonService, objectCollection, () => {});
-                    // }
+                    if (activityTypeCategroyId === 9 && (Number(request.activity_form_id) === 837 || Number(request.activity_form_id) === 844)) {
+                        console.log("\x1b[35m [Log] Calling vodafoneFormSubmissionFlow \x1b[0m")
+                        //vodafoneFormSubmissionFlow(request, activityCommonService, objectCollection, () => {});
+                        
+                        //makeRequest to /vodafone/neworder_form/add BOT1
+                        request.worflow_trigger_url = util.getWorkFlowUrl(request.url);
+                        global.logger.write('debug', 'worflow_trigger_url: ' + request.worflow_trigger_url, {}, request);
+
+                        activityCommonService.getWorkflowForAGivenUrl(request).then((data)=>{
+                            global.logger.write('debug', 'workflow_execution_url: ' + data[0].workflow_execution_url, {}, request);
+                            activityCommonService.makeRequest(request, data[0].workflow_execution_url, 1).then((resp)=>{
+                               global.logger.write('debug', resp, {}, request);
+                            });
+                        });
+                    }
                     // 
                     // 
                 } else {
@@ -1885,15 +1894,27 @@ function ActivityService(objectCollection) {
                 // global.logger.write('debug', 'OUTSIDE Calling vodafoneStatusUpdate...', {}, request);
 
                 // activityFormId === 837
-                // if (activityStatusId === 278416 || activityStatusId === 278417 || activityStatusId === 278418 || activityStatusId === 278419 || activityStatusId === 278420 || activityStatusId === 278421) {
-                //     // Call the VODAFONE logic method (in a separate file)
-                //     // activityCommonService.activityTimelineTransactionInsert(request, {}, 305, function (err, data) {
-                //     //     console.log('\x1b[36mCalling the vodafoneStatusUpdate file.\x1b[0m');
-                //     //     vodafoneStatusUpdate(request, activityCommonService, objectCollection);
-                //     // });
-                //     global.logger.write('debug', 'Calling vodafoneStatusUpdate...', {}, request);
-                //     vodafoneStatusUpdate(request, activityCommonService, objectCollection);
-
+                if (activityStatusId === 278416 || activityStatusId === 278417 || activityStatusId === 278418 || activityStatusId === 278419 || activityStatusId === 278420 || activityStatusId === 278421) {
+                    // Call the VODAFONE logic method (in a separate file)
+                    // activityCommonService.activityTimelineTransactionInsert(request, {}, 305, function (err, data) {
+                    //     console.log('\x1b[36mCalling the vodafoneStatusUpdate file.\x1b[0m');
+                    //     vodafoneStatusUpdate(request, activityCommonService, objectCollection);
+                    // });
+                    global.logger.write('debug', 'Calling vodafoneStatusUpdate...', {}, request);
+                    //vodafoneStatusUpdate(request, activityCommonService, objectCollection);
+                    
+                    //makeRequest to /vodafone/feasibility_checker/update BOT4
+                    request.worflow_trigger_url = util.getWorkFlowUrl(request.url);
+                    global.logger.write('debug', 'worflow_trigger_url: ' + request.worflow_trigger_url, {}, request);
+                    
+                    activityCommonService.getWorkflowForAGivenUrl(request).then((data)=>{
+                        global.logger.write('debug', 'workflow_execution_url: ' + data[0].workflow_execution_url, {}, request);
+                        activityCommonService.makeRequest(request, data[0].workflow_execution_url, 1).then((resp)=>{
+                           global.logger.write('debug', resp, {}, request);
+                        });
+                    });
+                }
+                    
 
                 // }
                 // 

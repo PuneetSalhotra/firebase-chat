@@ -3,6 +3,7 @@
  */
 
 function ActivityCommonService(db, util, forEachAsync) {
+    var makingRequest = require('request');
 
     this.getAllParticipants = function (request, callback) {
         var paramsArr = new Array(
@@ -254,7 +255,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
 
 
-        if (participantData.length > 0) {
+        if (Object.keys(participantData).length > 0) {
             organizationId = participantData.organization_id;
             accountId = participantData.account_id;
             workforceId = participantData.workforce_id;
@@ -352,7 +353,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         };
 
         var paramsArr = new Array(
-            request.activity_id,
+            request.activity_id || 0,
             assetId,
             workforceId,
             accountId,
@@ -455,7 +456,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
 
 
-        if (participantData.length > 0) {
+        if (Object.keys(participantData).length > 0) {
             organizationId = participantData.organization_id;
             accountId = participantData.account_id;
             workforceId = participantData.workforce_id;
@@ -2029,6 +2030,23 @@ function ActivityCommonService(db, util, forEachAsync) {
             });
         }
     };
+    
+    this.msgUniqueIdInsert = function (request, callback) {
+        var paramsArr = new Array(
+            request.message_unique_id,
+            request.asset_id,
+            request.activity_id,
+            request.form_transaction_id
+        );
+        var queryString = util.getQueryString('ds_p1_asset_message_unique_id_transaction_insert', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                global.logger.write('debug', data, {}, request);
+                (err == false) ? callback(false, data): callback(true, {});
+            });
+        }
+    };
+
 
     this.duplicateMsgUniqueIdInsert = function (request, callback) {
         var arr = new Array();
@@ -2284,6 +2302,42 @@ function ActivityCommonService(db, util, forEachAsync) {
             });
         }
     };
+    
+    this.getWorkflowForAGivenUrl = function (request) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                request.organization_id,
+                request.worflow_trigger_url
+            );
+            var queryString = util.getQueryString('ds_p1_workflow_mapping_select_url', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data): reject(err);
+                });
+            }
+        });
+    };
+    
+    this.makeRequest = function (request, url, port) {
+        return new Promise((resolve, reject) => {
+            var options = {
+                form: request
+            };
+            
+            if(port == 0) {
+
+            } else {
+                global.logger.write('debug', "Request Params b4 making Request : ", {}, {});
+                global.logger.write('debug', request, {}, {});
+                global.logger.write('debug', "http://localhost:"+ global.config.servicePort + "/" + global.config.version + "/" + url, {}, {});
+                makingRequest.post("http://localhost:"+ global.config.servicePort + "/" + global.config.version + "/"  + url , options, function (error, response, body) {
+                    resolve(body);
+                });
+            }
+
+        });
+    }
+    
 };
 
 
