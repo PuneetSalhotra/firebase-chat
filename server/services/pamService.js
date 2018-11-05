@@ -3180,7 +3180,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
     this.eventReport = function (request) {
     	return new Promise((resolve, reject)=>{
     	//get the list of reservations (not cancelled)
-    	getEventReservations(request).then((reservationList)=>{ // ArrayofArrays
+    	getEventReservations(request,1).then((reservationList)=>{ // ArrayofArrays
 			forEachAsync(reservationList, (next, reservation)=>{  
 				console.log('reservation:'+reservation);
 				forEachAsync(reservation, (next1, reservation1)=>{
@@ -3202,27 +3202,44 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
     };
     
     
-    function getEventReservations(request){
-		return new Promise((resolve, reject)=>{
-	        var paramsArr = new Array(
-	        		request.organization_id,
-	        		request.account_id,
-	        		request.activity_id,
-	        		37
-	                );	        
-	        var queryString = 'pm_v1_activity_list_select_event_reservations';
-	        if (queryString != '') {
-	            db.executeRecursiveQuery(1, 0, 50, queryString, paramsArr, function (err, data) {
-	            	//console.log("err "+err);
-	               if(err === false) {
-	               		resolve(data);        				        			      			  
-                    } else {
-	                   reject(err);
-	               }
-	            });
-	   		}
+    this.getEventReservations= function(request, is_recursive){
+		return new Promise((resolve, reject)=>{       
+	       
+	       // if (queryString != '') {
+	        	if(is_recursive == 1){
+	        		var queryString = 'pm_v1_activity_list_select_event_reservations';
+	    	        var paramsArr = new Array(
+	    	        		request.organization_id,
+	    	        		request.account_id,
+	    	        		request.activity_id,
+	    	        		37
+	    	                );	 
+		            db.executeRecursiveQuery(1, 0, 10, queryString, paramsArr, function (err, data) {
+		            	//console.log("err "+err);
+		               if(err === false) {
+		               		resolve(data);        				        			      			  
+	                    } else {
+		                   reject(err);
+		               }
+		            });
+	        	}else{
+	    	        var paramsArr = new Array(
+	    	        		request.organization_id,
+	    	        		request.account_id,
+	    	        		request.activity_id,
+	    	        		37,
+	    	        		request.page_start,
+	    	        		request.page_limit
+	    	                );	
+	    	        var queryString = util.getQueryString('pm_v1_activity_list_select_event_reservations', paramsArr);
+	        		db.executeQuery(1, queryString, request, function (err, data) {
+	                    (err === false)? resolve(data) : reject(err);
+	                });
+	        	}
+	   		//}
         });
     };
+
     
     this.processReservationBilling = function(request, idReservation){
     	return new Promise((resolve, reject)=>{
