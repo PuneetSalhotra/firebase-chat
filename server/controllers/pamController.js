@@ -459,6 +459,16 @@ function PamController(objCollection) {
         	});
     });
     
+    app.post('/' + global.config.version + '/pam/reservation/bill', function (req, res) {
+    	pamService.processReservationBilling(req.body, req.body.activity_id).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        	});
+    });
+    
 }
 ;
 module.exports = PamController;
