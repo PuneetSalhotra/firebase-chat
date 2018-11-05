@@ -12,9 +12,7 @@ function ActivityService(objectCollection) {
     var queueWrapper = objectCollection.queueWrapper;
     var activityPushService = objectCollection.activityPushService;
     var responseactivityData = {}
-    const suzukiPdfEngine = require('../utils/suzukiPdfGenerationEngine');
-    //const vodafoneStatusUpdate = require('../utils/vodafoneStatusUpdateFlow');
-    //const vodafoneFormSubmissionFlow = require('../utils/vodafoneFormSubmissionFlow');    
+    const suzukiPdfEngine = require('../utils/suzukiPdfGenerationEngine');     
 
     this.addActivity = function (request, callback) {
 
@@ -1915,9 +1913,10 @@ function ActivityService(objectCollection) {
                            global.logger.write('debug', resp, {}, request);
                         });
                     });
+                }
                     
 
-                }
+                // }
                 // 
                 // 
                 updateProjectStatusCounts(request).then(() => {});
