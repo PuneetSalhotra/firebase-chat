@@ -162,7 +162,7 @@ var Consumer = function () {
                         //console.log('data : ' + data);
                         //console.log('kafkaMsgId : ' + kafkaMsgId);
                         //console.log('Received message.offset : ' + message.offset);
-                        global.logger.write('debug', 'data : ' + JSON.stringify(data), {}, {});
+                        //global.logger.write('debug', 'data : ' + JSON.stringify(data), {}, {});
                         global.logger.write('debug', 'kafkaMsgId : ' + kafkaMsgId, {}, {});
                         global.logger.write('debug', 'Received message.offset : ' + message.offset, {}, {});
                         
