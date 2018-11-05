@@ -36,7 +36,7 @@ if (mode === 'local') {
     //config.database = 'desker';// desker_staging
     config.database = 'desker_staging';
     config.dbPassword = 'apidbuser';
-    config.conLimit = 10;
+    config.conLimit = 3;
 
     //Redis Config
     config.redisIp = '127.0.0.1';
@@ -44,22 +44,8 @@ if (mode === 'local') {
 
     config.kafkaMsgUniqueIdValue = 'read';
 
-    //Kafka Brokers Config
-    config.kafkaIPOne = {
-        kafkaHost: 'kafka1:9092'
-    };
-    config.kafkaIPTwo = {
-        kafkaHost: 'kafka1:9093'
-    };
-    config.kafkaIPThree = {
-        kafkaHost: 'kafka1:9094'
-    };
-
-    //Kafka Topics
-    config.kafkaActivitiesTopic = 'desker-activities';
-    config.kafkaFormWidgetTopic = 'desker-form-widgets';
-    config.consumerGroup = "desker-activities-consumer-group";
-
+    //config.kafkaFormWidgetTopic = 'desker-form-widgets';
+    
     //IOS Push
     config.iosPushMode = 'dev';
 
@@ -74,6 +60,28 @@ if (mode === 'local') {
 
     //making twilio, Nexmo Calls
     config.efsPath = "/";
+    
+    //Kafka Configuration
+    config.BROKER_HOST = "kafka1:9092";
+    config.BROKER_CONNECT_TIMEOUT = 10000;
+    config.BROKER_REQUEST_TIMEOUT = 60000;
+    config.BROKER_AUTO_CONNECT = true;
+    config.BROKER_MAX_ASYNC_REQUESTS = 10;
+
+    config.PRODUCER_REQUIRE_ACKS = 1;
+    config.PRODUCER_ACKS_TIMEOUT = 100;
+    config.PRODUCER_PARTITONER_TYPE = 3;
+
+    config.TOPIC_NAME = "desker-activities";
+    config.CONSUMER_GROUP_ID = "desker-activities-consumer-group";
+    config.CONSUMER_AUTO_COMMIT = true;
+    config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
+    config.CONSUMER_FETCH_MAX_WAIT = 10;
+    config.CONSUMER_FETCH_MIN_BYTES = 1;
+    config.CONSUMER_FETCH_MAX_BYTES = 1048576;
+    config.CONSUMER_ENCODING = "utf8";
+    config.CONSUMER_KEY_ENCODING = "utf8";
+    ///////////////////////////////
 }
 
 if (mode === 'dev') {
@@ -97,26 +105,11 @@ if (mode === 'dev') {
     config.dbUser = 'apiuser';
     config.database = 'desker_staging';
     config.dbPassword = 'apidbuser';
-    config.conLimit = 10;
+    config.conLimit = 3;
 
     //Redis Config
     config.redisIp = 'dev-redis.apppnf.0001.use1.cache.amazonaws.com';
     config.redisPort = 6379;
-
-    //Kafka Brokers Config
-    config.kafkaIPOne = {
-        kafkaHost: 'kafka1:9092'
-    };
-    config.kafkaIPTwo = {
-        kafkaHost: 'kafka2:9092'
-    };
-    config.kafkaIPThree = {
-        kafkaHost: 'kafka3:9092'
-    };
-
-    //Kafka Topics
-    config.kafkaActivitiesTopic = 'dev-desker-activities';
-    config.consumerGroup = "desker-activities-consumer-group-dev";
 
     //IOS Push
     config.iosPushMode = 'dev';
@@ -132,6 +125,28 @@ if (mode === 'dev') {
 
     //making twilio, Nexmo Calls
     config.efsPath = "/api-staging-efs/";
+    
+    //Kafka Configuration
+    config.BROKER_HOST = "kafka1:9092,kafka2:9092,kafka3:9092";
+    config.BROKER_CONNECT_TIMEOUT = 10000;
+    config.BROKER_REQUEST_TIMEOUT = 60000;
+    config.BROKER_AUTO_CONNECT = true;
+    config.BROKER_MAX_ASYNC_REQUESTS = 10;
+
+    config.PRODUCER_REQUIRE_ACKS = 1;
+    config.PRODUCER_ACKS_TIMEOUT = 100;
+    config.PRODUCER_PARTITONER_TYPE = 3;
+
+    config.TOPIC_NAME = "dev-desker-activities";
+    config.CONSUMER_GROUP_ID = "desker-activities-consumer-group-dev";
+    config.CONSUMER_AUTO_COMMIT = true;
+    config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
+    config.CONSUMER_FETCH_MAX_WAIT = 10;
+    config.CONSUMER_FETCH_MIN_BYTES = 1;
+    config.CONSUMER_FETCH_MAX_BYTES = 1048576;
+    config.CONSUMER_ENCODING = "utf8";
+    config.CONSUMER_KEY_ENCODING = "utf8";
+    ///////////////////////////////
 }
 
 if (mode === 'staging') {
@@ -156,25 +171,12 @@ if (mode === 'staging') {
     config.database = 'desker_staging';
     config.dbPassword = 'apidbuser';
 
-    config.conLimit = 10;
+    config.conLimit = 3;
 
     //Redis Config
     config.redisIp = 'dev-redis.apppnf.0001.use1.cache.amazonaws.com';
     config.redisPort = 6379;
 
-    //Kafka Brokers Config
-    config.kafkaIPOne = {
-        kafkaHost: 'kafka1:9092'
-    };
-    config.kafkaIPTwo = {
-        kafkaHost: 'kafka2:9092'
-    };
-    config.kafkaIPThree = {
-        kafkaHost: 'kafka3:9092'
-    };
-
-    //Kafka Topics
-    config.kafkaActivitiesTopic = 'staging-desker-activities';
     //config.kafkaFormWidgetTopic = 'desker-form-widgets';
     config.consumerGroup = "desker-activities-consumer-group-staging";
 
@@ -192,6 +194,28 @@ if (mode === 'staging') {
 
     //making twilio, Nexmo Calls
     config.efsPath = "/api-staging-efs/";
+    
+    //Kafka Configuration
+    config.BROKER_HOST = "kafka1:9092,kafka2:9092,kafka3:9092";
+    config.BROKER_CONNECT_TIMEOUT = 10000;
+    config.BROKER_REQUEST_TIMEOUT = 60000;
+    config.BROKER_AUTO_CONNECT = true;
+    config.BROKER_MAX_ASYNC_REQUESTS = 10;
+
+    config.PRODUCER_REQUIRE_ACKS = 1;
+    config.PRODUCER_ACKS_TIMEOUT = 100;
+    config.PRODUCER_PARTITONER_TYPE = 3;
+
+    config.TOPIC_NAME = 'staging-desker-activities';
+    config.CONSUMER_GROUP_ID = "desker-activities-consumer-group-staging";
+    config.CONSUMER_AUTO_COMMIT = true;
+    config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
+    config.CONSUMER_FETCH_MAX_WAIT = 10;
+    config.CONSUMER_FETCH_MIN_BYTES = 1;
+    config.CONSUMER_FETCH_MAX_BYTES = 1048576;
+    config.CONSUMER_ENCODING = "utf8";
+    config.CONSUMER_KEY_ENCODING = "utf8";
+    ///////////////////////////////
 }
 
 if (mode === 'preprod') {
@@ -216,7 +240,7 @@ if (mode === 'preprod') {
     config.database = 'desker';
     config.dbPassword = 'apidbuser';
 
-    config.conLimit = 10;
+    config.conLimit = 3;
 
     //Redis Config
     config.redisIp = 'rediscluster1.apppnf.ng.0001.use1.cache.amazonaws.com';
@@ -276,7 +300,7 @@ if (mode === 'vodafone') {
     config.database = 'desker';
     config.dbPassword = 'apidbuser';
 
-    config.conLimit = 10;
+    config.conLimit = 3;
 
     //Redis Config
     config.redisIp = 'rediscluster1.apppnf.ng.0001.use1.cache.amazonaws.com';
@@ -336,7 +360,7 @@ if (mode === 'prod') {
     config.database = 'desker';
     config.dbPassword = 'apidbuser';
 
-    config.conLimit = 10;
+    config.conLimit = 3;
 
     //Redis    
     config.redisIp = 'rediscluster1.apppnf.ng.0001.use1.cache.amazonaws.com';
@@ -362,7 +386,6 @@ if (mode === 'prod') {
     //IOS PUSH
     config.iosPushMode = 'prod';
 
-
     //SQS QUEUE
     config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/Desker-Logging-Production";
 
@@ -375,7 +398,7 @@ if (mode === 'prod') {
     //making twilio, Nexmo Calls
     config.efsPath = "/api-final-efs/";
 }
-
+        
 config.platformApplicationIosDev = 'arn:aws:sns:us-east-1:430506864995:app/APNS_VOIP_SANDBOX/VOIPios';
 config.platformApplicationIosProd = "arn:aws:sns:us-east-1:430506864995:app/APNS_VOIP/VOIPiosProd";
 config.platformApplicationIosDevGR = 'arn:aws:sns:us-east-1:430506864995:app/APNS_VOIP_SANDBOX/GRVOIPiosDev';
@@ -393,6 +416,14 @@ config.platformApplicationIosVOIPProd = 'arn:aws:sns:us-east-1:430506864995:app/
 //Service Desk IOS normal Push platform endpoints
 config.platformApplicationIosSDPushDev = 'arn:aws:sns:us-east-1:430506864995:app/APNS_SANDBOX/serviceDeskDev';
 config.platformApplicationIosSDPushProd = 'arn:aws:sns:us-east-1:430506864995:app/APNS/serviceDeskProd';
+
+//Office Desk IOS normal Push platform endpoints
+config.platformApplicationIosODPushDev = 'arn:aws:sns:us-east-1:430506864995:app/APNS_SANDBOX/officeDeskIOSDev';
+config.platformApplicationIosODPushProd = 'arn:aws:sns:us-east-1:430506864995:app/APNS/officeDeskIOSProd';
+
+//PAM App IOS Pushes
+config.platformApplicationIosPamPushDev = 'arn:aws:sns:us-east-1:430506864995:app/APNS_SANDBOX/pamDevApp';
+config.platformApplicationIosPamPushProd = 'arn:aws:sns:us-east-1:430506864995:app/APNS/pamProdApp';
 
 config.twilioAccountSid = "AC66cabb9ae7db92bbf7e6113ff2eeabad";
 config.twilioAuthToken = "7d4f9ee9f8122d2a7129e13fdaefd919";

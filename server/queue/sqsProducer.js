@@ -24,7 +24,7 @@ function SqsProducer() {
                 console.log(err);
                 callback(true, false);
             } else {
-                console.log(data);
+                //console.log(data);
                 callback(false, data);
             }
         });
