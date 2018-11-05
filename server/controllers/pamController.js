@@ -1,7 +1,3 @@
-/*
- *author: Nani Kalyan V
- * 
- */
 
 var PamService = require("../services/pamService");
 
