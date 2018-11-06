@@ -101,21 +101,19 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
 
                             var asset_id = req.body.auth_asset_id || req.body.asset_id;
 
-                            //cacheWrapper.getTokenAuth(req.body.asset_id, function (err, encToken) {
+                            
                             cacheWrapper.getTokenAuth(asset_id, function (err, encToken) {
-                                if (err) {
-                                    //console.log("redis token Checking error:");                                    
+                                if (err) {                               
                                     global.logger.write('appError', 'Redis token Checking error : ' + JSON.stringify(err), err, req.body);
                                     res.send(responseWrapper.getResponse(null, {}, -7998, req.body));
                                     return;
-                                } else {
-                                    console.log(encToken);
-                                    if (encToken === req.body.asset_token_auth) {
-                                        //console.log("successfully redis encToken checking is done");
+                                } else {                                    
+                                    global.logger.write('debug', encToken, {}, req.body);
+                                    if (encToken === req.body.asset_token_auth) {                                        
                                         global.logger.write('debug', 'successfully redis encToken checking is done', {}, req.body);
                                         next();
-                                    } else {
-                                        //console.log('redis encToken checking failed : ' + err);
+                                    } else {                                        
+                                        global.logger.write('debug', 'req.url : ' + req.url, {}, req.body);
                                         global.logger.write('serverError', 'Redis encToken checking failed : ' + JSON.stringify(err), {}, req.body);
                                         res.send(responseWrapper.getResponse(null, {}, -3204, req.body));
                                         return;
