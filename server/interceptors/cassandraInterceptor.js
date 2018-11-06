@@ -61,7 +61,7 @@ function CassandraInterceptor(util, cassandraWrapper) {
 
     function deviceTransactionInsert(messageCollection, logDate, logTimestamp, callback) {
 
-        const transactionId = messageCollection.request.bundle_transaction_id || 0;
+        const transactionId = messageCollection.request.bundle_transaction_id || TimeUuid.now();
         console.log("transactionId: ", transactionId);
 
         const recordId = TimeUuid.now();
@@ -139,7 +139,7 @@ function CassandraInterceptor(util, cassandraWrapper) {
             dbResponse = JSON.stringify(messageCollection.object) || '';
         }
 
-        const transactionId = messageCollection.request.bundle_transaction_id || 0;
+        const transactionId = messageCollection.request.bundle_transaction_id || TimeUuid.now();
         console.log("transactionId: ", transactionId);
 
         const recordId = TimeUuid.now();
@@ -232,6 +232,11 @@ function CassandraInterceptor(util, cassandraWrapper) {
         var logTimestamp = util.getCurrentUTCTime();
         var logDate = util.getCurrentDate();
         var Id = uuid.v1();
+
+        // Not handling SESSIONs as of now. So returning a success callback
+        // so these messages don't linger in 'In Flight' mode indefinitely.
+        // This is a temporary patch and needs fix at a later time.
+        return callback(false, true);
 
         console.log('In logSessioData Function messageCollection : \n' + JSON.stringify(messageCollection));
         console.log('messageCollection.request.asset_clocked_status_id :' + messageCollection.request.asset_clocked_status_id)
