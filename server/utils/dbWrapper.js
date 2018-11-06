@@ -83,8 +83,10 @@ var executeQuery = function (flag, queryString, request, callback) {
                 callback(err, false);
                 return;
             } else {
-                global.logger.write('debug','conPool flag - ' + flag, {}, request);
-                global.logger.write('debug','Connection is: ' + conn.config.host, {}, request);                
+                // global.logger.write('debug','conPool flag - ' + flag, {}, request);
+                // global.logger.write('debug','Connection is: ' + conn.config.host, {}, request);                
+                console.log('conPool flag - ', flag);
+                console.log('Connection is: ', conn.config.host);
                 conn.query(queryString, function (err, rows, fields) {
                     if (!err) {
                         //console.log(queryString);

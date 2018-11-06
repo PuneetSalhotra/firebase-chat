@@ -54,6 +54,8 @@ function CassandraInterceptor(util, cassandraWrapper) {
                 break;
             default:
                 console.log('No Such Module exists : \n' + JSON.stringify(messageCollection.request, null, 2) + '\n\n');
+                callback(false, true);
+                return;
         }
     };
 

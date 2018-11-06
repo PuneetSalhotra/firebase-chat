@@ -14,13 +14,14 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                 global.logger.write('debug', 'Unable to get the service Id', {}, req.body);
                 req.body.service_id = 0;
             } else {
-                //console.log('Service Id : ' + result)
-                global.logger.write('debug', 'Service Id : ' + JSON.stringify(result), {}, req.body);
+                console.log('Service Id: ' + result)
+                // global.logger.write('debug', 'Service Id : ' + JSON.stringify(result), {}, req.body);
                 req.body.service_id = result;
                 var bundleTransactionId = TimeUuid.now();
                 req.body.bundle_transaction_id = bundleTransactionId;
                 req.body.url = req.url;
                 if (req.body.url.includes('/' + global.config.version + '/account/')) {
+                    req.body['module'] = 'asset';
                     global.logger.write('request', JSON.stringify(req.body, null, 2), req.body, req.body);
                     global.logger.write('info', 'bypassing enc token checking as request is from account', {}, req.body);
                     next();
@@ -31,12 +32,7 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                 } else {
 
                     switch (req.url) {
-                        /*
-                         case '/time/value':
-                         global.logger.write('', req.body, 'device', 'request');
-                         next();
-                         break;
-                         */
+
                         case '/' + global.config.version + '/asset/passcode/alter':
                         case '/' + global.config.version + '/asset/passcode/alter/v1':
                             //case '/' + global.config.version + '/sms-dlvry/sinfini':
@@ -74,7 +70,7 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                         case '/' + global.config.version + '/send/email':
                         case '/' + global.config.version + '/wf/send/email':
                         case '/' + global.config.version + '/wf/send/sms':
-                            //req.body['module'] = 'asset';
+                            req.body['module'] = 'asset';
                             // global.logger.write('request', JSON.stringify(req.body, null, 2), req.body, req.body);
                             next();
                             break;
@@ -83,6 +79,7 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                         case '/' + global.config.version + '/stats/signup/count':
                         case '/' + global.config.version + '/stats/signup/list':
                         case '/' + global.config.version + '/stats/timeline/list':
+                            req.body['module'] = 'asset';
                             next();
                             break;
 
@@ -95,6 +92,17 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                                 } else {
                                     req.body['module'] = 'asset';
                                 }
+                            }
+
+                            if (req.body.hasOwnProperty("activity_id")) {
+                                req.body['module'] = 'activity';
+
+                            } else if (req.body.url.includes('activity')) {
+                                req.body['module'] = 'activity';
+
+                            } else {
+                                req.body['module'] = 'asset';
+                                
                             }
                             //console.log('Module : ' + req.body['module']);
                             global.logger.write('debug', 'Module : ' + req.body['module'], {}, req.body);
