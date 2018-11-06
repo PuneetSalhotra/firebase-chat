@@ -26,12 +26,19 @@ function Logger() {
         }
 
         util.writeLogs(message, isTargeted);
-                
+
         var loggerCollectionString = JSON.stringify(loggerCollection);
-        sqs.produce(loggerCollectionString, function (err, response) {
-            if (err)
-                console.log("error is: " + err);
-        });
+        switch (level) {
+            case 'conLog':
+                break;
+
+            default:
+                sqs.produce(loggerCollectionString, function (err, response) {
+                    if (err)
+                        console.log("error is: " + err);
+                });
+                break;
+        }
     };
 
     this.writeSession = function (request) {

@@ -680,7 +680,7 @@ function ActivityController(objCollection) {
             queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp) => {
                 if (err) {
                     //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                    global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent", err, req);
+                    global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent", err, req.body);
 
                     res.send(responseWrapper.getResponse(true, activityData, -5999, req.body));
                     throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');

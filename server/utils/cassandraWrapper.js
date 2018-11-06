@@ -43,26 +43,26 @@ function CassandraWrapper() {
         switch (log) {
             case 'session':
                 switch (global.mode) {
+                    case 'preprod':
                     case 'prod':
                         connectionResource = sessionClientProd;
                         break;
                     case 'dev':
                     case 'local':
                     case 'staging':
-                    case 'preprod':
                         connectionResource = sessionClientDev;
                         break;
                 }
                 break;
             case 'log':
                 switch (global.mode) {
+                    case 'preprod':
                     case 'prod':
                         connectionResource = logClientProd;
                         break;
                     case 'dev':
                     case 'local':
                     case 'staging':
-                    case 'preprod':
                         connectionResource = logClientDev;
                         break;
                 }
@@ -86,16 +86,20 @@ function CassandraWrapper() {
         switch (messageCollection.log) {
             case 'session':
                 switch (messageCollection.environment) {
+                    case 'preprod':
                     case 'prod':
                         connectionResource = sessionClientProd;
                         break;
                     case 'dev':
+                    case 'local':
+                    case 'staging':
                         connectionResource = sessionClientDev;
                         break;
                 }
                 break;
             case 'log':
                 switch (messageCollection.environment) {
+                    case 'preprod':
                     case 'prod':
                         connectionResource = logClientProd;
                         break;
