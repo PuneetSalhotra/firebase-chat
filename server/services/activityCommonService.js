@@ -255,7 +255,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
 
 
-        if (participantData.length > 0) {
+        if (Object.keys(participantData).length > 0) {
             organizationId = participantData.organization_id;
             accountId = participantData.account_id;
             workforceId = participantData.workforce_id;
@@ -353,7 +353,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         };
 
         var paramsArr = new Array(
-            request.activity_id,
+            request.activity_id || 0,
             assetId,
             workforceId,
             accountId,
@@ -456,7 +456,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
 
 
-        if (participantData.length > 0) {
+        if (Object.keys(participantData).length > 0) {
             organizationId = participantData.organization_id;
             accountId = participantData.account_id;
             workforceId = participantData.workforce_id;
@@ -503,6 +503,11 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityTypeId = 0;
                 entityText1 = request.form_transaction_id;
                 entityText2 = request.activity_timeline_collection;
+                break;
+            case 704: // form: status alter
+                entityTypeId = 0;
+                entityText2 = request.activity_timeline_collection;
+                activityTimelineCollection = request.activity_timeline_collection;
                 break;
             case 705: // form
                 entityTypeId = 0;

@@ -12,9 +12,7 @@ function ActivityService(objectCollection) {
     var queueWrapper = objectCollection.queueWrapper;
     var activityPushService = objectCollection.activityPushService;
     var responseactivityData = {}
-    const suzukiPdfEngine = require('../utils/suzukiPdfGenerationEngine');
-    //const vodafoneStatusUpdate = require('../utils/vodafoneStatusUpdateFlow');
-    //const vodafoneFormSubmissionFlow = require('../utils/vodafoneFormSubmissionFlow');    
+    const suzukiPdfEngine = require('../utils/suzukiPdfGenerationEngine');     
 
     this.addActivity = function (request, callback) {
 
@@ -358,7 +356,6 @@ function ActivityService(objectCollection) {
                                 request.contact_reference_contact_number = contactCardInlineData.contact_phone_number;
                                 request.contact_reference_email = contactCardInlineData.contact_email_id;
                                 request.invoice_date = data[0].activity_datetime_created;
-                                console.log("data[0].activity_datetime_created: ", data[0].activity_datetime_created)
 
                                 // Fetch contact file's first collaborator (non-creator):
                                 // 
@@ -367,6 +364,7 @@ function ActivityService(objectCollection) {
                                         // console.log("collaboratorData: ", collaboratorData);
                                         request.contact_executive_name = collaboratorData[0].operating_asset_first_name;
                                         request.contact_executive_contact_number = '+ ' + collaboratorData[0].operating_asset_phone_country_code + ' ' + collaboratorData[0].operating_asset_phone_number;
+                                        // request.log_datetime = util.getCurrentUTCTime();
 
                                     } else {
                                         console.log("No sales executive");
@@ -1915,9 +1913,10 @@ function ActivityService(objectCollection) {
                            global.logger.write('debug', resp, {}, request);
                         });
                     });
+                }
                     
 
-                }
+                // }
                 // 
                 // 
                 updateProjectStatusCounts(request).then(() => {});
