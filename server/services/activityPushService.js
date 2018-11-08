@@ -345,8 +345,8 @@ function ActivityPushService(objectCollection) {
         pushStringObj.order_name = request.activity_title;
         pushStringObj.status_type_id = 0;
         pushStringObj.station_category_id = request.activity_channel_category_id;
-        pushStringObj.item_order_count = request.item_order_count;
-
+		pushStringObj.item_order_count = request.item_order_count;
+		
         data.forEach(function (arn, index) {
             //console.log(arn);
             global.logger.write('debug', arn, {}, request);

@@ -164,7 +164,7 @@ function ActivityService(objectCollection) {
                             }
 
                             if (activityTypeCategroyId === 40) {
-                            	//if(request.hasOwnProperty('is_room_posting'))
+                            	if(request.hasOwnProperty('is_room_posting'))
                             	activityCommonService.processReservationBilling(request, request.activity_parent_id).then(()=>{});
                             }
                             

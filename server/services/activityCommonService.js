@@ -3,6 +3,7 @@
  */
 
 function ActivityCommonService(db, util, forEachAsync) {
+    var makingRequest = require('request');
 
     this.getAllParticipants = function (request, callback) {
         var paramsArr = new Array(
@@ -93,7 +94,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 } else {
                     callback(true, false);
                     //console.log(err);
-                    global.logger.write('serverError', '', err, request)
+                    global.logger.write('serverError', JSON.stringify(err), err, request)
                     return;
                 }
             });
@@ -254,7 +255,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
 
 
-        if (participantData.length > 0) {
+        if (Object.keys(participantData).length > 0) {
             organizationId = participantData.organization_id;
             accountId = participantData.account_id;
             workforceId = participantData.workforce_id;
@@ -352,7 +353,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         };
 
         var paramsArr = new Array(
-            request.activity_id,
+            request.activity_id || 0,
             assetId,
             workforceId,
             accountId,
@@ -397,7 +398,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', '', err, request)
+                    global.logger.write('serverError', JSON.stringify(err), err, request)
                     return;
                 }
             });
@@ -455,7 +456,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
 
 
-        if (participantData.length > 0) {
+        if (Object.keys(participantData).length > 0) {
             organizationId = participantData.organization_id;
             accountId = participantData.account_id;
             workforceId = participantData.workforce_id;
@@ -502,6 +503,11 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityTypeId = 0;
                 entityText1 = request.form_transaction_id;
                 entityText2 = request.activity_timeline_collection;
+                break;
+            case 704: // form: status alter
+                entityTypeId = 0;
+                entityText2 = request.activity_timeline_collection;
+                activityTimelineCollection = request.activity_timeline_collection;
                 break;
             case 705: // form
                 entityTypeId = 0;
@@ -625,7 +631,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', '', err, request)
+                    global.logger.write('serverError', JSON.stringify(err), err, request)
                     return;
                 }
             });
@@ -1013,7 +1019,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
                     //console.log('DAta in inventory check : ', data);
-                    global.logger.write('debug', 'Data in inventory check : ' + data, {}, request);
+                    global.logger.write('debug', 'Data in inventory check : ' + JSON.stringify(data, null, 2), {}, request);
                     if (data.length > 0) {
                         var ingredients = new Array();
                         forEachAsync(data, function (next, x) {
@@ -1044,8 +1050,8 @@ function ActivityCommonService(db, util, forEachAsync) {
                                 }).then(() => {
                                     //console.log('stationIdArrays: ', stationIdArrays);
                                     //console.log('TempArray: ', tempArray);
-                                    global.logger.write('debug', 'stationIdArrays: ' + stationIdArrays, {}, request);
-                                    global.logger.write('debug', 'TempArray: ' + tempArray, {}, request);
+                                    global.logger.write('debug', 'stationIdArrays: ' + JSON.stringify(stationIdArrays, null, 2), {}, request);
+                                    global.logger.write('debug', 'TempArray: ' + JSON.stringify(tempArray, null, 2), {}, request);
                                     tempArray.forEach(function (item, index) {
                                         //console.log('util.getFrequency(item'+item+',tempArray) : ' , util.getFrequency(item, tempArray))
                                         //console.log('stationIdArrays.length : ', stationIdArrays.length)
@@ -1149,7 +1155,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log('data.length :' + data.length);                
                 //console.log('data : ', data);
-                global.logger.write('debug', 'data : ' + data, {}, request);
+                global.logger.write('debug', 'data : ' + JSON.stringify(data, null, 2), {}, request);
                 if (data.length > 0) {
                     callback(true, data);
                 } else {
@@ -1171,7 +1177,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log('data : ', data);
-                global.logger.write('debug', 'data : ' + data, {}, request);
+                global.logger.write('debug', 'data : ' + JSON.stringify(data, null, 2), {}, request);
                 if (data.length > 0) {
                     callback(true, data);
                 } else {
@@ -1196,7 +1202,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log('DAta : ', data);
-                global.logger.write('debug', 'data : ' + data, {}, request);
+                global.logger.write('debug', 'data : ' + JSON.stringify(data, null, 2), {}, request);
                 if (err === false) {
                     if (data.length > 0) {
                         callback(false, data);
@@ -1221,7 +1227,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log('getOccupiedDeskCounts : ', data);
-                global.logger.write('debug', 'getOccupiedDeskCounts : ' + data, {}, request);
+                global.logger.write('debug', 'getOccupiedDeskCounts : ' + JSON.stringify(data, null, 2), {}, request);
                 (err === false) ? callback(false, data): callback(true, err);
             });
         }
@@ -1386,7 +1392,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 } else {
                     callback(err, false, false);
                     //console.log(err);
-                    global.logger.write('serverError', '' + err, request)
+                    global.logger.write('serverError', err, {}, request)
                     return;
                 }
             });
@@ -1577,13 +1583,13 @@ function ActivityCommonService(db, util, forEachAsync) {
             util.pamSendSmsMvaayoo(text, countryCode, phoneNumber, function (err, res) {
                 if (err === false) {
                     //console.log('Message sent!',res);
-                    global.logger.write('debug', 'Message sent!' + res, {}, request);
+                    global.logger.write('debug', 'Message sent!' + JSON.stringify(res, null, 2), {}, request);
                 }
             });
             util.pamSendSmsMvaayoo(text, 91, 6309386175, function (err, res) {
                 if (err === false) {
                     //console.log('Message sent to Admin!', res);
-                    global.logger.write('debug', 'Message sent to Admin!' + res, {}, request);
+                    global.logger.write('debug', 'Message sent to Admin!' + JSON.stringify(res, null, 2), {}, request);
                 }
             });
             return callback(false, 200);
@@ -1673,7 +1679,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                             } else {
                                 callback(err, false);
                                 //console.log(err);
-                                global.logger.write('serverError', '' + err, request)
+                                global.logger.write('serverError', err, {}, request)
                                 return;
                             }
                         });
@@ -1681,7 +1687,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', '' + err, request)
+                    global.logger.write('serverError', err, {}, request)
                     return;
                 }
             });
@@ -1931,7 +1937,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     if (err === false) {
                         //console.log('DATA : ', data);
-                        global.logger.write('debug', 'DATA : ' + data, {}, request);
+                        global.logger.write('debug', 'DATA : ' + JSON.stringify(data, null, 2), {}, request);
                         resolve(data)
                     } else {
                         reject(err);
@@ -1995,18 +2001,52 @@ function ActivityCommonService(db, util, forEachAsync) {
     
     this.checkingMSgUniqueId = function (request, callback) {
         var paramsArr = new Array(
-            request.activity_id,
-            request.message_unique_id
+            request.message_unique_id,
+            request.asset_id
         );
-        var queryString = util.getQueryString('ds_v1_activity_timeline_transaction_select_msg_unq_chk', paramsArr);
+        //var queryString = util.getQueryString('ds_v1_activity_timeline_transaction_select_msg_unq_chk', paramsArr);
+        var queryString = util.getQueryString('ds_p1_asset_message_unique_id_transaction_select', paramsArr);        
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log('data : ', data);
                 global.logger.write('debug', data, {}, request);
-                (data[0].count == 0) ? callback(false, data): callback(true, {});
+                (data.length > 0) ? callback(true, {}) : callback(false, data);
             });
         }
     };
+    
+    this.msgUniqueIdInsert = function (request, callback) {
+        var paramsArr = new Array(
+            request.message_unique_id,
+            request.asset_id,
+            request.activity_id,
+            request.form_transaction_id
+        );        
+        var queryString = util.getQueryString('ds_p1_asset_message_unique_id_transaction_insert', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                global.logger.write('debug', data, {}, request);
+                (err == false) ? callback(false, data): callback(true, {});
+            });
+        }
+    };
+    
+    this.msgUniqueIdInsert = function (request, callback) {
+        var paramsArr = new Array(
+            request.message_unique_id,
+            request.asset_id,
+            request.activity_id,
+            request.form_transaction_id
+        );
+        var queryString = util.getQueryString('ds_p1_asset_message_unique_id_transaction_insert', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                global.logger.write('debug', data, {}, request);
+                (err == false) ? callback(false, data): callback(true, {});
+            });
+        }
+    };
+
 
     this.duplicateMsgUniqueIdInsert = function (request, callback) {
         var arr = new Array();
@@ -2214,13 +2254,13 @@ function ActivityCommonService(db, util, forEachAsync) {
     
     this.processReservationBilling = function (request, idReservation){
     	return new Promise((resolve, reject)=>{
-    		//if(request.hasOwnProperty('is_room_posting'))
-    			this.pamEventBillingUpdate(request, idReservation);
+    		if(request.hasOwnProperty('is_room_posting'))
+    			pamEventBillingUpdate(request, idReservation);
     		resolve(true);
     	});
     };    
 
-    this.pamEventBillingUpdate = function(request, idReservation) {
+    function pamEventBillingUpdate(request, idReservation) {
         return new Promise((resolve, reject)=>{
             var paramsArr = new Array(
                 request.organization_id,
@@ -2242,7 +2282,94 @@ function ActivityCommonService(db, util, forEachAsync) {
         })
     };
 
-     this.pamOrderListUpdate = function (request, idOrder) {
+    // Fetching the Asset Type ID for a given organisation/workforce and asset type category ID
+    this.workforceAssetTypeMappingSelectCategory = function (request, assetTypeCategoryId, callback) {
+        // IN p_organization_id bigint(20), IN p_account_id bigint(20), IN p_workforce_id bigint(20), 
+        // IN p_asset_type_category_id SMALLINT(6), IN p_start_from SMALLINT(6), IN p_limit_value TINYINT(4)
+
+        var paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            assetTypeCategoryId,
+            0,
+            1
+        );
+        var queryString = util.getQueryString('ds_p1_workforce_asset_type_mapping_select_category', paramsArr);
+        if (queryString !== '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                (err === false) ? callback(false, data, 200): callback(err, data, -9998);
+            });
+        }
+    };
+    
+    this.getWorkflowForAGivenUrl = function (request) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                request.organization_id,
+                request.worflow_trigger_url
+            );
+            var queryString = util.getQueryString('ds_p1_workflow_mapping_select_url', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data): reject(err);
+                });
+            }
+        });
+    };
+    
+    this.makeRequest = function (request, url, port) {
+        return new Promise((resolve, reject) => {
+            var options = {
+                form: request
+            };
+            
+            if(port == 0) {
+
+            } else {
+                global.logger.write('debug', "Request Params b4 making Request : ", {}, {});
+                global.logger.write('debug', request, {}, {});
+                global.logger.write('debug', "http://localhost:"+ global.config.servicePort + "/" + global.config.version + "/" + url, {}, {});
+                makingRequest.post("http://localhost:"+ global.config.servicePort + "/" + global.config.version + "/"  + url , options, function (error, response, body) {
+                    resolve(body);
+                });
+            }
+
+        });
+    }
+    
+        
+    this.processReservationBilling = function (request, idReservation){
+    	return new Promise((resolve, reject)=>{
+    		//if(request.hasOwnProperty('is_room_posting'))
+    			pamEventBillingUpdate(request, idReservation);
+    		resolve(true);
+    	});
+    };    
+
+    function pamEventBillingUpdate(request, idReservation) {
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,                
+                idReservation,
+                request.datetime_log
+                );
+            var queryString = util.getQueryString("pm_v1_pam_event_billing_update", paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {                  
+                   if(err === false){                	   
+                	   resolve();
+                   }else{
+                	   reject(err);
+                   }
+                });
+            }
+        })
+    };
+    
+    this.pamOrderListUpdate = function (request, idOrder) {
         return new Promise((resolve, reject)=>{
             var paramsArr = new Array(
                 request.organization_id,
