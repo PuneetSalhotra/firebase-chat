@@ -3242,7 +3242,6 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
 	   		//}
         });
     };
-
     
     this.processReservationBilling = function(request, idReservation){
     	return new Promise((resolve, reject)=>{
@@ -3276,7 +3275,6 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
 	    	}
     	});
     };
-
     
     function getReservationMemberDiscount(request, idReservation){
 		return new Promise((resolve, reject)=>{
@@ -3511,7 +3509,8 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
 			 
 			 }); 
     	});
-    };    
+    };
+        
     function pamEventBillingInsert(request, idEvent, nameEvent, idReservation, nameReservation, idStatusType, nameStatusType, idMember, nameMember, billingAmount) {
         return new Promise((resolve, reject)=>{
             var paramsArr = new Array(
@@ -3540,7 +3539,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                 });
             }
         })
-    }
+    };
 
    function pamOrderInsert(request, attributeArray){
     	return new Promise((resolve, reject)=>{
