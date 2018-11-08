@@ -92,7 +92,8 @@ var AwsSns = function () {
             'order_id': message.order_id,
             'order_name': message.order_name,
             'status_type_id': 0,
-            'station_category_id': message.activity_channel_category_id
+            'station_category_id': message.activity_channel_category_id,
+            'item_order_count':message.item_order_count
         }
 
         var params = {

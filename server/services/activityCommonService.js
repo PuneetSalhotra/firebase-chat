@@ -2214,13 +2214,13 @@ function ActivityCommonService(db, util, forEachAsync) {
     
     this.processReservationBilling = function (request, idReservation){
     	return new Promise((resolve, reject)=>{
-    		if(request.hasOwnProperty('is_room_posting'))
-    			pamEventBillingUpdate(request, idReservation);
+    		//if(request.hasOwnProperty('is_room_posting'))
+    			this.pamEventBillingUpdate(request, idReservation);
     		resolve(true);
     	});
     };    
 
-    function pamEventBillingUpdate(request, idReservation) {
+    this.pamEventBillingUpdate = function(request, idReservation) {
         return new Promise((resolve, reject)=>{
             var paramsArr = new Array(
                 request.organization_id,

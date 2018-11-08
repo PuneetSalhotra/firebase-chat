@@ -465,7 +465,7 @@ function PamController(objCollection) {
         	});
     });
     
-        app.post('/' + global.config.version + '/pam/event/reservation/list', function (req, res) {
+    app.post('/' + global.config.version + '/pam/event/reservation/list', function (req, res) {
     	pamService.getEventReservations(req.body,0).then((data)=>{   
     		//console.log(data);
     		res.send(responseWrapper.getResponse({}, data, 200, req.body));

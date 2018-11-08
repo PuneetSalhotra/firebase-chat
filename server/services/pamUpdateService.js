@@ -307,10 +307,10 @@ function PamUpdateService(objectCollection) {
 		//if(request.hasOwnProperty('is_room_posting')){
 		     if(activityTypeCategroyId == 37) {
 		         if(request.activity_status_type_id == 99) {                    	
-		            	activityCommonService.processReservationBilling(request, request.activity_id).then(()=>{});
+		            	activityCommonService.pamEventBillingUpdate(request, request.activity_id).then(()=>{});
 		          }
 		       }
-	        //    }
+	        // }
 		
 		if(activityTypeCategroyId == 38) {            		
             		//console.log('pamOrderListUpdate:'+activityTypeCategroyId);

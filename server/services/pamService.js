@@ -3182,26 +3182,29 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
     this.eventReport = function (request) {
     	return new Promise((resolve, reject)=>{
     	//get the list of reservations (not cancelled)
-    	getEventReservations(request,1).then((reservationList)=>{ // ArrayofArrays
+    		var totalBill = 0;
+    	this.getEventReservations(request,1).then((reservationList)=>{ // ArrayofArrays
 			forEachAsync(reservationList, (next, reservation)=>{  
 				console.log('reservation:'+reservation);
 				forEachAsync(reservation, (next1, reservation1)=>{
 					console.log('reservation1:'+reservation1.activity_id);
-					processReservationBilling(request, reservation1.activity_id).then((OrderData)=>{
-						console.log('OrderData:'+OrderData);
+					this.processReservationBilling(request, reservation1.activity_id).then((reservationBill)=>{
+						//console.log('Bill:'+reservationBill);
+						totalBill = totalBill + reservationBill;
 					}).then(()=>{
 						next1();
 					});
-				})
-			}).then(()=>{
-				next();
-			});
-    	});
+				}).then(()=>{
+					next();
+				});
+			})
+    	})
     	//for each reservation call the method in activity common service
     	resolve("");
     	});
     	
     };
+
     
     
     this.getEventReservations= function(request, is_recursive){
