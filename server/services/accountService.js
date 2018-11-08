@@ -501,6 +501,49 @@ function AccountService(objectCollection) {
         }
     };*/
 
+    // Set default landing module for a workforce.
+    this.setDefaultModuleForWorkforce = function (request, callback) {
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
+        // IN p_workforce_id BIGINT(20), IN p_default_module_id SMALLINT(6), 
+        // IN p_log_datetime DATETIME, IN p_log_asset_id BIGINT(20)
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.default_module_id,
+            util.getCurrentUTCTime(),
+            request.asset_id
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_list_update_default_module', paramsArr);
+        if (queryString !== '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                (err) ? callback(true, err, -9999): callback(false, data, 200);
+            });
+        }
+    };
+
+    // Set default landing module for an account.
+    this.setDefaultModuleForAccount = function (request, callback) {
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
+        // IN p_default_module_id SMALLINT(6), IN p_log_datetime DATETIME, 
+        // IN p_log_asset_id BIGINT(20)
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.default_module_id,
+            util.getCurrentUTCTime(),
+            request.asset_id
+        );
+        const queryString = util.getQueryString('ds_p1_account_list_update_default_module', paramsArr);
+        if (queryString !== '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                (err) ? callback(true, err, -9999): callback(false, data, 200);
+            });
+        }
+    };
+
 };
 
 module.exports = AccountService;

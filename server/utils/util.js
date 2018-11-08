@@ -14,7 +14,6 @@ var os = require('os');
 // SendGrid
 const sgMail = require('@sendgrid/mail');
 sgMail.setApiKey('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');
-
 // 
 
 function Util() {
@@ -126,8 +125,8 @@ function Util() {
 
             //console.log('error : ', error);
             //console.log('body : ' , body);
-            global.logger.write('debug', 'error : ' + error, {}, {});
-            global.logger.write('debug', 'body : ' + body, {}, {});
+            global.logger.write('debug', 'error : ' + JSON.stringify(error), {}, {});
+            global.logger.write('debug', 'body : ' + JSON.stringify(body), {}, {});
 
             var res = {};
             if (typeof foo != 'undefined' && foo.status === 1) {
@@ -289,38 +288,6 @@ function Util() {
         }
     };
 
-    /*this.makeCallNexmo = function (messageString, countryCode, phoneNumber, callback) {
-        var requestData = {
-            api_key: global.config.nexmoAPIKey,
-            "api_secret": global.config.nexmoSecretKey,
-            "to": countryCode + "" + phoneNumber,
-            "text": messageString,
-            "voice": "female",
-            "lg": "en-gb"
-        };
-        //console.log(requestData);
-        var url = "https://api.nexmo.com/tts/json";
-//        console.log(url);
-        request.post({
-            uri: url,
-            form: requestData
-        }, function (error, response, body) {
-            var foo = JSON.parse(body);
-            console.log(JSON.stringify(foo));
-            var res = {};
-            if (foo.status === 0) {
-                res['status'] = 1;
-                res['message'] = "Message sent";
-            } else {
-                res['status'] = 0;
-                res['message'] = "Message not sent";
-            }
-            if (error)
-                callback(error, false);
-            callback(false, res);
-        });
-    };*/
-
     this.makeCallNexmo = function (messageString, passcode, countryCode, phoneNumber, callback) {
         const nexmo = new Nexmo({
             apiKey: global.config.nexmoAPIKey,
@@ -358,7 +325,7 @@ function Util() {
                         callback(true, error, -3502);
                     } else {
                         //console.log('makeCallNexmo response: ', response);
-                        global.logger.write('debug', 'makeCallNexmo response: ' + response, {}, request);
+                        global.logger.write('debug', 'makeCallNexmo response: ' + JSON.stringify(response), {}, request);
                         callback(false, response, 200);
                     }
                 });
@@ -815,7 +782,7 @@ function Util() {
 
         // setup e-mail data with unicode symbols
         var mailOptions = {
-            from: 'Desker <' + global.config.smtp_user + '>', // sender address
+            from: 'BlueFlock <' + global.config.smtp_user + '>', // sender address
             to: email, // list of receivers
             subject: subject, // Subject line
             text: text, // plaintext body
@@ -828,7 +795,7 @@ function Util() {
                 callback(true, error);
             } else {
                 //console.log('Message sent: ' + info.response);
-                global.logger.write('debug', 'Message sent: ' + info.response, {}, request);
+                global.logger.write('debug', 'Message sent: ' + JSON.stringify(info.response), {}, request);
                 callback(false, info);
             }
         });
@@ -856,17 +823,15 @@ function Util() {
             subject: subject, // Subject line
             text: text, // plaintext body
             html: htmlTemplate, // html body,
-            
+
         };
 
         if (request.hasOwnProperty('attachment_url')) {
-            mailOptions.attachments = [
-                {
-                    // use URL as an attachment
-                    filename: request.attachment_name, // 'service_request_form.pdf',
-                    path: request.attachment_url
-                }
-            ]
+            mailOptions.attachments = [{
+                // use URL as an attachment
+                filename: request.attachment_name, // 'service_request_form.pdf',
+                path: request.attachment_url
+            }]
         }
 
         // send mail with defined transport object
@@ -881,12 +846,12 @@ function Util() {
         });
         return;
     };
-    
+
     // 
     this.sendEmailV2 = function (request, email, subject, text, htmlTemplate, callback) {
         const msg = {
             to: email,
-            from: 'Vodafone - Idea <vodafone_idea@grenerobotics.com>',
+            from: request.email_sender, // 'Vodafone - Idea <vodafone_idea@grenerobotics.com>'
             subject: subject,
             text: text,
             html: htmlTemplate,
@@ -930,6 +895,10 @@ function Util() {
     this.getUniqueArray = function (a) {
         return Array.from(new Set(a));
     };
+    
+    this.getWorkFlowUrl = function(url) {
+        return url.slice(4);
+    }
 
     this.writeLogs = function (data, isTargeted) {
         var date = this.getCurrentUTCTime();
@@ -965,6 +934,7 @@ function Util() {
             fs.writeFile(logFilePath, data_to_add, function (err, fd) {
                 if (err)
                     console.log('Error while writing data to file', err);
+                fs.chmodSync(logFilePath, '777');
             });
         }
 

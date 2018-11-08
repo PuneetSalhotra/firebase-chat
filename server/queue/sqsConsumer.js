@@ -26,35 +26,34 @@ var consume = function () {
             if (data.hasOwnProperty("Messages")) {
 
                 var deletMesageHandle = data['Messages'][0].ReceiptHandle;
-                //console.log("messge body is: "+ data['Messages'][0].Body);
+                console.log("****** ****** messge body is: ****** ******: \n", data['Messages'][0].Body);
                 //try {
-                    var body = data['Messages'][0].Body;
-                    var messageCollection = JSON.parse(body);
-                    console.log('messageCollection.environment :',messageCollection.environment);                                      
-                    switch (messageCollection.log) {
-                        case 'log':
-                            console.log('LOG');
-                            cassandraInterceptor.logData(messageCollection, function(err, resp){
-                                if(err === false) {
-                                    deleteSQSMessage(deletMesageHandle);
-                                }
-                            });
-                            break;
-                        case 'session':
-                            console.log('SESSION');
-                            cassandraInterceptor.logSessionData(messageCollection, function(err, resp){
-                                if(err === false) {
-                                    deleteSQSMessage(deletMesageHandle);
-                                }
-                            });
-                            break;
-                    }                
-                    ;
+                var body = data['Messages'][0].Body;
+                var messageCollection = JSON.parse(body);
+                console.log('messageCollection.environment :', messageCollection.environment);
+                switch (messageCollection.log) {
+                    case 'log':
+                        console.log('LOG');
+                        cassandraInterceptor.logData(messageCollection, function (err, resp) {
+                            if (err === false) {
+                                deleteSQSMessage(deletMesageHandle);
+                            }
+                        });
+                        break;
+                    case 'session':
+                        console.log('SESSION');
+                        cassandraInterceptor.logSessionData(messageCollection, function (err, resp) {
+                            if (err === false) {
+                                deleteSQSMessage(deletMesageHandle);
+                            }
+                        });
+                        break;
+                };
                 /*} catch (e) {
                     console.log(e);
                 }*/
 
-                
+
             } else {
                 //console.log("no new message yet!!");
             }
@@ -63,19 +62,19 @@ var consume = function () {
 };
 
 function deleteSQSMessage(deletMesageHandle) {
-    params = { 
-               QueueUrl: global.config.SQSqueueUrl, 
-               ReceiptHandle: deletMesageHandle 
-             };
-             
+    params = {
+        QueueUrl: global.config.SQSqueueUrl,
+        ReceiptHandle: deletMesageHandle
+    };
+
     sqs.deleteMessage(params, function (err, data) {
-        (err)? console.log(err) : console.log(data); 
+        (err) ? console.log(err): console.log(data);
     });
 }
 
 function checkingCassandraInstance() {
-    cassandraWrapper.isConnected('log', function(err, resp){
-        if(err === false) {
+    cassandraWrapper.isConnected('log', function (err, resp) {
+        if (err === false) {
             consume();
         } else {
             console.log('Cassandra is Down!');
@@ -85,22 +84,19 @@ function checkingCassandraInstance() {
 
 
 process.on('uncaughtException', (err) => {
-  console.log(`process.on(uncaughtException): ${err}\n`);
-  //throw new Error('uncaughtException');
+    console.log(`process.on(uncaughtException): ${err}\n`);
+    //throw new Error('uncaughtException');
 });
 
 process.on('error', (err) => {
-  console.log(`process.on(error): ${err}\n`);
-  throw new Error('error');
+    console.log(`process.on(error): ${err}\n`);
+    throw new Error('error');
 });
 
-//setInterval(consume, 1000);
-setInterval(checkingCassandraInstance, 1000);
+setInterval(checkingCassandraInstance, 15);
 
 var http = require('http')
-http.createServer((req, res)=>{
+http.createServer((req, res) => {
     res.write('I am Alive');
     res.end();
 }).listen(global.config.sqsConsumer);
-
-//module.exports = checkingCassandraInstance;
