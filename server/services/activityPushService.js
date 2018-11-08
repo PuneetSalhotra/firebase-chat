@@ -74,7 +74,17 @@ function ActivityPushService(objectCollection) {
                         break;
                     case 9: // Form
                         switch (request.url) {
+                            case '/' + global.config.version + '/activity/add':
+                            case '/' + global.config.version + '/activity/add/v1':
+                                
+                                pushString.title = senderName;
+                                pushString.description = 'Has submitted a form: ' + activityTitle;
+                                
+                                break;
                             case '/' + global.config.version + '/activity/timeline/entry/add':
+
+                                pushString.title = senderName;
+                                pushString.description = 'Has added an update to the form: ' + activityTitle;
 
                                 msg.activity_type_category_id = 9
                                 msg.type = 'activity_unread'
@@ -82,6 +92,9 @@ function ActivityPushService(objectCollection) {
 
                                 break;
                             case '/' + global.config.version + '/activity/status/alter':
+
+                                pushString.title = senderName;
+                                pushString.description = 'Status changed for form: ' + activityTitle;
 
                                 msg.activity_type_category_id = 9
                                 msg.type = 'activity_unread'
@@ -93,6 +106,13 @@ function ActivityPushService(objectCollection) {
                                 msg.type = 'activity_unread';
                                 pushString.title = senderName;
                                 pushString.description = 'Form has been shared for approval';
+                                break;
+                                
+                            case '/' + global.config.version + '/activity/timeline/entry/add/vodafone':
+                                msg.activity_type_category_id = 9;
+                                msg.type = 'activity_unread';
+                                pushString.title = senderName;
+                                pushString.description = 'Form has been shared';
                                 break;
                         };
                         break;
@@ -348,8 +368,10 @@ function ActivityPushService(objectCollection) {
                 getPushString(request, objectCollection, senderName, function (err, pushStringObj, pubnubMsg, smsString) {
                     //console.log('PubMSG : ', pubnubMsg);
                     //console.log('pushStringObj : ', pushStringObj);
-                    global.logger.write('debug', 'PubMSG : ' + JSON.stringify(pubnubMsg, null, 2), {}, request);
-                    global.logger.write('debug', 'pushStringObj : ' + JSON.stringify(pushStringObj, null, 2), {}, request);
+                    global.logger.write('debug', 'PubMSG : ' , pubnubMsg, pubnubMsg, request);
+                    global.logger.write('debug', pubnubMsg, {}, request);
+                    global.logger.write('debug', 'pushStringObj : ' + pushStringObj, {}, request);
+                    global.logger.write('debug', pushStringObj, {}, request);
                     if (Object.keys(pushStringObj).length > 0) {
                         objectCollection.forEachAsync(pushReceivers, function (next, rowData) {
                             objectCollection.cacheWrapper.getAssetMap(rowData.assetId, function (err, assetMap) {
@@ -363,7 +385,7 @@ function ActivityPushService(objectCollection) {
                                         //console.log(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn);
                                         global.logger.write('debug', badgeCount + ' is badge count obtained from db', {}, request);
                                         global.logger.write('debug', assetMap, {}, request);
-                                        global.logger.write('debug', pushStringObj + objectCollection.util.replaceOne(badgeCount) + assetMap.asset_push_arn, {}, request);
+                                        global.logger.write('debug', JSON.stringify(pushStringObj) + ' ' + objectCollection.util.replaceOne(badgeCount) + ' ' + assetMap.asset_push_arn, {}, request);
                                         switch (rowData.pushType) {
                                             // case 'pub':
                                             //     //console.log('pubnubMsg :', pubnubMsg);
@@ -420,7 +442,7 @@ function ActivityPushService(objectCollection) {
                                         pubnubMsg.organization_id = rowData.organizationId;
                                         pubnubMsg.desk_asset_id = rowData.assetId
                                         //console.log('PubNub Message : ', pubnubMsg);
-                                        global.logger.write('debug', 'PubNub Message :' + pubnubMsg, {}, request);
+                                        global.logger.write('debug', 'PubNub Message :' + JSON.stringify(pubnubMsg), {}, request);
                                         pubnubWrapper.push(rowData.organizationId, pubnubMsg);
                                         pubnubWrapper.push(rowData.assetId, pubnubMsg);
                                     }
@@ -445,24 +467,24 @@ function ActivityPushService(objectCollection) {
                                     switch (rowData.pushType) {
                                         case 'pub':
                                             //console.log('pubnubMsg :', pubnubMsg);
-                                            global.logger.write('debug', 'pubnubMsg : ' + pubnubMsg, {}, request);
+                                            global.logger.write('debug', 'pubnubMsg : ' + JSON.stringify(pubnubMsg, null, 2), {}, request);
                                             if (pubnubMsg.activity_type_category_id != 0) {
                                                 pubnubMsg.organization_id = rowData.organizationId;
                                                 pubnubMsg.desk_asset_id = rowData.assetId;
                                                 //console.log('PubNub Message : ', pubnubMsg);
-                                                global.logger.write('debug', 'PubNub Message : ' + pubnubMsg, {}, request);
+                                                global.logger.write('debug', 'PubNub Message : ' + JSON.stringify(pubnubMsg), {}, request);
                                                 pubnubWrapper.push(rowData.organizationId, pubnubMsg);
                                                 pubnubWrapper.push(rowData.assetId, pubnubMsg);
                                             }
                                             break;
                                         default:
                                             //console.log('pubnubMsg :', pubnubMsg);
-                                            global.logger.write('debug', 'pubnubMsg : ' + pubnubMsg, {}, request);
+                                            global.logger.write('debug', 'pubnubMsg : ' + JSON.stringify(pubnubMsg, null, 2), {}, request);
                                             if (pubnubMsg.activity_type_category_id != 0) {
                                                 pubnubMsg.organization_id = rowData.organizationId;
                                                 pubnubMsg.desk_asset_id = rowData.assetId;
                                                 //console.log('PubNub Message : ', pubnubMsg);
-                                                global.logger.write('debug', 'PubNub Message : ' + pubnubMsg, {}, request);
+                                                global.logger.write('debug', 'PubNub Message : ' + JSON.stringify(pubnubMsg, null, 2), {}, request);
                                                 pubnubWrapper.push(rowData.organizationId, pubnubMsg);
                                                 pubnubWrapper.push(rowData.assetId, pubnubMsg);
                                             }
@@ -630,7 +652,7 @@ function ActivityPushService(objectCollection) {
                         getPushString(request, objectCollection, senderName, function (err, pushStringObj, pubnubMsg, smsString) {
 
                             //console.log('SMS String : ', smsString);
-                            global.logger.write('debug', 'SMS String : '+ smsString, {}, request);
+                            global.logger.write('debug', 'SMS String : ' + JSON.stringify(smsString), {}, request);
 
                              objectCollection.util.sendSmsSinfini(smsString, RecieverData.operating_asset_phone_country_code, RecieverData.operating_asset_phone_number, function () {
 
