@@ -59,7 +59,7 @@ function VodafoneController(objCollection) {
         
     });
         
-    //BOT 4
+    //BOT 
     app.post('/' + global.config.version + '/vodafone/feasibility_checker/update', function (req, res) {
         req.body.message_unique_id = util.getMessageUniqueId(req.body.asset_id);
         var event = {
@@ -78,7 +78,20 @@ function VodafoneController(objCollection) {
                 res.send(responseWrapper.getResponse(false, {}, 200, req.body));
             }                            
         });        
-    });    
+    }); 
+    
+    //BOT 4
+    app.post('/' + global.config.version + '/vodafone/send/email', function (req, res) {        
+        vodafoneService.sendEmailVodafone(req.body, function (err, data, statusCode) {
+            if (err === false) {                
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {                
+                global.logger.write('response', 'Did not get a proper response', err, req.body);
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });          
+    });
         
     
     //BOT 3
@@ -192,6 +205,37 @@ function VodafoneController(objCollection) {
             res.send(responseWrapper.getResponse(false, {}, -3305,req.body));
         }
 
+    });
+    
+    
+    app.post('/' + global.config.version + '/vodafone/fr/pull', function (req, res) {
+    	vodafoneService.fetchVodafoneFRPull(req.body,0).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        	});
+    });
+    
+    app.post('/' + global.config.version + '/vodafone/crm_portal/pull', function (req, res) {
+    	vodafoneService.fetchCRMPortalPull(req.body,0).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        	});
+    });
+    
+    app.post('/' + global.config.version + '/vodafone/crm_portal/push', function (req, res) {
+    	vodafoneService.fetchCRMPortalPush(req.body,0).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        	});
     });
     
     

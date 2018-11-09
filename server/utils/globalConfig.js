@@ -72,6 +72,7 @@ if (mode === 'local') {
     config.PRODUCER_ACKS_TIMEOUT = 100;
     config.PRODUCER_PARTITONER_TYPE = 3;
 
+    config.TOPIC_ID = 8;
     config.TOPIC_NAME = "desker-activities";
     config.CONSUMER_GROUP_ID = "desker-activities-consumer-group";
     config.CONSUMER_AUTO_COMMIT = true;
@@ -137,6 +138,7 @@ if (mode === 'dev') {
     config.PRODUCER_ACKS_TIMEOUT = 100;
     config.PRODUCER_PARTITONER_TYPE = 3;
 
+    config.TOPIC_ID = 1;
     config.TOPIC_NAME = "dev-desker-activities";
     config.CONSUMER_GROUP_ID = "desker-activities-consumer-group-dev";
     config.CONSUMER_AUTO_COMMIT = true;
@@ -206,6 +208,7 @@ if (mode === 'staging') {
     config.PRODUCER_ACKS_TIMEOUT = 100;
     config.PRODUCER_PARTITONER_TYPE = 3;
 
+    config.TOPIC_ID = 2;
     config.TOPIC_NAME = 'staging-desker-activities';
     config.CONSUMER_GROUP_ID = "desker-activities-consumer-group-staging";
     config.CONSUMER_AUTO_COMMIT = true;
@@ -246,22 +249,6 @@ if (mode === 'preprod') {
     config.redisIp = 'rediscluster1.apppnf.ng.0001.use1.cache.amazonaws.com';
     config.redisPort = 6379;
 
-    //Kafka Brokers Config
-    config.kafkaIPOne = {
-        kafkaHost: 'kafka1:9092'
-    };
-    config.kafkaIPTwo = {
-        kafkaHost: 'kafka2:9092'
-    };
-    config.kafkaIPThree = {
-        kafkaHost: 'kafka3:9092'
-    };
-
-    //Kafka Topics
-    config.kafkaActivitiesTopic = 'preprod-desker-activities';
-    //config.kafkaFormWidgetTopic = 'desker-form-widgets';
-    config.consumerGroup = "desker-activities-consumer-group-preprod";
-
     //IOS Push
     config.iosPushMode = 'prod';
 
@@ -276,6 +263,29 @@ if (mode === 'preprod') {
 
     //making twilio, Nexmo Calls
     config.efsPath = "/api-staging-efs/";
+    
+    //Kafka Configuration
+    config.BROKER_HOST = "kafka1:9092,kafka2:9092,kafka3:9092";
+    config.BROKER_CONNECT_TIMEOUT = 10000;
+    config.BROKER_REQUEST_TIMEOUT = 60000;
+    config.BROKER_AUTO_CONNECT = true;
+    config.BROKER_MAX_ASYNC_REQUESTS = 10;
+
+    config.PRODUCER_REQUIRE_ACKS = 1;
+    config.PRODUCER_ACKS_TIMEOUT = 100;
+    config.PRODUCER_PARTITONER_TYPE = 3;
+
+    config.TOPIC_ID = 3;
+    config.TOPIC_NAME = 'preprod-desker-activities';
+    config.CONSUMER_GROUP_ID = "desker-activities-consumer-group-preprod";
+    config.CONSUMER_AUTO_COMMIT = true;
+    config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
+    config.CONSUMER_FETCH_MAX_WAIT = 10;
+    config.CONSUMER_FETCH_MIN_BYTES = 1;
+    config.CONSUMER_FETCH_MAX_BYTES = 1048576;
+    config.CONSUMER_ENCODING = "utf8";
+    config.CONSUMER_KEY_ENCODING = "utf8";
+    ///////////////////////////////
 }
 
 if (mode === 'vodafone') {

@@ -93,7 +93,7 @@ process.on('error', (err) => {
     throw new Error('error');
 });
 
-setInterval(checkingCassandraInstance, 20);
+setInterval(checkingCassandraInstance, 15);
 
 var http = require('http')
 http.createServer((req, res) => {

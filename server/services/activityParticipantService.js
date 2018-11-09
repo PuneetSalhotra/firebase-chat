@@ -65,6 +65,8 @@ function ActivityParticipantService(objectCollection) {
                 'asset_image_path': (util.replaceDefaultString(rowData['asset_image_path']) !== ''),
                 'asset_phone_number': util.replaceDefaultString(rowData['asset_phone_number']),
                 'asset_phone_number_code': util.replaceDefaultString(rowData['asset_phone_country_code']),
+                'operating_asset_phone_number': util.replaceDefaultString(rowData['operating_asset_phone_number']),
+                'operating_asset_phone_country_code': util.replaceDefaultString(rowData['operating_asset_phone_country_code']),
                 'log_asset_id': util.replaceDefaultNumber(rowData['log_asset_id']),
                 'log_state': util.replaceDefaultNumber(rowData['log_state']),
                 'log_active': util.replaceDefaultNumber(rowData['log_active']),

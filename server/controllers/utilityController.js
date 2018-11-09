@@ -77,6 +77,22 @@ function UtilityController(objCollection) {
         });
     });
 
+    // Testing Sendinblue email service
+    app.post('/' + global.config.version + '/send/email/v3', function (req, res) {
+        let emailSubject = req.body.email_subject;
+        let emailBody = req.body.email_body;
+        let htmlTemplate = req.body.html_template
+        let emailReceiver = req.body.email_receiver;
+
+        util.sendEmailV3(req.body, emailReceiver, emailSubject, emailBody, htmlTemplate, function (err, data) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, 200, req.body));
+            } else {
+                res.send(responseWrapper.getResponse(err, data, -100, req.body));
+            }
+        });
+    });
+
     //VNK webhook
     app.post('/' + global.config.version + '/vnk', function (req, res) {
         //console.log('Request : ', req.body);
