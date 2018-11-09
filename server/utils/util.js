@@ -14,8 +14,7 @@ var os = require('os');
 // SendGrid
 const sgMail = require('@sendgrid/mail');
 sgMail.setApiKey('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');
-// 
-// 
+
 // SendInBlue
 const SibApiV3Sdk = require('sib-api-v3-sdk');
 const defaultClient = SibApiV3Sdk.ApiClient.instance;
@@ -857,7 +856,7 @@ function Util() {
         return;
     };
 
-    // 
+    // SendGrid
     this.sendEmailV2 = function (request, email, subject, text, htmlTemplate, callback) {
         const msg = {
             to: email,

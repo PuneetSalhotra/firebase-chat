@@ -26,6 +26,6 @@ apps:
   - name : "Development_Staging_SQSConsumer"
     script   : ./server/queue/sqsConsumer.js
     #error_file: ../sqsConsumerLogger.txt
-    #out_file: ../sqsConsumerLogger.txt
+    out_file: '/dev/null'
     instances: 1
     exec_mode: fork
