@@ -87,12 +87,14 @@ var Consumer = function () {
 
             var messageJson = JSON.parse(message.value);
             var request = messageJson['payload'];
+            request.partition = message.partition;
+            request.offset = message.offset;
 
-            activityCommonService.checkingMSgUniqueId(request, (err, data) => {
-                global.logger.write('conLog', 'err from checkingMSgUniqueId : ' + err, {}, request);
+            activityCommonService.checkingPartitionOffset(request, (err, data) => {
+                global.logger.write('conLog', 'err from checkingPartitionOffset : ' + err, {}, request);
                 if (err === false) {
                     global.logger.write('conLog', 'Consuming the message', {}, request);
-                    activityCommonService.msgUniqueIdInsert(request, (err, data) => {});
+                    activityCommonService.partitionOffsetInsert(request, (err, data) => {});
                     consumingMsg(message, kafkaMsgId, objCollection).then(() => {});
                 } else {
                     global.logger.write('conLog', 'Before calling this duplicateMsgUniqueIdInsert', {}, request);
