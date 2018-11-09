@@ -70,7 +70,7 @@ function VodafoneService(objectCollection) {
         //Step 1 :- Change the status to "Order Creation"
         request.flag = 1;
         request.asset_type_id = 122992;
-        changeStatusToCustApproval(request).then(()=>{});
+        changeStatusToHLDPending(request).then(()=>{});
         /////////////////////////////////////////////////
         
         //Step 2 :- FR Form API Integration followed by Timeline Entry        
@@ -92,7 +92,7 @@ function VodafoneService(objectCollection) {
                             //Create Customer Desk Asset                            
                             createAssetContactDesk(request, customerData).then((assetId, deskAssetId)=>{
                                 
-                                //Add Participant
+                                //Add Service Desk as Participant to form file
                                 addDeskAsParticipant(request, customerData, deskAssetId).then(()=>{
                                     
                                     //Fire Email
@@ -102,7 +102,13 @@ function VodafoneService(objectCollection) {
                                         contactPhoneNumber,
                                         contactEmailId,
                                         customerServiceDeskAssetID: deskAssetId
-                                    }, () => {});
+                                    }).then(()=>{
+                                        callback(false,{},200);
+                                    }).catch((err)=>{
+                                        console.log('vnk err : ' , err);
+                                        global.logger.write('debug', err, {}, request);
+                                        callback(true,{},-9998);
+                                    });
                                     
                                 }).catch((err)=>{
                                     global.logger.write('debug', err, {}, request);
@@ -131,13 +137,13 @@ function VodafoneService(objectCollection) {
     };
      
   
-    function changeStatusToCustApproval(request) {
+    function changeStatusToHLDPending(request) {
         return new Promise((resolve, reject)=>{
            
            var newRequest = Object.assign(request);
-           newRequest.activity_status_id = " "; //Ask Sai;
-           newRequest.activity_status_type_id = ""; //Ask Sai;
-           newRequest.activity_status_type_category_id = ""; //Ask Sai;
+           newRequest.activity_status_id = "279437"; 
+           //newRequest.activity_status_type_id = ""; 
+           //newRequest.activity_status_type_category_id = ""; 
            newRequest.message_unique_id = util.getMessageUniqueId(request.asset_id);
            
            var event = {
@@ -169,6 +175,7 @@ function VodafoneService(objectCollection) {
                 global.logger.write('debug', resp, {}, request);
                 let frResponse = JSON.parse(resp);
                 frResponse.activity_timeline_collection = frResponse.response;
+                frResponse.activity_form_id = 866;
 
                 if (Number(frResponse.status) === 200) {
                     //Timeline Entry
@@ -189,7 +196,7 @@ function VodafoneService(objectCollection) {
                      });
                  resolve();
               } else {
-                  reject('Status not 200 while doing FR Pull Request');
+                  reject('Status is ' + Number(frResponse.status) +' while doing FR Pull Request');
               }
             });
       });
@@ -207,30 +214,35 @@ function VodafoneService(objectCollection) {
                 global.logger.write('debug', resp, {}, request);
                 let crmResponse = JSON.parse(resp);
                 crmResponse.activity_timeline_collection = crmResponse.response;
+                crmResponse.activity_form_id = 866;
                 
                 if (Number(crmResponse.status) === 200) {
-                    request.authorised_signatory_contact_number = crmResponse.response.authorised_signatory_contact_number;
-                    request.authorised_signatory_email = crmResponse.response.authorised_signatory_email;
+                    request.authorised_signatory_contact_number = crmResponse.response.authorised_signatory_contact_number || 'undefined';
+                    request.authorised_signatory_email = crmResponse.response.authorised_signatory_email || 'undefined';
+                    
+                    if(request.authorised_signatory_contact_number == 'undefined' || request.authorised_signatory_email == 'undefined') {
+                        reject('Authorised Signatory phone number or email is missing from CRM Pull');
+                    } else {
+                        //Timeline Entry
+                        var event = {
+                            name: "vodafone",
+                            service: "vodafoneService",
+                            method: "addTimelineTransactionVodafone",
+                            payload: crmResponse.response
+                        }
 
-                    //Timeline Entry
-                    var event = {
-                        name: "vodafone",
-                        service: "vodafoneService",
-                        method: "addTimelineTransactionVodafone",
-                        payload: crmResponse.response
+                        queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
+                            if (err) {
+                                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent : ' + JSON.stringify(resp, null, 2), err, request);
+                                throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+                            } else {
+                                global.logger.write('debug', 'Successfullly FR form timeline entry done', {}, request);
+                           }
+                        });
+                        resolve();
                     }
-
-                    queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
-                        if (err) {
-                            global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent : ' + JSON.stringify(resp, null, 2), err, request);
-                            throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
-                        } else {
-                            global.logger.write('debug', 'Successfullly FR form timeline entry done', {}, request);
-                       }
-                    });
-                    resolve();
                 } else {
-                    reject('Status not 200 while doing CRM Pull Request');
+                    reject('Status is ' + Number(crmResponse.status) +' while doing CRM Pull Request');
                 }
         });
       });
@@ -324,7 +336,7 @@ function VodafoneService(objectCollection) {
                     
                     resolve(assetID, DeskAssetID);
                 } else {
-                    reject('Status not 200 while doing CRM Pull Request');
+                    reject('Status is ' + Number(body.status) +' while doing CRM Pull Request');
                 }
             });
     });
@@ -334,19 +346,19 @@ function VodafoneService(objectCollection) {
        return new Promise((resolve, reject)=>{
             
            let addParticipantRequest = {
-                organization_id: 856,
-                account_id: 971,
-                workforce_id: 5338,
-                asset_id: 31035,
-                asset_token_auth: "99c85180-c86e-11e8-9dbf-5bc3d8c0f2c7",
-                asset_message_counter: 246,
+                organization_id: 858,
+                account_id: 973,
+                workforce_id: 5345,
+                asset_id: 31298,
+                asset_token_auth: "3dc16b80-e338-11e8-a779-5b17182fa0f6",              
+                asset_message_counter: 0,
                 activity_id: Number(request.activity_id),
                 activity_access_role_id: 29,
                 activity_type_category_id: 9,
                 activity_type_id: 0,
                 activity_participant_collection: JSON.stringify([{
                     "access_role_id": 29,
-                    "account_id": 971,
+                    "account_id": 974,
                     "activity_id": Number(request.activity_id),
                     "asset_datetime_last_seen": "1970-01-01 00:00:00",
                     "asset_first_name": customerData.first_name,
@@ -356,13 +368,13 @@ function VodafoneService(objectCollection) {
                     "asset_phone_number": customerData.contact_phone_number,
                     "asset_phone_number_code": customerData.contact_phone_country_code,
                     "asset_type_category_id": 45,
-                    "asset_type_id": 125815,
+                    "asset_type_id": 126085,
                     "field_id": 0,
-                    "log_asset_id": 31035,
+                    "log_asset_id": 31298,
                     "message_unique_id": util.getMessageUniqueId(Number(request.asset_id)),
                     "operating_asset_first_name": customerData.first_name,
-                    "organization_id": 856,
-                    "workforce_id": 5344
+                    "organization_id": 858,
+                    "workforce_id": 5354
                 }]),
                 flag_pin: 0,
                 flag_priority: 0,
@@ -493,7 +505,10 @@ function VodafoneService(objectCollection) {
 
             const templateDesign = "<table style='border-collapse: collapse !important;' width='100%' bgcolor='#ffffff' border='0' cellpadding='10' cellspacing='0'><tbody><tr> <td> <table bgcolor='#ffffff' style='width: 100%;max-width: 600px;' class='content' align='center' cellpadding='0' cellspacing='0' border='0'> <tbody><tr><td align='center' valign='top'><table style='border: 1px solid #e2e2e2; border-radius: 4px; background-clip: padding-box; border-spacing: 0;' border='0' cellpadding='0' cellspacing='0' width='100%' id='templateContainer'><tbody> <tr> <td align='left' style='float: right;padding: 20px;' valign='top'> <img style='width: 100px' src ='https://office.desker.co/Vodafone_logo.png'/> <img style='height: 44px;margin-left: 10px;' src ='https://office.desker.co/Idea_logo.png'/> </td> </tr> <tr><td valign='top' style=' color: #505050; font-family: Helvetica; font-size: 14px; line-height: 150%; padding-top: 3.143em; padding-right: 3.5em; padding-left: 3.5em; padding-bottom: 3.143em; text-align: left;' class='bodyContent' mc:edit='body_content'> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>Hey " + nameStr + ",</p> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>" + openingMessage + "</p> <p style=' color: #808080; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: bold; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 10px; margin-left: 0; text-align: left;'>Order Management Form</p> " + allFields + "<table style='width: 100%;margin-top: 5px'></table> " + callToction + " <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 40px; margin-right: 0; margin-bottom: 0px; margin-left: 0; text-align: left;'> Parmeshwar Reddy </p> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; text-align: left;'> Vice President </p> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; text-align: left;'> Customer Care </p></td></tr> <tr> <td style='height: 35px;background: #cbcbcb;'></td> </tr></tbody></table><!-- // END BODY --></td></tr> </tbody></table> </td> </tr></tbody></table>";
 
-            util.sendEmailV2(request,
+            request.email_sender = 'vodafone_idea@grenerobotics.com';
+            request.email_sender_name = 'vodafone_idea grenerobotics.com';            
+                    
+            util.sendEmailV3(request,
                 customerCollection.contactEmailId,
                 emailSubject,
                 "IGNORE",
@@ -593,21 +608,7 @@ function VodafoneService(objectCollection) {
         if (activityTypeCategoryId === 9 && activityStreamTypeId === 705) {   // add form case
             var formDataJson = JSON.parse(request.activity_timeline_collection);
             request.form_id = formDataJson[0]['form_id'];          
-            
-            global.logger.write('debug', 'form id extracted from json is: ' + formDataJson[0]['form_id'], {}, request);
-            
-            var lastObject = formDataJson[formDataJson.length - 1];            
-            
-            global.logger.write('debug', 'Last object : ' + lastObject, {}, request);
-            
-            if (lastObject.hasOwnProperty('field_value')) {
-            
-                global.logger.write('debug', 'Has the field value in the last object', {}, request);
-                //remote Analytics
-                if (request.form_id == 325) {
-                    //monthlySummaryTransInsert(request).then(() => {}); 
-                }
-            }
+                        
             // add form entries
             addFormEntries(request, function (err, approvalFieldsArr) {});
             
@@ -615,13 +616,20 @@ function VodafoneService(objectCollection) {
                 case 866: //FR Form Definition                          
                           request.activity_inline_data = request.activity_timeline_collection;
                           request.activity_form_id = 866;
-            
+                          break;                      
                 case 865: //CRM Form Definition
                           request.activity_inline_data = request.activity_timeline_collection;
                           request.activity_form_id = 865;
+                          break;
+                case 876: //New Customer
+                          request.activity_inline_data = request.activity_timeline_collection;
+                          request.activity_form_id = 876;
+                          break;            
+                case 877: //Existing Customer
+                          request.activity_inline_data = request.activity_timeline_collection;
+                          request.activity_form_id = 877;
+                          break;
             }
-            
-            
         } else {
             request.form_id = 0;
         }
