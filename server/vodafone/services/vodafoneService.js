@@ -661,6 +661,72 @@ function VodafoneService(objectCollection) {
         });        
     };
     
+    this.fetchVodafoneFRPull = function(request) {
+        return new Promise((resolve, reject)=>{
+            var data = {
+                    ia_contact_name: 'sravan',
+                    ia_contact_designation: 'manager',
+                    ia_contact_department: 'IT',
+                    ia_installation_address: 'Huzrabad',
+                    ia_city_village_postoffice: 'Pothireddypeta',
+                    ia_pin_code: '50548',
+                    ia_telephone_number: '087272589799',
+                    ia_fax_number: '087273589632147',
+                    ia_contact_email: 'sravan@desker.co',
+                    ia_alternate_number: '7680000368',
+                    site_identifier: 'www.vodafone.com',
+                    last_mile_details_media: 'last_mile_details_media',
+                    customer_end_interface: 'customer_end_interface',
+                    service_provider_pop1: 'service_provider_pop1',
+                    primary_last_mile_service_provider: 'Blueflock Technologies',
+                    primary_cir_bandwidth_kbps: '1000'	
+            };
+            
+            resolve(data);
+        });        
+    };
+    
+    this.fetchCRMPortalPull = function(request) {
+        return new Promise((resolve, reject)=>{
+            var data = {
+                    company_name:'Vodafone' ,
+                    account_code: '111',
+                    authorised_signatory_name: 'Nani',
+                    authorised_signatory_designation: 'SSE',
+                    authorised_signatory_contact_number: '9966626954',
+                    authorised_signatory_email: 'nani@desker.co',
+                    ba_contact_name: 'kiran',
+                    ba_contact_designation: 'CEO',
+                    ba_contact_department: 'BUSINESS',
+                    ba_billing_address: 'Jubilee Hills',
+                    ba_city_village_postoffice:'Jubilee Hills' ,
+                    ba_pin_code: '500032',
+                    ba_telephone_number: '04098745621',
+                    ba_landmark: 'Peddamma Temple',
+                    ba_fax_number: '040897456982',
+                    ba_contact_email: 'bharat@desker.co',
+                    ba_contact_alternate_number: '9000202182',
+                    gstin_uin_gstisd: '258741',
+                    gst_registered_address: 'Jubile hills',
+                    customer_type: 'Enterprise',
+                    channel_partner_name:'TV9'	
+            };
+            
+            resolve(data);
+        });        
+    };
+    
+    this.fetchCRMPortalPush = function(request) {
+        return new Promise((resolve, reject)=>{
+            var data = {
+            		crm_acknowledgement_id:'25879658696'
+            };
+            
+            resolve(data);
+        });        
+    };
+    
+
 
 };
 

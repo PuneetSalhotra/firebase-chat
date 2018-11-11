@@ -7,7 +7,7 @@ files:
   - source: .
     destination: /api-staging-efs/node/staging_desker_api   
 permissions:
-  - object: /api-staging-efs/node/staging_desker_pam_api/deployment
+  - object: /api-staging-efs/node/staging_desker_api/deployment
     owner: nanikalyan
     mode: 777
     type:
