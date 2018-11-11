@@ -11,6 +11,76 @@ function VodafoneService(objectCollection) {
     const activityPushService = objectCollection.activityPushService;
     const activityCommonService = objectCollection.activityCommonService;
     const makeRequest = require('request');
+
+    var NEW_ORDER_FORM_ID, SUPPLEMENTARY_ORDER_FORM_ID, FR_FORM_ID, CRM_FORM_ID, HLD_FORM_ID, CAF_FORM_ID;
+    var CAF_ORGANIZATION_ID, CAF_ACCOUNT_ID, CAF_WORKFORCE_ID, CAF_ACTIVITY_TYPE_ID;
+    var CAF_BOT_ASSET_ID, CAF_BOT_ENC_TOKEN;
+    var ACTIVITY_STATUS_ID_VALIDATION_PENDING;
+    //
+    const formFieldIdMapping = util.getVodafoneFormFieldIdMapping();
+
+    var NEW_ORDER_TO_CAF_FIELD_ID_MAP,
+        SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP,
+        FR_TO_CAF_FIELD_ID_MAP,
+        CRM_TO_CAF_FIELD_ID_MAP,
+        HLD_TO_CAF_FIELD_ID_MAP;
+
+    if (global.mode === 'local' || global.mode === 'preprod') {
+        NEW_ORDER_FORM_ID = 873;
+        SUPPLEMENTARY_ORDER_FORM_ID = 874;
+        FR_FORM_ID = 871;
+        CRM_FORM_ID = 870;
+        HLD_FORM_ID = 869;
+        CAF_FORM_ID = 872;
+
+        // CAF
+        CAF_ORGANIZATION_ID = 860; // Vodafone Idea Beta
+        CAF_ACCOUNT_ID = 975; // Central OMT Beta
+        CAF_WORKFORCE_ID = 5355; // Lobby
+        CAF_ACTIVITY_TYPE_ID = 133250;
+
+        // CAF BOT | BOT #5
+        CAF_BOT_ASSET_ID = 31347;
+        CAF_BOT_ENC_TOKEN = "05986bb0-e364-11e8-a1c0-0b6831833754";
+
+        // STATUS
+        ACTIVITY_STATUS_ID_VALIDATION_PENDING = 280032;
+
+        // Form Field ID Mappings
+        NEW_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.NEW_ORDER_TO_CAF_FIELD_ID_MAP;
+        SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP;
+        FR_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.FR_TO_CAF_FIELD_ID_MAP;
+        CRM_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.CRM_TO_CAF_FIELD_ID_MAP;
+        HLD_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.HLD_TO_CAF_FIELD_ID_MAP;
+
+    } else if (global.mode === 'prod' || global.mode === 'staging' || global.mode === 'dev') {
+        NEW_ORDER_FORM_ID = 856;
+        SUPPLEMENTARY_ORDER_FORM_ID = 857;
+        FR_FORM_ID = 866;
+        CRM_FORM_ID = 865;
+        HLD_FORM_ID = 864;
+        CAF_FORM_ID = 867;
+
+        // CAF
+        CAF_ORGANIZATION_ID = 858; // Vodafone Idea Beta
+        CAF_ACCOUNT_ID = 973; // Central OMT Beta
+        CAF_WORKFORCE_ID = 5345; // Lobby
+        CAF_ACTIVITY_TYPE_ID = 133000;
+
+        // CAF BOT | BOT #5
+        CAF_BOT_ASSET_ID = 31298;
+        CAF_BOT_ENC_TOKEN = "3dc16b80-e338-11e8-a779-5b17182fa0f6";
+
+        // STATUS
+        ACTIVITY_STATUS_ID_VALIDATION_PENDING = 279438;
+
+        // Form Field ID Mappings
+        NEW_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.NEW_ORDER_TO_CAF_FIELD_ID_MAP;
+        SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP;
+        FR_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.FR_TO_CAF_FIELD_ID_MAP;
+        CRM_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.CRM_TO_CAF_FIELD_ID_MAP;
+        HLD_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.HLD_TO_CAF_FIELD_ID_MAP;
+    }
        
     this.newOrderFormSubmission = function(request, callback) {
         //Step 1
@@ -661,7 +731,334 @@ function VodafoneService(objectCollection) {
         });        
     };
     
+    this.buildAndSubmitCafForm = function (request, callback) {
 
+        var cafFormJson = [];
+        var formId = NEW_ORDER_FORM_ID;
+
+        // Pull the required data from the NEW ORDER FORM of the form file
+        activityCommonService
+            .getActivityTimelineTransactionByFormId(request, request.activity_id, formId)
+            .then((newOrderFormData) => {
+                // Append it to cafFormJson
+                if (newOrderFormData.length > 0) {
+                    cafFormJson = applyTransform(cafFormJson, JSON.parse(newOrderFormData[0].data_entity_inline), formId);
+                }
+                // Pull the required data from the SUPPLEMENTARY ORDER FORM of the form file
+                formId = SUPPLEMENTARY_ORDER_FORM_ID;
+                return activityCommonService.getActivityTimelineTransactionByFormId(request, request.activity_id, formId)
+            })
+            .then((supplementaryOrderFormData) => {
+                // Append it to cafFormJson
+                // 
+                if (supplementaryOrderFormData.length > 0) {
+                    cafFormJson = applyTransform(cafFormJson, JSON.parse(supplementaryOrderFormData[0].data_entity_inline), formId);
+                }
+                // Pull the required data from the SUPPLEMENTARY ORDER FORM of the form file
+                formId = FR_FORM_ID;
+                return activityCommonService.getActivityTimelineTransactionByFormId(request, request.activity_id, formId)
+            })
+            .then((frFormData) => {
+                if (frFormData.length > 0) {
+                    cafFormJson = applyTransform(cafFormJson, JSON.parse(frFormData[0].data_entity_inline), formId);
+                }
+                // Pull the required data from the CRM FORM of the form file
+                formId = CRM_FORM_ID;
+                return activityCommonService.getActivityTimelineTransactionByFormId(request, request.activity_id, formId)
+            })
+            .then((crmFormData) => {
+                // Append it to cafFormJson
+                if (crmFormData.length > 0) {
+                    cafFormJson = applyTransform(cafFormJson, JSON.parse(crmFormData[0].data_entity_inline), formId);
+                }
+                // Pull the required data from the HLD FORM of the form file
+                formId = HLD_FORM_ID;
+                return activityCommonService.getActivityTimelineTransactionByFormId(request, request.activity_id, formId)
+
+            })
+            .then((hldFormData) => {
+                // Append it to cafFormJson
+                if (hldFormData.length > 0) {
+                    cafFormJson = applyTransform(cafFormJson, JSON.parse(hldFormData[0].data_entity_inline), formId);
+                }
+
+                // callback(false, cafFormJson);
+                // return;
+                // 
+                // Deduce all the additional data required for the CAF Form building
+                //    _  _            _   __  __               ___       __     
+                //   | \| |___ ___ __| | |  \/  |___ _ _ ___  |_ _|_ _  / _|___ 
+                //   | .` / -_) -_) _` | | |\/| / _ \ '_/ -_)  | || ' \|  _/ _ \
+                //   |_|\_\___\___\__,_| |_|  |_\___/_| \___| |___|_||_|_| \___/
+
+                // Build the full and final CAF Form and submit the form data to the timeline of the form file
+                var cafFormSubmissionRequest = {
+                    organization_id: CAF_ORGANIZATION_ID,
+                    account_id: CAF_ACCOUNT_ID,
+                    workforce_id: CAF_WORKFORCE_ID,
+                    asset_id: request.asset_id, // CAF_BOT_ASSET_ID,
+                    asset_token_auth: CAF_BOT_ENC_TOKEN,
+                    asset_message_counter: 0,
+                    activity_title: "CAF",
+                    activity_description: "CAF",
+                    activity_inline_data: JSON.stringify(cafFormJson),
+                    activity_datetime_start: util.getCurrentUTCTime(),
+                    activity_datetime_end: util.getCurrentUTCTime(),
+                    activity_type_category_id: 9,
+                    activity_sub_type_id: 0,
+                    activity_type_id: CAF_ACTIVITY_TYPE_ID,
+                    activity_access_role_id: 21,
+                    asset_participant_access_id: 21,
+                    activity_parent_id: 0,
+                    flag_pin: 0,
+                    flag_priority: 0,
+                    activity_flag_file_enabled: 1,
+                    activity_form_id: CAF_FORM_ID,
+                    flag_offline: 0,
+                    flag_retry: 0,
+                    message_unique_id: util.getMessageUniqueId(CAF_BOT_ASSET_ID),
+                    activity_channel_id: 0,
+                    activity_channel_category_id: 0,
+                    activity_flag_response_required: 0,
+                    track_latitude: 0.0,
+                    track_longitude: 0.0,
+                    track_altitude: 0,
+                    track_gps_datetime: util.getCurrentUTCTime(),
+                    track_gps_accuracy: 0,
+                    track_gps_status: 0,
+                    service_version: "1.0",
+                    app_version: "2.5.7",
+                    device_os_id: 5
+                };
+
+                const cafRequestOptions = {
+                    form: cafFormSubmissionRequest
+                }
+
+                makeRequest.post(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', cafRequestOptions, function (error, response, body) {
+                    console.log("[cafFormSubmissionRequest] Body: ", body);
+                    console.log("[cafFormSubmissionRequest] Error: ", error);
+                    body = JSON.parse(body);
+                    console.log('\x1b[36m body \x1b[0m', body);
+
+                    if (Number(body.status) === 200) {
+                        const cafFormActivityId = body.response.activity_id;
+                        const cafFormTransactionId = body.response.form_transaction_id;
+
+                        // Add the CAF form submitted as a timeline entry to the form file
+                        cafFormSubmissionRequest.activity_id = request.activity_id;
+                        cafFormSubmissionRequest.form_transaction_id = cafFormTransactionId;
+                        cafFormSubmissionRequest.form_id = CAF_FORM_ID;
+                        cafFormSubmissionRequest.activity_timeline_collection = cafFormSubmissionRequest.activity_inline_data;
+                        cafFormSubmissionRequest.flag_timeline_entry = 1;
+                        cafFormSubmissionRequest.activity_stream_type_id = 705;
+                        cafFormSubmissionRequest.message_unique_id = util.getMessageUniqueId(request.asset_id);
+
+                        let event = {
+                            name: "addTimelineTransaction",
+                            service: "activityTimelineService",
+                            method: "addTimelineTransaction",
+                            payload: cafFormSubmissionRequest
+                        };
+
+                        queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
+                            if (err) {
+                                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req);
+                                // throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+                            } else {
+                                // Calculate the percentage completion of CAF Form and store it in the inline data of the file form
+                                //
+                                const percentageCompletion = cafFormJson.length/332;
+                                console.log("percentageCompletion: ", percentageCompletion);
+                                activityCommonService.getActivityDetails(request, 0, (err, activityData) => {
+                                    console.log("activityData.activity_master_data: ", activityData.activity_master_data);
+                                    let activityMasterData = {};
+                                    if (activityData[0].activity_master_data !== '' && activityData[0].activity_master_data !== null) {
+                                        activityMasterData = JSON.parse(activityData[0].activity_master_data)
+                                    }
+                                    activityMasterData.percentage_completion = percentageCompletion;
+                                    activityCommonService.updateActivityMasterData(request, request.activity_id, JSON.stringify(activityMasterData), () => {});
+                                });
+                                
+                                // Map the form file to the Order Validation queue
+                                activityCommonService
+                                    .mapFileToQueue(cafFormSubmissionRequest, 2, JSON.stringify({}))
+                                    .then((data) => {
+                                        console.log("Form assigned to queue: ", data);
+                                    })
+                                    .catch((error) => {
+                                        console.log("Error assigning form to the queue: ", error)
+                                    });
+
+                                // Alter the status of the form file to Validation Pending
+                                // Form the request object
+                                var statusAlterRequest = Object.assign(cafFormSubmissionRequest);
+                                statusAlterRequest.activity_status_id = ACTIVITY_STATUS_ID_VALIDATION_PENDING;
+                                statusAlterRequest.activity_status_type_id = 25;
+                                statusAlterRequest.activity_status_type_category_id = 1;
+                                statusAlterRequest.message_unique_id = util.getMessageUniqueId(request.asset_id);
+
+                                let statusAlterRequestEvent = {
+                                    name: "alterActivityStatus",
+                                    service: "activityService",
+                                    method: "alterActivityStatus",
+                                    payload: statusAlterRequest
+                                };
+
+                                queueWrapper.raiseActivityEvent(statusAlterRequestEvent, request.activity_id, (err, resp) => {
+                                    if (err) {
+                                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req);
+                                        // throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+                                    } else {
+                                        // 
+                                        console.log("Form status changed to validation pending");
+                                        return callback(false, true);
+                                    }
+                                });
+                            }
+                        });
+
+                    } else {
+                        // If the CAF Form submission wasn't successful
+                        console.log("CAF Form submission wasn't successful");
+                        return callback(true, false);
+                    }
+
+                });
+            });
+    }
+
+    function applyTransform(cafFormData, sourceFormData, formId) {
+
+        // New Order Form
+        if (formId === NEW_ORDER_FORM_ID) {
+            // 
+            sourceFormData.forEach(formEntry => {
+                if (Object.keys(NEW_ORDER_TO_CAF_FIELD_ID_MAP).includes(String(formEntry.field_id))) {
+                    // Push entries from new order form, which have a defined CAF mapping
+                    cafFormData.push({
+                        "form_id": CAF_FORM_ID,
+                        "field_id": NEW_ORDER_TO_CAF_FIELD_ID_MAP[String(formEntry.field_id)],
+                        "field_name": formEntry.field_name,
+                        "field_data_type_id": formEntry.field_data_type_id,
+                        "field_data_type_category_id": formEntry.field_data_type_category_id,
+                        "data_type_combo_id": formEntry.data_type_combo_id,
+                        "data_type_combo_value": formEntry.data_type_combo_value,
+                        "field_value": formEntry.field_value,
+                        "message_unique_id": formEntry.message_unique_id
+                    })
+                } else {
+                    // Ignore the other entries
+                }
+            });
+            // Return the populated CAF object
+            return cafFormData;
+        }
+
+        // Supplementary Order Form
+        if (formId === SUPPLEMENTARY_ORDER_FORM_ID) {
+            // 
+            sourceFormData.forEach(formEntry => {
+                if (Object.keys(SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP).includes(String(formEntry.field_id))) {
+                    // Push entries from the Supplementary Order Form, which have a defined CAF mapping
+                    cafFormData.push({
+                        "form_id": CAF_FORM_ID,
+                        "field_id": SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP[String(formEntry.field_id)],
+                        "field_name": formEntry.field_name,
+                        "field_data_type_id": formEntry.field_data_type_id,
+                        "field_data_type_category_id": formEntry.field_data_type_category_id,
+                        "data_type_combo_id": formEntry.data_type_combo_id,
+                        "data_type_combo_value": formEntry.data_type_combo_value,
+                        "field_value": formEntry.field_value,
+                        "message_unique_id": formEntry.message_unique_id
+                    })
+                } else {
+                    // Ignore the other entries
+                }
+            });
+            // Return the populated CAF object
+            return cafFormData;
+        }
+
+        // FR FORM
+        if (formId === FR_FORM_ID) {
+            // 
+            sourceFormData.forEach(formEntry => {
+                if (Object.keys(FR_TO_CAF_FIELD_ID_MAP).includes(String(formEntry.field_id))) {
+                    // Push entries from the Supplementary Order Form, which have a defined CAF mapping
+                    cafFormData.push({
+                        "form_id": CAF_FORM_ID,
+                        "field_id": FR_TO_CAF_FIELD_ID_MAP[String(formEntry.field_id)],
+                        "field_name": formEntry.field_name,
+                        "field_data_type_id": formEntry.field_data_type_id,
+                        "field_data_type_category_id": formEntry.field_data_type_category_id,
+                        "data_type_combo_id": formEntry.data_type_combo_id,
+                        "data_type_combo_value": formEntry.data_type_combo_value,
+                        "field_value": formEntry.field_value,
+                        "message_unique_id": formEntry.message_unique_id
+                    })
+                } else {
+                    // Ignore the other entries
+                }
+            });
+            // Return the populated CAF object
+            return cafFormData;
+        }
+
+        // CRM FORM
+        if (formId === CRM_FORM_ID) {
+            // 
+            sourceFormData.forEach(formEntry => {
+                if (Object.keys(CRM_TO_CAF_FIELD_ID_MAP).includes(String(formEntry.field_id))) {
+                    // Push entries from the Supplementary Order Form, which have a defined CAF mapping
+                    cafFormData.push({
+                        "form_id": CAF_FORM_ID,
+                        "field_id": CRM_TO_CAF_FIELD_ID_MAP[String(formEntry.field_id)],
+                        "field_name": formEntry.field_name,
+                        "field_data_type_id": formEntry.field_data_type_id,
+                        "field_data_type_category_id": formEntry.field_data_type_category_id,
+                        "data_type_combo_id": formEntry.data_type_combo_id,
+                        "data_type_combo_value": formEntry.data_type_combo_value,
+                        "field_value": formEntry.field_value,
+                        "message_unique_id": formEntry.message_unique_id
+                    })
+                } else {
+                    // Ignore the other entries
+                }
+            });
+            // Return the populated CAF object
+            return cafFormData;
+        }
+
+        // HLD Form
+        if (formId === HLD_FORM_ID) {
+            // 
+            sourceFormData.forEach(formEntry => {
+                if (Object.keys(HLD_TO_CAF_FIELD_ID_MAP).includes(String(formEntry.field_id))) {
+                    // Push entries from the Supplementary Order Form, which have a defined CAF mapping
+                    cafFormData.push({
+                        "form_id": CAF_FORM_ID,
+                        "field_id": HLD_TO_CAF_FIELD_ID_MAP[String(formEntry.field_id)],
+                        "field_name": formEntry.field_name,
+                        "field_data_type_id": formEntry.field_data_type_id,
+                        "field_data_type_category_id": formEntry.field_data_type_category_id,
+                        "data_type_combo_id": formEntry.data_type_combo_id,
+                        "data_type_combo_value": formEntry.data_type_combo_value,
+                        "field_value": formEntry.field_value,
+                        "message_unique_id": formEntry.message_unique_id
+                    })
+                } else {
+                    // Ignore the other entries
+                }
+            });
+            // Return the populated CAF object
+            return cafFormData;
+        }
+
+        // If none match, then just return the CAF form data as is
+        return cafFormData;
+    }
 };
+
 
 module.exports = VodafoneService;

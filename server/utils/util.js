@@ -15,6 +15,9 @@ var os = require('os');
 const sgMail = require('@sendgrid/mail');
 sgMail.setApiKey('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');
 // 
+// Vodafone Form Field Mapping
+const formFieldIdMapping = require(`${__dirname}/formFieldIdMapping`);
+// 
 
 function Util() {
 
@@ -954,6 +957,10 @@ function Util() {
             }
         }
     };
+
+    this.getVodafoneFormFieldIdMapping = function () {
+        return formFieldIdMapping;
+    }
 
 };
 

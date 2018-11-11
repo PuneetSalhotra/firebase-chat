@@ -2337,6 +2337,72 @@ function ActivityCommonService(db, util, forEachAsync) {
 
         });
     }
+
+    this.getActivityTimelineTransactionByFormId = function (request, activityId, formId) {
+        return new Promise((resolve, reject) => {
+            // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_activity_id BIGINT(20), 
+            // IN p_form_id BIGINT(20), IN p_start_from SMALLINT(6), IN p_limit_value smallint(6)
+            let paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                activityId,
+                formId,
+                0,
+                50
+            );
+            const queryString = util.getQueryString('ds_p1_activity_timeline_transaction_select_activity_form', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    // console.log("[ds_p1_activity_timeline_transaction_select_activity_form] err: ", err);
+                    // console.log("[ds_p1_activity_timeline_transaction_select_activity_form] data: ", data);
+                    (err)? reject(err): resolve(data);
+                });
+            }
+        });
+    };
+
+    this.activityFormTransactionSelect = function (request, formTransactionId, formId) {
+        return new Promise((resolve, reject) => {
+            let paramsArr = new Array(
+                formTransactionId,
+                formId,
+                request.organization_id
+            );
+            const queryString = util.getQueryString('ds_v1_activity_form_transaction_select', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    // console.log("[ds_v1_activity_form_transaction_select] err: ", err);
+                    // console.log("[ds_v1_activity_form_transaction_select] data: ", data);
+                    (err)? reject(err): resolve(data);
+                });
+            }
+        });
+    };
+
+    // Map the form file to the Order Validation queue
+    this.mapFileToQueue = function (request, queueId, queueInlineData) {
+        return new Promise((resolve, reject) => {
+            // IN p_queue_id BIGINT(20), IN p_organization_id BIGINT(20), 
+            // IN p_activity_id BIGINT(20), IN p_asset_id BIGINT(20), 
+            // IN p_queue_inline_data JSON, IN p_log_asset_id BIGINT(20), 
+            // IN p_log_datetime DATETIME
+            let paramsArr = new Array(
+                queueId,
+                request.organization_id,
+                request.activity_id,
+                request.asset_id,
+                queueInlineData,
+                request.asset_id,
+                util.getCurrentUTCTime()
+            );
+            const queryString = util.getQueryString('ds_p1_queue_activity_mapping_insert', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err)? reject(err): resolve(data);
+                });
+            }
+        });
+    };
     
 };
 

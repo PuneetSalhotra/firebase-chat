@@ -1,0 +1,46 @@
+{
+    "LIVE": {
+        "NEW_ORDER_TO_CAF_FIELD_ID_MAP": {
+            "5371": 5570,
+            "5374": 5615,
+            "5373": 5614,
+            "5372": 5610,
+            "5377": 5689,
+            "5378": 5723,
+            "5379": 5724,
+            "5382": 5707,
+            "5383": 5784,
+            "5376": 5688,
+            "5375": 5673
+        },
+        "SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP": {},
+        "FR_TO_CAF_FIELD_ID_MAP": {},
+        "CRM_TO_CAF_FIELD_ID_MAP": {},
+        "HLD_TO_CAF_FIELD_ID_MAP": {}
+    },
+    "BETA": {
+        "NEW_ORDER_TO_CAF_FIELD_ID_MAP": {
+            "6099": 5838,
+            "6102": 5883,
+            "6101": 5882,
+            "6100": 5878,
+            "6105": 5957,
+            "6106": 5991,
+            "6107": 5992,
+            "6110": 5975,
+            "6111": 6052,
+            "6104": 5956,
+            "6103": 5941
+        },
+        "SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP": {
+            "6115": 5913,
+            "6116": 5914
+        },
+        "FR_TO_CAF_FIELD_ID_MAP": {},
+        "CRM_TO_CAF_FIELD_ID_MAP": {},
+        "HLD_TO_CAF_FIELD_ID_MAP": {
+            "5794": 5987,
+            "5795": 5988
+        }
+    }
+}
