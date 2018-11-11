@@ -16,8 +16,9 @@ const sgMail = require('@sendgrid/mail');
 sgMail.setApiKey('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');
 // 
 // Vodafone Form Field Mapping
-const formFieldIdMapping = require(`${__dirname}/formFieldIdMapping`);
-// 
+const vodafoneFormFieldIdMapping = require(`${__dirname}/formFieldIdMapping`);
+// [Vodafone ROMS] CAF Fields Data
+const vodafoneRomsCafFieldsData = require(`${__dirname}/vodafoneRomsCafFieldsData`);
 
 function Util() {
 
@@ -958,8 +959,13 @@ function Util() {
         }
     };
 
+    // [VODAFONE]
     this.getVodafoneFormFieldIdMapping = function () {
-        return formFieldIdMapping;
+        return vodafoneFormFieldIdMapping;
+    }
+    // [VODAFONE]
+    this.getVodafoneRomsCafFieldsData = function () {
+        return vodafoneRomsCafFieldsData;
     }
 
 };
