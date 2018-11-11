@@ -194,7 +194,50 @@ function VodafoneController(objCollection) {
 
     });
     
-    
+    // BOT 5
+    app.post('/' + global.config.version + '/vodafone/hld_form/timeline/entry/add', function (req, res) {
+
+        var event = {
+            name: "addTimelineTransaction",
+            service: "activityTimelineService",
+            method: "addTimelineTransaction",
+            payload: req.body
+        };
+
+        queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp) => {
+            if (err) {
+                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req);
+                return res.send(responseWrapper.getResponse(err, {
+                    err
+                }, -6999999, req.body));
+
+            } else {
+
+                var cafFormEvent = {
+                    name: "vodafoneService",
+                    service: "vodafoneService",
+                    method: "buildAndSubmitCafForm",
+                    payload: req.body
+                };
+
+                queueWrapper.raiseActivityEvent(cafFormEvent, req.body.activity_id, (err, resp) => {
+                    if (err) {
+                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req);
+                        // res.send(responseWrapper.getResponse(err, {}, -5999, req));
+                        return res.send(responseWrapper.getResponse(err, {
+                            err
+                        }, -5999999, req.body));
+
+                    } else {
+                        return res.send(responseWrapper.getResponse(err, {
+                            data: resp
+                        }, 200, req.body));
+                    }
+                });
+            }
+        });
+
+    });
 };
 
 module.exports = VodafoneController;
