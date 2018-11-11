@@ -10,27 +10,6 @@ function Logger() {
     var sqs = new SQS();
     var util = new Util();
 
-    /*var winston = require('winston');
-    require('winston-daily-rotate-file');
-
-    var transport = new (winston.transports.DailyRotateFile)({
-      filename: './logs/' + '%DATE%.log',
-      datePattern: 'YYYY-MM-DD-HH',
-      //zippedArchive: true,
-      //maxSize: '20m',
-      //maxFiles: '14d'
-    });
-
-    transport.on('rotate', function(oldFilename, newFilename) {
-      // do something fun
-    });
-
-    var logger = new (winston.Logger)({
-      transports: [
-        transport
-      ]
-    });*/
-
     this.write = function (level, message, object, request) {
         var isTargeted = false;
         var loggerCollection = {
@@ -42,19 +21,24 @@ function Logger() {
             log: 'log'
         };
 
-        if (request.hasOwnProperty('isTargeted') && request.isTargeted) {
+        if ((typeof request === 'object') && request.hasOwnProperty('isTargeted') && request.isTargeted) {
             isTargeted = true;
-        
-        } 
+        }
 
-        util.writeLogs(message, isTargeted); //Using our own logic
+        util.writeLogs(message, isTargeted);
 
-        //logger.info(message); //Winston rotational logs
         var loggerCollectionString = JSON.stringify(loggerCollection);
-        sqs.produce(loggerCollectionString, function (err, response) {
-            if (err)
-                console.log("error is: " + err);
-        });
+        switch (level) {
+            case 'conLog':
+                break;
+
+            default:
+                sqs.produce(loggerCollectionString, function (err, response) {
+                    if (err)
+                        console.log("error is: " + err);
+                });
+                break;
+        }
     };
 
     this.writeSession = function (request) {

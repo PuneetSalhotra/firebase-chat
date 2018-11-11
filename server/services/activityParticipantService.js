@@ -65,6 +65,8 @@ function ActivityParticipantService(objectCollection) {
                 'asset_image_path': (util.replaceDefaultString(rowData['asset_image_path']) !== ''),
                 'asset_phone_number': util.replaceDefaultString(rowData['asset_phone_number']),
                 'asset_phone_number_code': util.replaceDefaultString(rowData['asset_phone_country_code']),
+                'operating_asset_phone_number': util.replaceDefaultString(rowData['operating_asset_phone_number']),
+                'operating_asset_phone_country_code': util.replaceDefaultString(rowData['operating_asset_phone_country_code']),
                 'log_asset_id': util.replaceDefaultNumber(rowData['log_asset_id']),
                 'log_state': util.replaceDefaultNumber(rowData['log_state']),
                 'log_active': util.replaceDefaultNumber(rowData['log_active']),
@@ -89,7 +91,7 @@ function ActivityParticipantService(objectCollection) {
                     }
                 } else {
                     //console.log("something is not wright in adding a participant");
-                    global.logger.write('serverError', 'something is not wright in adding a participant', {}, request)
+                    global.logger.write('serverError', 'something is not right in adding a participant', {}, request)
                 }
             });
         };
@@ -252,7 +254,7 @@ function ActivityParticipantService(objectCollection) {
                 }
             } else {
                 //console.log("something is not wright in adding a participant");
-                global.logger.write('serverError', 'something is not wright in adding a participant', {}, request)
+                global.logger.write('serverError', 'something is not right in adding a participant', {}, request)
             }
         });
     };
@@ -287,7 +289,7 @@ function ActivityParticipantService(objectCollection) {
                     callback(false, true);
                 } else {
                     //console.log(err);
-                    global.logger.write('serverError', '', err, request)
+                    global.logger.write('serverError', err, err, request)
                     callback(true, false);
                 }
             }.bind(this));
@@ -381,7 +383,7 @@ function ActivityParticipantService(objectCollection) {
                 }
             } else {
                 //console.log("something is not wright in adding a participant");
-                global.logger.write('serverError', 'something is not wright in adding a participant', {}, request)
+                global.logger.write('serverError', 'something is not right in adding a participant', {}, request)
             }
         });
     };
@@ -416,7 +418,7 @@ function ActivityParticipantService(objectCollection) {
                     callback(false, true);
                 } else {
                     //console.log(err);
-                    global.logger.write('serverError', '', err, request)
+                    global.logger.write('serverError', err, err, request)
                     callback(true, false);
                 }
             }.bind(this));
@@ -508,7 +510,7 @@ function ActivityParticipantService(objectCollection) {
                 }
             } else {
                 //console.log("something is not wright in adding a participant");
-                global.logger.write('serverError', 'something is not wright in adding a participant', {}, request)
+                global.logger.write('serverError', 'something is not right in adding a participant', {}, request)
             }
         });
     };
@@ -655,7 +657,7 @@ function ActivityParticipantService(objectCollection) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', '', err, request)
+                    global.logger.write('serverError', err, err, request)
                     return;
                 }
             });
@@ -699,7 +701,7 @@ function ActivityParticipantService(objectCollection) {
                 if (err === false) {
                     callback(false, true);
                 } else {
-                    global.logger.write('serverError', '' + err, request);
+                    global.logger.write('serverError', err, {}, request);
                     callback(true, err);
                 }
             });
@@ -757,7 +759,7 @@ function ActivityParticipantService(objectCollection) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', '' + err, request)
+                    global.logger.write('serverError', err, {}, request)
                     return;
                 }
             });
@@ -788,7 +790,7 @@ function ActivityParticipantService(objectCollection) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', '' + err, request)
+                    global.logger.write('serverError', err, {}, request)
                     return;
                 }
             });
@@ -817,7 +819,7 @@ function ActivityParticipantService(objectCollection) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', '' + err, request)
+                    global.logger.write('serverError', err, {}, request)
                     return;
                 }
             });
@@ -883,7 +885,7 @@ function ActivityParticipantService(objectCollection) {
                             } else {
                                 callback(err, false);
                                 //console.log(err);
-                                global.logger.write('serverError', '' + err, request)
+                                global.logger.write('serverError', err, {}, request)
                                 return;
                             }
                         });
@@ -891,7 +893,7 @@ function ActivityParticipantService(objectCollection) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', '' + err, request)
+                    global.logger.write('serverError', err, {}, request)
                     return;
                 }
             });
@@ -994,7 +996,7 @@ function ActivityParticipantService(objectCollection) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', '', err, request)
+                    global.logger.write('serverError', err, err, request)
                     return;
                 }
             });

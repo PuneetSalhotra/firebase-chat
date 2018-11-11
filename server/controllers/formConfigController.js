@@ -147,6 +147,21 @@ function FormConfigController(objCollection) {
             }
         });
     });
+    
+    
+    //Get the list of forms submitted by the user
+    //Search the list of forms submitted by the user
+    app.post('/' + global.config.version + '/form/access/user/list', function (req, res) {
+        formConfigService.getSearchUserForms(req.body, function (err, data, statusCode) {        
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+    
 };
 
 module.exports = FormConfigController;

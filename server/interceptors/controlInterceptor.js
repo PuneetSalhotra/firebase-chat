@@ -26,6 +26,10 @@ var PamUpdateController = require('../controllers/pamUpdateController');
 //var GroupController = require('../controllers/groupController');
 //var FormExceptionController = require('../controllers/formExceptionController');
 
+//Vodafone
+var VodafoneController = require('../vodafone/controllers/vodafoneController');
+///////////////////////////////////////////////////////////////////////
+
 // Stats
 var StatsController = require('../controllers/statsController');
 
@@ -57,6 +61,10 @@ function ControlInterceptor(objCollection) {
 
     // Stats
     new StatsController(objCollection);
+    
+    //Vodafone
+    new VodafoneController(objCollection);
+    ////////////////////////////////
 
 }
 ;

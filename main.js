@@ -1,5 +1,5 @@
 /* 
- * author: A SRI SAI VENKATESH
+ * author: V Nani Kalyan
  */
 var globalConfig = require('./server/utils/globalConfig');
 var express = require('express');
@@ -18,18 +18,16 @@ var bodyParser = require('body-parser');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
-var kafkaIps = [global.config.kafkaIPOne,global.config.kafkaIPTwo,global.config.kafkaIPThree];
-var cnt = 0;
 var Util = require('./server/utils/util');
 var db = require("./server/utils/dbWrapper");
 var ResponseWrapper = require('./server/utils/responseWrapper');
-//var CassandraWrapper = require('./server/utils/cassandraWrapper');
 var EncTokenInterceptor = require('./server/interceptors/encTokenInterceptor');
 var ControlInterceptor = require('./server/interceptors/controlInterceptor');
+
 var kafka = require('kafka-node');
 var KafkaProducer = kafka.Producer;
-//var kafkaClient = new kafka.Client(global.config.kafkaIP);
-//var kafkaClient = new kafka.KafkaClient(global.config.kafkaIPOne,global.config.kafkaIPTwo,global.config.kafkaIPThree);
+var KeyedMessage = kafka.KeyedMessage;
+
 var redis = require('redis');   //using elasticache as redis
 var redisClient = redis.createClient(global.config.redisPort, global.config.redisIp);
 var CacheWrapper = require('./server/utils/cacheWrapper');
@@ -38,7 +36,7 @@ var QueueWrapper = require('./server/queue/queueWrapper');
 var forEachAsync = require('forEachAsync').forEachAsync;
 var ActivityCommonService = require("./server/services/activityCommonService");
 redisClient.on('connect', function () {
-    connectToKafkaBroker(cnt);
+    connectToKafkaBroker();
 });
 
 redisClient.on('error', function (error) {
@@ -108,10 +106,26 @@ app.use(function (req, res, next) {
     next()
 })
 
-function connectToKafkaBroker(cnt){
+function connectToKafkaBroker(){
     console.log("redis is connected");
-    var kafkaClient = new kafka.KafkaClient(kafkaIps[cnt]);
-    var kafkaProducer = new KafkaProducer(kafkaClient);
+    
+    var kafkaClient = new kafka.KafkaClient({        
+        kafkaHost: global.config.BROKER_HOST,
+        connectTimeout: global.config.BROKER_CONNECT_TIMEOUT,
+        requestTimeout: global.config.BROKER_REQUEST_TIMEOUT,
+        autoConnect: global.config.BROKER_AUTO_CONNECT,
+        maxAsyncRequests: global.config.BROKER_MAX_ASYNC_REQUESTS
+    });
+    
+    let producerOptions = {
+        requireAcks: global.config.PRODUCER_REQUIRE_ACKS,
+        ackTimeoutMs: global.config.PRODUCER_ACKS_TIMEOUT,
+        partitionerType: global.config.PRODUCER_PARTITONER_TYPE,
+    }
+
+    var kafkaProducer = new KafkaProducer(kafkaClient, producerOptions);
+    
+    //console.log('kafkaProducer : ' , kafkaProducer);
     
     new Promise((resolve, reject) => {
         if (kafkaProducer.ready)
@@ -119,6 +133,8 @@ function connectToKafkaBroker(cnt){
         kafkaProducer.on('ready', resolve);
     }).then(() => {
         console.log('Kafka Producer ready!!');
+        global.logger.write('debug', 'BROKER_HOST : ' + global.config.BROKER_HOST, {}, {});
+        
         var queueWrapper = new QueueWrapper(kafkaProducer);
 
         var util = new Util();
@@ -142,17 +158,11 @@ function connectToKafkaBroker(cnt){
     });
 
     kafkaProducer.on('error', function (error) {
-        console.log(error);        
-        if(error.code === 'ECONNREFUSED') {            
-            (cnt == 2) ? cnt = 0: cnt++;
-            console.log('cnt : ', cnt);
-            connectToKafkaBroker(cnt);
-        }
+        connectToKafkaBroker();        
     });
     
     kafkaProducer.on('brokersChanged', function (error) {
         console.log('brokersChanged: ', error);
-    });
-    
+    });    
     
 }

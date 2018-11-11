@@ -12,8 +12,7 @@ function ActivityService(objectCollection) {
     var queueWrapper = objectCollection.queueWrapper;
     var activityPushService = objectCollection.activityPushService;
     var responseactivityData = {}
-    const suzukiPdfEngine = require('../utils/suzukiPdfGenerationEngine');
-    const vodafoneStatusUpdate = require('../utils/vodafoneStatusUpdateFlow');
+    const suzukiPdfEngine = require('../utils/suzukiPdfGenerationEngine');     
 
     this.addActivity = function (request, callback) {
 
@@ -407,6 +406,26 @@ function ActivityService(objectCollection) {
                     }
                     // 
                     //
+                    // Vodafone Flow on Form Submission
+                    // 
+                    // 
+                    if (activityTypeCategroyId === 9 && (Number(request.activity_form_id) === 837 || Number(request.activity_form_id) === 844)) {
+                        console.log("\x1b[35m [Log] Calling vodafoneFormSubmissionFlow \x1b[0m")
+                        //vodafoneFormSubmissionFlow(request, activityCommonService, objectCollection, () => {});
+                        
+                        //makeRequest to /vodafone/neworder_form/add BOT1
+                        request.worflow_trigger_url = util.getWorkFlowUrl(request.url);
+                        global.logger.write('debug', 'worflow_trigger_url: ' + request.worflow_trigger_url, {}, request);
+
+                        activityCommonService.getWorkflowForAGivenUrl(request).then((data)=>{
+                            global.logger.write('debug', 'workflow_execution_url: ' + data[0].workflow_execution_url, {}, request);
+                            activityCommonService.makeRequest(request, data[0].workflow_execution_url, 1).then((resp)=>{
+                               global.logger.write('debug', resp, {}, request);
+                            });
+                        });
+                    }
+                    // 
+                    // 
                 } else {
                     callback(err, responseactivityData, -9999);
                     return;
@@ -644,7 +663,7 @@ function ActivityService(objectCollection) {
                     activityCommonService.checkingUniqueCode(request, reserveCode, (err, data) => {
                         if (err === false) {
                             // console.log('activitySubTypeName : ' + data);
-                            global.logger.write('debug', 'activitySubTypeName : ' + data, {}, request);
+                            global.logger.write('debug', 'activitySubTypeName : ' + JSON.stringify(data, null, 2), {}, request);
 
                             activitySubTypeName = data;
                             responseactivityData.reservation_code = data;
@@ -1204,7 +1223,7 @@ function ActivityService(objectCollection) {
             if (err) {
                 // console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
                 global.logger.write('debug', err, err, request);
-                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent : ' + resp, err, request);
+                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent : ' + JSON.stringify(resp, null, 2), err, request);
                 
                 throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
             } else {
@@ -1382,7 +1401,7 @@ function ActivityService(objectCollection) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', '', err, request)
+                    global.logger.write('serverError', err, err, request)
                     return;
                 }
             });
@@ -1857,22 +1876,22 @@ function ActivityService(objectCollection) {
                 // 
                 // 
                 // Send a PubNub push
-                var pubnubMsg = {};
-                pubnubMsg.type = 'activity_unread';
-                pubnubMsg.organization_id = request.organization_id;
-                pubnubMsg.desk_asset_id = request.asset_id;
-                pubnubMsg.activity_type_category_id = 9;
-                global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg, null, 2), {}, request);
+                // var pubnubMsg = {};
+                // pubnubMsg.type = 'activity_unread';
+                // pubnubMsg.organization_id = request.organization_id;
+                // pubnubMsg.desk_asset_id = request.asset_id;
+                // pubnubMsg.activity_type_category_id = 9;
+                // global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg, null, 2), {}, request);
 
-                activityPushService.pubNubPush(request, pubnubMsg, function (err, data) {
-                    global.logger.write('debug', 'PubNub Push sent.', {}, request);
-                    global.logger.write('debug', data, {}, request);
-                });
+                // activityPushService.pubNubPush(request, pubnubMsg, function (err, data) {
+                //     global.logger.write('debug', 'PubNub Push sent.', {}, request);
+                //     global.logger.write('debug', data, {}, request);
+                // });
                 // 
                 //
-                global.logger.write('debug', JSON.stringify(activityTypeCategoryId), {}, request);
-                global.logger.write('debug', JSON.stringify(activityStatusId), {}, request);
-                global.logger.write('debug', 'OUTSIDE Calling vodafoneStatusUpdate...', {}, request);
+                // global.logger.write('debug', JSON.stringify(activityTypeCategoryId), {}, request);
+                // global.logger.write('debug', JSON.stringify(activityStatusId), {}, request);
+                // global.logger.write('debug', 'OUTSIDE Calling vodafoneStatusUpdate...', {}, request);
 
                 // activityFormId === 837
                 if (activityStatusId === 278416 || activityStatusId === 278417 || activityStatusId === 278418 || activityStatusId === 278419 || activityStatusId === 278420 || activityStatusId === 278421) {
@@ -1882,10 +1901,22 @@ function ActivityService(objectCollection) {
                     //     vodafoneStatusUpdate(request, activityCommonService, objectCollection);
                     // });
                     global.logger.write('debug', 'Calling vodafoneStatusUpdate...', {}, request);
-                    vodafoneStatusUpdate(request, activityCommonService, objectCollection);
-
-
+                    //vodafoneStatusUpdate(request, activityCommonService, objectCollection);
+                    
+                    //makeRequest to /vodafone/feasibility_checker/update BOT4
+                    request.worflow_trigger_url = util.getWorkFlowUrl(request.url);
+                    global.logger.write('debug', 'worflow_trigger_url: ' + request.worflow_trigger_url, {}, request);
+                    
+                    activityCommonService.getWorkflowForAGivenUrl(request).then((data)=>{
+                        global.logger.write('debug', 'workflow_execution_url: ' + data[0].workflow_execution_url, {}, request);
+                        activityCommonService.makeRequest(request, data[0].workflow_execution_url, 1).then((resp)=>{
+                           global.logger.write('debug', resp, {}, request);
+                        });
+                    });
                 }
+                    
+
+                // }
                 // 
                 // 
                 updateProjectStatusCounts(request).then(() => {});

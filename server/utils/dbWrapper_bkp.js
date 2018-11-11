@@ -4,16 +4,7 @@
 
 var mysql = require('mysql');
 
-var clusterConfig = {
-    removeNodeErrorCount: 1, // Remove the node immediately when connection fails.
-    defaultSelector: 'ORDER'
-};
-
-var writeCluster = mysql.createPoolCluster();
-var readCluster = mysql.createPoolCluster(clusterConfig);
-
-//Adding Master
-writeCluster.add('MASTER', {
+var masterDbPool = mysql.createPool({
     connectionLimit: global.config.conLimit,
     host: global.config.masterIp,
     user: global.config.dbUser,
@@ -22,8 +13,42 @@ writeCluster.add('MASTER', {
     debug: false
 });
 
+ var slave1DbPool = mysql.createPool({
+ connectionLimit: global.config.conLimit,
+ host: global.config.slave1Ip,
+ user: global.config.dbUser,
+ password: global.config.dbPassword,
+ database: global.config.database,
+ debug: false
+ });
+ 
+//var slave1DbPool = masterDbPool;
+
+/* var slave2DbPool = mysql.createPool({
+ connectionLimit: global.config.conLimit,
+ host: global.config.slave2Ip,
+ user: global.config.dbUser,
+ password: global.config.dbPassword,
+ database: global.config.database,
+ debug: false
+ });
+ */
+var slave2DbPool = masterDbPool;
+
+var poolCluster = mysql.createPoolCluster();
+
+//Adding Master
+poolCluster.add('MASTER', {
+    connectionLimit: global.config.conLimit,
+    host: global.config.slave1Ip,
+    user: global.config.dbUser,
+    password: global.config.dbPassword,
+    database: global.config.database,
+    debug: false
+});
+    
 //Adding Slave
-readCluster.add('SLAVE1', {
+poolCluster.add('SLAVE1', {
     connectionLimit: global.config.conLimit,
     host: global.config.slave1Ip,
     user: global.config.dbUser,
@@ -32,15 +57,7 @@ readCluster.add('SLAVE1', {
     debug: false
 });
 
-//Adding Master
-readCluster.add('MASTER', {
-    connectionLimit: global.config.conLimit,
-    host: global.config.masterIp,
-    user: global.config.dbUser,
-    password: global.config.dbPassword,
-    database: global.config.database,
-    debug: false
-});
+
 
 var executeQuery = function (flag, queryString, request, callback) {
 
@@ -53,26 +70,34 @@ var executeQuery = function (flag, queryString, request, callback) {
     var conPool;
     switch (flag) {
         case 0:
-            conPool = writeCluster;
-            //            console.log('master pool is selected');
+            conPool = masterDbPool;
+//            console.log('master pool is selected');
             break;
         case 1:
-            conPool = readCluster;
-            //            console.log('slave1 pool is selected');
+            conPool = slave1DbPool;
+//            console.log('slave1 pool is selected');
+            break;
+        case 2:
+            conPool = slave2DbPool;
+//            console.log('slave2 pool is selected');
+            break;
+        case 3:
+            console.log('Selecting the pool-cluster');
+            conPool = poolCluster;
             break;
     }
 
     try {
         conPool.getConnection(function (err, conn) {
-            if (err) {
-                global.logger.write('serverError', 'ERROR WHILE GETTING CONNECTON - ' + err, err, request);
+            if (err) {                
+                global.logger.write('serverError','ERROR WHILE GETTING CONNECTON - ' + err, err, request);                
                 /*if(flag == 1) {
-                    conPool = writeCluster;
+                    conPool = masterDbPool;
                     global.logger.write('serverError','Connecting to Master DB - ', {}, request);
                     retrieveFromMasterDbPool(conPool, queryString, request).then((result)=>{
                         callback(false, result);
                         return;
-                    }).catch((err) => {
+                    }).catch((err)=>{                        
                         callback(err, false);
                         return;
                     });
@@ -83,20 +108,17 @@ var executeQuery = function (flag, queryString, request, callback) {
                 callback(err, false);
                 return;
             } else {
-                global.logger.write('conLog', 'conPool flag - ' + flag, {}, request);
-                global.logger.write('conLog', 'Connection is: ' + conn.config.host, {}, request);
-                // console.log('conPool flag - ', flag);
-                // console.log('Connection is: ', conn.config.host);
+                console.log('Connection is: ', conn.config.host);
                 conn.query(queryString, function (err, rows, fields) {
-                    if (!err) {
+                    if (!err) {   
                         //console.log(queryString);
-                        global.logger.write('dbResponse', queryString, rows, request);
-                        conn.release();
+                        global.logger.write('debug',queryString, {},request);
+                        conn.release();                        
                         callback(false, rows[0]);
                         return;
                     } else {
                         //console.log('SOME ERROR IN QUERY | ', queryString);
-                        global.logger.write('dbResponse', 'SOME ERROR IN QUERY | ' + queryString, err, request);
+                        global.logger.write('serverError', 'SOME ERROR IN QUERY | ' + queryString, err, request);
                         //console.log(err);
                         global.logger.write('serverError', err, err, request);
                         conn.release();
@@ -108,24 +130,24 @@ var executeQuery = function (flag, queryString, request, callback) {
     } catch (exception) {
         //console.log(queryString);
         //console.log(exception);        
-        global.logger.write('serverError', 'Exception Occurred - ' + exception, exception, request);
+        global.logger.write('serverError','Exception Occurred - ' + exception, exception, request);
     }
 };
 
-/*function retrieveFromMasterDbPool(conPool, queryString, request){
+function retrieveFromMasterDbPool(conPool, queryString, request){
     return new Promise((resolve, reject)=>{
         try {
-            poolCluster.getConnection(conPool, function (err, conn) {
+            conPool.getConnection(function (err, conn) {
                 if (err) {                    
                     global.logger.write('serverError','ERROR WHILE GETTING CONNECTON - ' + err, err, request);                    
                     reject(err);
-
+                    
                 } else {
                     conn.query(queryString, function (err, rows, fields) {
-                        if (!err) {
-                            global.logger.write('debug', queryString, {}, request);
+                        if (!err) {   
+                            global.logger.write('debug',queryString, {},request);
                             conn.release();
-                            resolve(rows[0]);
+                            resolve(rows[0]);                            
                         } else {
                             global.logger.write('serverError', 'SOME ERROR IN QUERY | ' + queryString, err, request);
                             global.logger.write('serverError', err, err, request);
@@ -135,11 +157,11 @@ var executeQuery = function (flag, queryString, request, callback) {
                     });
                 }
             });
-        } catch (exception) {
-            global.logger.write('serverError', 'Exception Occurred - ' + exception, exception, request);
+        } catch (exception) {            
+            global.logger.write('serverError','Exception Occurred - ' + exception, exception, request);
         }
     });
-}*/
+}
 
 var getQueryString = function (callName, paramsArr) {
 
@@ -182,22 +204,6 @@ var executeRecursiveQuery = function (flag, start, limit, callName, paramsArr, c
     };
     checkAndFetchRecords(start);
 };
-
-process.on('exit', (err) => {
-    global.logger.write('conLog', 'Closing the poolCluster : ' + err, {}, {});
-    writeCluster.end();
-    readCluster.end();
-    global.logger.write('conLog', 'Closed the poolCluster : ' + err, {}, {});
-});
-
-//Ctrl+C Event
-process.on('SIGINT', () => {
-    process.exit();
-});
-
-//PID kill; PM2 Restart; nodemon Restart
-//process.on('SIGUSR1', ()=>{ process.exit(); });
-//process.on('SIGUSR2', ()=>{ process.exit(); });
 
 module.exports = {
     executeQuery: executeQuery,

@@ -32,14 +32,27 @@ function UtilityController(objCollection) {
         });
     });
 
-    // Vodafone - Order Management - PoC - SMTP
+    //Bharat Requirement
+    app.get('/' + global.config.version + '/send/email', function (req, res) {
+        var otp = util.randomInt(1111, 9999);
+        otp = otp.toString();
+        util.sendEmail('bharat@desker.co', otp, JSON.stringify(req.query), '', function (err, data) {
+            if (err === false) {
+                res.send(responseWrapper.getResponse(err, data.response, 200, req.body));
+            } else {
+                res.send(responseWrapper.getResponse(err, data.code, 200, req.body));
+            }
+        });
+    });
+
+    // Developed during the Vodafone - Order Management - PoC - SMTP
     app.post('/' + global.config.version + '/send/email/v1', function (req, res) {
         let emailSubject = req.body.email_subject;
         let emailBody = req.body.email_body;
         let htmlTemplate = req.body.html_template
         let emailReceiver = JSON.stringify(req.body.email_receiver);
 
-        util.sendEmailV1(req.body, emailReceiver, emailSubject, emailBody, '', function (err, data) {
+        util.sendEmailV1(req.body, emailReceiver, emailSubject, emailBody, htmlTemplate, function (err, data) {
             if (err === false) {
                 res.send(responseWrapper.getResponse(err, data, 200, req.body));
             } else {
@@ -48,7 +61,7 @@ function UtilityController(objCollection) {
         });
     });
 
-    // Vodafone - Order Management - PoC - SendGrid
+    // Developed during the Vodafone - Order Management - PoC - SendGrid
     app.post('/' + global.config.version + '/send/email/v2', function (req, res) {
         let emailSubject = req.body.email_subject;
         let emailBody = req.body.email_body;
@@ -64,15 +77,18 @@ function UtilityController(objCollection) {
         });
     });
 
-    //Bharat Requirement
-    app.get('/' + global.config.version + '/send/email', function (req, res) {
-        var otp = util.randomInt(1111, 9999);
-        otp = otp.toString();
-        util.sendEmail('bharat@desker.co', otp, JSON.stringify(req.query), '', function (err, data) {
+    // Testing Sendinblue email service
+    app.post('/' + global.config.version + '/send/email/v3', function (req, res) {
+        let emailSubject = req.body.email_subject;
+        let emailBody = req.body.email_body;
+        let htmlTemplate = req.body.html_template
+        let emailReceiver = req.body.email_receiver;
+
+        util.sendEmailV3(req.body, emailReceiver, emailSubject, emailBody, htmlTemplate, function (err, data) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data.response, 200, req.body));
+                res.send(responseWrapper.getResponse(err, data, 200, req.body));
             } else {
-                res.send(responseWrapper.getResponse(err, data.code, 200, req.body));
+                res.send(responseWrapper.getResponse(err, data, -100, req.body));
             }
         });
     });
@@ -154,7 +170,7 @@ function UtilityController(objCollection) {
             global.logger.write('debug', 'Sending Domestic SMS', {}, request);
             fs.readFile(`${__dirname}/../utils/domesticSmsMode.txt`, function (err, data) {
                 (err) ?
-                    global.logger.write('debug', err, {}, request) :
+                global.logger.write('debug', err, {}, request):
                     //console.log(err) : 
                     domesticSmsMode = Number(data.toString());
 
@@ -168,7 +184,7 @@ function UtilityController(objCollection) {
                             global.logger.write('trace', data, error, request);
                         });
                         break;
-                    case 3:// sinfini                                    
+                    case 3: // sinfini                                    
                         util.sendSmsSinfini(text, request.country_code, request.phone_number, function (error, data) {
                             if (error)
                                 //console.log(error);
@@ -183,7 +199,7 @@ function UtilityController(objCollection) {
         } else {
             fs.readFile(`${__dirname}/../utils/internationalSmsMode.txt`, function (err, data) {
                 (err) ?
-                    global.logger.write('debug', err, {}, request) :
+                global.logger.write('debug', err, {}, request):
                     //console.log(err) : 
                     internationalSmsMode = Number(data.toString());
 
@@ -191,15 +207,17 @@ function UtilityController(objCollection) {
                 //console.log('Sending International SMS');
                 global.logger.write('debug', 'Sending International SMS', {}, request);
                 switch (internationalSmsMode) {
-                    case 1: util.sendInternationalTwilioSMS(text, request.country_code, request.phone_number, function (error, data) {
-                        if (error)
-                            global.logger.write('trace', data, error, request)
-                    });
+                    case 1:
+                        util.sendInternationalTwilioSMS(text, request.country_code, request.phone_number, function (error, data) {
+                            if (error)
+                                global.logger.write('trace', data, error, request)
+                        });
                         break;
-                    case 2: util.sendInternationalNexmoSMS(text, request.country_code, request.phone_number, function (error, data) {
-                        if (error)
-                            global.logger.write('trace', data, error, request)
-                    });
+                    case 2:
+                        util.sendInternationalNexmoSMS(text, request.country_code, request.phone_number, function (error, data) {
+                            if (error)
+                                global.logger.write('trace', data, error, request)
+                        });
                         break;
                 }
             });
