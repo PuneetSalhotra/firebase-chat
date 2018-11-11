@@ -2354,6 +2354,25 @@ function ActivityCommonService(db, util, forEachAsync) {
         });
     }
     
+    
+    this.assetListUpdateOperatingAsset = function (request, deskAssetId, operatingAssetId, callback) {
+        var paramsArr = new Array(
+            deskAssetId,
+            request.workforce_id,
+            request.account_id,
+            request.organization_id,
+            operatingAssetId,
+            request.asset_id,
+            request.datetime_log
+        );
+        var queryString = util.getQueryString('ds_v1_asset_list_update_operating_asset', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                (err === false) ? callback(false, true) : callback(err, false);                
+            });
+        }
+    };
+    
 };
 
 

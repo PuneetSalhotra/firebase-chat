@@ -238,7 +238,14 @@ function VodafoneController(objCollection) {
         	});
     });
     
-    
+    app.post('/' + global.config.version + '/account/nani/kalyan', function (req, res) {
+    	vodafoneService.nanikalyan(req.body,0).then((data)=>{       		
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        	});
+    });
 };
 
 module.exports = VodafoneController;

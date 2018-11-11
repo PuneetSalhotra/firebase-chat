@@ -276,6 +276,36 @@ function CacheWrapper(client) {
             }
         })
     };
+    
+    this.setCSDNumber = function (accountCode, mobileNumber, callback) {
+
+        const reqBodyObject = {
+            account_code: accountCode,
+            mobile_number: mobileNumber,
+            module: 'vodafone'
+        };
+
+        client.hset('CSDNumber', accountCode, mobileNumber, function (err, reply) {
+            if (err) {
+                console.log(err);
+                global.logger.write('cacheResponse', `HSET CSDNumber ${JSON.stringify(accountCode)} ${mobileNumber}`, err, reqBodyObject);
+                callback(err, false);
+            } else {
+                global.logger.write('cacheResponse', `HSET CSDNumber ${JSON.stringify(accountCode)} ${mobileNumber}`, reply, reqBodyObject);
+                callback(false, true);
+            }
+        });
+    };
+    
+    this.getCSDNumber = function (accountCode, callback) {
+        client.hget('CSDNumber', accountCode, function (err, reply) {
+            if (err) {
+                callback(true, err);
+            } else {
+                callback(false, reply);
+            }
+        });
+    };
 
 }
 
