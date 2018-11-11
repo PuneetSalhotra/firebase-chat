@@ -16,7 +16,31 @@
         "SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP": {},
         "FR_TO_CAF_FIELD_ID_MAP": {},
         "CRM_TO_CAF_FIELD_ID_MAP": {},
-        "HLD_TO_CAF_FIELD_ID_MAP": {}
+        "HLD_TO_CAF_FIELD_ID_MAP": {},
+        "ROMS_LABELS": {
+            "5567": "Vodafone Idea Business Services (Kindly fill the form in Block Letters)",
+            "5571": "Authorised Signatory Details",
+            "5575": "I / We hereby order for VIL MPLS Services subject to terms and conditions as described in the service order form. We furnish the necessary details as follows:",
+            "5576": "Billing Address",
+            "5588": "Installation Address",
+            "5589": "I / We hereby order for VIL MPLS Services subject to terms and conditions as described in the service order form. We furnish the necessary details as follows: This address is for installation",
+            "5603": "Customer Information",
+            "5630": "Burstable Bandwidth",
+            "5636": "Bandwidth on Demand Bandwidth",
+            "5638": "Multi-VRF Billing",
+            "5640": "Applicble if Remote Access is selected",
+            "5644": "For SSL VPN",
+            "5648": "For IP Sec VPN",
+            "5651": "For Dial Up VPN",
+            "5653": "For 2G 3G 4G API Solution",
+            "5661": "# Detailed BOM/BOQ to be attached separately",
+            "5671": "MPLS Order Details",
+            "5675": "If COS Type is Customized, enter COS Split in Percentage",
+            "5693": "If SLA Type Customized",
+            "5715": "IP VPN Port Information",
+            "5721": "Charge Description",
+            "5798": "Documents Required"
+        }
     },
     "BETA": {
         "NEW_ORDER_TO_CAF_FIELD_ID_MAP": {
@@ -41,6 +65,30 @@
         "HLD_TO_CAF_FIELD_ID_MAP": {
             "5794": 5987,
             "5795": 5988
+        },
+        "ROMS_LABELS": {
+            "5835": "Vodafone Idea Business Services (Kindly fill the form in Block Letters)",
+            "5839": "Authorised Signatory Details",
+            "5843": "I / We hereby order for VIL MPLS Services subject to terms and conditions as described in the service order form. We furnish the necessary details as follows:",
+            "5844": "Billing Address",
+            "5856": "Installation Address",
+            "5857": "I / We hereby order for VIL MPLS Services subject to terms and conditions as described in the service order form. We furnish the necessary details as follows: This address is for installation",
+            "5871": "Customer Information",
+            "5898": "Burstable Bandwidth",
+            "5904": "Bandwidth on Demand Bandwidth",
+            "5906": "Multi-VRF Billing",
+            "5908": "Applicble if Remote Access is selected",
+            "5912": "For SSL VPN",
+            "5916": "For IP Sec VPN",
+            "5919": "For Dial Up VPN",
+            "5921": "For 2G 3G 4G API Solution",
+            "5929": " # Detailed BOM/BOQ to be attached separately",
+            "5939": "MPLS Order Details",
+            "5943": "If COS Type is Customized, enter COS Split in Percentage",
+            "5961": "If SLA Type Customized",
+            "5983": "IP VPN Port Information",
+            "5989": "Charge Description",
+            "6066": "Documents Required"
         }
     }
 }
