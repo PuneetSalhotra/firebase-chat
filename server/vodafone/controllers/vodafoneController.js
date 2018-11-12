@@ -193,7 +193,7 @@ function VodafoneController(objCollection) {
         }
 
     });
-    
+
     // BOT 5
     app.post('/' + global.config.version + '/vodafone/hld_form/timeline/entry/add', function (req, res) {
 
@@ -238,7 +238,7 @@ function VodafoneController(objCollection) {
         });
 
     });
-    
+
     // BOT 6
     app.post('/' + global.config.version + '/vodafone/status/set/approval_pending', function (req, res) {
 
@@ -264,6 +264,17 @@ function VodafoneController(objCollection) {
             }
         });
 
+    });
+
+    // Mock APIs
+    app.post('/' + global.config.version + '/vodafone/crm_portal/push', function (req, res) {
+        vodafoneService.fetchCRMPortalPush(req.body, 0).then((data) => {
+            //console.log(data);
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        }).catch((err) => {
+            data = {};
+            res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        });
     });
 };
 

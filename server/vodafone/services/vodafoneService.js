@@ -17,7 +17,10 @@ function VodafoneService(objectCollection) {
         FR_FORM_ID,
         CRM_FORM_ID,
         HLD_FORM_ID,
-        CAF_FORM_ID;
+        CAF_FORM_ID,
+        ACCOUNT_MANAGER_APPROVAL_FORM_ID,
+        CUSTOMER_APPROVAL_FORM_ID,
+        CRM_ACK_FORM_ID;
 
     var CAF_ORGANIZATION_ID,
         CAF_ACCOUNT_ID,
@@ -25,8 +28,12 @@ function VodafoneService(objectCollection) {
         CAF_ACTIVITY_TYPE_ID;
 
     var CAF_BOT_ASSET_ID, CAF_BOT_ENC_TOKEN;
+
+    var VODAFONE_FORM_FILE_QUEUE_ID;
+
     var ACTIVITY_STATUS_ID_VALIDATION_PENDING,
-        ACTIVITY_STATUS_ID_APPROVAL_PENDING;
+        ACTIVITY_STATUS_ID_APPROVAL_PENDING,
+        ACTIVITY_STATUS_ID_ORDER_CLOSED;
     //
     const formFieldIdMapping = util.getVodafoneFormFieldIdMapping();
     const romsCafFieldsData = util.getVodafoneRomsCafFieldsData();
@@ -37,15 +44,20 @@ function VodafoneService(objectCollection) {
         CRM_TO_CAF_FIELD_ID_MAP,
         HLD_TO_CAF_FIELD_ID_MAP,
         ROMS_CAF_FORM_LABELS,
-        ROMS_CAF_FIELDS_DATA;
+        ROMS_CAF_FIELDS_DATA,
+        CAF_TO_CRM_PORTAL_PUSH_MAP;
 
-    if (global.mode === 'local' || global.mode === 'preprod') {
+    if (global.mode === 'preprod' || global.mode === 'local' || global.mode === 'staging') {
+        // BETA
         NEW_ORDER_FORM_ID = 873;
         SUPPLEMENTARY_ORDER_FORM_ID = 874;
         FR_FORM_ID = 871;
         CRM_FORM_ID = 870;
         HLD_FORM_ID = 869;
         CAF_FORM_ID = 872;
+        ACCOUNT_MANAGER_APPROVAL_FORM_ID = 875;
+        CUSTOMER_APPROVAL_FORM_ID = 882;
+        CRM_ACK_FORM_ID = 868;
 
         // CAF
         CAF_ORGANIZATION_ID = 860; // Vodafone Idea Beta
@@ -60,6 +72,7 @@ function VodafoneService(objectCollection) {
         // STATUS
         ACTIVITY_STATUS_ID_VALIDATION_PENDING = 280032;
         ACTIVITY_STATUS_ID_APPROVAL_PENDING = 280033;
+        ACTIVITY_STATUS_ID_ORDER_CLOSED = 280034;
 
         // Form Field ID Mappings
         NEW_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.NEW_ORDER_TO_CAF_FIELD_ID_MAP;
@@ -67,20 +80,28 @@ function VodafoneService(objectCollection) {
         FR_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.FR_TO_CAF_FIELD_ID_MAP;
         CRM_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.CRM_TO_CAF_FIELD_ID_MAP;
         HLD_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.HLD_TO_CAF_FIELD_ID_MAP;
+        CAF_TO_CRM_PORTAL_PUSH_MAP = formFieldIdMapping.BETA.CAF_TO_CRM_PORTAL_PUSH_MAP;
 
         // ROMS Labels
         ROMS_CAF_FORM_LABELS = formFieldIdMapping.BETA.ROMS_LABELS;
         // ROMS CAF Fields Data | Process, Update & Append
         ROMS_CAF_FIELDS_DATA = romsCafFieldsData.BETA;
 
+        // Queue to map or unmap a form file
+        VODAFONE_FORM_FILE_QUEUE_ID = 2;
+
 
     } else if (global.mode === 'prod' || global.mode === 'staging' || global.mode === 'dev') {
+        // LIVE
         NEW_ORDER_FORM_ID = 856;
         SUPPLEMENTARY_ORDER_FORM_ID = 857;
         FR_FORM_ID = 866;
         CRM_FORM_ID = 865;
         HLD_FORM_ID = 864;
         CAF_FORM_ID = 867;
+        ACCOUNT_MANAGER_APPROVAL_FORM_ID = 858;
+        CUSTOMER_APPROVAL_FORM_ID = 878;
+        CRM_ACK_FORM_ID = 863;
 
         // CAF
         CAF_ORGANIZATION_ID = 858; // Vodafone Idea Beta
@@ -95,6 +116,7 @@ function VodafoneService(objectCollection) {
         // STATUS
         ACTIVITY_STATUS_ID_VALIDATION_PENDING = 279438;
         ACTIVITY_STATUS_ID_APPROVAL_PENDING = 279439;
+        ACTIVITY_STATUS_ID_ORDER_CLOSED = 279440;
 
         // Form Field ID Mappings
         NEW_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.NEW_ORDER_TO_CAF_FIELD_ID_MAP;
@@ -102,11 +124,15 @@ function VodafoneService(objectCollection) {
         FR_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.FR_TO_CAF_FIELD_ID_MAP;
         CRM_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.CRM_TO_CAF_FIELD_ID_MAP;
         HLD_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.HLD_TO_CAF_FIELD_ID_MAP;
+        CAF_TO_CRM_PORTAL_PUSH_MAP = formFieldIdMapping.LIVE.CAF_TO_CRM_PORTAL_PUSH_MAP;
 
         // ROMS Labels
         ROMS_CAF_FORM_LABELS = formFieldIdMapping.LIVE.ROMS_LABELS;
         // ROMS CAF Fields Data | Process, Update & Append
         ROMS_CAF_FIELDS_DATA = romsCafFieldsData.LIVE;
+        
+        // Queue to map or unmap a form file
+        VODAFONE_FORM_FILE_QUEUE_ID = 1;
     }
 
     this.newOrderFormSubmission = function (request, callback) {
@@ -833,7 +859,7 @@ function VodafoneService(objectCollection) {
                     account_id: CAF_ACCOUNT_ID,
                     workforce_id: CAF_WORKFORCE_ID,
                     asset_id: request.asset_id, // CAF_BOT_ASSET_ID,
-                    asset_token_auth: CAF_BOT_ENC_TOKEN,
+                    asset_token_auth: request.asset_token_auth, // CAF_BOT_ENC_TOKEN,
                     asset_message_counter: 0,
                     activity_title: "CAF",
                     activity_description: "CAF",
@@ -848,7 +874,7 @@ function VodafoneService(objectCollection) {
                     activity_parent_id: 0,
                     flag_pin: 0,
                     flag_priority: 0,
-                    activity_flag_file_enabled: 1,
+                    activity_flag_file_enabled: -1,
                     activity_form_id: CAF_FORM_ID,
                     flag_offline: 0,
                     flag_retry: 0,
@@ -899,7 +925,7 @@ function VodafoneService(objectCollection) {
 
                         queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
                             if (err) {
-                                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req);
+                                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
                                 // throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                             } else {
                                 // Calculate the percentage completion of CAF Form and store it in the inline data of the file form
@@ -918,7 +944,7 @@ function VodafoneService(objectCollection) {
 
                                 // Map the form file to the Order Validation queue
                                 activityCommonService
-                                    .mapFileToQueue(cafFormSubmissionRequest, 2, JSON.stringify({}))
+                                    .mapFileToQueue(cafFormSubmissionRequest, VODAFONE_FORM_FILE_QUEUE_ID, JSON.stringify({}))
                                     .then((data) => {
                                         console.log("Form assigned to queue: ", data);
                                     })
@@ -943,7 +969,7 @@ function VodafoneService(objectCollection) {
 
                                 queueWrapper.raiseActivityEvent(statusAlterRequestEvent, request.activity_id, (err, resp) => {
                                     if (err) {
-                                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req);
+                                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
                                         // throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                                     } else {
                                         // 
@@ -1129,7 +1155,7 @@ function VodafoneService(objectCollection) {
 
         queueWrapper.raiseActivityEvent(statusAlterRequestEvent, request.activity_id, (err, resp) => {
             if (err) {
-                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req);
+                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
             } else {
                 // 
                 console.log("Form status set to approval pending");
@@ -1204,6 +1230,262 @@ function VodafoneService(objectCollection) {
         });
 
     }
+
+    this.approvalFormsSubmissionCheck = async function (request, callback) {
+        // LIVE => 858 - Account Manager Approval | 878 - Customer Approval
+        // BETA => 875 - Account Manager Approval | 882 - Customer Approval
+        var cafFormData = [],
+            crmPushRequestData = {},
+            isApprovalDone = false,
+            crmAcknowledgementId,
+            crmAcknowledgementFormJson,
+            queueActivityMappingId;
+
+        // If the incoming form submission request is for the AM APPROVAL FORM
+        if (Number(request.activity_form_id) === 858 || Number(request.activity_form_id) === 875) {
+            await activityCommonService
+                .getActivityTimelineTransactionByFormId(request, request.activity_id, CUSTOMER_APPROVAL_FORM_ID)
+                .then((customerApprovalFormData) => {
+                    console.log("customerApprovalFormData: ", customerApprovalFormData);
+                    console.log("customerApprovalFormData.length: ", customerApprovalFormData.length);
+                    if (customerApprovalFormData.length > 0) {
+                        // 
+                        isApprovalDone = true
+                    }
+                })
+            // If the incoming form submission request is for the CUSTOMER APPROVAL FORM
+        } else if (Number(request.activity_form_id) === 878 || Number(request.activity_form_id) === 882) {
+            await activityCommonService
+                .getActivityTimelineTransactionByFormId(request, request.activity_id, ACCOUNT_MANAGER_APPROVAL_FORM_ID)
+                .then((accountManagerApprovalFormData) => {
+                    console.log("customerApprovalFormData: ", accountManagerApprovalFormData);
+                    console.log("customerApprovalFormData.length: ", accountManagerApprovalFormData.length);
+                    if (accountManagerApprovalFormData.length > 0) {
+                        // 
+                        isApprovalDone = true
+                    }
+                })
+        }
+
+        // If both the approval forms from Account Manager and Customer Service Desk have
+        // been added to the file form, trigger a push data call to the CRM Portal
+        if (isApprovalDone === true) {
+            console.log("Approvals are done!")
+            await activityCommonService
+                .getActivityTimelineTransactionByFormId(request, request.activity_id, CAF_FORM_ID)
+                .then((cafData) => {
+
+                    cafFormData = JSON.parse(cafData[0].data_entity_inline);
+
+                    cafFormData.forEach(formEntry => {
+                        crmPushRequestData[CAF_TO_CRM_PORTAL_PUSH_MAP[formEntry.field_id]] = formEntry.field_value;
+                    });
+
+                    crmPushRequestData["customer_name"] = crmPushRequestData["billing_customer_name"] || '';
+                    crmPushRequestData["sample_data"] = "Hello World!";
+                }).catch((error) => {
+                    global.logger.write('debug', 'No CAF Form Exists for the order: ' + JSON.stringify(error), error, request);
+                    
+                    return callback(false, {
+                        isApprovalDone
+                    })
+                    // crmPushRequestData["sample_data"] = "Hello World!";
+                });
+
+            // Push the data to CRM:
+            const crmPushRequestOptions = {
+                form: crmPushRequestData
+            }
+
+            await makePostRequestPromise(global.config.mobileBaseUrl + global.config.version + '/vodafone/crm_portal/push', crmPushRequestOptions)
+                .then((body) => {
+                    body = JSON.parse(body);
+                    console.log("[/vodafone/crm_portal/push] body: ", body);
+                    // Get acknowledgement ID from the CRM
+                    if (Number(body.status) === 200) {
+                        crmAcknowledgementId = body.response.crm_acknowledgement_id;
+                    }
+                });
+
+            // Prepare the CRM Acknowledgement Form
+            let fieldId_1 = 0,
+                fieldId_2 = 0;
+
+            if (CRM_ACK_FORM_ID === 868) { // BETA
+                fieldId_1 = 5829;
+                fieldId_2 = 5830;
+            } else if (CRM_ACK_FORM_ID === 863) { // LIVE
+                fieldId_1 = 5561;
+                fieldId_2 = 5562;
+            }
+            crmAcknowledgementFormJson = [{
+                "form_id": CRM_ACK_FORM_ID,
+                "field_id": fieldId_1,
+                "field_name": "CRM Acknowledgement Form",
+                "field_data_type_id": 19,
+                "field_data_type_category_id": 7,
+                "data_type_combo_id": 0,
+                "data_type_combo_value": "0",
+                "field_value": crmAcknowledgementId,
+                "message_unique_id": "313591541834883314219"
+            }, {
+                "form_id": CRM_ACK_FORM_ID,
+                "field_id": fieldId_2,
+                "field_name": "CRM Acknowledgement Form",
+                "field_data_type_id": 21,
+                "field_data_type_category_id": 8,
+                "data_type_combo_id": 0,
+                "data_type_combo_value": "0",
+                "field_value": "CRM Acknowledgement Form",
+                "message_unique_id": "313591541834883314219"
+            }];
+            // Initiate the CRM Acknowledgement Form Submission
+            var crmAckFormSubmissionRequest = {
+                organization_id: CAF_ORGANIZATION_ID,
+                account_id: CAF_ACCOUNT_ID,
+                workforce_id: CAF_WORKFORCE_ID,
+                asset_id: request.asset_id, // CAF_BOT_ASSET_ID,
+                asset_token_auth: request.asset_token_auth,
+                asset_message_counter: 0,
+                activity_title: "CRM Acknowledgement Form",
+                activity_description: "CRM Acknowledgement Form",
+                activity_inline_data: JSON.stringify(crmAcknowledgementFormJson),
+                activity_datetime_start: util.getCurrentUTCTime(),
+                activity_datetime_end: util.getCurrentUTCTime(),
+                activity_type_category_id: 9,
+                activity_sub_type_id: 0,
+                activity_type_id: CAF_ACTIVITY_TYPE_ID,
+                activity_access_role_id: 21,
+                asset_participant_access_id: 21,
+                activity_parent_id: 0,
+                flag_pin: 0,
+                flag_priority: 0,
+                activity_flag_file_enabled: -1,
+                activity_form_id: CRM_ACK_FORM_ID,
+                flag_offline: 0,
+                flag_retry: 0,
+                message_unique_id: util.getMessageUniqueId(CAF_BOT_ASSET_ID),
+                activity_channel_id: 0,
+                activity_channel_category_id: 0,
+                activity_flag_response_required: 0,
+                track_latitude: 0.0,
+                track_longitude: 0.0,
+                track_altitude: 0,
+                track_gps_datetime: util.getCurrentUTCTime(),
+                track_gps_accuracy: 0,
+                track_gps_status: 0,
+                service_version: "1.0",
+                app_version: "2.5.7",
+                device_os_id: 5
+            };
+
+            const crmAckRequestOptions = {
+                form: crmAckFormSubmissionRequest
+            }
+
+            await makeRequest.post(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', crmAckRequestOptions, function (error, response, body) {
+                body = JSON.parse(body);
+                if (Number(body.status) === 200) {
+                    const crmAckFormActivityId = body.response.activity_id;
+                    const crmAckFormTransactionId = body.response.form_transaction_id;
+
+                    // Add the CAF form submitted as a timeline entry to the form file
+                    crmAckFormSubmissionRequest.activity_id = request.activity_id;
+                    crmAckFormSubmissionRequest.form_transaction_id = crmAckFormTransactionId;
+                    crmAckFormSubmissionRequest.form_id = CRM_ACK_FORM_ID;
+                    crmAckFormSubmissionRequest.activity_timeline_collection = crmAckFormSubmissionRequest.activity_inline_data;
+                    crmAckFormSubmissionRequest.flag_timeline_entry = 1;
+                    crmAckFormSubmissionRequest.activity_stream_type_id = 705;
+                    crmAckFormSubmissionRequest.message_unique_id = util.getMessageUniqueId(request.asset_id);
+
+                    let event = {
+                        name: "addTimelineTransaction",
+                        service: "activityTimelineService",
+                        method: "addTimelineTransaction",
+                        payload: crmAckFormSubmissionRequest
+                    };
+
+                    queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
+                        if (err) {
+                            global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                        } else {
+
+                            // Map the form file to the Order Validation queue
+                            activityCommonService
+                                .fetchQueueActivityMappingId(request, VODAFONE_FORM_FILE_QUEUE_ID)
+                                .then((queueActivityMappingData) => {
+                                    queueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;
+                                    // Unmap the form file from the Order Validation queue
+                                    return activityCommonService.unmapFileFromQueue(request, queueActivityMappingId)
+                                })
+                                .then((data) => {
+                                    console.log("Form unassigned from queue: ", data);
+                                })
+                                .catch((error) => {
+                                    console.log("Error unassigning form from queue: ", error)
+                                });
+
+                            // Alter the status of the form file to Order Close
+                            // Form the request object
+                            var statusAlterRequest = Object.assign(crmAckFormSubmissionRequest);
+                            statusAlterRequest.activity_status_id = ACTIVITY_STATUS_ID_ORDER_CLOSED;
+                            statusAlterRequest.activity_status_type_id = 26;
+                            statusAlterRequest.activity_status_type_category_id = 1;
+                            statusAlterRequest.message_unique_id = util.getMessageUniqueId(request.asset_id);
+
+                            let statusAlterRequestEvent = {
+                                name: "alterActivityStatus",
+                                service: "activityService",
+                                method: "alterActivityStatus",
+                                payload: statusAlterRequest
+                            };
+
+                            queueWrapper.raiseActivityEvent(statusAlterRequestEvent, request.activity_id, (err, resp) => {
+                                if (err) {
+                                    global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                                } else {
+                                    // 
+                                    console.log("Form status changed to validation pending");
+                                }
+                            });
+                        }
+                    });
+                } else {
+                    // 
+                }
+
+            });
+
+        }
+
+        return callback(false, {
+            isApprovalDone
+        })
+    }
+
+    // Promisifying a request
+    function makePostRequestPromise(url, options) {
+        return new Promise((resolve, reject) => {
+            makeRequest.post(url, options, function (error, response, body) {
+                if (!error && response.statusCode == 200) {
+                    resolve(body);
+                } else {
+                    reject(error);
+                }
+            });
+        });
+    }
+
+    // 
+    this.fetchCRMPortalPush = function (request) {
+        return new Promise((resolve, reject) => {
+            var data = {
+                crm_acknowledgement_id: '25879658696'
+            };
+
+            resolve(data);
+        });
+    };
 };
 
 
