@@ -433,7 +433,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         var formTransactionId = 0;
         var dataTypeId = 0;
         var formId = 0;
-        var newUserAssetId = (request.hasOwnProperty('signedup_asset_id')) ? request.signedup_asset_id : "";
+        var newUserAssetId = (request.hasOwnProperty('signedup_asset_id')) ? request.signedup_asset_id : 0;
         if (Number(request.device_os_id) === 5)
             retryFlag = 1;
 
@@ -507,7 +507,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             case 704: // form: status alter
                 entityTypeId = 0;
                 entityText2 = request.activity_timeline_collection;
-                activityTimelineCollection = request.activity_timeline_collection;
+                activityTimelineCollection = request.activity_timeline_collection || '{}';
                 break;
             case 705: // form
                 entityTypeId = 0;
@@ -2398,7 +2398,47 @@ function ActivityCommonService(db, util, forEachAsync) {
             const queryString = util.getQueryString('ds_p1_queue_activity_mapping_insert', paramsArr);
             if (queryString !== '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
-                    (err)? reject(err): resolve(data);
+                    (err) ? reject(err): resolve(data);
+                });
+            }
+        });
+    };
+
+    // Unmap the form file from the Order Validation queue
+    this.unmapFileFromQueue = function (request, queueActivityMappingId) {
+        return new Promise((resolve, reject) => {
+            // IN p_queue_activity_mapping_id BIGINT(20), IN p_organization_id BIGINT(20), 
+            // IN p_log_state TINYINT(4), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+            let paramsArr = new Array(
+                queueActivityMappingId,
+                request.organization_id,
+                3, // log state
+                request.asset_id,
+                util.getCurrentUTCTime()
+            );
+            const queryString = util.getQueryString('ds_p1_queue_activity_mapping_update_log_state', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                });
+            }
+        });
+    };
+
+    // Unmap the form file from the Order Validation queue
+    this.fetchQueueActivityMappingId = function (request, queueId) {
+        return new Promise((resolve, reject) => {
+            // IN p_queue_id BIGINT(20), IN p_activity_id BIGINT(20), 
+            // IN p_organization_id BIGINT(20)
+            let paramsArr = new Array(
+                queueId,
+                request.activity_id,
+                request.organization_id
+            );
+            const queryString = util.getQueryString('ds_p1_queue_activity_mapping_select', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
                 });
             }
         });
