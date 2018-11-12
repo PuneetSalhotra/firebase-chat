@@ -238,6 +238,33 @@ function VodafoneController(objCollection) {
         });
 
     });
+    
+    // BOT 6
+    app.post('/' + global.config.version + '/vodafone/status/set/approval_pending', function (req, res) {
+
+        var event = {
+            name: "vodafoneService",
+            service: "vodafoneService",
+            method: "setStatusApprovalPendingAndFireEmail",
+            payload: req.body
+        };
+
+        queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp) => {
+            if (err) {
+                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req);
+                return res.send(responseWrapper.getResponse(err, {
+                    err
+                }, -5999999, req.body));
+
+            } else {
+                return res.send(responseWrapper.getResponse(err, {
+                    activity_id: req.body.activity_id,
+                    message_unique_id: req.body.message_unique_id
+                }, 200, req.body));
+            }
+        });
+
+    });
 };
 
 module.exports = VodafoneController;
