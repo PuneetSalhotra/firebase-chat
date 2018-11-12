@@ -25,7 +25,8 @@ function VodafoneService(objectCollection) {
         CAF_ACTIVITY_TYPE_ID;
 
     var CAF_BOT_ASSET_ID, CAF_BOT_ENC_TOKEN;
-    var ACTIVITY_STATUS_ID_VALIDATION_PENDING;
+    var ACTIVITY_STATUS_ID_VALIDATION_PENDING,
+        ACTIVITY_STATUS_ID_APPROVAL_PENDING;
     //
     const formFieldIdMapping = util.getVodafoneFormFieldIdMapping();
     const romsCafFieldsData = util.getVodafoneRomsCafFieldsData();
@@ -58,6 +59,7 @@ function VodafoneService(objectCollection) {
 
         // STATUS
         ACTIVITY_STATUS_ID_VALIDATION_PENDING = 280032;
+        ACTIVITY_STATUS_ID_APPROVAL_PENDING = 280033;
 
         // Form Field ID Mappings
         NEW_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.NEW_ORDER_TO_CAF_FIELD_ID_MAP;
@@ -92,6 +94,7 @@ function VodafoneService(objectCollection) {
 
         // STATUS
         ACTIVITY_STATUS_ID_VALIDATION_PENDING = 279438;
+        ACTIVITY_STATUS_ID_APPROVAL_PENDING = 279439;
 
         // Form Field ID Mappings
         NEW_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.NEW_ORDER_TO_CAF_FIELD_ID_MAP;
@@ -1107,6 +1110,99 @@ function VodafoneService(objectCollection) {
             })
         });
         return cafFormData;
+    }
+
+    this.setStatusApprovalPendingAndFireEmail = function (request, callback) {
+
+        request.asset_id = CAF_BOT_ASSET_ID;
+        request.activity_status_id = ACTIVITY_STATUS_ID_APPROVAL_PENDING;
+        request.activity_status_type_id = 25;
+        request.activity_status_type_category_id = 1;
+        request.message_unique_id = util.getMessageUniqueId(request.asset_id);
+
+        let statusAlterRequestEvent = {
+            name: "alterActivityStatus",
+            service: "activityService",
+            method: "alterActivityStatus",
+            payload: request
+        };
+
+        queueWrapper.raiseActivityEvent(statusAlterRequestEvent, request.activity_id, (err, resp) => {
+            if (err) {
+                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req);
+            } else {
+                // 
+                console.log("Form status set to approval pending");
+
+                activityCommonService.getAllParticipants(request, (err, participantData) => {
+                    if (participantData.length > 0) {
+                        participantData.forEach(participant => {
+                            // Account Managers/Employees/Vodafone people
+                            switch (participant.asset_type_id) {
+                                case 126305: // Account Managers - Mumbai Circle | BETA
+                                    // console.log("participant: ", participant)
+                                    // Check if the participant is the owner of the form file
+                                    if (Number(participant.activity_owner_asset_id) === Number(participant.asset_id)) {
+                                        // Check if the email exists for the field
+                                        if (participant.operating_asset_email_id !== '' || participant.operating_asset_email_id !== null) {
+                                            // Fire the email
+                                            util.sendEmailV3({
+                                                    email_receiver_name: `${participant.asset_first_name} ${participant.asset_last_name}`,
+                                                    email_sender_name: 'Vodafone - Idea',
+                                                    email_sender: 'vodafone_idea@grenerobotics.com'
+                                                },
+                                                participant.operating_asset_email_id,
+                                                'Submit The Account Manager Approval Form',
+                                                'Text Content Will Be Ignored',
+                                                '<h1>Submit the AM Approval Form</h1>',
+                                                (err, data) => {
+                                                    if (err) {
+                                                        console.log("Error sending email to the Account Manager: ", data);
+                                                    } else {
+                                                        console.log("Email sent to the Account Manager: ", data);
+                                                    }
+                                                });
+                                        }
+                                    }
+                                    break;
+                            }
+
+                            // For Customer
+                            switch (participant.asset_type_category_id) {
+                                case 45: // Customer Service Desk
+                                    // console.log("participant: ", participant)
+                                    // Check if the email exists for the field
+                                    if (participant.operating_asset_email_id !== '' || participant.operating_asset_email_id !== null) {
+                                        // Fire the email
+                                        util.sendEmailV3({
+                                                email_receiver_name: `${participant.asset_first_name} ${participant.asset_last_name}`,
+                                                email_sender_name: 'Vodafone - Idea',
+                                                email_sender: 'vodafone_idea@grenerobotics.com'
+                                            },
+                                            participant.operating_asset_email_id,
+                                            'Submit The Customer Approval Form',
+                                            'Text Content Will Be Ignored',
+                                            '<h1>Submit the Customer Approval Form</h1>',
+                                            (err, data) => {
+                                                if (err) {
+                                                    console.log("Error sending email to the Account Manager: ", data);
+                                                } else {
+                                                    console.log("Email sent to the Account Manager: ", data);
+                                                }
+                                            });
+                                    }
+                                    break;
+                            }
+                        });
+                        return callback(false, true);
+                    } else {
+                        // Do nothing, for now
+                    }
+                });
+                // return callback(false, true);
+            }
+        });
+
     }
 };
 
