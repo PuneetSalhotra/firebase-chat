@@ -959,9 +959,9 @@ function VodafoneService(objectCollection) {
             global.logger.write('debug', exception, {}, request);
         }
 
-        var isAddToTimeline = false;                      
-        /*if (request.hasOwnProperty('flag_timeline_entry'))
-            isAddToTimeline = (Number(request.flag_timeline_entry)) > 0 ? true : false;*/        
+        var isAddToTimeline = true;
+        if (request.hasOwnProperty('flag_timeline_entry'))
+            isAddToTimeline = (Number(request.flag_timeline_entry)) > 0 ? true : false;
         
         if (isAddToTimeline) {
             activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
