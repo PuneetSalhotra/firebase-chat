@@ -1999,7 +1999,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
     };
     
-    this.checkingMSgUniqueId = function (request, callback) {
+    /*this.checkingMSgUniqueId = function (request, callback) {
         var paramsArr = new Array(
             request.message_unique_id,
             request.asset_id
@@ -2013,9 +2013,42 @@ function ActivityCommonService(db, util, forEachAsync) {
                 (data.length > 0) ? callback(true, {}) : callback(false, data);
             });
         }
+    };*/
+    
+    this.checkingPartitionOffset = function (request, callback) {
+        var paramsArr = new Array(
+            global.config.TOPIC_ID,
+            request.partition,
+            request.offset
+        );        
+        var queryString = util.getQueryString('ds_p1_partititon_offset_transaction_select', paramsArr);        
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {                
+                global.logger.write('debug', data, {}, {});
+                (data.length > 0) ? callback(true, {}) : callback(false, data);
+            });
+        }
     };
     
-    this.msgUniqueIdInsert = function (request, callback) {
+    this.partitionOffsetInsert = function (request, callback) {
+        var paramsArr = new Array(
+            global.config.TOPIC_ID,
+            request.partition,
+            request.offset,
+            request.asset_id,
+            request.activity_id,
+            request.form_transaction_id
+        );        
+        var queryString = util.getQueryString('ds_p1_partition_offset_transaction_insert', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                global.logger.write('debug', data, {}, request);
+                (err == false) ? callback(false, data): callback(true, {});
+            });
+        }
+    };
+    
+    /*this.msgUniqueIdInsert = function (request, callback) {
         var paramsArr = new Array(
             request.message_unique_id,
             request.asset_id,
@@ -2029,25 +2062,8 @@ function ActivityCommonService(db, util, forEachAsync) {
                 (err == false) ? callback(false, data): callback(true, {});
             });
         }
-    };
+    };*/
     
-    this.msgUniqueIdInsert = function (request, callback) {
-        var paramsArr = new Array(
-            request.message_unique_id,
-            request.asset_id,
-            request.activity_id,
-            request.form_transaction_id
-        );
-        var queryString = util.getQueryString('ds_p1_asset_message_unique_id_transaction_insert', paramsArr);
-        if (queryString != '') {
-            db.executeQuery(0, queryString, request, function (err, data) {
-                global.logger.write('debug', data, {}, request);
-                (err == false) ? callback(false, data): callback(true, {});
-            });
-        }
-    };
-
-
     this.duplicateMsgUniqueIdInsert = function (request, callback) {
         var arr = new Array();
         arr.push(request);
@@ -2442,6 +2458,25 @@ function ActivityCommonService(db, util, forEachAsync) {
                 });
             }
         });
+    };
+    
+    
+    this.assetListUpdateOperatingAsset = function (request, deskAssetId, operatingAssetId, callback) {
+        var paramsArr = new Array(
+            deskAssetId,
+            request.workforce_id,
+            request.account_id,
+            request.organization_id,
+            operatingAssetId,
+            request.asset_id,
+            request.datetime_log
+        );
+        var queryString = util.getQueryString('ds_v1_asset_list_update_operating_asset', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                (err === false) ? callback(false, true) : callback(err, false);                
+            });
+        }
     };
     
 };

@@ -882,7 +882,7 @@ function ActivityUpdateService(objectCollection) {
                     }*/
 
                     //updating log differential datetime for only this asset
-                    activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) {
+                    activityCommonService.updateActivityLogDiffDatetime(request, 0, function (err, data) {
 
                     });
 

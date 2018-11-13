@@ -59,7 +59,7 @@ function VodafoneController(objCollection) {
         
     });
         
-    //BOT 4
+    //BOT 
     app.post('/' + global.config.version + '/vodafone/feasibility_checker/update', function (req, res) {
         req.body.message_unique_id = util.getMessageUniqueId(req.body.asset_id);
         var event = {
@@ -78,7 +78,20 @@ function VodafoneController(objCollection) {
                 res.send(responseWrapper.getResponse(false, {}, 200, req.body));
             }                            
         });        
-    });    
+    }); 
+    
+    //BOT 4
+    app.post('/' + global.config.version + '/vodafone/send/email', function (req, res) {        
+        vodafoneService.sendEmailVodafone(req.body, function (err, data, statusCode) {
+            if (err === false) {                
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {                
+                global.logger.write('response', 'Did not get a proper response', err, req.body);
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });          
+    });
         
     
     //BOT 3
@@ -86,11 +99,8 @@ function VodafoneController(objCollection) {
         
         console.log('Calling it from Vodafone Controller');
         
-        req.body.organization_id = 856;
-        req.body.account_id = 971;
-        req.body.workforce_id = 5344;
         req.body.activity_stream_type_id = 325;
-        
+                      
         var assetMessageCounter = 0;
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))

@@ -4,16 +4,12 @@
 
 function QueueWrapper(producer) {
 
-    producer.on('brokersChanged', function (error) {
-        //console.log('brokersChanged : ', error);
-        global.logger.write('debug', 'brokersChanged : ' + error, {}, event.payload);
+    producer.on('brokersChanged', function (error) {        
+        global.logger.write('debug', 'brokersChanged : ' + error, {}, {});
     });
 
     producer.on('error', function (err) {
-        global.logger.write('serverError', 'Producer send error message : ' + err, err, event.payload)
-        //console.log('Producer send error message: ' + err);
-        callback(true, err)
-        //return false;
+        global.logger.write('serverError', 'Producer send error message : ' + err, err, {});                
     });
 
     this.raiseActivityEvent = function (event, activityId, callback) {
