@@ -12,7 +12,131 @@ function VodafoneService(objectCollection) {
     const activityCommonService = objectCollection.activityCommonService;
     const cacheWrapper = objectCollection.cacheWrapper;
     const makeRequest = require('request');
-       
+
+    var NEW_ORDER_FORM_ID,
+        SUPPLEMENTARY_ORDER_FORM_ID,
+        FR_FORM_ID,
+        CRM_FORM_ID,
+        HLD_FORM_ID,
+        CAF_FORM_ID,
+        ACCOUNT_MANAGER_APPROVAL_FORM_ID,
+        CUSTOMER_APPROVAL_FORM_ID,
+        CRM_ACK_FORM_ID;
+
+    var CAF_ORGANIZATION_ID,
+        CAF_ACCOUNT_ID,
+        CAF_WORKFORCE_ID,
+        CAF_ACTIVITY_TYPE_ID;
+
+    var CAF_BOT_ASSET_ID, CAF_BOT_ENC_TOKEN;
+
+    var VODAFONE_FORM_FILE_QUEUE_ID;
+
+    var ACTIVITY_STATUS_ID_VALIDATION_PENDING,
+        ACTIVITY_STATUS_ID_APPROVAL_PENDING,
+        ACTIVITY_STATUS_ID_ORDER_CLOSED;
+    //
+    const formFieldIdMapping = util.getVodafoneFormFieldIdMapping();
+    const romsCafFieldsData = util.getVodafoneRomsCafFieldsData();
+
+    var NEW_ORDER_TO_CAF_FIELD_ID_MAP,
+        SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP,
+        FR_TO_CAF_FIELD_ID_MAP,
+        CRM_TO_CAF_FIELD_ID_MAP,
+        HLD_TO_CAF_FIELD_ID_MAP,
+        ROMS_CAF_FORM_LABELS,
+        ROMS_CAF_FIELDS_DATA,
+        CAF_TO_CRM_PORTAL_PUSH_MAP;
+
+    if (global.mode === 'preprod' || global.mode === 'local' || global.mode === 'staging') {
+        // BETA
+        NEW_ORDER_FORM_ID = 873;
+        SUPPLEMENTARY_ORDER_FORM_ID = 874;
+        FR_FORM_ID = 871;
+        CRM_FORM_ID = 870;
+        HLD_FORM_ID = 869;
+        CAF_FORM_ID = 872;
+        ACCOUNT_MANAGER_APPROVAL_FORM_ID = 875;
+        CUSTOMER_APPROVAL_FORM_ID = 882;
+        CRM_ACK_FORM_ID = 868;
+
+        // CAF
+        CAF_ORGANIZATION_ID = 860; // Vodafone Idea Beta
+        CAF_ACCOUNT_ID = 975; // Central OMT Beta
+        CAF_WORKFORCE_ID = 5355; // Lobby
+        CAF_ACTIVITY_TYPE_ID = 133250;
+
+        // CAF BOT | BOT #5
+        CAF_BOT_ASSET_ID = 31347;
+        CAF_BOT_ENC_TOKEN = "05986bb0-e364-11e8-a1c0-0b6831833754";
+
+        // STATUS
+        ACTIVITY_STATUS_ID_VALIDATION_PENDING = 280032;
+        ACTIVITY_STATUS_ID_APPROVAL_PENDING = 280033;
+        ACTIVITY_STATUS_ID_ORDER_CLOSED = 280034;
+
+        // Form Field ID Mappings
+        NEW_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.NEW_ORDER_TO_CAF_FIELD_ID_MAP;
+        SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP;
+        FR_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.FR_TO_CAF_FIELD_ID_MAP;
+        CRM_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.CRM_TO_CAF_FIELD_ID_MAP;
+        HLD_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.HLD_TO_CAF_FIELD_ID_MAP;
+        CAF_TO_CRM_PORTAL_PUSH_MAP = formFieldIdMapping.BETA.CAF_TO_CRM_PORTAL_PUSH_MAP;
+
+        // ROMS Labels
+        ROMS_CAF_FORM_LABELS = formFieldIdMapping.BETA.ROMS_LABELS;
+        // ROMS CAF Fields Data | Process, Update & Append
+        ROMS_CAF_FIELDS_DATA = romsCafFieldsData.BETA;
+
+        // Queue to map or unmap a form file
+        VODAFONE_FORM_FILE_QUEUE_ID = 2;
+
+
+    } else if (global.mode === 'prod' || global.mode === 'staging' || global.mode === 'dev') {
+        // LIVE
+        NEW_ORDER_FORM_ID = 856;
+        SUPPLEMENTARY_ORDER_FORM_ID = 857;
+        FR_FORM_ID = 866;
+        CRM_FORM_ID = 865;
+        HLD_FORM_ID = 864;
+        CAF_FORM_ID = 867;
+        ACCOUNT_MANAGER_APPROVAL_FORM_ID = 858;
+        CUSTOMER_APPROVAL_FORM_ID = 878;
+        CRM_ACK_FORM_ID = 863;
+
+        // CAF
+        CAF_ORGANIZATION_ID = 858; // Vodafone Idea Beta
+        CAF_ACCOUNT_ID = 973; // Central OMT Beta
+        CAF_WORKFORCE_ID = 5345; // Lobby
+        CAF_ACTIVITY_TYPE_ID = 133000;
+
+        // CAF BOT | BOT #5
+        CAF_BOT_ASSET_ID = 31298;
+        CAF_BOT_ENC_TOKEN = "3dc16b80-e338-11e8-a779-5b17182fa0f6";
+
+        // STATUS
+        ACTIVITY_STATUS_ID_VALIDATION_PENDING = 279438;
+        ACTIVITY_STATUS_ID_APPROVAL_PENDING = 279439;
+        ACTIVITY_STATUS_ID_ORDER_CLOSED = 279440;
+
+        // Form Field ID Mappings
+        NEW_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.NEW_ORDER_TO_CAF_FIELD_ID_MAP;
+        SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP;
+        FR_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.FR_TO_CAF_FIELD_ID_MAP;
+        CRM_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.CRM_TO_CAF_FIELD_ID_MAP;
+        HLD_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.HLD_TO_CAF_FIELD_ID_MAP;
+        CAF_TO_CRM_PORTAL_PUSH_MAP = formFieldIdMapping.LIVE.CAF_TO_CRM_PORTAL_PUSH_MAP;
+
+        // ROMS Labels
+        ROMS_CAF_FORM_LABELS = formFieldIdMapping.LIVE.ROMS_LABELS;
+        // ROMS CAF Fields Data | Process, Update & Append
+        ROMS_CAF_FIELDS_DATA = romsCafFieldsData.LIVE;
+        
+        // Queue to map or unmap a form file
+        VODAFONE_FORM_FILE_QUEUE_ID = 1;
+    }
+
+          
     this.newOrderFormSubmission = function(request, callback) {
         
         var customerData = {};
@@ -1098,16 +1222,16 @@ function VodafoneService(objectCollection) {
                 request.account_id,
                 request.organization_id,
                 request.page_start || 0,
-                request.page_limit || 50            
+                request.page_limit || 50
             );
             var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_least_loaded_asset', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
-                    if(err === false) {
-                     console.log('Dataa from DB: ', data);
-                     resolve(data)   
+                    if (err === false) {
+                        console.log('Dataa from DB: ', data);
+                        resolve(data)
                     } else {
-                     reject(err);
+                        reject(err);
                     }
                 });
             }
