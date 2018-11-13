@@ -25,6 +25,24 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
     };
 
+    // Promisified version of the above method
+    this.getAllParticipantsPromise = function (request, callback) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                request.activity_id,
+                request.organization_id,
+                0,
+                50
+            );
+            const queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_participants', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                });
+            }
+        })
+    };
+
     this.getAllParticipantsExceptAsset = function (request, assetId, callback) {
         var paramsArr = new Array(
             request.activity_id,
