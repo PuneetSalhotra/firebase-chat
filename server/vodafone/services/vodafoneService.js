@@ -11,6 +11,8 @@ function VodafoneService(objectCollection) {
     const activityPushService = objectCollection.activityPushService;
     const activityCommonService = objectCollection.activityCommonService;
     const makeRequest = require('request');
+    const uuid = require('uuid');
+    const fs = require('fs');
 
     var NEW_ORDER_FORM_ID,
         SUPPLEMENTARY_ORDER_FORM_ID,
@@ -830,7 +832,7 @@ function VodafoneService(objectCollection) {
                 return activityCommonService.getActivityTimelineTransactionByFormId(request, request.activity_id, formId)
 
             })
-            .then((hldFormData) => {
+            .then(async (hldFormData) => {
                 // Append it to cafFormJson
                 if (hldFormData.length > 0) {
                     cafFormJson = applyTransform(cafFormJson, JSON.parse(hldFormData[0].data_entity_inline), formId);
@@ -838,21 +840,41 @@ function VodafoneService(objectCollection) {
 
                 // Deduce all the additional data required for the CAF Form building
                 // 
+                // Sum all relevant fields and store them
+                const calculatedValuesJSON = calculateAllSums(cafFormJson);
+                var formParticipantsData,
+                    activityListData;
+                // Fetch participants data
+                await activityCommonService
+                    .getAllParticipantsPromise(request)
+                    .then((participantData) => {
+                        if (participantData.length) {
+                            formParticipantsData = participantData;
+                        }
+                    })
+                
+                const romsCafFieldsAndValues = populateRomsCafFieldValues(
+                    Object.assign(ROMS_CAF_FIELDS_DATA),
+                    calculatedValuesJSON,
+                    formParticipantsData
+                );
+
+                // console.log("calculatedValuesJSON: ", calculatedValuesJSON);
+                // console.log("formParticipantsData: ", formParticipantsData);
+                // console.log("ROMS_CAF_FIELDS_DATA: ", ROMS_CAF_FIELDS_DATA);
                 // Append fields which need to be calculated, and then appended. I am just
                 // appending them for now with default/empty values. T H I S ~ N E E D S ~ W O R K.
-                cafFormJson.concat(ROMS_CAF_FIELDS_DATA);
+                cafFormJson = cafFormJson.concat(romsCafFieldsAndValues);
 
                 // Append the Labels
                 cafFormJson = appendLabels(cafFormJson)
 
+                // console.log("[FINAL] cafFormJson: ", cafFormJson);
+                // fs.appendFileSync('pdfs/caf.json', JSON.stringify(cafFormJson));
+                
                 // callback(false, cafFormJson);
                 // return;
                 // 
-                //    _  _            _   __  __               ___       __     
-                //   | \| |___ ___ __| | |  \/  |___ _ _ ___  |_ _|_ _  / _|___ 
-                //   | .` / -_) -_) _` | | |\/| / _ \ '_/ -_)  | || ' \|  _/ _ \
-                //   |_|\_\___\___\__,_| |_|  |_\___/_| \___| |___|_||_|_| \___/
-
                 // Build the full and final CAF Form and submit the form data to the timeline of the form file
                 var cafFormSubmissionRequest = {
                     organization_id: CAF_ORGANIZATION_ID,
@@ -988,6 +1010,260 @@ function VodafoneService(objectCollection) {
 
                 });
             });
+    }
+
+    function populateRomsCafFieldValues(ROMS_CAF_FIELDS_DATA, calculatedValuesJSON, formParticipantsData) {
+        ROMS_CAF_FIELDS_DATA.forEach((formEntry, index) => {
+            switch (formEntry.field_id) {
+                case 5568: // LIVE | CAF ID
+                case 5836: // BETA | CAF ID
+                    // Time-based UUID
+                    ROMS_CAF_FIELDS_DATA[index].field_value = uuid.v1();
+                    break;
+                case 5726: // LIVE | Service Rental-Grand Total(A+B+C) 
+                case 5994: // BETA | Service Rental-Grand Total(A+B+C)
+                    ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.serviceRentalGrandTotal;
+                    break;
+                case 5729: // LIVE | IP Address Charges-Grand Total(A+B+C)
+                case 5997: // BETA | IP Address Charges-Grand Total(A+B+C)
+                    ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.ipAddressChargesGrandTotal;
+                    break;
+                case 5732: // LIVE | SLA Charges-Grand Total(A+B+C)
+                case 6000: // BETA | SLA Charges-Grand Total(A+B+C)
+                    ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.slaChargesGrandTotal;
+                    break;
+                case 5735: // LIVE | Self Care Portal Service Charges-Grand Total(A+B+C)
+                case 6003: // BETA | Self Care Portal Service Charges-Grand Total(A+B+C)
+                    ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.selfCarePortalServiceChargesGrandTotal;
+                    break;
+                case 5738: // LIVE | Managed Services Charges-Grand Total(A+B+C)
+                case 6006: // BETA | Managed Services Charges-Grand Total(A+B+C)
+                    ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.managedServicesChargesGrandTotal;
+                    break;
+                case 5741: // LIVE | Managed CPE Charges-Grand Total(A+B+C)
+                case 6009: // BETA | Managed CPE Charges-Grand Total(A+B+C)
+                    ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.managedCPEChargesGrandTotal;
+                    break;
+                case 5745: // LIVE | CPE Rentals-Grand Total(A+B+C)
+                case 6013: // BETA | CPE Rentals-Grand Total(A+B+C)
+                    ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.cpeRentalsGrandTotal;
+                    break;
+                case 5749: // LIVE | CPE 1-Grand Total(A+B+C)
+                case 6017: // BETA | CPE 1-Grand Total(A+B+C)
+                    ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.cpe1GrandTotal;
+                    break;
+                case 5753: // LIVE | CPE 2-Grand Total(A+B+C)
+                case 6021: // BETA | CPE 2-Grand Total(A+B+C)
+                    ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.cpe2GrandTotal;
+                    break;
+                case 5757: // LIVE | CPE 3-Grand Total(A+B+C)
+                case 6025: // BETA | CPE 3-Grand Total(A+B+C)
+                    ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.cpe3GrandTotal;
+                    break;
+                case 5761: // LIVE | CPE 4-Grand Total(A+B+C)
+                case 6029: // BETA | CPE 4-Grand Total(A+B+C)
+                    ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.cpe4GrandTotal;
+                    break;
+                case 5765: // LIVE | CPE 5-Grand Total(A+B+C)
+                case 6033: // BETA | CPE 5-Grand Total(A+B+C)
+                    ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.cpe5GrandTotal;
+                    break;
+                case 5769: // LIVE | Miscellaneous Charges-1-Grand Total(A+B+C)
+                case 6037: // BETA | Miscellaneous Charges-1-Grand Total(A+B+C)
+                    ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.miscellaneousCharges1GrandTotal;
+                    break;
+                case 5773: // LIVE | Miscellaneous Charges2-Grand Total(A+B+C)
+                case 6041: // BETA | Miscellaneous Charges2-Grand Total(A+B+C)
+                    ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.miscellaneousCharges2GrandTotal;
+                    break;
+                case 5775: // LIVE | Registration Charges-Grand Total(A+B+C)
+                case 6043: // BETA | Registration Charges-Grand Total(A+B+C)
+                    ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.registrationChargesGrandTotal;
+                    break;
+                case 5828: // LIVE | Total Amount Payable-Grand Total(A+B+C)
+                case 6096: // BETA | Total Amount Payable-Grand Total(A+B+C)
+                    ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.totalAmountPayableGrandTotal;
+                    break;
+                    // case 5780: // LIVE | Total Order Value
+                    // case 6048: // BETA | Total Order Value
+                    //     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.serviceRentalGrandTotal;
+                    //     break;
+                case 5705: // LIVE | Account Manager Name
+                case 5973: // BETA | Account Manager Name
+                    formParticipantsData.forEach(participant => {
+                        switch (participant.asset_type_id) {
+                            case 126035: // LIVE | Account Managers - Mumbai Circle
+                            case 126305: // BETA | Account Managers - Mumbai Circle
+                                ROMS_CAF_FIELDS_DATA[index].field_value = `${participant.operating_asset_first_name} ${participant.operating_asset_last_name}`;
+                                break;
+                        }
+                    });
+                    break;
+                case 5706: // LIVE | Account Manager Circle Office
+                case 5974: // BETA | Account Manager Circle Office
+                    ROMS_CAF_FIELDS_DATA[index].field_value = "Mumbai Circle - Account Managers";
+                    break;
+            }
+        });
+
+        // console.log(ROMS_CAF_FIELDS_DATA);
+
+        return ROMS_CAF_FIELDS_DATA;
+    }
+
+    function calculateAllSums(cafFormData) {
+        var sumsKeyValueJson = {
+            serviceRentalGrandTotal: 0,
+            ipAddressChargesGrandTotal: 0,
+            slaChargesGrandTotal: 0,
+            selfCarePortalServiceChargesGrandTotal: 0,
+            managedServicesChargesGrandTotal: 0,
+            managedCPEChargesGrandTotal: 0,
+            cpeRentalsGrandTotal: 0,
+            cpe1GrandTotal: 0,
+            cpe2GrandTotal: 0,
+            cpe3GrandTotal: 0,
+            cpe4GrandTotal: 0,
+            cpe5GrandTotal: 0,
+            miscellaneousCharges1GrandTotal: 0,
+            miscellaneousCharges2GrandTotal: 0,
+            registrationChargesGrandTotal: 0,
+            totalAmountPayableGrandTotal: 0
+        }
+        cafFormData.forEach(formEntry => {
+            switch (formEntry.field_id) {
+                // Service Rental-Grand Total(A+B+C)
+                case 5991: // BETA | Service Rental-One Time(A)
+                case 5992: // BETA | Service Rental-Annual Recurring(B)
+                case 5993: // BETA | Service Rental-Security Deposit(C)
+                case 5723: // LIVE | Service Rental-One Time(A)
+                case 5724: // LIVE | Service Rental-Annual Recurring(B)
+                case 5725: // LIVE | Service Rental-Security Deposit(C)
+                    sumsKeyValueJson.serviceRentalGrandTotal += Number(formEntry.field_value);
+                    break;
+                    // IP Address Charges-Grand Total(A+B+C)
+                case 5996: // BETA | IP Address Charges-Annual Recurring(B)
+                case 5995: // BETA | IP Address Charges-One Time(A)
+                case 5727: // LIVE | IP Address Charges-One Time(A)
+                case 5728: // LIVE | IP Address Charges-Annual Recurring(B)
+                    sumsKeyValueJson.ipAddressChargesGrandTotal += Number(formEntry.field_value);
+                    break;
+                    // SLA Charges-Grand Total(A+B+C)
+                case 5999: // BETA | SLA Charges-Annual Recurring(B)
+                case 5998: // BETA | SLA Charges-One Time(A)
+                case 5730: // LIVE | SLA Charges-One Time(A)
+                case 5731: // LIVE | SLA Charges-Annual Recurring(B)
+                    sumsKeyValueJson.slaChargesGrandTotal += Number(formEntry.field_value);
+                    break;
+                    // Self Care Portal Service Charges-Grand Total(A+B+C)
+                case 6002: // BETA | Self Care Portal Service Charges-Annual Recurring(B)
+                case 6001: // BETA | Self Care Portal Service Charges-One Time(A)
+                case 5733: // LIVE | Self Care Portal Service Charges-One Time(A)
+                case 5734: // LIVE | Self Care Portal Service Charges-Annual Recurring(B)
+                    sumsKeyValueJson.selfCarePortalServiceChargesGrandTotal += Number(formEntry.field_value);
+                    break;
+                    // Managed Services Charges-Grand Total(A+B+C)
+                case 6005: // BETA | Managed Services Charges-Annual Recurring(B)
+                case 6004: // BETA | Managed Services Charges-One Time(A)
+                case 5736: // LIVE | Managed Services Charges-One Time(A)
+                case 5737: // LIVE | Managed Services Charges-Annual Recurring(B)
+                    sumsKeyValueJson.managedServicesChargesGrandTotal += Number(formEntry.field_value);
+                    break;
+                    // Managed CPE Charges-Grand Total(A+B+C)
+                case 6008: // BETA | Managed CPE Charges-Annual Recurring(B)
+                case 6007: // BETA | Managed CPE Charges-One Time(A)
+                case 5739: // LIVE | Managed CPE Charges-One Time(A)
+                case 5740: // LIVE | Managed CPE Charges-Annual Recurring(B)
+                    sumsKeyValueJson.managedCPEChargesGrandTotal += Number(formEntry.field_value);
+                    break;
+                    // CPE Rentals-Grand Total(A+B+C)
+                case 6011: // BETA | CPE Rentals-Annual Recurring(B)
+                case 6010: // BETA | CPE Rentals-One Time(A)
+                case 6012: // BETA | CPE Rentals-Security Deposit(C)
+                case 5742: // LIVE | CPE Rentals-One Time(A)
+                case 5743: // LIVE | CPE Rentals-Annual Recurring(B)
+                case 5744: // LIVE | CPE Rentals-Security Deposit(C)
+                    sumsKeyValueJson.cpeRentalsGrandTotal += Number(formEntry.field_value);
+                    break;
+                    // CPE 1-Grand Total(A+B+C)
+                case 6015: // CPE 1-Annual Recurring(B)
+                case 6014: // CPE 1-One Time(A)
+                case 6016: // CPE 1-Security Deposit(C)
+                case 5746: // CPE 1-One Time(A)
+                case 5747: // CPE 1-Annual Recurring(B)
+                case 5748: // CPE 1-Security Deposit(C)
+                    sumsKeyValueJson.cpe1GrandTotal += Number(formEntry.field_value);
+                    break;
+                    // CPE 2-Grand Total(A+B+C)
+                case 6019: // CPE 2-Annual Recurring(B)
+                case 6018: // CPE 2-One Time(A)
+                case 6020: // CPE 2-Security Deposit(C)
+                case 5750: // CPE 2-One Time(A)
+                case 5751: // CPE 2-Annual Recurring(B)
+                case 5752: // CPE 2-Security Deposit(C)
+                    sumsKeyValueJson.cpe2GrandTotal += Number(formEntry.field_value);
+                    break;
+                    // CPE 3-Grand Total(A+B+C)
+                case 6023: // CPE 3-Annual Recurring(B)
+                case 6022: // CPE 3-One Time(A)
+                case 6024: // CPE 3-Security Deposit(C)
+                case 5754: // CPE 3-One Time(A)
+                case 5755: // CPE 3-Annual Recurring(B)
+                case 5756: // CPE 3-Security Deposit(C)
+                    sumsKeyValueJson.cpe3GrandTotal += Number(formEntry.field_value);
+                    break;
+                    // CPE 4-Grand Total(A+B+C)
+                case 6027: // CPE 4-Annual Recurring(B)
+                case 6026: // CPE 4-One Time(A)
+                case 6028: // CPE 4-Security Deposit(C)
+                case 5758: // CPE 4-One Time(A)
+                case 5759: // CPE 4-Annual Recurring(B)
+                case 5760: // CPE 4-Security Deposit(C)
+                    sumsKeyValueJson.cpe4GrandTotal += Number(formEntry.field_value);
+                    break;
+                    // CPE 5-Grand Total(A+B+C)
+                case 6031: // CPE 5-Annual Recurring(B)
+                case 6030: // CPE 5-One Time(A)
+                case 6032: // CPE 5-Security Deposit(C)
+                case 5762: // CPE 5-One Time(A)
+                case 5763: // CPE 5-Annual Recurring(B)
+                case 5764: // CPE 5-Security Deposit(C)
+                    sumsKeyValueJson.cpe5GrandTotal += Number(formEntry.field_value);
+                    break;
+                    // Miscellaneous Charges-1-Grand Total(A+B+C)
+                case 6035: // Miscellaneous Charges-1-Annual Recurring(B)
+                case 6034: // Miscellaneous Charges-1-One Time(A)
+                case 6036: // Miscellaneous Charges-1-Security Deposit(C)
+                case 5766: // Miscellaneous Charges-1-One Time(A)
+                case 5767: // Miscellaneous Charges-1-Annual Recurring(B)
+                case 5768: // Miscellaneous Charges-1-Security Deposit(C)
+                    sumsKeyValueJson.miscellaneousCharges1GrandTotal += Number(formEntry.field_value);
+                    break;
+                    // Miscellaneous Charges-2-Grand Total(A+B+C)
+                case 6039: // Miscellaneous Charges2-Annual Recurring(B)
+                case 6038: // Miscellaneous Charges2-One Time(A)
+                case 6040: // Miscellaneous Charges2-Security Deposit(C)
+                case 5770: // Miscellaneous Charges2-One Time(A)
+                case 5771: // Miscellaneous Charges2-Annual Recurring(B)
+                case 5772: // Miscellaneous Charges2-Security Deposit(C)
+                    sumsKeyValueJson.miscellaneousCharges2GrandTotal += Number(formEntry.field_value);
+                    break;
+                    // Registration Charges-Grand Total(A+B+C)
+                case 6042: // Registration Charges-One Time(A)
+                case 5774: // Registration Charges-One Time(A)
+                    sumsKeyValueJson.registrationChargesGrandTotal += Number(formEntry.field_value);
+                    break;
+                    // Total Amount Payable-Grand Total(A+B+C)
+                case 6045: // Total Amount Payable-Annual Recurring(B)
+                case 6044: // Total Amount Payable-One Time(A)
+                case 5776: // Total Amount Payable-One Time(A)
+                case 5777: // Total Amount Payable-Annual Recurring(B)
+                    sumsKeyValueJson.totalAmountPayableGrandTotal += Number(formEntry.field_value);
+                    break;
+            }
+        });
+
+        return sumsKeyValueJson;
     }
 
     function applyTransform(cafFormData, sourceFormData, formId) {
@@ -1165,6 +1441,7 @@ function VodafoneService(objectCollection) {
                         participantData.forEach(participant => {
                             // Account Managers/Employees/Vodafone people
                             switch (participant.asset_type_id) {
+                                case 126035: // Account Managers - Mumbai Circle | LIVE
                                 case 126305: // Account Managers - Mumbai Circle | BETA
                                     // console.log("participant: ", participant)
                                     // Check if the participant is the owner of the form file
