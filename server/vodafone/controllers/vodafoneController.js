@@ -99,11 +99,8 @@ function VodafoneController(objCollection) {
         
         console.log('Calling it from Vodafone Controller');
         
-        req.body.organization_id = 856;
-        req.body.account_id = 971;
-        req.body.workforce_id = 5344;
         req.body.activity_stream_type_id = 325;
-        
+                      
         var assetMessageCounter = 0;
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))

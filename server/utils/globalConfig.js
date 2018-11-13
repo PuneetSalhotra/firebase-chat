@@ -29,6 +29,8 @@ if (mode === 'local') {
 
     //Mysql Config
     config.masterIp = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
+    //config.masterIp = 'worlddesk-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    //config.slave1Ip = 'worlddesk-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
     config.slave1Ip = 'readreplica1.citeodhwc7z9.us-east-1.rds.amazonaws.com';
     config.slave2Ip = 'readreplica2.citeodhwc7z9.us-east-1.rds.amazonaws.com';
 
@@ -83,6 +85,40 @@ if (mode === 'local') {
     config.CONSUMER_ENCODING = "utf8";
     config.CONSUMER_KEY_ENCODING = "utf8";
     ///////////////////////////////
+    
+    //Vodafone Config
+    config.newOrderForm = 856;
+    config.orderSupplForm = 857;
+    config.acctMngApproval = 858;
+    
+    config.newCustomer = 876;
+    config.existingCustomer = 877; 
+    config.custApproval = 878;
+    
+    config.frFormId = 866;
+    config.crmFormId = 865;
+    config.hldFormId = 864;
+    config.cafFormId = 867;
+    config.crmAckFormId = 863;
+    
+    config.contactOrganizationId = 858;
+    config.contactAccountId = 974;
+    config.contactWorkforceId = 5354;
+    config.contactAssetTypeId = 126082;
+    config.contactDeskAssetTypeId = 126085;
+    
+    config.botAccountId = 973;
+    config.botWorkforceId = 5345;
+    config.botAssetID = 31298;
+    config.botEncToken = "3dc16b80-e338-11e8-a779-5b17182fa0f6";
+    
+    config.hldPending = 279437;
+    config.validationPending = 279438;
+    config.approvalPending = 279439;
+    config.orderClosed =279440;
+    
+    config.activityTypeId = 133001;
+    
 }
 
 if (mode === 'dev') {
@@ -149,6 +185,40 @@ if (mode === 'dev') {
     config.CONSUMER_ENCODING = "utf8";
     config.CONSUMER_KEY_ENCODING = "utf8";
     ///////////////////////////////
+    
+    //Vodafone Config
+    config.newOrderForm = 856;
+    config.orderSupplForm = 857;
+    config.acctMngApproval = 858;
+    
+    config.newCustomer = 876;
+    config.existingCustomer = 877; 
+    config.custApproval = 878;
+    
+    config.frFormId = 866;
+    config.crmFormId = 865;
+    config.hldFormId = 864;
+    config.cafFormId = 867;
+    config.crmAckFormId = 863;
+    
+    config.contactOrganizationId = 858;
+    config.contactAccountId = 974;
+    config.contactWorkforceId = 5354;
+    config.contactAssetTypeId = 126082;
+    config.contactDeskAssetTypeId = 126085;
+    
+    config.botAccountId = 973;
+    config.botWorkforceId = 5345;
+    config.botAssetID = 31298;
+    config.botEncToken = "3dc16b80-e338-11e8-a779-5b17182fa0f6";
+    
+    config.hldPending = 279437;
+    config.validationPending = 279438;
+    config.approvalPending = 279439;
+    config.orderClosed =279440;
+    
+    config.activityTypeId = 133001;
+    
 }
 
 if (mode === 'staging') {
@@ -219,6 +289,40 @@ if (mode === 'staging') {
     config.CONSUMER_ENCODING = "utf8";
     config.CONSUMER_KEY_ENCODING = "utf8";
     ///////////////////////////////
+    
+    //Vodafone Config
+    config.newOrderForm = 856;
+    config.orderSupplForm = 857;
+    config.acctMngApproval = 858;
+    
+    config.newCustomer = 876;
+    config.existingCustomer = 877; 
+    config.custApproval = 878;
+    
+    config.frFormId = 866;
+    config.crmFormId = 865;
+    config.hldFormId = 864;
+    config.cafFormId = 867;
+    config.crmAckFormId = 863;
+    
+    config.contactOrganizationId = 858;
+    config.contactAccountId = 974;
+    config.contactWorkforceId = 5354;
+    config.contactAssetTypeId = 126082;
+    config.contactDeskAssetTypeId = 126085;
+    
+    config.botAccountId = 973;
+    config.botWorkforceId = 5345;
+    config.botAssetID = 31298;
+    config.botEncToken = "3dc16b80-e338-11e8-a779-5b17182fa0f6";
+    
+    config.hldPending = 279437;
+    config.validationPending = 279438;
+    config.approvalPending = 279439;
+    config.orderClosed =279440;
+    
+    config.activityTypeId = 133001;
+    
 }
 
 if (mode === 'preprod') {
@@ -286,6 +390,40 @@ if (mode === 'preprod') {
     config.CONSUMER_ENCODING = "utf8";
     config.CONSUMER_KEY_ENCODING = "utf8";
     ///////////////////////////////
+    
+    //Vodafone Config
+    config.newOrderForm = 873;
+    config.orderSupplForm = 874;
+    config.acctMngApproval = 875;
+    
+    config.newCustomer = 876;
+    config.existingCustomer = 877; 
+    config.custApproval = 878;
+    
+    config.frFormId = 871;
+    config.crmFormId = 870;
+    config.hldFormId = 869;
+    config.cafFormId = 872;
+    config.crmAckFormId = 868;
+    
+    config.contactOrganizationId = 860;
+    config.contactAccountId = 976;
+    config.contactWorkforceId = 5364;
+    config.contactAssetTypeId = 126352;
+    config.contactDeskAssetTypeId = 126355;
+    
+    config.botAccountId = 975;
+    config.botWorkforceId = 5355;
+    config.botAssetID = 31347;
+    config.botEncToken = "05986bb0-e364-11e8-a1c0-0b6831833754";
+    
+    config.hldPending = 280031;
+    config.validationPending = 280032;
+    config.approvalPending = 280033;
+    config.orderClosed = 280034;
+    
+    config.activityTypeId = 133251;
+    
 }
 
 if (mode === 'vodafone') {
@@ -407,8 +545,46 @@ if (mode === 'prod') {
 
     //making twilio, Nexmo Calls
     config.efsPath = "/api-final-efs/";
+    
+    //Vodafone Config
+    config.newOrderForm = 856;
+    config.orderSupplForm = 857;
+    config.acctMngApproval = 858;
+    
+    config.newCustomer = 876;
+    config.existingCustomer = 877; 
+    config.custApproval = 878;
+    
+    config.frFormId = 866;
+    config.crmFormId = 865;
+    config.hldFormId = 864;
+    config.cafFormId = 867;
+    config.crmAckFormId = 863;
+    
+    config.contactOrganizationId = 858;
+    config.contactAccountId = 974;
+    config.contactWorkforceId = 5354;
+    config.contactAssetTypeId = 126082;
+    config.contactDeskAssetTypeId = 126085;
+    
+    config.botAccountId = 973;
+    config.botWorkforceId = 5345;
+    config.botAssetID = 31298;
+    config.botEncToken = "3dc16b80-e338-11e8-a779-5b17182fa0f6";
+    
+    config.hldPending = 279437;
+    config.validationPending = 279438;
+    config.approvalPending = 279439;
+    config.orderClosed =279440;
+    
+    config.activityTypeId = 133001;
+    
 }
-        
+
+//Vodafone Config
+config.frApiSecret = "asdf";
+config.crmApiSecret = "asdf";
+
 config.platformApplicationIosDev = 'arn:aws:sns:us-east-1:430506864995:app/APNS_VOIP_SANDBOX/VOIPios';
 config.platformApplicationIosProd = "arn:aws:sns:us-east-1:430506864995:app/APNS_VOIP/VOIPiosProd";
 config.platformApplicationIosDevGR = 'arn:aws:sns:us-east-1:430506864995:app/APNS_VOIP_SANDBOX/GRVOIPiosDev';
