@@ -15,6 +15,10 @@ var os = require('os');
 const sgMail = require('@sendgrid/mail');
 sgMail.setApiKey('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');
 // 
+// Vodafone Form Field Mapping
+const vodafoneFormFieldIdMapping = require(`${__dirname}/formFieldIdMapping`);
+// [Vodafone ROMS] CAF Fields Data
+const vodafoneRomsCafFieldsData = require(`${__dirname}/vodafoneRomsCafFieldsData`);
 // 
 // SendInBlue
 const SibApiV3Sdk = require('sib-api-v3-sdk');
@@ -996,6 +1000,15 @@ function Util() {
             }
         }
     };
+
+    // [VODAFONE]
+    this.getVodafoneFormFieldIdMapping = function () {
+        return vodafoneFormFieldIdMapping;
+    }
+    // [VODAFONE]
+    this.getVodafoneRomsCafFieldsData = function () {
+        return vodafoneRomsCafFieldsData;
+    }
 
 };
 
