@@ -534,6 +534,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 activityTimelineCollection = request.activity_timeline_collection;
                 formTransactionId = request.form_transaction_id;
                 formId = request.form_id;
+                request.entity_bigint_1 = request.parent_form_activity_id || 0;
                 dataTypeId = 37; //static for all form submissions
                 break;
             case 314: // cloud based document -- file
