@@ -23,15 +23,33 @@ apps:
     out_file: '/dev/null'
     instances: 1
     exec_mode: fork
+  - name : "ConsumerFour"
+    script   : ./consumerFour.js
+    #error_file: ../consumersLogger.txt
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+  - name : "ConsumerFive"
+    script   : ./consumerFive.js
+    #error_file: ../consumersLogger.txt
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+  - name : "ConsumerSix"
+    script   : ./consumerSix.js
+    #error_file: ../consumersLogger.txt
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
   - name : "SQSConsumer"
     script   : ./server/queue/sqsConsumer.js
     #error_file: ../sqsConsumerLogger.txt
     out_file: '/dev/null'
     instances: 1
     exec_mode: fork
-  - name : "PAM"
-    script   : ./server/pam/server.js
+  #- name : "PAM"
+  #  script   : ./server/pam/server.js
     #error_file: ../pamlogger.txt
-    out_file: '/dev/null'
-    instances: 1
-    exec_mode: fork
+  #  out_file: '/dev/null'
+  #  instances: 1
+   # exec_mode: fork

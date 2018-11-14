@@ -87,6 +87,8 @@ var Consumer = function () {
 
             var messageJson = JSON.parse(message.value);
             var request = messageJson['payload'];
+            request.partition = message.partition;
+            request.offset = message.offset;
 
             activityCommonService.checkingPartitionOffset(request, (err, data) => {
                 global.logger.write('conLog', 'err from checkingPartitionOffset : ' + err, {}, request);
