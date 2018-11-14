@@ -534,11 +534,11 @@ function ActivityListingController(objCollection) {
         });
     });
 
-    // Check if a form transaction with a specific form_id has been already been 
+    // Check if a form transaction with a specific form_id has already been 
     // submitted on a form file
     app.post('/' + global.config.version + '/activity/form_transaction/check', function (req, res) {
         // 
-        // Check if a form transaction with a specific form_id has been already 
+        // Check if a form transaction with a specific form_id has already 
         // been submitted on a form file
         activityCommonService
             .getActivityTimelineTransactionByFormId(req.body, req.body.activity_id, req.body.form_id)
