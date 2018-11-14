@@ -70,6 +70,28 @@ function ActivityTimelineService(objectCollection) {
                 });
             }
 
+            // 
+            // [VODAFONE] Listen for Account Manager Approval or Customer (Service Desk) Approval Form
+            if (Number(request.form_id) === 858 || Number(request.form_id) === 878 || Number(request.form_id) === 875 || Number(request.form_id) === 882) {
+                const approvalCheckRequestEvent = {
+                    name: "vodafoneService",
+                    service: "vodafoneService",
+                    method: "approvalFormsSubmissionCheck",
+                    payload: request
+                };
+                queueWrapper.raiseActivityEvent(approvalCheckRequestEvent, request.activity_id, (err, resp) => {
+                    if (err) {
+                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                    } else {
+                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                    }
+                });
+
+            }
+            //
+
         } else {
             request.form_id = 0;
         }

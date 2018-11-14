@@ -28,43 +28,28 @@ if (mode === 'local') {
     config.sqsConsumer = 7300;
 
     //Mysql Config
-    config.masterIp = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
-    config.slave1Ip = 'readreplica1.citeodhwc7z9.us-east-1.rds.amazonaws.com';
-    config.slave2Ip = 'readreplica2.citeodhwc7z9.us-east-1.rds.amazonaws.com';
+    config.masterIp = 'worlddesk-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.slave1Ip = 'worlddesk-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    //config.masterIp = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
+    //config.slave1Ip = 'readreplica1.citeodhwc7z9.us-east-1.rds.amazonaws.com';    
 
     config.dbUser = 'apiuser';
     //config.database = 'desker';// desker_staging
     config.database = 'desker_staging';
     config.dbPassword = 'apidbuser';
-    config.conLimit = 10;
+    config.conLimit = 2;
 
     //Redis Config
     config.redisIp = '127.0.0.1';
-    config.redisPort = 6379;
+    config.redisPort = 6379;    
 
-    config.kafkaMsgUniqueIdValue = 'read';
-
-    //Kafka Brokers Config
-    config.kafkaIPOne = {
-        kafkaHost: 'kafka1:9092'
-    };
-    config.kafkaIPTwo = {
-        kafkaHost: 'kafka1:9093'
-    };
-    config.kafkaIPThree = {
-        kafkaHost: 'kafka1:9094'
-    };
-
-    //Kafka Topics
-    config.kafkaActivitiesTopic = 'desker-activities';
-    config.kafkaFormWidgetTopic = 'desker-form-widgets';
-    config.consumerGroup = "desker-activities-consumer-group";
-
+    //config.kafkaFormWidgetTopic = 'desker-form-widgets';
+    
     //IOS Push
     config.iosPushMode = 'dev';
 
     //SQS Queue
-    config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/desker-logging-staging"; //Staging SQS QUEUE
+    config.SQSqueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/logs-staging"; //Staging SQS QUEUE
 
     //Portal Service URL
     config.portalBaseUrl = "http://localhost:7001/";
@@ -74,6 +59,79 @@ if (mode === 'local') {
 
     //making twilio, Nexmo Calls
     config.efsPath = "/";
+    
+    //Kafka Configuration
+    config.BROKER_HOST = "kafka1:9092";
+    config.BROKER_CONNECT_TIMEOUT = 10000;
+    config.BROKER_REQUEST_TIMEOUT = 60000;
+    config.BROKER_AUTO_CONNECT = true;
+    config.BROKER_MAX_ASYNC_REQUESTS = 10;
+
+    config.PRODUCER_REQUIRE_ACKS = 1;
+    config.PRODUCER_ACKS_TIMEOUT = 100;
+    config.PRODUCER_PARTITONER_TYPE = 3;
+
+    config.TOPIC_ID = 8;
+    config.TOPIC_NAME = "desker-activities";
+    config.WIDGET_TOPIC_NAME = 'desker-form-widgets';
+    config.CONSUMER_GROUP_ID = 'desker-activities-consumer-group';
+    config.CONSUMER_AUTO_COMMIT = true;
+    config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
+    config.CONSUMER_FETCH_MAX_WAIT = 10;
+    config.CONSUMER_FETCH_MIN_BYTES = 1;
+    config.CONSUMER_FETCH_MAX_BYTES = 1048576;
+    config.CONSUMER_ENCODING = "utf8";
+    config.CONSUMER_KEY_ENCODING = "utf8";
+    ///////////////////////////////
+    
+    //Vodafone Config
+    config.newOrderForm = 856;
+    config.orderSupplForm = 857;
+    config.acctMngApproval = 858;
+    
+    config.newCustomer = 876;
+    config.existingCustomer = 877; 
+    config.custApproval = 878;
+    
+    config.frFormId = 866;
+    config.crmFormId = 865;
+    config.hldFormId = 864;
+    config.cafFormId = 867;
+    config.crmAckFormId = 863;
+    
+    config.form866 = "FR Form";
+    config.form865 = "CRM Form"
+    config.form864 = "HLD Form"
+    config.form867 = "CAF Form"   
+    
+    config.frFormId = 866;
+    config.crmFormId = 865;
+    config.hldFormId = 864;
+    config.cafFormId = 867;
+    config.crmAckFormId = 863;
+    
+    config.contactOrganizationId = 858;
+    config.contactAccountId = 974;
+    config.contactWorkforceId = 5354;
+    config.contactAssetTypeId = 126082;
+    config.contactDeskAssetTypeId = 126085;
+    
+    config.botAccountId = 973;
+    config.botWorkforceId = 5345;
+    config.botAssetID = 31298;
+    config.botEncToken = "3dc16b80-e338-11e8-a779-5b17182fa0f6";
+    
+    config.hldPending = 279437;
+    config.validationPending = 279438;
+    config.approvalPending = 279439;
+    config.orderClosed =279440;
+    
+    config.activityTypeId = 133001;
+    
+    ////////////////////////////////////
+    config.emailbaseUrlApprove = "https://stagingmydesk.desker.co"; 
+    config.emailbaseUrlUpload = "https://stagingmydesk.desker.co";
+    
 }
 
 if (mode === 'dev') {
@@ -90,48 +148,98 @@ if (mode === 'dev') {
     config.sqsConsumer = 3300;
 
     //Mysql Config
-    config.masterIp = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
-    config.slave1Ip = 'readreplica1.citeodhwc7z9.us-east-1.rds.amazonaws.com';
-    config.slave2Ip = 'readreplica2.citeodhwc7z9.us-east-1.rds.amazonaws.com';
-
+    config.masterIp = 'worlddesk-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.slave1Ip = 'worlddesk-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+        
+    //config.masterIp = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
+    //config.slave1Ip = 'readreplica1.citeodhwc7z9.us-east-1.rds.amazonaws.com';
+    
     config.dbUser = 'apiuser';
     config.database = 'desker_staging';
     config.dbPassword = 'apidbuser';
-    config.conLimit = 10;
+    config.conLimit = 2;
 
     //Redis Config
-    config.redisIp = 'dev-redis.apppnf.0001.use1.cache.amazonaws.com';
+    config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';
     config.redisPort = 6379;
-
-    //Kafka Brokers Config
-    config.kafkaIPOne = {
-        kafkaHost: 'kafka1:9092'
-    };
-    config.kafkaIPTwo = {
-        kafkaHost: 'kafka2:9092'
-    };
-    config.kafkaIPThree = {
-        kafkaHost: 'kafka3:9092'
-    };
-
-    //Kafka Topics
-    config.kafkaActivitiesTopic = 'dev-desker-activities';
-    config.consumerGroup = "desker-activities-consumer-group-dev";
-
+    //config.redisIp = 'dev-redis.apppnf.0001.use1.cache.amazonaws.com';
+    
     //IOS Push
     config.iosPushMode = 'dev';
 
     //SQS Queue
-    config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/desker-logging-staging"; //Staging SQS QUEUE
+    config.SQSqueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/logs-staging"; //Staging SQS QUEUE
 
     //Portal Service URL
-    config.portalBaseUrl = "https://stagingportal.desker.cloud/";
+    config.portalBaseUrl = "https://stagingportal.worlddesk.cloud/";
 
     //Mobile Service URL
-    config.mobileBaseUrl = "https://stagingapi.desker.cloud/";
+    config.mobileBaseUrl = "https://stagingapi.worlddesk.cloud/";
 
     //making twilio, Nexmo Calls
-    config.efsPath = "/api-staging-efs/";
+    config.efsPath = "/apistaging-data/";
+    
+    //Kafka Configuration
+    config.BROKER_HOST = "kafka1:9092,kafka2:9092,kafka3:9092";
+    config.BROKER_CONNECT_TIMEOUT = 10000;
+    config.BROKER_REQUEST_TIMEOUT = 60000;
+    config.BROKER_AUTO_CONNECT = true;
+    config.BROKER_MAX_ASYNC_REQUESTS = 10;
+
+    config.PRODUCER_REQUIRE_ACKS = 1;
+    config.PRODUCER_ACKS_TIMEOUT = 100;
+    config.PRODUCER_PARTITONER_TYPE = 3;
+
+    config.TOPIC_ID = 1;
+    config.TOPIC_NAME = "dev-desker-activities";
+    config.WIDGET_TOPIC_NAME = 'dev-desker-form-widgets';
+    config.CONSUMER_GROUP_ID = "dev-desker-activities-consumer-group";
+    config.CONSUMER_AUTO_COMMIT = true;
+    config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
+    config.CONSUMER_FETCH_MAX_WAIT = 10;
+    config.CONSUMER_FETCH_MIN_BYTES = 1;
+    config.CONSUMER_FETCH_MAX_BYTES = 1048576;
+    config.CONSUMER_ENCODING = "utf8";
+    config.CONSUMER_KEY_ENCODING = "utf8";
+    ///////////////////////////////
+    
+    //Vodafone Config
+    config.newOrderForm = 856;
+    config.orderSupplForm = 857;
+    config.acctMngApproval = 858;
+    
+    config.newCustomer = 876;
+    config.existingCustomer = 877; 
+    config.custApproval = 878;
+    
+    config.frFormId = 866;
+    config.crmFormId = 865;
+    config.hldFormId = 864;
+    config.cafFormId = 867;
+    config.crmAckFormId = 863;
+    
+    config.contactOrganizationId = 858;
+    config.contactAccountId = 974;
+    config.contactWorkforceId = 5354;
+    config.contactAssetTypeId = 126082;
+    config.contactDeskAssetTypeId = 126085;
+    
+    config.botAccountId = 973;
+    config.botWorkforceId = 5345;
+    config.botAssetID = 31298;
+    config.botEncToken = "3dc16b80-e338-11e8-a779-5b17182fa0f6";
+    
+    config.hldPending = 279437;
+    config.validationPending = 279438;
+    config.approvalPending = 279439;
+    config.orderClosed =279440;
+    
+    config.activityTypeId = 133001;
+    ////////////////////////////////////
+    
+    config.emailbaseUrlApprove = "https://stagingmydesk.desker.co"; 
+    config.emailbaseUrlUpload = "https://stagingmydesk.desker.co";
+    
 }
 
 if (mode === 'staging') {
@@ -148,50 +256,98 @@ if (mode === 'staging') {
     config.sqsConsumer = 4300;
 
     //Mysql Config
-    config.masterIp = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
-    config.slave1Ip = 'readreplica1.citeodhwc7z9.us-east-1.rds.amazonaws.com';
-    config.slave2Ip = 'readreplica2.citeodhwc7z9.us-east-1.rds.amazonaws.com';
+    config.masterIp = 'worlddesk-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.slave1Ip = 'worlddesk-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    
+    //config.masterIp = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
+    //config.slave1Ip = 'readreplica1.citeodhwc7z9.us-east-1.rds.amazonaws.com';
 
     config.dbUser = 'apiuser';
     config.database = 'desker_staging';
     config.dbPassword = 'apidbuser';
 
-    config.conLimit = 10;
+    config.conLimit = 2;
 
-    //Redis Config
-    config.redisIp = 'dev-redis.apppnf.0001.use1.cache.amazonaws.com';
+    //Redis Config    
+    config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';
     config.redisPort = 6379;
-
-    //Kafka Brokers Config
-    config.kafkaIPOne = {
-        kafkaHost: 'kafka1:9092'
-    };
-    config.kafkaIPTwo = {
-        kafkaHost: 'kafka2:9092'
-    };
-    config.kafkaIPThree = {
-        kafkaHost: 'kafka3:9092'
-    };
-
-    //Kafka Topics
-    config.kafkaActivitiesTopic = 'staging-desker-activities';
-    //config.kafkaFormWidgetTopic = 'desker-form-widgets';
-    config.consumerGroup = "desker-activities-consumer-group-staging";
 
     //IOS Push
     config.iosPushMode = 'dev'; // currently shouuld be in dev
 
     //SQS Queue
-    config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/desker-logging-staging"; //Staging SQS QUEUE
+    config.SQSqueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/logs-staging"; //Staging SQS QUEUE
 
     //Portal Service URL
-    config.portalBaseUrl = "https://stagingportal.desker.cloud/";
+    config.portalBaseUrl = "https://stagingportal.worlddesk.cloud/";
 
     //Mobile Service URL
-    config.mobileBaseUrl = "https://stagingapi.desker.cloud/";
+    config.mobileBaseUrl = "https://stagingapi.worldesk.cloud/";
 
     //making twilio, Nexmo Calls
-    config.efsPath = "/api-staging-efs/";
+    config.efsPath = "/apistaging-data/";
+    
+    //Kafka Configuration
+    config.BROKER_HOST = "kafka1:9092,kafka2:9092,kafka3:9092";
+    config.BROKER_CONNECT_TIMEOUT = 10000;
+    config.BROKER_REQUEST_TIMEOUT = 60000;
+    config.BROKER_AUTO_CONNECT = true;
+    config.BROKER_MAX_ASYNC_REQUESTS = 10;
+
+    config.PRODUCER_REQUIRE_ACKS = 1;
+    config.PRODUCER_ACKS_TIMEOUT = 100;
+    config.PRODUCER_PARTITONER_TYPE = 3;
+
+    config.TOPIC_ID = 2;
+    config.TOPIC_NAME = 'staging-desker-activities';
+    config.WIDGET_TOPIC_NAME = 'staging-desker-form-widgets';
+    config.CONSUMER_GROUP_ID = 'staging-desker-activities-consumer-group';
+    config.CONSUMER_AUTO_COMMIT = true;
+    config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
+    config.CONSUMER_FETCH_MAX_WAIT = 10;
+    config.CONSUMER_FETCH_MIN_BYTES = 1;
+    config.CONSUMER_FETCH_MAX_BYTES = 1048576;
+    config.CONSUMER_ENCODING = "utf8";
+    config.CONSUMER_KEY_ENCODING = "utf8";
+    ///////////////////////////////
+    
+    //Vodafone Config
+    config.newOrderForm = 856;
+    config.orderSupplForm = 857;
+    config.acctMngApproval = 858;
+    
+    config.newCustomer = 876;
+    config.existingCustomer = 877; 
+    config.custApproval = 878;
+    
+    config.frFormId = 866;
+    config.crmFormId = 865;
+    config.hldFormId = 864;
+    config.cafFormId = 867;
+    config.crmAckFormId = 863;
+  
+    config.contactOrganizationId = 858;
+    config.contactAccountId = 974;
+    config.contactWorkforceId = 5354;
+    config.contactAssetTypeId = 126082;
+    config.contactDeskAssetTypeId = 126085;
+    
+    config.botAccountId = 973;
+    config.botWorkforceId = 5345;
+    config.botAssetID = 31298;
+    config.botEncToken = "3dc16b80-e338-11e8-a779-5b17182fa0f6";
+    
+    config.hldPending = 279437;
+    config.validationPending = 279438;
+    config.approvalPending = 279439;
+    config.orderClosed =279440;
+    
+    config.activityTypeId = 133001;
+    
+    ////////////////////////////////////
+    config.emailbaseUrlApprove = "https://stagingmydesk.desker.co"; 
+    config.emailbaseUrlUpload = "https://stagingmydesk.desker.co";    
+    
 }
 
 if (mode === 'preprod') {
@@ -208,110 +364,98 @@ if (mode === 'preprod') {
     config.sqsConsumer = 6300;
 
     //Mysql Config
-    config.masterIp = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
-    config.slave1Ip = 'readreplica1.citeodhwc7z9.us-east-1.rds.amazonaws.com';
-    config.slave2Ip = 'readreplica2.citeodhwc7z9.us-east-1.rds.amazonaws.com';
+    config.masterIp = 'worlddesk-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.slave1Ip = 'worlddesk-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    
+    //config.masterIp = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
+    //config.slave1Ip = 'readreplica1.citeodhwc7z9.us-east-1.rds.amazonaws.com';    
 
     config.dbUser = 'apiuser';
     config.database = 'desker';
     config.dbPassword = 'apidbuser';
 
-    config.conLimit = 10;
+    config.conLimit = 2;
 
     //Redis Config
-    config.redisIp = 'rediscluster1.apppnf.ng.0001.use1.cache.amazonaws.com';
+    config.redisIp = 'cache-production.7otgcu.ng.0001.aps1.cache.amazonaws.com';
     config.redisPort = 6379;
-
-    //Kafka Brokers Config
-    config.kafkaIPOne = {
-        kafkaHost: 'kafka1:9092'
-    };
-    config.kafkaIPTwo = {
-        kafkaHost: 'kafka2:9092'
-    };
-    config.kafkaIPThree = {
-        kafkaHost: 'kafka3:9092'
-    };
-
-    //Kafka Topics
-    config.kafkaActivitiesTopic = 'preprod-desker-activities';
-    //config.kafkaFormWidgetTopic = 'desker-form-widgets';
-    config.consumerGroup = "desker-activities-consumer-group-preprod";
 
     //IOS Push
     config.iosPushMode = 'prod';
 
     //SQS Queue
-    config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/Desker-Logging-Production";
+    config.SQSqueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/logs-production";
 
-    //Portal Service URL
-    config.portalBaseUrl = "https://preprodportal.desker.cloud/";
-
-    //Mobile Service URL
-    config.mobileBaseUrl = "https://preprodapi.desker.cloud/";
-
-    //making twilio, Nexmo Calls
-    config.efsPath = "/api-staging-efs/";
-}
-
-if (mode === 'vodafone') {
-
-    //Ports Config
-    config.version = 'r1';
-    config.servicePort = 6000;
-    config.standAlonePamServicePort = 6100;
-
-    config.consumerOne = 6200;
-    config.consumerTwo = 6201;
-    config.consumerThree = 6202;
-
-    config.sqsConsumer = 6300;
-
-    //Mysql Config
-    config.masterIp = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
-    config.slave1Ip = 'readreplica1.citeodhwc7z9.us-east-1.rds.amazonaws.com';
-    config.slave2Ip = 'readreplica2.citeodhwc7z9.us-east-1.rds.amazonaws.com';
-
-    config.dbUser = 'apiuser';
-    config.database = 'desker';
-    config.dbPassword = 'apidbuser';
-
-    config.conLimit = 10;
-
-    //Redis Config
-    config.redisIp = 'rediscluster1.apppnf.ng.0001.use1.cache.amazonaws.com';
-    config.redisPort = 6379;
-
-    //Kafka Brokers Config
-    config.kafkaIPOne = {
-        kafkaHost: 'kafka1:9092'
-    };
-    config.kafkaIPTwo = {
-        kafkaHost: 'kafka2:9092'
-    };
-    config.kafkaIPThree = {
-        kafkaHost: 'kafka3:9092'
-    };
-
-    //Kafka Topics
-    config.kafkaActivitiesTopic = 'vodafone-desker-activities';
-    //config.kafkaFormWidgetTopic = 'desker-form-widgets';
-    config.consumerGroup = "desker-activities-consumer-group-vodafone";
-
-    //IOS Push
-    config.iosPushMode = 'prod';
-
-    //SQS Queue
-    config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/Desker-Logging-Production";
-
-    //Portal Service URL
-    config.portalBaseUrl = "https://preprodportal.desker.cloud/";
+    //Portal Service URL 
+    config.portalBaseUrl = "https://preprodportal.worlddesk.cloud/";
 
     //Mobile Service URL
-    config.mobileBaseUrl = "http://localhost:6000/";
+    config.mobileBaseUrl = "https://preprodapi.worlddesk.cloud/";
 
     //making twilio, Nexmo Calls
-    config.efsPath = "/api-staging-efs/";
+    config.efsPath = "/apistaging-data/";
+    
+    //Kafka Configuration
+    config.BROKER_HOST = "kafka1:9092,kafka2:9092,kafka3:9092";
+    config.BROKER_CONNECT_TIMEOUT = 10000;
+    config.BROKER_REQUEST_TIMEOUT = 60000;
+    config.BROKER_AUTO_CONNECT = true;
+    config.BROKER_MAX_ASYNC_REQUESTS = 10;
+
+    config.PRODUCER_REQUIRE_ACKS = 1;
+    config.PRODUCER_ACKS_TIMEOUT = 100;
+    config.PRODUCER_PARTITONER_TYPE = 3;
+
+    config.TOPIC_ID = 3;
+    config.TOPIC_NAME = 'preprod-desker-activities';
+    config.WIDGET_TOPIC_NAME = 'preprod-desker-form-widgets';
+    config.CONSUMER_GROUP_ID = 'preprod-desker-activities-consumer-group';
+    config.CONSUMER_AUTO_COMMIT = true;
+    config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
+    config.CONSUMER_FETCH_MAX_WAIT = 10;
+    config.CONSUMER_FETCH_MIN_BYTES = 1;
+    config.CONSUMER_FETCH_MAX_BYTES = 1048576;
+    config.CONSUMER_ENCODING = "utf8";
+    config.CONSUMER_KEY_ENCODING = "utf8";
+    ///////////////////////////////
+    
+    //Vodafone Config
+    config.newOrderForm = 873;
+    config.orderSupplForm = 874;
+    config.acctMngApproval = 875;
+    
+    config.newCustomer = 876;
+    config.existingCustomer = 877; 
+    config.custApproval = 878;
+    
+    config.frFormId = 871;
+    config.crmFormId = 870;
+    config.hldFormId = 869;
+    config.cafFormId = 872;
+    config.crmAckFormId = 868;
+    
+    config.contactOrganizationId = 860;
+    config.contactAccountId = 976;
+    config.contactWorkforceId = 5364;
+    config.contactAssetTypeId = 126352;
+    config.contactDeskAssetTypeId = 126355;
+    
+    config.botAccountId = 975;
+    config.botWorkforceId = 5355;
+    config.botAssetID = 31347;
+    config.botEncToken = "05986bb0-e364-11e8-a1c0-0b6831833754";
+    
+    config.hldPending = 280031;
+    config.validationPending = 280032;
+    config.approvalPending = 280033;
+    config.orderClosed = 280034;
+    
+    config.activityTypeId = 133251;
+    
+    ////////////////////////////////////
+    config.emailbaseUrlApprove = "https://preprodmydesk.desker.co"; 
+    config.emailbaseUrlUpload = "https://preprodmydesk.desker.co";
+    
 }
 
 if (mode === 'prod') {
@@ -328,53 +472,100 @@ if (mode === 'prod') {
     config.sqsConsumer = 3300;
 
     //Mysql Config
-    config.masterIp = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
-    config.slave1Ip = 'readreplica1.citeodhwc7z9.us-east-1.rds.amazonaws.com';
-    config.slave2Ip = 'readreplica2.citeodhwc7z9.us-east-1.rds.amazonaws.com';
-
+    config.masterIp = 'worlddesk-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.slave1Ip = 'worlddesk-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';   
+    
     config.dbUser = 'apiuser';
     config.database = 'desker';
     config.dbPassword = 'apidbuser';
 
-    config.conLimit = 10;
+    config.conLimit = 2;
 
     //Redis    
-    config.redisIp = 'rediscluster1.apppnf.ng.0001.use1.cache.amazonaws.com';
+    config.redisIp = 'cache-production.7otgcu.ng.0001.aps1.cache.amazonaws.com';
     config.redisPort = 6379;
 
-    //Kafka Brokers Config
-    config.kafkaIPOne = {
-        kafkaHost: 'kafka1:9092'
-    };
-    config.kafkaIPTwo = {
-        kafkaHost: 'kafka2:9092'
-    };
-    config.kafkaIPThree = {
-        kafkaHost: 'kafka3:9092'
-    };
+    //Kafka Configuration
+    config.BROKER_HOST = "kafka1:9092,kafka2:9092,kafka3:9092";
+    config.BROKER_CONNECT_TIMEOUT = 10000;
+    config.BROKER_REQUEST_TIMEOUT = 60000;
+    config.BROKER_AUTO_CONNECT = true;
+    config.BROKER_MAX_ASYNC_REQUESTS = 10;
 
-    //Kafka Topics    
-    config.kafkaActivitiesTopic = 'desker-activities-v2';
-    //config.kafkaFormWidgetTopic = 'desker-form-widgets';    
+    config.PRODUCER_REQUIRE_ACKS = 1;
+    config.PRODUCER_ACKS_TIMEOUT = 100;
+    config.PRODUCER_PARTITONER_TYPE = 3;
 
-    config.consumerGroup = "desker-activities-consumer-group-v2";
+    config.TOPIC_ID = 3;
+    config.TOPIC_NAME = 'prod-desker-activities';
+    config.WIDGET_TOPIC_NAME = 'prod-desker-form-widgets';
+    config.CONSUMER_GROUP_ID = 'prod-desker-activities-consumer-group';
+    config.CONSUMER_AUTO_COMMIT = true;
+    config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
+    config.CONSUMER_FETCH_MAX_WAIT = 10;
+    config.CONSUMER_FETCH_MIN_BYTES = 1;
+    config.CONSUMER_FETCH_MAX_BYTES = 1048576;
+    config.CONSUMER_ENCODING = "utf8";
+    config.CONSUMER_KEY_ENCODING = "utf8";
+    ///////////////////////////////
 
     //IOS PUSH
     config.iosPushMode = 'prod';
 
-
     //SQS QUEUE
-    config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/Desker-Logging-Production";
+    config.SQSqueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/logs-production";
 
     //Portal Service URL
-    config.portalBaseUrl = "https://portal.desker.cloud/";
+    config.portalBaseUrl = "https://portal.worlddesk.cloud/";
 
     //Mobile Service URL
-    config.mobileBaseUrl = "https://api.desker.cloud/";
+    config.mobileBaseUrl = "https://api.worlddesk.cloud/";
 
     //making twilio, Nexmo Calls
-    config.efsPath = "/api-final-efs/";
+    config.efsPath = "/api-data/";
+    
+    //Vodafone Config
+    config.newOrderForm = 856;
+    config.orderSupplForm = 857;
+    config.acctMngApproval = 858;
+    
+    config.newCustomer = 876;
+    config.existingCustomer = 877; 
+    config.custApproval = 878;
+    
+    config.frFormId = 866;
+    config.crmFormId = 865;
+    config.hldFormId = 864;
+    config.cafFormId = 867;
+    config.crmAckFormId = 863;
+    
+    config.contactOrganizationId = 858;
+    config.contactAccountId = 974;
+    config.contactWorkforceId = 5354;
+    config.contactAssetTypeId = 126082;
+    config.contactDeskAssetTypeId = 126085;
+    
+    config.botAccountId = 973;
+    config.botWorkforceId = 5345;
+    config.botAssetID = 31298;
+    config.botEncToken = "3dc16b80-e338-11e8-a779-5b17182fa0f6";
+    
+    config.hldPending = 279437;
+    config.validationPending = 279438;
+    config.approvalPending = 279439;
+    config.orderClosed =279440;
+    
+    config.activityTypeId = 133001;
+    
+    ////////////////////////////////////
+    config.emailbaseUrlApprove = "https://worldoffice.desker.co"; 
+    config.emailbaseUrlUpload = "https://worldoffice.desker.co";
+    
 }
+
+//Vodafone Config
+config.frApiSecret = "asdf";
+config.crmApiSecret = "asdf";
 
 config.platformApplicationIosDev = 'arn:aws:sns:us-east-1:430506864995:app/APNS_VOIP_SANDBOX/VOIPios';
 config.platformApplicationIosProd = "arn:aws:sns:us-east-1:430506864995:app/APNS_VOIP/VOIPiosProd";
@@ -394,6 +585,10 @@ config.platformApplicationIosVOIPProd = 'arn:aws:sns:us-east-1:430506864995:app/
 config.platformApplicationIosSDPushDev = 'arn:aws:sns:us-east-1:430506864995:app/APNS_SANDBOX/serviceDeskDev';
 config.platformApplicationIosSDPushProd = 'arn:aws:sns:us-east-1:430506864995:app/APNS/serviceDeskProd';
 
+//Office Desk IOS normal Push platform endpoints
+config.platformApplicationIosODPushDev = 'arn:aws:sns:us-east-1:430506864995:app/APNS_SANDBOX/officeDeskIOSDev';
+config.platformApplicationIosODPushProd = 'arn:aws:sns:us-east-1:430506864995:app/APNS/officeDeskIOSProd';
+
 //PAM App IOS Pushes
 config.platformApplicationIosPamPushDev = 'arn:aws:sns:us-east-1:430506864995:app/APNS_SANDBOX/pamDevApp';
 config.platformApplicationIosPamPushProd = 'arn:aws:sns:us-east-1:430506864995:app/APNS/pamProdApp';
@@ -410,17 +605,17 @@ config.smtp_user = 'vodafone_idea@grenerobotics.com';
 config.smtp_pass = 'foxtrot111';
 
 config.cassandraCredentialsDev = {
-    ip: '192.168.7.120',
-    user: 'aamir',
-    pwd: 'foxtrot88',
+    ip: '10.0.0.169',
+    user: 'apiuser',
+    pwd: 'c@ss@ndr@@ccess',
     log_keyspace: 'deskerlogv2_staging',
     session_keyspace: 'deskersession_staging'
 };
 
 config.cassandraCredentialsProd = {
-    ip: '192.168.7.120',
-    user: 'aamir',
-    pwd: 'foxtrot88',
+    ip: '10.0.0.169',
+    user: 'apiuser',
+    pwd: 'c@ss@ndr@@ccess',
     log_keyspace: 'deskerlogv2',
     session_keyspace: 'deskersession'
 };

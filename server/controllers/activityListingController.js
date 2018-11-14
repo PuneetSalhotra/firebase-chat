@@ -9,6 +9,7 @@ const moment = require('moment');
 function ActivityListingController(objCollection) {
 
     var responseWrapper = objCollection.responseWrapper;
+    const activityCommonService = objCollection.activityCommonService;
     var app = objCollection.app;
 
     var activityListingService = new ActivityListingService(objCollection);
@@ -523,7 +524,7 @@ function ActivityListingController(objCollection) {
     app.post('/' + global.config.version + '/asset/access/chat/list', function (req, res) {
         // 
         // Fetch list of recent chats for the asset
-        activityListingService.fetchRecentChatList(req.body, function (err, data, statusCode) {        
+        activityListingService.fetchRecentChatList(req.body, function (err, data, statusCode) {
             if (err === false) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
@@ -531,6 +532,38 @@ function ActivityListingController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
+    });
+
+    // Check if a form transaction with a specific form_id has already been 
+    // submitted on a form file
+    app.post('/' + global.config.version + '/activity/form_transaction/check', function (req, res) {
+        // 
+        // Check if a form transaction with a specific form_id has already 
+        // been submitted on a form file
+        activityCommonService
+            .getActivityTimelineTransactionByFormId(req.body, req.body.activity_id, req.body.form_id)
+            .then((data) => {
+                res.send(responseWrapper.getResponse(false, data, 200, req.body));
+            })
+            .catch((err) => {
+                let data = {};
+                res.send(responseWrapper.getResponse(err, data, -9998, req.body));
+            });
+    });
+
+    // List of forms with data submitted on the queue mapped activity
+    app.post('/' + global.config.version + '/activity/timeline/form/list', function (req, res) {
+        // 
+        // List of forms with data submitted on the queue mapped activity
+        activityCommonService
+            .getActivityTimelineTransactionByFormId(req.body, req.body.activity_id, req.body.form_id)
+            .then((data) => {
+                res.send(responseWrapper.getResponse(false, data, 200, req.body));
+            })
+            .catch((err) => {
+                let data = {};
+                res.send(responseWrapper.getResponse(err, data, -9998, req.body));
+            });
     });
 }
 

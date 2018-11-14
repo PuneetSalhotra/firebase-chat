@@ -5,17 +5,17 @@ version: 0.0
 os: linux
 files:
   - source: .
-    destination: /api-staging-efs/node/preprod_desker_api
+    destination: /preprod_desker_api
   - source: .
-    destination: /api-itsnotan-efs/node/production_desker_api/2018-11-02-01
+    destination: /production_desker_api/2018-11-15-01
 permissions:
-  - object: /api-staging-efs/node/preprod_desker_api/deployment
-    owner: nanikalyan
+  - object: /preprod_desker_api/deployment
+    owner: root
     mode: 777
     type:
       - directory
-  - object: /api-itsnotan-efs/node/production_desker_api/2018-11-02-01/deployment
-    owner: nanikalyan
+  - object: /production_desker_api/2018-11-15-01/deployment
+    owner: root
     mode: 777
     type:
       - directory
@@ -23,11 +23,11 @@ hooks:
   BeforeInstall:
     - location: deployment/install_dependencies.sh
       timeout: 300
-      runas: nanikalyan  
+      runas: root
   ApplicationStart:
     - location: deployment/start_services.sh    
       timeout: 300    
-      runas: nanikalyan
+      runas: root
   #ApplicationStop:
     #- location: scripts/stop_server.sh
      #  timeout: 300

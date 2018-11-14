@@ -15,6 +15,20 @@ var os = require('os');
 const sgMail = require('@sendgrid/mail');
 sgMail.setApiKey('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');
 // 
+// Vodafone Form Field Mapping
+const vodafoneFormFieldIdMapping = require(`${__dirname}/formFieldIdMapping`);
+// [Vodafone ROMS] CAF Fields Data
+const vodafoneRomsCafFieldsData = require(`${__dirname}/vodafoneRomsCafFieldsData`);
+// 
+// SendInBlue
+const SibApiV3Sdk = require('sib-api-v3-sdk');
+const defaultClient = SibApiV3Sdk.ApiClient.instance;
+// Configure API key authorization: api-key
+const apiKey = defaultClient.authentications['api-key'];
+apiKey.apiKey = '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';
+
+const apiInstance = new SibApiV3Sdk.SMTPApi();
+// 
 
 function Util() {
 
@@ -867,6 +881,38 @@ function Util() {
             });
     };
 
+    // SendInBlue
+    this.sendEmailV3 = function (request, email, subject, text, htmlTemplate, callback) {
+        // SendSmtpEmail | Values to send a transactional email
+        var sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+        sendSmtpEmail.to = [{
+            "name": request.email_receiver_name || undefined,
+            "email": email
+        }];
+        sendSmtpEmail.sender = {
+            "name": request.email_sender_name || undefined,
+            "email": request.email_sender
+        };
+        sendSmtpEmail.textContent = text;
+        sendSmtpEmail.htmlContent = htmlTemplate;
+        sendSmtpEmail.subject = subject;
+        sendSmtpEmail.headers = {
+            "x-mailin-custom": "Grene Robotics"
+        };
+        sendSmtpEmail.tags = ["test"];
+        // sendSmtpEmail.attachment = [{
+        //     "url": "https://i.imgur.com/Pf7zKgl.jpg"
+        // }]
+
+        apiInstance.sendTransacEmail(sendSmtpEmail)
+            .then(function (data) {
+                console.log('API called successfully. Returned data: ', data);
+                return callback(false, data);
+            }, function (error) {
+                return callback(true, error);
+            });
+    };
+
     this.getRedableFormatLogDate = function (timeString, type) {
         if (typeof type == 'undefined' || type == '' || type == null)
             type = 0;
@@ -895,8 +941,8 @@ function Util() {
     this.getUniqueArray = function (a) {
         return Array.from(new Set(a));
     };
-    
-    this.getWorkFlowUrl = function(url) {
+
+    this.getWorkFlowUrl = function (url) {
         return url.slice(4);
     }
 
@@ -907,15 +953,16 @@ function Util() {
         var targetedLogFilePath;
 
         if (global.mode === 'prod') {
-            locationInServer = global.config.efsPath + 'node/production_desker_api/';
+            locationInServer = global.config.efsPath + 'production_desker_api_logs/';
             logFilePath = locationInServer + 'logs/' + this.getCurrentDate() + '.txt';
             targetedLogFilePath = locationInServer + 'targeted_logs/' + this.getCurrentDate() + '.txt';
-
         } else {
-            logFilePath = 'logs/' + this.getCurrentDate() + '.txt';
+            locationInServer = global.config.efsPath + 'staging_desker_api_logs/';
+            logFilePath = locationInServer + 'logs/' + this.getCurrentDate() + '.txt';
             // Development and Pre-Production | Not Staging
-            targetedLogFilePath = 'targeted_logs/' + this.getCurrentDate() + '.txt';
-        }
+            targetedLogFilePath = locationInServer + 'targeted_logs/' + this.getCurrentDate() + '.txt';
+        }       
+        
 
         if (typeof data === 'object') {
             // console.log('JSON.stringify(data) : ' + JSON.stringify(data));
@@ -954,6 +1001,15 @@ function Util() {
             }
         }
     };
+
+    // [VODAFONE]
+    this.getVodafoneFormFieldIdMapping = function () {
+        return vodafoneFormFieldIdMapping;
+    }
+    // [VODAFONE]
+    this.getVodafoneRomsCafFieldsData = function () {
+        return vodafoneRomsCafFieldsData;
+    }
 
 };
 
