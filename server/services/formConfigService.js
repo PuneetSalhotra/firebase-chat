@@ -7,6 +7,7 @@ function FormConfigService(objCollection) {
     var db = objCollection.db;
     var util = objCollection.util;
     var activityCommonService = objCollection.activityCommonService;
+    var queueWrapper = objCollection.queueWrapper;
 
     this.getOrganizationalLevelForms = function (request, callback) {
         var paramsArr = new Array();
@@ -399,6 +400,131 @@ function FormConfigService(objCollection) {
                     }
             });
         }
+    };
+    
+    this.alterFormActivity = function(request, callback) {
+      
+        var logDatetime = util.getCurrentUTCTime();        
+        request['datetime_log'] = logDatetime;
+        
+        //activityCommonService.updateAssetLocation(request, function (err, data) {});        
+        
+        getLatestUpdateSeqId(request).then((data)=>{
+            console.log('update_sequence_id : ', data.update_sequence_id);            
+            request.update_sequence_id = ++data.update_sequence_id;
+            
+            putLatestUpdateSeqId(request).then(()=>{
+                
+                var event = {
+                    name: "alterActivityInline",
+                    service: "activityUpdateService",
+                    method: "alterActivityInline",
+                    payload: request          
+                };
+
+                queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
+                    if (err) {
+                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req);                        
+                        throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+                    } else {}                            
+                });
+        
+            }).catch((err)=>{
+                global.logger.write(err);
+            });
+            
+        }).catch((err)=>{
+            global.logger.write(err);
+        })
+        
+        
+        
+        
+        //Updating the following for all collaborators except the current asset
+        //1) activity_datetime_last_updated
+        //2) activity_datetime_last_differential
+        //3) asset_unread_updates_count        
+        //activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {});
+        
+        //Updating the following for the current collaborator
+        //1) activity_datetime_last_differential
+        //2) activity_datetime_last_seen
+        //activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) {});
+        
+        callback(false, {}, 200);
+    };
+    
+    function getLatestUpdateSeqId(request) {
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                request.form_transaction_id,
+                request.form_id,
+                request.field_id,
+                request.organization_id
+            );
+            queryString = util.getQueryString('ds_p1_activity_form_transaction_select_field_sequence_id', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    console.log('data from getLatestUpdateSeqId : ', data);
+                    (err === false) ?  resolve(data[0]) : reject();
+                });
+            }
+        });
+    };
+    
+    function putLatestUpdateSeqId(request){
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(              
+                request.form_transaction_id,
+                request.form_id,
+                request.field_id,
+                request.data_type_combo_id || 0,
+                request.activity_id,
+                request.asset_id,
+                request.workforce_id,
+                request.account_id,
+                request.organization_id,
+                request.entity_date_1 || '1970-01-01 00:00:00',
+                request.entity_datetime_1 || '1970-01-01 00:00:00',
+                request.entity_tinyint_1,
+                request.entity_tinyint_2,
+                request.entity_bigint_1,
+                request.entity_double_1,
+                request.entity_decimal_1,
+                request.entity_decimal_2,
+                request.entity_decimal_3,
+                request.entity_text_1 || "",
+                request.entity_text_2 || "",
+                request.entity_text_3 || "",
+                request.track_latitude,
+                request.track_longitude,
+                request.track_gps_accuracy,
+                request.track_gps_enabled,
+                request.track_gps_location,
+                request.track_gps_datetime,
+                request.device_manufacturer_name,
+                request.device_model_name,
+                request.device_os_id,
+                request.device_os_name,
+                request.device_os_version,
+                request.device_app_version,
+                request.device_api_version,
+                request.asset_id, //log_asset_id
+                request.message_unique_id,
+                request.log_retry,
+                request.log_offline,
+                request.transaction_datetime,
+                request.log_datetime,
+                request.entity_datetime_2,
+                request.update_sequence_id
+            );
+            queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {                    
+                    (err === false) ?  resolve() : reject();
+                });
+            }
+        });
     };
 
 };

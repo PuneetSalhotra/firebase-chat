@@ -183,7 +183,7 @@ var executeRecursiveQuery = function (flag, start, limit, callName, paramsArr, c
     checkAndFetchRecords(start);
 };
 
-process.on('exit', (err) => {
+/*process.on('exit', (err) => {
     global.logger.write('conLog', 'Closing the poolCluster : ' + err, {}, {});
     writeCluster.end();
     readCluster.end();
@@ -193,7 +193,7 @@ process.on('exit', (err) => {
 //Ctrl+C Event
 process.on('SIGINT', () => {
     process.exit();
-});
+});*/
 
 //PID kill; PM2 Restart; nodemon Restart
 //process.on('SIGUSR1', ()=>{ process.exit(); });
