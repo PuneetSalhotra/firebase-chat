@@ -37,7 +37,7 @@ if (mode === 'local') {
     //config.database = 'desker';// desker_staging
     config.database = 'desker_staging';
     config.dbPassword = 'apidbuser';
-    config.conLimit = 3;
+    config.conLimit = 2;
 
     //Redis Config
     config.redisIp = '127.0.0.1';
@@ -157,7 +157,7 @@ if (mode === 'dev') {
     config.dbUser = 'apiuser';
     config.database = 'desker_staging';
     config.dbPassword = 'apidbuser';
-    config.conLimit = 3;
+    config.conLimit = 2;
 
     //Redis Config
     config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';
@@ -266,7 +266,7 @@ if (mode === 'staging') {
     config.database = 'desker_staging';
     config.dbPassword = 'apidbuser';
 
-    config.conLimit = 3;
+    config.conLimit = 2;
 
     //Redis Config    
     config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';
@@ -374,7 +374,7 @@ if (mode === 'preprod') {
     config.database = 'desker';
     config.dbPassword = 'apidbuser';
 
-    config.conLimit = 3;
+    config.conLimit = 2;
 
     //Redis Config
     config.redisIp = 'cache-production.7otgcu.ng.0001.aps1.cache.amazonaws.com';
@@ -479,7 +479,7 @@ if (mode === 'prod') {
     config.database = 'desker';
     config.dbPassword = 'apidbuser';
 
-    config.conLimit = 3;
+    config.conLimit = 2;
 
     //Redis    
     config.redisIp = 'cache-production.7otgcu.ng.0001.aps1.cache.amazonaws.com';
