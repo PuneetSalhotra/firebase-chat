@@ -534,6 +534,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 activityTimelineCollection = request.activity_timeline_collection;
                 formTransactionId = request.form_transaction_id;
                 formId = request.form_id;
+                request.entity_bigint_1 = request.parent_form_activity_id || 0;
                 dataTypeId = 37; //static for all form submissions
                 break;
             case 314: // cloud based document -- file
@@ -2471,7 +2472,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             );
             const queryString = util.getQueryString('ds_p1_queue_activity_mapping_select', paramsArr);
             if (queryString !== '') {
-                db.executeQuery(0, queryString, request, function (err, data) {
+                db.executeQuery(1, queryString, request, function (err, data) {
                     (err) ? reject(err): resolve(data);
                 });
             }
@@ -2495,6 +2496,52 @@ function ActivityCommonService(db, util, forEachAsync) {
                 (err === false) ? callback(false, true) : callback(err, false);                
             });
         }
+    };
+
+
+    // Fetch all queues
+    this.listAllQueues = function (request) {
+        return new Promise((resolve, reject) => {
+            // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
+            // IN p_workforce_id BIGINT(20), IN p_flag SMALLINT(6), 
+            // IN p_start_from BIGINT(20), IN p_limit_value SMALLINT(6)
+            let paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                0, // request.flag,
+                request.start_from,
+                request.limit_value
+            );
+            const queryString = util.getQueryString('ds_p1_queue_list_select', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                });
+            }
+        });
+    };
+    
+    // Fetch all activities mapped to a queue
+    this.fetchActivitiesMappedToQueue = function (request) {
+        return new Promise((resolve, reject) => {
+            // IN p_queue_id BIGINT(20), IN p_organization_id BIGINT(20), 
+            // IN p_flag SMALLINT(6), IN p_start_from BIGINT(20), 
+            // IN p_limit_value SMALLINT(6)
+            let paramsArr = new Array(
+                request.queue_id,
+                request.organization_id,
+                0, // request.flag
+                request.start_from,
+                request.limit_value
+            );
+            const queryString = util.getQueryString('ds_p1_queue_activity_mapping_select_queue', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                });
+            }
+        });
     };
     
 };
