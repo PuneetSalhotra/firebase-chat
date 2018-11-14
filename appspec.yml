@@ -8,7 +8,7 @@ files:
     destination: /staging_desker_api   
 permissions:
   - object: /staging_desker_api/deployment
-    owner: nanikalyan
+    owner: root
     mode: 777
     type:
       - directory
@@ -16,11 +16,11 @@ hooks:
   BeforeInstall:
     - location: deployment/install_dependencies.sh
       timeout: 300
-      runas: nanikalyan  
+      runas: root
   ApplicationStart:
     - location: deployment/start_services.sh    
       timeout: 300    
-      runas: nanikalyan
+      runas: root
   #ApplicationStop:
     #- location: scripts/stop_server.sh
      #  timeout: 300
