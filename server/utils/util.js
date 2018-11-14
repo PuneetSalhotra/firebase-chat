@@ -953,15 +953,16 @@ function Util() {
         var targetedLogFilePath;
 
         if (global.mode === 'prod') {
-            locationInServer = global.config.efsPath + 'node/production_desker_api/';
+            locationInServer = global.config.efsPath + 'production_desker_api_logs/';
             logFilePath = locationInServer + 'logs/' + this.getCurrentDate() + '.txt';
             targetedLogFilePath = locationInServer + 'targeted_logs/' + this.getCurrentDate() + '.txt';
-
         } else {
-            logFilePath = 'logs/' + this.getCurrentDate() + '.txt';
+            locationInServer = global.config.efsPath + 'staging_desker_api_logs/';
+            logFilePath = locationInServer + 'logs/' + this.getCurrentDate() + '.txt';
             // Development and Pre-Production | Not Staging
-            targetedLogFilePath = 'targeted_logs/' + this.getCurrentDate() + '.txt';
-        }
+            targetedLogFilePath = locationInServer + 'targeted_logs/' + this.getCurrentDate() + '.txt';
+        }       
+        
 
         if (typeof data === 'object') {
             // console.log('JSON.stringify(data) : ' + JSON.stringify(data));

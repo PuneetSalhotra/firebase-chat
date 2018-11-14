@@ -121,7 +121,7 @@ var AwsSns = function () {
     this.createPlatformEndPoint = function (deviceOsId, pushToken, flag, flagAppAccount, callback) { //flag - 0 is Dev and 1 is Prod 
         var platformApplicationArn = '';
         //if (deviceOsId === 2) {
-        switch (deviceOsId) {
+        /*switch (deviceOsId) {
             case 1: // android
                 platformApplicationArn = global.config.platformApplicationAndroid;
                 break;
@@ -202,7 +202,7 @@ var AwsSns = function () {
             case 3: // windows
                 platformApplicationArn = global.config.platformApplicationWindows;
                 break;
-        };
+        };*/
         var params = {
             PlatformApplicationArn: platformApplicationArn,
             /* required */

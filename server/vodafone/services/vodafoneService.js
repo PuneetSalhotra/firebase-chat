@@ -741,11 +741,17 @@ function VodafoneService(objectCollection) {
                 openingMessage = 'Please verify the below form details.';
 
             const jsonString = {
+                organization_id: request.organization_id,
+                account_id: request.account_id,
+                workforce_id: request.workforce_id,
                 asset_id: Number(customerCollection.customerServiceDeskAssetID),
+                asset_token_auth: global.config.botEncToken,
+                auth_asset_id: global.config.botAssetID,
                 activity_id: Number(request.activity_id),
-                form_id: Number(request.activity_form_id),                
+                form_id: Number(request.activity_form_id),
+                activity_type_id:global.config.activityTypeId,
                 type: 'approval'
-            }
+            };
 
             if (String(customerCollection.contactEmailId).includes('%40')) {
                 customerCollection.contactEmailId = String(customerCollection.contactEmailId).replace(/%40/g, "@");
@@ -753,8 +759,8 @@ function VodafoneService(objectCollection) {
 
             const encodedString = Buffer.from(JSON.stringify(jsonString)).toString('base64');
 
-            const baseUrlApprove = "https://preprodmydesk.desker.co/#/customapproval/" + encodedString;
-            const baseUrlUpload = "https://preprodmydesk.desker.co/#/customupload/" + encodedString;
+            const baseUrlApprove = global.config.emailbaseUrlApprove + "/#/forms/entry/" + encodedString;
+            const baseUrlUpload = global.config.emailbaseUrlUpload + "/#/forms/entry/" + encodedString;
 
             switch(Number(request.activity_form_id)) {
                 case 856: emailSubject = 'Upload Documents for Order';
@@ -916,6 +922,48 @@ function VodafoneService(objectCollection) {
         var activityStreamTypeId = Number(request.activity_stream_type_id) || 325;
         activityCommonService.updateAssetLocation(request, function (err, data) {});
         
+        switch(Number(request.form_id)) {
+                case 866: //FR Form Definition
+                case 871: request.activity_inline_data = request.activity_timeline_collection;
+                          request.activity_form_id = global.config.frFormId;                          
+                          request.form_name = "FR Form";
+                          break;                      
+                case 865: //CRM Form Definition
+                case 870: request.activity_inline_data = request.activity_timeline_collection;
+                          request.activity_form_id = global.config.crmFormId;
+                          request.form_name = "CRM Form";
+                          break;
+                case 864: //HLD Form
+                case 869: request.activity_inline_data = request.activity_timeline_collection;
+                          request.activity_form_id = global.config.hldFormId;                          
+                          request.form_name = "HLD Form";
+                          break;
+                case 867: //CAF Form
+                case 872: request.activity_inline_data = request.activity_timeline_collection;
+                          request.activity_form_id = global.config.hldFormId;                          
+                          request.form_name = "CAF Form";
+                          break;                
+                case 876: //New Customer
+                case 880: request.activity_inline_data = request.activity_timeline_collection;
+                          request.activity_form_id = global.config.newCustomer;                          
+                          break;            
+                case 877: //Existing Customer
+                case 881: request.activity_inline_data = request.activity_timeline_collection;
+                          request.activity_form_id = global.config.existingCustomer;
+                          break;
+            }
+        
+        
+        var activityTimelineCollection = {};
+            activityTimelineCollection.content = "Form Submitted";
+            activityTimelineCollection.subject = request.form_name;
+            activityTimelineCollection.mail_body = request.form_name;
+            activityTimelineCollection.form_submitted = JSON.parse(request.activity_timeline_collection);
+            activityTimelineCollection.attachments = [];
+            activityTimelineCollection.asset_reference = [];
+            activityTimelineCollection.activity_reference = [];
+            activityTimelineCollection.form_approval_field_reference = [];
+        
         if(!(request.hasOwnProperty('from_internal'))) {
             //Create a new file activity for the customer submitted form data with file status -1
             addActivityChangeFileStatus(request).then(()=>{
@@ -924,7 +972,7 @@ function VodafoneService(objectCollection) {
                 console.log(err);
                 global.logger.write('debug', err, {}, request);
             });
-        }        
+        }
         
         //var formDataJson = JSON.parse(request.activity_timeline_collection);
         //request.form_id = formDataJson[0]['form_id'];
@@ -932,25 +980,8 @@ function VodafoneService(objectCollection) {
         // add form entries
         //addFormEntries(request, function (err, approvalFieldsArr) {});
             
-            switch(Number(request.form_id)) {
-                case 866: //FR Form Definition                          
-                          request.activity_inline_data = request.activity_timeline_collection;
-                          request.activity_form_id = global.config.frFormId;
-                          break;                      
-                case 865: //CRM Form Definition
-                          request.activity_inline_data = request.activity_timeline_collection;
-                          request.activity_form_id = global.config.crmFormId;
-                          break;
-                case 876: //New Customer
-                          request.activity_inline_data = request.activity_timeline_collection;
-                          request.activity_form_id = global.config.newCustomer;
-                          break;            
-                case 877: //Existing Customer
-                          request.activity_inline_data = request.activity_timeline_collection;
-                          request.activity_form_id = global.config.existingCustomer;
-                          break;
-            }
-        
+            
+        request.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
         
         try {
             var formDataJson = JSON.parse(request.activity_timeline_collection);
@@ -1132,57 +1163,6 @@ function VodafoneService(objectCollection) {
     };
     
     
-    function createTimelineEntry(request) {
-        return new Promise((resolve, reject) => {
-            var newRequest = Object.assign({}, request);
-
-            var mailBody = "Title: " + request.activity_title + "<br>";
-            //mailBody += "Description: <br>";
-            mailBody += "Organization Name : " + request.signedup_asset_organization_name + "<br>";
-            mailBody += "Workfore Name : " + request.signedup_asset_workforce_name + "<br>";
-            //mailBody += "Asset Id : " + request.signedup_asset_id + "<br>";
-            mailBody += "Asset Name : " + request.signedup_asset_organization_name + "<br>";
-            mailBody += "Asset Phone Country Code : " + request.signedup_asset_phone_country_code + "<br>";
-            mailBody += "Asset Phone Number : " + request.signedup_asset_phone_number + "<br>";
-            mailBody += "Asset Email Id : " + request.signedup_asset_email_id;
-
-            var activityTimelineCollection = {};
-            activityTimelineCollection.content = mailBody;
-            //activityTimelineCollection.subject = "Added : " + util.getCurrentDate();
-            activityTimelineCollection.mail_body = mailBody;
-            activityTimelineCollection.attachments = [];
-            activityTimelineCollection.asset_reference = [];
-            activityTimelineCollection.activity_reference = [];
-            activityTimelineCollection.form_approval_field_reference = [];
-
-            // console.log("activityTimelineCollection : ", JSON.stringify(activityTimelineCollection));
-            global.logger.write('debug', 'activityTimelineCollection' + JSON.stringify(activityTimelineCollection, null, 2), {}, request);
-
-            newRequest.activity_stream_type_id = 325;            
-            newRequest.track_gps_datetime = util.getCurrentUTCTime();
-            newRequest.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
-
-            var event = {
-                name: "addTimelineTransaction",
-                service: "activityTimelineService",
-                method: "addTimelineTransaction",
-                payload: newRequest
-            };
-
-            queueWrapper.raiseActivityEvent(event, newRequest.activity_id, (err, resp) => {
-                if (err) {
-                    // console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                    global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-
-                    //res.send(responseWrapper.getResponse(false, {}, -5999,req.body));
-                    throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
-                } else {}
-
-                resolve();
-            });
-        });
-    };
-    
     //Document Validator = 122964; 
     //Feasibility Checker = 122965; 
     //Administrator (Account Manager) = 122992
@@ -1357,7 +1337,7 @@ function VodafoneService(objectCollection) {
   
         	}
             
-            resolve(data);
+            //resolve(data);
         });        
     };
     

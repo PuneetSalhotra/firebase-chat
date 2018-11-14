@@ -95,7 +95,7 @@ function VodafoneController(objCollection) {
         
     
     //BOT 3
-    app.post('/' + global.config.version + '/activity/timeline/entry/add/vodafone', function (req, res) {        
+    app.post('/' + global.config.version + '/activity/timeline/entry/add/external', function (req, res) {        
         
         console.log('Calling it from Vodafone Controller');
         
@@ -286,6 +286,27 @@ function VodafoneController(objCollection) {
             res.send(responseWrapper.getResponse(err, data, -999, req.body));
         });
     });
+    
+    app.post('/' + global.config.version + '/vodafone/fr/pull', function (req, res) {
+    	vodafoneService.fetchVodafoneFRPull(req.body,0).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        	});
+    });
+    
+    app.post('/' + global.config.version + '/vodafone/crm_portal/pull', function (req, res) {
+    	vodafoneService.fetchCRMPortalPull(req.body,0).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        	});
+    });    
+    
 };
 
 module.exports = VodafoneController;
