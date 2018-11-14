@@ -550,6 +550,21 @@ function ActivityListingController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, -9998, req.body));
             });
     });
+
+    // List of forms with data submitted on the queue mapped activity
+    app.post('/' + global.config.version + '/activity/timeline/form/list', function (req, res) {
+        // 
+        // List of forms with data submitted on the queue mapped activity
+        activityCommonService
+            .getActivityTimelineTransactionByFormId(req.body, req.body.activity_id, req.body.form_id)
+            .then((data) => {
+                res.send(responseWrapper.getResponse(false, data, 200, req.body));
+            })
+            .catch((err) => {
+                let data = {};
+                res.send(responseWrapper.getResponse(err, data, -9998, req.body));
+            });
+    });
 }
 
 module.exports = ActivityListingController;
