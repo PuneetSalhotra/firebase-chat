@@ -24,6 +24,9 @@ if (mode === 'local') {
     config.consumerOne = 7200;
     config.consumerTwo = 7201;
     config.consumerThree = 7202;
+    config.consumerFour = 7203;
+    config.consumerFive = 7204;
+    config.consumerSix = 7205;
 
     config.sqsConsumer = 7300;
 
@@ -144,6 +147,9 @@ if (mode === 'dev') {
     config.consumerOne = 3200;
     config.consumerTwo = 3201;
     config.consumerThree = 3202;
+    config.consumerFour = 3203;
+    config.consumerFive = 3204;
+    config.consumerSix = 3205;
 
     config.sqsConsumer = 3300;
 
@@ -252,6 +258,9 @@ if (mode === 'staging') {
     config.consumerOne = 4200;
     config.consumerTwo = 4201;
     config.consumerThree = 4202;
+    config.consumerFour = 4203;
+    config.consumerFive = 4204;
+    config.consumerSix = 4205;
 
     config.sqsConsumer = 4300;
 
@@ -360,6 +369,9 @@ if (mode === 'preprod') {
     config.consumerOne = 6200;
     config.consumerTwo = 6201;
     config.consumerThree = 6202;
+    config.consumerFour = 6203;
+    config.consumerFive = 6204;
+    config.consumerSix = 6205;
 
     config.sqsConsumer = 6300;
 
@@ -468,6 +480,9 @@ if (mode === 'prod') {
     config.consumerOne = 3200;
     config.consumerTwo = 3201;
     config.consumerThree = 3202;
+    config.consumerFour = 3203;
+    config.consumerFive = 3204;
+    config.consumerSix = 3205;
 
     config.sqsConsumer = 3300;
 
