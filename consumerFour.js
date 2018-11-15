@@ -10,3 +10,9 @@ process.on('error', (err) => {
   console.log(`process.on(error): ${err}\n`);
   throw new Error('error');
 });
+
+var http = require('http');
+http.createServer((req, res)=>{
+    res.write('I am Alive');
+    res.end();
+}).listen(global.config.consumerFour);

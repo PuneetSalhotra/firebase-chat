@@ -24,6 +24,9 @@ if (mode === 'local') {
     config.consumerOne = 7200;
     config.consumerTwo = 7201;
     config.consumerThree = 7202;
+    config.consumerFour = 7203;
+    config.consumerFive = 7204;
+    config.consumerSix = 7205;
 
     config.sqsConsumer = 7300;
 
@@ -144,6 +147,9 @@ if (mode === 'dev') {
     config.consumerOne = 3200;
     config.consumerTwo = 3201;
     config.consumerThree = 3202;
+    config.consumerFour = 3203;
+    config.consumerFive = 3204;
+    config.consumerSix = 3205;
 
     config.sqsConsumer = 3300;
 
@@ -252,6 +258,9 @@ if (mode === 'staging') {
     config.consumerOne = 4200;
     config.consumerTwo = 4201;
     config.consumerThree = 4202;
+    config.consumerFour = 4203;
+    config.consumerFive = 4204;
+    config.consumerSix = 4205;
 
     config.sqsConsumer = 4300;
 
@@ -360,6 +369,9 @@ if (mode === 'preprod') {
     config.consumerOne = 6200;
     config.consumerTwo = 6201;
     config.consumerThree = 6202;
+    config.consumerFour = 6203;
+    config.consumerFive = 6204;
+    config.consumerSix = 6205;
 
     config.sqsConsumer = 6300;
 
@@ -468,6 +480,9 @@ if (mode === 'prod') {
     config.consumerOne = 3200;
     config.consumerTwo = 3201;
     config.consumerThree = 3202;
+    config.consumerFour = 3203;
+    config.consumerFive = 3204;
+    config.consumerSix = 3205;
 
     config.sqsConsumer = 3300;
 
@@ -567,7 +582,22 @@ if (mode === 'prod') {
 config.frApiSecret = "asdf";
 config.crmApiSecret = "asdf";
 
-config.platformApplicationIosDev = 'arn:aws:sns:us-east-1:430506864995:app/APNS_VOIP_SANDBOX/VOIPios';
+//Android
+config.platformApplicationAndroid = "arn:aws:sns:ap-south-1:430506864995:app/GCM/worldDeskAndroidPush";
+
+//Service Desk IOS normal Push platform endpoints
+config.platformApplicationIosSDPushDev = 'arn:aws:sns:ap-south-1:430506864995:app/APNS_SANDBOX/serviceDeskIOSDevPush';
+config.platformApplicationIosSDPushProd = 'arn:aws:sns:ap-south-1:430506864995:app/APNS/serviceDeskIOSProdPush';
+
+//Office Desk IOS normal Push platform endpoints
+config.platformApplicationIosODPushDev = 'arn:aws:sns:ap-south-1:430506864995:app/APNS_SANDBOX/officeDeskIOSDev';
+config.platformApplicationIosODPushProd = 'arn:aws:sns:ap-south-1:430506864995:app/APNS/officeDeskIOSProdPush';
+
+//PAM App IOS Pushes
+config.platformApplicationIosPamPushDev = 'arn:aws:sns:ap-south-1:430506864995:app/APNS_SANDBOX/pamDevPush';
+config.platformApplicationIosPamPushProd = 'arn:aws:sns:ap-south-1:430506864995:app/APNS/pamProdPush';
+
+/*config.platformApplicationIosDev = 'arn:aws:sns:us-east-1:430506864995:app/APNS_VOIP_SANDBOX/VOIPios';
 config.platformApplicationIosProd = "arn:aws:sns:us-east-1:430506864995:app/APNS_VOIP/VOIPiosProd";
 config.platformApplicationIosDevGR = 'arn:aws:sns:us-east-1:430506864995:app/APNS_VOIP_SANDBOX/GRVOIPiosDev';
 config.platformApplicationIosProdGR = "arn:aws:sns:us-east-1:430506864995:app/APNS_VOIP/GRVOIPiosProd";
@@ -591,7 +621,7 @@ config.platformApplicationIosODPushProd = 'arn:aws:sns:us-east-1:430506864995:ap
 
 //PAM App IOS Pushes
 config.platformApplicationIosPamPushDev = 'arn:aws:sns:us-east-1:430506864995:app/APNS_SANDBOX/pamDevApp';
-config.platformApplicationIosPamPushProd = 'arn:aws:sns:us-east-1:430506864995:app/APNS/pamProdApp';
+config.platformApplicationIosPamPushProd = 'arn:aws:sns:us-east-1:430506864995:app/APNS/pamProdApp';*/
 
 config.twilioAccountSid = "AC66cabb9ae7db92bbf7e6113ff2eeabad";
 config.twilioAuthToken = "7d4f9ee9f8122d2a7129e13fdaefd919";
