@@ -530,11 +530,11 @@ function ActivityCommonService(db, util, forEachAsync) {
             case 705: // form
                 entityTypeId = 0;
                 entityText1 = request.form_transaction_id;
-                entityText2 = request.activity_timeline_collection;
+                entityText2 = '';
                 activityTimelineCollection = request.activity_timeline_collection;
                 formTransactionId = request.form_transaction_id;
                 formId = request.form_id;
-                request.entity_bigint_1 = request.parent_form_activity_id || 0;
+                request.entity_bigint_1 = request.reference_form_activity_id || 0;
                 dataTypeId = 37; //static for all form submissions
                 break;
             case 314: // cloud based document -- file
