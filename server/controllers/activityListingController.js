@@ -565,6 +565,49 @@ function ActivityListingController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, -9998, req.body));
             });
     });
+
+    // [Vodafone Service] DUMMY SERVICE | For all retieving all forms associated 
+    // with a new order form_id
+    app.post('/' + global.config.version + '/activity/category/form/mapping', function (req, res) {
+        // 
+        if (Number(req.body.form_id) === 873) {
+            // BETA
+            res.send(responseWrapper.getResponse(false, {
+                "order_supplementary_form": 874,
+                "hld_form": 869,
+                "account_manager_approval_form": 875,
+                "new_customer_form": 880,
+                "existing_customer_form": 881,
+                "customer_approval_form": 882,
+                "omt_approval_form": 883,
+                "fr_form": 871,
+                "crm_form": 870,
+                "caf_form": 872,
+                "crm_acknowledgement_form": 868
+            }, 200, req.body));
+
+        } else if (Number(req.body.form_id) === 856) {
+            // LIVE
+            res.send(responseWrapper.getResponse(false, {
+                "order_supplementary_form": 857,
+                "hld_form": 864,
+                "account_manager_approval_form": 858,
+                "new_customer_form": 876,
+                "existing_customer_form": 877,
+                "customer_approval_form": 878,
+                "omt_approval_form": 879,
+                "fr_form": 866,
+                "crm_form": 865,
+                "caf_form": 867,
+                "crm_acknowledgement_form": 863
+            }, 200, req.body));
+
+        } else {
+            res.send(responseWrapper.getResponse(true, {
+                error: "Some parameter is incorrect."
+            }, -9998, req.body));
+        }
+    });
 }
 
 module.exports = ActivityListingController;
