@@ -812,6 +812,30 @@ function ActivityCommonService(db, util, forEachAsync) {
             });
         }
     };
+    // Promisified version of the getActivityDetails()
+    this.getActivityDetailsPromise = function (request, activityId) {
+
+        return new Promise((resolve, reject) => {
+            var paramsArr;
+            if (Number(activityId > 0)) {
+                paramsArr = new Array(
+                    activityId,
+                    request.organization_id
+                );
+            } else {
+                paramsArr = new Array(
+                    request.activity_id,
+                    request.organization_id
+                );
+            }
+            const queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                });
+            }
+        });
+    };
 
     this.updateAssetLocation = function (request, callback) {
         //if (request.track_latitude !== '0.0000' || request.track_latitude !== '0.0') {
@@ -2488,6 +2512,29 @@ function ActivityCommonService(db, util, forEachAsync) {
             }
         });
     };
+
+    // Unmap the form file from the Order Validation queue
+    this.queueActivityMappingUpdateInlineStatus = function (request, queueActivityMappingId, queueActivityInlineData) {
+        return new Promise((resolve, reject) => {
+            // IN p_queue_activity_mapping_id BIGINT(20), IN p_organization_id BIGINT(20), 
+            // IN p_inline_data JSON, IN p_activity_status_id BIGINT(20), 
+            // IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+            let paramsArr = new Array(
+                queueActivityMappingId,
+                request.organization_id,
+                queueActivityInlineData,
+                request.activity_status_id,
+                request.asset_id,
+                util.getCurrentUTCTime()
+            );
+            const queryString = util.getQueryString('ds_p1_queue_activity_mapping_update_inline_status', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                });
+            }
+        });
+    };
     
     //Get Queue Id based on the name
     this.fetchQueueId = function (request, queueId) {
@@ -2568,6 +2615,32 @@ function ActivityCommonService(db, util, forEachAsync) {
                 request.limit_value
             );
             const queryString = util.getQueryString('ds_p1_queue_activity_mapping_select_queue', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                });
+            }
+        });
+    };
+    
+    // Fetch queue by search string
+    this.fetchQueueByQueueName = function (request, queueName) {
+        return new Promise((resolve, reject) => {
+            // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
+            // IN p_workforce_id BIGINT(20), IN p_flag SMALLINT(6), 
+            // IN p_is_search TINYINT(4), IN p_search_string VARCHAR(50), 
+            // IN p_start_from BIGINT(20), IN p_limit_value SMALLINT(6)
+            let paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                0, // request.flag
+                1, // request.is_search
+                queueName,
+                request.start_from,
+                request.limit_value
+            );
+            const queryString = util.getQueryString('ds_p1_queue_list_select_name', paramsArr);
             if (queryString !== '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (err) ? reject(err): resolve(data);
