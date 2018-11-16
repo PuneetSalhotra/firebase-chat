@@ -2479,6 +2479,28 @@ function ActivityCommonService(db, util, forEachAsync) {
         });
     };
     
+    // Unmap the form file from the Order Validation queue
+    this.queueActivityMappingUpdateInlineStatus = function (request, queueActivityMappingId, queueActivityInlineData) {
+        return new Promise((resolve, reject) => {
+            // IN p_queue_activity_mapping_id BIGINT(20), IN p_organization_id BIGINT(20), 
+            // IN p_inline_data JSON, IN p_activity_status_id BIGINT(20), 
+            // IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+            let paramsArr = new Array(
+                queueActivityMappingId,
+                request.organization_id,
+                queueActivityInlineData,
+                request.activity_status_id,
+                request.asset_id,
+                util.getCurrentUTCTime()
+            );
+            const queryString = util.getQueryString('ds_p1_queue_activity_mapping_update_inline_status', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                });
+            }
+        });
+    };
     
     this.assetListUpdateOperatingAsset = function (request, deskAssetId, operatingAssetId, callback) {
         var paramsArr = new Array(
