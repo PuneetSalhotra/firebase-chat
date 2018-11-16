@@ -35,8 +35,8 @@ if (mode === 'local') {
     config.slave1Ip = 'worlddesk-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';       
 
     config.dbUser = 'apiuser';
-    //config.database = 'desker';// desker_staging
-    config.database = 'desker_staging';
+    config.database = 'desker';// desker_staging
+    //config.database = 'desker_staging';
     config.dbPassword = 'apidbuser';
     config.conLimit = 2;
 
@@ -86,46 +86,35 @@ if (mode === 'local') {
     ///////////////////////////////
     
     //Vodafone Config
-    config.newOrderForm = 856;
-    config.orderSupplForm = 857;
-    config.acctMngApproval = 858;
+    config.newOrderForm = 873;
+    config.orderSupplForm = 874;    
+    config.acctMngApproval = 875;
     
-    config.newCustomer = 876;
-    config.existingCustomer = 877; 
-    config.custApproval = 878;
+    config.newCustomer = 880;
+    config.existingCustomer = 881; 
+    config.custApproval = 882;
     
-    config.frFormId = 866;
-    config.crmFormId = 865;
-    config.hldFormId = 864;
-    config.cafFormId = 867;
-    config.crmAckFormId = 863;
+    config.frFormId = 871;
+    config.crmFormId = 870;
+    config.hldFormId = 869;    
+    config.cafFormId = 872;
+    config.crmAckFormId = 868;
     
-    config.form866 = "FR Form";
-    config.form865 = "CRM Form"
-    config.form864 = "HLD Form"
-    config.form867 = "CAF Form"   
+    config.contactOrganizationId = 860;
+    config.contactAccountId = 976;
+    config.contactWorkforceId = 5364;
+    config.contactAssetTypeId = 126330;
+    config.contactDeskAssetTypeId = 126355;
     
-    config.frFormId = 866;
-    config.crmFormId = 865;
-    config.hldFormId = 864;
-    config.cafFormId = 867;
-    config.crmAckFormId = 863;
+    config.botAccountId = 975;
+    config.botWorkforceId = 5355;
+    config.botAssetID = 31347;
+    config.botEncToken = "05986bb0-e364-11e8-a1c0-0b6831833754";
     
-    config.contactOrganizationId = 858;
-    config.contactAccountId = 974;
-    config.contactWorkforceId = 5354;
-    config.contactAssetTypeId = 126082;
-    config.contactDeskAssetTypeId = 126085;
-    
-    config.botAccountId = 973;
-    config.botWorkforceId = 5345;
-    config.botAssetID = 31298;
-    config.botEncToken = "3dc16b80-e338-11e8-a779-5b17182fa0f6";
-    
-    config.hldPending = 279437;
-    config.validationPending = 279438;
-    config.approvalPending = 279439;
-    config.orderClosed =279440;
+    config.hldPending = 280031;
+    config.validationPending = 280032;
+    config.approvalPending = 280033;
+    config.orderClosed = 280034;
     
     config.activityTypeId = 133001;
     

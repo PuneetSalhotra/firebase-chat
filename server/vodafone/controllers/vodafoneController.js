@@ -14,7 +14,30 @@ function VodafoneController(objCollection) {
     const queueWrapper = objCollection.queueWrapper;
     var vodafoneService = new VodafoneService(objCollection);
   
-    //BOT 1
+    
+    //BOT 2
+    app.post('/' + global.config.version + '/vodafone/neworder_form/queue/add', function (req, res) {
+        req.body.message_unique_id = util.getMessageUniqueId(req.body.asset_id);
+        var event = {
+            name: "vodafone",
+            service: "vodafoneService",
+            method: "newOrderFormAddToQueues",
+            payload: req.body
+        };
+
+        queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp) => {
+            if (err) {
+                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req);
+                res.send(responseWrapper.getResponse(err, {}, -5999, req));
+                throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+            } else {
+                res.send(responseWrapper.getResponse(err, {}, 200, req));
+            }                            
+        });
+      
+    });
+    
+    //BOT 2
     app.post('/' + global.config.version + '/vodafone/neworder_form/add', function (req, res) {
         req.body.message_unique_id = util.getMessageUniqueId(req.body.asset_id);
         var event = {
@@ -37,7 +60,6 @@ function VodafoneController(objCollection) {
     });
     
     
-    //BOT 2
     app.post('/' + global.config.version + '/vodafone/caf_form/add', function (req, res) {
         req.body.message_unique_id = util.getMessageUniqueId(req.body.asset_id);
         var event = {

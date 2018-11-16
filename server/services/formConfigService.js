@@ -427,6 +427,7 @@ function FormConfigService(objCollection) {
                 }).then(()=>{
                     
                     request.activity_inline_data = JSON.stringify(retrievedInlineData);
+                    request.activity_timeline_collection = request.activity_inline_data;
                     
                     getLatestUpdateSeqId(request).then((data)=>{
                         console.log('update_sequence_id : ', data.update_sequence_id);            

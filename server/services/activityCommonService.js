@@ -326,6 +326,11 @@ function ActivityCommonService(db, util, forEachAsync) {
                 formId = request.form_id;
                 dataTypeId = 37; //static for all form submissions
                 break;
+            case 710: // form field alter
+                entityTypeId = 0;
+                //entityText2 = request.activity_timeline_collection;
+                activityTimelineCollection = request.activity_timeline_collection || '{}';
+                break;
             case 314: // cloud based document -- file
             case 610: // cloud based document -- Customer Request
             case 709: // cloud based document -- Form
@@ -536,6 +541,11 @@ function ActivityCommonService(db, util, forEachAsync) {
                 formId = request.form_id;
                 request.entity_bigint_1 = request.reference_form_activity_id || 0;
                 dataTypeId = 37; //static for all form submissions
+                break;
+            case 710: // form field alter
+                entityTypeId = 0;
+                //entityText2 = request.activity_timeline_collection;
+                activityTimelineCollection = request.activity_timeline_collection || '{}';
                 break;
             case 314: // cloud based document -- file
             case 610: // cloud based document -- Customer Request
@@ -2447,7 +2457,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             let paramsArr = new Array(
                 queueActivityMappingId,
                 request.organization_id,
-                3, // log state
+                request.set_log_state || 3, // log state // 2 for enabling
                 request.asset_id,
                 util.getCurrentUTCTime()
             );
@@ -2479,7 +2489,29 @@ function ActivityCommonService(db, util, forEachAsync) {
         });
     };
     
+    //Get Queue Id based on the name
+    this.fetchQueueId = function (request, queueId) {
+        return new Promise((resolve, reject) => {     
+            let paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.flag || 0,
+                request.is_search || 0,
+                request.search_string,
+                request.page_start,
+                util.replaceQueryLimit(request.page_limit)
+            );
+            const queryString = util.getQueryString('ds_p1_queue_list_select_name', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                });
+            }
+        });
+    };
     
+
     this.assetListUpdateOperatingAsset = function (request, deskAssetId, operatingAssetId, callback) {
         var paramsArr = new Array(
             deskAssetId,
