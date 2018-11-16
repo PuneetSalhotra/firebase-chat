@@ -114,7 +114,7 @@ function VodafoneController(objCollection) {
             var event = {
                 name: "vodafone",
                 service: "vodafoneService",
-                method: "addTimelineTransactionVodafone",
+                method: "addTimelineTransactionExternal",
                 payload: req.body
             };
             queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp)=>{

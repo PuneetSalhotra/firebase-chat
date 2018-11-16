@@ -910,7 +910,7 @@ function VodafoneService(objectCollection) {
     };*/
     
     
-    this.addTimelineTransactionVodafone = function (request, callback) {       
+    this.addTimelineTransactionExternal = function (request, callback) {       
                         
         /*From request you have to get the (means you have to send the same in base64 in firing email service)
             1) order form activity Id

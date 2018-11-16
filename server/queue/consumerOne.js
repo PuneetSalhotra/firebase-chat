@@ -90,7 +90,7 @@ var Consumer = function () {
             request.partition = message.partition;
             request.offset = message.offset;
 
-            activityCommonService.checkingPartitionOffset(request, (err, data) => {
+            /*activityCommonService.checkingPartitionOffset(request, (err, data) => {
                 global.logger.write('conLog', 'err from checkingPartitionOffset : ' + err, {}, request);
                 if (err === false) {
                     global.logger.write('conLog', 'Consuming the message', {}, request);
@@ -100,7 +100,8 @@ var Consumer = function () {
                     global.logger.write('conLog', 'Before calling this duplicateMsgUniqueIdInsert', {}, request);
                     activityCommonService.duplicateMsgUniqueIdInsert(request, (err, data) => {});
                 }
-            });
+            });*/
+            consumingMsg(message, kafkaMsgId, objCollection).then(() => {});
 
         });
 
