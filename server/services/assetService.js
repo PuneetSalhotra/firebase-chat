@@ -2373,7 +2373,7 @@ function AssetService(objectCollection) {
                 if (err === false) {
                     assetListHistoryInsert(request, assetData[0]['asset_id'], request.organization_id, 0, dateTimeLog, function (err, data) {});
                     request.ingredient_asset_id = assetData[0]['asset_id'];
-                    sss.createAssetBucket(request, function () {});
+                    // sss.createAssetBucket(request, function () {});
 
                     if (assetData[0].asset_type_category_id == 41) {
                         retrieveAccountWorkforces(request).then((data) => {
