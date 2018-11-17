@@ -42,7 +42,7 @@ var Consumer = function () {
             [{
                 topic: global.config.TOPIC_NAME,
                 //partition: parseInt(process.env.partition)
-                partition: parseInt(0)
+                partition: parseInt(1)
             }], {
                 groupId: global.config.CONSUMER_GROUP_ID,
                 autoCommit: global.config.CONSUMER_AUTO_COMMIT,
@@ -90,7 +90,7 @@ var Consumer = function () {
             request.partition = message.partition;
             request.offset = message.offset;
 
-            /*activityCommonService.checkingPartitionOffset(request, (err, data) => {
+            activityCommonService.checkingPartitionOffset(request, (err, data) => {
                 global.logger.write('conLog', 'err from checkingPartitionOffset : ' + err, {}, request);
                 if (err === false) {
                     global.logger.write('conLog', 'Consuming the message', {}, request);
@@ -100,8 +100,7 @@ var Consumer = function () {
                     global.logger.write('conLog', 'Before calling this duplicateMsgUniqueIdInsert', {}, request);
                     activityCommonService.duplicateMsgUniqueIdInsert(request, (err, data) => {});
                 }
-            });*/
-            consumingMsg(message, kafkaMsgId, objCollection).then(() => {});
+            });
 
         });
 
@@ -110,15 +109,15 @@ var Consumer = function () {
         });
 
         consumer.on('error', function (err) {
-            global.logger.write('debug', 'err => ' + JSON.stringify(err), {}, {});
+            global.logger.write('conLog', 'err => ' + JSON.stringify(err), {}, {});
         });
 
         consumer.on('offsetOutOfRange', function (err) {
-            global.logger.write('debug', 'offsetOutOfRange => ' + JSON.stringify(err), {}, {});
+            global.logger.write('conLog', 'offsetOutOfRange => ' + JSON.stringify(err), {}, {});
         });
 
         kafkaProducer.on('error', function (error) {
-            global.logger.write('debug', error, {}, {});
+            global.logger.write('conLog', error, {}, {});
         });
 
     });
@@ -132,7 +131,7 @@ var Consumer = function () {
                 metadata: 'm', //default 'm'
             }], (err, data) => {
                 if (err) {
-                    global.logger.write('debug', "err:" + JSON.stringify(err), {}, {});
+                    global.logger.write('conLog', "err:" + JSON.stringify(err), {}, {});
                     reject(err);
                 } else {
                     global.logger.write('conLog', 'successfully offset ' + message.offset + ' is committed', {}, {});

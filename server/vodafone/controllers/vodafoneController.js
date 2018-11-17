@@ -327,7 +327,7 @@ function VodafoneController(objCollection) {
     		data = {};
     		res.send(responseWrapper.getResponse(err, data, -999, req.body));
         	});
-    });    
+    }); 
     
 };
 

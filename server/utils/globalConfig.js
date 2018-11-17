@@ -38,7 +38,7 @@ if (mode === 'local') {
     config.database = 'desker';// desker_staging
     //config.database = 'desker_staging';
     config.dbPassword = 'apidbuser';
-    config.conLimit = 2;
+    config.conLimit = 10;
 
     //Redis Config
     config.redisIp = '127.0.0.1';
@@ -86,7 +86,7 @@ if (mode === 'local') {
     ///////////////////////////////
     
     //Vodafone Config
-    config.newOrderForm = 873;
+    /*config.newOrderForm = 873;
     config.orderSupplForm = 874;    
     config.acctMngApproval = 875;
     
@@ -116,7 +116,34 @@ if (mode === 'local') {
     config.approvalPending = 280033;
     config.orderClosed = 280034;
     
-    config.activityTypeId = 133001;
+    config.activityTypeId = 133001;*/
+    
+    config.newOrderForm = 856;
+    config.orderSupplForm = 857;
+    config.acctMngApproval = 858;
+    
+    config.newCustomer = 876;
+    config.existingCustomer = 877; 
+    config.custApproval = 878;
+    
+    config.frFormId = 866;
+    config.crmFormId = 865;
+    config.hldFormId = 864;
+    config.cafFormId = 867;
+    config.crmAckFormId = 863;
+    
+    config.contactOrganizationId = 860;
+    config.contactAccountId = 976;
+    config.contactWorkforceId = 5364;
+    config.contactAssetTypeId = 126352;
+    config.contactDeskAssetTypeId = 126355;
+    
+    config.botAccountId = 973;
+    config.botWorkforceId = 5345;
+    config.botAssetID = 31361;
+    config.botEncToken = "3dc16b80-e338-11e8-a779-5b17182fa0f6";
+    
+    config.activityTypeId = 133472;
     
     ////////////////////////////////////
     config.emailbaseUrlApprove = "https://stagingmydesk.desker.co"; 

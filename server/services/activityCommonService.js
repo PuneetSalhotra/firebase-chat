@@ -804,6 +804,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
+                    console.log(data);
                     callback(false, data);
                 } else {
                     // some thing is wrong and have to be dealt
@@ -2534,30 +2535,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 });
             }
         });
-    };
-    
-    //Get Queue Id based on the name
-    this.fetchQueueId = function (request, queueId) {
-        return new Promise((resolve, reject) => {     
-            let paramsArr = new Array(
-                request.organization_id,
-                request.account_id,
-                request.workforce_id,
-                request.flag || 0,
-                request.is_search || 0,
-                request.search_string,
-                request.page_start,
-                util.replaceQueryLimit(request.page_limit)
-            );
-            const queryString = util.getQueryString('ds_p1_queue_list_select_name', paramsArr);
-            if (queryString !== '') {
-                db.executeQuery(1, queryString, request, function (err, data) {
-                    (err) ? reject(err): resolve(data);
-                });
-            }
-        });
-    };
-    
+    };   
 
     this.assetListUpdateOperatingAsset = function (request, deskAssetId, operatingAssetId, callback) {
         var paramsArr = new Array(

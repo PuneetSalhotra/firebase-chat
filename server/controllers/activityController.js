@@ -34,11 +34,11 @@ function ActivityController(objCollection) {
                     var parentActivityId = util.replaceZero(req.body.activity_parent_id);
                     switch (activityTypeCategoryId) {
                         case 29: // Co-worker Contact Card - supplier
-                        case 6: // Co-worker Contact Card - customer                            
-                            assetService.addAsset(req.body, function (err, data, statusCode) {
-                                if (err === false) {
+                        case 6: // Co-worker Contact Card - customer                                
+                            assetService.addAsset(req.body, function (err, data, statusCode) {                          
+                                if (err === false) {                                    
                                     if (statusCode === 200) { // go ahead and create a contact activity id
-                                        var newAssetId = data.asset_id;
+                                        var newAssetId = data.asset_id;                             
                                         var contactJson = eval('(' + req.body.activity_inline_data + ')');
                                         contactJson['contact_asset_id'] = newAssetId;
                                         req.body.activity_inline_data = JSON.stringify(contactJson);
@@ -292,7 +292,7 @@ function ActivityController(objCollection) {
                     var parentActivityId = util.replaceZero(req.body.activity_parent_id);
                     switch (activityTypeCategoryId) {
                         case 29: // Co-worker Contact Card - supplier
-                        case 6: // Co-worker Contact Card - customer                            
+                        case 6: // Co-worker Contact Card - customer                                 
                             assetService.addAsset(req.body, function (err, data, statusCode) {
                                 if (err === false) {
                                     if (statusCode === 200) { // go ahead and create a contact activity id
@@ -304,8 +304,8 @@ function ActivityController(objCollection) {
                                             console.log('\x1b[36m Activity ID Exists \x1b[0m', );
                                             res.send(responseWrapper.getResponse(false, data, 200, req.body));
                                             return;
-                                        }
-
+                                        }                                      
+                                        
                                         // If no activity_id exists for this phone number
                                         var contactJson = eval('(' + req.body.activity_inline_data + ')');
                                         contactJson['contact_asset_id'] = newDeskAssetId;
@@ -768,7 +768,7 @@ function ActivityController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
-    });
+    });    
 
 };
 
