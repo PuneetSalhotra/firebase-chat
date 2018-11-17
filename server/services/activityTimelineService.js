@@ -72,7 +72,15 @@ function ActivityTimelineService(objectCollection) {
 
             // 
             // [VODAFONE] Listen for Account Manager Approval or Customer (Service Desk) Approval Form
-            if (Number(request.form_id) === 858 || Number(request.form_id) === 878 || Number(request.form_id) === 875 || Number(request.form_id) === 882) {
+            if (
+                activityStreamTypeId === 705 &&
+                (
+                    Number(request.form_id) === 858 ||
+                    Number(request.form_id) === 878 ||
+                    Number(request.form_id) === 875 ||
+                    Number(request.form_id) === 882
+                )
+            ) {
                 const approvalCheckRequestEvent = {
                     name: "vodafoneService",
                     service: "vodafoneService",
@@ -80,6 +88,70 @@ function ActivityTimelineService(objectCollection) {
                     payload: request
                 };
                 queueWrapper.raiseActivityEvent(approvalCheckRequestEvent, request.activity_id, (err, resp) => {
+                    if (err) {
+                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                    } else {
+                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                    }
+                });
+
+            }
+            //
+            // 
+            // [VODAFONE] Provided the form file has submissions for New Order, FR, CRM and HLD, 
+            // only then proceed with CAF Form building
+            if (
+                activityStreamTypeId === 705 &&
+                (
+                    Number(request.form_id) === 873 || // BETA | New Order
+                    Number(request.form_id) === 871 || // BETA | FR
+                    Number(request.form_id) === 870 || // BETA | CRM
+                    Number(request.form_id) === 869 || // BETA | HLD
+                    Number(request.form_id) === 856 || // LIVE | New Order
+                    Number(request.form_id) === 866 || // LIVE | FR
+                    Number(request.form_id) === 865 || // LIVE | CRM
+                    Number(request.form_id) === 864 // LIVE | HLD
+                )
+            ) {
+                console.log('CALLING buildAndSubmitCafForm');
+                const approvalCheckRequestEvent = {
+                    name: "vodafoneService",
+                    service: "vodafoneService",
+                    method: "buildAndSubmitCafForm",
+                    payload: request
+                };
+                queueWrapper.raiseActivityEvent(approvalCheckRequestEvent, request.activity_id, (err, resp) => {
+                    if (err) {
+                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                    } else {
+                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                    }
+                });
+
+            }
+            //
+            // 
+            // [VODAFONE] Alter the status of the form file to Approval Pending. Also modify the 
+            // last status alter time and current status for all the queue activity mappings.
+            if (
+                activityStreamTypeId === 705 &&
+                (
+                    Number(request.form_id) === 883 || // BETA | OMT Approval
+                    Number(request.form_id) === 879 // LIVE | OMT Approval
+                )
+            ) {
+                console.log('CALLING setStatusApprovalPendingAndFireEmail');
+                const omtApprovalRequestEvent = {
+                    name: "vodafoneService",
+                    service: "vodafoneService",
+                    method: "setStatusApprovalPendingAndFireEmail",
+                    payload: request
+                };
+                queueWrapper.raiseActivityEvent(omtApprovalRequestEvent, request.activity_id, (err, resp) => {
                     if (err) {
                         global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
                         global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
