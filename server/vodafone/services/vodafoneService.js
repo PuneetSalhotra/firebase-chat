@@ -51,7 +51,7 @@ function VodafoneService(objectCollection) {
         ROMS_CAF_FIELDS_DATA,
         CAF_TO_CRM_PORTAL_PUSH_MAP;
 
-    if (global.mode === 'preprod' || global.mode === 'local' || global.mode === 'staging') {
+    if (global.mode === 'preprod' || global.mode === 'prod' || global.mode === 'local' || global.mode === 'staging') {
         // BETA
         NEW_ORDER_FORM_ID = 873;
         SUPPLEMENTARY_ORDER_FORM_ID = 874;
