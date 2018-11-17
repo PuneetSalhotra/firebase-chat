@@ -326,6 +326,11 @@ function ActivityCommonService(db, util, forEachAsync) {
                 formId = request.form_id;
                 dataTypeId = 37; //static for all form submissions
                 break;
+            case 710: // form field alter
+                entityTypeId = 0;
+                //entityText2 = request.activity_timeline_collection;
+                activityTimelineCollection = request.activity_timeline_collection || '{}';
+                break;
             case 314: // cloud based document -- file
             case 610: // cloud based document -- Customer Request
             case 709: // cloud based document -- Form
@@ -536,6 +541,11 @@ function ActivityCommonService(db, util, forEachAsync) {
                 formId = request.form_id;
                 request.entity_bigint_1 = request.reference_form_activity_id || 0;
                 dataTypeId = 37; //static for all form submissions
+                break;
+            case 710: // form field alter
+                entityTypeId = 0;
+                //entityText2 = request.activity_timeline_collection;
+                activityTimelineCollection = request.activity_timeline_collection || '{}';
                 break;
             case 314: // cloud based document -- file
             case 610: // cloud based document -- Customer Request
@@ -794,6 +804,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
+                    console.log(data);
                     callback(false, data);
                 } else {
                     // some thing is wrong and have to be dealt
@@ -2471,7 +2482,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             let paramsArr = new Array(
                 queueActivityMappingId,
                 request.organization_id,
-                3, // log state
+                request.set_log_state || 3, // log state // 2 for enabling
                 request.asset_id,
                 util.getCurrentUTCTime()
             );
@@ -2524,9 +2535,8 @@ function ActivityCommonService(db, util, forEachAsync) {
                 });
             }
         });
-    };
-    
-    
+    };   
+
     this.assetListUpdateOperatingAsset = function (request, deskAssetId, operatingAssetId, callback) {
         var paramsArr = new Array(
             deskAssetId,
