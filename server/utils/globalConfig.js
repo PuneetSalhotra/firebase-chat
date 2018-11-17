@@ -544,8 +544,8 @@ if (mode === 'prod') {
     //making twilio, Nexmo Calls
     config.efsPath = "/api-data/";
     
-    //Vodafone Config
-    config.newOrderForm = 856;
+    //Vodafone Idea
+    /*config.newOrderForm = 856;
     config.orderSupplForm = 857;
     config.acctMngApproval = 858;
     
@@ -575,7 +575,35 @@ if (mode === 'prod') {
     config.approvalPending = 279439;
     config.orderClosed =279440;
     
-    config.activityTypeId = 133001;
+    config.activityTypeId = 133001;*/
+    
+    //Vodafone Idea Beta
+    config.newOrderForm = 873;
+    config.orderSupplForm = 874;
+    config.acctMngApproval = 875;
+    
+    config.newCustomer = 876;
+    config.existingCustomer = 877; 
+    config.custApproval = 878;
+    
+    config.frFormId = 871;
+    config.crmFormId = 870;
+    config.hldFormId = 869;
+    config.cafFormId = 872;
+    config.crmAckFormId = 868;
+    
+    config.contactOrganizationId = 860;
+    config.contactAccountId = 976;
+    config.contactWorkforceId = 5364;
+    config.contactAssetTypeId = 126352;
+    config.contactDeskAssetTypeId = 126355;
+    
+    config.botAccountId = 973;
+    config.botWorkforceId = 5345;
+    config.botAssetID = 31361;
+    config.botEncToken = "3dc16b80-e338-11e8-a779-5b17182fa0f6";
+    
+    config.activityTypeId = 133472;
     
     ////////////////////////////////////
     config.emailbaseUrlApprove = "https://worldoffice.desker.co"; 
