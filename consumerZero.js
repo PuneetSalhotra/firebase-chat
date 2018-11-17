@@ -1,4 +1,4 @@
-var Consumer = require("./server/queue/consumerSix.js");
+var Consumer = require("./server/queue/consumerZero.js");
 new Consumer();
 
 process.on('uncaughtException', (err) => {
