@@ -2214,6 +2214,12 @@ function VodafoneService(objectCollection) {
     this.setStatusApprovalPendingAndFireEmail = async function (request, callback) {
         
         var formExists = false;
+        var jsonString = {},
+            encodedString,
+            openingMessage,
+            callToction,
+            baseUrlApprove,
+            templateDesign;
 
         // Check if a NEW ORDER FORM exists for the activity_id/form file
         await activityCommonService
@@ -2261,16 +2267,38 @@ function VodafoneService(objectCollection) {
                 activityCommonService.getAllParticipants(request, (err, participantData) => {
                     if (participantData.length > 0) {
                         participantData.forEach(participant => {
+
                             // Account Managers/Employees/Vodafone people
                             switch (participant.asset_type_id) {
                                 case 126035: // Account Managers - Mumbai Circle | LIVE
                                 case 126305: // Account Managers - Mumbai Circle | BETA
                                     // console.log("participant: ", participant)
+
                                     // Check if the participant is the owner of the form file
                                     if (Number(participant.activity_owner_asset_id) === Number(participant.asset_id)) {
                                         // Check if the email exists for the field
                                         if (participant.operating_asset_email_id !== '' && participant.operating_asset_email_id !== null) {
                                             console.log("participant.operating_asset_email_id: ", participant.operating_asset_email_id);
+                                            jsonString = {
+                                                organization_id: request.organization_id,
+                                                account_id: request.account_id,
+                                                workforce_id: request.workforce_id,
+                                                asset_id: Number(participant.asset_id),
+                                                asset_token_auth: CAF_BOT_ENC_TOKEN,
+                                                auth_asset_id: CAF_BOT_ASSET_ID,
+                                                activity_id: Number(request.activity_id),
+                                                form_id: ACCOUNT_MANAGER_APPROVAL_FORM_ID,
+                                                activity_type_id: global.config.activityTypeId,
+                                                type: 'approval'
+                                            };
+                                            encodedString = Buffer.from(JSON.stringify(jsonString)).toString('base64');
+                                            openingMessage = "Please verify the customer application form and approve by providing a digital signature.";
+                                            baseUrlApprove = global.config.emailbaseUrlApprove + "/#/forms/entry/" + encodedString;
+                                            callToction = "<a style='background: #ED212C; display: inline-block; color: #FFFFFF; border-top: 10px solid #ED212C; border-bottom: 10px solid #ED212C; border-left: 20px solid #ED212C; border-right: 20px solid #ED212C; text-decoration: none; font-size: 12px; margin-top: 1.0em; border-radius: 3px 3px 3px 3px; background-clip: padding-box;' target='_blank' class='blue-btn' href='" + baseUrlApprove + "'>APPROVE</a>"
+                                            nameStr = `${participant.operating_asset_first_name} ${participant.operating_asset_last_name}`;
+                                            allFields = '';
+                                            templateDesign = "<table style='border-collapse: collapse !important;' width='100%' bgcolor='#ffffff' border='0' cellpadding='10' cellspacing='0'><tbody><tr> <td> <table bgcolor='#ffffff' style='width: 100%;max-width: 600px;' class='content' align='center' cellpadding='0' cellspacing='0' border='0'> <tbody><tr><td align='center' valign='top'><table style='border: 1px solid #e2e2e2; border-radius: 4px; background-clip: padding-box; border-spacing: 0;' border='0' cellpadding='0' cellspacing='0' width='100%' id='templateContainer'><tbody> <tr> <td align='left' style='float: right;padding: 20px;' valign='top'> <img style='width: 100px' src ='https://office.desker.co/Vodafone_logo.png'/> <img style='height: 44px;margin-left: 10px;' src ='https://office.desker.co/Idea_logo.png'/> </td> </tr> <tr><td valign='top' style=' color: #505050; font-family: Helvetica; font-size: 14px; line-height: 150%; padding-top: 3.143em; padding-right: 3.5em; padding-left: 3.5em; padding-bottom: 3.143em; text-align: left;' class='bodyContent' mc:edit='body_content'> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>Hey " + nameStr + ",</p> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>" + openingMessage + "</p> <p style=' color: #808080; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: bold; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 10px; margin-left: 0; text-align: left;'>Account Manager Approval Form</p> " + allFields + "<table style='width: 100%;margin-top: 5px'></table> " + callToction + " <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 40px; margin-right: 0; margin-bottom: 0px; margin-left: 0; text-align: left;'> Parmeshwar Reddy </p> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; text-align: left;'> Vice President </p> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; text-align: left;'> Customer Care </p></td></tr> <tr> <td style='height: 35px;background: #cbcbcb;'></td> </tr></tbody></table><!-- // END BODY --></td></tr> </tbody></table> </td> </tr></tbody></table>";
+
                                             // Fire the email
                                             util.sendEmailV3({
                                                     email_receiver_name: `${participant.asset_first_name} ${participant.asset_last_name}`,
@@ -2280,7 +2308,7 @@ function VodafoneService(objectCollection) {
                                                 participant.operating_asset_email_id,
                                                 'Submit The Account Manager Approval Form',
                                                 'Text Content Will Be Ignored',
-                                                '<h1>Submit the AM Approval Form</h1>',
+                                                templateDesign,
                                                 (err, data) => {
                                                     if (err) {
                                                         console.log("Error sending email to the Account Manager: ", data);
@@ -2299,6 +2327,26 @@ function VodafoneService(objectCollection) {
                                     // console.log("participant: ", participant)
                                     // Check if the email exists for the field
                                     if (participant.operating_asset_email_id !== '' && participant.operating_asset_email_id !== null) {
+                                        jsonString = {
+                                            organization_id: request.organization_id,
+                                            account_id: request.account_id,
+                                            workforce_id: request.workforce_id,
+                                            asset_id: Number(participant.asset_id),
+                                            asset_token_auth: CAF_BOT_ENC_TOKEN,
+                                            auth_asset_id: CAF_BOT_ASSET_ID,
+                                            activity_id: Number(request.activity_id),
+                                            form_id: CUSTOMER_APPROVAL_FORM_ID,
+                                            activity_type_id: global.config.activityTypeId,
+                                            type: 'approval'
+                                        };
+                                        encodedString = Buffer.from(JSON.stringify(jsonString)).toString('base64');
+                                        openingMessage = "Please verify the customer application form and approve by providing a digital signature.";
+                                        baseUrlApprove = global.config.emailbaseUrlApprove + "/#/forms/entry/" + encodedString;
+                                        callToction = "<a style='background: #ED212C; display: inline-block; color: #FFFFFF; border-top: 10px solid #ED212C; border-bottom: 10px solid #ED212C; border-left: 20px solid #ED212C; border-right: 20px solid #ED212C; text-decoration: none; font-size: 12px; margin-top: 1.0em; border-radius: 3px 3px 3px 3px; background-clip: padding-box;' target='_blank' class='blue-btn' href='" + baseUrlApprove + "'>APPROVE</a>"
+                                        nameStr = `${participant.operating_asset_first_name} ${participant.operating_asset_last_name}`;
+                                        allFields = '';
+                                        templateDesign = "<table style='border-collapse: collapse !important;' width='100%' bgcolor='#ffffff' border='0' cellpadding='10' cellspacing='0'><tbody><tr> <td> <table bgcolor='#ffffff' style='width: 100%;max-width: 600px;' class='content' align='center' cellpadding='0' cellspacing='0' border='0'> <tbody><tr><td align='center' valign='top'><table style='border: 1px solid #e2e2e2; border-radius: 4px; background-clip: padding-box; border-spacing: 0;' border='0' cellpadding='0' cellspacing='0' width='100%' id='templateContainer'><tbody> <tr> <td align='left' style='float: right;padding: 20px;' valign='top'> <img style='width: 100px' src ='https://office.desker.co/Vodafone_logo.png'/> <img style='height: 44px;margin-left: 10px;' src ='https://office.desker.co/Idea_logo.png'/> </td> </tr> <tr><td valign='top' style=' color: #505050; font-family: Helvetica; font-size: 14px; line-height: 150%; padding-top: 3.143em; padding-right: 3.5em; padding-left: 3.5em; padding-bottom: 3.143em; text-align: left;' class='bodyContent' mc:edit='body_content'> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>Hey " + nameStr + ",</p> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>" + openingMessage + "</p> <p style=' color: #808080; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: bold; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 10px; margin-left: 0; text-align: left;'>Customer Approval Form</p> " + allFields + "<table style='width: 100%;margin-top: 5px'></table> " + callToction + " <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 40px; margin-right: 0; margin-bottom: 0px; margin-left: 0; text-align: left;'> Parmeshwar Reddy </p> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; text-align: left;'> Vice President </p> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; text-align: left;'> Customer Care </p></td></tr> <tr> <td style='height: 35px;background: #cbcbcb;'></td> </tr></tbody></table><!-- // END BODY --></td></tr> </tbody></table> </td> </tr></tbody></table>";
+
                                         // Fire the email
                                         util.sendEmailV3({
                                                 email_receiver_name: `${participant.asset_first_name} ${participant.asset_last_name}`,
@@ -2308,7 +2356,7 @@ function VodafoneService(objectCollection) {
                                             participant.operating_asset_email_id,
                                             'Submit The Customer Approval Form',
                                             'Text Content Will Be Ignored',
-                                            '<h1>Submit the Customer Approval Form</h1>',
+                                            templateDesign,
                                             (err, data) => {
                                                 if (err) {
                                                     console.log("Error sending email to the Account Manager: ", data);
