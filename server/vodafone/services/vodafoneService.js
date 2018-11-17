@@ -2211,7 +2211,32 @@ function VodafoneService(objectCollection) {
         return cafFormData;
     }
 
-    this.setStatusApprovalPendingAndFireEmail = function (request, callback) {
+    this.setStatusApprovalPendingAndFireEmail = async function (request, callback) {
+        
+        var formExists = false;
+
+        // Check if a NEW ORDER FORM exists for the activity_id/form file
+        await activityCommonService
+            .getActivityTimelineTransactionByFormId(request, request.activity_id, NEW_ORDER_FORM_ID)
+            .then((newOrderFormData) => {
+                if (newOrderFormData.length > 0) {
+                    // New Order Form exists for this activity_id
+                    formExists = true;
+                } else {
+                    formExists = "Hello World!"
+                    throw new Error("newOrderFormNotFound");
+                }
+
+            })
+            .catch((error) => {
+                console.log("[setStatusApprovalPendingAndFireEmail] Error: ", error);
+                callback(true, false);
+                return;
+            })
+        
+        console.log("formExists: ", formExists);
+        // callback(true, false);
+        // return;
 
         request.asset_id = CAF_BOT_ASSET_ID;
         request.activity_status_id = ACTIVITY_STATUS_ID_APPROVAL_PENDING;
@@ -2244,7 +2269,8 @@ function VodafoneService(objectCollection) {
                                     // Check if the participant is the owner of the form file
                                     if (Number(participant.activity_owner_asset_id) === Number(participant.asset_id)) {
                                         // Check if the email exists for the field
-                                        if (participant.operating_asset_email_id !== '' || participant.operating_asset_email_id !== null) {
+                                        if (participant.operating_asset_email_id !== '' && participant.operating_asset_email_id !== null) {
+                                            console.log("participant.operating_asset_email_id: ", participant.operating_asset_email_id);
                                             // Fire the email
                                             util.sendEmailV3({
                                                     email_receiver_name: `${participant.asset_first_name} ${participant.asset_last_name}`,
@@ -2272,7 +2298,7 @@ function VodafoneService(objectCollection) {
                                 case 45: // Customer Service Desk
                                     // console.log("participant: ", participant)
                                     // Check if the email exists for the field
-                                    if (participant.operating_asset_email_id !== '' || participant.operating_asset_email_id !== null) {
+                                    if (participant.operating_asset_email_id !== '' && participant.operating_asset_email_id !== null) {
                                         // Fire the email
                                         util.sendEmailV3({
                                                 email_receiver_name: `${participant.asset_first_name} ${participant.asset_last_name}`,
