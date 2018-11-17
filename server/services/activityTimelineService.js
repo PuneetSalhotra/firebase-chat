@@ -134,6 +134,35 @@ function ActivityTimelineService(objectCollection) {
 
             }
             //
+            // 
+            // [VODAFONE] Alter the status of the form file to Approval Pending. Also modify the 
+            // last status alter time and current status for all the queue activity mappings.
+            if (
+                activityStreamTypeId === 705 &&
+                (
+                    Number(request.form_id) === 883 || // BETA | OMT Approval
+                    Number(request.form_id) === 879 // LIVE | OMT Approval
+                )
+            ) {
+                console.log('CALLING setStatusApprovalPendingAndFireEmail');
+                const omtApprovalRequestEvent = {
+                    name: "vodafoneService",
+                    service: "vodafoneService",
+                    method: "setStatusApprovalPendingAndFireEmail",
+                    payload: request
+                };
+                queueWrapper.raiseActivityEvent(omtApprovalRequestEvent, request.activity_id, (err, resp) => {
+                    if (err) {
+                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                    } else {
+                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                    }
+                });
+
+            }
+            //
 
         } else {
             request.form_id = 0;
