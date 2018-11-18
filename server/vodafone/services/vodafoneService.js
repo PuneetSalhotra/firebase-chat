@@ -480,6 +480,8 @@ function VodafoneService(objectCollection) {
         
         let solutionsRepName = "Bharat";
         let solutionsRepEMail = "bharat@desker.co";       
+        
+        request.form_order_activity_id = request.activity_id;       
              
         //Step 1 :- Custom Based on the Custom Code check whether the service desk is existing or not
         checkServiceDeskExistence(request).then((dataResp)=>{
@@ -554,7 +556,7 @@ function VodafoneService(objectCollection) {
                                             customerCollection.customerServiceDeskAssetID = deskAssetId;
                                             customerCollection.activity_form_id = existingCustomer;
                                             
-                                            activityCommonService.getActivityDetails(request, request.activity_id, (err, data)=>{
+                                            activityCommonService.getActivityDetails(request, request.form_order_activity_id, (err, data)=>{
                                                 if(err === false) {
                                                     console.log('data[0].activity_inline_data : ', data[0].activity_inline_data);
                                                     request.activity_inline_data = data[0].activity_inline_data;
@@ -972,14 +974,14 @@ function VodafoneService(objectCollection) {
                 asset_id: botAssetID,
                 asset_token_auth: botEncToken,
                 asset_message_counter: 0,
-                activity_id: Number(request.activity_id),
+                activity_id: Number(request.form_order_activity_id),
                 activity_access_role_id: 29,
                 activity_type_category_id: 9,
                 activity_type_id: 0,
                 activity_participant_collection: JSON.stringify([{
                     "access_role_id": 29,
                     "account_id": contactAccountId,
-                    "activity_id": Number(request.activity_id),
+                    "activity_id": Number(request.form_order_activity_id),
                     "asset_datetime_last_seen": "1970-01-01 00:00:00",
                     "asset_first_name": customerData.first_name,
                     "asset_id": Number(deskAssetId),
