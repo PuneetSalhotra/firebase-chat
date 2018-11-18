@@ -67,7 +67,8 @@ function VodafoneService(objectCollection) {
         botAssetID,
         botEncToken;
 
-    var activityTypeId;
+    var activityTypeId,
+        contactCardactivityTypeId;
 
     if (global.mode === 'preprod' || global.mode === 'prod' || global.mode === 'local' || global.mode === 'staging') {
         // BETA
@@ -129,6 +130,7 @@ function VodafoneService(objectCollection) {
         botEncToken = "05986bb0-e364-11e8-a1c0-0b6831833754";
 
         activityTypeId = 133472;
+        contactCardactivityTypeId = 133471;
 
     } else if (global.mode === 'prod' || global.mode === 'staging' || global.mode === 'dev') {
         // LIVE
@@ -173,6 +175,8 @@ function VodafoneService(objectCollection) {
         
         // Queue to map or unmap a form file
         VODAFONE_FORM_FILE_QUEUE_ID = 1;
+        
+        contactCardactivityTypeId = 133221;
     }
 
       
@@ -475,7 +479,7 @@ function VodafoneService(objectCollection) {
         customerData.contact_designation = request.contact_designation;
         
         let solutionsRepName = "Bharat";
-        let solutionsRepEMail = "bharat@desker.co";        
+        let solutionsRepEMail = "bharat@desker.co";       
              
         //Step 1 :- Custom Based on the Custom Code check whether the service desk is existing or not
         checkServiceDeskExistence(request).then((dataResp)=>{
@@ -494,6 +498,9 @@ function VodafoneService(objectCollection) {
                     activityCommonService.assetListUpdateOperatingAsset(request, deskAssetId, 0, (err, data)=>{});
                                
                                var newRequest = Object.assign(request);
+                               newRequest.activity_title = 'Adding Co-Worker Contact Card';
+                               newRequest.activity_description = 'Adding Co-Worker Contact Card';
+                               newRequest.activity_type_id = contactCardactivityTypeId;
                                newRequest.activity_inline_data = JSON.stringify({
                                     "activity_id": 0,
                                     "activity_ineternal_id": -1,
