@@ -6,7 +6,7 @@ apps:
     out_file: '/dev/null'
     exec_mode: cluster
   - name : "PreProd_ConsumerZero"
-    script   : ./consumeZero.js
+    script   : ./consumerZero.js
     #error_file: ../consumersLogger.txt
     out_file: '/dev/null'
     instances: 1
