@@ -1980,7 +1980,7 @@ function VodafoneService(objectCollection) {
                         const cafFormTransactionId = body.response.form_transaction_id;
 
                         // Add the CAF form submitted as a timeline entry to the form file
-                        cafFormSubmissionRequest.asset_id = request.asset_id;
+                        // cafFormSubmissionRequest.asset_id = request.asset_id;
                         cafFormSubmissionRequest.activity_id = request.activity_id;
                         cafFormSubmissionRequest.form_transaction_id = cafFormTransactionId;
                         cafFormSubmissionRequest.form_id = CAF_FORM_ID;
@@ -2007,7 +2007,7 @@ function VodafoneService(objectCollection) {
                                 // Unmap the form file from HLD queue by archiving the mapping of queue and activity
                                 request.start_from = 0;
                                 request.limit_value = 50;
-                                
+
                                 activityCommonService
                                     .fetchQueueByQueueName(request, 'HLD')
                                     .then((queueListData) => {
@@ -2077,7 +2077,31 @@ function VodafoneService(objectCollection) {
                             }
                         });
 
-                        // Fire a 325 request too!
+                        // Fire 705 for the newly created CAF Form's activity_id
+                        let timelineStreamType705ForCAF = Object.assign(cafFormSubmissionRequest);
+                        timelineStreamType705ForCAF.activity_id = cafFormActivityId;
+                        timelineStreamType705ForCAF.form_transaction_id = cafFormTransactionId;
+                        timelineStreamType705ForCAF.activity_stream_type_id = 705;
+                        timelineStreamType705ForCAF.message_unique_id = util.getMessageUniqueId(request.asset_id);
+
+                        let fire705OnNewCafFormEvent = {
+                            name: "addTimelineTransaction",
+                            service: "activityTimelineService",
+                            method: "addTimelineTransaction",
+                            payload: timelineStreamType705ForCAF
+                        };
+
+                        queueWrapper.raiseActivityEvent(fire705OnNewCafFormEvent, cafFormActivityId, (err, resp) => {
+                            if (err) {
+                                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                                global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                            } else {
+                                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                                global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                            }
+                        });
+
+                        // Fire a 325 request to the new order form too!
                         let activityTimelineCollectionFor325 = {
                             "mail_body": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
                             "subject": "Submitted - CAF Form",
