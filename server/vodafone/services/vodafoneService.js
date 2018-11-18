@@ -2056,6 +2056,8 @@ function VodafoneService(objectCollection) {
                                             .then((queueActivityMappingData) => {
                                                 let queueActivityMappingInlineData = JSON.parse(queueActivityMappingData[0].queue_activity_mapping_inline_data);
                                                 queueActivityMappingInlineData.queue_sort.current_status = ACTIVITY_STATUS_ID_VALIDATION_PENDING;
+                                                queueActivityMappingInlineData.queue_sort.current_status_id = ACTIVITY_STATUS_ID_VALIDATION_PENDING;
+                                                queueActivityMappingInlineData.queue_sort.current_status_name = "Validation Pending";
                                                 queueActivityMappingInlineData.queue_sort.last_status_alter_time = util.getCurrentUTCTime();
                                                 request.activity_status_id = ACTIVITY_STATUS_ID_VALIDATION_PENDING;
 
@@ -2577,6 +2579,32 @@ function VodafoneService(objectCollection) {
             if (err) {
                 global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
             } else {
+                // 
+                // Also modify the last status alter time and current status 
+                // for all the queue activity mappings.
+                activityCommonService
+                    .fetchQueueByQueueName(request, 'OMT')
+                    .then((queueListData) => {
+                        console.log('data[0].queue_id: ', queueListData[0].queue_id);
+                        return activityCommonService.fetchQueueActivityMappingId(request, queueListData[0].queue_id);
+                    })
+                    .then((queueActivityMappingData) => {
+                        let queueActivityMappingInlineData = JSON.parse(queueActivityMappingData[0].queue_activity_mapping_inline_data);
+                        queueActivityMappingInlineData.queue_sort.current_status = ACTIVITY_STATUS_ID_APPROVAL_PENDING;
+                        queueActivityMappingInlineData.queue_sort.current_status_id = ACTIVITY_STATUS_ID_APPROVAL_PENDING;
+                        queueActivityMappingInlineData.queue_sort.current_status_name = "Approval Pending";
+                        queueActivityMappingInlineData.queue_sort.last_status_alter_time = util.getCurrentUTCTime();
+                        request.activity_status_id = ACTIVITY_STATUS_ID_APPROVAL_PENDING;
+
+                        return activityCommonService.queueActivityMappingUpdateInlineStatus(
+                            request,
+                            queueActivityMappingData[0].queue_activity_mapping_id,
+                            JSON.stringify(queueActivityMappingInlineData)
+                        )
+                    })
+                    .catch((error) => {
+                        console.log("Error modifying the form file activity entry in the OMT queue: ", error)
+                    })
                 // 
                 console.log("Form status set to approval pending");
 
