@@ -2085,6 +2085,7 @@ function VodafoneService(objectCollection) {
                                 // Unmap the form file from HLD queue by archiving the mapping of queue and activity
                                 request.start_from = 0;
                                 request.limit_value = 50;
+                                let hldQueueActivityMappingId;
 
                                 activityCommonService
                                     .fetchQueueByQueueName(request, 'HLD')
@@ -2094,10 +2095,11 @@ function VodafoneService(objectCollection) {
                                     })
                                     .then((queueActivityMappingData) => {
                                         console.log('queueActivityMappingData[0].queue_activity_mapping_id: ', queueActivityMappingData[0].queue_activity_mapping_id);
+                                        hldQueueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;
                                         return activityCommonService.unmapFileFromQueue(request, queueActivityMappingData[0].queue_activity_mapping_id)
                                     })
                                     .then((data) => {
-                                        queueHistoryInsert(request, 1403, queueActivityMappingId).then(()=>{});
+                                        queueHistoryInsert(request, 1403, hldQueueActivityMappingId).then(()=>{});
                                     })
                                     .catch((error) => {
                                         console.log("Error Unmapping the form file from HLD queue: ", error)
@@ -2106,6 +2108,7 @@ function VodafoneService(objectCollection) {
                                 // Alter the status of the form file to Validation Pending
                                 // Form the request object
                                 var statusAlterRequest = Object.assign(cafFormSubmissionRequest);
+                                statusAlterRequest.activity_id = request.activity_id;
                                 statusAlterRequest.activity_status_id = ACTIVITY_STATUS_ID_VALIDATION_PENDING;
                                 statusAlterRequest.activity_status_type_id = 25;
                                 statusAlterRequest.activity_status_type_category_id = 1;
@@ -2125,6 +2128,7 @@ function VodafoneService(objectCollection) {
                                     } else {
                                         // 
                                         console.log("Form status changed to validation pending");
+                                        let omtQueueActivityMappingId;
 
                                         // Also modify the last status alter time and current status 
                                         // for all the queue activity mappings.
@@ -2142,6 +2146,8 @@ function VodafoneService(objectCollection) {
                                                 queueActivityMappingInlineData.queue_sort.last_status_alter_time = util.getCurrentUTCTime();
                                                 request.activity_status_id = ACTIVITY_STATUS_ID_VALIDATION_PENDING;
 
+                                                omtQueueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;
+
                                                 return activityCommonService.queueActivityMappingUpdateInlineStatus(
                                                     request,
                                                     queueActivityMappingData[0].queue_activity_mapping_id,
@@ -2149,7 +2155,7 @@ function VodafoneService(objectCollection) {
                                                 )
                                             })
                                             .then((data) => {
-                                                queueHistoryInsert(request, 1402, queueActivityMappingId).then(()=>{});
+                                                queueHistoryInsert(request, 1402, omtQueueActivityMappingId).then(()=>{});
                                             })
                                             .catch((error) => {
                                                 console.log("Error modifying the form file activity entry in the OMT queue: ", error)
@@ -2198,6 +2204,7 @@ function VodafoneService(objectCollection) {
                         };
                         cafFormSubmissionRequest.activity_timeline_collection = JSON.stringify(activityTimelineCollectionFor325);
                         cafFormSubmissionRequest.activity_stream_type_id = 325;
+                        cafFormSubmissionRequest.activity_id = request.activity_id;
 
                         let displayCafFormOnFileEvent = {
                             name: "addTimelineTransaction",
@@ -2690,6 +2697,10 @@ function VodafoneService(objectCollection) {
                 // 
                 // Also modify the last status alter time and current status 
                 // for all the queue activity mappings.
+                let omtQueueActivityMappingId;
+                request.start_from = 0;
+                request.limit_value = 50;
+
                 activityCommonService
                     .fetchQueueByQueueName(request, 'OMT')
                     .then((queueListData) => {
@@ -2704,6 +2715,8 @@ function VodafoneService(objectCollection) {
                         queueActivityMappingInlineData.queue_sort.last_status_alter_time = util.getCurrentUTCTime();
                         request.activity_status_id = ACTIVITY_STATUS_ID_APPROVAL_PENDING;
 
+                        omtQueueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;
+
                         return activityCommonService.queueActivityMappingUpdateInlineStatus(
                             request,
                             queueActivityMappingData[0].queue_activity_mapping_id,
@@ -2711,7 +2724,7 @@ function VodafoneService(objectCollection) {
                         )
                     })
                     .then((data) => {
-                        queueHistoryInsert(request, 1402, queueActivityMappingId).then(()=>{});
+                        queueHistoryInsert(request, 1402, omtQueueActivityMappingId).then(()=>{});
                     })
                     .catch((error) => {
                         console.log("Error modifying the form file activity entry in the OMT queue: ", error)
