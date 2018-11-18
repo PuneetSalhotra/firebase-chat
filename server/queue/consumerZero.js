@@ -101,8 +101,6 @@ var Consumer = function () {
                     activityCommonService.duplicateMsgUniqueIdInsert(request, (err, data) => {});
                 }
             });
-            //consumingMsg(message, kafkaMsgId, objCollection).then(() => {});
-
         });
 
         consumer.on('connect', function (err, data) {

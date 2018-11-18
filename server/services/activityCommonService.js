@@ -803,8 +803,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         var queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
-                if (err === false) {
-                    console.log(data);
+                if (err === false) {                    
                     callback(false, data);
                 } else {
                     // some thing is wrong and have to be dealt
