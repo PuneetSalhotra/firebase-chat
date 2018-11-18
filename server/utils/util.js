@@ -15,6 +15,10 @@ var os = require('os');
 const sgMail = require('@sendgrid/mail');
 sgMail.setApiKey('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');
 // 
+// Vodafone Form Field Mapping
+const vodafoneFormFieldIdMapping = require(`${__dirname}/formFieldIdMapping`);
+// [Vodafone ROMS] CAF Fields Data
+const vodafoneRomsCafFieldsData = require(`${__dirname}/vodafoneRomsCafFieldsData`);
 // 
 // SendInBlue
 const SibApiV3Sdk = require('sib-api-v3-sdk');
@@ -949,15 +953,16 @@ function Util() {
         var targetedLogFilePath;
 
         if (global.mode === 'prod') {
-            locationInServer = global.config.efsPath + 'node/production_desker_api/';
+            locationInServer = global.config.efsPath + 'api/';
             logFilePath = locationInServer + 'logs/' + this.getCurrentDate() + '.txt';
             targetedLogFilePath = locationInServer + 'targeted_logs/' + this.getCurrentDate() + '.txt';
-
         } else {
-            logFilePath = 'logs/' + this.getCurrentDate() + '.txt';
+            locationInServer = global.config.efsPath + 'staging_api/';
+            logFilePath = locationInServer + 'logs/' + this.getCurrentDate() + '.txt';
             // Development and Pre-Production | Not Staging
-            targetedLogFilePath = 'targeted_logs/' + this.getCurrentDate() + '.txt';
-        }
+            targetedLogFilePath = locationInServer + 'targeted_logs/' + this.getCurrentDate() + '.txt';
+        }       
+        
 
         if (typeof data === 'object') {
             // console.log('JSON.stringify(data) : ' + JSON.stringify(data));
@@ -996,6 +1001,15 @@ function Util() {
             }
         }
     };
+
+    // [VODAFONE]
+    this.getVodafoneFormFieldIdMapping = function () {
+        return vodafoneFormFieldIdMapping;
+    }
+    // [VODAFONE]
+    this.getVodafoneRomsCafFieldsData = function () {
+        return vodafoneRomsCafFieldsData;
+    }
 
 };
 

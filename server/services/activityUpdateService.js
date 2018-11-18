@@ -669,6 +669,9 @@ function ActivityUpdateService(objectCollection) {
                             case 8: // Mail
                                 activityStreamTypeId = 1705;
                                 break;
+                            case 9: //Form edit
+                                activityStreamTypeId = 710;
+                                break;
                             case 15: //Video Conference
                                 activityStreamTypeId = 1607;
                                 break;
@@ -882,7 +885,7 @@ function ActivityUpdateService(objectCollection) {
                     }*/
 
                     //updating log differential datetime for only this asset
-                    activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) {
+                    activityCommonService.updateActivityLogDiffDatetime(request, 0, function (err, data) {
 
                     });
 

@@ -3,35 +3,53 @@ apps:
     script   : ./main.js
     instances: max
     #error_file: ../logger.txt
-    #out_file: ../logger.txt
+    out_file: '/dev/null'
     exec_mode: cluster
+  - name : "PreProd_ConsumerZero"
+    script   : ./consumeZero.js
+    #error_file: ../consumersLogger.txt
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
   - name : "PreProd_ConsumerOne"
     script   : ./consumerOne.js
     #error_file: ../consumersLogger.txt
-    #out_file: ../consumersLogger.txt
+    out_file: '/dev/null'
     instances: 1
     exec_mode: fork
   - name : "PreProd_ConsumerTwo"
     script   : ./consumerTwo.js
     #error_file: ../consumersLogger.txt
-    #out_file: ../consumersLogger.txt
+    out_file: '/dev/null'
     instances: 1
     exec_mode: fork
   - name : "PreProd_ConsumerThree"
     script   : ./consumerThree.js
     #error_file: ../consumersLogger.txt
-    #out_file: ../consumersLogger.txt
+    out_file: '/dev/null'
     instances: 1
     exec_mode: fork
+  - name : "PreProd_ConsumerFour"
+    script   : ./consumerFour.js
+    #error_file: ../consumersLogger.txt
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+  - name : "PreProd_ConsumerFive"
+    script   : ./consumerFive.js
+    #error_file: ../consumersLogger.txt
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork  
   - name : "PreProd_SQSConsumer"
     script   : ./server/queue/sqsConsumer.js
     #error_file: ../sqsConsumerLogger.txt
-    #out_file: ../sqsConsumerLogger.txt
+    out_file: '/dev/null'
     instances: 1
     exec_mode: fork
-  - name : "PreProd_PAM"
-    script   : ./server/pam/server.js
+  #- name : "PreProd_PAM"
+   # script   : ./server/pam/server.js
     #error_file: ../pamlogger.txt
     #out_file: ../pamlogger.txt
-    instances: 1
-    exec_mode: fork
+    #instances: 1
+    #exec_mode: fork

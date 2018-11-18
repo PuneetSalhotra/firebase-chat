@@ -1637,14 +1637,14 @@ function AssetService(objectCollection) {
                
         var activityInlineData = JSON.parse(request.activity_inline_data);
         
-        console.log('HEre I am : activityInlineData.contact_workforce_id - ', activityInlineData.contact_workforce_id);
-        console.log('HEre I am : request.workforce_id - ', request.workforce_id);
+        console.log('activityInlineData.contact_workforce_id - ', activityInlineData.contact_workforce_id);
+        console.log('request.workforce_id - ', request.workforce_id);
         
         var paramsArr = new Array(
             activityInlineData.contact_first_name,
             activityInlineData.contact_last_name,
             request.asset_description || "",
-            0,
+            request.account_code || 0,
             activityInlineData.contact_profile_picture,
             request.activity_inline_data, //p_asset_inline_data
             activityInlineData.contact_phone_country_code,
@@ -2373,7 +2373,7 @@ function AssetService(objectCollection) {
                 if (err === false) {
                     assetListHistoryInsert(request, assetData[0]['asset_id'], request.organization_id, 0, dateTimeLog, function (err, data) {});
                     request.ingredient_asset_id = assetData[0]['asset_id'];
-                    sss.createAssetBucket(request, function () {});
+                    // sss.createAssetBucket(request, function () {});
 
                     if (assetData[0].asset_type_category_id == 41) {
                         retrieveAccountWorkforces(request).then((data) => {

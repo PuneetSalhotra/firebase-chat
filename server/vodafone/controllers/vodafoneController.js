@@ -14,7 +14,30 @@ function VodafoneController(objCollection) {
     const queueWrapper = objCollection.queueWrapper;
     var vodafoneService = new VodafoneService(objCollection);
   
-    //BOT 1
+    
+    //BOT 2
+    app.post('/' + global.config.version + '/vodafone/neworder_form/queue/add', function (req, res) {
+        req.body.message_unique_id = util.getMessageUniqueId(req.body.asset_id);
+        var event = {
+            name: "vodafone",
+            service: "vodafoneService",
+            method: "newOrderFormAddToQueues",
+            payload: req.body
+        };
+
+        queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp) => {
+            if (err) {
+                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req);
+                res.send(responseWrapper.getResponse(err, {}, -5999, req));
+                throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+            } else {
+                res.send(responseWrapper.getResponse(err, {}, 200, req));
+            }                            
+        });
+      
+    });
+    
+    //BOT 2
     app.post('/' + global.config.version + '/vodafone/neworder_form/add', function (req, res) {
         req.body.message_unique_id = util.getMessageUniqueId(req.body.asset_id);
         var event = {
@@ -47,26 +70,6 @@ function VodafoneController(objCollection) {
         	});
     });
     
-    app.post('/' + global.config.version + '/vodafone/crm_portal/pull', function (req, res) {
-    	vodafoneService.fetchCRMPortalPull(req.body,0).then((data)=>{   
-    		//console.log(data);
-    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
-    	}).catch((err) => { 
-    		data = {};
-    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
-        	});
-    });
-    
-    app.post('/' + global.config.version + '/vodafone/crm_portal/push', function (req, res) {
-    	vodafoneService.fetchCRMPortalPush(req.body,0).then((data)=>{   
-    		//console.log(data);
-    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
-    	}).catch((err) => { 
-    		data = {};
-    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
-        	});
-    });
-    
     //BOT 2
     app.post('/' + global.config.version + '/vodafone/caf_form/add', function (req, res) {
         req.body.message_unique_id = util.getMessageUniqueId(req.body.asset_id);
@@ -89,7 +92,7 @@ function VodafoneController(objCollection) {
         
     });
         
-    //BOT 4
+    //BOT 
     app.post('/' + global.config.version + '/vodafone/feasibility_checker/update', function (req, res) {
         req.body.message_unique_id = util.getMessageUniqueId(req.body.asset_id);
         var event = {
@@ -108,19 +111,29 @@ function VodafoneController(objCollection) {
                 res.send(responseWrapper.getResponse(false, {}, 200, req.body));
             }                            
         });        
-    });    
+    }); 
+    
+    //BOT 4
+    app.post('/' + global.config.version + '/vodafone/send/email', function (req, res) {        
+        vodafoneService.sendEmailVodafone(req.body, function (err, data, statusCode) {
+            if (err === false) {                
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {                
+                global.logger.write('response', 'Did not get a proper response', err, req.body);
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });          
+    });
         
     
     //BOT 3
-    app.post('/' + global.config.version + '/activity/timeline/entry/add/vodafone', function (req, res) {        
+    app.post('/' + global.config.version + '/activity/timeline/entry/add/external', function (req, res) {        
         
         console.log('Calling it from Vodafone Controller');
         
-        req.body.organization_id = 856;
-        req.body.account_id = 971;
-        req.body.workforce_id = 5344;
         req.body.activity_stream_type_id = 325;
-        
+                      
         var assetMessageCounter = 0;
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))
@@ -134,7 +147,7 @@ function VodafoneController(objCollection) {
             var event = {
                 name: "vodafone",
                 service: "vodafoneService",
-                method: "addTimelineTransactionVodafone",
+                method: "addTimelineTransactionExternal",
                 payload: req.body
             };
             queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp)=>{
@@ -223,7 +236,109 @@ function VodafoneController(objCollection) {
         }
 
     });
+
+    // BOT 5
+    app.post('/' + global.config.version + '/vodafone/hld_form/timeline/entry/add', function (req, res) {
+
+        var event = {
+            name: "addTimelineTransaction",
+            service: "activityTimelineService",
+            method: "addTimelineTransaction",
+            payload: req.body
+        };
+
+        queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp) => {
+            if (err) {
+                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req);
+                return res.send(responseWrapper.getResponse(err, {
+                    err
+                }, -6999999, req.body));
+
+            } else {
+
+                var cafFormEvent = {
+                    name: "vodafoneService",
+                    service: "vodafoneService",
+                    method: "buildAndSubmitCafForm",
+                    payload: req.body
+                };
+
+                queueWrapper.raiseActivityEvent(cafFormEvent, req.body.activity_id, (err, resp) => {
+                    if (err) {
+                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req);
+                        // res.send(responseWrapper.getResponse(err, {}, -5999, req));
+                        return res.send(responseWrapper.getResponse(err, {
+                            err
+                        }, -5999999, req.body));
+
+                    } else {
+                        return res.send(responseWrapper.getResponse(err, {
+                            data: resp
+                        }, 200, req.body));
+                    }
+                });
+            }
+        });
+
+    });
+
+    // BOT 6
+    app.post('/' + global.config.version + '/vodafone/status/set/approval_pending', function (req, res) {
+
+        var event = {
+            name: "vodafoneService",
+            service: "vodafoneService",
+            method: "setStatusApprovalPendingAndFireEmail",
+            payload: req.body
+        };
+
+        queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp) => {
+            if (err) {
+                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req);
+                return res.send(responseWrapper.getResponse(err, {
+                    err
+                }, -5999999, req.body));
+
+            } else {
+                return res.send(responseWrapper.getResponse(err, {
+                    activity_id: req.body.activity_id,
+                    message_unique_id: req.body.message_unique_id
+                }, 200, req.body));
+            }
+        });
+
+    });
+
+    // Mock APIs
+    app.post('/' + global.config.version + '/vodafone/crm_portal/push', function (req, res) {
+        vodafoneService.fetchCRMPortalPush(req.body, 0).then((data) => {
+            //console.log(data);
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        }).catch((err) => {
+            data = {};
+            res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        });
+    });
     
+    app.post('/' + global.config.version + '/vodafone/fr/pull', function (req, res) {
+    	vodafoneService.fetchVodafoneFRPull(req.body,0).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        	});
+    });
+    
+    app.post('/' + global.config.version + '/vodafone/crm_portal/pull', function (req, res) {
+    	vodafoneService.fetchCRMPortalPull(req.body,0).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        	});
+    }); 
     
 };
 

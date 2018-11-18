@@ -469,16 +469,38 @@ function AssetController(objCollection) {
         });
     });
 
-    app.post('/' + global.config.version + '/account/nani/kalyan', function (req, res) {
-        assetService.nanikalyan(req.body, function (err, data, statusCode) {
-            if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
-            } else {
-                data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
-            }
-        });
+    // Fetch all queues
+    // A queue can be at organization, workforce or account level
+    app.post('/' + global.config.version + '/asset/queue/list', function (req, res) {
+        // 
+        // Check if a form transaction with a specific form_id has already 
+        // been submitted on a form file
+        activityCommonService
+            .listAllQueues(req.body)
+            .then((data) => {
+                res.send(responseWrapper.getResponse(false, data, 200, req.body));
+            })
+            .catch((err) => {
+                let data = {};
+                res.send(responseWrapper.getResponse(err, data, -9998, req.body));
+            });
     });
 
+    // Fetch all queues
+    // A queue can be at organization, workforce or account level
+    app.post('/' + global.config.version + '/asset/queue/activity/list', function (req, res) {
+        // 
+        // Check if a form transaction with a specific form_id has already 
+        // been submitted on a form file
+        activityCommonService
+            .fetchActivitiesMappedToQueue(req.body)
+            .then((data) => {
+                res.send(responseWrapper.getResponse(false, data, 200, req.body));
+            })
+            .catch((err) => {
+                let data = {};
+                res.send(responseWrapper.getResponse(err, data, -9998, req.body));
+            });
+    });
 }
 module.exports = AssetController;

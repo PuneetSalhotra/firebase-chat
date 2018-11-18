@@ -42,7 +42,7 @@ var Consumer = function () {
             [{
                 topic: global.config.TOPIC_NAME,
                 //partition: parseInt(process.env.partition)
-                partition: parseInt(1)
+                partition: parseInt(0)
             }], {
                 groupId: global.config.CONSUMER_GROUP_ID,
                 autoCommit: global.config.CONSUMER_AUTO_COMMIT,
@@ -101,6 +101,7 @@ var Consumer = function () {
                     activityCommonService.duplicateMsgUniqueIdInsert(request, (err, data) => {});
                 }
             });
+            //consumingMsg(message, kafkaMsgId, objCollection).then(() => {});
 
         });
 
@@ -109,15 +110,15 @@ var Consumer = function () {
         });
 
         consumer.on('error', function (err) {
-            global.logger.write('conLog', 'err => ' + JSON.stringify(err), {}, {});
+            global.logger.write('debug', 'err => ' + JSON.stringify(err), {}, {});
         });
 
         consumer.on('offsetOutOfRange', function (err) {
-            global.logger.write('conLog', 'offsetOutOfRange => ' + JSON.stringify(err), {}, {});
+            global.logger.write('debug', 'offsetOutOfRange => ' + JSON.stringify(err), {}, {});
         });
 
         kafkaProducer.on('error', function (error) {
-            global.logger.write('conLog', error, {}, {});
+            global.logger.write('debug', error, {}, {});
         });
 
     });
@@ -131,7 +132,7 @@ var Consumer = function () {
                 metadata: 'm', //default 'm'
             }], (err, data) => {
                 if (err) {
-                    global.logger.write('conLog', "err:" + JSON.stringify(err), {}, {});
+                    global.logger.write('debug', "err:" + JSON.stringify(err), {}, {});
                     reject(err);
                 } else {
                     global.logger.write('conLog', 'successfully offset ' + message.offset + ' is committed', {}, {});

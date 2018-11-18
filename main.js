@@ -87,7 +87,7 @@ app.use(function (req, res, next) {
                 req.body.isTargeted = true;
                 req.isTargeted = true;
             }
-        })
+        });
     }
 
     // For requests which use auth_asset_id for authentication
@@ -100,11 +100,11 @@ app.use(function (req, res, next) {
                 req.body.isTargeted = true;
                 req.isTargeted = true;
             }
-        })
+        });
     }
 
-    next()
-})
+    next();
+});
 
 function connectToKafkaBroker(){
     console.log("redis is connected");
@@ -163,6 +163,6 @@ function connectToKafkaBroker(){
     
     kafkaProducer.on('brokersChanged', function (error) {
         console.log('brokersChanged: ', error);
-    });    
-    
+    });       
+   
 }

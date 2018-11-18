@@ -27,18 +27,25 @@ function Logger() {
 
         util.writeLogs(message, isTargeted);
 
-        var loggerCollectionString = JSON.stringify(loggerCollection);
-        switch (level) {
-            case 'conLog':
-                break;
+        
+        try {
+            var loggerCollectionString = JSON.stringify(loggerCollection);
+            
+            switch (level) {
+                case 'conLog':
+                    break;
 
-            default:
-                sqs.produce(loggerCollectionString, function (err, response) {
-                    if (err)
-                        console.log("error is: " + err);
-                });
-                break;
-        }
+                default:
+                    sqs.produce(loggerCollectionString, function (err, response) {
+                        if (err)
+                            console.log("error is: " + err);
+                    });
+                    break;
+            }
+        } catch(e) {
+            
+        }       
+        
     };
 
     this.writeSession = function (request) {
