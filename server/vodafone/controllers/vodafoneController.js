@@ -38,7 +38,7 @@ function VodafoneController(objCollection) {
     });
     
     //BOT 2
-    app.post('/' + global.config.version + '/vodafone/neworder_form/add', function (req, res) {
+    app.post('/' + global.config.version + '/vodafone/customer_form/add', function (req, res) {
         req.body.message_unique_id = util.getMessageUniqueId(req.body.asset_id);
         var event = {
             name: "vodafone",
