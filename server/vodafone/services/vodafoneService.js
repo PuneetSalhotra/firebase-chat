@@ -2018,6 +2018,9 @@ function VodafoneService(objectCollection) {
                                         console.log('queueActivityMappingData[0].queue_activity_mapping_id: ', queueActivityMappingData[0].queue_activity_mapping_id);
                                         return activityCommonService.unmapFileFromQueue(request, queueActivityMappingData[0].queue_activity_mapping_id)
                                     })
+                                    .then((data) => {
+                                        queueHistoryInsert(request, 1403, queueActivityMappingId).then(()=>{});
+                                    })
                                     .catch((error) => {
                                         console.log("Error Unmapping the form file from HLD queue: ", error)
                                     });
@@ -2066,6 +2069,9 @@ function VodafoneService(objectCollection) {
                                                     queueActivityMappingData[0].queue_activity_mapping_id,
                                                     JSON.stringify(queueActivityMappingInlineData)
                                                 )
+                                            })
+                                            .then((data) => {
+                                                queueHistoryInsert(request, 1402, queueActivityMappingId).then(()=>{});
                                             })
                                             .catch((error) => {
                                                 console.log("Error modifying the form file activity entry in the OMT queue: ", error)
@@ -2625,6 +2631,9 @@ function VodafoneService(objectCollection) {
                             queueActivityMappingData[0].queue_activity_mapping_id,
                             JSON.stringify(queueActivityMappingInlineData)
                         )
+                    })
+                    .then((data) => {
+                        queueHistoryInsert(request, 1402, queueActivityMappingId).then(()=>{});
                     })
                     .catch((error) => {
                         console.log("Error modifying the form file activity entry in the OMT queue: ", error)
