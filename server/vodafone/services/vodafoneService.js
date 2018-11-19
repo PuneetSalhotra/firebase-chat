@@ -1978,6 +1978,15 @@ function VodafoneService(objectCollection) {
                         }
                     })
 
+                // ROMS CAF Fields Data | Process, Update & Append
+                let ROMS_CAF_FIELDS_DATA = {};
+                if (Number(request.organization_id) === 860) {
+                    ROMS_CAF_FIELDS_DATA = romsCafFieldsData.BETA;
+
+                } else if (Number(request.organization_id) === 858) {
+                    ROMS_CAF_FIELDS_DATA = romsCafFieldsData.LIVE;
+                }
+
                 const romsCafFieldsAndValues = populateRomsCafFieldValues(
                     Object.assign(ROMS_CAF_FIELDS_DATA),
                     calculatedValuesJSON,
