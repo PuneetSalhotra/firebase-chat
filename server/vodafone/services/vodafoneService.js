@@ -2238,6 +2238,40 @@ function VodafoneService(objectCollection) {
                             }
                         });
 
+                        // Fire 325 for the newly created CAF Form's activity_id
+                        let timelineStreamType325ForCAF = Object.assign(timelineStreamType705ForCAF);
+                        timelineStreamType325ForCAF.activity_id = cafFormActivityId;
+                        timelineStreamType325ForCAF.form_transaction_id = cafFormTransactionId;
+                        timelineStreamType325ForCAF.activity_stream_type_id = 325;
+                        timelineStreamType325ForCAF.message_unique_id = util.getMessageUniqueId(CAF_BOT_ASSET_ID);
+                        timelineStreamType325ForCAF.activity_timeline_collection = JSON.stringify({
+                            "mail_body": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+                            "subject": "CAF Form",
+                            "content": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+                            "asset_reference": [],
+                            "activity_reference": [],
+                            "form_approval_field_reference": [],
+                            "form_submitted": cafFormSubmissionRequest.activity_inline_data,
+                            "attachments": []
+                        });
+
+                        let fire325OnNewCafFormEvent = {
+                            name: "addTimelineTransaction",
+                            service: "activityTimelineService",
+                            method: "addTimelineTransaction",
+                            payload: timelineStreamType325ForCAF
+                        };
+
+                        queueWrapper.raiseActivityEvent(fire325OnNewCafFormEvent, cafFormActivityId, (err, resp) => {
+                            if (err) {
+                                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                                global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                            } else {
+                                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                                global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                            }
+                        });
+
                         // Fire a 325 request to the new order form too!
                         let activityTimelineCollectionFor325 = {
                             "mail_body": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
