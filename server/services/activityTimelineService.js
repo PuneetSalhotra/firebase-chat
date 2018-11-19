@@ -72,15 +72,15 @@ function ActivityTimelineService(objectCollection) {
 
             // 
             // [VODAFONE] Listen for Account Manager Approval or Customer (Service Desk) Approval Form
+            // [VODAFONE] The above no longer applies. New trigger on CRM Acknowledgement Form submission.
             if (
                 activityStreamTypeId === 705 &&
                 (
-                    Number(request.form_id) === 858 ||
-                    Number(request.form_id) === 878 ||
-                    Number(request.form_id) === 875 ||
-                    Number(request.form_id) === 882
+                    Number(request.form_id) === 868 ||
+                    Number(request.form_id) === 863
                 )
             ) {
+                console.log('CALLING approvalFormsSubmissionCheck')
                 const approvalCheckRequestEvent = {
                     name: "vodafoneService",
                     service: "vodafoneService",

@@ -2845,11 +2845,13 @@ function VodafoneService(objectCollection) {
                                                 account_id: request.account_id,
                                                 workforce_id: request.workforce_id,
                                                 asset_id: Number(participant.asset_id),
-                                                asset_token_auth: CAF_BOT_ENC_TOKEN,
                                                 auth_asset_id: CAF_BOT_ASSET_ID,
+                                                asset_token_auth: CAF_BOT_ENC_TOKEN,
                                                 activity_id: Number(request.activity_id),
+                                                activity_type_category_id: 9,
+                                                activity_stream_type_id: 705,
                                                 form_id: ACCOUNT_MANAGER_APPROVAL_FORM_ID,
-                                                activity_type_id: activityTypeId,
+                                                // activity_type_id: activityTypeId,
                                                 type: 'approval'
                                             };
                                             encodedString = Buffer.from(JSON.stringify(jsonString)).toString('base64');
@@ -2893,11 +2895,13 @@ function VodafoneService(objectCollection) {
                                             account_id: request.account_id,
                                             workforce_id: request.workforce_id,
                                             asset_id: Number(participant.asset_id),
-                                            asset_token_auth: CAF_BOT_ENC_TOKEN,
                                             auth_asset_id: CAF_BOT_ASSET_ID,
+                                            asset_token_auth: CAF_BOT_ENC_TOKEN,
                                             activity_id: Number(request.activity_id),
                                             form_id: CUSTOMER_APPROVAL_FORM_ID,
-                                            activity_type_id: activityTypeId,
+                                            activity_type_category_id: 9,
+                                            activity_stream_type_id: 705,
+                                            // activity_type_id: activityTypeId,
                                             type: 'approval'
                                         };
                                         encodedString = Buffer.from(JSON.stringify(jsonString)).toString('base64');
@@ -2948,28 +2952,48 @@ function VodafoneService(objectCollection) {
         
         const CUSTOMER_APPROVAL_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_APPROVAL;
         const ACCOUNT_MANAGER_APPROVAL_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.ACCOUNT_MANAGER_APPROVAL;
+        const CRM_ACKNOWLEDGEMENT_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CRM_ACKNOWLEDGEMENT;
+        const NEW_ORDER_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER;
         const ACTIVITY_STATUS_ID_ORDER_CLOSED = global.vodafoneConfig[request.organization_id].STATUS.ORDER_CLOSED;
         // 
         // If the incoming form submission request is for the AM APPROVAL FORM
-        if (Number(request.form_id) === 858 || Number(request.form_id) === 875) {
+        // if (Number(request.form_id) === 858 || Number(request.form_id) === 875) {
+        //     await activityCommonService
+        //         .getActivityTimelineTransactionByFormId(request, request.activity_id, CUSTOMER_APPROVAL_FORM_ID)
+        //         .then((customerApprovalFormData) => {
+        //             console.log("customerApprovalFormData: ", customerApprovalFormData);
+        //             console.log("customerApprovalFormData.length: ", customerApprovalFormData.length);
+        //             if (customerApprovalFormData.length > 0) {
+        //                 // 
+        //                 isApprovalDone = true
+        //             }
+        //         })
+        //     // If the incoming form submission request is for the CUSTOMER APPROVAL FORM
+        // } else if (Number(request.form_id) === 878 || Number(request.form_id) === 882) {
+        //     await activityCommonService
+        //         .getActivityTimelineTransactionByFormId(request, request.activity_id, ACCOUNT_MANAGER_APPROVAL_FORM_ID)
+        //         .then((accountManagerApprovalFormData) => {
+        //             console.log("accountManagerApprovalFormData: ", accountManagerApprovalFormData);
+        //             console.log("accountManagerApprovalFormData.length: ", accountManagerApprovalFormData.length);
+        //             if (accountManagerApprovalFormData.length > 0) {
+        //                 // 
+        //                 isApprovalDone = true
+        //             }
+        //         })
+        // }
+
+        // If the incoming form submission request is for the CRM ACKNOWLEDGEMENT FORM,
+        // check if a corresponding NEW ORDER FORM exists
+        console.log("Number(request.form_id): ", Number(request.form_id));
+        console.log("Number(CRM_ACKNOWLEDGEMENT_FORM_ID): ", Number(CRM_ACKNOWLEDGEMENT_FORM_ID));
+        if (Number(request.form_id) === Number(CRM_ACKNOWLEDGEMENT_FORM_ID)) {
+            
             await activityCommonService
-                .getActivityTimelineTransactionByFormId(request, request.activity_id, CUSTOMER_APPROVAL_FORM_ID)
+                .getActivityTimelineTransactionByFormId(request, request.activity_id, NEW_ORDER_FORM_ID)
                 .then((customerApprovalFormData) => {
                     console.log("customerApprovalFormData: ", customerApprovalFormData);
                     console.log("customerApprovalFormData.length: ", customerApprovalFormData.length);
                     if (customerApprovalFormData.length > 0) {
-                        // 
-                        isApprovalDone = true
-                    }
-                })
-            // If the incoming form submission request is for the CUSTOMER APPROVAL FORM
-        } else if (Number(request.form_id) === 878 || Number(request.form_id) === 882) {
-            await activityCommonService
-                .getActivityTimelineTransactionByFormId(request, request.activity_id, ACCOUNT_MANAGER_APPROVAL_FORM_ID)
-                .then((accountManagerApprovalFormData) => {
-                    console.log("accountManagerApprovalFormData: ", accountManagerApprovalFormData);
-                    console.log("accountManagerApprovalFormData.length: ", accountManagerApprovalFormData.length);
-                    if (accountManagerApprovalFormData.length > 0) {
                         // 
                         isApprovalDone = true
                     }
