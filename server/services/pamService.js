@@ -3180,51 +3180,70 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
     this.eventReport = function (request) {
     	return new Promise((resolve, reject)=>{
     	//get the list of reservations (not cancelled)
-    	getEventReservations(request).then((reservationList)=>{ // ArrayofArrays
+    		var totalBill = 0;
+    	this.getEventReservations(request,1).then((reservationList)=>{ // ArrayofArrays
 			forEachAsync(reservationList, (next, reservation)=>{  
 				console.log('reservation:'+reservation);
 				forEachAsync(reservation, (next1, reservation1)=>{
 					console.log('reservation1:'+reservation1.activity_id);
-					processReservationBilling(request, reservation1.activity_id).then((OrderData)=>{
-						console.log('OrderData:'+OrderData);
+					this.processReservationBilling(request, reservation1.activity_id).then((reservationBill)=>{
+						//console.log('Bill:'+reservationBill);
+						totalBill = totalBill + reservationBill;
 					}).then(()=>{
 						next1();
 					});
-				})
-			}).then(()=>{
-				next();
-			});
-    	});
+				}).then(()=>{
+					next();
+				});
+			})
+    	})
     	//for each reservation call the method in activity common service
     	resolve("");
     	});
     	
     };
+
     
     
-    function getEventReservations(request){
-		return new Promise((resolve, reject)=>{
-	        var paramsArr = new Array(
-	        		request.organization_id,
-	        		request.account_id,
-	        		request.activity_id,
-	        		37
-	                );	        
-	        var queryString = 'pm_v1_activity_list_select_event_reservations';
-	        if (queryString != '') {
-	            db.executeRecursiveQuery(1, 0, 50, queryString, paramsArr, function (err, data) {
-	            	//console.log("err "+err);
-	               if(err === false) {
-	               		resolve(data);        				        			      			  
-                    } else {
-	                   reject(err);
-	               }
-	            });
-	   		}
+    this.getEventReservations= function(request, is_recursive){
+		return new Promise((resolve, reject)=>{       
+	       
+	       // if (queryString != '') {
+	        	if(is_recursive == 1){
+	        		var queryString = 'pm_v1_activity_list_select_event_reservations';
+	    	        var paramsArr = new Array(
+	    	        		request.organization_id,
+	    	        		request.account_id,
+	    	        		request.activity_id,
+	    	        		37
+	    	                );	 
+		            db.executeRecursiveQuery(1, 0, 10, queryString, paramsArr, function (err, data) {
+		            	//console.log("err "+err);
+		               if(err === false) {
+		               		resolve(data);        				        			      			  
+	                    } else {
+		                   reject(err);
+		               }
+		            });
+	        	}else{
+	    	        var paramsArr = new Array(
+	    	        		request.organization_id,
+	    	        		request.account_id,
+	    	        		request.activity_id,
+	    	        		37,
+	    	        		request.page_start,
+	    	        		request.page_limit
+	    	                );	
+	    	        var queryString = util.getQueryString('pm_v1_activity_list_select_event_reservations', paramsArr);
+	        		db.executeQuery(1, queryString, request, function (err, data) {
+	                    (err === false)? resolve(data) : reject(err);
+	                });
+	        	}
+	   		//}
         });
     };
     
-    function processReservationBilling(request, idReservation){
+    this.processReservationBilling = function(request, idReservation){
     	return new Promise((resolve, reject)=>{
 	    	if(request.hasOwnProperty('is_report')){
 	    		//get the member of the reservation
@@ -3235,17 +3254,18 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
 				getReservationMemberDiscount(request, idReservation).then((data)=>{
 						//console.log(data[0].memberDiscount); 
 					global.logger.write('debug','Discount '+data[0].memberDiscount, {},request);
+					
+					getReservationBilling(request, idReservation, data[0].nameReservation, data[0].idMember, data[0].nameMember, data[0].memberDiscount).then((resevationBillAmount)=>{
 						
-						getReservationOrders(request, idReservation).then((orderData)=>{
-							console.log(orderData.length);
-	
-							getReservationBilling(request, idReservation, data[0].memberDiscount, orderData).then((resevationBillAmount)=>{
-								
-								global.logger.write('debug','resevationBill '+resevationBillAmount, {},request);
-								pamEventBillingInsert(request, data[0].idEvent, data[0].titleEvent, idReservation, data[0].nameReservation, data[0].idActivityStatusType, data[0].nameActivityStatusType, data[0].idMember, data[0].nameMember, resevationBillAmount);
-								resolve(true);
-							});
-						});
+						global.logger.write('debug','resevationBill '+resevationBillAmount, {},request);
+						
+						if(request.hasOwnProperty('is_insert')){
+							pamEventBillingInsert(request, data[0].idEvent, data[0].titleEvent, idReservation, data[0].nameReservation, data[0].idActivityStatusType, data[0].nameActivityStatusType, data[0].idMember, data[0].nameMember, resevationBillAmount);
+						}
+						resolve(resevationBillAmount);
+						
+					});
+						
 				});
 				
 	    	}else{    
@@ -3301,14 +3321,18 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
         });
     };
     
-    function getReservationBilling(request, idReservation, discount, orderData){
+    function getReservationBilling(request, idReservation, nameReservation, idMember, nameMember, discount){
     	return new Promise((resolve, reject)=>{    		
 			 var total_mrp = 0;
 			 var total_discount = 0;
 			 var total_tax = 0;			 
 			 var total_price = 0;
 			 var item_discount = 0;
+			 var orderActivityId = 0;
 			 
+			 getReservationOrders(request, idReservation).then((orderData)=>{
+					console.log(orderData.length);
+					
 				forEachAsync(orderData, (next, rowData)=>{  
 					//console.log(rowData.length);
 					forEachAsync(rowData, (next1, rowData1)=>{ 
@@ -3318,6 +3342,20 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
 					 	var tax_percent = 0;
 					 	var dis_amount = 0;
 						var tax_amount = 0;
+					 	var price_after_discount = 0;
+					 	var final_price = 0;
+					 	var activity_type_name = '';
+					 	orderActivityId = rowData1.activity_id;
+					 	
+					 	if(JSON.parse(rowData1.activity_inline_data).activity_type_id == 52049){
+					 		activity_type_name = 'Food';
+					 	}else if(JSON.parse(rowData1.activity_inline_data).activity_type_id == 52050){
+					 		activity_type_name = 'Spirits';
+					 	}else if(JSON.parse(rowData1.activity_inline_data).activity_type_id == 52051){
+					 		activity_type_name = 'Cocktails';
+					 	}else{
+					 		activity_type_name = 'Others';
+					 	}
 					 	
 						if(JSON.parse(rowData1.activity_inline_data).is_full_bottle == 0) {
 							cost = rowData1.activity_priority_enabled * JSON.parse(rowData1.activity_inline_data).item_price;
@@ -3339,53 +3377,128 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
 						dis_amount =  (cost * item_discount)/100;
 						total_mrp = total_mrp + cost;
 						 
-						cost = cost - dis_amount;
+						price_after_discount = cost - dis_amount;
 						tax_percent= JSON.parse(rowData1.activity_inline_data).tax;
-						tax_amount = (cost * tax_percent)/100;
-						cost = cost + tax_amount;
+						tax_amount = (price_after_discount * tax_percent)/100;
+						final_price = price_after_discount + tax_amount;
 						
-						total_price = total_price + cost;
+						total_price = total_price + final_price;
+						//console.log('total price '+total_price);
 						total_tax = total_tax + tax_amount;
 						total_discount = total_discount + dis_amount;
-
+						
+						//pam_order_list insert
+						var attributeArray = {
+								event_id: request.activity_id,
+								reservation_id: idReservation,
+								reservation_name: nameReservation,
+								member_id: idMember,
+								member_name: nameMember,
+								order_status_type_id: rowData1.activity_status_type_id,
+								order_status_type_name: rowData1.activity_status_type_name,
+								order_type_id: JSON.parse(rowData1.activity_inline_data).activity_type_id,
+								order_type_name:activity_type_name,
+								order_id: rowData1.activity_id,
+								menu_id: rowData1.channel_activity_id,
+								order_name: rowData1.activity_title,
+								order_quantity: rowData1.activity_priority_enabled,
+								order_unit_price: JSON.parse(rowData1.activity_inline_data).item_price,
+								is_full_bottle: JSON.parse(rowData1.activity_inline_data).is_full_bottle,
+								full_bottle_price: JSON.parse(rowData1.activity_inline_data).item_full_price,
+								choices: JSON.parse(rowData1.activity_inline_data).item_choices,
+								choices_count:0,
+								order_price:cost,
+								discount_percent:item_discount,
+								discount:dis_amount,
+								price_after_discount:price_after_discount,
+								tax_percent:tax_percent,
+								tax:tax_amount,
+								final_price:final_price,
+								log_datetime:request.datetime_log,
+								log_asset_id:rowData1.log_asset_id,
+								log_asset_first_name:rowData1.log_asset_first_name
+							};
+						
+						pamOrderInsert(request, attributeArray).then(()=>{
+							global.logger.write('debug','OrderId '+rowData1.activity_id+'-'+rowData1.channel_activity_id+' : '+final_price, {},request);
 						if(JSON.parse(rowData1.activity_inline_data).hasOwnProperty('item_choice_price_tax'))
 						{
 							var arr = JSON.parse(rowData1.activity_inline_data).item_choice_price_tax;
-							for (key in arr)
-							{
+							//for (key in arr)
+							forEachAsync(arr, (next2, choiceData)=>{ 
+								
 								var choice_cost = 0;
 								var dis_amount = 0;
 								var choice_tax_amount = 0;
 								
-								choice_cost = arr[key].quantity * arr[key].price;
+							 	var choice_price_after_discount = 0;
+							 	var choice_final_price = 0;
+								
+								choice_cost = choiceData.quantity * choiceData.price;
 								total_mrp = total_mrp + choice_cost;
+								
+								if(rowData1.activity_status_type_id == 126 || rowData1.activity_status_type_id == 139 || rowData1.activity_status_type_id == 104){
+									choice_cost = 0;
+								}
 
 								item_discount = discount;
 								
-								if(arr[key].hasOwnProperty('form_id')){
-									if(arr[key].form_id == 1)
+								if(choiceData.hasOwnProperty('form_id')){
+									if(choiceData.form_id == 1)
 										item_discount = 0;
 								}
 								
 								dis_amount =  (choice_cost * item_discount)/100;
 								
-								choice_cost = choice_cost - dis_amount;
+								choice_price_after_discount = choice_cost - dis_amount;
 								
 								
-								choice_tax= arr[key].tax;
+								choice_tax= choiceData.tax;
 								
-								choice_tax_amount = (choice_cost * choice_tax)/100;
-								choice_cost = choice_cost + choice_tax_amount;
+								choice_tax_amount = (choice_price_after_discount * choice_tax)/100;
+								choice_final_price = choice_price_after_discount + choice_tax_amount;
 								
-								total_price = total_price + choice_cost;
+								total_price = total_price + choice_final_price;
+								//console.log('IN Choice total price '+total_price);
 								total_tax = total_tax + choice_tax_amount;
 								total_discount = total_discount + dis_amount;
-
-							}
-						}
+								
+								attributeArray.order_type_id=54536;
+								attributeArray.order_type_name='Others';
+								attributeArray.order_id=rowData1.activity_id;
+								attributeArray.menu_id=choiceData.activity_id;
+								attributeArray.order_name= choiceData.name;
+								attributeArray.order_quantity= choiceData.quantity;
+								attributeArray.order_unit_price= choiceData.price;
+								attributeArray.is_full_bottle= 0;
+								attributeArray.full_bottle_price= 0;
+								attributeArray.choices= '';
+								attributeArray.choices_count=0;
+								attributeArray.order_price=choice_cost;
+								attributeArray.discount_percent=item_discount;
+								attributeArray.discount=dis_amount;
+								attributeArray.price_after_discount=choice_price_after_discount;
+								attributeArray.tax_percent=choice_tax;
+								attributeArray.tax=choice_tax_amount;
+								attributeArray.final_price=choice_final_price;
+								
+								pamOrderInsert(request, attributeArray).then(()=>{
+									global.logger.write('debug','OrderId '+rowData1.activity_id+'-'+choiceData.activity_id+' : '+choice_final_price, {},request);
+									next2();
+									});
+							}).then(()=>{
+								next1();
+							})							
+							
+						}else{							//console.log(request.activity_id+'-'+final_price);
+							
+							next1();
+						}	
 						
-						next1();
+						});
+						
 					}).then(()=>{
+						
 						next();
 					})
 				}).then(()=>{
@@ -3394,10 +3507,10 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
 					resolve(total_price);
 				});
 			 
-			 
+			 }); 
     	});
     };
-    
+        
     function pamEventBillingInsert(request, idEvent, nameEvent, idReservation, nameReservation, idStatusType, nameStatusType, idMember, nameMember, billingAmount) {
         return new Promise((resolve, reject)=>{
             var paramsArr = new Array(
@@ -3426,7 +3539,71 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                 });
             }
         })
+    };
+
+   function pamOrderInsert(request, attributeArray){
+    	return new Promise((resolve, reject)=>{
+	    	if(request.hasOwnProperty('is_insert')){
+	    		pamOrderListInsert(request, attributeArray).then(()=>{resolve();})
+	    	}else{
+	    		resolve();
+	    	}
+    	});
     }
+    
+    function pamOrderListInsert(request, attributeArray){
+        return new Promise((resolve, reject)=>{
+        	
+            var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                attributeArray.event_id,
+                attributeArray.reservation_id,
+                attributeArray.reservation_name,
+                attributeArray.member_id,
+                attributeArray.member_name,
+                attributeArray.order_status_type_id,
+                attributeArray.order_status_type_name,
+                attributeArray.order_type_id,
+                attributeArray.order_type_name,
+                attributeArray.order_id,
+                attributeArray.menu_id,
+                attributeArray.order_name,
+                attributeArray.order_quantity,
+                attributeArray.order_unit_price,
+                attributeArray.is_full_bottle,
+                attributeArray.full_bottle_price,
+                attributeArray.choices,
+                attributeArray.choices_count,
+                attributeArray.order_price,
+                attributeArray.discount_percent,
+                attributeArray.discount,
+                attributeArray.price_after_discount,
+                attributeArray.tax_percent,
+                attributeArray.tax,
+                attributeArray.final_price,                
+                request.datetime_log,
+                attributeArray.log_asset_id,
+                attributeArray.log_asset_first_name
+                );
+            
+	            var queryString = util.getQueryString("pm_v1_1_pam_order_list_insert", paramsArr);
+	            
+	            if (queryString != '') {
+	                db.executeQuery(0, queryString, request, function (err, data) {                  
+	                   if(err === false){                	   
+	                	   resolve();
+	                   }else{
+	                	   reject(err);
+	                   }
+	                });
+	            }
+        	
+        });
+        
+    }
+
 }
 ;
 

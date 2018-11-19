@@ -2,6 +2,7 @@
  * author: V Nani Kalyan
  */
 var globalConfig = require('./server/utils/globalConfig');
+var vodafoneConfig = require('./server/vodafone/utils/vodafoneConfig');
 var express = require('express');
 var app = express();
 var server = require('http').createServer(app);//.listen(global.config.servicePort);
@@ -164,5 +165,5 @@ function connectToKafkaBroker(){
     kafkaProducer.on('brokersChanged', function (error) {
         console.log('brokersChanged: ', error);
     });       
-   
+    
 }

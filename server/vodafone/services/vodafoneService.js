@@ -1738,6 +1738,31 @@ function VodafoneService(objectCollection) {
         });        
     };
     
+    this.fetchVodafoneFRPull = function(request) {
+        return new Promise((resolve, reject)=>{
+            var data = {
+                    ia_contact_name: 'sravan',
+                    ia_contact_designation: 'manager',
+                    ia_contact_department: 'IT',
+                    ia_installation_address: 'Huzrabad',
+                    ia_city_village_postoffice: 'Pothireddypeta',
+                    ia_pin_code: '50548',
+                    ia_telephone_number: '087272589799',
+                    ia_fax_number: '087273589632147',
+                    ia_contact_email: 'sravan@desker.co',
+                    ia_alternate_number: '7680000368',
+                    site_identifier: 'www.vodafone.com',
+                    last_mile_details_media: 'last_mile_details_media',
+                    customer_end_interface: 'customer_end_interface',
+                    service_provider_pop1: 'service_provider_pop1',
+                    primary_last_mile_service_provider: 'Blueflock Technologies',
+                    primary_cir_bandwidth_kbps: '1000'	
+            };
+            
+            resolve(data);
+        });        
+    };
+    
     this.fetchCRMPortalPull = function(request) {
         return new Promise((resolve, reject)=>{
             var data = {
@@ -1764,77 +1789,20 @@ function VodafoneService(objectCollection) {
                     channel_partner_name:'TV9'	
             };
             
-            if(request.is_customer_new == 1){
-        		
-        		cacheWrapper.getCSDNumber(request.account_code, function (err, reply) { // retriving asset parity for operating asset id
-                    if (!err) {
-                    	if(reply == null){
-                    		//first time so create a new phone number, set to redis and return in response
-                    		cacheWrapper.setCSDNumber(request.account_code, '999'+request.account_code+'001', function (err, reply) {
-                                if (!err) {
-                                	data.authorised_signatory_contact_number= '999'+request.account_code+'001';
-                                	resolve(data);
-                                } else {
-                                    callback(false, {}, -7998);
-                                }
-                            });
-                    	}else{
-                    		var final = '';
-                    		//console.log('reply: '+reply);
-                    		//var incrementer = reply.slice(7,10);
-                    		//console.log('incrementer: '+incrementer);
-                    		//console.log('Number(incrementer): '+Number(incrementer));
-                    		var incrementer = Number(reply.slice(7,10)) + 1;
-                    		//console.log('after incrementer: '+incrementer);
-                    		
-                    		if(Number(incrementer) <= 9 )
-                    			final = '00'+incrementer;
-                    		else if (Number(incrementer) <= 99)
-                    			final = '0'+incrementer;
-                    		else if (Number(incrementer) <= 999)
-                    			final = ''+incrementer;
-                    		
-                    		console.log('999request.account_code+final'+'999'+request.account_code+final);
-                    		
-                    		cacheWrapper.setCSDNumber(request.account_code, '999'+request.account_code+final, function (err, reply) {
-                                if (!err) {
-                                	data.authorised_signatory_contact_number= '999'+request.account_code+final;
-                                	resolve(data);
-                                } else {
-                                    callback(false, {}, -7997);
-                                }
-                            });
-                    	}
-                    	
-                    } else {
-                    	callback(false, {}, -7999);
-                    }
-                });
-
-
-        	}else{
-        		
-                cacheWrapper.getCSDNumber(request.account_code, function (err, reply) { // retriving asset parity for operating asset id
-                    if (!err) {
-                    	data.authorised_signatory_contact_number=reply;
-                    	if(reply == null){
-                    		data.authorised_signatory_email = null;
-                    		resolve(data);
-                    	}else{
-                    		resolve(data);
-                    	}
-                    	
-                    } else {
-                    	callback(false, {}, -7999);
-                    }
-                });
-  
-        	}
-            
-            //resolve(data);
+            resolve(data);
         });        
     };
     
+    this.fetchCRMPortalPush = function(request) {
+        return new Promise((resolve, reject)=>{
+            var data = {
+            		crm_acknowledgement_id:'25879658696'
+            };
+            
+            resolve(data);
+        });        
+    };
+        
     this.fetchCRMPortalPush = function(request) {
         return new Promise((resolve, reject)=>{
             var data = {
@@ -2173,6 +2141,7 @@ function VodafoneService(objectCollection) {
                                 // Unmap the form file from HLD queue by archiving the mapping of queue and activity
                                 request.start_from = 0;
                                 request.limit_value = 50;
+                                let hldQueueActivityMappingId;
 
                                 activityCommonService
                                     .fetchQueueByQueueName(request, 'HLD')
@@ -2182,10 +2151,11 @@ function VodafoneService(objectCollection) {
                                     })
                                     .then((queueActivityMappingData) => {
                                         console.log('queueActivityMappingData[0].queue_activity_mapping_id: ', queueActivityMappingData[0].queue_activity_mapping_id);
+                                        hldQueueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;
                                         return activityCommonService.unmapFileFromQueue(request, queueActivityMappingData[0].queue_activity_mapping_id)
                                     })
                                     .then((data) => {
-                                        queueHistoryInsert(request, 1403, queueActivityMappingId).then(()=>{});
+                                        queueHistoryInsert(request, 1403, hldQueueActivityMappingId).then(()=>{});
                                     })
                                     .catch((error) => {
                                         console.log("Error Unmapping the form file from HLD queue: ", error)
@@ -2194,6 +2164,7 @@ function VodafoneService(objectCollection) {
                                 // Alter the status of the form file to Validation Pending
                                 // Form the request object
                                 var statusAlterRequest = Object.assign(cafFormSubmissionRequest);
+                                statusAlterRequest.activity_id = request.activity_id;
                                 statusAlterRequest.activity_status_id = ACTIVITY_STATUS_ID_VALIDATION_PENDING;
                                 statusAlterRequest.activity_status_type_id = 25;
                                 statusAlterRequest.activity_status_type_category_id = 1;
@@ -2213,6 +2184,7 @@ function VodafoneService(objectCollection) {
                                     } else {
                                         // 
                                         console.log("Form status changed to validation pending");
+                                        let omtQueueActivityMappingId;
 
                                         // Also modify the last status alter time and current status 
                                         // for all the queue activity mappings.
@@ -2230,6 +2202,8 @@ function VodafoneService(objectCollection) {
                                                 queueActivityMappingInlineData.queue_sort.last_status_alter_time = util.getCurrentUTCTime();
                                                 request.activity_status_id = ACTIVITY_STATUS_ID_VALIDATION_PENDING;
 
+                                                omtQueueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;
+
                                                 return activityCommonService.queueActivityMappingUpdateInlineStatus(
                                                     request,
                                                     queueActivityMappingData[0].queue_activity_mapping_id,
@@ -2237,7 +2211,7 @@ function VodafoneService(objectCollection) {
                                                 )
                                             })
                                             .then((data) => {
-                                                queueHistoryInsert(request, 1402, queueActivityMappingId).then(()=>{});
+                                                queueHistoryInsert(request, 1402, omtQueueActivityMappingId).then(()=>{});
                                             })
                                             .catch((error) => {
                                                 console.log("Error modifying the form file activity entry in the OMT queue: ", error)
@@ -2286,6 +2260,7 @@ function VodafoneService(objectCollection) {
                         };
                         cafFormSubmissionRequest.activity_timeline_collection = JSON.stringify(activityTimelineCollectionFor325);
                         cafFormSubmissionRequest.activity_stream_type_id = 325;
+                        cafFormSubmissionRequest.activity_id = request.activity_id;
 
                         let displayCafFormOnFileEvent = {
                             name: "addTimelineTransaction",
@@ -2778,6 +2753,10 @@ function VodafoneService(objectCollection) {
                 // 
                 // Also modify the last status alter time and current status 
                 // for all the queue activity mappings.
+                let omtQueueActivityMappingId;
+                request.start_from = 0;
+                request.limit_value = 50;
+
                 activityCommonService
                     .fetchQueueByQueueName(request, 'OMT')
                     .then((queueListData) => {
@@ -2792,6 +2771,8 @@ function VodafoneService(objectCollection) {
                         queueActivityMappingInlineData.queue_sort.last_status_alter_time = util.getCurrentUTCTime();
                         request.activity_status_id = ACTIVITY_STATUS_ID_APPROVAL_PENDING;
 
+                        omtQueueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;
+
                         return activityCommonService.queueActivityMappingUpdateInlineStatus(
                             request,
                             queueActivityMappingData[0].queue_activity_mapping_id,
@@ -2799,7 +2780,7 @@ function VodafoneService(objectCollection) {
                         )
                     })
                     .then((data) => {
-                        queueHistoryInsert(request, 1402, queueActivityMappingId).then(()=>{});
+                        queueHistoryInsert(request, 1402, omtQueueActivityMappingId).then(()=>{});
                     })
                     .catch((error) => {
                         console.log("Error modifying the form file activity entry in the OMT queue: ", error)
