@@ -2646,6 +2646,13 @@ function VodafoneService(objectCollection) {
 
     this.setStatusApprovalPendingAndFireEmail = async function (request, callback) {
         
+        const NEW_ORDER_FORM_ID = vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER,
+              ACCOUNT_MANAGER_APPROVAL_FORM_ID = vodafoneConfig[request.organization_id].FORM_ID.ACCOUNT_MANAGER_APPROVAL,
+              CUSTOMER_APPROVAL_FORM_ID = vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_APPROVAL,
+              CAF_BOT_ASSET_ID  = vodafoneConfig[request.organization_id].BOT.ASSET_ID,
+              CAF_BOT_ENC_TOKEN  = vodafoneConfig[request.organization_id].BOT.ENC_TOKEN,
+              ACTIVITY_STATUS_ID_APPROVAL_PENDING = vodafoneConfig[request.organization_id].STATUS.APPROVAL_PENDING;
+
         var formExists = false;
         var jsonString = {},
             encodedString,
