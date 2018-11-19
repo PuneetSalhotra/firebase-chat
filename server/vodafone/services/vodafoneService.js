@@ -1897,7 +1897,7 @@ function VodafoneService(objectCollection) {
             .then((newOrderFormData) => {
                 if (newOrderFormData.length > 0) {
                     // Append it to cafFormJson
-                    cafFormJson = applyTransform(cafFormJson, JSON.parse(newOrderFormData[0].data_entity_inline), formId);
+                    cafFormJson = applyTransform(request, cafFormJson, JSON.parse(newOrderFormData[0].data_entity_inline), formId);
                     // Pull the required data from the SUPPLEMENTARY ORDER FORM of the form file
                     formId = SUPPLEMENTARY_ORDER_FORM_ID;
                     return activityCommonService.getActivityTimelineTransactionByFormId(request, request.activity_id, formId)
@@ -1910,7 +1910,7 @@ function VodafoneService(objectCollection) {
                 // 
                 if (supplementaryOrderFormData.length > 0) {
                     // Append it to cafFormJson
-                    cafFormJson = applyTransform(cafFormJson, JSON.parse(supplementaryOrderFormData[0].data_entity_inline), formId);
+                    cafFormJson = applyTransform(request, cafFormJson, JSON.parse(supplementaryOrderFormData[0].data_entity_inline), formId);
                 }
 
                 // Pull the required data from the SUPPLEMENTARY ORDER FORM of the form file
@@ -1920,7 +1920,7 @@ function VodafoneService(objectCollection) {
             .then((frFormData) => {
                 if (frFormData.length > 0) {
                     // Append it to cafFormJson
-                    cafFormJson = applyTransform(cafFormJson, JSON.parse(frFormData[0].data_entity_inline), formId);
+                    cafFormJson = applyTransform(request, cafFormJson, JSON.parse(frFormData[0].data_entity_inline), formId);
                     // Pull the required data from the CRM FORM of the form file
                     formId = CRM_FORM_ID;
                     return activityCommonService.getActivityTimelineTransactionByFormId(request, request.activity_id, formId)
@@ -1933,7 +1933,7 @@ function VodafoneService(objectCollection) {
             .then((crmFormData) => {
                 if (crmFormData.length > 0) {
                     // Append it to cafFormJson
-                    cafFormJson = applyTransform(cafFormJson, JSON.parse(crmFormData[0].data_entity_inline), formId);
+                    cafFormJson = applyTransform(request, cafFormJson, JSON.parse(crmFormData[0].data_entity_inline), formId);
                     // Pull the required data from the HLD FORM of the form file
                     formId = HLD_FORM_ID;
                     return activityCommonService.getActivityTimelineTransactionByFormId(request, request.activity_id, formId)
@@ -1946,7 +1946,7 @@ function VodafoneService(objectCollection) {
             .then(async (hldFormData) => {
                 if (hldFormData.length > 0) {
                     // Append it to cafFormJson
-                    cafFormJson = applyTransform(cafFormJson, JSON.parse(hldFormData[0].data_entity_inline), formId);
+                    cafFormJson = applyTransform(request, cafFormJson, JSON.parse(hldFormData[0].data_entity_inline), formId);
                 } else {
                     throw new Error("hldFormNotFound");
                 }
@@ -1993,7 +1993,7 @@ function VodafoneService(objectCollection) {
                 cafFormJson = cafFormJson.concat(romsCafFieldsAndValues);
 
                 // Append the Labels
-                cafFormJson = appendLabels(cafFormJson, request);
+                cafFormJson = appendLabels(request, cafFormJson);
 
                 // console.log("[FINAL] cafFormJson: ", cafFormJson);
                 // fs.appendFileSync('pdfs/caf.json', JSON.stringify(cafFormJson));
@@ -2496,8 +2496,36 @@ function VodafoneService(objectCollection) {
         return sumsKeyValueJson;
     }
 
-    function applyTransform(cafFormData, sourceFormData, formId) {
+    function applyTransform(request, cafFormData, sourceFormData, formId) {
 
+        const NEW_ORDER_FORM_ID =  global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER,
+              SUPPLEMENTARY_ORDER_FORM_ID =  global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY,
+              FR_FORM_ID =  global.vodafoneConfig[request.organization_id].FORM_ID.FR,
+              CRM_FORM_ID =  global.vodafoneConfig[request.organization_id].FORM_ID.CRM,
+              HLD_FORM_ID =  global.vodafoneConfig[request.organization_id].FORM_ID.HLD;
+
+        let NEW_ORDER_TO_CAF_FIELD_ID_MAP, 
+            SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP, 
+            FR_TO_CAF_FIELD_ID_MAP, 
+            CRM_TO_CAF_FIELD_ID_MAP, 
+            HLD_TO_CAF_FIELD_ID_MAP;
+        
+        if (Number(request.organization_id) === 860) {
+            // BETA
+            NEW_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.NEW_ORDER_TO_CAF_FIELD_ID_MAP;
+            SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP;
+            FR_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.FR_TO_CAF_FIELD_ID_MAP;
+            CRM_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.CRM_TO_CAF_FIELD_ID_MAP;
+            HLD_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.HLD_TO_CAF_FIELD_ID_MAP;
+            
+        } else if (Number(request.organization_id) === 858) {
+            // LIVE
+            NEW_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.NEW_ORDER_TO_CAF_FIELD_ID_MAP;
+            SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP;
+            FR_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.FR_TO_CAF_FIELD_ID_MAP;
+            CRM_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.CRM_TO_CAF_FIELD_ID_MAP;
+            HLD_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.HLD_TO_CAF_FIELD_ID_MAP;
+        }
         // New Order Form
         if (formId === NEW_ORDER_FORM_ID) {
             // 
@@ -2627,13 +2655,15 @@ function VodafoneService(objectCollection) {
         return cafFormData;
     }
 
-    function appendLabels(cafFormData, request) {
+    function appendLabels(request, cafFormData) {
         
         let ROMS_CAF_FORM_LABELS = {};
         if (Number(request.organization_id) === 860) {
+            // BETA
             ROMS_CAF_FORM_LABELS = formFieldIdMapping.BETA.ROMS_LABELS;
 
         } else if (Number(request.organization_id) === 858) {
+            // LIVE
             ROMS_CAF_FORM_LABELS = formFieldIdMapping.LIVE.ROMS_LABELS;
         }
         
