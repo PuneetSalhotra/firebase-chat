@@ -1993,7 +1993,7 @@ function VodafoneService(objectCollection) {
                 cafFormJson = cafFormJson.concat(romsCafFieldsAndValues);
 
                 // Append the Labels
-                cafFormJson = appendLabels(cafFormJson)
+                cafFormJson = appendLabels(cafFormJson, request);
 
                 // console.log("[FINAL] cafFormJson: ", cafFormJson);
                 // fs.appendFileSync('pdfs/caf.json', JSON.stringify(cafFormJson));
@@ -2627,7 +2627,16 @@ function VodafoneService(objectCollection) {
         return cafFormData;
     }
 
-    function appendLabels(cafFormData) {
+    function appendLabels(cafFormData, request) {
+        
+        let ROMS_CAF_FORM_LABELS = {};
+        if (Number(request.organization_id) === 860) {
+            ROMS_CAF_FORM_LABELS = formFieldIdMapping.BETA.ROMS_LABELS;
+
+        } else if (Number(request.organization_id) === 858) {
+            ROMS_CAF_FORM_LABELS = formFieldIdMapping.LIVE.ROMS_LABELS;
+        }
+        
         Object.keys(ROMS_CAF_FORM_LABELS).forEach(formEntry => {
             cafFormData.push({
                 "form_id": 872,
@@ -2646,12 +2655,12 @@ function VodafoneService(objectCollection) {
 
     this.setStatusApprovalPendingAndFireEmail = async function (request, callback) {
         
-        const NEW_ORDER_FORM_ID = vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER,
-              ACCOUNT_MANAGER_APPROVAL_FORM_ID = vodafoneConfig[request.organization_id].FORM_ID.ACCOUNT_MANAGER_APPROVAL,
-              CUSTOMER_APPROVAL_FORM_ID = vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_APPROVAL,
-              CAF_BOT_ASSET_ID  = vodafoneConfig[request.organization_id].BOT.ASSET_ID,
-              CAF_BOT_ENC_TOKEN  = vodafoneConfig[request.organization_id].BOT.ENC_TOKEN,
-              ACTIVITY_STATUS_ID_APPROVAL_PENDING = vodafoneConfig[request.organization_id].STATUS.APPROVAL_PENDING;
+        const NEW_ORDER_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER,
+              ACCOUNT_MANAGER_APPROVAL_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.ACCOUNT_MANAGER_APPROVAL,
+              CUSTOMER_APPROVAL_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_APPROVAL,
+              CAF_BOT_ASSET_ID  = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID,
+              CAF_BOT_ENC_TOKEN  = global.vodafoneConfig[request.organization_id].BOT.ENC_TOKEN,
+              ACTIVITY_STATUS_ID_APPROVAL_PENDING = global.vodafoneConfig[request.organization_id].STATUS.APPROVAL_PENDING;
 
         var formExists = false;
         var jsonString = {},
@@ -2860,9 +2869,9 @@ function VodafoneService(objectCollection) {
         var isApprovalDone = false,
             queueActivityMappingId;
         
-        const CUSTOMER_APPROVAL_FORM_ID = vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_APPROVAL;
-        const ACCOUNT_MANAGER_APPROVAL_FORM_ID = vodafoneConfig[request.organization_id].FORM_ID.ACCOUNT_MANAGER_APPROVAL;
-        const ACTIVITY_STATUS_ID_ORDER_CLOSED = vodafoneConfig[request.organization_id].STATUS.ORDER_CLOSED;
+        const CUSTOMER_APPROVAL_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_APPROVAL;
+        const ACCOUNT_MANAGER_APPROVAL_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.ACCOUNT_MANAGER_APPROVAL;
+        const ACTIVITY_STATUS_ID_ORDER_CLOSED = global.vodafoneConfig[request.organization_id].STATUS.ORDER_CLOSED;
         // 
         // If the incoming form submission request is for the AM APPROVAL FORM
         if (Number(request.form_id) === 858 || Number(request.form_id) === 875) {
