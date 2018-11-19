@@ -1888,6 +1888,44 @@ function VodafoneService(objectCollection) {
 
     this.buildAndSubmitCafForm = function (request, callback) {
 
+        // CAF
+        let CAF_ORGANIZATION_ID,
+            CAF_ACCOUNT_ID,
+            CAF_WORKFORCE_ID,
+            CAF_ACTIVITY_TYPE_ID,
+            CAF_BOT_ASSET_ID,
+            CAF_BOT_ENC_TOKEN;
+
+        if (Number(request.organization_id) === 860) {
+            // CAF
+            CAF_ORGANIZATION_ID = 860; // Vodafone Idea Beta
+            CAF_ACCOUNT_ID = 975; // Central OMT Beta
+            CAF_WORKFORCE_ID = 5355; // Lobby
+            CAF_ACTIVITY_TYPE_ID = 133250;
+            // CAF BOT
+            CAF_BOT_ASSET_ID = 31347;
+            CAF_BOT_ENC_TOKEN = "05986bb0-e364-11e8-a1c0-0b6831833754";
+
+        } else if (Number(request.organization_id) === 858) {
+            // CAF
+            CAF_ORGANIZATION_ID = 858; // Vodafone Idea Beta
+            CAF_ACCOUNT_ID = 973; // Central OMT Beta
+            CAF_WORKFORCE_ID = 5345; // Lobby
+            CAF_ACTIVITY_TYPE_ID = 133000;
+            // CAF BOT
+            CAF_BOT_ASSET_ID = 31298;
+            CAF_BOT_ENC_TOKEN = "3dc16b80-e338-11e8-a779-5b17182fa0f6";
+
+        }
+        const NEW_ORDER_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER,
+            SUPPLEMENTARY_ORDER_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY,
+            FR_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.FR,
+            CRM_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CRM,
+            HLD_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.HLD,
+            CAF_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CAF;
+
+        const ACTIVITY_STATUS_ID_VALIDATION_PENDING = global.vodafoneConfig[request.organization_id].STATUS.VALIDATION_PENDING;
+
         var cafFormJson = [];
         var formId = NEW_ORDER_FORM_ID;
 
@@ -2108,7 +2146,7 @@ function VodafoneService(objectCollection) {
                                         return activityCommonService.unmapFileFromQueue(request, queueActivityMappingData[0].queue_activity_mapping_id)
                                     })
                                     .then((data) => {
-                                        queueHistoryInsert(request, 1403, hldQueueActivityMappingId).then(()=>{});
+                                        queueHistoryInsert(request, 1403, hldQueueActivityMappingId).then(() => {});
                                     })
                                     .catch((error) => {
                                         console.log("Error Unmapping the form file from HLD queue: ", error)
@@ -2164,7 +2202,7 @@ function VodafoneService(objectCollection) {
                                                 )
                                             })
                                             .then((data) => {
-                                                queueHistoryInsert(request, 1402, omtQueueActivityMappingId).then(()=>{});
+                                                queueHistoryInsert(request, 1402, omtQueueActivityMappingId).then(() => {});
                                             })
                                             .catch((error) => {
                                                 console.log("Error modifying the form file activity entry in the OMT queue: ", error)
