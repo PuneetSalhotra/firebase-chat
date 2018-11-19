@@ -321,7 +321,8 @@ function ActivityCommonService(db, util, forEachAsync) {
             case 705: // form
                 entityTypeId = 0;
                 entityText1 = request.form_transaction_id;
-                entityText2 = request.activity_timeline_collection;
+                // entityText2 = request.activity_timeline_collection;
+                activityTimelineCollection = request.activity_timeline_collection || '{}';
                 formTransactionId = request.form_transaction_id;
                 formId = request.form_id;
                 dataTypeId = 37; //static for all form submissions
