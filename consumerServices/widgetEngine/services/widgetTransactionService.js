@@ -303,6 +303,218 @@ class WidgetTransactionService {
             });
         });
     }
+    
+    getWidgetByStatusPeriodFlag(lookupData) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                    lookupData.widget_id,
+                    lookupData.date,
+                    lookupData.period_flag,
+                    lookupData.widget_access_level_id,
+                    lookupData.asset_id,
+                    lookupData.activity_id,
+                    lookupData.workforce_id,
+                    lookupData.account_id,
+                    lookupData.organization_id,
+                    lookupData.activity_status_id
+                    );
+
+            var queryString = this.objCollection.util.getQueryString('ds_p1_widget_transaction_select_file_status_flag', paramsArr);
+            if (queryString === '')
+                return reject();
+            this.objCollection.db.executeQuery(1, queryString, {}, function (err, data) {
+                if (err)
+                    return reject();
+                /*idWidgetTransaction*/
+                return resolve(data);
+            });
+        });
+    }
+    
+    createFileStatusDistribution(data) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                    data.widget_id,
+                    data.asset_id,
+                    data.organization_id,
+                    data.date,
+                    data.count,
+                    data.activity_status_id,
+                    data.activity_status_name,
+                    data.asset_id,
+                    this.objCollection.util.getCurrentUTCTime()
+                    );
+            
+            /* ds_p1_widget_transaction_insert_form_file_status_count
+             IN p_widget_id BIGINT(20), IN p_asset_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_timezone_date DATE,
+             IN p_status_count BIGINT(20), IN p_status_type_id SMALLINT(6), IN p_status_type_name VARCHAR(50),
+             IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME */
+            
+            var queryString = this.objCollection.util.getQueryString('ds_p1_widget_transaction_insert_form_file_status_count', paramsArr);
+            if (queryString === '')
+                return reject();
+            this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
+                if (err)
+                    return reject();
+                return resolve();
+            });
+        });
+    }
+    
+    updateFileStatusDistribution(data) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                    data.widget_transaction_id,
+                    data.widget_id,
+                    data.date,
+                    data.count,
+                    data.activity_status_id,
+                    data.activity_status_name,
+                    data.asset_id,
+                    this.objCollection.util.getCurrentUTCTime()
+                    );
+            /* "ds_p1_widget_transaction_update_form_file_status_count
+             IN p_widget_transaction_id BIGINT(20), IN p_widget_id BIGINT(20), IN p_timezone_date DATE,
+             IN p_widget_form_count BIGINT(20), IN p_activity_status_type_id SMALLINT(6), IN p_activity_status_type_name VARCHAR(50),
+             IN p_log_asset_id BIGINT(20),IN p_log_datetime DATETIME
+                */
+            var queryString = this.objCollection.util.getQueryString('ds_p1_widget_transaction_update_form_file_status_count', paramsArr);
+            if (queryString === '')
+                return reject();
+            this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
+                if (err)
+                    return reject(err);
+                return resolve(data);
+            });
+        });
+    }
+    
+    getWidgetByStatusPeriodAggrFlag(lookupData) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                    lookupData.widget_id,
+                    lookupData.date,
+                    lookupData.period_flag,
+                    lookupData.widget_access_level_id,
+                    lookupData.asset_id,
+                    lookupData.activity_id,
+                    lookupData.workforce_id,
+                    lookupData.account_id,
+                    lookupData.organization_id,
+                    lookupData.from_status_id
+                    );
+
+            var queryString = this.objCollection.util.getQueryString('ds_p1_widget_transaction_select_file_status_aggr_flag', paramsArr);
+            if (queryString === '')
+                return reject();
+            this.objCollection.db.executeQuery(1, queryString, {}, function (err, data) {
+                if (err)
+                    return reject();
+                /*idWidgetTransaction*/
+                return resolve(data);
+            });
+        });
+    }
+    
+    createFileStatusDuration(data) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                    data.widget_id,
+                    data.asset_id,
+                    data.organization_id,
+                    data.date,
+                    data.aggregate,
+                    data.asset_id,
+                    this.objCollection.util.getCurrentUTCTime()
+                    );
+            
+            /* ds_p1_widget_transaction_insert_form_file_status_duration
+              */
+            
+            var queryString = this.objCollection.util.getQueryString('ds_p1_widget_transaction_insert_form_file_status_duration', paramsArr);
+            if (queryString === '')
+                return reject();
+            this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
+                if (err)
+                    return reject();
+                return resolve();
+            });
+        });
+    }
+    
+    updateFileStatusDuration(data) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                    data.widget_transaction_id,
+                    data.widget_id,
+                    data.date,
+                    data.aggregate,
+                    data.asset_id,
+                    this.objCollection.util.getCurrentUTCTime()
+                    );
+            /* "ds_p1_widget_transaction_update_form_file_status_duration
+             
+                */
+            var queryString = this.objCollection.util.getQueryString('ds_p1_widget_transaction_update_form_file_status_duration', paramsArr);
+            if (queryString === '')
+                return reject();
+            this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
+                if (err)
+                    return reject(err);
+                return resolve(data);
+            });
+        });
+    }
+    
+    createFileStatusTransition(data) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                    data.widget_id,
+                    data.asset_id,
+                    data.organization_id,
+                    data.date,
+                    data.aggregate,
+                    data.asset_id,
+                    this.objCollection.util.getCurrentUTCTime()
+                    );
+            
+            /* ds_p1_widget_transaction_insert_form_file_status_duration
+              */
+            
+            var queryString = this.objCollection.util.getQueryString('ds_p1_widget_transaction_insert_form_file_status_transition', paramsArr);
+            if (queryString === '')
+                return reject();
+            this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
+                if (err)
+                    return reject();
+                return resolve();
+            });
+        });
+    }
+    
+    updateFileStatusTransition(data) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                    data.widget_transaction_id,
+                    data.widget_id,
+                    data.date,
+                    data.aggregate,
+                    data.asset_id,
+                    this.objCollection.util.getCurrentUTCTime()
+                    );
+            /* "ds_p1_widget_transaction_update_form_file_status_duration
+             
+                */
+            var queryString = this.objCollection.util.getQueryString('ds_p1_widget_transaction_update_form_file_status_transition', paramsArr);
+            if (queryString === '')
+                return reject();
+            this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
+                if (err)
+                    return reject(err);
+                return resolve(data);
+            });
+        });
+    }
 }
 
 module.exports = WidgetTransactionService;
