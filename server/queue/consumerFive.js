@@ -3,6 +3,7 @@
  */
 
 require('../utils/globalConfig');
+require('../vodafone/utils/vodafoneConfig');
 var kafka = require('kafka-node');
 var kafkaConsumer = kafka.Consumer;
 var KafkaProducer = kafka.Producer;
