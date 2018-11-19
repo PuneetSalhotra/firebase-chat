@@ -50,6 +50,13 @@ function ActivityTimelineService(objectCollection) {
                     //callback(true, {}, -9999);
                 }
             });
+            
+            //makeRequest to /vodafone/customer_form/add
+            if (Number(request.form_id) === 844) {
+                activityCommonService.makeRequest(request, "/vodafone/customer_form/add", 1).then((resp)=>{
+                    global.logger.write('debug', resp, {}, request);
+                });
+            }
 
             // Trigger Email For Vodafone CAF Form Submission
             if (Number(request.form_id) === 844) {

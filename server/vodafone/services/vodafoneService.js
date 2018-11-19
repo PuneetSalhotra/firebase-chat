@@ -464,24 +464,67 @@ function VodafoneService(objectCollection) {
     };   
     
     
+    this.newOrderFormSubmission = function (request, callback) {
+      
+        let isApprovalDone = false;
+        
+        //check whether FR form is submitted 
+        if (Number(request.form_id) === 858 || Number(request.form_id) === 875) {
+            activityCommonService.getActivityTimelineTransactionByFormId(request, request.activity_id, CUSTOMER_APPROVAL_FORM_ID)
+                .then((customerApprovalFormData) => {
+                    console.log("customerApprovalFormData: ", customerApprovalFormData);
+                    console.log("customerApprovalFormData.length: ", customerApprovalFormData.length);
+         
+                    if (customerApprovalFormData.length > 0) {                        
+                                                
+                        //check whether CRM form is submitted
+                        activityCommonService.getActivityTimelineTransactionByFormId(request, request.activity_id, ACCOUNT_MANAGER_APPROVAL_FORM_ID)
+                        .then((accountManagerApprovalFormData) => {
+                            console.log("accountManagerApprovalFormData: ", accountManagerApprovalFormData);
+                            console.log("accountManagerApprovalFormData.length: ", accountManagerApprovalFormData.length);
+                            if (accountManagerApprovalFormData.length > 0) {                        
+                                isApprovalDone = true;
+                            }
+                        });
+                    }
+            }); 
+        }
+            
+        console.log("isApprovalDone: ", isApprovalDone);
+
+        if (isApprovalDone === true) {
+            
+            //construct the request object and call the function
+            
+            
+            
+            customerFormSubmission.then(()=>{
+            
+            }).catch((err)=>{
+                global.logger.write('debug', err, {}, request);
+            });
+        }
+        
+    };
+    
     //Manual
-    this.newOrderFormSubmission = function(request, callback) {
+    function customerFormSubmission(request) {
+       return new Promise((resolve, reject)=>{
+            var logDatetime = util.getCurrentUTCTime();        
+            request['datetime_log'] = logDatetime;
         
-        var logDatetime = util.getCurrentUTCTime();        
-        request['datetime_log'] = logDatetime;
-        
-        let customerData = {};
-        customerData.first_name = request.first_name;
-        customerData.contact_company = request.contact_company;
-        customerData.contact_phone_country_code = request.contact_phone_country_code;
-        customerData.contact_phone_number = request.contact_phone_number;
-        customerData.contact_email_id = request.contact_email_id;
-        customerData.contact_designation = request.contact_designation;
-        
-        let solutionsRepName = "Bharat";
-        let solutionsRepEMail = "bharat@desker.co";       
-        
-        request.form_order_activity_id = request.activity_id;       
+            let customerData = {};
+            customerData.first_name = request.first_name;
+            customerData.contact_company = request.contact_company;
+            customerData.contact_phone_country_code = request.contact_phone_country_code;
+            customerData.contact_phone_number = request.contact_phone_number;
+            customerData.contact_email_id = request.contact_email_id;
+            customerData.contact_designation = request.contact_designation;
+
+            let solutionsRepName = "Bharat";
+            let solutionsRepEMail = "bharat@masimukku.com";
+
+            request.form_order_activity_id = request.activity_id;       
              
         //Step 1 :- Custom Based on the Custom Code check whether the service desk is existing or not
         checkServiceDeskExistence(request).then((dataResp)=>{
@@ -537,10 +580,10 @@ function VodafoneService(objectCollection) {
                                createAsset(newRequest).then((operatingAssetId)=>{
                                    
                                    //Create a contact file
-                                   createContactFile(newRequest, operatingAssetId).then((contactfileActId)=>{
+                                   //createContactFile(newRequest, operatingAssetId).then((contactfileActId)=>{
                                        
                                         //Map the operating Asset to the contact file
-                                        addCustomerAsParticipantToContFile(newRequest, contactfileActId, customerData, operatingAssetId).then(()=>{});
+                                        //addCustomerAsParticipantToContFile(newRequest, contactfileActId, customerData, operatingAssetId).then(()=>{});
                                         
                                         //Map the newly created operating asset with service desk asset
                                         activityCommonService.assetListUpdateOperatingAsset(request, deskAssetId, operatingAssetId, (err, data)=>{});
@@ -561,13 +604,17 @@ function VodafoneService(objectCollection) {
                                                     console.log('data[0].activity_inline_data : ', data[0].activity_inline_data);
                                                     request.activity_inline_data = data[0].activity_inline_data;
                                                     
+                                                    let response = {};
+                                                    response.asset_id = operatingAssetId;
+                                                    response.desk_asset_id = deskAssetId;                                                    
+                                                    
                                                     //Fire Email to Customer
                                                     vodafoneSendEmail(request, customerCollection).then(()=>{
-                                                        callback(false,{},200);
+                                                        resolve(response);
                                                     }).catch((err)=>{
                                                         console.log('err : ' , err);
                                                         global.logger.write('debug', err, {}, request);
-                                                        callback(true,{},-9998);
+                                                        reject(err);
                                                     });
                                                     
                                                     var solutionsRepCollection = {};
@@ -580,11 +627,11 @@ function VodafoneService(objectCollection) {
 
                                                     //Fire Email to Solutions Representation to submit HLD Form
                                                     vodafoneSendEmail(request, solutionsRepCollection).then(()=>{
-                                                        callback(false,{},200);
+                                                        resolve(response);
                                                     }).catch((err)=>{
                                                         console.log('err : ' , err);
                                                         global.logger.write('debug', err, {}, request);
-                                                        callback(true,{},-9998);
+                                                        reject(err);
                                                     });
                                                     
                                                 } else {
@@ -595,9 +642,9 @@ function VodafoneService(objectCollection) {
                                         }).catch((err)=>{
                                             global.logger.write('debug', err, {}, request);
                                         }); 
-                                   }).catch((err)=>{
+                                   /*}).catch((err)=>{
                                        global.logger.write('debug', err, {}, request);
-                                   });      
+                                   });*/
                                    
                                }).catch((err)=>{                                   
                                    global.logger.write('debug', err, {}, request);                                        
@@ -620,13 +667,16 @@ function VodafoneService(objectCollection) {
                                                 if(err === false) {
                                                     request.activity_inline_data = data[0].activity_inline_data;
                                                     
+                                                    let response = {};                                                    
+                                                    response.desk_asset_id = deskAssetId;     
+                                                    
                                                     //Fire Email to customer
                                                     vodafoneSendEmail(request, customerCollection).then(()=>{
-                                                        callback(false,{},200);
+                                                        resolve(response);
                                                     }).catch((err)=>{
                                                         console.log('vnk err : ' , err);
                                                         global.logger.write('debug', err, {}, request);
-                                                        callback(true,{},-9998);
+                                                        reject(err);
                                                     });
                                                     
                                                     var solutionsRepCollection = {};
@@ -639,11 +689,11 @@ function VodafoneService(objectCollection) {
 
                                                     //Fire Email to Solutions Representation to submit HLD Form
                                                     vodafoneSendEmail(request, solutionsRepCollection).then(()=>{
-                                                        callback(false,{},200);
+                                                        resolve(response);
                                                     }).catch((err)=>{
                                                         console.log('err : ' , err);
                                                         global.logger.write('debug', err, {}, request);
-                                                        callback(true,{},-9998);
+                                                        reject(err);
                                                     });
                                                     
                                                 } else {
@@ -687,14 +737,19 @@ function VodafoneService(objectCollection) {
                                     activityCommonService.getActivityDetails(request, request.activity_id, (err, data)=>{
                                         if(err === false) {
                                             request.activity_inline_data = data[0].activity_inline_data;
-                                                    
+                                             
+                                            let response = {};
+                                            response.asset_id = assetId;
+                                            response.desk_asset_id = deskAssetId;
+                                            response.contact_card_activity_id = contactfileActId;
+                                            
                                             //Fire Email to Customer
                                             vodafoneSendEmail(request, customerCollection).then(()=>{
-                                                callback(false,{},200);
+                                                resolve(response);
                                             }).catch((err)=>{
                                                 console.log('vnk err : ' , err);
                                                 global.logger.write('debug', err, {}, request);
-                                                callback(true,{},-9998);
+                                                reject(err);
                                             });
                                             
                                             var solutionsRepCollection = {};
@@ -707,11 +762,11 @@ function VodafoneService(objectCollection) {
                                             
                                             //Fire Email to Solutions Representation to submit HLD Form
                                             vodafoneSendEmail(request, solutionsRepCollection).then(()=>{
-                                                callback(false,{},200);
+                                                resolve(response);
                                             }).catch((err)=>{
                                                 console.log('err : ' , err);
                                                 global.logger.write('debug', err, {}, request);
-                                                callback(true,{},-9998);
+                                                reject(err);
                                             });
                                                     
                                         } else {
@@ -731,8 +786,9 @@ function VodafoneService(objectCollection) {
                         }
                     }).catch((err)=>{
                         global.logger.write('debug', err, {}, request);
-                    });          
-        
+                    });
+        });       
+             
     };
      
   

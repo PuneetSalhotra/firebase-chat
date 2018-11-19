@@ -2396,7 +2396,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             if(port == 0) {
 
             } else {
-                global.logger.write('debug', "Request Params b4 making Request : ", {}, {});
+                global.logger.write('debug', "Request Params b4 making Request : ", {}, request);
                 global.logger.write('debug', request, {}, {});
                 global.logger.write('debug', "http://localhost:"+ global.config.servicePort + "/" + global.config.version + "/" + url, {}, {});
                 makingRequest.post("http://localhost:"+ global.config.servicePort + "/" + global.config.version + "/"  + url , options, function (error, response, body) {
