@@ -501,6 +501,20 @@ function ActivityTimelineController(objCollection) {
             }
         });
     });
+    
+    
+    /*app.post('/' + global.config.version + '/account/nani/kalyan', function (req, res) {
+        activityTimelineService.nanikalyan(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                console.log('did not get proper response');
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });*/
 
 }
 ;
