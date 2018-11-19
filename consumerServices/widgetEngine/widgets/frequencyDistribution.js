@@ -28,7 +28,7 @@ class FrequencyDistributionWidget extends WidgetBase {
                 count: count,
                 widget_id: this.rule.widget_id,
                 period_flag: this.getPeriodFlag(),
-		widget_access_level_id: this.rule.widget_access_level_id
+				widget_access_level_id: this.rule.widget_access_level_id
             };
             console.log("CALCULATED FORM COUNT "+count);
             widgetData = _.merge(widgetData, data);            
