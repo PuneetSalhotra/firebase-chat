@@ -1,4 +1,4 @@
-{
+vodafoneConfig = {
     "860": {
         "NAME": "Vodafone Idea Beta",
         "BOT": {
