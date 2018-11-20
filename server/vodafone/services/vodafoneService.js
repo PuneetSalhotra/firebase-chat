@@ -15,6 +15,8 @@ function VodafoneService(objectCollection) {
     const uuid = require('uuid');
     const fs = require('fs');
     const moment = require('moment');
+    const formFieldIdMapping = util.getVodafoneFormFieldIdMapping();
+    const romsCafFieldsData = util.getVodafoneRomsCafFieldsData();
 
     this.newOrderFormAddToQueues = function(request, callback) {
         
@@ -1231,6 +1233,11 @@ function VodafoneService(objectCollection) {
         request['datetime_log'] = logDatetime;
         var activityTypeCategoryId = Number(request.activity_type_category_id) || 9;
         var activityStreamTypeId = Number(request.activity_stream_type_id) || 325;
+        const CAF_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CAF,
+            FR_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.FR,
+            CRM_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CRM,
+            HLD_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.HLD;
+
         activityCommonService.updateAssetLocation(request, function (err, data) {});
         
         switch(Number(request.form_id)) {
@@ -2456,7 +2463,9 @@ function VodafoneService(objectCollection) {
               SUPPLEMENTARY_ORDER_FORM_ID =  global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY,
               FR_FORM_ID =  global.vodafoneConfig[request.organization_id].FORM_ID.FR,
               CRM_FORM_ID =  global.vodafoneConfig[request.organization_id].FORM_ID.CRM,
-              HLD_FORM_ID =  global.vodafoneConfig[request.organization_id].FORM_ID.HLD;
+              HLD_FORM_ID =  global.vodafoneConfig[request.organization_id].FORM_ID.HLD,
+              CAF_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CAF;
+
 
         let NEW_ORDER_TO_CAF_FIELD_ID_MAP, 
             SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP, 
