@@ -53,8 +53,8 @@ function ActivityTimelineService(objectCollection) {
             
             
             //makeRequest to /vodafone/customer_form/add for FR Form or CRM Form
-            if (Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.FR) || 
-                    Number(global.vodafoneConfig[request.organization_id].FORM_ID.CRM)) {
+            if ((Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.FR) || 
+                    Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.CRM))) {
                 global.logger.write('debug', "\x1b[35m [Log] Triggering the BOT 2 \x1b[0m", {}, request);
                 
                 activityCommonService.makeRequest(request, "vodafone/customer_form/add", 1).then((resp)=>{
@@ -259,102 +259,112 @@ function ActivityTimelineService(objectCollection) {
     function updateCAFPercentage(request) {
         return new Promise((resolve, reject)=>{
             
+            let newrequest = Object.assign(request);
             let cafCompletionPercentage;
             
-            switch(Number(request.form_id)) {
-                //case global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER:
+            switch(Number(newrequest.form_id)) {
+                //case global.vodafoneConfig[newrequest.organization_id].FORM_ID.NEW_ORDER:
                     //cafCompletionPercentage = 3;
                     //break;
-                //case global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY:
+                //case global.vodafoneConfig[newrequest.organization_id].FORM_ID.ORDER_SUPPLEMENTARY:
                     //cafCompletionPercentage = 20;
                   //  cafCompletionPercentage = 23;
                     //break;
-                case global.vodafoneConfig[request.organization_id].FORM_ID.FR:
+                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.FR:
                     cafCompletionPercentage = 5;
                     break;
-                case global.vodafoneConfig[request.organization_id].FORM_ID.CRM:
+                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.CRM:
                     cafCompletionPercentage = 7;
                     break;
-                case global.vodafoneConfig[request.organization_id].FORM_ID.HLD:
+                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.HLD:
                     cafCompletionPercentage = 12;
                     break;
-                case global.vodafoneConfig[request.organization_id].FORM_ID.NEW_CUSTOMER:
-                case global.vodafoneConfig[request.organization_id].FORM_ID.EXISTING_CUSTOMER:
+                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.NEW_CUSTOMER:
+                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.EXISTING_CUSTOMER:
                     cafCompletionPercentage = 4;
                     break;
-                case global.vodafoneConfig[request.organization_id].FORM_ID.OMT_APPROVAL:
+                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.OMT_APPROVAL:
                     cafCompletionPercentage = 1;
                     break;
-                case global.vodafoneConfig[request.organization_id].FORM_ID.ACCOUNT_MANAGER_APPROVAL:
+                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.ACCOUNT_MANAGER_APPROVAL:
                     cafCompletionPercentage = 1;
                     break;
-                case global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_APPROVAL:
+                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.CUSTOMER_APPROVAL:
                     cafCompletionPercentage = 1;
-                    break;                
+                    break;      
+                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.CAF:
+                    cafCompletionPercentage = 45;
+                    break;
+                default: cafCompletionPercentage = 0;
             }
             
             console.log('cafCompletionPercentage : ', cafCompletionPercentage);
             
-            //Adding to OMT Queue                
-            request.start_from = 0;
-            request.limit_value = 1;               
+            if(cafCompletionPercentage !== 0) {
                 
-            //Updating in the OMT QUEUE
-            //Get the Queue ID
-            activityCommonService.fetchQueueByQueueName(request, "OMT").then((resp)=>{
-                console.log('Queue Data : ', resp);
-                    
-                //Checking the queuemappingid
-                activityCommonService.fetchQueueActivityMappingId(request, resp[0].queue_id).then((queueActivityMappingData) => {
-                    console.log('queueActivityMappingData : ', queueActivityMappingData);
-                        
-                    if(queueActivityMappingData.length > 0){ 
-               
-                        let queueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;  
-                        let queueActMapInlineData = JSON.parse(queueActivityMappingData[0].queue_activity_mapping_inline_data);
-                        queueActMapInlineData.caf_completion_percentage += cafCompletionPercentage;
-                        
-                        console.log('Updated Queue JSON : ', queueActMapInlineData);
-                                
-                        activityCommonService.queueActivityMappingUpdateInlineStatus(request, queueActivityMappingId, JSON.stringify(queueActMapInlineData)).then((data)=>{
-                            console.log('Updating the Queue Json : ', data);
-                            activityCommonService.queueHistoryInsert(request, 1402, queueActivityMappingId).then(()=>{});
-                        }).catch((err)=>{
-                            global.logger.write('debug', err, {}, request);
-                        });                            
-                        
-                    }
+                //Adding to OMT Queue                
+                newrequest.start_from = 0;
+                newrequest.limit_value = 1;               
+
+                //Updating in the OMT QUEUE
+                //Get the Queue ID
+                activityCommonService.fetchQueueByQueueName(newrequest, "OMT").then((resp)=>{
+                    console.log('Queue Data : ', resp);
+
+                    //Checking the queuemappingid
+                    activityCommonService.fetchQueueActivityMappingId(newrequest, resp[0].queue_id).then((queueActivityMappingData) => {
+                        console.log('queueActivityMappingData : ', queueActivityMappingData);
+
+                        if(queueActivityMappingData.length > 0){ 
+
+                            let queueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;  
+                            let queueActMapInlineData = JSON.parse(queueActivityMappingData[0].queue_activity_mapping_inline_data);
+                            queueActMapInlineData.queue_sort.caf_completion_percentage += cafCompletionPercentage;
+
+                            console.log('Updated Queue JSON : ', queueActMapInlineData);
+
+                            activityCommonService.queueActivityMappingUpdateInlineStatus(newrequest, queueActivityMappingId, JSON.stringify(queueActMapInlineData)).then((data)=>{
+                                console.log('Updating the Queue Json : ', data);
+                                activityCommonService.queueHistoryInsert(newrequest, 1402, queueActivityMappingId).then(()=>{});
+                            }).catch((err)=>{
+                                global.logger.write('debug', err, {}, newrequest);
+                            });                            
+
+                        }
+                    });
                 });
-            });
-            ////////////////////////////////
+                ////////////////////////////////
+
+                //Updating in the HLD QUEUE
+                //Get the Queue ID
+                activityCommonService.fetchQueueByQueueName(newrequest, "HLD").then((resp)=>{
+                    console.log('Queue Data : ', resp);
+
+                    //Checking the queuemappingid
+                    activityCommonService.fetchQueueActivityMappingId(newrequest, resp[0].queue_id).then((queueActivityMappingData) => {
+                        console.log('queueActivityMappingData : ', queueActivityMappingData);
+
+                        if(queueActivityMappingData.length > 0){ 
+
+                            let queueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;  
+                            let queueActMapInlineData = JSON.parse(queueActivityMappingData[0].queue_activity_mapping_inline_data);
+                            queueActMapInlineData.queue_sort.caf_completion_percentage += cafCompletionPercentage;
+
+                            console.log('Updated Queue JSON : ', queueActMapInlineData);
+
+                            activityCommonService.queueActivityMappingUpdateInlineStatus(newrequest, queueActivityMappingId, JSON.stringify(queueActMapInlineData)).then((data)=>{
+                                console.log('Updating the Queue Json : ', data);
+                                activityCommonService.queueHistoryInsert(newrequest, 1402, queueActivityMappingId).then(()=>{});
+                            }).catch((err)=>{
+                                global.logger.write('debug', err, {}, newrequest);
+                            });                            
+
+                        }
+                    });
+                });
+                
+            }
             
-            //Updating in the HLD QUEUE
-            //Get the Queue ID
-            activityCommonService.fetchQueueByQueueName(request, "HLD").then((resp)=>{
-                console.log('Queue Data : ', resp);
-                    
-                //Checking the queuemappingid
-                activityCommonService.fetchQueueActivityMappingId(request, resp[0].queue_id).then((queueActivityMappingData) => {
-                    console.log('queueActivityMappingData : ', queueActivityMappingData);
-                        
-                    if(queueActivityMappingData.length > 0){ 
-               
-                        let queueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;  
-                        let queueActMapInlineData = JSON.parse(queueActivityMappingData[0].queue_activity_mapping_inline_data);
-                        queueActMapInlineData.caf_completion_percentage += cafCompletionPercentage;
-                        
-                        console.log('Updated Queue JSON : ', queueActMapInlineData);
-                                
-                        activityCommonService.queueActivityMappingUpdateInlineStatus(request, queueActivityMappingId, JSON.stringify(queueActMapInlineData)).then((data)=>{
-                            console.log('Updating the Queue Json : ', data);
-                            activityCommonService.queueHistoryInsert(request, 1402, queueActivityMappingId).then(()=>{});
-                        }).catch((err)=>{
-                            global.logger.write('debug', err, {}, request);
-                        });                            
-                        
-                    }
-                });
-            });
             resolve();
         });
         
