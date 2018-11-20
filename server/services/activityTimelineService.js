@@ -262,13 +262,13 @@ function ActivityTimelineService(objectCollection) {
             let cafCompletionPercentage;
             
             switch(Number(request.form_id)) {
-                case global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER:
+                //case global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER:
                     //cafCompletionPercentage = 3;
                     //break;
-                case global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY:
+                //case global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY:
                     //cafCompletionPercentage = 20;
-                    cafCompletionPercentage = 23;
-                    break;
+                  //  cafCompletionPercentage = 23;
+                    //break;
                 case global.vodafoneConfig[request.organization_id].FORM_ID.FR:
                     cafCompletionPercentage = 5;
                     break;
@@ -290,8 +290,7 @@ function ActivityTimelineService(objectCollection) {
                     break;
                 case global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_APPROVAL:
                     cafCompletionPercentage = 1;
-                    break;
-                default: cafCompletionPercentage = 0;
+                    break;                
             }
             
             console.log('cafCompletionPercentage : ', cafCompletionPercentage);
@@ -356,8 +355,9 @@ function ActivityTimelineService(objectCollection) {
                     }
                 });
             });
+            resolve();
         });
-        resolve();    
+        
     };
     
     //This is to support the feature - Not to increase unread count during timeline entry
