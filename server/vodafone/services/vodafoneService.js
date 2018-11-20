@@ -187,7 +187,7 @@ function VodafoneService(objectCollection) {
                         reject(err);
                     } else {
                         newRequest['activity_id'] = activityId;
-                        var event = {
+                        let event = {
                             name: "addActivity",
                             service: "activityService",
                             method: "addActivity",
@@ -196,10 +196,26 @@ function VodafoneService(objectCollection) {
 
                         queueWrapper.raiseActivityEvent(event, newRequest.activity_id, (err, resp) => {
                             if (err) {
-                                console.log("\x1b[35m [ERROR] Raising queue activity raised for creating Contact File. \x1b[0m")
+                                console.log("\x1b[35m [ERROR] Raising queue activity raised for creating empty Order Supplementary Form. \x1b[0m");
                             } else {
-                                console.log("\x1b[35m Queue activity raised for creating Contact File. \x1b[0m");
-                                resolve(activityId);
+                                console.log("\x1b[35m Queue activity raised for creating empty Order Supplementary Form. \x1b[0m");
+                                
+                                
+                                newRequest.activity_stream_type_id = 705;
+                                let event = {
+                                    name: "addTimelineTransaction",
+                                    service: "activityTimelineService",
+                                    method: "addTimelineTransaction",
+                                    payload: newRequest
+                                };
+                                queueWrapper.raiseActivityEvent(event, newRequest.activity_id, (err, resp) => {
+                                    if (err) {
+                                        console.log("\x1b[35m [ERROR] Raising queue activity raised for timeline entry with 705 streamtypeid. \x1b[0m");
+                                    } else {
+                                        console.log("\x1b[35m Queue activity raised for timeline entry with 705 streamtypeid. \x1b[0m");
+                                        resolve(activityId);
+                                   }
+                                });
                            }
                         });
                     }
@@ -246,40 +262,61 @@ function VodafoneService(objectCollection) {
 
         if (isFrDone === true && isCRMDone === true) {
             
-            let customerData = {};
+            activityCommonService.getActivityDetails(request, request.activity_id, (err, data)=>{
+                if(err === false) {
+                    console.log('data[0].activity_inline_data : ', data[0].activity_inline_data);
+                    const newOrderFormData = JSON.parse(data[0].activity_inline_data);                   
+                    
+                    formData.forEach(formEntry => {                        
+                        switch (Number(formEntry.field_id)) {
+                            case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Account_Code:
+                                 request.account_code = formEntry.field_value;
+                                 break;                    
+                        }
+                    });  
             
-            //construct the request object and call the function
-            const formData = JSON.parse(request.crm_form_data);
+                    console.log('Account Code from New Order : ', request.account_code);
+                    
+                    let customerData = {};
+            
+                    //construct the request object and call the function
+                    const formData = JSON.parse(request.crm_form_data);
 
-            formData.forEach(formEntry => {
-                switch (Number(formEntry.field_id)) {                   
+                    formData.forEach(formEntry => {
+                        switch (Number(formEntry.field_id)) {                   
 
-                    case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Person_Name:
-                         customerData.first_name = formEntry.field_value;
-                         break;                         
-                    case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Company_Name:
-                         customerData.contact_company = formEntry.field_value;
-                         break;                    
-                    case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Number:                        
-                         customerData.contact_phone_country_code = String(formEntry.field_value).split('||')[0];
-                         customerData.contact_phone_number = String(formEntry.field_value).split('||')[1];
-                         break;                         
-                    case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Email_Id:
-                         customerData.contact_email_id = formEntry.field_value;
-                         break;                         
-                    case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Designation:
-                         customerData.contact_designation = formEntry.field_value;
-                         break;
+                            case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Person_Name:
+                                 customerData.first_name = formEntry.field_value;
+                                 break;                         
+                            case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Company_Name:
+                                 customerData.contact_company = formEntry.field_value;
+                                 break;                    
+                            case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Number:                        
+                                 customerData.contact_phone_country_code = String(formEntry.field_value).split('||')[0];
+                                 customerData.contact_phone_number = String(formEntry.field_value).split('||')[1];
+                                 break;                         
+                            case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Email_Id:
+                                 customerData.contact_email_id = formEntry.field_value;
+                                 break;                         
+                            case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Designation:
+                                 customerData.contact_designation = formEntry.field_value;
+                                 break;
+                        }
+                    });  
+
+                    console.log('customerData after processing : ', customerData);        
+
+                    customerFormSubmission(request, customerData).then(()=>{
+
+                    }).catch((err)=>{
+                        global.logger.write('debug', err, {}, request);
+                    });
+                    
+                } else {
+                    
                 }
             });  
             
-            console.log('customerData after processing : ', customerData);
-            
-            customerFormSubmission(request, customerData).then(()=>{
-            
-            }).catch((err)=>{
-                global.logger.write('debug', err, {}, request);
-            });
         }
         
     };

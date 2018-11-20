@@ -370,14 +370,11 @@ if (mode === 'prod') {
     //making twilio, Nexmo Calls
     config.efsPath = "/api-data/";
     
-    config.emailbaseUrlApprove = "https://worldoffice.desker.co"; 
-    config.emailbaseUrlUpload = "https://worldoffice.desker.co";
+    config.emailbaseUrlApprove = "https://officedesk.app"; 
+    config.emailbaseUrlUpload = "https://officedesk.app";
     
 }
 
-//Vodafone Config
-config.frApiSecret = "asdf";
-config.crmApiSecret = "asdf";
 
 //Android
 config.platformApplicationAndroid = "arn:aws:sns:ap-south-1:430506864995:app/GCM/worldDeskAndroidPush";

@@ -48,7 +48,8 @@ vodafoneConfig = {
             "Email": 5774,
             "Contact_Person_Name": 5775,
             "Contact_Designation": 5776,
-            "Contact_Email_Id":5784
+            "Contact_Email_Id":5784,
+            "Account_Code": 6099 //This we have in new order not in CRM
         }
     },
     "858": {
@@ -100,7 +101,8 @@ vodafoneConfig = {
             "Email": 5506,
             "Contact_Person_Name": 5507,
             "Contact_Designation": 5508,
-            "Contact_Email_Id":5516
+            "Contact_Email_Id":5516,
+            "Account_Code": 5371 //This we have in new order not in CRM
         }
     }
 };
