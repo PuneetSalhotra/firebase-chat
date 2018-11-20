@@ -1525,17 +1525,17 @@ function VodafoneService(objectCollection) {
         return new Promise((resolve, reject)=>{
             
             let addFileActivityReq = {
-                organization_id: contactOrganizationId,
-                account_id: contactAccountId,
-                workforce_id: contactWorkforceId,
-                asset_id: botAssetID,
-                asset_token_auth: botEncToken,
+                organization_id: request.organization_id,
+                account_id: global.vodafoneConfig[request.organization_id].CUSTOMER.ACCOUNT_ID,
+                workforce_id: global.vodafoneConfig[request.organization_id].CUSTOMER.WORKFORCE_ID,
+                asset_id: global.vodafoneConfig[request.organization_id].BOT.ASSET_ID,
+                asset_token_auth: global.vodafoneConfig[request.organization_id].BOT.ENC_TOKEN,
                 asset_message_counter: 0,                
                 activity_type_category_id: 10,
                 activity_title: "Customer Form Data Submitted",
                 activity_description:"Customer Form Data Submitted",
                 activity_inline_data: request.activity_timeline_collection,
-                activity_type_id: activityTypeId,
+                activity_type_id: global.vodafoneConfig[request.organization_id].ACTIVITY_TYPE_IDS.FORM_ACTIVITY_TYPE_ID,
                 activity_sub_type_id: 1,
                 flag_pin: 0,
                 flag_priority: 0,
@@ -1558,8 +1558,8 @@ function VodafoneService(objectCollection) {
                     
                     let flagAlterReq = {};
                     flagAlterReq.activity_id = response.response.activity_id;                    
-                    flagAlterReq.asset_id = botAssetID;
-                    flagAlterReq.organization_id = contactOrganizationId;
+                    flagAlterReq.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
+                    flagAlterReq.organization_id = request.organization_id;
                     flagAlterReq.activity_flag_file_enabled = -1;
 
                     if (Number(response.status) === 200) {                        
@@ -1670,31 +1670,6 @@ function VodafoneService(objectCollection) {
         });        
     };
     
-    this.fetchVodafoneFRPull = function(request) {
-        return new Promise((resolve, reject)=>{
-            var data = {
-                    ia_contact_name: 'sravan',
-                    ia_contact_designation: 'manager',
-                    ia_contact_department: 'IT',
-                    ia_installation_address: 'Huzrabad',
-                    ia_city_village_postoffice: 'Pothireddypeta',
-                    ia_pin_code: '50548',
-                    ia_telephone_number: '087272589799',
-                    ia_fax_number: '087273589632147',
-                    ia_contact_email: 'sravan@desker.co',
-                    ia_alternate_number: '7680000368',
-                    site_identifier: 'www.vodafone.com',
-                    last_mile_details_media: 'last_mile_details_media',
-                    customer_end_interface: 'customer_end_interface',
-                    service_provider_pop1: 'service_provider_pop1',
-                    primary_last_mile_service_provider: 'Blueflock Technologies',
-                    primary_cir_bandwidth_kbps: '1000'	
-            };
-            
-            resolve(data);
-        });        
-    };
-    
     this.fetchCRMPortalPull = function(request) {
         return new Promise((resolve, reject)=>{
             var data = {
@@ -1735,16 +1710,6 @@ function VodafoneService(objectCollection) {
         });        
     };
         
-    this.fetchCRMPortalPush = function(request) {
-        return new Promise((resolve, reject)=>{
-            var data = {
-            		crm_acknowledgement_id:'25879658696'
-            };
-            
-            resolve(data);
-        });        
-    };
-    
     function checkServiceDeskExistence(request) {
         return new Promise((resolve, reject)=>{
             var paramsArr = new Array(
