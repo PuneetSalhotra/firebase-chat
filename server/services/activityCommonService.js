@@ -321,7 +321,8 @@ function ActivityCommonService(db, util, forEachAsync) {
             case 705: // form
                 entityTypeId = 0;
                 entityText1 = request.form_transaction_id;
-                entityText2 = request.activity_timeline_collection;
+                // entityText2 = request.activity_timeline_collection;
+                activityTimelineCollection = request.activity_timeline_collection || '{}';
                 formTransactionId = request.form_transaction_id;
                 formId = request.form_id;
                 dataTypeId = 37; //static for all form submissions
@@ -2396,7 +2397,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             if(port == 0) {
 
             } else {
-                global.logger.write('debug', "Request Params b4 making Request : ", {}, {});
+                global.logger.write('debug', "Request Params b4 making Request : ", {}, request);
                 global.logger.write('debug', request, {}, {});
                 global.logger.write('debug', "http://localhost:"+ global.config.servicePort + "/" + global.config.version + "/" + url, {}, {});
                 makingRequest.post("http://localhost:"+ global.config.servicePort + "/" + global.config.version + "/"  + url , options, function (error, response, body) {
@@ -2626,6 +2627,76 @@ function ActivityCommonService(db, util, forEachAsync) {
         });
     };
     
+        
+    this.processReservationBilling = function (request, idReservation){
+    	return new Promise((resolve, reject)=>{
+    		//if(request.hasOwnProperty('is_room_posting'))
+    			pamEventBillingUpdate(request, idReservation);
+    		resolve(true);
+    	});
+    };    
+
+    function pamEventBillingUpdate(request, idReservation) {
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,                
+                idReservation,
+                request.datetime_log
+                );
+            var queryString = util.getQueryString("pm_v1_pam_event_billing_update", paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {                  
+                   if(err === false){                	   
+                	   resolve();
+                   }else{
+                	   reject(err);
+                   }
+                });
+            }
+        })
+    };
+    
+    this.pamOrderListUpdate = function (request, idOrder) {
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,                
+                idOrder,
+                request.datetime_log
+                );
+            var queryString = util.getQueryString("pm_v1_pam_order_list_update", paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {                  
+                   if(err === false){                	   
+                	   resolve();
+                   }else{
+                	   reject(err);
+                   }
+                });
+            }
+        })
+    };
+    
+    // Queue History Insert
+    this.queueHistoryInsert = function (request, updateTypeId, queueActivityMappingId) {
+        return new Promise((resolve, reject) => {            
+            let paramsArr = new Array(
+                queueActivityMappingId,
+                updateTypeId,
+                request.asset_id,
+                request.datetime_log
+            );
+            const queryString = util.getQueryString('ds_p1_queue_activity_mapping_history_insert', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                });
+            }
+        });
+    };
 };
 
 

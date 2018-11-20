@@ -1224,6 +1224,31 @@ function PamListingService(objectCollection) {
 	   		}
         });
     };
+	
+    this.getEventBydatetime = function (request) {
+		return new Promise((resolve, reject)=>{
+	        var paramsArr = new Array(
+	        		request.organization_id,
+	        		request.account_id,
+					request.activity_type_category_id,
+					request.current_datetime,
+	                request.page_start,
+                	util.replaceQueryLimit(request.page_limit)
+	                );
+	
+	        var queryString = util.getQueryString('pm_v1_activity_list_select_event_datetime', paramsArr);
+	        if (queryString != '') {
+	            db.executeQuery(1, queryString, request, function (err, data) {
+	            	//console.log("err "+err);
+	               if(err === false) {
+	        			resolve(data);	        			      			  
+                    } else {
+	                   reject(err);
+	               }
+	            });
+	   		}
+        });
+    };
 };
 
 module.exports = PamListingService;
