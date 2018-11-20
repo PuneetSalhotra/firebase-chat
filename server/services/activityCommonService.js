@@ -2693,6 +2693,55 @@ function ActivityCommonService(db, util, forEachAsync) {
             if (queryString !== '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err) ? reject(err): resolve(data);
+                })
+            }
+        });
+    };
+    
+    this.getActivityCollection = function (request) {
+		return new Promise((resolve, reject)=>{
+	        var paramsArr = new Array(	        		
+	        		request.activity_id,
+	        		request.organization_id
+	                );
+	
+	        var queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
+	        if (queryString != '') {
+	            db.executeQuery(0, queryString, request, function (err, data) {
+	            	//console.log("err "+err);
+	               if(err === false) {
+	               		console.log('data: '+data.length);
+	               		resolve(data);        				        			      			  
+                    } else {
+	                   reject(err);
+	               }
+	            });
+	   		}
+        });
+    };
+    
+    this.activityStatusChangeTxnInsertV2 = function (request, duration, statusCollection) {
+        // IN p_organization_id BIGINT(20), IN p_activity_id BIGINT(20), IN p_from_status_id BIGINT(20), 
+        // IN p_to_status_id BIGINT(20), IN p_from_status_datetime DATETIME, IN p_to_status_datetime 
+        // DATETIME, IN p_duration DECIMAL(16,4), IN p_log_datetime DATETIME, IN p_log_asset_id BIGINT(20)
+    	// IN status_changed_flag TINYINT(4)
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                request.organization_id,
+                request.activity_id,
+                statusCollection.from_status_id,
+                statusCollection.to_status_id,
+                statusCollection.from_status_datetime,
+                statusCollection.to_status_datetime,
+                duration,
+                util.getCurrentUTCTime(),
+                request.asset_id,
+                request.status_changed_flag
+            );
+            var queryString = util.getQueryString('ds_p1_1_activity_status_change_transaction_insert', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data): reject(err);
                 });
             }
         });

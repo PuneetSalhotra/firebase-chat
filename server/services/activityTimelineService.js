@@ -262,13 +262,13 @@ function ActivityTimelineService(objectCollection) {
             let cafCompletionPercentage;
             
             switch(Number(request.form_id)) {
-                case global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER:
+                //case global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER:
                     //cafCompletionPercentage = 3;
                     //break;
-                case global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY:
+                //case global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY:
                     //cafCompletionPercentage = 20;
-                    cafCompletionPercentage = 23;
-                    break;
+                  //  cafCompletionPercentage = 23;
+                    //break;
                 case global.vodafoneConfig[request.organization_id].FORM_ID.FR:
                     cafCompletionPercentage = 5;
                     break;
@@ -290,8 +290,7 @@ function ActivityTimelineService(objectCollection) {
                     break;
                 case global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_APPROVAL:
                     cafCompletionPercentage = 1;
-                    break;
-                default: cafCompletionPercentage = 0;
+                    break;                
             }
             
             console.log('cafCompletionPercentage : ', cafCompletionPercentage);
@@ -356,8 +355,9 @@ function ActivityTimelineService(objectCollection) {
                     }
                 });
             });
+            resolve();
         });
-        resolve();    
+        
     };
     
     //This is to support the feature - Not to increase unread count during timeline entry
@@ -1615,11 +1615,47 @@ function ActivityTimelineService(objectCollection) {
             }
 
         }).then(function () {
+        	 global.logger.write('debug', '*********************************AFTER FORM DATA ENTRY *********************************************88 : ', {}, request);
+        	 sendRequesttoWidgetEngine(request);
             callback(false, approvalFields);
         });
     };
     
-
+    function sendRequesttoWidgetEngine(request){
+    	
+        global.logger.write('debug', '*********************************88BEFORE FORM WIDGET *********************************************88 : ', {}, request);
+        if (request.activity_type_category_id == 9) { //form and submitted state                    
+        	activityCommonService.getActivityDetails(request, 0, function (err, activityData) { // get activity form_id and form_transaction id
+                 var widgetEngineQueueMessage = {
+                    form_id: activityData[0].form_id,
+                    form_transaction_id: activityData[0].form_transaction_id,
+                    organization_id: request.organization_id,
+                    account_id: request.account_id,
+                    workforce_id: request.workforce_id,
+                    asset_id: request.asset_id,
+                    activity_id: request.activity_id,
+                    activity_type_category_id: request.activity_type_category_id,
+                    activity_stream_type_id: request.activity_stream_type_id,
+                    track_gps_location: request.track_gps_location,
+                    track_gps_datetime: request.track_gps_datetime,
+                    track_gps_accuracy: request.track_gps_accuracy,
+                    track_gps_status: request.track_gps_status,
+                    device_os_id: request.device_os_id,
+                    service_version: request.service_version,
+                    app_version: request.app_version,
+                    api_version: request.api_version,
+                    widget_type_category_id:1
+                };
+                var event = {
+                    name: "Form Based Widget Engine",
+                    payload: widgetEngineQueueMessage
+                };
+                global.logger.write('debug', 'Hitting Widget Engine with request:' + event, {}, request);
+                
+                queueWrapper.raiseFormWidgetEvent(event, request.activity_id);
+            });
+        }
+    }
 }
 ;
 module.exports = ActivityTimelineService;

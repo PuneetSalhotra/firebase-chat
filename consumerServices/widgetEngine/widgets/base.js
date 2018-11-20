@@ -4,7 +4,9 @@
 const _ = require('lodash');
         const moment = require('moment');
         const ActivityFormTransactionAnalyticsSvc = require('../services/activityFormTransactionAnalyticsService');
+        const ActivityListSvc = require('../services/activityListService');
         const WidgetTransactionSvc = require('../services/widgetTransactionService');
+        const ActivityStatusChangeTxnService = require('../services/activityStatusChangeTxnService');
         class WidgetBase {
         constructor(args) {
         this.objCollection = args.objCollection;
@@ -13,7 +15,9 @@ const _ = require('lodash');
                 this.form = args.form;
                 this.services = {
                 activityFormTransactionAnalytics: new ActivityFormTransactionAnalyticsSvc(args),
-                        widgetTransaction: new WidgetTransactionSvc(args)
+                        widgetTransaction: new WidgetTransactionSvc(args),
+                        activityListService: new ActivityListSvc(args),
+                        activityStatusChangeTxnService: new ActivityStatusChangeTxnService(args)
                 }
         }
 
@@ -40,7 +44,7 @@ const _ = require('lodash');
 
         convertUTCTimeToRuleTimeZoneByTimeline(time) {
         var ruleTime = moment.utc(time).utcOffset(this.rule.widget_timezone_offset / (60 * 1000));
-        if ([1, 2, 3].indexOf(this.rule.widget_timeline_id) !== - 1)
+        if ([0, 1, 2, 3].indexOf(this.rule.widget_timeline_id) !== - 1)
         {
             let startEnd =
             {
