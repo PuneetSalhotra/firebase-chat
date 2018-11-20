@@ -415,7 +415,9 @@ function ActivityService(objectCollection) {
                         global.logger.write('debug', "\x1b[35m [Log] Triggering the BOT 1 \x1b[0m", {}, request);
                         
                         //makeRequest to /vodafone/neworder_form/queue/add
-                        activityCommonService.makeRequest(request, "vodafone/neworder_form/queue/add", 1).then((resp)=>{
+                        let newRequest = Object.assign(request);
+                        newRequest.activity_inline_data = {};
+                        activityCommonService.makeRequest(newRequest, "vodafone/neworder_form/queue/add", 1).then((resp)=>{
                                global.logger.write('debug', resp, {}, request);
                         });
                         
