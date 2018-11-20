@@ -168,6 +168,11 @@ function ActivityService(objectCollection) {
                             	activityCommonService.processReservationBilling(request, request.activity_parent_id).then(()=>{});
                             }
                             
+                            if (activityTypeCategroyId === 9) {                                
+                                global.logger.write('debug', '*****ADD ACTIVITY :HITTING WIDGET ENGINE*******', {}, request);
+                                sendRequesttoWidgetEngine(request);
+                                }
+                            
                             activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
 
                             });
@@ -1396,10 +1401,10 @@ function ActivityService(objectCollection) {
 
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
-                    callback(false, true);
+                    callback(false, data);
                     return;
                 } else {
-                    callback(err, false);
+                    callback(err, data);
                     //console.log(err);
                     global.logger.write('serverError', err, err, request)
                     return;
@@ -1639,22 +1644,31 @@ function ActivityService(objectCollection) {
         activityCommonService.updateAssetLocation(request, function (err, data) {});
         activityListUpdateStatus(request, function (err, data) {
             if (err === false) {
-                //PAM
-                /*if (activityTypeCategroyId == 38) {
-                    switch (Number(request.activity_status_type_id)) {
-                        case 105:
-                            itemOrderAlterStatus(request).then(() => {});
-                            updateStatusDateTimes(request).then(() => {});
-                            break;
-                        case 106:
-                            if (request.served_at_bar == 1) {
-                                itemOrderAlterStatus(request).then(() => {});
-                            }
-                        case 125:
-                            updateStatusDateTimes(request).then(() => {});
-                            break;
-                    }
-                }*/
+            	
+           	 if (activityTypeCategroyId === 9) {
+                 
+                 global.logger.write('debug', '*****ALTER STATUS : STATUS CHANGE TXN INSERT*******', {}, request);
+                 
+                 if(Number(request.activity_status_id) === Number(data[0].idExistingActivityStatus)){
+                	 request.status_changed_flag = 0;
+                 }else{
+                	 request.status_changed_flag = 1;
+                 }
+                 
+                 global.logger.write('debug', '*****STATUS CHANGE FLAG : '+request.status_changed_flag, {}, request);
+                 
+                 var timeDuration = util.differenceDatetimes(util.getCurrentUTCTime(), util.replaceDefaultDatetime(data[0].datetimeExistingActivityStatusUpdated))
+                 
+                 activityCommonService.activityStatusChangeTxnInsertV2(request, Number(timeDuration)/1000, {
+                     from_status_id: Number(data[0].idExistingActivityStatus),
+                     to_status_id: Number(request.activity_status_id),
+                     from_status_datetime: util.replaceDefaultDatetime(data[0].datetimeExistingActivityStatusUpdated),
+                     to_status_datetime: util.replaceDefaultDatetime(data[0].updatedDatetime)
+                 }).then(()=>{
+                	 global.logger.write('debug', '*****ALTER STATUS : HITTING WIDGET ENGINE*******', {}, request);
+                	 sendRequesttoWidgetEngine(request);
+                 });
+             }
 
                 //Remote Analytics
                 if (activityTypeCategroyId == 28 || activityTypeCategroyId == 8) {
@@ -1921,7 +1935,7 @@ function ActivityService(objectCollection) {
                 // 
                 updateProjectStatusCounts(request).then(() => {});
                 activityPushService.sendPush(request, objectCollection, 0, function () {});
-                if (activityTypeCategoryId === 9 && activityStatusTypeId === 23) { //form and submitted state                    
+ /*               if (activityTypeCategoryId === 9 && activityStatusTypeId === 23) { //form and submitted state                    
                     duplicateFormTransactionData(request, function (err, data) {
                         var widgetEngineQueueMessage = {
                             form_id: data.formId,
@@ -1948,7 +1962,7 @@ function ActivityService(objectCollection) {
                         };
                         queueWrapper.raiseFormWidgetEvent(event, request.activity_id);
                     });
-                }
+                } */
 
                 callback(false, {}, 200);
                 return;
@@ -2920,6 +2934,44 @@ function ActivityService(objectCollection) {
         }
 
     };
+    
+    
+    function sendRequesttoWidgetEngine(request){
+    	
+        global.logger.write('debug', '********IN HITTING WIDGET *********************************************: ', {}, request);
+        if (request.activity_type_category_id == 9) { //form and submitted state                    
+        	activityCommonService.getActivityCollection(request).then((activityData)=> { // get activity form_id and form_transaction id
+        		console.log('activityData:'+activityData[0]);
+                 var widgetEngineQueueMessage = {
+                    form_id: activityData[0].form_id,
+                    form_transaction_id: activityData[0].form_transaction_id,
+                    organization_id: request.organization_id,
+                    account_id: request.account_id,
+                    workforce_id: request.workforce_id,
+                    asset_id: request.asset_id,
+                    activity_id: request.activity_id,
+                    activity_type_category_id: request.activity_type_category_id,
+                    activity_stream_type_id: request.activity_stream_type_id,
+                    track_gps_location: request.track_gps_location,
+                    track_gps_datetime: util.replaceDefaultDatetime(activityData[0].activity_datetime_created),
+                    track_gps_accuracy: request.track_gps_accuracy,
+                    track_gps_status: request.track_gps_status,
+                    device_os_id: request.device_os_id,
+                    service_version: request.service_version,
+                    app_version: request.app_version,
+                    api_version: request.api_version,
+                    widget_type_category_id:2
+                };
+                var event = {
+                    name: "File Based Widget Engine",
+                    payload: widgetEngineQueueMessage
+                };
+                global.logger.write('debug', 'Hitting Widget Engine with request:' + event, {}, request);
+                
+                queueWrapper.raiseFormWidgetEvent(event, request.activity_id);
+            });
+        }
+    }
 
 };
 module.exports = ActivityService;
