@@ -321,7 +321,8 @@ function ActivityCommonService(db, util, forEachAsync) {
             case 705: // form
                 entityTypeId = 0;
                 entityText1 = request.form_transaction_id;
-                entityText2 = request.activity_timeline_collection;
+                // entityText2 = request.activity_timeline_collection;
+                activityTimelineCollection = request.activity_timeline_collection || '{}';
                 formTransactionId = request.form_transaction_id;
                 formId = request.form_id;
                 dataTypeId = 37; //static for all form submissions
@@ -2396,7 +2397,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             if(port == 0) {
 
             } else {
-                global.logger.write('debug', "Request Params b4 making Request : ", {}, {});
+                global.logger.write('debug', "Request Params b4 making Request : ", {}, request);
                 global.logger.write('debug', request, {}, {});
                 global.logger.write('debug', "http://localhost:"+ global.config.servicePort + "/" + global.config.version + "/" + url, {}, {});
                 makingRequest.post("http://localhost:"+ global.config.servicePort + "/" + global.config.version + "/"  + url , options, function (error, response, body) {
@@ -2679,6 +2680,23 @@ function ActivityCommonService(db, util, forEachAsync) {
         })
     };
     
+    // Queue History Insert
+    this.queueHistoryInsert = function (request, updateTypeId, queueActivityMappingId) {
+        return new Promise((resolve, reject) => {            
+            let paramsArr = new Array(
+                queueActivityMappingId,
+                updateTypeId,
+                request.asset_id,
+                request.datetime_log
+            );
+            const queryString = util.getQueryString('ds_p1_queue_activity_mapping_history_insert', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                })
+            }
+        });
+    };
     
     this.getActivityCollection = function (request) {
 		return new Promise((resolve, reject)=>{

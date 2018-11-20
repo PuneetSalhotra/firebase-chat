@@ -410,12 +410,16 @@ function ActivityService(objectCollection) {
                         })
                     }
                     
-                    // Vodafone Flow on Form Submission
-                    if (activityTypeCategroyId === 9 && (Number(request.activity_form_id) === 873)) {
-                        console.log("\x1b[35m [Log] Calling vodafoneFormSubmissionFlow \x1b[0m")
-                                                
-                        //makeRequest to /vodafone/neworder_form/add BOT1
-                        request.worflow_trigger_url = util.getWorkFlowUrl(request.url);
+                    // Tirggering BOT 1
+                    if (activityTypeCategroyId === 9 && (Number(request.activity_form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER))) {
+                        global.logger.write('debug', "\x1b[35m [Log] Triggering the BOT 1 \x1b[0m", {}, request);
+                        
+                        //makeRequest to /vodafone/neworder_form/queue/add
+                        activityCommonService.makeRequest(request, "vodafone/neworder_form/queue/add", 1).then((resp)=>{
+                               global.logger.write('debug', resp, {}, request);
+                        });
+                        
+                        /*request.worflow_trigger_url = util.getWorkFlowUrl(request.url);
                         global.logger.write('debug', 'worflow_trigger_url: ' + request.worflow_trigger_url, {}, request);
 
                         activityCommonService.getWorkflowForAGivenUrl(request).then((data)=>{
@@ -423,7 +427,7 @@ function ActivityService(objectCollection) {
                             activityCommonService.makeRequest(request, data[0].workflow_execution_url, 1).then((resp)=>{
                                global.logger.write('debug', resp, {}, request);
                             });
-                        });
+                        });*/
                     }
                     // 
                     // 

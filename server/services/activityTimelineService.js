@@ -50,6 +50,20 @@ function ActivityTimelineService(objectCollection) {
                     //callback(true, {}, -9999);
                 }
             });
+            
+            
+            //makeRequest to /vodafone/customer_form/add for FR Form or CRM Form
+            if (Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.FR) || 
+                    Number(global.vodafoneConfig[request.organization_id].FORM_ID.CRM)) {
+                global.logger.write('debug', "\x1b[35m [Log] Triggering the BOT 2 \x1b[0m", {}, request);
+                
+                activityCommonService.makeRequest(request, "vodafone/customer_form/add", 1).then((resp)=>{
+                    global.logger.write('debug', resp, {}, request);
+                });
+            }
+            
+            //Generic Function to updated the CAF percentage
+            updateCAFPercentage(request).then(()=>{});
 
             // Trigger Email For Vodafone CAF Form Submission
             if (Number(request.form_id) === 844) {
@@ -72,15 +86,15 @@ function ActivityTimelineService(objectCollection) {
 
             // 
             // [VODAFONE] Listen for Account Manager Approval or Customer (Service Desk) Approval Form
+            // [VODAFONE] The above no longer applies. New trigger on CRM Acknowledgement Form submission.
             if (
                 activityStreamTypeId === 705 &&
                 (
-                    Number(request.form_id) === 858 ||
-                    Number(request.form_id) === 878 ||
-                    Number(request.form_id) === 875 ||
-                    Number(request.form_id) === 882
+                    Number(request.form_id) === 868 ||
+                    Number(request.form_id) === 863
                 )
             ) {
+                console.log('CALLING approvalFormsSubmissionCheck')
                 const approvalCheckRequestEvent = {
                     name: "vodafoneService",
                     service: "vodafoneService",
@@ -236,6 +250,114 @@ function ActivityTimelineService(objectCollection) {
             });
         }
         callback(false, {}, 200);
+    };
+    
+    /*this.nanikalyan = function(request, callback) {
+        updateCAFPercentage(request).then(()=>{});
+    };*/
+    
+    function updateCAFPercentage(request) {
+        return new Promise((resolve, reject)=>{
+            
+            let cafCompletionPercentage;
+            
+            switch(Number(request.form_id)) {
+                case global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER:
+                    //cafCompletionPercentage = 3;
+                    //break;
+                case global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY:
+                    //cafCompletionPercentage = 20;
+                    cafCompletionPercentage = 23;
+                    break;
+                case global.vodafoneConfig[request.organization_id].FORM_ID.FR:
+                    cafCompletionPercentage = 5;
+                    break;
+                case global.vodafoneConfig[request.organization_id].FORM_ID.CRM:
+                    cafCompletionPercentage = 7;
+                    break;
+                case global.vodafoneConfig[request.organization_id].FORM_ID.HLD:
+                    cafCompletionPercentage = 12;
+                    break;
+                case global.vodafoneConfig[request.organization_id].FORM_ID.NEW_CUSTOMER:
+                case global.vodafoneConfig[request.organization_id].FORM_ID.EXISTING_CUSTOMER:
+                    cafCompletionPercentage = 4;
+                    break;
+                case global.vodafoneConfig[request.organization_id].FORM_ID.OMT_APPROVAL:
+                    cafCompletionPercentage = 1;
+                    break;
+                case global.vodafoneConfig[request.organization_id].FORM_ID.ACCOUNT_MANAGER_APPROVAL:
+                    cafCompletionPercentage = 1;
+                    break;
+                case global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_APPROVAL:
+                    cafCompletionPercentage = 1;
+                    break;
+                default: cafCompletionPercentage = 0;
+            }
+            
+            console.log('cafCompletionPercentage : ', cafCompletionPercentage);
+            
+            //Adding to OMT Queue                
+            request.start_from = 0;
+            request.limit_value = 1;               
+                
+            //Updating in the OMT QUEUE
+            //Get the Queue ID
+            activityCommonService.fetchQueueByQueueName(request, "OMT").then((resp)=>{
+                console.log('Queue Data : ', resp);
+                    
+                //Checking the queuemappingid
+                activityCommonService.fetchQueueActivityMappingId(request, resp[0].queue_id).then((queueActivityMappingData) => {
+                    console.log('queueActivityMappingData : ', queueActivityMappingData);
+                        
+                    if(queueActivityMappingData.length > 0){ 
+               
+                        let queueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;  
+                        let queueActMapInlineData = JSON.parse(queueActivityMappingData[0].queue_activity_mapping_inline_data);
+                        queueActMapInlineData.caf_completion_percentage += cafCompletionPercentage;
+                        
+                        console.log('Updated Queue JSON : ', queueActMapInlineData);
+                                
+                        activityCommonService.queueActivityMappingUpdateInlineStatus(request, queueActivityMappingId, JSON.stringify(queueActMapInlineData)).then((data)=>{
+                            console.log('Updating the Queue Json : ', data);
+                            activityCommonService.queueHistoryInsert(request, 1402, queueActivityMappingId).then(()=>{});
+                        }).catch((err)=>{
+                            global.logger.write('debug', err, {}, request);
+                        });                            
+                        
+                    }
+                });
+            });
+            ////////////////////////////////
+            
+            //Updating in the HLD QUEUE
+            //Get the Queue ID
+            activityCommonService.fetchQueueByQueueName(request, "HLD").then((resp)=>{
+                console.log('Queue Data : ', resp);
+                    
+                //Checking the queuemappingid
+                activityCommonService.fetchQueueActivityMappingId(request, resp[0].queue_id).then((queueActivityMappingData) => {
+                    console.log('queueActivityMappingData : ', queueActivityMappingData);
+                        
+                    if(queueActivityMappingData.length > 0){ 
+               
+                        let queueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;  
+                        let queueActMapInlineData = JSON.parse(queueActivityMappingData[0].queue_activity_mapping_inline_data);
+                        queueActMapInlineData.caf_completion_percentage += cafCompletionPercentage;
+                        
+                        console.log('Updated Queue JSON : ', queueActMapInlineData);
+                                
+                        activityCommonService.queueActivityMappingUpdateInlineStatus(request, queueActivityMappingId, JSON.stringify(queueActMapInlineData)).then((data)=>{
+                            console.log('Updating the Queue Json : ', data);
+                            activityCommonService.queueHistoryInsert(request, 1402, queueActivityMappingId).then(()=>{});
+                        }).catch((err)=>{
+                            global.logger.write('debug', err, {}, request);
+                        });                            
+                        
+                    }
+                });
+            });
+        });
+        resolve();    
     };
     
     //This is to support the feature - Not to increase unread count during timeline entry
