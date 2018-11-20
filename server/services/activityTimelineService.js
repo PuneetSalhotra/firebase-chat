@@ -55,7 +55,9 @@ function ActivityTimelineService(objectCollection) {
             //makeRequest to /vodafone/customer_form/add for FR Form or CRM Form
             if (Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.FR) || 
                     Number(global.vodafoneConfig[request.organization_id].FORM_ID.CRM)) {
-                activityCommonService.makeRequest(request, "/vodafone/customer_form/add", 1).then((resp)=>{
+                global.logger.write('debug', "\x1b[35m [Log] Triggering the BOT 2 \x1b[0m", {}, request);
+                
+                activityCommonService.makeRequest(request, "vodafone/customer_form/add", 1).then((resp)=>{
                     global.logger.write('debug', resp, {}, request);
                 });
             }
