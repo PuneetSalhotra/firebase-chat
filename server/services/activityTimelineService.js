@@ -51,6 +51,17 @@ function ActivityTimelineService(objectCollection) {
                 }
             });
             
+            // Tirggering BOT 1
+            if ((Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER))) {
+                        global.logger.write('debug', "\x1b[35m [Log] Triggering the BOT 1 \x1b[0m", {}, request);
+                        
+                        //makeRequest to /vodafone/neworder_form/queue/add
+                        let newRequest = Object.assign(request);
+                        newRequest.activity_inline_data = {};
+                        activityCommonService.makeRequest(newRequest, "vodafone/neworder_form/queue/add", 1).then((resp)=>{
+                               global.logger.write('debug', resp, {}, request);
+                        });
+            }
             
             //makeRequest to /vodafone/customer_form/add for FR Form or CRM Form
             if ((Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.FR) || 
@@ -259,7 +270,8 @@ function ActivityTimelineService(objectCollection) {
     function updateCAFPercentage(request) {
         return new Promise((resolve, reject)=>{
             
-            let newrequest = Object.assign(request);
+            let newrequest = Object.assign({},request);
+            newrequest.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
             let cafCompletionPercentage;
             
             switch(Number(newrequest.form_id)) {
@@ -323,7 +335,7 @@ function ActivityTimelineService(objectCollection) {
 
                             console.log('Updated Queue JSON : ', queueActMapInlineData);
 
-                            activityCommonService.queueActivityMappingUpdateInlineStatus(newrequest, queueActivityMappingId, JSON.stringify(queueActMapInlineData)).then((data)=>{
+                            activityCommonService.queueActivityMappingUpdateInlineData(newrequest, queueActivityMappingId, JSON.stringify(queueActMapInlineData)).then((data)=>{
                                 console.log('Updating the Queue Json : ', data);
                                 activityCommonService.queueHistoryInsert(newrequest, 1402, queueActivityMappingId).then(()=>{});
                             }).catch((err)=>{
@@ -352,7 +364,7 @@ function ActivityTimelineService(objectCollection) {
 
                             console.log('Updated Queue JSON : ', queueActMapInlineData);
 
-                            activityCommonService.queueActivityMappingUpdateInlineStatus(newrequest, queueActivityMappingId, JSON.stringify(queueActMapInlineData)).then((data)=>{
+                            activityCommonService.queueActivityMappingUpdateInlineData(newrequest, queueActivityMappingId, JSON.stringify(queueActMapInlineData)).then((data)=>{
                                 console.log('Updating the Queue Json : ', data);
                                 activityCommonService.queueHistoryInsert(newrequest, 1402, queueActivityMappingId).then(()=>{});
                             }).catch((err)=>{
