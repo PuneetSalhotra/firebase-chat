@@ -2096,7 +2096,9 @@ function VodafoneService(objectCollection) {
                                     .then((queueActivityMappingData) => {
                                         console.log('queueActivityMappingData[0].queue_activity_mapping_id: ', queueActivityMappingData[0].queue_activity_mapping_id);
                                         hldQueueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;
-                                        return activityCommonService.unmapFileFromQueue(request, queueActivityMappingData[0].queue_activity_mapping_id)
+                                        let queueActivityUnmapRequest = Object.assign({}, request);
+                                        queueActivityUnmapRequest.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
+                                        return activityCommonService.unmapFileFromQueue(queueActivityUnmapRequest, queueActivityMappingData[0].queue_activity_mapping_id)
                                     })
                                     .then((data) => {
                                         let queueHistoryInsertRequest = Object.assign({}, request);
