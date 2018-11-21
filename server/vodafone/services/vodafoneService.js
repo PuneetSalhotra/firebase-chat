@@ -2099,7 +2099,9 @@ function VodafoneService(objectCollection) {
                                         return activityCommonService.unmapFileFromQueue(request, queueActivityMappingData[0].queue_activity_mapping_id)
                                     })
                                     .then((data) => {
-                                        activityCommonService.queueHistoryInsert(request, 1403, hldQueueActivityMappingId).then(()=>{});
+                                        let queueHistoryInsertRequest = Object.assign({}, request);
+                                        queueHistoryInsertRequest.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
+                                        activityCommonService.queueHistoryInsert(queueHistoryInsertRequest, 1403, hldQueueActivityMappingId).then(()=>{});
                                     })
                                     .catch((error) => {
                                         console.log("Error Unmapping the form file from HLD queue: ", error)
@@ -2107,7 +2109,7 @@ function VodafoneService(objectCollection) {
 
                                 // Alter the status of the form file to Validation Pending
                                 // Form the request object
-                                var statusAlterRequest = Object.assign(cafFormSubmissionRequest);
+                                var statusAlterRequest = Object.assign({}, cafFormSubmissionRequest);
                                 statusAlterRequest.activity_id = request.activity_id;
                                 statusAlterRequest.activity_status_id = ACTIVITY_STATUS_ID_VALIDATION_PENDING;
                                 statusAlterRequest.activity_status_type_id = 25;
@@ -2140,7 +2142,7 @@ function VodafoneService(objectCollection) {
                                             })
                                             .then((queueActivityMappingData) => {
                                                 let queueActivityMappingInlineData = JSON.parse(queueActivityMappingData[0].queue_activity_mapping_inline_data);
-                                                queueActivityMappingInlineData.queue_sort.current_status = ACTIVITY_STATUS_ID_VALIDATION_PENDING;
+                                                // queueActivityMappingInlineData.queue_sort.current_status = ACTIVITY_STATUS_ID_VALIDATION_PENDING;
                                                 queueActivityMappingInlineData.queue_sort.current_status_id = ACTIVITY_STATUS_ID_VALIDATION_PENDING;
                                                 queueActivityMappingInlineData.queue_sort.current_status_name = "Validation Pending";
                                                 queueActivityMappingInlineData.queue_sort.last_status_alter_time = util.getCurrentUTCTime();
@@ -2155,7 +2157,10 @@ function VodafoneService(objectCollection) {
                                                 )
                                             })
                                             .then((data) => {
-                                                activityCommonService.queueHistoryInsert(request, 1402, omtQueueActivityMappingId).then(()=>{});
+                                                
+                                                let queueHistoryInsertRequest = Object.assign({}, request);
+                                                queueHistoryInsertRequest.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
+                                                activityCommonService.queueHistoryInsert(queueHistoryInsertRequest, 1402, omtQueueActivityMappingId).then(()=>{});
                                             })
                                             .catch((error) => {
                                                 console.log("Error modifying the form file activity entry in the OMT queue: ", error)
@@ -2168,7 +2173,7 @@ function VodafoneService(objectCollection) {
                         });
 
                         // Fire 705 for the newly created CAF Form's activity_id
-                        let timelineStreamType705ForCAF = Object.assign(cafFormSubmissionRequest);
+                        let timelineStreamType705ForCAF = Object.assign({}, cafFormSubmissionRequest);
                         timelineStreamType705ForCAF.activity_id = cafFormActivityId;
                         timelineStreamType705ForCAF.form_transaction_id = cafFormTransactionId;
                         timelineStreamType705ForCAF.activity_stream_type_id = 705;
@@ -2192,7 +2197,7 @@ function VodafoneService(objectCollection) {
                         });
 
                         // Fire 325 for the newly created CAF Form's activity_id
-                        let timelineStreamType325ForCAF = Object.assign(timelineStreamType705ForCAF);
+                        let timelineStreamType325ForCAF = Object.assign({}, timelineStreamType705ForCAF);
                         timelineStreamType325ForCAF.activity_id = cafFormActivityId;
                         timelineStreamType325ForCAF.form_transaction_id = cafFormTransactionId;
                         timelineStreamType325ForCAF.activity_stream_type_id = 325;
@@ -2791,7 +2796,7 @@ function VodafoneService(objectCollection) {
                     })
                     .then((queueActivityMappingData) => {
                         let queueActivityMappingInlineData = JSON.parse(queueActivityMappingData[0].queue_activity_mapping_inline_data);
-                        queueActivityMappingInlineData.queue_sort.current_status = ACTIVITY_STATUS_ID_APPROVAL_PENDING;
+                        // queueActivityMappingInlineData.queue_sort.current_status = ACTIVITY_STATUS_ID_APPROVAL_PENDING;
                         queueActivityMappingInlineData.queue_sort.current_status_id = ACTIVITY_STATUS_ID_APPROVAL_PENDING;
                         queueActivityMappingInlineData.queue_sort.current_status_name = "Approval Pending";
                         queueActivityMappingInlineData.queue_sort.last_status_alter_time = util.getCurrentUTCTime();
@@ -2944,6 +2949,8 @@ function VodafoneService(objectCollection) {
         const CRM_ACKNOWLEDGEMENT_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CRM_ACKNOWLEDGEMENT;
         const NEW_ORDER_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER;
         const ACTIVITY_STATUS_ID_ORDER_CLOSED = global.vodafoneConfig[request.organization_id].STATUS.ORDER_CLOSED;
+        const CAF_BOT_ASSET_ID  = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
+        const CAF_BOT_ENC_TOKEN  = global.vodafoneConfig[request.organization_id].BOT.ENC_TOKEN;
         // 
         // If the incoming form submission request is for the AM APPROVAL FORM
         // if (Number(request.form_id) === 858 || Number(request.form_id) === 875) {
@@ -3004,10 +3011,13 @@ function VodafoneService(objectCollection) {
                 .then((queueActivityMappingData) => {
                     queueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;
                     // Unmap the form file from the Order Validation queue
+                    request.asset_id = CAF_BOT_ASSET_ID;
                     return activityCommonService.unmapFileFromQueue(request, queueActivityMappingId)
                 })
                 .then((data) => {
                     console.log("Form unassigned from queue: ", data);
+                    request.asset_id = CAF_BOT_ASSET_ID;
+                    activityCommonService.queueHistoryInsert(request, 1403, queueActivityMappingId).then(()=>{});
                 })
                 .catch((error) => {
                     console.log("Error unassigning form from queue: ", error)
@@ -3015,8 +3025,9 @@ function VodafoneService(objectCollection) {
 
             // Alter the status of the form file to Order Close
             // Form the request object
-            var statusAlterRequest = Object.assign(request);
+            var statusAlterRequest = Object.assign({}, request);
             statusAlterRequest.activity_status_id = ACTIVITY_STATUS_ID_ORDER_CLOSED;
+            statusAlterRequest.asset_id = CAF_BOT_ASSET_ID;
             statusAlterRequest.activity_status_type_id = 26;
             statusAlterRequest.activity_status_type_category_id = 1;
             statusAlterRequest.message_unique_id = util.getMessageUniqueId(request.asset_id);
