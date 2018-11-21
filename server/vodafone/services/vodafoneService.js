@@ -25,15 +25,16 @@ function VodafoneService(objectCollection) {
         request.form_status_id = global.vodafoneConfig[request.organization_id].STATUS.HLD_PENDING;
         request.form_activity_id = request.activity_id;
         
-        //Step 1 :- Fill the order Supplementary form, add a dedicated file for it
-        addOrderSuppForm(request).then(()=>{});;
-        
         //Step 2 :- Set the status of the form file to "HLD Pending"
         changeStatusToHLDPending(request).then(()=>{});
         
         activityCommonService.getActivityDetails(request, request.activity_id, (err, data)=>{
             if(err === false) {
                                             
+                //Step 1 :- Fill the order Supplementary form, add a dedicated file for it
+                request.activity_type_id = data[0].activity_type_id;
+                addOrderSuppForm(request).then(()=>{});
+                
                 //let fileCreationDateTime = util.replaceDefaultDatetime(data[0].activity_datetime_start_expected);
                 let fileCreationDateTime = util.replaceDefaultDatetime(data[0].activity_datetime_created);
                 
@@ -61,6 +62,8 @@ function VodafoneService(objectCollection) {
                     //Checking the queuemappingid
                     activityCommonService.fetchQueueActivityMappingId(request, resp[0].queue_id).then((queueActivityMappingData) => {
                         console.log('queueActivityMappingData : ', queueActivityMappingData);
+                        
+                        request.activity_status_id = request.form_status_id;
                         
                         if(queueActivityMappingData.length > 0){ 
                             //Check the status
@@ -153,7 +156,7 @@ function VodafoneService(objectCollection) {
                     account_id: global.vodafoneConfig[request.organization_id].CUSTOMER.ACCOUNT_ID,
                     workforce_id: global.vodafoneConfig[request.organization_id].CUSTOMER.WORKFORCE_ID,
                     asset_id: global.vodafoneConfig[request.organization_id].BOT.ASSET_ID,
-                    asset_token_auth: global.vodafoneConfig[request.organization_id].BOT.ENC_TOKEN,
+                    asset_token_auth: global.vodafoneConfig[request.organization_id].BOT.ENC_TOKEN,               
                     asset_message_counter: 0,
                     activity_title: "Adding the Order Supplementary Form",
                     activity_description: "Adding the Order Supplementary Form",
@@ -161,9 +164,11 @@ function VodafoneService(objectCollection) {
                     activity_datetime_start: util.getCurrentUTCTime(),
                     activity_datetime_end: util.getCurrentUTCTime(),
                     activity_type_category_id: 9,
-                    form_id:global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY,
+                    activity_form_id: global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY,
+                    form_id: global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY,
                     activity_sub_type_id: 0,
-                    activity_type_id: global.vodafoneConfig[request.organization_id].ACTIVITY_TYPE_IDS.FORM_ACTIVITY_TYPE_ID,                    
+                    //activity_type_id: global.vodafoneConfig[request.organization_id].ACTIVITY_TYPE_IDS.FORM_ACTIVITY_TYPE_ID,
+                    activity_type_id: request.activity_type_id,                    
                     activity_parent_id: 0,
                     flag_pin: 0,
                     flag_priority: 0,
@@ -241,8 +246,9 @@ function VodafoneService(objectCollection) {
                         });
                         ///////////////////////////////////////////////////////////
 
-                        
-                        
+                                                
+                        // 705 for Order Supplementary Form
+                        /////////////////////////////////////////////////////
                         queueWrapper.raiseActivityEvent(event, newRequest.activity_id, (err, resp) => { //newRequest.activity_id Ord Suppl Form Act Id
                             if (err) {
                                 console.log("\x1b[35m [ERROR] Raising queue activity raised for creating empty Order Supplementary Form. \x1b[0m");
@@ -265,6 +271,9 @@ function VodafoneService(objectCollection) {
                                     } else {
                                         console.log("\x1b[35m Queue activity raised for timeline entry with 705 streamtypeid. \x1b[0m");
                                                                                 
+                                        
+                                        // 325 for New Order Form regarding the order suppl form
+                                        ////////////////////////////////////////////////////////
                                         let newRequest1 = Object.assign(newRequest);
                                         
                                         // Fire a 325 request to the new order form too!
@@ -295,10 +304,12 @@ function VodafoneService(objectCollection) {
                                             } else {
                                                 console.log("\x1b[35m Queue activity raised for 325 streamtypeid for Order Activity. \x1b[0m");
                                                 
+                                                // 705 for New Order Form regarding the order suppl form
+                                                ////////////////////////////////////////////////////////
                                                 let ordSupplFormSubmissionRequest705 = Object.assign(newRequest);
                                                 
                                                 ordSupplFormSubmissionRequest705.activity_id = request.form_activity_id;
-                                                ordSupplFormSubmissionRequest705.form_transaction_id = request.form_transaction_id;
+                                                ordSupplFormSubmissionRequest705.form_transaction_id = newRequest.form_transaction_id;
                                                 ordSupplFormSubmissionRequest705.form_id = global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY;
                                                 ordSupplFormSubmissionRequest705.flag_timeline_entry = 1;
                                                 ordSupplFormSubmissionRequest705.activity_stream_type_id = 705;
@@ -460,7 +471,7 @@ function VodafoneService(objectCollection) {
                 
                 console.log('deskAssetId : ', deskAssetId);
                 
-                if(Number(sdResp.operating_asset_phone_number) !== Number(request.authorised_signatory_contact_number)) {
+                if(Number(sdResp.operating_asset_phone_number) !== Number(customerData.contact_phone_number)) {
                     
                     console.log('operating asset phone number is different from authorised_signatory_contact_number');
                                           
@@ -721,6 +732,7 @@ function VodafoneService(objectCollection) {
         return new Promise((resolve, reject)=>{
            
            var newRequest = Object.assign(request);
+           newRequest.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
            newRequest.activity_status_id = global.vodafoneConfig[request.organization_id].STATUS.HLD_PENDING;
            newRequest.activity_status_type_id = 0; 
            //newRequest.activity_status_type_category_id = ""; 
@@ -1736,21 +1748,24 @@ function VodafoneService(objectCollection) {
     
     function createAsset(request) {
         return new Promise((resolve, reject)=>{
+            let newRequest = Object.assign(request);
+            newRequest.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
+            
             var dateTimeLog = util.getCurrentUTCTime();
-            request['datetime_log'] = dateTimeLog;
+            newRequest['datetime_log'] = dateTimeLog;
 
-            assetListInsertAddAsset(request, function (err, newAssetId) {
+            assetListInsertAddAsset(newRequest, function (err, newAssetId) {
                 if (err === false) {
-                    assetListHistoryInsert(request, newAssetId, request.organization_id, 0, dateTimeLog, function (err, data) {
+                    assetListHistoryInsert(newRequest, newAssetId, newRequest.organization_id, 0, dateTimeLog, function (err, data) {
                         if (err === false) {
                             var newAssetCollection = {
-                                organization_id: request.organization_id,
-                                account_id: request.account_id,
-                                workforce_id: request.workforce_id,
+                                organization_id: newRequest.organization_id,
+                                account_id: newRequest.account_id,
+                                workforce_id: newRequest.workforce_id,
                                 asset_id: newAssetId,
-                                message_unique_id: request.message_unique_id
+                                message_unique_id: newRequest.message_unique_id
                             };
-                            activityCommonService.assetTimelineTransactionInsert(request, newAssetCollection, 7, function (err, data) {});                        
+                            activityCommonService.assetTimelineTransactionInsert(newRequest, newAssetCollection, 7, function (err, data) {});                        
                     } else {
                         reject(err);
                     }

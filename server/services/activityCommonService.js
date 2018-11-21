@@ -2535,7 +2535,27 @@ function ActivityCommonService(db, util, forEachAsync) {
                 });
             }
         });
-    };   
+    };
+    
+    //Update only the queue mapping inline data
+    this.queueActivityMappingUpdateInlineData = function (request, queueActivityMappingId, queueActivityInlineData) {
+        return new Promise((resolve, reject) => {
+            let paramsArr = new Array(
+                queueActivityMappingId,
+                queueActivityInlineData,
+                request.organization_id,                
+                2,
+                request.asset_id,
+                util.getCurrentUTCTime()
+            );
+            const queryString = util.getQueryString('ds_p1_queue_activity_mapping_update_inline_data', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                });
+            }
+        });
+    };
 
     this.assetListUpdateOperatingAsset = function (request, deskAssetId, operatingAssetId, callback) {
         var paramsArr = new Array(
