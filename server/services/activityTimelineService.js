@@ -270,7 +270,8 @@ function ActivityTimelineService(objectCollection) {
     function updateCAFPercentage(request) {
         return new Promise((resolve, reject)=>{
             
-            let newrequest = Object.assign(request);
+            let newrequest = Object.assign({},request);
+            newrequest.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
             let cafCompletionPercentage;
             
             switch(Number(newrequest.form_id)) {

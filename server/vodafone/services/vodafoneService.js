@@ -41,6 +41,7 @@ function VodafoneService(objectCollection) {
                 //Adding to OMT Queue                
                 request.start_from = 0;
                 request.limit_value = 1;
+                request.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
                 
                 //Update the JSON
                 let queueMappingJson = {};
@@ -306,7 +307,7 @@ function VodafoneService(objectCollection) {
                                                 
                                                 // 705 for New Order Form regarding the order suppl form
                                                 ////////////////////////////////////////////////////////
-                                                let ordSupplFormSubmissionRequest705 = Object.assign(newRequest);
+                                                let ordSupplFormSubmissionRequest705 = Object.assign({}, newRequest);
                                                 
                                                 ordSupplFormSubmissionRequest705.activity_id = request.form_activity_id;
                                                 ordSupplFormSubmissionRequest705.form_transaction_id = newRequest.form_transaction_id;
@@ -478,7 +479,7 @@ function VodafoneService(objectCollection) {
                     //Unmap the operating Asset from service desk
                     activityCommonService.assetListUpdateOperatingAsset(request, deskAssetId, 0, (err, data)=>{});
                                
-                               var newRequest = Object.assign(request);
+                               var newRequest = Object.assign({}, request);
                                newRequest.activity_title = 'Adding Co-Worker Contact Card';
                                newRequest.activity_description = 'Adding Co-Worker Contact Card';
                                newRequest.activity_type_id = global.vodafoneConfig[request.organization_id].ACTIVITY_TYPE_IDS.CONTACT_CARD_ACTIVITY_TYPE_ID;
@@ -731,7 +732,7 @@ function VodafoneService(objectCollection) {
     function changeStatusToHLDPending(request) {
         return new Promise((resolve, reject)=>{
            
-           var newRequest = Object.assign(request);
+           var newRequest = Object.assign({},request);
            newRequest.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
            newRequest.activity_status_id = global.vodafoneConfig[request.organization_id].STATUS.HLD_PENDING;
            newRequest.activity_status_type_id = 0; 
@@ -1748,7 +1749,7 @@ function VodafoneService(objectCollection) {
     
     function createAsset(request) {
         return new Promise((resolve, reject)=>{
-            let newRequest = Object.assign(request);
+            let newRequest = Object.assign({}, request);
             newRequest.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
             
             var dateTimeLog = util.getCurrentUTCTime();
