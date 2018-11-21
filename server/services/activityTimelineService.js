@@ -281,7 +281,7 @@ function ActivityTimelineService(objectCollection) {
                     break;
                 case global.vodafoneConfig[newrequest.organization_id].FORM_ID.NEW_CUSTOMER:
                 case global.vodafoneConfig[newrequest.organization_id].FORM_ID.EXISTING_CUSTOMER:
-                    cafCompletionPercentage = 4;
+                    cafCompletionPercentage = 5;
                     break;
                 case global.vodafoneConfig[newrequest.organization_id].FORM_ID.OMT_APPROVAL:
                     cafCompletionPercentage = 1;
