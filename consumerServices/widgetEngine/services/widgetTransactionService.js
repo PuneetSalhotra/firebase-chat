@@ -515,6 +515,28 @@ class WidgetTransactionService {
             });
         });
     }
+    
+    
+    getWidgetTxnsOfAWidget(data) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+            		data.organization_id,
+            		data.widget_id,
+            		data.date                    
+                    );
+            /*"ds_v1_widget_transaction_select_widget_date
+             */
+            var queryString = this.objCollection.util.getQueryString('ds_v1_widget_transaction_select_widget_date', paramsArr);
+            if (queryString === '')
+                return reject();
+            this.objCollection.db.executeQuery(1, queryString, {}, function (err, data) {
+                if (err)
+                    return reject();
+                /*idWidgetTransaction*/
+                return resolve(data);
+            });
+        });
+    }
 }
 
 module.exports = WidgetTransactionService;

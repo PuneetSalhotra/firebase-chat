@@ -1819,6 +1819,62 @@ function ActivityListingService(objCollection) {
             });
         }
     };
+    
+    
+   
+    
+    this.getActivityFormFieldValidationData = function (request) {
+		return new Promise((resolve, reject)=>{
+	        var paramsArr = new Array(	        		
+	        		request.activity_id,
+	        		request.organization_id
+	                );
+	
+	        var queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
+	        if (queryString != '') {
+	            db.executeQuery(0, queryString, request, function (err, data) {
+	            	//console.log("err "+err);
+	               if(err === false) {
+	               		console.log('data: '+data.length);
+	               		processFormInlineData(request, data).then((finalData)=>{
+  	               			//console.log("finalData : "+finalData);
+  	               			resolve(finalData);
+  	               		});
+	               		    				        			      			  
+                    } else {
+	                   reject(err);
+	               }
+	            });
+	   		}
+        });
+    };
+    
+    function processFormInlineData(request, data){
+    	return new Promise((resolve, reject) => {
+    		var array = [];
+			forEachAsync(JSON.parse(data[0].activity_inline_data), function (next, fieldData) {
+				//console.log('fieldData : '+JSON.stringify(fieldData));
+				if(JSON.parse(JSON.stringify(fieldData)).hasOwnProperty("field_validated")){
+					console.log("HAS FIELD VALIDATED : "+fieldData.field_id);
+					array.push(fieldData);
+	    				next();
+    			}else{		    				
+    				console.log("FIELD NOT VALIDATED : "+fieldData.field_id);
+    				fieldData.field_validated = 0;
+    				console.log("FIELD NOT VALIDATED : "+fieldData.field_validated);
+    				array.push(fieldData);		    				
+    				next();
+    				
+    			}              
+	
+            }).then(()=>{
+            	//console.log("DATA : "+JSON.stringify(data));
+            	data[0].activity_inline_data = array;
+            	resolve(data);
+            });	    		
+    	});
+    };
+
 
 };
 

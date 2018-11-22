@@ -2746,6 +2746,75 @@ function ActivityCommonService(db, util, forEachAsync) {
             }
         });
     };
+    
+    
+    
+    this.getActivityTimelineTransactionByFormId = function (request, activityId, formId) {
+        return new Promise((resolve, reject) => {
+            // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_activity_id BIGINT(20), 
+            // IN p_form_id BIGINT(20), IN p_start_from SMALLINT(6), IN p_limit_value smallint(6)
+            let paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                activityId,
+                formId,
+                0,
+                50
+            );
+            const queryString = util.getQueryString('ds_p1_activity_timeline_transaction_select_activity_form', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                	  if(err === false) {
+  	               		console.log('data: '+data.length);
+  	               		if(request.hasOwnProperty("field_id")){
+  	               		processDBData(request, data).then((finalData)=>{
+  	               			//console.log(finalData);
+  	               			resolve(finalData);
+  	               			});       
+  	               		}else{
+  	               			resolve(data);
+  	               		}
+                      } else {
+  	                   reject(err);
+  	               }
+                    
+                });
+            }
+        });
+    };
+    
+    function processDBData(request, data){
+    	var array = [];
+    	return new Promise((resolve, reject) => {
+    		//console.log("AFTER PROMISE");
+    		
+    		forEachAsync(data, function (next, rowData) {
+    			//console.log("IN FIRST ASYNC");
+	    		forEachAsync(JSON.parse(rowData.data_entity_inline), function (next1, fieldData) {
+	    			//console.log("IN SECOND ASYNC : "+parseInt(Number(fieldData.field_id)) +": "+parseInt(Number(request.field_id)));
+		    			if(parseInt(Number(fieldData.field_id)) === parseInt(Number(request.field_id))){
+		    				//console.log("Field Equals "+fieldData);
+		    				rowData.data_entity_inline = [];
+		    				rowData.data_entity_inline[0] = fieldData;
+		    				//console.log("rowData.data_entity_inlne "+rowData.data_entity_inline);
+		    				array.push(rowData);		    				
+		    				next();
+		    				
+		    			}else{		    				
+		    				console.log("Not Equals");
+		    				next1();
+		    			}              
+	
+		            }).then(()=>{
+		            	next();
+		            });
+	    		
+	    		}).then(()=>{
+	    			//console.log(array);
+	    			resolve(array);
+	    		});
+    	});
+    };
 };
 
 
