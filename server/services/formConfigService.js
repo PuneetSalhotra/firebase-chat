@@ -294,6 +294,8 @@ function FormConfigService(objCollection) {
                 "field_sequence_id": util.replaceDefaultNumber(rowData['field_sequence_id']),
                 "field_mandatory_enabled": util.replaceDefaultNumber(rowData['field_mandatory_enabled']),
                 "field_preview_enabled": util.replaceDefaultNumber(rowData['field_preview_enabled']),
+                "field_inline_data": JSON.parse(rowData['field_inline_data']),
+                "field_validation_enabled": util.replaceDefaultNumber(rowData['field_validation_enabled']),
                 "data_type_combo_id": util.replaceDefaultNumber(rowData['data_type_combo_id']),
                 "data_type_combo_value": util.replaceDefaultString(rowData['data_type_combo_value']),
                 "data_type_id": util.replaceDefaultNumber(rowData['data_type_id']),
