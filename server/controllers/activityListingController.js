@@ -608,6 +608,18 @@ function ActivityListingController(objCollection) {
             }, -9998, req.body));
         }
     });
+    
+    
+    
+    app.post('/' + global.config.version + '/activity/form/validation/data', function (req, res) {
+    	activityListingService.getActivityFormFieldValidationData(req.body).then((data)=>{   
+    		
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        	});
+    });
 }
 
 module.exports = ActivityListingController;

@@ -2974,6 +2974,122 @@ function ActivityService(objectCollection) {
             });
         }
     }
+    
+    
+    
+    this.updateActivityFormFieldValidation = function(request){
+    	return new Promise((resolve, reject)=>{
+    		console.log("IN PROMISE");
+    		activityCommonService.getActivityCollection(request).then((activityData)=>{
+    			console.log("IN ACTIVITY COLLECTION: "+activityData);
+    			processFormInlineData(request, activityData).then((finalData)=>{
+    				console.log("IN PROCESS INLINE DATA "+finalData);
+    	    		this.activityListUpdateFieldValidated(request, JSON.stringify(finalData)).then(()=>{
+    	    			console.log("IN ACTIVITY LIST UPDATE ");
+    	    			this.activityMappingListUpdateFieldValidated(request).then(()=>{
+    	    				console.log("IN ACTIVITY ASSET MAPPING UPDATE ");
+    	    				request['datetime_log'] = util.getCurrentUTCTime();
+    	                activityCommonService.activityListHistoryInsert(request, 417, function (err, result) { });
+    	                activityCommonService.assetTimelineTransactionInsert(request, {}, 712, function (err, data) {});
+    	                activityCommonService.activityTimelineTransactionInsert(request, {}, 712, function (err, data) {});
+    	                activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) {});
+    	                activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {});
+    	    			
+    	    			})
+    	    			resolve();
+    	    		})
+    			})
+    		})
+    		
+
+    	});
+    }
+    
+    function processFormInlineData(request, data){
+    	return new Promise((resolve, reject) => {
+    		var array = [];
+			forEachAsync(JSON.parse(data[0].activity_inline_data), function (next, fieldData) {
+				//console.log('fieldData : '+JSON.stringify(fieldData));
+				if(parseInt(Number(fieldData.field_id)) === parseInt(Number(request.field_id))){
+					console.log("HAS FIELD VALIDATED : "+fieldData.field_id+' '+request.field_id);
+					fieldData.field_validated = 1;
+					array.push(fieldData);	
+	    				next();
+    			}else{	    				
+    				console.log("FIELD NOT VALIDATED : "+fieldData.field_id+' '+request.field_id);
+    				array.push(fieldData);		    				
+    				next();
+    				
+    			}              
+	
+            }).then(()=>{
+            	//console.log("DATA : "+JSON.stringify(data));
+            	//data.activity_inline_data = array;
+            	resolve(array);
+            });	    		
+    	});
+    };
+    
+    this.activityListUpdateFieldValidated = function(request, inlineData){
+    	return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                    request.organization_id,
+                    request.account_id,
+                    request.workforce_id,
+                    request.activity_id,
+                    request.activity_type_category_id,
+                    request.is_field_validated,
+                    inlineData,
+                    request.asset_id,
+                    util.getCurrentUTCTime()
+                    );
+                var queryString = util.getQueryString("ds_v1_activity_list_update_form_field_validated", paramsArr);
+                if (queryString != '') {
+                    db.executeQuery(0, queryString, request, function (err, data) {                  
+                       if(err === false){                	   
+                    	   resolve();
+                       }else{
+                    	   reject(err);
+                       }
+                    });
+                }
+    	});
+    }
+    
+    this.activityMappingListUpdateFieldValidated = function(request){
+    	return new Promise((resolve, reject)=>{
+        activityCommonService.getAllParticipants(request, function (err, participantsData) {
+            if (err === false) {
+            	forEachAsync(participantsData, function (next, rowData) {
+                    var paramsArr = new Array(
+                            request.organization_id,
+                            request.account_id,
+                            request.workforce_id,
+                            request.activity_id,
+                            rowData['asset_id'],
+                            request.activity_type_category_id,
+                            request.is_field_validated,
+                            request.asset_id,
+                            util.getCurrentUTCTime()
+                            );
+                        var queryString = util.getQueryString("ds_v1_activity_asset_mapping_update_form_field_validated", paramsArr);
+                        if (queryString != '') {
+                            db.executeQuery(0, queryString, request, function (err, data) {                  
+                               if(err === false){                	   
+                            	   next();
+                               }else{
+                            	   reject(err);
+                               }
+                            });
+                        }
+            	}).then(()=>{
+            		resolve();
+            	})
+            }
+        })
+
+    	});
+    }
 
 };
 module.exports = ActivityService;
