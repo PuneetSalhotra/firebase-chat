@@ -407,15 +407,17 @@ function ActivityService(objectCollection) {
                                     });
                                 });
                             }
-                        })
+                        });
                     }
                     
                     // Tirggering BOT 1
-                    if (activityTypeCategroyId === 9 && (Number(request.activity_form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER))) {
+                    /*if (activityTypeCategroyId === 9 && (Number(request.activity_form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER))) {
                         global.logger.write('debug', "\x1b[35m [Log] Triggering the BOT 1 \x1b[0m", {}, request);
                         
                         //makeRequest to /vodafone/neworder_form/queue/add
-                        activityCommonService.makeRequest(request, "vodafone/neworder_form/queue/add", 1).then((resp)=>{
+                        let newRequest = Object.assign(request);
+                        newRequest.activity_inline_data = {};
+                        activityCommonService.makeRequest(newRequest, "vodafone/neworder_form/queue/add", 1).then((resp)=>{
                                global.logger.write('debug', resp, {}, request);
                         });
                         
@@ -427,8 +429,8 @@ function ActivityService(objectCollection) {
                             activityCommonService.makeRequest(request, data[0].workflow_execution_url, 1).then((resp)=>{
                                global.logger.write('debug', resp, {}, request);
                             });
-                        });*/
-                    }
+                        });
+                    }*/
                     // 
                     // 
                 } else {
