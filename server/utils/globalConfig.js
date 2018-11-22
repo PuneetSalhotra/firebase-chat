@@ -35,8 +35,8 @@ if (mode === 'local') {
     config.slave1Ip = 'worlddesk-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';       
 
     config.dbUser = 'apiuser';
-    config.database = 'desker';// desker_staging
-    //config.database = 'desker_staging';
+    //config.database = 'desker';// desker_staging
+    config.database = 'desker_staging';
     config.dbPassword = 'apidbuser';
     config.conLimit = 10;
 
@@ -384,7 +384,7 @@ config.platformApplicationIosSDPushDev = 'arn:aws:sns:ap-south-1:430506864995:ap
 config.platformApplicationIosSDPushProd = 'arn:aws:sns:ap-south-1:430506864995:app/APNS/serviceDeskIOSProdPush';
 
 //Office Desk IOS normal Push platform endpoints
-config.platformApplicationIosODPushDev = 'arn:aws:sns:ap-south-1:430506864995:app/APNS_SANDBOX/officeDeskIOSDev';
+config.platformApplicationIosODPushDev = 'arn:aws:sns:ap-south-1:430506864995:app/APNS_SANDBOX/officeDeskIOSDevPush';
 config.platformApplicationIosODPushProd = 'arn:aws:sns:ap-south-1:430506864995:app/APNS/officeDeskIOSProdPush';
 
 //PAM App IOS Pushes
