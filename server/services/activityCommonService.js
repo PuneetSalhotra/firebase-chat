@@ -2787,10 +2787,14 @@ function ActivityCommonService(db, util, forEachAsync) {
                 	  if(err === false) {
   	               		console.log('data: '+data.length);
   	               		if(request.hasOwnProperty("field_id")){
-  	               		processDBData(request, data).then((finalData)=>{
-  	               			//console.log(finalData);
-  	               			resolve(finalData);
-  	               			});       
+  	               			if(data.length > 0){
+		  	               		processDBData(request, data).then((finalData)=>{
+		  	               			//console.log(finalData);
+		  	               			resolve(finalData);
+		  	               		});   
+  	               			}else{
+  	               				resolve(data);
+  	               			}     
   	               		}else{
   	               			resolve(data);
   	               		}

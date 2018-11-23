@@ -1837,10 +1837,16 @@ function ActivityListingService(objCollection) {
 	            	//console.log("err "+err);
 	               if(err === false) {
 	               		console.log('data: '+data.length);
-	               		processFormInlineData(request, data).then((finalData)=>{
-  	               			//console.log("finalData : "+finalData);
-  	               			resolve(finalData);
-  	               		});
+	               		if(data.length > 0)
+	               			{
+			               		processFormInlineData(request, data).then((finalData)=>{
+		  	               			//console.log("finalData : "+finalData);
+		  	               			resolve(finalData);
+		  	               		});
+	               			}else{
+	               				
+	               				resolve(data);
+	               			}
 	               		    				        			      			  
                     } else {
 	                   reject(err);
