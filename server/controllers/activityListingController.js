@@ -569,7 +569,7 @@ function ActivityListingController(objCollection) {
     // [Vodafone Service] DUMMY SERVICE | For all retieving all forms associated 
     // with a new order form_id
     /*
-    app.post('/' + global.config.version + '/activity/category/form/mapping1', function (req, res) {
+    app.post('/' + global.config.version + '/activity/category/form/mapping', function (req, res) {
         // 
         if (Number(req.body.form_id) === 873) {
             // BETA
@@ -638,6 +638,16 @@ function ActivityListingController(objCollection) {
     		res.send(responseWrapper.getResponse(err, data, -999, req.body));
         	});
     });
+    
+    app.post('/' + global.config.version + '/activity/my_queue/list', function (req, res) {
+    	activityListingService.getMyQueueActivities(req.body).then((data)=>{   
+    		
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -9998, req.body));
+        	});
+    }); 
 }
 
 module.exports = ActivityListingController;
