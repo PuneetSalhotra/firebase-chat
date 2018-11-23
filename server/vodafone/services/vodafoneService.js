@@ -26,7 +26,7 @@ function VodafoneService(objectCollection) {
         request.form_activity_id = request.activity_id;
         
         //Step 2 :- Set the status of the form file to "HLD Pending"
-        changeStatusToHLDPending(request).then(()=>{});
+        changeStatusToHLDPending(request).then(()=>{});        
         
         activityCommonService.getActivityDetails(request, request.activity_id, (err, data)=>{
             if(err === false) {
@@ -113,7 +113,7 @@ function VodafoneService(objectCollection) {
                                 //If different unmap the activitymapping and insert the new status id                            
                                 let queueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;                                
                                 
-                                activityCommonService.queueActivityMappingUpdateInlineStatus(request, queueActivityMappingId, queueMappingJson).then((data)=>{
+                                activityCommonService.queueActivityMappingUpdateInlineStatus(request, queueActivityMappingId, JSON.stringify(queueMappingJson)).then((data)=>{
                                     console.log('Updating the Queue Json : ', data);                                    
                                     activityCommonService.queueHistoryInsert(request, 1402, queueActivityMappingId).then(()=>{});
                                 }).catch((err)=>{
@@ -138,7 +138,7 @@ function VodafoneService(objectCollection) {
             } else {
                 callback(true, {}, -9998);
             }
-        });       
+        });
         
         callback(false, {}, 200);
     };   
@@ -169,7 +169,7 @@ function VodafoneService(objectCollection) {
                     form_id: global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY,
                     activity_sub_type_id: 0,
                     //activity_type_id: global.vodafoneConfig[request.organization_id].ACTIVITY_TYPE_IDS.FORM_ACTIVITY_TYPE_ID,
-                    activity_type_id: request.activity_type_id,                    
+                    activity_type_id: request.activity_type_id,
                     activity_parent_id: 0,
                     flag_pin: 0,
                     flag_priority: 0,
@@ -213,143 +213,93 @@ function VodafoneService(objectCollection) {
                             method: "addActivity",
                             payload: newRequest
                         };
-                        
-                         // 325 for Order Supplementary Form
-                        /////////////////////////////////////////////////////
-                        let ordSupplactivityTimelineCollectionFor325 = {
-                            "mail_body": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
-                            "subject": "Submitted - Order Supplementary Form",
-                            "content": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
-                            "asset_reference": [],
-                            "activity_reference": [],
-                            "form_approval_field_reference": [],
-                            "form_submitted": newRequest.activity_inline_data,
-                            "attachments": []
-                         };
-                         
-                        newRequest.activity_timeline_collection = JSON.stringify(ordSupplactivityTimelineCollectionFor325);
-                        newRequest.activity_stream_type_id = 325;
-                        
-
-                        let displayOrdSupFormOnFileEvent = {
-                            name: "addTimelineTransaction",
-                            service: "activityTimelineService",
-                            method: "addTimelineTransaction",
-                            payload: newRequest
-                        };
-
-                        queueWrapper.raiseActivityEvent(displayOrdSupFormOnFileEvent, newRequest.activity_id, (err, resp) => { //newRequest.activity_id Ord Suppl Form Act Id
-                            if (err) {
-                                console.log("\x1b[35m [ERROR] Raising queue activity raised for 325 streamtypeid for Order Supplementary file. \x1b[0m");
-                            } else {
-                                console.log("\x1b[35m [ERROR] Raising queue activity raised for 325 streamtypeid for Order Supplementary file. \x1b[0m");
-                            }
-                        });
-                        ///////////////////////////////////////////////////////////
-
-                                                
-                        // 705 for Order Supplementary Form
-                        /////////////////////////////////////////////////////
+                                                           
+                        //Adding new activity - Order Supplementary Form
                         queueWrapper.raiseActivityEvent(event, newRequest.activity_id, (err, resp) => { //newRequest.activity_id Ord Suppl Form Act Id
                             if (err) {
-                                console.log("\x1b[35m [ERROR] Raising queue activity raised for creating empty Order Supplementary Form. \x1b[0m");
+                                console.log("\x1b[35m [ERROR] Raising queue activity raised for creating empty Order Supplementary Form. \x1b[0m",err);
                             } else {
                                 console.log("\x1b[35m Queue activity raised for creating empty Order Supplementary Form. \x1b[0m");
                                 
+                                // 325 for Order Supplementary Form - Modified to 705
+                                /////////////////////////////////////////////////////
+                                let ordSupplactivityTimelineCollectionFor325 = {
+                                    "mail_body": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+                                    "subject": "Submitted - Order Supplementary Form",
+                                    "content": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+                                    "asset_reference": [],
+                                    "activity_reference": [],
+                                    "form_approval_field_reference": [],
+                                    "form_submitted": newRequest.activity_inline_data,
+                                    "attachments": []
+                                 };
+
+                                newRequest.activity_timeline_collection = JSON.stringify(ordSupplactivityTimelineCollectionFor325);
+                                //newRequest.activity_stream_type_id = 325;
                                 newRequest.activity_stream_type_id = 705;
-                                newRequest.activity_timeline_collection = newRequest.activity_inline_data;
-                                newRequest.activity_inline_data = {};
-                                
-                                let event = {
+
+
+                                let displayOrdSupFormOnFileEvent = {
                                     name: "addTimelineTransaction",
                                     service: "activityTimelineService",
                                     method: "addTimelineTransaction",
                                     payload: newRequest
                                 };
-                                queueWrapper.raiseActivityEvent(event, newRequest.activity_id, (err, resp) => {
+
+                                queueWrapper.raiseActivityEvent(displayOrdSupFormOnFileEvent, newRequest.activity_id, (err, resp) => { //newRequest.activity_id Ord Suppl Form Act Id
                                     if (err) {
-                                        console.log("\x1b[35m [ERROR] Raising queue activity raised for timeline entry with 705 streamtypeid. \x1b[0m");
+                                        console.log("\x1b[35m [ERROR] Raising queue activity raised for 705 streamtypeid for Order Supplementary file. \x1b[0m", err);
                                     } else {
-                                        console.log("\x1b[35m Queue activity raised for timeline entry with 705 streamtypeid. \x1b[0m");
-                                                                                
+                                        console.log("\x1b[35m Raising queue activity raised for 705 streamtypeid for Order Supplementary file. \x1b[0m");
+                                    }
+                                });
+                                ///////////////////////////////////////////////////////////
+                                
+                                // 325 for New Order Form regarding the order suppl form - Modified to 705
+                                ///////////////////////////////////////////////////////////////////////////
+                                let newRequest1 = Object.assign({}, newRequest);
                                         
-                                        // 325 for New Order Form regarding the order suppl form
-                                        ////////////////////////////////////////////////////////
-                                        let newRequest1 = Object.assign(newRequest);
-                                        
-                                        // Fire a 325 request to the new order form too!
-                                        let activityTimelineCollectionFor325 = {
-                                              "mail_body": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
-                                              "subject": "Submitted - Order Supplementary Form",
-                                              "content": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
-                                              "asset_reference": [],
-                                              "activity_reference": [],
-                                              "form_approval_field_reference": [],
-                                              "form_submitted": newRequest1.activity_timeline_collection,
-                                              "attachments": []
-                                        };
-                                        newRequest1.activity_timeline_collection = JSON.stringify(activityTimelineCollectionFor325);
-                                        newRequest1.activity_stream_type_id = 325;
-                                        newRequest1.activity_id = request.form_activity_id;
+                                // Fire a 325 request to the new order form too! - Modified to 705
+                                let activityTimelineCollectionFor325 = {
+                                    "mail_body": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+                                    "subject": "Submitted - Order Supplementary Form",
+                                    "content": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+                                    "asset_reference": [],
+                                    "activity_reference": [],
+                                    "form_approval_field_reference": [],
+                                    "form_submitted": newRequest.activity_inline_data,
+                                    "attachments": []
+                                };
+                                
+                                newRequest1.activity_timeline_collection = JSON.stringify(activityTimelineCollectionFor325);                                        
+                                //newRequest1.activity_stream_type_id = 325;
+                                newRequest1.activity_stream_type_id = 705;
+                                newRequest1.flag_timeline_entry = 1;
+                                newRequest1.activity_id = request.form_activity_id;
 
-                                        let displayOrdSupFormOnFileEvent = {
-                                            name: "addTimelineTransaction",
-                                            service: "activityTimelineService",
-                                            method: "addTimelineTransaction",
-                                            payload: newRequest1
-                                        };
+                                let displayOrdSupFormOnFileEventOne = {
+                                    name: "addTimelineTransaction",
+                                    service: "activityTimelineService",
+                                    method: "addTimelineTransaction",
+                                    payload: newRequest1
+                                };
 
-                                        queueWrapper.raiseActivityEvent(displayOrdSupFormOnFileEvent, request.form_activity_id, (err, resp) => {
-                                            if (err) {
-                                                console.log("\x1b[35m [ERROR] Raising queue activity raised for 325 streamtypeid for Order Activity. \x1b[0m");
-                                            } else {
-                                                console.log("\x1b[35m Queue activity raised for 325 streamtypeid for Order Activity. \x1b[0m");
-                                                
-                                                // 705 for New Order Form regarding the order suppl form
-                                                ////////////////////////////////////////////////////////
-                                                let ordSupplFormSubmissionRequest705 = Object.assign({}, newRequest);
-                                                
-                                                ordSupplFormSubmissionRequest705.activity_id = request.form_activity_id;
-                                                ordSupplFormSubmissionRequest705.form_transaction_id = newRequest.form_transaction_id;
-                                                ordSupplFormSubmissionRequest705.form_id = global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY;
-                                                ordSupplFormSubmissionRequest705.flag_timeline_entry = 1;
-                                                ordSupplFormSubmissionRequest705.activity_stream_type_id = 705;
-                                                ordSupplFormSubmissionRequest705.message_unique_id = util.getMessageUniqueId(request.asset_id);
-                                                ordSupplFormSubmissionRequest705.activity_timeline_collection = JSON.stringify(data);
-
-                                                let event = {
-                                                    name: "addTimelineTransaction",
-                                                    service: "activityTimelineService",
-                                                    method: "addTimelineTransaction",
-                                                    payload: ordSupplFormSubmissionRequest705
-                                                };
-
-                                                queueWrapper.raiseActivityEvent(event, request.form_activity_id, (err, resp) => {
-                                                    if (err) {
-                                                        console.log("\x1b[35m [ERROR] Raising queue activity raised for Order Supppl 705 streamtypeid for Order Activity. \x1b[0m");
-                                                    } else {
-                                                        console.log("\x1b[35m Queue activity raised for Order Supppl 705 streamtypeid for Order Activity. \x1b[0m");
-                                                        resolve();
-                                                    }
-                                                });
-
-
+                                queueWrapper.raiseActivityEvent(displayOrdSupFormOnFileEventOne, request.form_activity_id, (err, resp) => {
+                                    if (err) {
+                                        console.log("\x1b[35m [ERROR] Raising queue activity raised for 705 streamtypeid for Order Activity. \x1b[0m");
+                                    } else {
+                                        console.log("\x1b[35m Queue activity raised for 705 streamtypeid for Order Activity. \x1b[0m");                                           
                                             }
-                                        });
-                                        
+                                        });                                        
                                    }
                                 });
                            }
                         });
                     }
-              });  
-              }
-           });
-                        
-            });
-            
+              }); 
+              });
         });
-    }
+    };
     
     this.newOrderFormSubmission = function (request, callback) {
       
@@ -1176,7 +1126,7 @@ function VodafoneService(objectCollection) {
                 auth_asset_id: global.vodafoneConfig[request.organization_id].BOT.ASSET_ID,
                 activity_id: request.activity_id || 0,
                 activity_type_category_id: 9,
-                activity_stream_type_id : 705,
+                activity_stream_type_id : 705,                
                 form_id: Number(customerCollection.activity_form_id),                
                 type: 'approval'
             };

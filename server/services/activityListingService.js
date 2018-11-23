@@ -1821,8 +1821,6 @@ function ActivityListingService(objCollection) {
     };
     
     
-   
-    
     this.getActivityFormFieldValidationData = function (request) {
 		return new Promise((resolve, reject)=>{
 	        var paramsArr = new Array(	        		
@@ -1835,18 +1833,27 @@ function ActivityListingService(objCollection) {
 	        if (queryString != '') {
 	            db.executeQuery(0, queryString, request, function (err, data) {
 	            	//console.log("err "+err);
-	               if(err === false) {
-	               		console.log('data: '+data.length);
-	               		processFormInlineData(request, data).then((finalData)=>{
+	               if(err === false) {	               		
+                                global.logger.write('debug','Data from ds_v1_activity_list_select_form_transaction : ' + data, {}, request);
+                                console.log(data);
+                                if(data.length > 0) {
+                                    if(JSON.parse(data[0].activity_inline_data).length > 0) {
+                                        processFormInlineData(request, data).then((finalData)=>{
   	               			//console.log("finalData : "+finalData);
-  	               			resolve(finalData);
-  	               		});
+                                            resolve(finalData);
+                                        });
+                                    } else {
+                                        resolve({});
+                                    }                                    
+                                } else {
+                                    resolve({});
+                                }	               		
 	               		    				        			      			  
                     } else {
 	                   reject(err);
 	               }
 	            });
-	   		}
+	   	}
         });
     };
     
