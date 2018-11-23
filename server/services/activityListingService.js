@@ -1821,8 +1821,24 @@ function ActivityListingService(objCollection) {
     };
     
     
-   
-    
+    this.getActivityFormFieldValidationData = function (request) {
+		return new Promise((resolve, reject)=>{
+			activityCommonService.getActivityByFormTransaction(request).then((data)=>{
+           		if(data.length > 0)
+       			{
+               		processFormInlineData(request, data).then((finalData)=>{
+	               			//console.log("finalData : "+finalData);
+	               			resolve(finalData);
+	               		});
+       			}else{
+       				
+       				resolve(data);
+       			}
+			});
+		})
+    };
+		
+   /* 
     this.getActivityFormFieldValidationData = function (request) {
 		return new Promise((resolve, reject)=>{
 	        var paramsArr = new Array(	        		
@@ -1854,7 +1870,7 @@ function ActivityListingService(objCollection) {
 	            });
 	   		}
         });
-    };
+    }; */
     
     function processFormInlineData(request, data){
     	return new Promise((resolve, reject) => {
