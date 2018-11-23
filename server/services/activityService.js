@@ -2980,28 +2980,37 @@ function ActivityService(objectCollection) {
     this.updateActivityFormFieldValidation = function(request){
     	return new Promise((resolve, reject)=>{
     		console.log("IN PROMISE");
-    		activityCommonService.getActivityCollection(request).then((activityData)=>{
-    			console.log("IN ACTIVITY COLLECTION: "+activityData);
-    			processFormInlineData(request, activityData).then((finalData)=>{
+    		activityCommonService.getActivityByFormTransaction(request).then((activityData)=>{
+    			if(activityData.length > 0){
+    				
+	    			request['activity_id']=activityData[0].activity_id;
+	    			//console.log("IN ACTIVITY COLLECTION: "+request.activity_id);
+	    			resolve();
+	    			processFormInlineData(request, activityData).then((finalData)=>{
     				console.log("IN PROCESS INLINE DATA "+finalData);
     	    		this.activityListUpdateFieldValidated(request, JSON.stringify(finalData)).then(()=>{
     	    			console.log("IN ACTIVITY LIST UPDATE ");
     	    			this.activityMappingListUpdateFieldValidated(request).then(()=>{
     	    				console.log("IN ACTIVITY ASSET MAPPING UPDATE ");
     	    				request['datetime_log'] = util.getCurrentUTCTime();
-    	                activityCommonService.activityListHistoryInsert(request, 417, function (err, result) { });
-    	                activityCommonService.assetTimelineTransactionInsert(request, {}, 712, function (err, data) {});
-    	                activityCommonService.activityTimelineTransactionInsert(request, {}, 712, function (err, data) {});
-    	                activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) {});
-    	                activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {});
+	    	                activityCommonService.activityListHistoryInsert(request, 417, function (err, result) { });
+	    	                activityCommonService.assetTimelineTransactionInsert(request, {}, 712, function (err, data) {});
+	    	                activityCommonService.activityTimelineTransactionInsert(request, {}, 712, function (err, data) {});
+	    	                activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) {});
+	    	                activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {});
     	    			
+    	    				})
+    	    				resolve();
     	    			})
-    	    			resolve();
-    	    		})
-    			})
+    				})
+    				
+    			}else{
+    				resolve();
+    			}
+    			
     		})
     		
-
+    		
     	});
     }
     
