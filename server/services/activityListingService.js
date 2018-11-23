@@ -1882,6 +1882,54 @@ function ActivityListingService(objCollection) {
     	});
     };
 
+    this.getFormList = function (request) {
+		return new Promise((resolve, reject)=>{
+	        var paramsArr = new Array(	        		
+	        		request.organization_id,
+	        		request.account_id,
+	        		request.workforce_id,
+	        		0,
+	        		0,
+	        		50
+	                );
+	
+	        var queryString = util.getQueryString('ds_v1_workforce_form_mapping_select_organization', paramsArr);
+	        if (queryString != '') {
+	            db.executeQuery(0, queryString, request, function (err, data) {
+	            	console.log("err "+err);
+	               if(err === false) {
+	               		console.log('data: '+data.length);
+	               		if(data.length > 0)
+               			{
+		               		processFormListData(request, data).then((finalData)=>{
+	  	               			//console.log("finalData : "+finalData);
+	  	               			resolve(finalData);
+	  	               		});
+               			}else{
+               				
+               				resolve(data);
+               			}
+                    } else {
+	                   reject(err);
+	               }
+	            });
+	   		}
+        });
+    };
+    
+    function processFormListData(request, data){
+    	return new Promise((resolve, reject) => {
+    		var obj = {};
+			forEachAsync(data, function (next, fieldData) {
+				//console.log('fieldData : '+JSON.stringify(fieldData));
+				obj[fieldData.form_name]=fieldData.form_id;       
+					next();
+            }).then(()=>{
+            	console.log(obj);
+            	resolve(obj);
+            });	    		
+    	});
+    };
 
 };
 
