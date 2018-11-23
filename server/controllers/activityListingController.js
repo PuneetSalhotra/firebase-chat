@@ -568,38 +568,47 @@ function ActivityListingController(objCollection) {
 
     // [Vodafone Service] DUMMY SERVICE | For all retieving all forms associated 
     // with a new order form_id
+    /*
     app.post('/' + global.config.version + '/activity/category/form/mapping', function (req, res) {
         // 
         if (Number(req.body.form_id) === 873) {
             // BETA
             res.send(responseWrapper.getResponse(false, {
-                "order_supplementary_form": 874,
-                "hld_form": 869,
-                "account_manager_approval_form": 875,
-                "new_customer_form": 880,
-                "existing_customer_form": 881,
-                "customer_approval_form": 882,
-                "omt_approval_form": 883,
-                "fr_form": 871,
-                "crm_form": 870,
-                "caf_form": 872,
-                "crm_acknowledgement_form": 868
+            	"New Order Details":873,
+                "Order Supplementary Details": 874,
+                "CRM Details": 870,
+                "FR Details": 871, 
+                "BC/HLD Documents":889,
+                "HLD": 869,
+                "New Customer Documents": 880,
+                "Existing Customer Documents": 881,
+                "CAF Form": 872,
+                "OMT Approval": 883,  
+                "Account Manager Approval": 875, 
+                "Customer IT Approval":885,
+                "Customer Authorized Signatory Approval":887,
+                "Customer Management Approval": 882,
+                "CRM_Acknowledgement": 868
             }, 200, req.body));
 
         } else if (Number(req.body.form_id) === 856) {
             // LIVE
             res.send(responseWrapper.getResponse(false, {
-                "order_supplementary_form": 857,
-                "hld_form": 864,
-                "account_manager_approval_form": 858,
-                "new_customer_form": 876,
-                "existing_customer_form": 877,
-                "customer_approval_form": 878,
-                "omt_approval_form": 879,
-                "fr_form": 866,
-                "crm_form": 865,
-                "caf_form": 867,
-                "crm_acknowledgement_form": 863
+            	"New Order Details":856,
+                "Order Supplementary Details": 857,
+                "CRM Details": 865,
+                "FR Details": 866, 
+                "BC/HLD Documents":888,
+                "HLD": 864,
+                "New Customer Documents": 876,
+                "Existing Customer Documents": 877,
+                "CAF Form": 867,
+                "OMT Approval": 879,   
+                "Account Manager Approval": 858,
+                "Customer IT Approval":884,
+                "Customer Authorized Signatory Approval":886,
+                "Customer Management Approval": 878,
+                "CRM_Acknowledgement": 863
             }, 200, req.body));
 
         } else {
@@ -607,8 +616,17 @@ function ActivityListingController(objCollection) {
                 error: "Some parameter is incorrect."
             }, -9998, req.body));
         }
-    });
+    }); */
     
+    app.post('/' + global.config.version + '/activity/category/form/mapping', function (req, res) {
+    	activityListingService.getFormList(req.body).then((data)=>{   
+    		
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -9998, req.body));
+        	});
+    }); 
     
     
     app.post('/' + global.config.version + '/activity/form/validation/data', function (req, res) {
@@ -620,6 +638,16 @@ function ActivityListingController(objCollection) {
     		res.send(responseWrapper.getResponse(err, data, -999, req.body));
         	});
     });
+    
+    app.post('/' + global.config.version + '/activity/my_queue/list', function (req, res) {
+    	activityListingService.getMyQueueActivities(req.body).then((data)=>{   
+    		
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -9998, req.body));
+        	});
+    }); 
 }
 
 module.exports = ActivityListingController;
