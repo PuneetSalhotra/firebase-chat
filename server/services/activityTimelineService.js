@@ -26,30 +26,25 @@ function ActivityTimelineService(objectCollection) {
         var activityStreamTypeId = Number(request.activity_stream_type_id);
         activityCommonService.updateAssetLocation(request, function (err, data) {});
         if (activityTypeCategoryId === 9 && activityStreamTypeId === 705) {   // add form case
-            var formDataJson = JSON.parse(request.activity_timeline_collection);
-            request.form_id = formDataJson[0]['form_id'];
-            //console.log('form id extracted from json is: ' + formDataJson[0]['form_id']);
-            global.logger.write('debug', 'form id extracted from json is: ' + formDataJson[0]['form_id'], {}, request);
-            var lastObject = formDataJson[formDataJson.length - 1];
-            //console.log('Last object : ', lastObject)
-            global.logger.write('debug', 'Last object : ' + JSON.stringify(lastObject, null, 2), {}, request);
-            if (lastObject.hasOwnProperty('field_value')) {
-                //console.log('Has the field value in the last object')
-                global.logger.write('debug', 'Has the field value in the last object', {}, request);
-                //remote Analytics
-                if (request.form_id == 325) {
-                    monthlySummaryTransInsert(request).then(() => {
-                    });
+            
+            if(!request.hasOwnProperty('form_id')) {
+                var formDataJson = JSON.parse(request.activity_timeline_collection);
+                request.form_id = formDataJson[0]['form_id'];
+                //console.log('form id extracted from json is: ' + formDataJson[0]['form_id']);
+                global.logger.write('debug', 'form id extracted from json is: ' + formDataJson[0]['form_id'], {}, request);
+                var lastObject = formDataJson[formDataJson.length - 1];
+                //console.log('Last object : ', lastObject)
+                global.logger.write('debug', 'Last object : ' + JSON.stringify(lastObject, null, 2), {}, request);
+                if (lastObject.hasOwnProperty('field_value')) {
+                    //console.log('Has the field value in the last object')
+                    global.logger.write('debug', 'Has the field value in the last object', {}, request);
+                    //remote Analytics
+                    if (request.form_id == 325) {
+                        monthlySummaryTransInsert(request).then(() => {
+                        });
+                    }
                 }
             }
-            // add form entries
-            addFormEntries(request, function (err, approvalFieldsArr) {
-                if (err === false) {
-                    //callback(false,{},200);
-                } else {
-                    //callback(true, {}, -9999);
-                }
-            });
             
             // Tirggering BOT 1
             if ((Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER))) {
