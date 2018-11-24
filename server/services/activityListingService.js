@@ -1868,7 +1868,7 @@ function ActivityListingService(objCollection) {
 	                   reject(err);
 	               }
 	            });
-	   		}
+	   	}
         });
     }; */
     
