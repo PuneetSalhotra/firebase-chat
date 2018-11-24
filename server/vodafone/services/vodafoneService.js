@@ -1896,9 +1896,7 @@ function VodafoneService(objectCollection) {
                 return activityCommonService.getActivityTimelineTransactionByFormId(request, request.activity_id, formId)
             })
             .then((frFormData) => {
-                console.log("frFormData:: ", frFormData);
-                console.log("frFormData === undefined:: ", frFormData === undefined);
-                console.log("frFormData.length:: ", frFormData.length);
+                
                 if (frFormData.length > 0) {
                     let formDataCollection = JSON.parse(frFormData[0].data_entity_inline);
                     let formDataArrayOfObjects = [];
