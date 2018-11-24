@@ -2321,12 +2321,12 @@ function ActivityCommonService(db, util, forEachAsync) {
             }
         });
     };
-    
+    /*
     this.processReservationBilling = function (request, idReservation){
     	return new Promise((resolve, reject)=>{
     		if(request.hasOwnProperty('is_room_posting'))
-    			pamEventBillingUpdate(request, idReservation);
-    		resolve(true);
+    			this.pamEventBillingUpdate(request, idReservation);
+    		resolve();
     	});
     };    
 
@@ -2350,7 +2350,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 });
             }
         })
-    };
+    };*/
 
     // Fetching the Asset Type ID for a given organisation/workforce and asset type category ID
     this.workforceAssetTypeMappingSelectCategory = function (request, assetTypeCategoryId, callback) {
@@ -2651,12 +2651,12 @@ function ActivityCommonService(db, util, forEachAsync) {
     this.processReservationBilling = function (request, idReservation){
     	return new Promise((resolve, reject)=>{
     		//if(request.hasOwnProperty('is_room_posting'))
-    			pamEventBillingUpdate(request, idReservation);
+    			this.pamEventBillingUpdate(request, idReservation);
     		resolve(true);
     	});
     };    
 
-    function pamEventBillingUpdate(request, idReservation) {
+    this.pamEventBillingUpdate = function(request, idReservation) {
         return new Promise((resolve, reject)=>{
             var paramsArr = new Array(
                 request.organization_id,
@@ -2787,10 +2787,14 @@ function ActivityCommonService(db, util, forEachAsync) {
                 	  if(err === false) {
   	               		console.log('data: '+data.length);
   	               		if(request.hasOwnProperty("field_id")){
-  	               		processDBData(request, data).then((finalData)=>{
-  	               			//console.log(finalData);
-  	               			resolve(finalData);
-  	               			});       
+  	               			if(data.length > 0){
+		  	               		processDBData(request, data).then((finalData)=>{
+		  	               			//console.log(finalData);
+		  	               			resolve(finalData);
+		  	               		});   
+  	               			}else{
+  	               				resolve(data);
+  	               			}     
   	               		}else{
   	               			resolve(data);
   	               		}
@@ -2834,6 +2838,29 @@ function ActivityCommonService(db, util, forEachAsync) {
 	    			resolve(array);
 	    		});
     	});
+    };
+    
+    this.getActivityByFormTransaction = function (request) {
+		return new Promise((resolve, reject)=>{
+	        var paramsArr = new Array(
+	        		request.activity_id,
+	        		request.form_transaction_id,
+	        		request.organization_id
+	                );
+	
+	        var queryString = util.getQueryString('ds_v1_activity_list_select_form_transaction', paramsArr);
+	        if (queryString != '') {
+	            db.executeQuery(0, queryString, request, function (err, data) {
+	            	//console.log("err "+err);
+	               if(err === false) {
+	               		console.log('data: '+data.length);
+	               		resolve(data);        				        			      			  
+                    } else {
+	                   reject(err);
+	               }
+	            });
+	   		}
+        });
     };
 };
 

@@ -31,8 +31,8 @@ if (mode === 'local') {
     config.sqsConsumer = 7300;
 
     //Mysql Config
-    config.masterIp = 'worlddesk-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.slave1Ip = 'worlddesk-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';       
+    config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';       
 
     config.dbUser = 'apiuser';
     //config.database = 'desker';// desker_staging
@@ -105,8 +105,8 @@ if (mode === 'dev') {
     config.sqsConsumer = 3300;
 
     //Mysql Config
-    config.masterIp = 'worlddesk-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.slave1Ip = 'worlddesk-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';        
+    config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
         
     config.dbUser = 'apiuser';
     config.database = 'desker_staging';
@@ -176,8 +176,8 @@ if (mode === 'staging') {
     config.sqsConsumer = 4300;
 
     //Mysql Config
-    config.masterIp = 'worlddesk-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.slave1Ip = 'worlddesk-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
+    config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
 
     config.dbUser = 'apiuser';
     config.database = 'desker_staging';
@@ -248,8 +248,8 @@ if (mode === 'preprod') {
     config.sqsConsumer = 6300;
 
     //Mysql Config
-    config.masterIp = 'worlddesk-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.slave1Ip = 'worlddesk-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';   
+    config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
     
     config.dbUser = 'apiuser';
     config.database = 'desker';
@@ -319,9 +319,9 @@ if (mode === 'prod') {
 
     config.sqsConsumer = 3300;
 
-    //Mysql Config
-    config.masterIp = 'worlddesk-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.slave1Ip = 'worlddesk-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';   
+    //Mysql Config   
+    config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com'; 
     
     config.dbUser = 'apiuser';
     config.database = 'desker';
