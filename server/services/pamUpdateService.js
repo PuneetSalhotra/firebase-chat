@@ -312,7 +312,7 @@ function PamUpdateService(objectCollection) {
 		       }
 	        // }
 		
-		if(activityTypeCategroyId == 38) {            		
+		     if(activityTypeCategroyId == 38) {            		
             		//console.log('pamOrderListUpdate:'+activityTypeCategroyId);
 		        activityCommonService.pamOrderListUpdate(request, request.activity_id).then(()=>{});            		
             	}
