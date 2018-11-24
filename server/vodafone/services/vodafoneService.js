@@ -2064,7 +2064,7 @@ function VodafoneService(objectCollection) {
 
                 // global.config.mobileBaseUrl + global.config.version
                 // 'https://api.worlddesk.cloud/r1'
-                makeRequest.post(global.config.mobileBaseUrl + global.config.version, cafRequestOptions, function (error, response, body) {
+                makeRequest.post(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', cafRequestOptions, function (error, response, body) {
                     console.log("[cafFormSubmissionRequest] Body: ", body);
                     console.log("[cafFormSubmissionRequest] Error: ", error);
                     body = JSON.parse(body);
