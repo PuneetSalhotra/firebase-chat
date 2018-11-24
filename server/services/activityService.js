@@ -2985,7 +2985,7 @@ function ActivityService(objectCollection) {
     				
 	    			request['activity_id']=activityData[0].activity_id;
 	    			//console.log("IN ACTIVITY COLLECTION: "+request.activity_id);
-	    			resolve();
+	    			//resolve();
 	    			processFormInlineData(request, activityData).then((finalData)=>{
     				console.log("IN PROCESS INLINE DATA "+finalData);
     	    		this.activityListUpdateFieldValidated(request, JSON.stringify(finalData)).then(()=>{

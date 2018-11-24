@@ -2321,12 +2321,12 @@ function ActivityCommonService(db, util, forEachAsync) {
             }
         });
     };
-    
+    /*
     this.processReservationBilling = function (request, idReservation){
     	return new Promise((resolve, reject)=>{
     		if(request.hasOwnProperty('is_room_posting'))
-    			pamEventBillingUpdate(request, idReservation);
-    		resolve(true);
+    			this.pamEventBillingUpdate(request, idReservation);
+    		resolve();
     	});
     };    
 
@@ -2350,7 +2350,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 });
             }
         })
-    };
+    };*/
 
     // Fetching the Asset Type ID for a given organisation/workforce and asset type category ID
     this.workforceAssetTypeMappingSelectCategory = function (request, assetTypeCategoryId, callback) {
@@ -2651,12 +2651,12 @@ function ActivityCommonService(db, util, forEachAsync) {
     this.processReservationBilling = function (request, idReservation){
     	return new Promise((resolve, reject)=>{
     		//if(request.hasOwnProperty('is_room_posting'))
-    			pamEventBillingUpdate(request, idReservation);
+    			this.pamEventBillingUpdate(request, idReservation);
     		resolve(true);
     	});
     };    
 
-    function pamEventBillingUpdate(request, idReservation) {
+    this.pamEventBillingUpdate = function(request, idReservation) {
         return new Promise((resolve, reject)=>{
             var paramsArr = new Array(
                 request.organization_id,
