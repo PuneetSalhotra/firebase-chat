@@ -41,12 +41,12 @@ apps:
     out_file: '/dev/null'
     instances: 1
     exec_mode: fork  
-  - name : "PreProd_SQSConsumer"
-    script   : ./server/queue/sqsConsumer.js
+  #- name : "PreProd_SQSConsumer"
+  #  script   : ./server/queue/sqsConsumer.js
     #error_file: ../sqsConsumerLogger.txt
-    out_file: '/dev/null'
-    instances: 1
-    exec_mode: fork
+  #  out_file: '/dev/null'
+  #  instances: 1
+  #  exec_mode: fork
   #- name : "PreProd_PAM"
    # script   : ./server/pam/server.js
     #error_file: ../pamlogger.txt
