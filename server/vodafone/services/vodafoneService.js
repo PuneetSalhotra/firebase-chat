@@ -51,7 +51,8 @@ function VodafoneService(objectCollection) {
                 queueSort.last_status_alter_time = request.datetime_log;
                 queueSort.current_status_id = request.form_status_id;
                 queueSort.caf_completion_percentage = 23;
-                queueSort.current_status_name = "HLD Pending";
+                // queueSort.current_status_name = "HLD Pending";
+                queueSort.current_status_name = "CAF Updation";
                 queueMappingJson.queue_sort = queueSort;
                 
                 console.log('queueMappingJson : ', JSON.parse(JSON.stringify(queueMappingJson)));
