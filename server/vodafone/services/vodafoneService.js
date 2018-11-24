@@ -51,7 +51,8 @@ function VodafoneService(objectCollection) {
                 queueSort.last_status_alter_time = request.datetime_log;
                 queueSort.current_status_id = request.form_status_id;
                 queueSort.caf_completion_percentage = 23;
-                queueSort.current_status_name = "HLD Pending";
+                // queueSort.current_status_name = "HLD Pending";
+                queueSort.current_status_name = "CAF Updation";
                 queueMappingJson.queue_sort = queueSort;
                 
                 console.log('queueMappingJson : ', JSON.parse(JSON.stringify(queueMappingJson)));
@@ -323,7 +324,14 @@ function VodafoneService(objectCollection) {
 
                                 if (crmFormData.length > 0) {                        
                                     
-                                    request.crm_form_data = JSON.parse(crmFormData[0].data_entity_inline);
+                                    let formDataCollection = JSON.parse(crmFormData[0].data_entity_inline);
+                                    //request.crm_form_data = JSON.parse(crmFormData[0].data_entity_inline);                                    
+                                    
+                                    if (Array.isArray(formDataCollection.form_submitted) === true || typeof formDataCollection.form_submitted === 'object') {
+                                        request.crm_form_data = formDataCollection.form_submitted;
+                                    } else {
+                                        request.crm_form_data = JSON.parse(formDataCollection.form_submitted);
+                                    }
          
                                     activityCommonService.getActivityDetails(request, request.activity_id, (err, data)=>{
                                         if(err === false) {
