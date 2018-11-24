@@ -323,7 +323,14 @@ function VodafoneService(objectCollection) {
 
                                 if (crmFormData.length > 0) {                        
                                     
-                                    request.crm_form_data = JSON.parse(crmFormData[0].data_entity_inline);
+                                    let formDataCollection = JSON.parse(crmFormData[0].data_entity_inline);
+                                    //request.crm_form_data = JSON.parse(crmFormData[0].data_entity_inline);                                    
+                                    
+                                    if (Array.isArray(formDataCollection.form_submitted) === true || typeof formDataCollection.form_submitted === 'object') {
+                                        request.crm_form_data = formDataCollection.form_submitted;
+                                    } else {
+                                        request.crm_form_data = JSON.parse(formDataCollection.form_submitted);
+                                    }
          
                                     activityCommonService.getActivityDetails(request, request.activity_id, (err, data)=>{
                                         if(err === false) {
