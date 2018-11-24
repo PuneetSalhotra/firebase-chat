@@ -1126,6 +1126,7 @@ function VodafoneService(objectCollection) {
                 auth_asset_id: global.vodafoneConfig[request.organization_id].BOT.ASSET_ID,
                 activity_id: request.activity_id || 0,
                 activity_type_category_id: 9,
+                activity_type_id: global.vodafoneConfig[request.organization_id].ACTIVITY_TYPE_IDS[request.workforce_id],
                 activity_stream_type_id : 705,                
                 form_id: Number(customerCollection.activity_form_id),                
                 type: 'approval'
@@ -2870,6 +2871,7 @@ function VodafoneService(objectCollection) {
                                                 asset_token_auth: CAF_BOT_ENC_TOKEN,
                                                 activity_id: Number(request.activity_id),
                                                 activity_type_category_id: 9,
+                                                activity_type_id: global.vodafoneConfig[request.organization_id].ACTIVITY_TYPE_IDS[request.workforce_id],
                                                 activity_stream_type_id: 705,
                                                 form_id: ACCOUNT_MANAGER_APPROVAL_FORM_ID,
                                                 // activity_type_id: activityTypeId,
@@ -2921,6 +2923,7 @@ function VodafoneService(objectCollection) {
                                             activity_id: Number(request.activity_id),
                                             form_id: CUSTOMER_APPROVAL_FORM_ID,
                                             activity_type_category_id: 9,
+                                            activity_type_id: global.vodafoneConfig[request.organization_id].ACTIVITY_TYPE_IDS[request.workforce_id],
                                             activity_stream_type_id: 705,
                                             // activity_type_id: activityTypeId,
                                             type: 'approval'
