@@ -7,14 +7,14 @@ files:
   - source: .
     destination: /preprod_desker_api
   - source: .
-    destination: /production_desker_api/2018-11-24-02
+    destination: /production_desker_api/2018-11-25-01
 permissions:
   - object: /preprod_desker_api/deployment
     owner: root
     mode: 777
     type:
       - directory
-  - object: /production_desker_api/2018-11-24-02/deployment
+  - object: /production_desker_api/2018-11-25-01/deployment
     owner: root
     mode: 777
     type:
