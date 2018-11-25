@@ -2814,7 +2814,7 @@ function ActivityCommonService(db, util, forEachAsync) {
     		
     		forEachAsync(data, function (next, rowData) {
     			//console.log("IN FIRST ASYNC");
-	    		forEachAsync(JSON.parse(rowData.data_entity_inline), function (next1, fieldData) {
+	    		forEachAsync(JSON.parse(rowData.data_entity_inline).form_submitted, function (next1, fieldData) {
 	    			//console.log("IN SECOND ASYNC : "+parseInt(Number(fieldData.field_id)) +": "+parseInt(Number(request.field_id)));
 		    			if(parseInt(Number(fieldData.field_id)) === parseInt(Number(request.field_id))){
 		    				//console.log("Field Equals "+fieldData);
@@ -2861,6 +2861,35 @@ function ActivityCommonService(db, util, forEachAsync) {
 	            });
 	   		}
         });
+    };
+    
+    
+    this.getActivityByFormTransactionCallback = function (request, activityId, callback) {
+        var paramsArr;
+        if (Number(activityId > 0)) {
+            paramsArr = new Array(
+                activityId,
+                request.form_transaction_id,
+                request.organization_id
+            );
+        } else {
+            paramsArr = new Array(
+                request.activity_id,
+                request.form_transaction_id,
+                request.organization_id
+            );
+        }
+        var queryString = util.getQueryString('ds_v1_activity_list_select_form_transaction', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (err === false) {                    
+                    callback(false, data);
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, false);
+                }
+            });
+        }
     };
 };
 
