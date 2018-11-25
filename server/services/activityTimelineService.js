@@ -27,6 +27,15 @@ function ActivityTimelineService(objectCollection) {
         activityCommonService.updateAssetLocation(request, function (err, data) {});
         if (activityTypeCategoryId === 9 && activityStreamTypeId === 705) {   // add form case
             
+            // add form entries
+            addFormEntries(request, function (err, approvalFieldsArr) {
+                if (err === false) {
+                    //callback(false,{},200);
+                } else {
+                    //callback(true, {}, -9999);
+                }
+            });
+            
             if(!request.hasOwnProperty('form_id')) {
                 var formDataJson = JSON.parse(request.activity_timeline_collection);
                 request.form_id = formDataJson[0]['form_id'];
@@ -44,7 +53,7 @@ function ActivityTimelineService(objectCollection) {
                         });
                     }
                 }
-            }
+            }        
             
             // Tirggering BOT 1
             if ((Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER))) {
@@ -1421,8 +1430,17 @@ function ActivityTimelineService(objectCollection) {
 
         //console.log('\x1b[32m%s\x1b[0m', 'Inside the addFormEntries() function.');
         global.logger.write('debug', '\x1b[32m Inside the addFormEntries() function. \x1b[0m', {}, request);
+        
+        let formDataJson;        
+        let formDataCollection = JSON.parse(request.activity_timeline_collection);
+        
+        if (Array.isArray(formDataCollection.form_submitted) === true || typeof formDataCollection.form_submitted === 'object') {
+            formDataJson = formDataCollection.form_submitted;
+        } else {
+            formDataJson = JSON.parse(formDataCollection.form_submitted);
+        }
 
-        var formDataJson = JSON.parse(request.activity_timeline_collection);
+        //var formDataJson = JSON.parse(request.activity_timeline_collection);
         var approvalFields = new Array();
         forEachAsync(formDataJson, function (next, row) {
             if (row.hasOwnProperty('data_type_combo_id')) {

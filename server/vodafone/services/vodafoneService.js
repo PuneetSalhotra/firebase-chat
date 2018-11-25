@@ -17,7 +17,7 @@ function VodafoneService(objectCollection) {
     const moment = require('moment');
     const formFieldIdMapping = util.getVodafoneFormFieldIdMapping();
     const romsCafFieldsData = util.getVodafoneRomsCafFieldsData();
-
+    
     this.newOrderFormAddToQueues = function(request, callback) {
         
         var logDatetime = util.getCurrentUTCTime();        
@@ -142,7 +142,7 @@ function VodafoneService(objectCollection) {
         });
         
         callback(false, {}, 200);
-    };   
+    };
     
     function addOrderSuppForm(request) {
         return new Promise((resolve, reject)=>{
@@ -152,8 +152,13 @@ function VodafoneService(objectCollection) {
                 
                 console.log("\x1b[35m Retrived Data Type . \x1b[0m", typeof data);
                 console.log("\x1b[35m Got the empty Order supplementary form data . \x1b[0m");
-             
-                let newRequest = {
+                
+                forEachAsync(data, (next, row)=>{
+                    row.field_value = "";
+                    next();
+                }).then(()=>{
+                    
+                    let newRequest = {
                     organization_id: request.organization_id,
                     account_id: global.vodafoneConfig[request.organization_id].CUSTOMER.ACCOUNT_ID,
                     workforce_id: global.vodafoneConfig[request.organization_id].CUSTOMER.WORKFORCE_ID,
@@ -297,7 +302,8 @@ function VodafoneService(objectCollection) {
                            }
                         });
                     }
-              }); 
+              });
+                });
               });
         });
     };
@@ -504,13 +510,13 @@ function VodafoneService(objectCollection) {
                                                     response.desk_asset_id = deskAssetId;                                                    
                                                     
                                                     //Fire Email to Customer
-                                                    vodafoneSendEmail(request, customerCollection).then(()=>{
+                                                    /*vodafoneSendEmail(request, customerCollection).then(()=>{
                                                         resolve(response);
                                                     }).catch((err)=>{
                                                         console.log('err : ' , err);
                                                         global.logger.write('debug', err, {}, request);
                                                         reject(err);
-                                                    });
+                                                    });*/
                                                     
                                                     /*var solutionsRepCollection = {};
                                                     solutionsRepCollection.firstName = solutionsRepName;
@@ -566,13 +572,13 @@ function VodafoneService(objectCollection) {
                                                     response.desk_asset_id = deskAssetId;     
                                                     
                                                     //Fire Email to customer
-                                                    vodafoneSendEmail(request, customerCollection).then(()=>{
+                                                    /*vodafoneSendEmail(request, customerCollection).then(()=>{
                                                         resolve(response);
                                                     }).catch((err)=>{
                                                         console.log('vnk err : ' , err);
                                                         global.logger.write('debug', err, {}, request);
                                                         reject(err);
-                                                    });
+                                                    });*/
                                                     
                                                     /*var solutionsRepCollection = {};
                                                     solutionsRepCollection.firstName = solutionsRepName;
@@ -639,13 +645,13 @@ function VodafoneService(objectCollection) {
                                             response.contact_card_activity_id = contactfileActId;
                                             
                                             //Fire Email to Customer
-                                            vodafoneSendEmail(request, customerCollection).then(()=>{
+                                            /*vodafoneSendEmail(request, customerCollection).then(()=>{
                                                 resolve(response);
                                             }).catch((err)=>{
                                                 console.log('err : ' , err);
                                                 global.logger.write('debug', err, {}, request);
                                                 reject(err);
-                                            });
+                                            });*/
                                             
                                             /*var solutionsRepCollection = {};
                                             solutionsRepCollection.firstName = solutionsRepName;
@@ -1100,7 +1106,7 @@ function VodafoneService(objectCollection) {
         let contactEmailId = request.contact_email_id;
         let deskAssetId = request.desk_asset_id;
             
-        vodafoneSendEmail(request, {
+        /*vodafoneSendEmail(request, {
             firstName,
             contactPhoneCountryCode,
             contactPhoneNumber,
@@ -1112,7 +1118,7 @@ function VodafoneService(objectCollection) {
                 console.log('err : ' , err);
                 global.logger.write('debug', err, {}, request);
                 callback(true,{},-9998);
-            });
+            });*/
     };
     
     function vodafoneSendEmail (request, customerCollection) {
@@ -2894,7 +2900,7 @@ function VodafoneService(objectCollection) {
                                             templateDesign = "<table style='border-collapse: collapse !important;' width='100%' bgcolor='#ffffff' border='0' cellpadding='10' cellspacing='0'><tbody><tr> <td> <table bgcolor='#ffffff' style='width: 100%;max-width: 600px;' class='content' align='center' cellpadding='0' cellspacing='0' border='0'> <tbody><tr><td align='center' valign='top'><table style='border: 1px solid #e2e2e2; border-radius: 4px; background-clip: padding-box; border-spacing: 0;' border='0' cellpadding='0' cellspacing='0' width='100%' id='templateContainer'><tbody> <tr> <td align='left' style='float: right;padding: 20px;' valign='top'> <img style='width: 100px' src ='https://office.desker.co/Vodafone_logo.png'/> <img style='height: 44px;margin-left: 10px;' src ='https://office.desker.co/Idea_logo.png'/> </td> </tr> <tr><td valign='top' style=' color: #505050; font-family: Helvetica; font-size: 14px; line-height: 150%; padding-top: 3.143em; padding-right: 3.5em; padding-left: 3.5em; padding-bottom: 3.143em; text-align: left;' class='bodyContent' mc:edit='body_content'> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>Hey " + nameStr + ",</p> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>" + openingMessage + "</p> <p style=' color: #808080; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: bold; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 10px; margin-left: 0; text-align: left;'>Account Manager Approval Form</p> " + allFields + "<table style='width: 100%;margin-top: 5px'></table> " + callToction + " <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 40px; margin-right: 0; margin-bottom: 0px; margin-left: 0; text-align: left;'> Parmeshwar Reddy </p> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; text-align: left;'> Vice President </p> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; text-align: left;'> Customer Care </p></td></tr> <tr> <td style='height: 35px;background: #cbcbcb;'></td> </tr></tbody></table><!-- // END BODY --></td></tr> </tbody></table> </td> </tr></tbody></table>";
 
                                             // Fire the email
-                                            util.sendEmailV3({
+                                            /*util.sendEmailV3({
                                                     email_receiver_name: `${participant.asset_first_name} ${participant.asset_last_name}`,
                                                     email_sender_name: 'Vodafone - Idea',
                                                     email_sender: 'vodafone_idea@grenerobotics.com'
@@ -2909,7 +2915,7 @@ function VodafoneService(objectCollection) {
                                                     } else {
                                                         console.log("Email sent to the Account Manager: ", data);
                                                     }
-                                                });
+                                                });*/
                                         }
                                     }
                                     break;
@@ -2945,7 +2951,7 @@ function VodafoneService(objectCollection) {
                                         templateDesign = "<table style='border-collapse: collapse !important;' width='100%' bgcolor='#ffffff' border='0' cellpadding='10' cellspacing='0'><tbody><tr> <td> <table bgcolor='#ffffff' style='width: 100%;max-width: 600px;' class='content' align='center' cellpadding='0' cellspacing='0' border='0'> <tbody><tr><td align='center' valign='top'><table style='border: 1px solid #e2e2e2; border-radius: 4px; background-clip: padding-box; border-spacing: 0;' border='0' cellpadding='0' cellspacing='0' width='100%' id='templateContainer'><tbody> <tr> <td align='left' style='float: right;padding: 20px;' valign='top'> <img style='width: 100px' src ='https://office.desker.co/Vodafone_logo.png'/> <img style='height: 44px;margin-left: 10px;' src ='https://office.desker.co/Idea_logo.png'/> </td> </tr> <tr><td valign='top' style=' color: #505050; font-family: Helvetica; font-size: 14px; line-height: 150%; padding-top: 3.143em; padding-right: 3.5em; padding-left: 3.5em; padding-bottom: 3.143em; text-align: left;' class='bodyContent' mc:edit='body_content'> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>Hey " + nameStr + ",</p> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>" + openingMessage + "</p> <p style=' color: #808080; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: bold; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 10px; margin-left: 0; text-align: left;'>Customer Approval Form</p> " + allFields + "<table style='width: 100%;margin-top: 5px'></table> " + callToction + " <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 40px; margin-right: 0; margin-bottom: 0px; margin-left: 0; text-align: left;'> Parmeshwar Reddy </p> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; text-align: left;'> Vice President </p> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; text-align: left;'> Customer Care </p></td></tr> <tr> <td style='height: 35px;background: #cbcbcb;'></td> </tr></tbody></table><!-- // END BODY --></td></tr> </tbody></table> </td> </tr></tbody></table>";
 
                                         // Fire the email
-                                        util.sendEmailV3({
+                                        /*util.sendEmailV3({
                                                 email_receiver_name: `${participant.asset_first_name} ${participant.asset_last_name}`,
                                                 email_sender_name: 'Vodafone - Idea',
                                                 email_sender: 'vodafone_idea@grenerobotics.com'
@@ -2960,7 +2966,7 @@ function VodafoneService(objectCollection) {
                                                 } else {
                                                     console.log("Email sent to the Account Manager: ", data);
                                                 }
-                                            });
+                                            });*/
                                     }
                                     break;
                             }
