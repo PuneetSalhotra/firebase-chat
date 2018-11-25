@@ -1964,18 +1964,7 @@ function ActivityListingService(objCollection) {
 	            db.executeQuery(1, queryString, request, function (err, data) {
 	            	//console.log('queryString : '+queryString+ "err "+err+ ": data.length "+data.length);
 	                if (err === false) {	                	
-	                	if(data.length > 0){	                		
-		                    formatActivityListing(data, function (err, finalData) {		                    	
-		                        if (err === false) {		                        	
-		                            resolve(finalData);	                            
-		                        }else{
-		                        	reject(err);
-		                        }
-		                    });
-	                	}else{
-	                		resolve(data);
-	                	}
-	                   
+	                	resolve(data);	                   
 	                } else {	                    
 	                    reject(err);	                    
 	                }

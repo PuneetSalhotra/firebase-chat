@@ -74,7 +74,7 @@ function CassandraWrapper() {
                 console.log('err : ', err);
                 callback(true, false);
             } else {
-                console.log('Connected')
+                //console.log('Connected')
                 callback(false, false);
             }
         });
