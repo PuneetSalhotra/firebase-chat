@@ -415,12 +415,15 @@ function FormConfigService(objCollection) {
         console.log('newData from Request: ', newData);
         request.new_field_value = newData.field_value;
         
-        activityCommonService.getActivityDetails(request, request.activity_id, (err, data)=>{
+        activityCommonService.getActivityByFormTransactionCallback(request, request.activity_id, (err, data)=>{
             if(err === false) {
                 console.log('Data from activity_list: ', data);
+                var retrievedInlineData = [];
+                if(data.length > 0){
+                	request['activity_id'] = data[0].activity_id;
                 
-                var retrievedInlineData = JSON.parse(data[0].activity_inline_data);               
-                
+                	retrievedInlineData = JSON.parse(data[0].activity_inline_data);               
+                }
                 forEachAsync(retrievedInlineData, (next, row)=>{
                    if(Number(row.field_id) === Number(newData.field_id)) {
                        row.field_value = newData.field_value;
