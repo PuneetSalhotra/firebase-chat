@@ -2034,7 +2034,7 @@ function VodafoneService(objectCollection) {
 
                 // Fetch all form field mappings for the CAF Form
                 let cafFieldIdToFieldSequenceIdMap = {};
-                await formConfigService
+                await activityCommonService
                     .getFormFieldMappings(request, CAF_FORM_ID, 0, 500)
                     .then((cafFormFieldMappingsData) => {
                         if (cafFormFieldMappingsData.length > 0) {
