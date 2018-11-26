@@ -46,10 +46,4 @@ apps:
     #error_file: ../sqsConsumerLogger.txt
     out_file: '/dev/null'
     instances: 1
-    exec_mode: fork
-  #- name : "Staging_PAM"
-  #  script   : ./server/pam/server.js
-    #error_file: ../pamlogger.txt
-  #  out_file: '/dev/null'
-  #  instances: 1
-  # exec_mode: fork
+    exec_mode: fork  
