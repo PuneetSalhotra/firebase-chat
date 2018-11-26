@@ -415,6 +415,8 @@ function FormConfigService(objCollection) {
         console.log('newData from Request: ', newData);
         request.new_field_value = newData.field_value;
         
+        let cnt = 0;
+        
         activityCommonService.getActivityByFormTransactionCallback(request, request.activity_id, (err, data)=>{
             if(err === false) {
                 console.log('Data from activity_list: ', data);
@@ -427,16 +429,28 @@ function FormConfigService(objCollection) {
                 forEachAsync(retrievedInlineData, (next, row)=>{
                    if(Number(row.field_id) === Number(newData.field_id)) {
                        row.field_value = newData.field_value;
+                       cnt++;
                    }
                    next();
                 }).then(()=>{
                     
+                    if(cnt == 0) {
+                        newData.update_sequence_id = 1;
+                        retrievedInlineData.push(newData);
+                    }
+                    
                     request.activity_inline_data = JSON.stringify(retrievedInlineData);
-                    request.activity_timeline_collection = request.activity_inline_data;
+                    request.activity_timeline_collection = request.activity_inline_data;          
                     
                     getLatestUpdateSeqId(request).then((data)=>{
-                        console.log('update_sequence_id : ', data.update_sequence_id);            
-                        request.update_sequence_id = ++data.update_sequence_id;
+                        
+                        if(data.length > 0) {
+                            let x = data[0];
+                            console.log('update_sequence_id : ', x.update_sequence_id);
+                            request.update_sequence_id = ++x.update_sequence_id;
+                        } else {
+                            request.update_sequence_id = 1;                            
+                        }
 
                         putLatestUpdateSeqId(request, activityInlineData).then(()=>{
 
@@ -449,7 +463,7 @@ function FormConfigService(objCollection) {
 
                             queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
                                 if (err) {
-                                    global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req);                        
+                                    global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
                                     throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                                 } else {}                            
                             });
@@ -483,7 +497,7 @@ function FormConfigService(objCollection) {
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     //console.log('data from getLatestUpdateSeqId : ', data);
-                    (err === false) ?  resolve(data[0]) : reject();
+                    (err === false) ?  resolve(data) : reject();
                 });
             }
         });

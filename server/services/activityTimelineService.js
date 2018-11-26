@@ -1431,16 +1431,19 @@ function ActivityTimelineService(objectCollection) {
         //console.log('\x1b[32m%s\x1b[0m', 'Inside the addFormEntries() function.');
         global.logger.write('debug', '\x1b[32m Inside the addFormEntries() function. \x1b[0m', {}, request);
         
-        let formDataJson;        
-        let formDataCollection = JSON.parse(request.activity_timeline_collection);
+        let formDataJson;
+        if(request.hasOwnProperty('form_id')) {
+            let formDataCollection = JSON.parse(request.activity_timeline_collection);
         
-        if (Array.isArray(formDataCollection.form_submitted) === true || typeof formDataCollection.form_submitted === 'object') {
-            formDataJson = formDataCollection.form_submitted;
+            if (Array.isArray(formDataCollection.form_submitted) === true || typeof formDataCollection.form_submitted === 'object') {
+                formDataJson = formDataCollection.form_submitted;
+            } else {
+                formDataJson = JSON.parse(formDataCollection.form_submitted);
+            }
         } else {
-            formDataJson = JSON.parse(formDataCollection.form_submitted);
+            formDataJson = JSON.parse(request.activity_timeline_collection);
         }
-
-        //var formDataJson = JSON.parse(request.activity_timeline_collection);
+        
         var approvalFields = new Array();
         forEachAsync(formDataJson, function (next, row) {
             if (row.hasOwnProperty('data_type_combo_id')) {
