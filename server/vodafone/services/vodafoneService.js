@@ -18,6 +18,10 @@ function VodafoneService(objectCollection) {
     const formFieldIdMapping = util.getVodafoneFormFieldIdMapping();
     const romsCafFieldsData = util.getVodafoneRomsCafFieldsData();
     
+    // Form Config Service
+    const FormConfigService = require("../../services/formConfigService");
+    const formConfigService = new FormConfigService(objectCollection);
+    
     this.newOrderFormAddToQueues = function(request, callback) {
         
         var logDatetime = util.getCurrentUTCTime();        
@@ -2030,6 +2034,33 @@ function VodafoneService(objectCollection) {
                 // console.log("[FINAL] cafFormJson: ", cafFormJson);
                 // fs.appendFileSync('pdfs/caf.json', JSON.stringify(cafFormJson));
 
+                // Fetch all form field mappings for the CAF Form
+                let cafFieldIdToFieldSequenceIdMap = {};
+                await activityCommonService
+                    .getFormFieldMappings(request, CAF_FORM_ID, 0, 500)
+                    .then((cafFormFieldMappingsData) => {
+                        if (cafFormFieldMappingsData.length > 0) {
+
+                            cafFormFieldMappingsData.forEach(formMappingEntry => {
+                                cafFieldIdToFieldSequenceIdMap[formMappingEntry.field_id] = Number(formMappingEntry.field_sequence_id);
+                            });
+                        }
+                    })
+
+                // console.log("cafFieldIdToFieldSequenceIdMap: ", cafFieldIdToFieldSequenceIdMap);
+
+                // Reorder CAF Form JSON based on the field_id:field_seq_id data 
+                // feteched above
+                cafFormJson.sort((a, b) => {
+                    let keyA = Number(cafFieldIdToFieldSequenceIdMap[a.field_id]),
+                        keyB = Number(cafFieldIdToFieldSequenceIdMap[b.field_id])
+                    if (keyA < keyB) return -1;
+                    if (keyA > keyB) return 1;
+                    return 0;
+                })
+
+                // console.log("cafFormJson: ", cafFormJson)
+
                 // callback(false, cafFormJson);
                 // return;
                 // 
@@ -2754,8 +2785,8 @@ function VodafoneService(objectCollection) {
         
         Object.keys(ROMS_CAF_FORM_LABELS).forEach(formEntry => {
             cafFormData.push({
-                "form_id": 872,
-                "field_id": formEntry,
+                "form_id": global.vodafoneConfig[request.organization_id].FORM_ID.CAF,
+                "field_id": Number(formEntry),
                 "field_name": ROMS_CAF_FORM_LABELS[formEntry],
                 "field_data_type_id": 21,
                 "field_data_type_category_id": 8,

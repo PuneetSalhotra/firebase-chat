@@ -199,6 +199,32 @@ function FormConfigService(objCollection) {
         }
     };
 
+    // Promisified version of the above retrieval function
+    // 'getSpecifiedForm'
+    this.getFormFieldMappings = function (request, formId, startFrom, limitValue) {
+        return new Promise((resolve, reject) => {
+            // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
+            // IN p_workforce_id BIGINT(20), IN p_form_id BIGINT(20), 
+            // IN p_differential_datetime DATETIME, IN p_start_from INT(11), 
+            // IN p_limit_value TINYINT(4)
+            let paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                formId,
+                '1970-01-01 00:00:00',
+                ((startFrom > 0) ? startFrom : request.start_from) || 0,
+                ((limitValue > 0) ? limitValue : request.limit_value) || 50
+            );
+            const queryString = util.getQueryString('ds_v1_workforce_form_field_mapping_select', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                })
+            }
+        });
+    }
+
     //Added by V Nani Kalyan for BETA
     this.getRegisterForms = function (request, callback) {
         var paramsArr = new Array();
