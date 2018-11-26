@@ -19,8 +19,8 @@ function VodafoneService(objectCollection) {
     const romsCafFieldsData = util.getVodafoneRomsCafFieldsData();
     
     // Form Config Service
-    const FormConfigService = require("../../services/formConfigService");
-    const formConfigService = new FormConfigService(objectCollection);
+    // const FormConfigService = require("../../services/formConfigService");
+    // const formConfigService = new FormConfigService(objectCollection);
     
     this.newOrderFormAddToQueues = function(request, callback) {
         
