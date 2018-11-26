@@ -25,10 +25,12 @@ function VodafoneService(objectCollection) {
         request.form_status_id = global.vodafoneConfig[request.organization_id].STATUS.HLD_PENDING;
         request.form_activity_id = request.activity_id;
         
-        //Step 2 :- Set the status of the form file to "HLD Pending"
-        changeStatusToHLDPending(request).then(()=>{});        
+        addOrderSuppForm(request).then(()=>{});
         
-        activityCommonService.getActivityDetails(request, request.activity_id, (err, data)=>{
+        //Step 2 :- Set the status of the form file to "HLD Pending"
+        //changeStatusToHLDPending(request).then(()=>{});        
+        
+        /*activityCommonService.getActivityDetails(request, request.activity_id, (err, data)=>{
             if(err === false) {
                                             
                 //Step 1 :- Fill the order Supplementary form, add a dedicated file for it
@@ -139,7 +141,7 @@ function VodafoneService(objectCollection) {
             } else {
                 callback(true, {}, -9998);
             }
-        });
+        });*/
         
         callback(false, {}, 200);
     };
@@ -159,42 +161,42 @@ function VodafoneService(objectCollection) {
                 }).then(()=>{
                     
                     let newRequest = {
-                    organization_id: request.organization_id,
-                    account_id: global.vodafoneConfig[request.organization_id].CUSTOMER.ACCOUNT_ID,
-                    workforce_id: global.vodafoneConfig[request.organization_id].CUSTOMER.WORKFORCE_ID,
-                    asset_id: global.vodafoneConfig[request.organization_id].BOT.ASSET_ID,
-                    asset_token_auth: global.vodafoneConfig[request.organization_id].BOT.ENC_TOKEN,               
-                    asset_message_counter: 0,
-                    activity_title: "Adding the Order Supplementary Form",
-                    activity_description: "Adding the Order Supplementary Form",
-                    activity_inline_data: JSON.stringify(data),
-                    activity_datetime_start: util.getCurrentUTCTime(),
-                    activity_datetime_end: util.getCurrentUTCTime(),
-                    activity_type_category_id: 9,
-                    activity_form_id: global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY,
-                    form_id: global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY,
-                    activity_sub_type_id: 0,
-                    //activity_type_id: global.vodafoneConfig[request.organization_id].ACTIVITY_TYPE_IDS.FORM_ACTIVITY_TYPE_ID,
-                    activity_type_id: request.activity_type_id,
-                    activity_parent_id: 0,
-                    flag_pin: 0,
-                    flag_priority: 0,
-                    activity_flag_file_enabled: 0,
-                    flag_offline: 0,
-                    flag_retry: 0,
-                    message_unique_id: util.getMessageUniqueId(Number(request.asset_id)),
-                    activity_channel_id: 0,
-                    activity_channel_category_id: 0,
-                    activity_flag_response_required: 0,
-                    track_latitude: 0.0,
-                    track_longitude: 0.0,
-                    track_altitude: 0,
-                    track_gps_datetime: util.getCurrentUTCTime(),
-                    track_gps_accuracy: 0,
-                    track_gps_status: 0,
-                    service_version: 1.0,
-                    app_version: "2.5.5",
-                    device_os_id: 5
+                        organization_id: request.organization_id,
+                        account_id: global.vodafoneConfig[request.organization_id].CUSTOMER.ACCOUNT_ID,
+                        workforce_id: global.vodafoneConfig[request.organization_id].CUSTOMER.WORKFORCE_ID,
+                        asset_id: global.vodafoneConfig[request.organization_id].BOT.ASSET_ID,
+                        asset_token_auth: global.vodafoneConfig[request.organization_id].BOT.ENC_TOKEN,               
+                        asset_message_counter: 0,
+                        activity_title: "Adding the Order Supplementary Form",
+                        activity_description: "Adding the Order Supplementary Form",
+                        activity_inline_data: JSON.stringify(data),
+                        activity_datetime_start: util.getCurrentUTCTime(),
+                        activity_datetime_end: util.getCurrentUTCTime(),
+                        activity_type_category_id: 9,
+                        activity_form_id: global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY,
+                        form_id: global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY,
+                        activity_sub_type_id: 0,
+                        //activity_type_id: global.vodafoneConfig[request.organization_id].ACTIVITY_TYPE_IDS.FORM_ACTIVITY_TYPE_ID,
+                        activity_type_id: request.activity_type_id,
+                        activity_parent_id: 0,
+                        flag_pin: 0,
+                        flag_priority: 0,
+                        activity_flag_file_enabled: 0,
+                        flag_offline: 0,
+                        flag_retry: 0,
+                        message_unique_id: util.getMessageUniqueId(Number(request.asset_id)),
+                        activity_channel_id: 0,
+                        activity_channel_category_id: 0,
+                        activity_flag_response_required: 0,
+                        track_latitude: 0.0,
+                        track_longitude: 0.0,
+                        track_altitude: 0,
+                        track_gps_datetime: util.getCurrentUTCTime(),
+                        track_gps_accuracy: 0,
+                        track_gps_status: 0,
+                        service_version: 1.0,
+                        app_version: "2.5.5",
+                        device_os_id: 5
                 };
 
                 cacheWrapper.getFormTransactionId(function (err, formTransactionId) {
@@ -236,7 +238,8 @@ function VodafoneService(objectCollection) {
                                     "asset_reference": [],
                                     "activity_reference": [],
                                     "form_approval_field_reference": [],
-                                    "form_submitted": newRequest.activity_inline_data,
+                                    //"form_submitted": newRequest.activity_inline_data,
+                                    "form_submitted": data,
                                     "attachments": []
                                  };
 
@@ -273,7 +276,8 @@ function VodafoneService(objectCollection) {
                                     "asset_reference": [],
                                     "activity_reference": [],
                                     "form_approval_field_reference": [],
-                                    "form_submitted": newRequest.activity_inline_data,
+                                    //"form_submitted": newRequest.activity_inline_data,
+                                    "form_submitted": data,
                                     "attachments": []
                                 };
                                 
