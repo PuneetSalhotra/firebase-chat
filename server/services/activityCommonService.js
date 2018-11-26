@@ -804,7 +804,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         var queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
-                if (err === false) {                    
+                if (err === false) {
                     callback(false, data);
                 } else {
                     // some thing is wrong and have to be dealt
@@ -2052,7 +2052,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             });
         }
     };
-    
+
     /*this.checkingMSgUniqueId = function (request, callback) {
         var paramsArr = new Array(
             request.message_unique_id,
@@ -2068,22 +2068,22 @@ function ActivityCommonService(db, util, forEachAsync) {
             });
         }
     };*/
-    
+
     this.checkingPartitionOffset = function (request, callback) {
         var paramsArr = new Array(
             global.config.TOPIC_ID,
             request.partition,
             request.offset
-        );        
-        var queryString = util.getQueryString('ds_p1_partititon_offset_transaction_select', paramsArr);        
+        );
+        var queryString = util.getQueryString('ds_p1_partititon_offset_transaction_select', paramsArr);
         if (queryString != '') {
-            db.executeQuery(1, queryString, request, function (err, data) {                
+            db.executeQuery(1, queryString, request, function (err, data) {
                 global.logger.write('debug', data, {}, {});
-                (data.length > 0) ? callback(true, {}) : callback(false, data);
+                (data.length > 0) ? callback(true, {}): callback(false, data);
             });
         }
     };
-    
+
     this.partitionOffsetInsert = function (request, callback) {
         var paramsArr = new Array(
             global.config.TOPIC_ID,
@@ -2092,7 +2092,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             request.asset_id,
             request.activity_id,
             request.form_transaction_id
-        );        
+        );
         var queryString = util.getQueryString('ds_p1_partition_offset_transaction_insert', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
@@ -2101,7 +2101,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             });
         }
     };
-    
+
     /*this.msgUniqueIdInsert = function (request, callback) {
         var paramsArr = new Array(
             request.message_unique_id,
@@ -2117,7 +2117,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             });
         }
     };*/
-    
+
     this.duplicateMsgUniqueIdInsert = function (request, callback) {
         var arr = new Array();
         arr.push(request);
@@ -2372,7 +2372,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             });
         }
     };
-    
+
     this.getWorkflowForAGivenUrl = function (request) {
         return new Promise((resolve, reject) => {
             var paramsArr = new Array(
@@ -2387,20 +2387,20 @@ function ActivityCommonService(db, util, forEachAsync) {
             }
         });
     };
-    
+
     this.makeRequest = function (request, url, port) {
         return new Promise((resolve, reject) => {
             var options = {
                 form: request
             };
-            
-            if(port == 0) {
+
+            if (port == 0) {
 
             } else {
                 //global.logger.write('debug', "Request Params b4 making Request : ", {}, request);
                 //global.logger.write('debug', request, {}, {});
-                global.logger.write('debug', "http://localhost:"+ global.config.servicePort + "/" + global.config.version + "/" + url, {}, {});
-                makingRequest.post("http://localhost:"+ global.config.servicePort + "/" + global.config.version + "/"  + url , options, function (error, response, body) {
+                global.logger.write('debug', "http://localhost:" + global.config.servicePort + "/" + global.config.version + "/" + url, {}, {});
+                makingRequest.post("http://localhost:" + global.config.servicePort + "/" + global.config.version + "/" + url, options, function (error, response, body) {
                     resolve(body);
                 });
             }
@@ -2425,7 +2425,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     // console.log("[ds_p1_activity_timeline_transaction_select_activity_form] err: ", err);
                     // console.log("[ds_p1_activity_timeline_transaction_select_activity_form] data: ", data);
-                    (err)? reject(err): resolve(data);
+                    (err) ? reject(err): resolve(data);
                 });
             }
         });
@@ -2443,7 +2443,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     // console.log("[ds_v1_activity_form_transaction_select] err: ", err);
                     // console.log("[ds_v1_activity_form_transaction_select] data: ", data);
-                    (err)? reject(err): resolve(data);
+                    (err) ? reject(err): resolve(data);
                 });
             }
         });
@@ -2536,14 +2536,14 @@ function ActivityCommonService(db, util, forEachAsync) {
             }
         });
     };
-    
+
     //Update only the queue mapping inline data
     this.queueActivityMappingUpdateInlineData = function (request, queueActivityMappingId, queueActivityInlineData) {
         return new Promise((resolve, reject) => {
             let paramsArr = new Array(
                 queueActivityMappingId,
                 queueActivityInlineData,
-                request.organization_id,                
+                request.organization_id,
                 2,
                 request.asset_id,
                 util.getCurrentUTCTime()
@@ -2570,7 +2570,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         var queryString = util.getQueryString('ds_v1_asset_list_update_operating_asset', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
-                (err === false) ? callback(false, true) : callback(err, false);                
+                (err === false) ? callback(false, true): callback(err, false);
             });
         }
     };
@@ -2598,7 +2598,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             }
         });
     };
-    
+
     // Fetch all activities mapped to a queue
     this.fetchActivitiesMappedToQueue = function (request) {
         return new Promise((resolve, reject) => {
@@ -2620,7 +2620,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             }
         });
     };
-    
+
     // Fetch queue by search string
     this.fetchQueueByQueueName = function (request, queueName) {
         return new Promise((resolve, reject) => {
@@ -2646,63 +2646,63 @@ function ActivityCommonService(db, util, forEachAsync) {
             }
         });
     };
-    
-        
-    this.processReservationBilling = function (request, idReservation){
-    	return new Promise((resolve, reject)=>{
-    		//if(request.hasOwnProperty('is_room_posting'))
-    			this.pamEventBillingUpdate(request, idReservation);
-    		resolve(true);
-    	});
-    };    
 
-    this.pamEventBillingUpdate = function(request, idReservation) {
-        return new Promise((resolve, reject)=>{
+
+    this.processReservationBilling = function (request, idReservation) {
+        return new Promise((resolve, reject) => {
+            //if(request.hasOwnProperty('is_room_posting'))
+            this.pamEventBillingUpdate(request, idReservation);
+            resolve(true);
+        });
+    };
+
+    this.pamEventBillingUpdate = function (request, idReservation) {
+        return new Promise((resolve, reject) => {
             var paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
-                request.workforce_id,                
+                request.workforce_id,
                 idReservation,
                 request.datetime_log
-                );
+            );
             var queryString = util.getQueryString("pm_v1_pam_event_billing_update", paramsArr);
             if (queryString != '') {
-                db.executeQuery(0, queryString, request, function (err, data) {                  
-                   if(err === false){                	   
-                	   resolve();
-                   }else{
-                	   reject(err);
-                   }
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    if (err === false) {
+                        resolve();
+                    } else {
+                        reject(err);
+                    }
                 });
             }
         })
     };
-    
+
     this.pamOrderListUpdate = function (request, idOrder) {
-        return new Promise((resolve, reject)=>{
+        return new Promise((resolve, reject) => {
             var paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
-                request.workforce_id,                
+                request.workforce_id,
                 idOrder,
                 request.datetime_log
-                );
+            );
             var queryString = util.getQueryString("pm_v1_pam_order_list_update", paramsArr);
             if (queryString != '') {
-                db.executeQuery(0, queryString, request, function (err, data) {                  
-                   if(err === false){                	   
-                	   resolve();
-                   }else{
-                	   reject(err);
-                   }
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    if (err === false) {
+                        resolve();
+                    } else {
+                        reject(err);
+                    }
                 });
             }
         })
     };
-    
+
     // Queue History Insert
     this.queueHistoryInsert = function (request, updateTypeId, queueActivityMappingId) {
-        return new Promise((resolve, reject) => {            
+        return new Promise((resolve, reject) => {
             let paramsArr = new Array(
                 queueActivityMappingId,
                 updateTypeId,
@@ -2717,34 +2717,34 @@ function ActivityCommonService(db, util, forEachAsync) {
             }
         });
     };
-    
+
     this.getActivityCollection = function (request) {
-		return new Promise((resolve, reject)=>{
-	        var paramsArr = new Array(	        		
-	        		request.activity_id,
-	        		request.organization_id
-	                );
-	
-	        var queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
-	        if (queryString != '') {
-	            db.executeQuery(0, queryString, request, function (err, data) {
-	            	//console.log("err "+err);
-	               if(err === false) {
-	               		console.log('data: '+data.length);
-	               		resolve(data);        				        			      			  
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                request.activity_id,
+                request.organization_id
+            );
+
+            var queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    //console.log("err "+err);
+                    if (err === false) {
+                        console.log('data: ' + data.length);
+                        resolve(data);
                     } else {
-	                   reject(err);
-	               }
-	            });
-	   		}
+                        reject(err);
+                    }
+                });
+            }
         });
     };
-    
+
     this.activityStatusChangeTxnInsertV2 = function (request, duration, statusCollection) {
         // IN p_organization_id BIGINT(20), IN p_activity_id BIGINT(20), IN p_from_status_id BIGINT(20), 
         // IN p_to_status_id BIGINT(20), IN p_from_status_datetime DATETIME, IN p_to_status_datetime 
         // DATETIME, IN p_duration DECIMAL(16,4), IN p_log_datetime DATETIME, IN p_log_asset_id BIGINT(20)
-    	// IN status_changed_flag TINYINT(4)
+        // IN status_changed_flag TINYINT(4)
         return new Promise((resolve, reject) => {
             var paramsArr = new Array(
                 request.organization_id,
@@ -2766,9 +2766,9 @@ function ActivityCommonService(db, util, forEachAsync) {
             }
         });
     };
-    
-    
-    
+
+
+
     this.getActivityTimelineTransactionByFormId = function (request, activityId, formId) {
         return new Promise((resolve, reject) => {
             // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_activity_id BIGINT(20), 
@@ -2784,86 +2784,86 @@ function ActivityCommonService(db, util, forEachAsync) {
             const queryString = util.getQueryString('ds_p1_activity_timeline_transaction_select_activity_form', paramsArr);
             if (queryString !== '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
-                	  if(err === false) {
-  	               		console.log('data: '+data.length);
-  	               		if(request.hasOwnProperty("field_id")){
-  	               			if(data.length > 0){
-		  	               		processDBData(request, data).then((finalData)=>{
-		  	               			//console.log(finalData);
-		  	               			resolve(finalData);
-		  	               		});   
-  	               			}else{
-  	               				resolve(data);
-  	               			}     
-  	               		}else{
-  	               			resolve(data);
-  	               		}
-                      } else {
-  	                   reject(err);
-  	               }
-                    
+                    if (err === false) {
+                        console.log('data: ' + data.length);
+                        if (request.hasOwnProperty("field_id")) {
+                            if (data.length > 0) {
+                                processDBData(request, data).then((finalData) => {
+                                    //console.log(finalData);
+                                    resolve(finalData);
+                                });
+                            } else {
+                                resolve(data);
+                            }
+                        } else {
+                            resolve(data);
+                        }
+                    } else {
+                        reject(err);
+                    }
+
                 });
             }
         });
     };
-    
-    function processDBData(request, data){
-    	var array = [];
-    	return new Promise((resolve, reject) => {
-    		//console.log("AFTER PROMISE");
-    		
-    		forEachAsync(data, function (next, rowData) {
-    			//console.log("IN FIRST ASYNC");
-	    		forEachAsync(JSON.parse(rowData.data_entity_inline).form_submitted, function (next1, fieldData) {
-	    			//console.log("IN SECOND ASYNC : "+parseInt(Number(fieldData.field_id)) +": "+parseInt(Number(request.field_id)));
-		    			if(parseInt(Number(fieldData.field_id)) === parseInt(Number(request.field_id))){
-		    				//console.log("Field Equals "+fieldData);
-		    				rowData.data_entity_inline = [];
-		    				rowData.data_entity_inline[0] = fieldData;
-		    				//console.log("rowData.data_entity_inlne "+rowData.data_entity_inline);
-		    				array.push(rowData);		    				
-		    				next();
-		    				
-		    			}else{		    				
-		    				console.log("Not Equals");
-		    				next1();
-		    			}              
-	
-		            }).then(()=>{
-		            	next();
-		            });
-	    		
-	    		}).then(()=>{
-	    			//console.log(array);
-	    			resolve(array);
-	    		});
-    	});
-    };
-    
-    this.getActivityByFormTransaction = function (request) {
-		return new Promise((resolve, reject)=>{
-	        var paramsArr = new Array(
-	        		request.activity_id,
-	        		request.form_transaction_id,
-	        		request.organization_id
-	                );
-	
-	        var queryString = util.getQueryString('ds_v1_activity_list_select_form_transaction', paramsArr);
-	        if (queryString != '') {
-	            db.executeQuery(0, queryString, request, function (err, data) {
-	            	//console.log("err "+err);
-	               if(err === false) {
-	               		console.log('data: '+data.length);
-	               		resolve(data);        				        			      			  
+
+    function processDBData(request, data) {
+        var array = [];
+        return new Promise((resolve, reject) => {
+            //console.log("AFTER PROMISE");
+
+            forEachAsync(data, function (next, rowData) {
+                //console.log("IN FIRST ASYNC");
+                forEachAsync(JSON.parse(rowData.data_entity_inline).form_submitted, function (next1, fieldData) {
+                    //console.log("IN SECOND ASYNC : "+parseInt(Number(fieldData.field_id)) +": "+parseInt(Number(request.field_id)));
+                    if (parseInt(Number(fieldData.field_id)) === parseInt(Number(request.field_id))) {
+                        //console.log("Field Equals "+fieldData);
+                        rowData.data_entity_inline = [];
+                        rowData.data_entity_inline[0] = fieldData;
+                        //console.log("rowData.data_entity_inlne "+rowData.data_entity_inline);
+                        array.push(rowData);
+                        next();
+
                     } else {
-	                   reject(err);
-	               }
-	            });
-	   		}
+                        console.log("Not Equals");
+                        next1();
+                    }
+
+                }).then(() => {
+                    next();
+                });
+
+            }).then(() => {
+                //console.log(array);
+                resolve(array);
+            });
         });
     };
-    
-    
+
+    this.getActivityByFormTransaction = function (request) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                request.activity_id,
+                request.form_transaction_id,
+                request.organization_id
+            );
+
+            var queryString = util.getQueryString('ds_v1_activity_list_select_form_transaction', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    //console.log("err "+err);
+                    if (err === false) {
+                        console.log('data: ' + data.length);
+                        resolve(data);
+                    } else {
+                        reject(err);
+                    }
+                });
+            }
+        });
+    };
+
+
     this.getActivityByFormTransactionCallback = function (request, activityId, callback) {
         var paramsArr;
         if (Number(activityId > 0)) {
@@ -2882,7 +2882,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         var queryString = util.getQueryString('ds_v1_activity_list_select_form_transaction', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
-                if (err === false) {                    
+                if (err === false) {
                     callback(false, data);
                 } else {
                     // some thing is wrong and have to be dealt
@@ -2891,6 +2891,32 @@ function ActivityCommonService(db, util, forEachAsync) {
             });
         }
     };
+
+    // Promisified version of the retrieval function
+    // 'getSpecifiedForm'
+    this.getFormFieldMappings = function (request, formId, startFrom, limitValue) {
+        return new Promise((resolve, reject) => {
+            // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
+            // IN p_workforce_id BIGINT(20), IN p_form_id BIGINT(20), 
+            // IN p_differential_datetime DATETIME, IN p_start_from INT(11), 
+            // IN p_limit_value TINYINT(4)
+            let paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                formId,
+                '1970-01-01 00:00:00',
+                ((startFrom > 0) ? startFrom : request.start_from) || 0,
+                ((limitValue > 0) ? limitValue : request.limit_value) || 50
+            );
+            const queryString = util.getQueryString('ds_v1_workforce_form_field_mapping_select', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                })
+            }
+        });
+    }
 };
 
 
