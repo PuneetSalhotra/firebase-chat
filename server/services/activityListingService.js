@@ -1819,7 +1819,159 @@ function ActivityListingService(objCollection) {
             });
         }
     };
+    
+    
+    this.getActivityFormFieldValidationData = function (request) {
+		return new Promise((resolve, reject)=>{
+			activityCommonService.getActivityByFormTransaction(request).then((data)=>{
+           		if(data.length > 0)
+       			{
+               		processFormInlineData(request, data).then((finalData)=>{
+	               			//console.log("finalData : "+finalData);
+	               			resolve(finalData);
+	               		});
+       			}else{
+       				
+       				resolve(data);
+       			}
+			});
+		})
+    };
+		
+   /* 
+    this.getActivityFormFieldValidationData = function (request) {
+		return new Promise((resolve, reject)=>{
+	        var paramsArr = new Array(	        		
+	        		request.activity_id,
+	        		request.form_transaction_id,
+	        		request.organization_id
+	                );
+	
+	        var queryString = util.getQueryString('ds_v1_activity_list_select_form_transaction', paramsArr);
+	        if (queryString != '') {
+	            db.executeQuery(0, queryString, request, function (err, data) {
+	            	//console.log("err "+err);
+	               if(err === false) {
+	               		//console.log('data: '+data.length);
+	               		if(data.length > 0)
+	               			{
+			               		processFormInlineData(request, data).then((finalData)=>{
+		  	               			//console.log("finalData : "+finalData);
+		  	               			resolve(finalData);
+		  	               		});
+	               			}else{
+	               				
+	               				resolve(data);
+	               			}
+	               		    				        			      			  
+                    } else {
+	                   reject(err);
+	               }
+	            });
+	   	}
+        });
+    }; */
+    
+    function processFormInlineData(request, data){
+    	return new Promise((resolve, reject) => {
+    		var array = [];
+			forEachAsync(JSON.parse(data[0].activity_inline_data), function (next, fieldData) {
+				//console.log('fieldData : '+JSON.stringify(fieldData));
+				if(JSON.parse(JSON.stringify(fieldData)).hasOwnProperty("field_validated")){
+					//.log("HAS FIELD VALIDATED : "+fieldData.field_id);
+					array.push(fieldData);
+	    				next();
+    			}else{		    				
+    				//console.log("FIELD NOT VALIDATED : "+fieldData.field_id);
+    				fieldData.field_validated = 0;
+    				//console.log("FIELD NOT VALIDATED : "+fieldData.field_validated);
+    				array.push(fieldData);		    				
+    				next();
+    				
+    			}              
+	
+            }).then(()=>{
+            	//console.log("DATA : "+JSON.stringify(data));
+            	data[0].activity_inline_data = array;
+            	resolve(data);
+            });	    		
+    	});
+    };
 
+    this.getFormList = function (request) {
+		return new Promise((resolve, reject)=>{
+	        var paramsArr = new Array(	        		
+	        		request.organization_id,
+	        		request.account_id,
+	        		request.workforce_id,
+	        		0,
+	        		0,
+	        		50
+	                );
+	
+	        var queryString = util.getQueryString('ds_v1_workforce_form_mapping_select_organization', paramsArr);
+	        if (queryString != '') {
+	            db.executeQuery(0, queryString, request, function (err, data) {
+	            	//console.log("err "+err);
+	               if(err === false) {
+	               		//console.log('data: '+data.length);
+	               		if(data.length > 0)
+               			{
+		               		processFormListData(request, data).then((finalData)=>{
+	  	               			//console.log("finalData : "+finalData);
+	  	               			resolve(finalData);
+	  	               		});
+               			}else{
+               				
+               				resolve(data);
+               			}
+                    } else {
+	                   reject(err);
+	               }
+	            });
+	   		}
+        });
+    };
+    
+    function processFormListData(request, data){
+    	return new Promise((resolve, reject) => {
+    		var obj = {};
+			forEachAsync(data, function (next, fieldData) {
+				//console.log('fieldData : '+JSON.stringify(fieldData));
+				obj[fieldData.form_name]=fieldData.form_id;       
+					next();
+            }).then(()=>{
+            	console.log(obj);
+            	resolve(obj);
+            });	    		
+    	});
+    };
+
+    
+    this.getMyQueueActivities = function (request) {
+    	return new Promise((resolve, reject) => {
+    		
+	        var paramsArr = new Array(
+	            request.organization_id,
+	            request.account_id,
+	            request.workforce_id,
+	            request.target_asset_id,
+	            request.page_start,
+	            request.page_limit	            
+	        );
+	        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_myqueue_activities', paramsArr);
+	        if (queryString != '') {
+	            db.executeQuery(1, queryString, request, function (err, data) {
+	            	//console.log('queryString : '+queryString+ "err "+err+ ": data.length "+data.length);
+	                if (err === false) {	                	
+	                	resolve(data);	                   
+	                } else {	                    
+	                    reject(err);	                    
+	                }
+	            });
+	        }
+    	});
+    };
 };
 
 module.exports = ActivityListingService;

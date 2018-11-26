@@ -25,7 +25,9 @@ var consume = function () {
         } else {
             if (data.hasOwnProperty("Messages")) {
 
-                var deletMesageHandle = data['Messages'][0].ReceiptHandle;
+                console.log('Messages : ', data['Messages']);
+                
+                /*var deletMesageHandle = data['Messages'][0].ReceiptHandle;
                 console.log("****** ****** messge body is: ****** ******: \n", data['Messages'][0].Body);
                 //try {
                 var body = data['Messages'][0].Body;
@@ -93,7 +95,7 @@ process.on('error', (err) => {
     throw new Error('error');
 });
 
-setInterval(checkingCassandraInstance, 15);
+setInterval(checkingCassandraInstance, 25);
 
 var http = require('http')
 http.createServer((req, res) => {

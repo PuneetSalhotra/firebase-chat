@@ -1,4 +1,4 @@
-var Consumer = require("./server/queue/consumerSix.js");
+var Consumer = require("./server/queue/consumerZero.js");
 new Consumer();
 
 process.on('uncaughtException', (err) => {
@@ -15,4 +15,4 @@ var http = require('http');
 http.createServer((req, res)=>{
     res.write('I am Alive');
     res.end();
-}).listen(global.config.consumerSix);
+}).listen(global.config.consumerZero);

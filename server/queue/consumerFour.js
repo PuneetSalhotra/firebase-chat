@@ -3,6 +3,7 @@
  */
 
 require('../utils/globalConfig');
+require('../vodafone/utils/vodafoneConfig');
 var kafka = require('kafka-node');
 var kafkaConsumer = kafka.Consumer;
 var KafkaProducer = kafka.Producer;
@@ -42,7 +43,7 @@ var Consumer = function () {
             [{
                 topic: global.config.TOPIC_NAME,
                 //partition: parseInt(process.env.partition)
-                partition: parseInt(3)
+                partition: parseInt(4)
             }], {
                 groupId: global.config.CONSUMER_GROUP_ID,
                 autoCommit: global.config.CONSUMER_AUTO_COMMIT,

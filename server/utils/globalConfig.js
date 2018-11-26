@@ -21,26 +21,24 @@ if (mode === 'local') {
     config.servicePort = 7000;
     config.standAlonePamServicePort = 7100;
 
-    config.consumerOne = 7200;
-    config.consumerTwo = 7201;
-    config.consumerThree = 7202;
-    config.consumerFour = 7203;
-    config.consumerFive = 7204;
-    config.consumerSix = 7205;
+    config.consumerZero = 7200;
+    config.consumerOne = 7201;
+    config.consumerTwo = 7202;
+    config.consumerThree = 7203;
+    config.consumerFour = 7204;
+    config.consumerFive = 7205;    
 
     config.sqsConsumer = 7300;
 
     //Mysql Config
-    config.masterIp = 'worlddesk-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.slave1Ip = 'worlddesk-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    //config.masterIp = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
-    //config.slave1Ip = 'readreplica1.citeodhwc7z9.us-east-1.rds.amazonaws.com';    
+    config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';       
 
     config.dbUser = 'apiuser';
-    //config.database = 'desker';// desker_staging
-    config.database = 'desker_staging';
+    config.database = 'desker';// desker_staging
+    //config.database = 'desker_staging';
     config.dbPassword = 'apidbuser';
-    config.conLimit = 2;
+    config.conLimit = 10;
 
     //Redis Config
     config.redisIp = '127.0.0.1';
@@ -54,10 +52,8 @@ if (mode === 'local') {
     //SQS Queue
     config.SQSqueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/logs-staging"; //Staging SQS QUEUE
 
-    //Portal Service URL
+    //Portal Service URL & Mobile Service URL
     config.portalBaseUrl = "http://localhost:7001/";
-
-    //Mobile Service URL
     config.mobileBaseUrl = "http://localhost:7000/";
 
     //making twilio, Nexmo Calls
@@ -85,53 +81,8 @@ if (mode === 'local') {
     config.CONSUMER_FETCH_MAX_BYTES = 1048576;
     config.CONSUMER_ENCODING = "utf8";
     config.CONSUMER_KEY_ENCODING = "utf8";
-    ///////////////////////////////
+    ///////////////////////////////  
     
-    //Vodafone Config
-    config.newOrderForm = 856;
-    config.orderSupplForm = 857;
-    config.acctMngApproval = 858;
-    
-    config.newCustomer = 876;
-    config.existingCustomer = 877; 
-    config.custApproval = 878;
-    
-    config.frFormId = 866;
-    config.crmFormId = 865;
-    config.hldFormId = 864;
-    config.cafFormId = 867;
-    config.crmAckFormId = 863;
-    
-    config.form866 = "FR Form";
-    config.form865 = "CRM Form"
-    config.form864 = "HLD Form"
-    config.form867 = "CAF Form"   
-    
-    config.frFormId = 866;
-    config.crmFormId = 865;
-    config.hldFormId = 864;
-    config.cafFormId = 867;
-    config.crmAckFormId = 863;
-    
-    config.contactOrganizationId = 858;
-    config.contactAccountId = 974;
-    config.contactWorkforceId = 5354;
-    config.contactAssetTypeId = 126082;
-    config.contactDeskAssetTypeId = 126085;
-    
-    config.botAccountId = 973;
-    config.botWorkforceId = 5345;
-    config.botAssetID = 31298;
-    config.botEncToken = "3dc16b80-e338-11e8-a779-5b17182fa0f6";
-    
-    config.hldPending = 279437;
-    config.validationPending = 279438;
-    config.approvalPending = 279439;
-    config.orderClosed =279440;
-    
-    config.activityTypeId = 133001;
-    
-    ////////////////////////////////////
     config.emailbaseUrlApprove = "https://stagingmydesk.desker.co"; 
     config.emailbaseUrlUpload = "https://stagingmydesk.desker.co";
     
@@ -144,22 +95,19 @@ if (mode === 'dev') {
     config.servicePort = 3000;
     config.standAlonePamServicePort = 3100;
 
-    config.consumerOne = 3200;
-    config.consumerTwo = 3201;
-    config.consumerThree = 3202;
-    config.consumerFour = 3203;
-    config.consumerFive = 3204;
-    config.consumerSix = 3205;
+    config.consumerZero = 3200;
+    config.consumerOne = 3201;
+    config.consumerTwo = 3202;
+    config.consumerThree = 3203;
+    config.consumerFour = 3204;
+    config.consumerFive = 3205;    
 
     config.sqsConsumer = 3300;
 
     //Mysql Config
-    config.masterIp = 'worlddesk-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.slave1Ip = 'worlddesk-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
         
-    //config.masterIp = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
-    //config.slave1Ip = 'readreplica1.citeodhwc7z9.us-east-1.rds.amazonaws.com';
-    
     config.dbUser = 'apiuser';
     config.database = 'desker_staging';
     config.dbPassword = 'apidbuser';
@@ -167,8 +115,7 @@ if (mode === 'dev') {
 
     //Redis Config
     config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';
-    config.redisPort = 6379;
-    //config.redisIp = 'dev-redis.apppnf.0001.use1.cache.amazonaws.com';
+    config.redisPort = 6379;    
     
     //IOS Push
     config.iosPushMode = 'dev';
@@ -176,10 +123,8 @@ if (mode === 'dev') {
     //SQS Queue
     config.SQSqueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/logs-staging"; //Staging SQS QUEUE
 
-    //Portal Service URL
+    //Portal Service URL & Mobile Service URL
     config.portalBaseUrl = "https://stagingportal.worlddesk.cloud/";
-
-    //Mobile Service URL
     config.mobileBaseUrl = "https://stagingapi.worlddesk.cloud/";
 
     //making twilio, Nexmo Calls
@@ -208,41 +153,7 @@ if (mode === 'dev') {
     config.CONSUMER_ENCODING = "utf8";
     config.CONSUMER_KEY_ENCODING = "utf8";
     ///////////////////////////////
-    
-    //Vodafone Config
-    config.newOrderForm = 856;
-    config.orderSupplForm = 857;
-    config.acctMngApproval = 858;
-    
-    config.newCustomer = 876;
-    config.existingCustomer = 877; 
-    config.custApproval = 878;
-    
-    config.frFormId = 866;
-    config.crmFormId = 865;
-    config.hldFormId = 864;
-    config.cafFormId = 867;
-    config.crmAckFormId = 863;
-    
-    config.contactOrganizationId = 858;
-    config.contactAccountId = 974;
-    config.contactWorkforceId = 5354;
-    config.contactAssetTypeId = 126082;
-    config.contactDeskAssetTypeId = 126085;
-    
-    config.botAccountId = 973;
-    config.botWorkforceId = 5345;
-    config.botAssetID = 31298;
-    config.botEncToken = "3dc16b80-e338-11e8-a779-5b17182fa0f6";
-    
-    config.hldPending = 279437;
-    config.validationPending = 279438;
-    config.approvalPending = 279439;
-    config.orderClosed =279440;
-    
-    config.activityTypeId = 133001;
-    ////////////////////////////////////
-    
+       
     config.emailbaseUrlApprove = "https://stagingmydesk.desker.co"; 
     config.emailbaseUrlUpload = "https://stagingmydesk.desker.co";
     
@@ -255,21 +166,18 @@ if (mode === 'staging') {
     config.servicePort = 4000;
     config.standAlonePamServicePort = 4100;
 
-    config.consumerOne = 4200;
-    config.consumerTwo = 4201;
-    config.consumerThree = 4202;
-    config.consumerFour = 4203;
-    config.consumerFive = 4204;
-    config.consumerSix = 4205;
+    config.consumerSix = 4200;
+    config.consumerOne = 4201;
+    config.consumerTwo = 4202;
+    config.consumerThree = 4203;
+    config.consumerFour = 4204;
+    config.consumerFive = 4205;
 
     config.sqsConsumer = 4300;
 
     //Mysql Config
-    config.masterIp = 'worlddesk-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.slave1Ip = 'worlddesk-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    
-    //config.masterIp = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
-    //config.slave1Ip = 'readreplica1.citeodhwc7z9.us-east-1.rds.amazonaws.com';
+    config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
 
     config.dbUser = 'apiuser';
     config.database = 'desker_staging';
@@ -287,10 +195,8 @@ if (mode === 'staging') {
     //SQS Queue
     config.SQSqueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/logs-staging"; //Staging SQS QUEUE
 
-    //Portal Service URL
+    //Portal Service URL & Mobile Service URL
     config.portalBaseUrl = "https://stagingportal.worlddesk.cloud/";
-
-    //Mobile Service URL
     config.mobileBaseUrl = "https://stagingapi.worldesk.cloud/";
 
     //making twilio, Nexmo Calls
@@ -320,40 +226,6 @@ if (mode === 'staging') {
     config.CONSUMER_KEY_ENCODING = "utf8";
     ///////////////////////////////
     
-    //Vodafone Config
-    config.newOrderForm = 856;
-    config.orderSupplForm = 857;
-    config.acctMngApproval = 858;
-    
-    config.newCustomer = 876;
-    config.existingCustomer = 877; 
-    config.custApproval = 878;
-    
-    config.frFormId = 866;
-    config.crmFormId = 865;
-    config.hldFormId = 864;
-    config.cafFormId = 867;
-    config.crmAckFormId = 863;
-  
-    config.contactOrganizationId = 858;
-    config.contactAccountId = 974;
-    config.contactWorkforceId = 5354;
-    config.contactAssetTypeId = 126082;
-    config.contactDeskAssetTypeId = 126085;
-    
-    config.botAccountId = 973;
-    config.botWorkforceId = 5345;
-    config.botAssetID = 31298;
-    config.botEncToken = "3dc16b80-e338-11e8-a779-5b17182fa0f6";
-    
-    config.hldPending = 279437;
-    config.validationPending = 279438;
-    config.approvalPending = 279439;
-    config.orderClosed =279440;
-    
-    config.activityTypeId = 133001;
-    
-    ////////////////////////////////////
     config.emailbaseUrlApprove = "https://stagingmydesk.desker.co"; 
     config.emailbaseUrlUpload = "https://stagingmydesk.desker.co";    
     
@@ -366,22 +238,19 @@ if (mode === 'preprod') {
     config.servicePort = 6000;
     config.standAlonePamServicePort = 6100;
 
-    config.consumerOne = 6200;
-    config.consumerTwo = 6201;
-    config.consumerThree = 6202;
-    config.consumerFour = 6203;
-    config.consumerFive = 6204;
-    config.consumerSix = 6205;
+    config.consumerZero = 6200;
+    config.consumerOne = 6201;
+    config.consumerTwo = 6202;
+    config.consumerThree = 6203;
+    config.consumerFour = 6204;
+    config.consumerFive = 6205;
 
     config.sqsConsumer = 6300;
 
     //Mysql Config
-    config.masterIp = 'worlddesk-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.slave1Ip = 'worlddesk-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
     
-    //config.masterIp = 'deskermysql.citeodhwc7z9.us-east-1.rds.amazonaws.com';
-    //config.slave1Ip = 'readreplica1.citeodhwc7z9.us-east-1.rds.amazonaws.com';    
-
     config.dbUser = 'apiuser';
     config.database = 'desker';
     config.dbPassword = 'apidbuser';
@@ -398,10 +267,8 @@ if (mode === 'preprod') {
     //SQS Queue
     config.SQSqueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/logs-production";
 
-    //Portal Service URL 
-    config.portalBaseUrl = "https://preprodportal.worlddesk.cloud/";
-
-    //Mobile Service URL
+    //Portal Service URL & Mobile Service URL
+    config.portalBaseUrl = "https://preprodportal.worlddesk.cloud/";    
     config.mobileBaseUrl = "https://preprodapi.worlddesk.cloud/";
 
     //making twilio, Nexmo Calls
@@ -431,42 +298,8 @@ if (mode === 'preprod') {
     config.CONSUMER_KEY_ENCODING = "utf8";
     ///////////////////////////////
     
-    //Vodafone Config
-    config.newOrderForm = 873;
-    config.orderSupplForm = 874;
-    config.acctMngApproval = 875;
-    
-    config.newCustomer = 876;
-    config.existingCustomer = 877; 
-    config.custApproval = 878;
-    
-    config.frFormId = 871;
-    config.crmFormId = 870;
-    config.hldFormId = 869;
-    config.cafFormId = 872;
-    config.crmAckFormId = 868;
-    
-    config.contactOrganizationId = 860;
-    config.contactAccountId = 976;
-    config.contactWorkforceId = 5364;
-    config.contactAssetTypeId = 126352;
-    config.contactDeskAssetTypeId = 126355;
-    
-    config.botAccountId = 975;
-    config.botWorkforceId = 5355;
-    config.botAssetID = 31347;
-    config.botEncToken = "05986bb0-e364-11e8-a1c0-0b6831833754";
-    
-    config.hldPending = 280031;
-    config.validationPending = 280032;
-    config.approvalPending = 280033;
-    config.orderClosed = 280034;
-    
-    config.activityTypeId = 133251;
-    
-    ////////////////////////////////////
-    config.emailbaseUrlApprove = "https://preprodmydesk.desker.co"; 
-    config.emailbaseUrlUpload = "https://preprodmydesk.desker.co";
+    config.emailbaseUrlApprove = "https://preprod.officedesk.app"; 
+    config.emailbaseUrlUpload = "https://preprod.officedesk.app";
     
 }
 
@@ -477,18 +310,18 @@ if (mode === 'prod') {
     config.servicePort = 3000;
     config.standAlonePamServicePort = 3100;
 
-    config.consumerOne = 3200;
-    config.consumerTwo = 3201;
-    config.consumerThree = 3202;
-    config.consumerFour = 3203;
-    config.consumerFive = 3204;
-    config.consumerSix = 3205;
+    config.consumerZero = 3200;
+    config.consumerOne = 3201;
+    config.consumerTwo = 3202;
+    config.consumerThree = 3203;
+    config.consumerFour = 3204;
+    config.consumerFive = 3205;
 
     config.sqsConsumer = 3300;
 
-    //Mysql Config
-    config.masterIp = 'worlddesk-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.slave1Ip = 'worlddesk-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';   
+    //Mysql Config   
+    config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com'; 
     
     config.dbUser = 'apiuser';
     config.database = 'desker';
@@ -530,57 +363,18 @@ if (mode === 'prod') {
     //SQS QUEUE
     config.SQSqueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/logs-production";
 
-    //Portal Service URL
-    config.portalBaseUrl = "https://portal.worlddesk.cloud/";
-
-    //Mobile Service URL
+    //Portal Service URL & Mobile Service URL
+    config.portalBaseUrl = "https://portal.worlddesk.cloud/";    
     config.mobileBaseUrl = "https://api.worlddesk.cloud/";
 
     //making twilio, Nexmo Calls
     config.efsPath = "/api-data/";
     
-    //Vodafone Config
-    config.newOrderForm = 856;
-    config.orderSupplForm = 857;
-    config.acctMngApproval = 858;
-    
-    config.newCustomer = 876;
-    config.existingCustomer = 877; 
-    config.custApproval = 878;
-    
-    config.frFormId = 866;
-    config.crmFormId = 865;
-    config.hldFormId = 864;
-    config.cafFormId = 867;
-    config.crmAckFormId = 863;
-    
-    config.contactOrganizationId = 858;
-    config.contactAccountId = 974;
-    config.contactWorkforceId = 5354;
-    config.contactAssetTypeId = 126082;
-    config.contactDeskAssetTypeId = 126085;
-    
-    config.botAccountId = 973;
-    config.botWorkforceId = 5345;
-    config.botAssetID = 31298;
-    config.botEncToken = "3dc16b80-e338-11e8-a779-5b17182fa0f6";
-    
-    config.hldPending = 279437;
-    config.validationPending = 279438;
-    config.approvalPending = 279439;
-    config.orderClosed =279440;
-    
-    config.activityTypeId = 133001;
-    
-    ////////////////////////////////////
-    config.emailbaseUrlApprove = "https://worldoffice.desker.co"; 
-    config.emailbaseUrlUpload = "https://worldoffice.desker.co";
+    config.emailbaseUrlApprove = "https://officedesk.app"; 
+    config.emailbaseUrlUpload = "https://officedesk.app";
     
 }
 
-//Vodafone Config
-config.frApiSecret = "asdf";
-config.crmApiSecret = "asdf";
 
 //Android
 config.platformApplicationAndroid = "arn:aws:sns:ap-south-1:430506864995:app/GCM/worldDeskAndroidPush";
@@ -590,7 +384,7 @@ config.platformApplicationIosSDPushDev = 'arn:aws:sns:ap-south-1:430506864995:ap
 config.platformApplicationIosSDPushProd = 'arn:aws:sns:ap-south-1:430506864995:app/APNS/serviceDeskIOSProdPush';
 
 //Office Desk IOS normal Push platform endpoints
-config.platformApplicationIosODPushDev = 'arn:aws:sns:ap-south-1:430506864995:app/APNS_SANDBOX/officeDeskIOSDev';
+config.platformApplicationIosODPushDev = 'arn:aws:sns:ap-south-1:430506864995:app/APNS_SANDBOX/officeDeskIOSDevPush';
 config.platformApplicationIosODPushProd = 'arn:aws:sns:ap-south-1:430506864995:app/APNS/officeDeskIOSProdPush';
 
 //PAM App IOS Pushes

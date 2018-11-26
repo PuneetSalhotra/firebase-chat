@@ -67,6 +67,28 @@ function WidgetController(objCollection) {
         });
 
     }); */
+    
+    
+    app.post('/' + global.config.version + '/widget/access/level/list', function (req, res) {
+    	widgetService.widgetAccessLevelList(req.body,0).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        	});
+    	
+    });
+    	
+    app.post('/' + global.config.version + '/widget/transaction/data/list', function (req, res) {
+    	widgetService.widgetTransactionSelectAll(req.body,0).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        });
+    });
 
 }
 

@@ -34,11 +34,11 @@ function ActivityController(objCollection) {
                     var parentActivityId = util.replaceZero(req.body.activity_parent_id);
                     switch (activityTypeCategoryId) {
                         case 29: // Co-worker Contact Card - supplier
-                        case 6: // Co-worker Contact Card - customer                            
-                            assetService.addAsset(req.body, function (err, data, statusCode) {
-                                if (err === false) {
+                        case 6: // Co-worker Contact Card - customer                                
+                            assetService.addAsset(req.body, function (err, data, statusCode) {                          
+                                if (err === false) {                                    
                                     if (statusCode === 200) { // go ahead and create a contact activity id
-                                        var newAssetId = data.asset_id;
+                                        var newAssetId = data.asset_id;                             
                                         var contactJson = eval('(' + req.body.activity_inline_data + ')');
                                         contactJson['contact_asset_id'] = newAssetId;
                                         req.body.activity_inline_data = JSON.stringify(contactJson);
@@ -292,7 +292,7 @@ function ActivityController(objCollection) {
                     var parentActivityId = util.replaceZero(req.body.activity_parent_id);
                     switch (activityTypeCategoryId) {
                         case 29: // Co-worker Contact Card - supplier
-                        case 6: // Co-worker Contact Card - customer                            
+                        case 6: // Co-worker Contact Card - customer                                 
                             assetService.addAsset(req.body, function (err, data, statusCode) {
                                 if (err === false) {
                                     if (statusCode === 200) { // go ahead and create a contact activity id
@@ -304,8 +304,8 @@ function ActivityController(objCollection) {
                                             console.log('\x1b[36m Activity ID Exists \x1b[0m', );
                                             res.send(responseWrapper.getResponse(false, data, 200, req.body));
                                             return;
-                                        }
-
+                                        }                                      
+                                        
                                         // If no activity_id exists for this phone number
                                         var contactJson = eval('(' + req.body.activity_inline_data + ')');
                                         contactJson['contact_asset_id'] = newDeskAssetId;
@@ -663,6 +663,8 @@ function ActivityController(objCollection) {
             activity_id: req.body.activity_id,
             message_unique_id: req.body.message_unique_id
         }; //BETA
+        
+        //global.logger.write('DEBUG', 'Request Parameters: ' + JSON.stringify(req.body, null, 2), {}, req.body);
         if (req.body.hasOwnProperty('asset_message_counter'))
             assetMessageCounter = Number(req.body.asset_message_counter);
         if (req.body.hasOwnProperty('device_os_id'))
@@ -768,7 +770,21 @@ function ActivityController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
-    });
+    });    
+    
+    
+    app.put('/' + global.config.version + '/activity/form/field/validation/set', function (req, res) {
+   	 activityService.updateActivityFormFieldValidation(req.body).then((data)=>{   
+   		global.logger.write('debug', "VALIDATION SET : RESPONSE : " + data, {}, req);
+   		//res.send(responseWrapper.getResponse({}, data, 200, req.body));
+   	}).catch((err) => { 
+   		data = {};
+   		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+       	});
+   	 
+   	 	res.send(responseWrapper.getResponse({}, {}, 200, req.body));
+   });
+
 
 };
 

@@ -1,7 +1,3 @@
-/*
- *author: Nani Kalyan V
- * 
- */
 
 var PamService = require("../services/pamService");
 
@@ -14,7 +10,7 @@ function PamController(objCollection) {
     var cacheWrapper = objCollection.cacheWrapper;
     var queueWrapper = objCollection.queueWrapper;
 
-    //IVR Service
+    //IVR Service 
     app.post('/' + global.config.version + '/pam/ivr', function (req, res) {
         pamService.ivrService(req.body, function (err, data, statusCode) {
             if (err === false) {
@@ -459,6 +455,25 @@ function PamController(objCollection) {
         	});
     });
     
+    app.post('/' + global.config.version + '/pam/reservation/bill', function (req, res) {
+    	pamService.processReservationBilling(req.body, req.body.activity_id).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        	});
+    });
+    
+    app.post('/' + global.config.version + '/pam/event/reservation/list', function (req, res) {
+    	pamService.getEventReservations(req.body,0).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        	});
+    });
 }
 ;
 module.exports = PamController;

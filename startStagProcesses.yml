@@ -5,6 +5,12 @@ apps:
     #error_file: ../logger.txt
     out_file: '/dev/null'
     exec_mode: cluster
+  - name : "Staging_ConsumerZero"
+    script   : ./consumerZero.js
+    #error_file: ../consumersLogger.txt
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
   - name : "Staging_ConsumerOne"
     script   : ./consumerOne.js
     #error_file: ../consumersLogger.txt
@@ -34,13 +40,7 @@ apps:
     #error_file: ../consumersLogger.txt
     out_file: '/dev/null'
     instances: 1
-    exec_mode: fork
-  - name : "Staging_ConsumerSix"
-    script   : ./consumerSix.js
-    #error_file: ../consumersLogger.txt
-    out_file: '/dev/null'
-    instances: 1
-    exec_mode: fork
+    exec_mode: fork  
   - name : "Staging_SQSConsumer"
     script   : ./server/queue/sqsConsumer.js
     #error_file: ../sqsConsumerLogger.txt

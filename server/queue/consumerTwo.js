@@ -3,6 +3,7 @@
  */
 
 require('../utils/globalConfig');
+require('../vodafone/utils/vodafoneConfig');
 var kafka = require('kafka-node');
 var kafkaConsumer = kafka.Consumer;
 var KafkaProducer = kafka.Producer;
@@ -36,13 +37,16 @@ var Consumer = function () {
         });
     var kafkaProducer = new KafkaProducer(kfkClient);
 
+    global.logger.write('conLog', 'global.config.BROKER_HOST : ' + global.config.BROKER_HOST, {}, {});
+    global.logger.write('conLog', global.config.TOPIC_NAME, {}, {}); 
+
     var consumer =
         new kafkaConsumer(
             kfkClient,
             [{
                 topic: global.config.TOPIC_NAME,
                 //partition: parseInt(process.env.partition)
-                partition: parseInt(1)
+                partition: parseInt(2)
             }], {
                 groupId: global.config.CONSUMER_GROUP_ID,
                 autoCommit: global.config.CONSUMER_AUTO_COMMIT,
@@ -55,9 +59,6 @@ var Consumer = function () {
                 keyEncoding: global.config.CONSUMER_KEY_ENCODING
             }
         );
-
-    global.logger.write('conLog', 'global.config.BROKER_HOST : ' + global.config.BROKER_HOST, {}, {});
-    global.logger.write('conLog', global.config.TOPIC_NAME, {}, {});
 
     new Promise((resolve, reject) => {
         if (kafkaProducer.ready)

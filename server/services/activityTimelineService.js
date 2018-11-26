@@ -26,22 +26,7 @@ function ActivityTimelineService(objectCollection) {
         var activityStreamTypeId = Number(request.activity_stream_type_id);
         activityCommonService.updateAssetLocation(request, function (err, data) {});
         if (activityTypeCategoryId === 9 && activityStreamTypeId === 705) {   // add form case
-            var formDataJson = JSON.parse(request.activity_timeline_collection);
-            request.form_id = formDataJson[0]['form_id'];
-            //console.log('form id extracted from json is: ' + formDataJson[0]['form_id']);
-            global.logger.write('debug', 'form id extracted from json is: ' + formDataJson[0]['form_id'], {}, request);
-            var lastObject = formDataJson[formDataJson.length - 1];
-            //console.log('Last object : ', lastObject)
-            global.logger.write('debug', 'Last object : ' + JSON.stringify(lastObject, null, 2), {}, request);
-            if (lastObject.hasOwnProperty('field_value')) {
-                //console.log('Has the field value in the last object')
-                global.logger.write('debug', 'Has the field value in the last object', {}, request);
-                //remote Analytics
-                if (request.form_id == 325) {
-                    monthlySummaryTransInsert(request).then(() => {
-                    });
-                }
-            }
+            
             // add form entries
             addFormEntries(request, function (err, approvalFieldsArr) {
                 if (err === false) {
@@ -50,6 +35,50 @@ function ActivityTimelineService(objectCollection) {
                     //callback(true, {}, -9999);
                 }
             });
+            
+            if(!request.hasOwnProperty('form_id')) {
+                var formDataJson = JSON.parse(request.activity_timeline_collection);
+                request.form_id = formDataJson[0]['form_id'];
+                //console.log('form id extracted from json is: ' + formDataJson[0]['form_id']);
+                global.logger.write('debug', 'form id extracted from json is: ' + formDataJson[0]['form_id'], {}, request);
+                var lastObject = formDataJson[formDataJson.length - 1];
+                //console.log('Last object : ', lastObject)
+                global.logger.write('debug', 'Last object : ' + JSON.stringify(lastObject, null, 2), {}, request);
+                if (lastObject.hasOwnProperty('field_value')) {
+                    //console.log('Has the field value in the last object')
+                    global.logger.write('debug', 'Has the field value in the last object', {}, request);
+                    //remote Analytics
+                    if (request.form_id == 325) {
+                        monthlySummaryTransInsert(request).then(() => {
+                        });
+                    }
+                }
+            }        
+            
+            // Tirggering BOT 1
+            if ((Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER))) {
+                        global.logger.write('debug', "\x1b[35m [Log] Triggering the BOT 1 \x1b[0m", {}, request);
+                        
+                        //makeRequest to /vodafone/neworder_form/queue/add
+                        let newRequest = Object.assign(request);
+                        newRequest.activity_inline_data = {};
+                        activityCommonService.makeRequest(newRequest, "vodafone/neworder_form/queue/add", 1).then((resp)=>{
+                               global.logger.write('debug', resp, {}, request);
+                        });
+            }
+            
+            //makeRequest to /vodafone/customer_form/add for FR Form or CRM Form
+            if ((Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.FR) || 
+                    Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.CRM))) {
+                global.logger.write('debug', "\x1b[35m [Log] Triggering the BOT 2 \x1b[0m", {}, request);
+                
+                activityCommonService.makeRequest(request, "vodafone/customer_form/add", 1).then((resp)=>{
+                    global.logger.write('debug', resp, {}, request);
+                });
+            }
+            
+            //Generic Function to updated the CAF percentage
+            updateCAFPercentage(request).then(()=>{});
 
             // Trigger Email For Vodafone CAF Form Submission
             if (Number(request.form_id) === 844) {
@@ -72,7 +101,15 @@ function ActivityTimelineService(objectCollection) {
 
             // 
             // [VODAFONE] Listen for Account Manager Approval or Customer (Service Desk) Approval Form
-            if (Number(request.form_id) === 858 || Number(request.form_id) === 878 || Number(request.form_id) === 875 || Number(request.form_id) === 882) {
+            // [VODAFONE] The above no longer applies. New trigger on CRM Acknowledgement Form submission.
+            if (
+                activityStreamTypeId === 705 &&
+                (
+                    Number(request.form_id) === 868 ||
+                    Number(request.form_id) === 863
+                )
+            ) {
+                console.log('CALLING approvalFormsSubmissionCheck')
                 const approvalCheckRequestEvent = {
                     name: "vodafoneService",
                     service: "vodafoneService",
@@ -80,6 +117,70 @@ function ActivityTimelineService(objectCollection) {
                     payload: request
                 };
                 queueWrapper.raiseActivityEvent(approvalCheckRequestEvent, request.activity_id, (err, resp) => {
+                    if (err) {
+                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                    } else {
+                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                    }
+                });
+
+            }
+            //
+            // 
+            // [VODAFONE] Provided the form file has submissions for New Order, FR, CRM and HLD, 
+            // only then proceed with CAF Form building
+            if (
+                activityStreamTypeId === 705 &&
+                (
+                    Number(request.form_id) === 873 || // BETA | New Order
+                    Number(request.form_id) === 871 || // BETA | FR
+                    Number(request.form_id) === 870 || // BETA | CRM
+                    Number(request.form_id) === 869 || // BETA | HLD
+                    Number(request.form_id) === 856 || // LIVE | New Order
+                    Number(request.form_id) === 866 || // LIVE | FR
+                    Number(request.form_id) === 865 || // LIVE | CRM
+                    Number(request.form_id) === 864 // LIVE | HLD
+                )
+            ) {
+                console.log('CALLING buildAndSubmitCafForm');
+                const approvalCheckRequestEvent = {
+                    name: "vodafoneService",
+                    service: "vodafoneService",
+                    method: "buildAndSubmitCafForm",
+                    payload: request
+                };
+                queueWrapper.raiseActivityEvent(approvalCheckRequestEvent, request.activity_id, (err, resp) => {
+                    if (err) {
+                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                    } else {
+                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                    }
+                });
+
+            }
+            //
+            // 
+            // [VODAFONE] Alter the status of the form file to Approval Pending. Also modify the 
+            // last status alter time and current status for all the queue activity mappings.
+            if (
+                activityStreamTypeId === 705 &&
+                (
+                    Number(request.form_id) === 883 || // BETA | OMT Approval
+                    Number(request.form_id) === 879 // LIVE | OMT Approval
+                )
+            ) {
+                console.log('CALLING setStatusApprovalPendingAndFireEmail');
+                const omtApprovalRequestEvent = {
+                    name: "vodafoneService",
+                    service: "vodafoneService",
+                    method: "setStatusApprovalPendingAndFireEmail",
+                    payload: request
+                };
+                queueWrapper.raiseActivityEvent(omtApprovalRequestEvent, request.activity_id, (err, resp) => {
                     if (err) {
                         global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
                         global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
@@ -164,6 +265,125 @@ function ActivityTimelineService(objectCollection) {
             });
         }
         callback(false, {}, 200);
+    };
+    
+    /*this.nanikalyan = function(request, callback) {
+        updateCAFPercentage(request).then(()=>{});
+    };*/
+    
+    function updateCAFPercentage(request) {
+        return new Promise((resolve, reject)=>{
+            
+            let newrequest = Object.assign({},request);
+            newrequest.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
+            let cafCompletionPercentage;
+            
+            switch(Number(newrequest.form_id)) {
+                //case global.vodafoneConfig[newrequest.organization_id].FORM_ID.NEW_ORDER:
+                    //cafCompletionPercentage = 3;
+                    //break;
+                //case global.vodafoneConfig[newrequest.organization_id].FORM_ID.ORDER_SUPPLEMENTARY:
+                    //cafCompletionPercentage = 20;
+                  //  cafCompletionPercentage = 23;
+                    //break;
+                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.FR:
+                    cafCompletionPercentage = 5;
+                    break;
+                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.CRM:
+                    cafCompletionPercentage = 7;
+                    break;
+                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.HLD:
+                    cafCompletionPercentage = 12;
+                    break;
+                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.NEW_CUSTOMER:
+                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.EXISTING_CUSTOMER:
+                    cafCompletionPercentage = 5;
+                    break;
+                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.OMT_APPROVAL:
+                    cafCompletionPercentage = 1;
+                    break;
+                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.ACCOUNT_MANAGER_APPROVAL:
+                    cafCompletionPercentage = 1;
+                    break;
+                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.CUSTOMER_APPROVAL:
+                    cafCompletionPercentage = 1;
+                    break;      
+                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.CAF:
+                    cafCompletionPercentage = 45;
+                    break;
+                default: cafCompletionPercentage = 0;
+            }
+            
+            console.log('cafCompletionPercentage : ', cafCompletionPercentage);
+            
+            if(cafCompletionPercentage !== 0) {
+                
+                //Adding to OMT Queue                
+                newrequest.start_from = 0;
+                newrequest.limit_value = 1;               
+
+                //Updating in the OMT QUEUE
+                //Get the Queue ID
+                activityCommonService.fetchQueueByQueueName(newrequest, "OMT").then((resp)=>{
+                    console.log('Queue Data : ', resp);
+
+                    //Checking the queuemappingid
+                    activityCommonService.fetchQueueActivityMappingId(newrequest, resp[0].queue_id).then((queueActivityMappingData) => {
+                        console.log('queueActivityMappingData : ', queueActivityMappingData);
+
+                        if(queueActivityMappingData.length > 0){ 
+
+                            let queueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;  
+                            let queueActMapInlineData = JSON.parse(queueActivityMappingData[0].queue_activity_mapping_inline_data);
+                            queueActMapInlineData.queue_sort.caf_completion_percentage += cafCompletionPercentage;
+
+                            console.log('Updated Queue JSON : ', queueActMapInlineData);
+
+                            activityCommonService.queueActivityMappingUpdateInlineData(newrequest, queueActivityMappingId, JSON.stringify(queueActMapInlineData)).then((data)=>{
+                                console.log('Updating the Queue Json : ', data);
+                                activityCommonService.queueHistoryInsert(newrequest, 1402, queueActivityMappingId).then(()=>{});
+                            }).catch((err)=>{
+                                global.logger.write('debug', err, {}, newrequest);
+                            });                            
+
+                        }
+                    });
+                });
+                ////////////////////////////////
+
+                //Updating in the HLD QUEUE
+                //Get the Queue ID
+                activityCommonService.fetchQueueByQueueName(newrequest, "HLD").then((resp)=>{
+                    console.log('Queue Data : ', resp);
+
+                    //Checking the queuemappingid
+                    activityCommonService.fetchQueueActivityMappingId(newrequest, resp[0].queue_id).then((queueActivityMappingData) => {
+                        console.log('queueActivityMappingData : ', queueActivityMappingData);
+
+                        if(queueActivityMappingData.length > 0){ 
+
+                            let queueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;  
+                            let queueActMapInlineData = JSON.parse(queueActivityMappingData[0].queue_activity_mapping_inline_data);
+                            queueActMapInlineData.queue_sort.caf_completion_percentage += cafCompletionPercentage;
+
+                            console.log('Updated Queue JSON : ', queueActMapInlineData);
+
+                            activityCommonService.queueActivityMappingUpdateInlineData(newrequest, queueActivityMappingId, JSON.stringify(queueActMapInlineData)).then((data)=>{
+                                console.log('Updating the Queue Json : ', data);
+                                activityCommonService.queueHistoryInsert(newrequest, 1402, queueActivityMappingId).then(()=>{});
+                            }).catch((err)=>{
+                                global.logger.write('debug', err, {}, newrequest);
+                            });                            
+
+                        }
+                    });
+                });
+                
+            }
+            
+            resolve();
+        });
+        
     };
     
     //This is to support the feature - Not to increase unread count during timeline entry
@@ -1210,8 +1430,20 @@ function ActivityTimelineService(objectCollection) {
 
         //console.log('\x1b[32m%s\x1b[0m', 'Inside the addFormEntries() function.');
         global.logger.write('debug', '\x1b[32m Inside the addFormEntries() function. \x1b[0m', {}, request);
-
-        var formDataJson = JSON.parse(request.activity_timeline_collection);
+        
+        let formDataJson;
+        if(request.hasOwnProperty('form_id')) {
+            let formDataCollection = JSON.parse(request.activity_timeline_collection);
+        
+            if (Array.isArray(formDataCollection.form_submitted) === true || typeof formDataCollection.form_submitted === 'object') {
+                formDataJson = formDataCollection.form_submitted;
+            } else {
+                formDataJson = JSON.parse(formDataCollection.form_submitted);
+            }
+        } else {
+            formDataJson = JSON.parse(request.activity_timeline_collection);
+        }
+        
         var approvalFields = new Array();
         forEachAsync(formDataJson, function (next, row) {
             if (row.hasOwnProperty('data_type_combo_id')) {
@@ -1421,11 +1653,47 @@ function ActivityTimelineService(objectCollection) {
             }
 
         }).then(function () {
+        	 global.logger.write('debug', '*********************************AFTER FORM DATA ENTRY *********************************************88 : ', {}, request);
+        	 sendRequesttoWidgetEngine(request);
             callback(false, approvalFields);
         });
     };
     
-
+    function sendRequesttoWidgetEngine(request){
+    	
+        global.logger.write('debug', '*********************************88BEFORE FORM WIDGET *********************************************88 : ', {}, request);
+        if (request.activity_type_category_id == 9) { //form and submitted state                    
+        	activityCommonService.getActivityDetails(request, 0, function (err, activityData) { // get activity form_id and form_transaction id
+                 var widgetEngineQueueMessage = {
+                    form_id: activityData[0].form_id,
+                    form_transaction_id: activityData[0].form_transaction_id,
+                    organization_id: request.organization_id,
+                    account_id: request.account_id,
+                    workforce_id: request.workforce_id,
+                    asset_id: request.asset_id,
+                    activity_id: request.activity_id,
+                    activity_type_category_id: request.activity_type_category_id,
+                    activity_stream_type_id: request.activity_stream_type_id,
+                    track_gps_location: request.track_gps_location,
+                    track_gps_datetime: request.track_gps_datetime,
+                    track_gps_accuracy: request.track_gps_accuracy,
+                    track_gps_status: request.track_gps_status,
+                    device_os_id: request.device_os_id,
+                    service_version: request.service_version,
+                    app_version: request.app_version,
+                    api_version: request.api_version,
+                    widget_type_category_id:1
+                };
+                var event = {
+                    name: "Form Based Widget Engine",
+                    payload: widgetEngineQueueMessage
+                };
+                global.logger.write('debug', 'Hitting Widget Engine with request:' + event, {}, request);
+                
+                queueWrapper.raiseFormWidgetEvent(event, request.activity_id);
+            });
+        }
+    }
 }
 ;
 module.exports = ActivityTimelineService;
