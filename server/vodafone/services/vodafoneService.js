@@ -1862,7 +1862,8 @@ function VodafoneService(objectCollection) {
             FR_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.FR,
             CRM_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CRM,
             HLD_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.HLD,
-            CAF_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CAF;
+            CAF_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CAF,
+            CUSTOMER_APPROVAL_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_APPROVAL;
 
         const ACTIVITY_STATUS_ID_VALIDATION_PENDING = global.vodafoneConfig[request.organization_id].STATUS.VALIDATION_PENDING;
 
@@ -1953,10 +1954,32 @@ function VodafoneService(objectCollection) {
                     // Append it to cafFormJson
                     cafFormJson = applyTransform(request, cafFormJson, formDataArrayOfObjects, formId);
                     // Pull the required data from the HLD FORM of the form file
-                    formId = HLD_FORM_ID;
+                    formId = CUSTOMER_APPROVAL_FORM_ID;
                     return activityCommonService.getActivityTimelineTransactionByFormId(request, request.activity_id, formId)
                 } else {
                     throw new Error("crmFormNotFound");
+                }
+                // formId = HLD_FORM_ID;
+                // return activityCommonService.getActivityTimelineTransactionByFormId(request, request.activity_id, formId)
+            })
+            .then((customerApprovalForm) => {
+                if (customerApprovalForm.length > 0) {
+                    let formDataCollection = JSON.parse(customerApprovalForm[0].data_entity_inline);
+                    let formDataArrayOfObjects = [];
+
+                    if (Array.isArray(formDataCollection.form_submitted) === true || typeof formDataCollection.form_submitted === 'object') {
+                        formDataArrayOfObjects = formDataCollection.form_submitted;
+                    } else {
+                        formDataArrayOfObjects = JSON.parse(formDataCollection.form_submitted);
+                    }
+                    console.log();
+                    // Append it to cafFormJson
+                    cafFormJson = applyTransform(request, cafFormJson, formDataArrayOfObjects, formId);
+                    // Pull the required data from the HLD FORM of the form file
+                    formId = HLD_FORM_ID;
+                    return activityCommonService.getActivityTimelineTransactionByFormId(request, request.activity_id, formId)
+                } else {
+                    throw new Error("customerApprovalFormNotFound");
                 }
                 // formId = HLD_FORM_ID;
                 // return activityCommonService.getActivityTimelineTransactionByFormId(request, request.activity_id, formId)
@@ -2617,14 +2640,16 @@ function VodafoneService(objectCollection) {
               FR_FORM_ID =  global.vodafoneConfig[request.organization_id].FORM_ID.FR,
               CRM_FORM_ID =  global.vodafoneConfig[request.organization_id].FORM_ID.CRM,
               HLD_FORM_ID =  global.vodafoneConfig[request.organization_id].FORM_ID.HLD,
-              CAF_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CAF;
+              CAF_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CAF,
+              CUSTOMER_APPROVAL_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_APPROVAL;
 
 
         let NEW_ORDER_TO_CAF_FIELD_ID_MAP, 
             SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP, 
             FR_TO_CAF_FIELD_ID_MAP, 
             CRM_TO_CAF_FIELD_ID_MAP, 
-            HLD_TO_CAF_FIELD_ID_MAP;
+            HLD_TO_CAF_FIELD_ID_MAP,
+            CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
         
         if (Number(request.organization_id) === 860) {
             // BETA
@@ -2633,6 +2658,7 @@ function VodafoneService(objectCollection) {
             FR_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.FR_TO_CAF_FIELD_ID_MAP;
             CRM_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.CRM_TO_CAF_FIELD_ID_MAP;
             HLD_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.HLD_TO_CAF_FIELD_ID_MAP;
+            CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
             
         } else if (Number(request.organization_id) === 858) {
             // LIVE
@@ -2641,6 +2667,7 @@ function VodafoneService(objectCollection) {
             FR_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.FR_TO_CAF_FIELD_ID_MAP;
             CRM_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.CRM_TO_CAF_FIELD_ID_MAP;
             HLD_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.HLD_TO_CAF_FIELD_ID_MAP;
+            CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
         }
         // New Order Form
         if (formId === NEW_ORDER_FORM_ID) {
@@ -2751,6 +2778,31 @@ function VodafoneService(objectCollection) {
                     cafFormData.push({
                         "form_id": CAF_FORM_ID,
                         "field_id": HLD_TO_CAF_FIELD_ID_MAP[String(formEntry.field_id)],
+                        "field_name": formEntry.field_name,
+                        "field_data_type_id": formEntry.field_data_type_id,
+                        "field_data_type_category_id": formEntry.field_data_type_category_id,
+                        "data_type_combo_id": formEntry.data_type_combo_id,
+                        "data_type_combo_value": formEntry.data_type_combo_value,
+                        "field_value": formEntry.field_value,
+                        "message_unique_id": formEntry.message_unique_id
+                    })
+                } else {
+                    // Ignore the other entries
+                }
+            });
+            // Return the populated CAF object
+            return cafFormData;
+        }
+
+        // Customer Management Approval
+        if (formId === CUSTOMER_APPROVAL_FORM_ID) {
+            // 
+            sourceFormData.forEach(formEntry => {
+                if (Object.keys(CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP).includes(String(formEntry.field_id))) {
+                    // Push entries from the Supplementary Order Form, which have a defined CAF mapping
+                    cafFormData.push({
+                        "form_id": CAF_FORM_ID,
+                        "field_id": CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP[String(formEntry.field_id)],
                         "field_name": formEntry.field_name,
                         "field_data_type_id": formEntry.field_data_type_id,
                         "field_data_type_category_id": formEntry.field_data_type_category_id,
