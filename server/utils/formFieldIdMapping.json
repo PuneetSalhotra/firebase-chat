@@ -147,8 +147,8 @@
             "5540": 5643
         },
         "CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP": {
-            "6332": 5972,
-            "6354": 6353
+            "6331": 5704,
+            "6370": 6359
         },
         "ROMS_LABELS": {
             "5567": "Vodafone Idea Business Services (Kindly fill the form in Block Letters)",
@@ -321,8 +321,8 @@
             "5808": 5911
         },
         "CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP": {
-            "6331": 5704,
-            "6370": 6359
+            "6332": 5972,
+            "6354": 6353
         },
         "ROMS_LABELS": {
             "5835": "Vodafone Idea Business Services (Kindly fill the form in Block Letters)",
