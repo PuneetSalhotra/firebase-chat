@@ -97,6 +97,9 @@ function ActivityPushService(objectCollection) {
                                              pushString.description = 'Has added CRM to ' + activityTitle;
                                              break;
                                         case global.vodafoneConfig[request.organization_id].FORM_ID.HLD:
+                                             pushString.description = 'Has added HLD to ' + activityTitle;
+                                             break;
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.BC_HLD:
                                              pushString.description = 'Has added BC/HLD to ' + activityTitle;
                                              break;
                                         case global.vodafoneConfig[request.organization_id].FORM_ID.CAF:

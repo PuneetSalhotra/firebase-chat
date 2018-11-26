@@ -55,12 +55,7 @@ function QueueWrapper(producer) {
                 global.logger.write('debug', 'Producer success callback message ' + JSON.stringify(data), JSON.stringify(data), event.payload)                
             }
             return true;
-        });
-
-        producer.on('error', function (err) {
-            global.logger.write('serverError', 'Producer send error message : ' + err, err, event.payload)            
-            return false;
-        });
+        });        
     }
 }
 
