@@ -25,12 +25,10 @@ function VodafoneService(objectCollection) {
         request.form_status_id = global.vodafoneConfig[request.organization_id].STATUS.HLD_PENDING;
         request.form_activity_id = request.activity_id;
         
-        addOrderSuppForm(request).then(()=>{});
-        
         //Step 2 :- Set the status of the form file to "HLD Pending"
-        //changeStatusToHLDPending(request).then(()=>{});        
+        changeStatusToHLDPending(request).then(()=>{});        
         
-        /*activityCommonService.getActivityDetails(request, request.activity_id, (err, data)=>{
+        activityCommonService.getActivityDetails(request, request.activity_id, (err, data)=>{
             if(err === false) {
                                             
                 //Step 1 :- Fill the order Supplementary form, add a dedicated file for it
@@ -141,7 +139,7 @@ function VodafoneService(objectCollection) {
             } else {
                 callback(true, {}, -9998);
             }
-        });*/
+        });
         
         callback(false, {}, 200);
     };
