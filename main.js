@@ -166,4 +166,12 @@ function connectToKafkaBroker(){
         console.log('brokersChanged: ', error);
     });       
     
-}
+};
+
+
+const numeral = require('numeral');
+setInterval(()=>{	
+        const {rss, heapTotal} = process.memoryUsage();        
+        console.log('rss', numeral(rss).format('0.0 ib'),'heapTotal', numeral(heapTotal).format('0.0 ib'));        
+}, 60000);
+

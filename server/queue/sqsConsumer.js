@@ -27,7 +27,7 @@ var consume = function () {
 
                 console.log('Messages : ', data['Messages']);
                 
-                /*var deletMesageHandle = data['Messages'][0].ReceiptHandle;
+                var deletMesageHandle = data['Messages'][0].ReceiptHandle;
                 console.log("****** ****** messge body is: ****** ******: \n", data['Messages'][0].Body);
                 //try {
                 var body = data['Messages'][0].Body;
