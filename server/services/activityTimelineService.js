@@ -324,9 +324,9 @@ function ActivityTimelineService(objectCollection) {
                 case global.vodafoneConfig[newrequest.organization_id].FORM_ID.CUSTOMER_APPROVAL:
                     cafCompletionPercentage = 1;
                     break;      
-                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.CAF:
-                    cafCompletionPercentage = 45;
-                    break;
+                // case global.vodafoneConfig[newrequest.organization_id].FORM_ID.CAF:
+                //     cafCompletionPercentage = 45;
+                //     break;
                 default: cafCompletionPercentage = 0;
             }
             

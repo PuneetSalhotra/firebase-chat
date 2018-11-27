@@ -2248,6 +2248,7 @@ function VodafoneService(objectCollection) {
                                                 queueActivityMappingInlineData.queue_sort.current_status_id = ACTIVITY_STATUS_ID_VALIDATION_PENDING;
                                                 queueActivityMappingInlineData.queue_sort.current_status_name = "Order Validation";
                                                 queueActivityMappingInlineData.queue_sort.last_status_alter_time = util.getCurrentUTCTime();
+                                                queueActivityMappingInlineData.queue_sort.caf_completion_percentage += 45;
                                                 request.activity_status_id = ACTIVITY_STATUS_ID_VALIDATION_PENDING;
 
                                                 omtQueueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;
