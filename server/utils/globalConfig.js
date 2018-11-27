@@ -69,9 +69,9 @@ if (mode === 'bharat') {
     config.PRODUCER_PARTITONER_TYPE = 3;
 
     config.TOPIC_ID = 2;
-    config.TOPIC_NAME = 'staging-desker-activities';
-    config.WIDGET_TOPIC_NAME = 'staging-desker-form-widgets';
-    config.CONSUMER_GROUP_ID = 'staging-desker-activities-consumer-group';
+    config.TOPIC_NAME = 'bharat-desker-activities';
+    config.WIDGET_TOPIC_NAME = 'bharat-desker-form-widgets';
+    config.CONSUMER_GROUP_ID = 'bharat-desker-activities-consumer-group';
     config.CONSUMER_AUTO_COMMIT = true;
     config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
     config.CONSUMER_FETCH_MAX_WAIT = 10;
