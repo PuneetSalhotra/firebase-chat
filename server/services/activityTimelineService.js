@@ -195,6 +195,14 @@ function ActivityTimelineService(objectCollection) {
                             }
                         });
                     }
+                } else {
+                    addFormEntries(request, function (err, approvalFieldsArr) {
+                            if (err === false) {
+                                //callback(false,{},200);
+                            } else {
+                                //callback(true, {}, -9999);
+                            }
+                        });
                 }    
             }).catch(()=>{});
             
@@ -1486,8 +1494,7 @@ function ActivityTimelineService(objectCollection) {
                     ''  //IN p_location_datetime DATETIME                            26
                     );
 
-            //console.log('\x1b[32m addFormEntries params - \x1b[0m', params);
-            global.logger.write('debug', '\x1b[32m addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
+            //global.logger.write('debug', '\x1b[32m addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
             
             var dataTypeId = Number(row.field_data_type_id);
             switch (dataTypeId) {
@@ -1612,6 +1619,8 @@ function ActivityTimelineService(objectCollection) {
             params.push(util.getCurrentUTCTime());                              // IN p_transaction_datetime DATETIME
             params.push(request.datetime_log);                                  // IN p_log_datetime DATETIME
             params.push(request.entity_datetime_2);                             // IN p_entity_datetime_2 DATETIME
+            
+            global.logger.write('debug', '\x1b[32m addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
 
             //var queryString = util.getQueryString('ds_v1_activity_form_transaction_insert', params);
             // var queryString = util.getQueryString('ds_v1_1_activity_form_transaction_insert', params); //BETA
