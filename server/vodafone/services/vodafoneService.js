@@ -375,8 +375,12 @@ function VodafoneService(objectCollection) {
                                                          customerData.contact_company = formEntry.field_value;
                                                          break;                    
                                                     case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Number:                        
-                                                         customerData.contact_phone_country_code = String(formEntry.field_value).split('||')[0];
-                                                         customerData.contact_phone_number = String(formEntry.field_value).split('||')[1];
+                                                         if(String(formEntry.field_value).includes('||')) {
+                                                            customerData.contact_phone_country_code = String(formEntry.field_value).split('||')[0];
+                                                            customerData.contact_phone_number = String(formEntry.field_value).split('||')[1];
+                                                         } else {
+                                                             customerData.contact_phone_number = formEntry.field_value;
+                                                         }                                                     
                                                          break;                         
                                                     case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Email_Id:
                                                          customerData.contact_email_id = formEntry.field_value;
