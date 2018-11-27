@@ -2385,7 +2385,8 @@ function VodafoneService(objectCollection) {
                 case 5568: // LIVE | CAF ID
                 case 5836: // BETA | CAF ID
                     // Time-based UUID
-                    ROMS_CAF_FIELDS_DATA[index].field_value = uuid.v1();
+                    // ROMS_CAF_FIELDS_DATA[index].field_value = uuid.v1();
+                    ROMS_CAF_FIELDS_DATA[index].field_value = "";
                     break;
                 case 5726: // LIVE | Service Rental-Grand Total(A+B+C) 
                 case 5994: // BETA | Service Rental-Grand Total(A+B+C)
