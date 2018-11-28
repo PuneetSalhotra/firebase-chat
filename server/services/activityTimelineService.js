@@ -25,16 +25,7 @@ function ActivityTimelineService(objectCollection) {
         var activityTypeCategoryId = Number(request.activity_type_category_id);
         var activityStreamTypeId = Number(request.activity_stream_type_id);
         activityCommonService.updateAssetLocation(request, function (err, data) {});
-        if (activityTypeCategoryId === 9 && activityStreamTypeId === 705) {   // add form case
-            
-            // add form entries
-            addFormEntries(request, function (err, approvalFieldsArr) {
-                if (err === false) {
-                    //callback(false,{},200);
-                } else {
-                    //callback(true, {}, -9999);
-                }
-            });
+        if (activityTypeCategoryId === 9 && activityStreamTypeId === 705) {   // add form case           
             
             if(!request.hasOwnProperty('form_id')) {
                 var formDataJson = JSON.parse(request.activity_timeline_collection);
@@ -81,7 +72,7 @@ function ActivityTimelineService(objectCollection) {
             updateCAFPercentage(request).then(()=>{});
 
             // Trigger Email For Vodafone CAF Form Submission
-            if (Number(request.form_id) === 844) {
+            /*if (Number(request.form_id) === 844) {
                 console.log("\x1b[35m [Log] Calling vodafoneFormSubmissionFlow \x1b[0m")
                 request.activity_inline_data = request.activity_timeline_collection;
                 request.activity_form_id = 844;
@@ -97,7 +88,7 @@ function ActivityTimelineService(objectCollection) {
                         global.logger.write('debug', resp, {}, request);
                     });
                 });
-            }
+            }*/
 
             // 
             // [VODAFONE] Listen for Account Manager Approval or Customer (Service Desk) Approval Form
@@ -192,8 +183,31 @@ function ActivityTimelineService(objectCollection) {
                     }
                 });
 
-            }
-            //
+            }            
+            
+            getActivityIdBasedOnTransId(request).then((data)=>{
+                if(data.length > 0) {
+                    if(Number(request.activity_id) === Number(data[0].activity_id)) {
+                        // add form entries
+                        addFormEntries(request, function (err, approvalFieldsArr) {
+                            if (err === false) {
+                                //callback(false,{},200);
+                            } else {
+                                //callback(true, {}, -9999);
+                            }
+                        });
+                    }
+                } else {
+                    addFormEntries(request, function (err, approvalFieldsArr) {
+                            if (err === false) {
+                                //callback(false,{},200);
+                            } else {
+                                //callback(true, {}, -9999);
+                            }
+                        });
+                }    
+            }).catch(()=>{});
+            
 
         } else {
             request.form_id = 0;
@@ -310,9 +324,9 @@ function ActivityTimelineService(objectCollection) {
                 case global.vodafoneConfig[newrequest.organization_id].FORM_ID.CUSTOMER_APPROVAL:
                     cafCompletionPercentage = 1;
                     break;      
-                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.CAF:
-                    cafCompletionPercentage = 45;
-                    break;
+                // case global.vodafoneConfig[newrequest.organization_id].FORM_ID.CAF:
+                //     cafCompletionPercentage = 45;
+                //     break;
                 default: cafCompletionPercentage = 0;
             }
             
@@ -1482,8 +1496,7 @@ function ActivityTimelineService(objectCollection) {
                     ''  //IN p_location_datetime DATETIME                            26
                     );
 
-            //console.log('\x1b[32m addFormEntries params - \x1b[0m', params);
-            global.logger.write('debug', '\x1b[32m addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
+            //global.logger.write('debug', '\x1b[32m addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
             
             var dataTypeId = Number(row.field_data_type_id);
             switch (dataTypeId) {
@@ -1608,6 +1621,8 @@ function ActivityTimelineService(objectCollection) {
             params.push(util.getCurrentUTCTime());                              // IN p_transaction_datetime DATETIME
             params.push(request.datetime_log);                                  // IN p_log_datetime DATETIME
             params.push(request.entity_datetime_2);                             // IN p_entity_datetime_2 DATETIME
+            
+            global.logger.write('debug', '\x1b[32m addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
 
             //var queryString = util.getQueryString('ds_v1_activity_form_transaction_insert', params);
             // var queryString = util.getQueryString('ds_v1_1_activity_form_transaction_insert', params); //BETA
@@ -1695,6 +1710,22 @@ function ActivityTimelineService(objectCollection) {
                 queueWrapper.raiseFormWidgetEvent(event, request.activity_id);
             });
         }
+    }
+    
+    function getActivityIdBasedOnTransId(request) {
+        return new Promise((resolve, reject)=>{            
+            var paramsArr = new Array(
+	            request.organization_id,
+	            request.form_transaction_id            
+	        );
+	        var queryString = util.getQueryString('ds_p1_activity_list_select_form_transaction', paramsArr);
+	        if (queryString != '') {
+	            db.executeQuery(1, queryString, request, function (err, data) {
+	            	console.log('Data from getActivityIdBasedOnTransId : ', data);
+	                (err === false) ? resolve(data) : reject(err);	                
+	            });
+	        }
+        });
     }
 }
 ;

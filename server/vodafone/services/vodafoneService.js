@@ -375,8 +375,12 @@ function VodafoneService(objectCollection) {
                                                          customerData.contact_company = formEntry.field_value;
                                                          break;                    
                                                     case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Number:                        
-                                                         customerData.contact_phone_country_code = String(formEntry.field_value).split('||')[0];
-                                                         customerData.contact_phone_number = String(formEntry.field_value).split('||')[1];
+                                                         if(String(formEntry.field_value).includes('||')) {
+                                                            customerData.contact_phone_country_code = String(formEntry.field_value).split('||')[0];
+                                                            customerData.contact_phone_number = String(formEntry.field_value).split('||')[1];
+                                                         } else {
+                                                             customerData.contact_phone_number = formEntry.field_value;
+                                                         }                                                     
                                                          break;                         
                                                     case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Email_Id:
                                                          customerData.contact_email_id = formEntry.field_value;
@@ -2244,6 +2248,7 @@ function VodafoneService(objectCollection) {
                                                 queueActivityMappingInlineData.queue_sort.current_status_id = ACTIVITY_STATUS_ID_VALIDATION_PENDING;
                                                 queueActivityMappingInlineData.queue_sort.current_status_name = "Order Validation";
                                                 queueActivityMappingInlineData.queue_sort.last_status_alter_time = util.getCurrentUTCTime();
+                                                queueActivityMappingInlineData.queue_sort.caf_completion_percentage += 45;
                                                 request.activity_status_id = ACTIVITY_STATUS_ID_VALIDATION_PENDING;
 
                                                 omtQueueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;
@@ -2381,7 +2386,8 @@ function VodafoneService(objectCollection) {
                 case 5568: // LIVE | CAF ID
                 case 5836: // BETA | CAF ID
                     // Time-based UUID
-                    ROMS_CAF_FIELDS_DATA[index].field_value = uuid.v1();
+                    // ROMS_CAF_FIELDS_DATA[index].field_value = uuid.v1();
+                    ROMS_CAF_FIELDS_DATA[index].field_value = "";
                     break;
                 case 5726: // LIVE | Service Rental-Grand Total(A+B+C) 
                 case 5994: // BETA | Service Rental-Grand Total(A+B+C)

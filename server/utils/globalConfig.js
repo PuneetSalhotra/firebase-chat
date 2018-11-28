@@ -197,7 +197,7 @@ if (mode === 'staging') {
 
     //Portal Service URL & Mobile Service URL
     config.portalBaseUrl = "https://stagingportal.worlddesk.cloud/";
-    config.mobileBaseUrl = "https://stagingapi.worldesk.cloud/";
+    config.mobileBaseUrl = "https://stagingapi.worlddesk.cloud/";
 
     //making twilio, Nexmo Calls
     config.efsPath = "/apistaging-data/";
