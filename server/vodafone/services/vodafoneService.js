@@ -231,7 +231,7 @@ function VodafoneService(objectCollection) {
                             } else {
                                 console.log("\x1b[35m Queue activity raised for creating empty Order Supplementary Form. \x1b[0m");
                                 
-                                // 325 for Order Supplementary Form - Modified to 705
+                                /*// 325 for Order Supplementary Form - Modified to 705
                                 /////////////////////////////////////////////////////
                                 let ordSupplactivityTimelineCollectionFor325 = {
                                     "mail_body": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
@@ -239,14 +239,12 @@ function VodafoneService(objectCollection) {
                                     "content": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
                                     "asset_reference": [],
                                     "activity_reference": [],
-                                    "form_approval_field_reference": [],
-                                    //"form_submitted": newRequest.activity_inline_data,
+                                    "form_approval_field_reference": [],                                    
                                     "form_submitted": data,
                                     "attachments": []
                                  };
 
-                                newRequest.activity_timeline_collection = JSON.stringify(ordSupplactivityTimelineCollectionFor325);
-                                //newRequest.activity_stream_type_id = 325;
+                                newRequest.activity_timeline_collection = JSON.stringify(ordSupplactivityTimelineCollectionFor325);                                
                                 newRequest.activity_stream_type_id = 705;
                                 
 
@@ -263,7 +261,7 @@ function VodafoneService(objectCollection) {
                                     } else {
                                         console.log("\x1b[35m Raising queue activity raised for 705 streamtypeid for Order Supplementary file. \x1b[0m");
                                     }
-                                });
+                                });*/
                                 ///////////////////////////////////////////////////////////
                                 
                                 // 325 for New Order Form regarding the order suppl form - Modified to 705
@@ -277,14 +275,12 @@ function VodafoneService(objectCollection) {
                                     "content": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
                                     "asset_reference": [],
                                     "activity_reference": [],
-                                    "form_approval_field_reference": [],
-                                    //"form_submitted": newRequest.activity_inline_data,
+                                    "form_approval_field_reference": [],                                    
                                     "form_submitted": data,
                                     "attachments": []
                                 };
                                 
-                                newRequest1.activity_timeline_collection = JSON.stringify(activityTimelineCollectionFor325);                                        
-                                //newRequest1.activity_stream_type_id = 325;
+                                newRequest1.activity_timeline_collection = JSON.stringify(activityTimelineCollectionFor325);                                
                                 newRequest1.activity_stream_type_id = 705;
                                 newRequest1.flag_timeline_entry = 1;
                                 newRequest1.activity_id = request.form_activity_id;
@@ -1980,13 +1976,13 @@ function VodafoneService(objectCollection) {
                     // Append it to cafFormJson
                     cafFormJson = applyTransform(request, cafFormJson, formDataArrayOfObjects, formId);
                     // Pull the required data from the HLD FORM of the form file
-                    formId = HLD_FORM_ID;
-                    return activityCommonService.getActivityTimelineTransactionByFormId(request, request.activity_id, formId)
+                    // formId = HLD_FORM_ID;
+                    // return activityCommonService.getActivityTimelineTransactionByFormId(request, request.activity_id, formId)
                 } else {
-                    throw new Error("customerApprovalFormNotFound");
+                    // throw new Error("customerApprovalFormNotFound");
                 }
-                // formId = HLD_FORM_ID;
-                // return activityCommonService.getActivityTimelineTransactionByFormId(request, request.activity_id, formId)
+                formId = HLD_FORM_ID;
+                return activityCommonService.getActivityTimelineTransactionByFormId(request, request.activity_id, formId)
             })
             .then(async (hldFormData) => {
                 if (hldFormData.length > 0) {
@@ -2278,55 +2274,21 @@ function VodafoneService(objectCollection) {
                         });
 
                         // Fire 705 for the newly created CAF Form's activity_id
-                        let timelineStreamType705ForCAF = Object.assign({}, cafFormSubmissionRequest);
-                        timelineStreamType705ForCAF.activity_id = cafFormActivityId;
-                        timelineStreamType705ForCAF.form_transaction_id = cafFormTransactionId;
-                        timelineStreamType705ForCAF.activity_stream_type_id = 705;
-                        timelineStreamType705ForCAF.message_unique_id = util.getMessageUniqueId(request.asset_id);
-                        timelineStreamType705ForCAF.device_os_id = 7;
+                        // let timelineStreamType705ForCAF = Object.assign({}, cafFormSubmissionRequest);
+                        // timelineStreamType705ForCAF.activity_id = cafFormActivityId;
+                        // timelineStreamType705ForCAF.form_transaction_id = cafFormTransactionId;
+                        // timelineStreamType705ForCAF.activity_stream_type_id = 705;
+                        // timelineStreamType705ForCAF.message_unique_id = util.getMessageUniqueId(request.asset_id);
+                        // timelineStreamType705ForCAF.device_os_id = 7;
 
-                        let fire705OnNewCafFormEvent = {
-                            name: "addTimelineTransaction",
-                            service: "activityTimelineService",
-                            method: "addTimelineTransaction",
-                            payload: timelineStreamType705ForCAF
-                        };
-
-                        queueWrapper.raiseActivityEvent(fire705OnNewCafFormEvent, cafFormActivityId, (err, resp) => {
-                            if (err) {
-                                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                                global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
-                            } else {
-                                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                                global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
-                            }
-                        });
-
-                        // // Fire 325 for the newly created CAF Form's activity_id
-                        // let timelineStreamType325ForCAF = Object.assign({}, timelineStreamType705ForCAF);
-                        // timelineStreamType325ForCAF.activity_id = cafFormActivityId;
-                        // timelineStreamType325ForCAF.form_transaction_id = cafFormTransactionId;
-                        // timelineStreamType325ForCAF.activity_stream_type_id = 325;
-                        // timelineStreamType325ForCAF.message_unique_id = util.getMessageUniqueId(CAF_BOT_ASSET_ID);
-                        // timelineStreamType325ForCAF.activity_timeline_collection = JSON.stringify({
-                        //     "mail_body": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
-                        //     "subject": "CAF Form",
-                        //     "content": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
-                        //     "asset_reference": [],
-                        //     "activity_reference": [],
-                        //     "form_approval_field_reference": [],
-                        //     "form_submitted": cafFormSubmissionRequest.activity_inline_data,
-                        //     "attachments": []
-                        // });
-
-                        // let fire325OnNewCafFormEvent = {
+                        // let fire705OnNewCafFormEvent = {
                         //     name: "addTimelineTransaction",
                         //     service: "activityTimelineService",
                         //     method: "addTimelineTransaction",
-                        //     payload: timelineStreamType325ForCAF
+                        //     payload: timelineStreamType705ForCAF
                         // };
 
-                        // queueWrapper.raiseActivityEvent(fire325OnNewCafFormEvent, cafFormActivityId, (err, resp) => {
+                        // queueWrapper.raiseActivityEvent(fire705OnNewCafFormEvent, cafFormActivityId, (err, resp) => {
                         //     if (err) {
                         //         global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
                         //         global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
@@ -2336,37 +2298,6 @@ function VodafoneService(objectCollection) {
                         //     }
                         // });
 
-                        // // Fire a 325 request to the new order form too!
-                        // let activityTimelineCollectionFor325 = {
-                        //     "mail_body": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
-                        //     "subject": "Submitted - CAF Form",
-                        //     "content": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
-                        //     "asset_reference": [],
-                        //     "activity_reference": [],
-                        //     "form_approval_field_reference": [],
-                        //     "form_submitted": cafFormSubmissionRequest.activity_inline_data,
-                        //     "attachments": []
-                        // };
-                        // cafFormSubmissionRequest.activity_timeline_collection = JSON.stringify(activityTimelineCollectionFor325);
-                        // cafFormSubmissionRequest.activity_stream_type_id = 325;
-                        // cafFormSubmissionRequest.activity_id = request.activity_id;
-
-                        // let displayCafFormOnFileEvent = {
-                        //     name: "addTimelineTransaction",
-                        //     service: "activityTimelineService",
-                        //     method: "addTimelineTransaction",
-                        //     payload: cafFormSubmissionRequest
-                        // };
-
-                        // queueWrapper.raiseActivityEvent(displayCafFormOnFileEvent, request.activity_id, (err, resp) => {
-                        //     if (err) {
-                        //         global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                        //         global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
-                        //     } else {
-                        //         global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                        //         global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
-                        //     }
-                        // });
 
                     } else {
                         // If the CAF Form submission wasn't successful
@@ -2381,6 +2312,118 @@ function VodafoneService(objectCollection) {
                 callback(true, false);
                 return;
             });
+    }
+
+    this.customerManagementApprovalWorkflow = async function (request, callback) {
+        const CAF_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CAF,
+            CUSTOMER_APPROVAL_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_APPROVAL;
+
+        let cafFormTransactionId,
+            cafFormActivityId,
+            cafActivityInlineData,
+            customerManagementApprovalFormData = [];
+
+        const customerManagementApprovalInlineData = JSON.parse(request.activity_timeline_collection);
+        
+        if (Array.isArray(customerManagementApprovalInlineData.form_submitted) === true || typeof customerManagementApprovalInlineData.form_submitted === 'object') {
+            customerManagementApprovalFormData = customerManagementApprovalInlineData.form_submitted;
+        } else {
+            customerManagementApprovalFormData = JSON.parse(customerManagementApprovalInlineData.form_submitted);
+        }
+
+        await activityCommonService
+            .getActivityTimelineTransactionByFormId(request, request.activity_id, CAF_FORM_ID)
+            .then((cafFormData) => {
+                if (cafFormData.length > 0) {
+                    cafFormTransactionId = cafFormData[0].data_form_transaction_id
+
+                    return getActivityIdBasedOnTransactionId(request, cafFormTransactionId)
+                } else {
+                    throw new Error("customerManagementApprovalFormNotFound");
+                }
+            })
+            .then((cafFormTransactionData) => {
+                if (cafFormTransactionData.length > 0) {
+                    cafFormActivityId = cafFormTransactionData[0].activity_id;
+                    cafActivityInlineData = JSON.parse(cafFormTransactionData[0].activity_inline_data);
+                    return Promise.resolve(true);
+                } else {
+                    throw new Error("cafFormTransactionDataNotFound");
+                }
+            })
+            .catch((error) => {
+                console.log("[customerManagementApprovalWorkflow] Promise Chain Error: ", error)
+                callback(true, false);
+                return;
+            });
+        
+        // Apply Transform
+        cafActivityInlineData = applyTransform(request, cafActivityInlineData, customerManagementApprovalFormData, CUSTOMER_APPROVAL_FORM_ID);
+
+        // Sort the CAF Data
+        // Fetch all form field mappings for the CAF Form
+        let cafFieldIdToFieldSequenceIdMap = {};
+        await activityCommonService
+            .getFormFieldMappings(request, CAF_FORM_ID, 0, 500)
+            .then((cafFormFieldMappingsData) => {
+                if (cafFormFieldMappingsData.length > 0) {
+
+                    cafFormFieldMappingsData.forEach(formMappingEntry => {
+                        cafFieldIdToFieldSequenceIdMap[formMappingEntry.field_id] = Number(formMappingEntry.field_sequence_id);
+                    });
+                }
+            })
+
+        // Reorder CAF Form JSON based on the field_id:field_seq_id data 
+        // feteched above
+        cafActivityInlineData.sort((a, b) => {
+            let keyA = Number(cafFieldIdToFieldSequenceIdMap[a.field_id]),
+                keyB = Number(cafFieldIdToFieldSequenceIdMap[b.field_id])
+            if (keyA < keyB) return -1;
+            if (keyA > keyB) return 1;
+            return 0;
+        })
+
+        // Fire Inline Alter For CAF Form
+        let alterCafInlineDataRequest = Object.assign({}, request);
+        alterCafInlineDataRequest.activity_inline_data = JSON.stringify(cafActivityInlineData);
+        let alterCafInlineDataEvent = {
+            name: "alterActivityInline",
+            service: "activityUpdateService",
+            method: "alterActivityInline",
+            payload: alterCafInlineDataRequest
+        };
+
+        queueWrapper.raiseActivityEvent(alterCafInlineDataEvent, request.activity_id, (err, resp) => {
+            if (err) {
+                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+            } else {
+                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+            }
+        });
+
+        return callback(false, {
+            cafFormTransactionId,
+            cafFormActivityId
+        })
+    }
+
+    function getActivityIdBasedOnTransactionId(request, formTransactionId) {
+        return new Promise((resolve, reject) => {
+            let paramsArr = new Array(
+                request.organization_id,
+                formTransactionId
+            );
+            const queryString = util.getQueryString('ds_p1_activity_list_select_form_transaction', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    // console.log('Data from getActivityIdBasedOnTransId : ', data);
+                    (err === false) ? resolve(data): reject(err);
+                });
+            }
+        });
     }
 
     function populateRomsCafFieldValues(ROMS_CAF_FIELDS_DATA, calculatedValuesJSON, formParticipantsData, formActivityData) {

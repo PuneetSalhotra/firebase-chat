@@ -502,5 +502,28 @@ function AssetController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, -9998, req.body));
             });
     });
+    
+    app.put('/' + global.config.version + '/pam/asset/passcode/alter/v1', function (req, res) {
+        assetService.getPamMemberPhoneNumberAsset(req.body, function (err, data, statusCode) {
+            if (err === false) {                
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {                
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+
+    app.post('/' + global.config.version + '/pam/asset/passcode/check', function (req, res) {
+        assetService.checkPamAssetPasscode(req.body, function (err, data, statusCode) {
+            if (err === false) {               
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {                
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+
+    });
 }
 module.exports = AssetController;
