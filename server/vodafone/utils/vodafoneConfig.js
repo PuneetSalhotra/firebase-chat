@@ -1,6 +1,6 @@
 vodafoneConfig = {
     "860": {
-        "NAME": "Vodafone Idea Beta",
+        "NAME": "Vodafone Idea | Production | BETA",
         "BOT": {
             "ASSET_ID": 31347,
             "WORKFORCE_ID": 5355,
@@ -60,7 +60,7 @@ vodafoneConfig = {
         }
     },
     "858": {
-        "name": "Vodafone Idea",
+        "NAME": "Vodafone Idea | Testing | LIVE",
         "BOT": {
             "ASSET_ID": 31298,
             "WORKFORCE_ID": 5345,
