@@ -13,9 +13,9 @@ phases:
     commands:      
   build:
     commands:
-      - mode=preprod pm2 start startPreProdProcesses.yml
+      - mode=preprod pm2 start startPreProdProcesses.yml  
       - sleep 5
-      - mode=prod pm2 start startProdProcesses.yml
+      - mode=prod pm2 start startProdProcesses.yml  
   post_build:
     commands:
       - echo Build completed on `date`

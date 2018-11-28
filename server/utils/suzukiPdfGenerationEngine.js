@@ -324,14 +324,15 @@ function generatePdfAndUpload(request, form_id, formSubmissionData, activityForm
             ACL: 'public-read'
         };
 
-        s3.putObject(params, function (err, data) {
-            console.log(err);
-            console.log(data);
-        });
+        // s3.putObject(params, function (err, data) {
+        //     console.log(err);
+        //     console.log(data);
+        // });
     })
 
-    const s3BucketName = "desker-9166-20180126-11192367";
-    const reportURL = `https://s3.amazonaws.com/${s3BucketName}/${request.activity_parent_id}.pdf`;
+    // const s3BucketName = "desker-9166-20180126-11192367";
+    // const reportURL = `https://s3.amazonaws.com/${s3BucketName}/${request.activity_parent_id}.pdf`;
+    const reportURL = '';
 
     callback(false, activityFormDataInDB, reportURL);
 }

@@ -249,8 +249,21 @@ function VodafoneController(objCollection) {
             return res.send(responseWrapper.getResponse(error, {data}, 200, req.body));
 
         })
-
     });
+
+    // BOT Test
+    // app.post('/' + global.config.version + '/vodafone/bot/test', function (req, res) {
+
+    //     vodafoneService.customerManagementApprovalWorkflow(req.body, (error, data) => {
+    //         if (error) {
+    //             return res.send(responseWrapper.getResponse(error, {
+    //                 error
+    //             }, -5999999, req.body));
+    //         }
+    //         return res.send(responseWrapper.getResponse(error, {data}, 200, req.body));
+
+    //     })
+    // });
 
     // BOT 6
     app.post('/' + global.config.version + '/vodafone/status/set/approval_pending', function (req, res) {

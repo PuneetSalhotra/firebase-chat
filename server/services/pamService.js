@@ -746,7 +746,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
         });
     };
     
-    this.updateOperatingAssetDetails = function (request, callback) {
+    /*this.updateOperatingAssetDetails = function (request, callback) {
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         
@@ -774,8 +774,45 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                         pamAssetListHistoryInsert(request, 7, request.work_station_asset_id).then(()=>{ });                        
                     }).catch((err)=>{ callback(true, err, -9999); });                                
             }
-        });
+        });        
+               
+    };*/
+    
+    
+    this.updateOperatingAssetDetails = function (request, callback) {
+        var logDatetime = util.getCurrentUTCTime();
+        request['datetime_log'] = logDatetime;
         
+        pamGetEmpStations(request).then((data)=>{        	
+            if(data.length > 0) { 
+            	
+                forEachAsync(data, function (next, row) {                	
+                    pamAssetListUpdateOperatingAsset(request, row.asset_id, 0).then(()=>{
+                    	next();
+                        pamAssetListHistoryInsert(request, 40, row.asset_id).then(()=>{ 
+                            });
+                        });                        
+                }).then(()=>{                	
+                    pamAssetListUpdateOperatingAssetUnoccupied(request).then((data)=>{
+                       //getAssetDetails(request).then((resp)=>{
+                    	  
+                    	   console.log("2 :: "+data[0].asset_id+" :: 13 :: "+data[0].operating_asset_id);
+                           callback(false, {"asset_id" : data[0].asset_id, "operating_asset_id" : data[0].operating_asset_id}, 200);
+                        //});   
+                      
+                        pamAssetListHistoryInsert(request, 7, request.work_station_asset_id).then(()=>{ });
+                    }).catch((err)=>{ callback(true, err, -9999);});
+                });                
+            } else {            	
+                pamAssetListUpdateOperatingAssetUnoccupied(request).then((data)=>{                	
+                       // getAssetDetails(request).then((resp)=>{
+                    console.log("3 :: "+data[0].asset_id+" :: 13 :: "+data[0].operating_asset_id);
+                           callback(false, {"asset_id" : data[0].asset_id, "operating_asset_id" : data[0].operating_asset_id}, 200);
+                       // });                        
+                        pamAssetListHistoryInsert(request, 7, request.work_station_asset_id).then(()=>{ });                        
+                    }).catch((err)=>{ callback(true, err, -9999); });                                
+            }
+        });        
                
     };
     
@@ -834,7 +871,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
         var queryString = util.getQueryString('ds_v1_asset_list_update_operating_asset_unoccupied', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
-                (err === false) ? resolve() : reject(err);
+                (err === false) ? resolve(data) : reject(err);
             });
             }
          })
