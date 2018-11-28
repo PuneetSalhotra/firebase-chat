@@ -5,7 +5,7 @@ then
   mode=preprod pm2 start startPreProdProcesses.yml
 elif [ "$DEPLOYMENT_GROUP_NAME" == "prodCodeDeploy-Group" ] 
 then
-  cd /production_desker_api/2018-11-26-04/
+  cd /production_desker_api/2018-11-28-01/
   mode=prod pm2 reload startProdProcesses.yml
   #sleep 2
   #cd /api-final-efs/node/production_portal_api
