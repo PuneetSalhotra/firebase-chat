@@ -2410,8 +2410,7 @@ function VodafoneService(objectCollection) {
 
         return callback(false, {
             cafFormTransactionId,
-            cafFormActivityId,
-            cafActivityInlineData
+            cafFormActivityId
         })
     }
 
