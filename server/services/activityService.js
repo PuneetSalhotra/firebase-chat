@@ -148,15 +148,56 @@ function ActivityService(objectCollection) {
                     global.logger.write('debug', 'streamtype id is: ' + activityStreamTypeId, {}, request);
                     assetActivityListInsertAddActivity(request, function (err, status) {
                         if (err === false) {
+                            let activityTitle;
                             
                             if(activityTypeCategroyId === 9) {
+                                
+                                switch(Number(request.form_id)) {
+                                    case global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER:
+                                         activityTitle = "New Order Form Submitted";
+                                         break;
+                                    case global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY:
+                                         activityTitle = "Order Supplementary Form Submitted";
+                                         break;
+                                    case global.vodafoneConfig[request.organization_id].FORM_ID.FR:                                        
+                                         activityTitle = "Fr Form Submitted";
+                                         break;
+                                    case global.vodafoneConfig[request.organization_id].FORM_ID.CRM:
+                                         activityTitle = "CRM Form Submitted";
+                                         break;
+                                    case global.vodafoneConfig[request.organization_id].FORM_ID.HLD:
+                                         activityTitle = "HLD Form Submitted";
+                                         break;
+                                    case global.vodafoneConfig[request.organization_id].FORM_ID.BC_HLD:
+                                         activityTitle = "BC_HLD Form Submitted";
+                                         break;
+                                    case global.vodafoneConfig[request.organization_id].FORM_ID.NEW_CUSTOMER:
+                                         activityTitle = "New Customer Form Submitted";
+                                         break;
+                                    case global.vodafoneConfig[request.organization_id].FORM_ID.EXISTING_CUSTOMER:
+                                         activityTitle = "Existing Customer Form Submitted";
+                                         break;                            
+                                    case global.vodafoneConfig[request.organization_id].FORM_ID.OMT_APPROVAL:
+                                         activityTitle = "OMT Approval Form Submitted";
+                                         break;
+                                    case global.vodafoneConfig[request.organization_id].FORM_ID.ACCOUNT_MANAGER_APPROVAL:
+                                         activityTitle = "Account Manager Approval Form Submitted";
+                                         break;
+                                    case global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_APPROVAL:
+                                         activityTitle = "Customer Approval Form Submitted";
+                                         break;      
+                                    case global.vodafoneConfig[request.organization_id].FORM_ID.CAF:
+                                         activityTitle = "CAF Form Submitted";
+                                         break;
+                                    default: activityTitle = "Form Submitted";
+                                }
                                             
                                 let newRequest = Object.assign({}, request);
 
                                 // Fire a 705 request for this activity
                                 let activityTimelineCollectionFor705 = {
                                     "mail_body": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
-                                    "subject": request.activity_title + " Submitted",
+                                    "subject": activityTitle,
                                     "content": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
                                     "asset_reference": [],
                                     "activity_reference": [],
