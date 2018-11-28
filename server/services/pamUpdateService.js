@@ -306,7 +306,7 @@ function PamUpdateService(objectCollection) {
 
 		//if(request.hasOwnProperty('is_room_posting')){
 		     if(activityTypeCategroyId == 37) {
-		         if(request.activity_status_type_id == 99) {                    	
+		         if(request.activity_status_type_id == 99 || request.activity_status_type_id == 150 || request.activity_status_type_id == 151 || request.activity_status_type_id == 152) {                    	
 		            	activityCommonService.pamEventBillingUpdate(request, request.activity_id).then(()=>{});
 		          }
 		       }

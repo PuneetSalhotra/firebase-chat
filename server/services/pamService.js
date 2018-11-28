@@ -750,27 +750,34 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         
-        pamGetEmpStations(request).then((data)=>{
-            if(data.length > 0) {                
-                forEachAsync(data, function (next, row) {                    
+        pamGetEmpStations(request).then((data)=>{        	
+            if(data.length > 0) { 
+            	
+                forEachAsync(data, function (next, row) {                	
                     pamAssetListUpdateOperatingAsset(request, row.asset_id, 0).then(()=>{
+                    	next();
                         pamAssetListHistoryInsert(request, 40, row.asset_id).then(()=>{ 
-                            next();
                             });
                         });                        
-                }).then(()=>{
-                    pamAssetListUpdateOperatingAssetUnoccupied(request).then(()=>{
-                       getAssetDetails(request).then((resp)=>{
-                           callback(false, {"asset_id" : resp[0].asset_id, "operating_asset_id" : resp[0].operating_asset_id}, 200);
-                        });                       
+                }).then(()=>{                	
+                    pamAssetListUpdateOperatingAssetUnoccupied(request).then((data)=>{
+                       //getAssetDetails(request).then((resp)=>{
+                    	  
+                    	   console.log("2 :: "+data[0].asset_id+" :: 13 :: "+data[0].operating_asset_id);
+                           callback(false, {"asset_id" : data[0].asset_id, "operating_asset_id" : data[0].operating_asset_id}, 200);
+                        //});   
+                      
                         pamAssetListHistoryInsert(request, 7, request.work_station_asset_id).then(()=>{ });
                     }).catch((err)=>{ callback(true, err, -9999);});
                 });                
             } else {
-                pamAssetListUpdateOperatingAssetUnoccupied(request).then(()=>{
-                        getAssetDetails(request).then((resp)=>{
-                           callback(false, {"asset_id" : resp[0].asset_id, "operating_asset_id" : resp[0].operating_asset_id}, 200);
-                        });                        
+            	//console.log("11");
+                pamAssetListUpdateOperatingAssetUnoccupied(request).then((data)=>{
+                	//console.log("12");
+                       // getAssetDetails(request).then((resp)=>{
+                        	console.log("3 :: "+data[0].asset_id+" :: 13 :: "+data[0].operating_asset_id);
+                           callback(false, {"asset_id" : data[0].asset_id, "operating_asset_id" : data[0].operating_asset_id}, 200);
+                       // });                        
                         pamAssetListHistoryInsert(request, 7, request.work_station_asset_id).then(()=>{ });                        
                     }).catch((err)=>{ callback(true, err, -9999); });                                
             }
@@ -834,7 +841,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
         var queryString = util.getQueryString('ds_v1_asset_list_update_operating_asset_unoccupied', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
-                (err === false) ? resolve() : reject(err);
+                (err === false) ? resolve(data) : reject(err);
             });
             }
          })
