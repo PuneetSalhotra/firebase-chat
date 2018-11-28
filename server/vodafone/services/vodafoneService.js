@@ -2387,6 +2387,7 @@ function VodafoneService(objectCollection) {
         // Fire Inline Alter For CAF Form
         let alterCafInlineDataRequest = Object.assign({}, request);
         alterCafInlineDataRequest.activity_inline_data = JSON.stringify(cafActivityInlineData);
+        alterCafInlineDataRequest.activity_id = Number(cafFormActivityId);
         let alterCafInlineDataEvent = {
             name: "alterActivityInline",
             service: "activityUpdateService",

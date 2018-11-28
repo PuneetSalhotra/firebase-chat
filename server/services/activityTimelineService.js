@@ -167,8 +167,8 @@ function ActivityTimelineService(objectCollection) {
                     Number(request.form_id) === 871 || // BETA | FR
                     Number(request.form_id) === 870 || // BETA | CRM
                     Number(request.form_id) === 869 || // BETA | HLD
-                    Number(request.form_id) === 878 || // ---- | Customer Approval
-                    Number(request.form_id) === 882 || // ---- | Customer Approval
+                    // Number(request.form_id) === 878 || // ---- | Customer Approval
+                    // Number(request.form_id) === 882 || // ---- | Customer Approval
                     Number(request.form_id) === 856 || // LIVE | New Order
                     Number(request.form_id) === 866 || // LIVE | FR
                     Number(request.form_id) === 865 || // LIVE | CRM
