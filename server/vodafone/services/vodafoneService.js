@@ -231,7 +231,7 @@ function VodafoneService(objectCollection) {
                             } else {
                                 console.log("\x1b[35m Queue activity raised for creating empty Order Supplementary Form. \x1b[0m");
                                 
-                                // 325 for Order Supplementary Form - Modified to 705
+                                /*// 325 for Order Supplementary Form - Modified to 705
                                 /////////////////////////////////////////////////////
                                 let ordSupplactivityTimelineCollectionFor325 = {
                                     "mail_body": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
@@ -239,14 +239,12 @@ function VodafoneService(objectCollection) {
                                     "content": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
                                     "asset_reference": [],
                                     "activity_reference": [],
-                                    "form_approval_field_reference": [],
-                                    //"form_submitted": newRequest.activity_inline_data,
+                                    "form_approval_field_reference": [],                                    
                                     "form_submitted": data,
                                     "attachments": []
                                  };
 
-                                newRequest.activity_timeline_collection = JSON.stringify(ordSupplactivityTimelineCollectionFor325);
-                                //newRequest.activity_stream_type_id = 325;
+                                newRequest.activity_timeline_collection = JSON.stringify(ordSupplactivityTimelineCollectionFor325);                                
                                 newRequest.activity_stream_type_id = 705;
                                 
 
@@ -263,7 +261,7 @@ function VodafoneService(objectCollection) {
                                     } else {
                                         console.log("\x1b[35m Raising queue activity raised for 705 streamtypeid for Order Supplementary file. \x1b[0m");
                                     }
-                                });
+                                });*/
                                 ///////////////////////////////////////////////////////////
                                 
                                 // 325 for New Order Form regarding the order suppl form - Modified to 705
@@ -277,14 +275,12 @@ function VodafoneService(objectCollection) {
                                     "content": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
                                     "asset_reference": [],
                                     "activity_reference": [],
-                                    "form_approval_field_reference": [],
-                                    //"form_submitted": newRequest.activity_inline_data,
+                                    "form_approval_field_reference": [],                                    
                                     "form_submitted": data,
                                     "attachments": []
                                 };
                                 
-                                newRequest1.activity_timeline_collection = JSON.stringify(activityTimelineCollectionFor325);                                        
-                                //newRequest1.activity_stream_type_id = 325;
+                                newRequest1.activity_timeline_collection = JSON.stringify(activityTimelineCollectionFor325);                                
                                 newRequest1.activity_stream_type_id = 705;
                                 newRequest1.flag_timeline_entry = 1;
                                 newRequest1.activity_id = request.form_activity_id;
