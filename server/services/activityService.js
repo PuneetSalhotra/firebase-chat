@@ -340,7 +340,7 @@ function ActivityService(objectCollection) {
                         }
                         
                         
-                        /*if(activityTypeCategroyId === 9) {
+                        if(activityTypeCategroyId === 9) {
                             let newRequest = Object.assign({}, request);
                                         
                             // Fire a 705 request for this activity
@@ -350,31 +350,31 @@ function ActivityService(objectCollection) {
                                 "content": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
                                 "asset_reference": [],
                                 "activity_reference": [],
-                                "form_approval_field_reference": [],
-                                //"form_submitted": newRequest.activity_inline_data,
+                                "form_approval_field_reference": [],                                
                                 "form_submitted": request.activity_inline_data,
                                 "attachments": []
                             };
 
                             newRequest.activity_timeline_collection = JSON.stringify(activityTimelineCollectionFor705);                            
                             newRequest.activity_stream_type_id = 705;
-                            newRequest.flag_timeline_entry = 1;                            
+                            newRequest.flag_timeline_entry = 1;
+                            newRequest.device_os_id = 7;
 
-                            let displayOrdSupFormOnFileEventOne = {
+                            let displayFileEvent = {
                                 name: "addTimelineTransaction",
                                 service: "activityTimelineService",
                                 method: "addTimelineTransaction",
                                 payload: newRequest
                             };
 
-                            queueWrapper.raiseActivityEvent(displayOrdSupFormOnFileEventOne, request.form_activity_id, (err, resp) => {
+                            queueWrapper.raiseActivityEvent(displayFileEvent, request.activity_id, (err, resp) => {
                                 if (err) {
                                     console.log("\x1b[35m [ERROR] Raising queue activity raised for 705 streamtypeid for Order Activity. \x1b[0m");
                                 } else {
                                    console.log("\x1b[35m Queue activity raised for 705 streamtypeid for Order Activity. \x1b[0m");                                           
                                 }
                             });
-                        }*/                                                          
+                        }
                                  
                     });
 

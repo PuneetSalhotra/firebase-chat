@@ -198,7 +198,7 @@ function VodafoneService(objectCollection) {
                         track_gps_status: 0,
                         service_version: 1.0,
                         app_version: "2.5.5",
-                        device_os_id: 5
+                        device_os_id: 7
                 };
 
                 cacheWrapper.getFormTransactionId(function (err, formTransactionId) {
@@ -248,7 +248,7 @@ function VodafoneService(objectCollection) {
                                 newRequest.activity_timeline_collection = JSON.stringify(ordSupplactivityTimelineCollectionFor325);
                                 //newRequest.activity_stream_type_id = 325;
                                 newRequest.activity_stream_type_id = 705;
-
+                                
 
                                 let displayOrdSupFormOnFileEvent = {
                                     name: "addTimelineTransaction",
