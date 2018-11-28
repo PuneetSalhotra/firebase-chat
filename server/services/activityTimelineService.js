@@ -1480,17 +1480,32 @@ function ActivityTimelineService(objectCollection) {
 
     var addFormEntries = function (request, callback) {
 
-        //console.log('\x1b[32m%s\x1b[0m', 'Inside the addFormEntries() function.');
         global.logger.write('debug', '\x1b[32m Inside the addFormEntries() function. \x1b[0m', {}, request);
         
         let formDataJson;
+        
         if(request.hasOwnProperty('form_id')) {
-            let formDataCollection = JSON.parse(request.activity_timeline_collection);
+            
+            let formDataCollection;            
+            
+            try {
+                formDataCollection = JSON.parse(request.activity_timeline_collection);
+            } catch(err) {
+                global.logger.write('debug', '\x1b[32m Error in addFormEntries() function - ONE. JSON Error \x1b[0m', {}, request);
+                global.logger.write('debug', err, {}, request);
+            }         
         
             if (Array.isArray(formDataCollection.form_submitted) === true || typeof formDataCollection.form_submitted === 'object') {
                 formDataJson = formDataCollection.form_submitted;
             } else {
-                formDataJson = JSON.parse(formDataCollection.form_submitted);
+                
+                try {
+                    formDataJson = JSON.parse(formDataCollection.form_submitted);
+                } catch(err) {
+                    global.logger.write('debug', '\x1b[32m Error in addFormEntries() function - TWO. JSON Error \x1b[0m', {}, request);
+                    global.logger.write('debug', err, {}, request);
+                }           
+                
             }
         } else {
             formDataJson = JSON.parse(request.activity_timeline_collection);
@@ -1568,8 +1583,11 @@ function ActivityTimelineService(objectCollection) {
                     params[13] = row.field_value;
                     break;
                 case 50:    // Reference - File
-                    params[13] = Number(JSON.parse(row.field_value).activity_id); // p_entity_bigint_1
-                    params[18] = row.field_value; // p_entity_text_1
+                    try {
+                        params[13] = Number(JSON.parse(row.field_value).activity_id); // p_entity_bigint_1
+                        params[18] = row.field_value; // p_entity_text_1
+                    } catch(err) {                        
+                    }                  
                     break;
                 case 17:    //Location
                     var location = row.field_value.split('|');

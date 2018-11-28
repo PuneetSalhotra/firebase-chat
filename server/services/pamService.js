@@ -871,7 +871,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
         var queryString = util.getQueryString('ds_v1_asset_list_update_operating_asset_unoccupied', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
-                (err === false) ? resolve() : reject(err);
+                (err === false) ? resolve(data) : reject(err);
             });
             }
          })
