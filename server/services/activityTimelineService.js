@@ -33,8 +33,13 @@ function ActivityTimelineService(objectCollection) {
                     // Adding 705 entires onto a diff file not a dedicated file
                     //Should not do Form Transaction Insertion as it is not a dedicated file
                     if(Number(request.activity_id) !== Number(data[0].activity_id)) { 
+                        global.logger.write('debug', "\x1b[35m [Log] Activity_ID from request is different from retrived Activity_id hence proceeding \x1b[0m",{}, request);
+                        global.logger.write('debug', "\x1b[35m [Log] Non Dedicated File \x1b[0m",{}, request);
                         retrievingFormIdandProcess(request, data).then(()=>{});                   
                     } else {
+                        global.logger.write('debug', "\x1b[35m [Log] Activity_ID from request is same as retrived Activity_id hence checking for device os id 7 \x1b[0m",{}, request);
+                        global.logger.write('debug', "\x1b[35m [Log] Dedicated File \x1b[0m",{}, request);
+                        
                         //705 for Dedicated file
                         if(Number(request.device_os_id) === 7) {
                             retrievingFormIdandProcess(request, data).then(()=>{});
