@@ -18,7 +18,7 @@ hooks:
       timeout: 300
       runas: root
   ApplicationStart:
-    - location: deployment/start_services.sh    
+    - location: deployment/start_services_staging.sh
       timeout: 300    
       runas: root
   #ApplicationStop:
