@@ -563,9 +563,6 @@ function FormConfigService(objCollection) {
                     '',  //IN p_location_datetime DATETIME                          26                    
                     );
 
-                    //console.log('\x1b[32m addFormEntries params - \x1b[0m', params);
-                    global.logger.write('debug', '\x1b[32m addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
-
                     var dataTypeId = Number(row.field_data_type_id);
                     console.log('dataTypeId : ', dataTypeId);
                     switch (dataTypeId) {
@@ -692,6 +689,8 @@ function FormConfigService(objCollection) {
                     params.push(request.datetime_log);                                  // IN p_entity_datetime_2 DATETIME            
                     params.push(request.update_sequence_id);            
 
+                    global.logger.write('debug', '\x1b[32m addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
+                    
                     queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
                     if (queryString != '') {
                         db.executeQuery(0, queryString, request, function (err, data) {                    

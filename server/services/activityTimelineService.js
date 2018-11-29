@@ -49,11 +49,15 @@ function ActivityTimelineService(objectCollection) {
                         }            
                     }
                 } else {
-                    if(Number(request.device_os_id) === 7) {
+                    if(Number(request.device_os_id) === 7) { //7 means calling internal from services
                         retrievingFormIdandProcess(request, data).then(()=>{});
                         
                         //Form Transaction Insertion should happen only for dedicated files
                         addFormEntries(request, function (err, approvalFieldsArr) {});
+                    }
+                    
+                    if(Number(request.device_os_id) === 8) {
+                        retrievingFormIdandProcess(request, data).then(()=>{});                
                     }
                 }
             }).catch(()=>{});
