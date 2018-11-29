@@ -1510,6 +1510,19 @@ function ActivityTimelineService(objectCollection) {
         } else {
             formDataJson = JSON.parse(request.activity_timeline_collection);
         }
+
+        // 
+        // If this is an incremental form data submission
+        if(request.hasOwnProperty('form_id') && request.hasOwnProperty('incremental_form_data')) {
+
+            if (Array.isArray(request.incremental_form_data) === true || typeof request.incremental_form_data === 'object') {
+                formDataJson = request.incremental_form_data;
+            } else {
+                formDataJson = JSON.parse(request.incremental_form_data);
+            }
+            
+            console.log("[Incremental Form Data Submission] formDataJson: ", formDataJson)
+        }
         
         var approvalFields = new Array();
         forEachAsync(formDataJson, function (next, row) {

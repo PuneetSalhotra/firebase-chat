@@ -2316,11 +2316,13 @@ function VodafoneService(objectCollection) {
 
     this.customerManagementApprovalWorkflow = async function (request, callback) {
         const CAF_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CAF,
+            NEW_ORDER_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER,
             CUSTOMER_APPROVAL_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_APPROVAL;
 
         let cafFormTransactionId,
             cafFormActivityId,
             cafActivityInlineData,
+            incrementalCafFormData,
             customerManagementApprovalFormData = [];
 
         const customerManagementApprovalInlineData = JSON.parse(request.activity_timeline_collection);
@@ -2358,7 +2360,17 @@ function VodafoneService(objectCollection) {
             });
         
         // Apply Transform
+        let originalCafFormDataLength = cafActivityInlineData.length;
         cafActivityInlineData = applyTransform(request, cafActivityInlineData, customerManagementApprovalFormData, CUSTOMER_APPROVAL_FORM_ID);
+
+        // Get the incremental form data, as in, the number of new objects
+        // appended to CAF after 'applyTransform'.
+        let updatedCafFormDataLength = cafActivityInlineData.length;
+        let numberOfNewCafFormData = updatedCafFormDataLength - originalCafFormDataLength;
+        // This is useful for incremental form submission.
+        incrementalCafFormData = cafActivityInlineData.slice(updatedCafFormDataLength - numberOfNewCafFormData);
+        // Append the incremental form data to the request object
+        
 
         // Sort the CAF Data
         // Fetch all form field mappings for the CAF Form
@@ -2405,9 +2417,90 @@ function VodafoneService(objectCollection) {
             }
         });
 
+        // [CAF FORM] Insert 705 records for activity_timeline_transaction and asset_timeline_transaction 
+        // with updated JSON data and Insert new records in activity_form_transaction for the dedicated
+        let fire705OnCafFileRequest = Object.assign({}, request);
+        fire705OnCafFileRequest.activity_id = Number(cafFormActivityId);
+        fire705OnCafFileRequest.form_transaction_id = Number(cafFormTransactionId);
+        fire705OnCafFileRequest.activity_timeline_collection = JSON.stringify({
+            "mail_body": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+            "subject": "CAF Form",
+            "content": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+            "asset_reference": [],
+            "activity_reference": [],
+            "form_approval_field_reference": [],
+            "form_submitted": cafActivityInlineData,
+            "attachments": []
+        });
+        // Append the incremental form data as well
+        fire705OnCafFileRequest.incremental_form_data = incrementalCafFormData;
+        fire705OnCafFileRequest.activity_stream_type_id = 705;
+        fire705OnCafFileRequest.form_id = Number(CAF_FORM_ID);
+        fire705OnCafFileRequest.message_unique_id = util.getMessageUniqueId(request.asset_id);
+        fire705OnCafFileRequest.device_os_id = 7;
+
+        let fire705OnCafFileEvent = {
+            name: "addTimelineTransaction",
+            service: "activityTimelineService",
+            method: "addTimelineTransaction",
+            payload: fire705OnCafFileRequest
+        };
+
+
+        queueWrapper.raiseActivityEvent(fire705OnCafFileEvent, cafFormActivityId, (err, resp) => {
+            if (err) {
+                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+            } else {
+                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+            }
+        });
+
+        // [NEW ORDER FORM] Insert 705 record with update JSON data in activity_timeline_transaction 
+        // and asset_timeline_transaction
+        let fire705OnNewOrderFileRequest = Object.assign({}, request);
+        fire705OnNewOrderFileRequest.activity_id = Number(request.activity_id);
+        // The 'form_transaction_id' parameter is intentionally being set to an incorrect value
+        // fire705OnNewOrderFileRequest.form_transaction_id = Number(cafFormTransactionId); 
+        fire705OnNewOrderFileRequest.activity_timeline_collection = JSON.stringify({
+            "mail_body": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+            "subject": "CAF Form",
+            "content": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+            "asset_reference": [],
+            "activity_reference": [],
+            "form_approval_field_reference": [],
+            "form_submitted": cafActivityInlineData,
+            "attachments": []
+        });
+        // Append the incremental form data as well
+        // fire705OnNewOrderFileRequest.incremental_form_data = incrementalCafFormData;
+        fire705OnNewOrderFileRequest.activity_stream_type_id = 705;
+        fire705OnNewOrderFileRequest.form_id = Number(CAF_FORM_ID);
+        fire705OnNewOrderFileRequest.message_unique_id = util.getMessageUniqueId(request.asset_id);
+        fire705OnNewOrderFileRequest.device_os_id = 7;
+
+        let fire705OnNewOrderFileEvent = {
+            name: "addTimelineTransaction",
+            service: "activityTimelineService",
+            method: "addTimelineTransaction",
+            payload: fire705OnNewOrderFileRequest
+        };
+
+        queueWrapper.raiseActivityEvent(fire705OnNewOrderFileEvent, request.activity_id, (err, resp) => {
+            if (err) {
+                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+            } else {
+                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+            }
+        });
+
         return callback(false, {
             cafFormTransactionId,
-            cafFormActivityId
+            cafFormActivityId,
+            incrementalCafFormData
         })
     }
 
