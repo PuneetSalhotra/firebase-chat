@@ -2145,11 +2145,12 @@ function VodafoneService(objectCollection) {
 
                         // Add the CAF form submitted as a timeline entry to the form file
                         // cafFormSubmissionRequest.asset_id = request.asset_id;
-                        cafFormSubmissionRequest.activity_id = request.activity_id;
-                        cafFormSubmissionRequest.form_transaction_id = cafFormTransactionId;
-                        cafFormSubmissionRequest.form_id = CAF_FORM_ID;
+                        nonDedicatedCafFormTimelineEntryRequest = Object.assign({}, cafFormSubmissionRequest);
+                        nonDedicatedCafFormTimelineEntryRequest.activity_id = request.activity_id;
+                        nonDedicatedCafFormTimelineEntryRequest.form_transaction_id = cafFormTransactionId;
+                        nonDedicatedCafFormTimelineEntryRequest.form_id = CAF_FORM_ID;
                         // cafFormSubmissionRequest.activity_timeline_collection = cafFormSubmissionRequest.activity_inline_data;
-                        cafFormSubmissionRequest.activity_timeline_collection = JSON.stringify({
+                        nonDedicatedCafFormTimelineEntryRequest.activity_timeline_collection = JSON.stringify({
                             "mail_body": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
                             "subject": "CAF Form",
                             "content": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
@@ -2159,16 +2160,16 @@ function VodafoneService(objectCollection) {
                             "form_submitted": cafFormJson,
                             "attachments": []
                         });
-                        cafFormSubmissionRequest.flag_timeline_entry = 1;
-                        cafFormSubmissionRequest.activity_stream_type_id = 705;
-                        cafFormSubmissionRequest.message_unique_id = util.getMessageUniqueId(request.asset_id);
-                        cafFormSubmissionRequest.device_os_id = 7;
+                        nonDedicatedCafFormTimelineEntryRequest.flag_timeline_entry = 1;
+                        nonDedicatedCafFormTimelineEntryRequest.activity_stream_type_id = 705;
+                        nonDedicatedCafFormTimelineEntryRequest.message_unique_id = util.getMessageUniqueId(request.asset_id);
+                        nonDedicatedCafFormTimelineEntryRequest.device_os_id = 8;
 
                         let event = {
                             name: "addTimelineTransaction",
                             service: "activityTimelineService",
                             method: "addTimelineTransaction",
-                            payload: cafFormSubmissionRequest
+                            payload: nonDedicatedCafFormTimelineEntryRequest
                         };
 
                         queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
@@ -2396,10 +2397,13 @@ function VodafoneService(objectCollection) {
             return 0;
         })
 
+        // console.log("cafFormTransactionId cafFormTransactionId", cafFormTransactionId)
+
         // Fire Inline Alter For CAF Form
         let alterCafInlineDataRequest = Object.assign({}, request);
         alterCafInlineDataRequest.activity_inline_data = JSON.stringify(cafActivityInlineData);
         alterCafInlineDataRequest.activity_id = Number(cafFormActivityId);
+        alterCafInlineDataRequest.form_transaction_id = Number(cafFormTransactionId);
         let alterCafInlineDataEvent = {
             name: "alterActivityInline",
             service: "activityUpdateService",
@@ -2462,7 +2466,7 @@ function VodafoneService(objectCollection) {
         let fire705OnNewOrderFileRequest = Object.assign({}, request);
         fire705OnNewOrderFileRequest.activity_id = Number(request.activity_id);
         // The 'form_transaction_id' parameter is intentionally being set to an incorrect value
-        // fire705OnNewOrderFileRequest.form_transaction_id = Number(cafFormTransactionId); 
+        fire705OnNewOrderFileRequest.form_transaction_id = Number(cafFormTransactionId); 
         fire705OnNewOrderFileRequest.activity_timeline_collection = JSON.stringify({
             "mail_body": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
             "subject": "CAF Form",
