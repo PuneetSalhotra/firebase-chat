@@ -166,4 +166,4 @@ function connectToKafkaBroker(){
         console.log('brokersChanged: ', error);
     });       
     
-}
+};
