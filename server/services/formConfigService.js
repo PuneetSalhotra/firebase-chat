@@ -199,6 +199,32 @@ function FormConfigService(objCollection) {
         }
     };
 
+    // Promisified version of the above retrieval function
+    // 'getSpecifiedForm'
+    this.getFormFieldMappings = function (request, formId, startFrom, limitValue) {
+        return new Promise((resolve, reject) => {
+            // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
+            // IN p_workforce_id BIGINT(20), IN p_form_id BIGINT(20), 
+            // IN p_differential_datetime DATETIME, IN p_start_from INT(11), 
+            // IN p_limit_value TINYINT(4)
+            let paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                formId,
+                '1970-01-01 00:00:00',
+                ((startFrom > 0) ? startFrom : request.start_from) || 0,
+                ((limitValue > 0) ? limitValue : request.limit_value) || 50
+            );
+            const queryString = util.getQueryString('ds_v1_workforce_form_field_mapping_select', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                })
+            }
+        });
+    }
+
     //Added by V Nani Kalyan for BETA
     this.getRegisterForms = function (request, callback) {
         var paramsArr = new Array();
@@ -415,6 +441,8 @@ function FormConfigService(objCollection) {
         console.log('newData from Request: ', newData);
         request.new_field_value = newData.field_value;
         
+        let cnt = 0;
+        
         activityCommonService.getActivityByFormTransactionCallback(request, request.activity_id, (err, data)=>{
             if(err === false) {
                 console.log('Data from activity_list: ', data);
@@ -427,16 +455,28 @@ function FormConfigService(objCollection) {
                 forEachAsync(retrievedInlineData, (next, row)=>{
                    if(Number(row.field_id) === Number(newData.field_id)) {
                        row.field_value = newData.field_value;
+                       cnt++;
                    }
                    next();
                 }).then(()=>{
                     
+                    if(cnt == 0) {
+                        newData.update_sequence_id = 1;
+                        retrievedInlineData.push(newData);
+                    }
+                    
                     request.activity_inline_data = JSON.stringify(retrievedInlineData);
-                    request.activity_timeline_collection = request.activity_inline_data;
+                    request.activity_timeline_collection = request.activity_inline_data;          
                     
                     getLatestUpdateSeqId(request).then((data)=>{
-                        console.log('update_sequence_id : ', data.update_sequence_id);            
-                        request.update_sequence_id = ++data.update_sequence_id;
+                        
+                        if(data.length > 0) {
+                            let x = data[0];
+                            console.log('update_sequence_id : ', x.update_sequence_id);
+                            request.update_sequence_id = ++x.update_sequence_id;
+                        } else {
+                            request.update_sequence_id = 1;                            
+                        }
 
                         putLatestUpdateSeqId(request, activityInlineData).then(()=>{
 
@@ -449,7 +489,7 @@ function FormConfigService(objCollection) {
 
                             queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
                                 if (err) {
-                                    global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req);                        
+                                    global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
                                     throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                                 } else {}                            
                             });
@@ -483,7 +523,7 @@ function FormConfigService(objCollection) {
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     //console.log('data from getLatestUpdateSeqId : ', data);
-                    (err === false) ?  resolve(data[0]) : reject();
+                    (err === false) ?  resolve(data) : reject();
                 });
             }
         });
@@ -522,9 +562,6 @@ function FormConfigService(objCollection) {
                     '', //IN p_location_address VARCHAR(300)                        25
                     '',  //IN p_location_datetime DATETIME                          26                    
                     );
-
-                    //console.log('\x1b[32m addFormEntries params - \x1b[0m', params);
-                    global.logger.write('debug', '\x1b[32m addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
 
                     var dataTypeId = Number(row.field_data_type_id);
                     console.log('dataTypeId : ', dataTypeId);
@@ -652,6 +689,8 @@ function FormConfigService(objCollection) {
                     params.push(request.datetime_log);                                  // IN p_entity_datetime_2 DATETIME            
                     params.push(request.update_sequence_id);            
 
+                    global.logger.write('debug', '\x1b[32m addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
+                    
                     queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
                     if (queryString != '') {
                         db.executeQuery(0, queryString, request, function (err, data) {                    

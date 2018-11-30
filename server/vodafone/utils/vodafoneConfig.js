@@ -1,6 +1,6 @@
 vodafoneConfig = {
     "860": {
-        "NAME": "Vodafone Idea Beta",
+        "NAME": "Vodafone Idea | Production | BETA",
         "BOT": {
             "ASSET_ID": 31347,
             "WORKFORCE_ID": 5355,
@@ -25,7 +25,8 @@ vodafoneConfig = {
             "FR": 871,
             "CRM": 870,
             "CAF": 872,
-            "CRM_ACKNOWLEDGEMENT": 868
+            "CRM_ACKNOWLEDGEMENT": 868,
+            "BC_HLD": 889
         },
         "CUSTOMER": {
             "ACCOUNT_ID": 976,
@@ -59,7 +60,7 @@ vodafoneConfig = {
         }
     },
     "858": {
-        "name": "Vodafone Idea",
+        "NAME": "Vodafone Idea | Testing | LIVE",
         "BOT": {
             "ASSET_ID": 31298,
             "WORKFORCE_ID": 5345,
@@ -84,7 +85,8 @@ vodafoneConfig = {
             "FR": 866,
             "CRM": 865,
             "CAF": 867,
-            "CRM_ACKNOWLEDGEMENT": 863
+            "CRM_ACKNOWLEDGEMENT": 863,
+            "BC_HLD": 888
         },
         "CUSTOMER": {
             "ACCOUNT_ID": 974,

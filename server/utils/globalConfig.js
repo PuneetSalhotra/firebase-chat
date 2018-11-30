@@ -193,11 +193,9 @@ if (mode === 'staging') {
     //SQS Queue
     config.SQSqueueUrl = "https://sqs.us-east-1.amazonaws.com/430506864995/desker-logging-staging"; //Staging SQS QUEUE
 
-    //Portal Service URL
-    config.portalBaseUrl = "https://stagingportal.desker.cloud/";
-
-    //Mobile Service URL
-    config.mobileBaseUrl = "https://stagingapi.desker.cloud/";
+    //Portal Service URL & Mobile Service URL
+    config.portalBaseUrl = "https://stagingportal.worlddesk.cloud/";
+    config.mobileBaseUrl = "https://stagingapi.worlddesk.cloud/";
 
     //making twilio, Nexmo Calls
     config.efsPath = "/api-staging-efs/";

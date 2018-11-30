@@ -13,6 +13,7 @@ function ActivityService(objectCollection) {
     var activityPushService = objectCollection.activityPushService;
     var responseactivityData = {}
     const suzukiPdfEngine = require('../utils/suzukiPdfGenerationEngine');     
+    const moment = require('moment');
 
     this.addActivity = function (request, callback) {
 
@@ -147,6 +148,86 @@ function ActivityService(objectCollection) {
                     global.logger.write('debug', 'streamtype id is: ' + activityStreamTypeId, {}, request);
                     assetActivityListInsertAddActivity(request, function (err, status) {
                         if (err === false) {
+                            let activityTitle;
+                            
+                            if(activityTypeCategroyId === 9) {
+                                
+                                switch(Number(request.form_id)) {
+                                    case global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER:
+                                         activityTitle = "New Order Form Submitted";
+                                         break;
+                                    case global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY:
+                                         activityTitle = "Order Supplementary Form Submitted";
+                                         break;
+                                    case global.vodafoneConfig[request.organization_id].FORM_ID.FR:                                        
+                                         activityTitle = "Fr Form Submitted";
+                                         break;
+                                    case global.vodafoneConfig[request.organization_id].FORM_ID.CRM:
+                                         activityTitle = "CRM Form Submitted";
+                                         break;
+                                    case global.vodafoneConfig[request.organization_id].FORM_ID.HLD:
+                                         activityTitle = "HLD Form Submitted";
+                                         break;
+                                    case global.vodafoneConfig[request.organization_id].FORM_ID.BC_HLD:
+                                         activityTitle = "BC_HLD Form Submitted";
+                                         break;
+                                    case global.vodafoneConfig[request.organization_id].FORM_ID.NEW_CUSTOMER:
+                                         activityTitle = "New Customer Form Submitted";
+                                         break;
+                                    case global.vodafoneConfig[request.organization_id].FORM_ID.EXISTING_CUSTOMER:
+                                         activityTitle = "Existing Customer Form Submitted";
+                                         break;                            
+                                    case global.vodafoneConfig[request.organization_id].FORM_ID.OMT_APPROVAL:
+                                         activityTitle = "OMT Approval Form Submitted";
+                                         break;
+                                    case global.vodafoneConfig[request.organization_id].FORM_ID.ACCOUNT_MANAGER_APPROVAL:
+                                         activityTitle = "Account Manager Approval Form Submitted";
+                                         break;
+                                    case global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_APPROVAL:
+                                         activityTitle = "Customer Approval Form Submitted";
+                                         break;      
+                                    case global.vodafoneConfig[request.organization_id].FORM_ID.CAF:
+                                         activityTitle = "CAF Form Submitted";
+                                         break;
+                                    default: activityTitle = "Form Submitted";
+                                }
+                                            
+                                let newRequest = Object.assign({}, request);
+
+                                // Fire a 705 request for this activity
+                                let activityTimelineCollectionFor705 = {
+                                    "mail_body": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+                                    "subject": activityTitle,
+                                    "content": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+                                    "asset_reference": [],
+                                    "activity_reference": [],
+                                    "form_approval_field_reference": [],                                
+                                    "form_submitted": JSON.parse(request.activity_inline_data),
+                                    "attachments": []
+                                };
+
+                                newRequest.activity_timeline_collection = JSON.stringify(activityTimelineCollectionFor705);                            
+                                newRequest.activity_stream_type_id = 705;
+                                newRequest.flag_timeline_entry = 1;
+                                newRequest.device_os_id = 7;
+                                newRequest.form_id = request.activity_form_id;
+
+                                let displayFileEvent = {
+                                    name: "addTimelineTransaction",
+                                    service: "activityTimelineService",
+                                    method: "addTimelineTransaction",
+                                    payload: newRequest
+                                };
+                                
+                                queueWrapper.raiseActivityEvent(displayFileEvent, request.activity_id, (err, resp) => {
+                                    if (err) {
+                                        console.log("\x1b[35m [ERROR] Raising queue activity raised for 705 streamtypeid for Order Activity. \x1b[0m");
+                                    } else {
+                                       console.log("\x1b[35m Queue activity raised for 705 streamtypeid for Order Activity. \x1b[0m");                                           
+                                    }
+                                });
+                            }
+                            
                             if (activityTypeCategroyId === 10 && request.hasOwnProperty('owner_asset_id')) {
                                 if (request.owner_asset_id !== request.asset_id) {
                                     activityPushService.sendPush(request, objectCollection, 0, function () {});
@@ -336,7 +417,8 @@ function ActivityService(objectCollection) {
                             global.logger.write('debug', "not inserted to asset activity list", {}, request);
 
                             callback(false, responseactivityData, 200);
-                        }
+                        }                   
+                                 
                     });
 
                     // Suzuki Form Submissions PDF Generation Logic
