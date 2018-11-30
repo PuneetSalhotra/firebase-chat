@@ -1972,6 +1972,74 @@ function ActivityListingService(objCollection) {
 	        }
     	});
     };
+    
+    this.getMyQueueActivitiesV2 = function (request) {
+    	return new Promise((resolve, reject) => {
+    		
+	        var paramsArr = new Array(
+	            request.organization_id,
+	            request.account_id,
+	            request.workforce_id,
+	            request.target_asset_id,
+	            request.page_start,
+	            request.page_limit	            
+	        );
+	        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_myqueue', paramsArr);
+	        if (queryString != '') {
+	            db.executeQuery(1, queryString, request, function (err, data) {
+	            	//console.log('queryString : '+queryString+ "err "+err+ ": data.length "+data.length);
+	                if (err === false) {
+	                	processMyQueueData(request, data).then((queueData)=>{
+	                		resolve(queueData);	
+	                	});
+	                } else {	                    
+	                    reject(err);	                    
+	                }
+	            });
+	        }
+    	});
+    };
+        
+    function processMyQueueData(request, data){
+    	return new Promise((resolve, reject) => {
+    		var array = [];
+			forEachAsync(data, function (next, newOrderData) {	
+				getQueueActivity(request, newOrderData.activity_id).then((queueData)=>{
+					if(queueData.length > 0)
+					array.push(queueData[0]);
+				}).then(()=>{
+					next();
+				})				    
+					
+            }).then(()=>{
+            	//console.log(array);
+            	resolve(array);
+            });	    		
+    	});
+    };
+    
+   function getQueueActivity(request,idActivity) {
+    	return new Promise((resolve, reject) => {
+    		
+	        var paramsArr = new Array(
+	            request.organization_id,
+	            request.account_id,
+	            request.workforce_id,
+	            idActivity	            
+	        );
+	        var queryString = util.getQueryString('ds_v1_queue_activity_mapping_select_activity', paramsArr);
+	        if (queryString != '') {
+	            db.executeQuery(1, queryString, request, function (err, data) {
+	            	//console.log('queryString : '+queryString+ "err "+err+ ": data.length "+data.length);
+	                if (err === false) {	                	
+	                	resolve(data);	                   
+	                } else {	                    
+	                    reject(err);	                    
+	                }
+	            });
+	        }
+    	});
+    };
 };
 
 module.exports = ActivityListingService;

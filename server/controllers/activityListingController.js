@@ -640,7 +640,7 @@ function ActivityListingController(objCollection) {
     });
     
     app.post('/' + global.config.version + '/activity/my_queue/list', function (req, res) {
-    	activityListingService.getMyQueueActivities(req.body).then((data)=>{   
+    	activityListingService.getMyQueueActivitiesV2(req.body).then((data)=>{   
     		
     		res.send(responseWrapper.getResponse({}, data, 200, req.body));
     	}).catch((err) => { 

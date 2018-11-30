@@ -3383,6 +3383,101 @@ function AssetService(objectCollection) {
             }
     };
 
+    this.checkPamAssetPasscode = function (request, callback) {
+    	
+        var phoneNumber = util.cleanPhoneNumber(request.asset_phone_number);
+        var phoneCountryCode = util.cleanPhoneNumber(request.asset_phone_country_code);
+        var verificationCode = util.cleanPhoneNumber(request.verification_passcode);
+        var verificationType = Number(request.verification_method);
+
+		var paramsArr = new Array();
+		var queryString = "";
+		var paramsArr = new Array(
+			request.organization_id,
+	        phoneNumber,
+	        phoneCountryCode
+	    );
+		
+	    queryString = util.getQueryString('pm_v1_asset_list_select_phone_number', paramsArr);
+
+		if (queryString != '') {
+		    db.executeQuery(1, queryString, request, function (err, data) {
+		    	 if (err === false) {
+		    		 if(data.length > 0){
+		    			 if(verificationCode == data[0].asset_phone_passcode){
+		    				 callback(false, data, 200);
+		    			 }else{			    				 
+		    				 callback(false, {}, -3107);
+		    			 }
+		    		 }else{
+		    			 callback(false, {}, -3202);
+		    		 }
+		    	 }else{
+		    		 callback(false, {}, -9998);
+		    	 }
+		    });
+		}
+
+    };
+    
+    
+    this.getPamMemberPhoneNumberAsset = function (request, callback) {
+
+        var phoneNumber = util.cleanPhoneNumber(request.asset_phone_number);
+        var countryCode = util.cleanPhoneNumber(request.asset_phone_country_code);
+        var emailId = request.asset_email_id;
+        var verificationMethod = Number(request.verification_method);
+        var organizationId = request.organization_id;
+
+        var queryString = '';
+        
+        var paramsArr = new Array(
+	                organizationId,
+	                phoneNumber,
+	                countryCode
+	            );
+		 queryString = util.getQueryString('pm_v1_asset_list_select_member_phone_number', paramsArr);
+
+		 if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, selectData) {
+                    if (err === false) {
+                        var verificationCode;
+                        verificationCode = util.getVerificationCode();
+                       if (selectData.length > 0) {
+                        	
+                            forEachAsync(selectData, function (next, rowData) {
+                                paramsArr = new Array(
+                                	rowData.organization_id,
+                                	rowData.account_id,
+                                    rowData.asset_id,                                    
+                                    verificationCode,
+                                    11031,
+                                    util.getCurrentUTCTime()
+                                );
+                                var updateQueryString = util.getQueryString('ds_v1_asset_list_update_passcode_pam', paramsArr);
+                                db.executeQuery(0, updateQueryString, request, function (err, data) {
+                                    assetListHistoryInsert(request, rowData.asset_id, rowData.organization_id, 208, util.getCurrentUTCTime(), function (err, data) {
+
+                                    });
+                                    next();
+                                });
+
+                            });
+                            
+                            sendCallOrSms(verificationMethod, countryCode, phoneNumber, verificationCode, request);
+                            callback(err, true, 200);
+                        }else{
+                        	callback(err, false, -9997);
+                        }
+                    } else {
+                        // some thing is wrong and have to be dealt                        
+                        callback(err, false, -9999);
+                    }
+                });
+            }else {
+            	callback(false, {}, -3101);
+            }
+    };
 
 }
 
