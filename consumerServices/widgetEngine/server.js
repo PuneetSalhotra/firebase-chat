@@ -22,7 +22,7 @@ if (cluster.isMaster) {
     var WidgetEngineConsumer = require("./consumer.js");
     var options = {
         partition: Number(process.argv[2]),
-        topic: 'desker-form-widgets'
+        topic: global.config.WIDGET_TOPIC_NAME
     };
     new WidgetEngineConsumer(options);
     

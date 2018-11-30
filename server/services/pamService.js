@@ -2291,7 +2291,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                 	activityCommonService.activityListHistoryInsert(request, 413, function (err, result) {});
                     if (err === false) {
                       	//activityCommonService.activityListHistoryInsert(request, 413, function (err, result) {});
-                        activityCommonService.getActivityDetails(request, 0, function(err, data){
+                        getActivityDetailsMaster(request, 0, function(err, data){
                             if(err === false){
                                 activityStatusId = data[0].activity_status_id;
                                 activityStatusTypeId = data[0].activity_status_type_id;
@@ -2376,7 +2376,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
             	activityCommonService.activityListHistoryInsert(request, 414, function (err, result) {});
                     if (err === false) {
                        	//activityCommonService.activityListHistoryInsert(request, 414, function (err, result) {});
-                        activityCommonService.getActivityDetails(request, 0, function(err, data){
+                        getActivityDetailsMaster(request, 0, function(err, data){
                             if(err === false){                     
                                 
                                 response.activity_status_id = util.replaceDefaultNumber(data[0].activity_status_id);
@@ -2398,7 +2398,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                                     
                                     ////////////////////
                                     activityAssetMappingInsertParticipantAssign(request, x, function(err, resp){
-                                        if(err === false){
+                                       // if(err === false){
                                             updateStatusDateTimes(request).then(()=>{});
                                             ///////////////////////
                                             activityCommonService.getAllParticipants(request, function(err, participantData){
@@ -2420,10 +2420,10 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                                                 }  
                                             });
                                             ///////////////////
-                                        } else {
+                                       /* } else {
                                             callback(true, err, -9999);
                                             return;
-                                        }
+                                        }*/
                                     });
                                     ///////////////////                                 
                                     
@@ -3647,6 +3647,32 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
         });
         
     }
+    
+    function getActivityDetailsMaster(request, activityId, callback) {
+        var paramsArr;
+        if (Number(activityId > 0)) {
+            paramsArr = new Array(
+                activityId,
+                request.organization_id
+            );
+        } else {
+            paramsArr = new Array(
+                request.activity_id,
+                request.organization_id
+            );
+        }
+        var queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                if (err === false) {                    
+                    callback(false, data);
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, false);
+                }
+            });
+        }
+    };
 
 }
 ;

@@ -77,6 +77,16 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                             global.logger.write('request', JSON.stringify(req.body, null, 2), req.body, req.body);
                             next();
                             break;
+                        case '/' + global.config.version + '/pam/asset/passcode/check':
+                            req.body['module'] = 'device';
+                            global.logger.write('request', JSON.stringify(req.body, null, 2), req.body, req.body);
+                            next();
+                            break;    
+                        case '/' + global.config.version + '/pam/asset/passcode/alter/v1':
+                            req.body['module'] = 'device';
+                            global.logger.write('request', JSON.stringify(req.body, null, 2), req.body, req.body);
+                            next();
+                            break;
                         case '/' + global.config.version + '/send/email':
                         case '/' + global.config.version + '/wf/send/email':
                         case '/' + global.config.version + '/wf/send/sms':

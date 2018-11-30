@@ -42,7 +42,7 @@ function QueueWrapper(producer) {
         //global.logger.write('debug', 'producing to partition id: ' + partition, {}, event.payload);
         global.logger.write('debug', 'producing to key: ' + activityId.toString(), {}, event.payload);
         var payloads = [{
-            topic: global.config.kafkaFormWidgetTopic,
+            topic: global.config.WIDGET_TOPIC_NAME,
             messages: JSON.stringify((event)),
             key: activityId.toString()
         }];
