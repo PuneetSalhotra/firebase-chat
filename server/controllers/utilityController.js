@@ -225,6 +225,34 @@ function UtilityController(objCollection) {
 
         res.send(responseWrapper.getResponse(false, {}, 200, req.body));
     });
+    
+    app.post('/' + global.config.version + '/send/smshorizon/sms', function (req, res) {
+       var smapleSMS = "Hi This is a sample Test";
+       smapleSMS = smapleSMS + req.body.counter;
+       
+        util.sendSmsHorizon(smapleSMS, req.body.country_code, req.body.phone_number, function (err, data) {
+            if (err === false) {
+            	global.logger.write('debug', 'SMS HORIZON RESPONSE: '+JSON.stringify(data), {}, req);
+                res.send(responseWrapper.getResponse(err, data.response, 200, req.body));
+            } else {
+                res.send(responseWrapper.getResponse(err, data.code, 200, req.body));
+            }
+        });
+    });
+    
+    app.post('/' + global.config.version + '/send/smshorizon/sms', function (req, res) {
+        var smapleSMS = "Hi This is a sample Test";
+        smapleSMS = smapleSMS + req.body.counter;
+        
+         util.sendSmsHorizon(smapleSMS, req.body.country_code, req.body.phone_number, function (err, data) {
+             if (err === false) {
+             	global.logger.write('debug', 'SMS HORIZON RESPONSE: '+JSON.stringify(data), {}, req);
+                 res.send(responseWrapper.getResponse(err, data.response, 200, req.body));
+             } else {
+                 res.send(responseWrapper.getResponse(err, data.code, 200, req.body));
+             }
+         });
+     });
 
 }
 module.exports = UtilityController;
