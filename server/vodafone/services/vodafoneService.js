@@ -3404,9 +3404,11 @@ function VodafoneService(objectCollection) {
                 "field_id": util.replaceDefaultNumber(rowData['field_id']),
                 "field_description": util.replaceDefaultString(util.decodeSpecialChars(rowData['field_description'])),
                 "field_name": util.replaceDefaultString(util.decodeSpecialChars(rowData['field_name'])),
-                "data_type_id": util.replaceDefaultNumber(rowData['data_type_id']),
-                "data_type_category_id": util.replaceDefaultNumber(rowData['data_type_category_id']),
-                "data_type_category_name": util.replaceDefaultString(rowData['data_type_category_name'])
+                "field_data_type_id": util.replaceDefaultNumber(rowData['data_type_id']),
+                "field_data_type_category_id": util.replaceDefaultNumber(rowData['data_type_category_id']),
+                "data_type_category_name": util.replaceDefaultString(rowData['data_type_category_name']),
+                "data_type_combo_id": util.replaceDefaultNumber(rowData['data_type_combo_id']),
+                "data_type_combo_value": util.replaceDefaultString(rowData['data_type_combo_value'])
             };
             responseData.push(rowDataArr);
         }, this);
