@@ -5,20 +5,27 @@ version: 0.0
 os: linux
 files:
   - source: .
-    destination: /staging_desker_api
+    destination: /preprod_desker_api
+  - source: .
+    destination: /production_desker_api/2018-11-28-02
 permissions:
-  - object: /staging_desker_api/deployment
+  - object: /preprod_desker_api/deployment
     owner: root
     mode: 777
     type:
-      - directory  
+      - directory
+  - object: /production_desker_api/2018-11-28-02/deployment
+    owner: root
+    mode: 777
+    type:
+      - directory
 hooks:
   BeforeInstall:
     - location: deployment/install_dependencies.sh
       timeout: 300
       runas: root
   ApplicationStart:
-    - location: deployment/start_services.sh    
+    - location: deployment/start_services_preprod_prod.sh    
       timeout: 300    
       runas: root
   #ApplicationStop:
