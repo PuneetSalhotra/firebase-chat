@@ -111,16 +111,6 @@
         "message_unique_id": "313591541834883314219"
     }, {
         "form_id": 867,
-        "field_id": 5667,
-        "field_name": "Secondary Last Mile Service Provider",
-        "field_data_type_id": 19,
-        "field_data_type_category_id": 7,
-        "data_type_combo_id": 0,
-        "data_type_combo_value": "0",
-        "field_value": "",
-        "message_unique_id": "313591541834883314219"
-    }, {
-        "form_id": 867,
         "field_id": 5669,
         "field_name": "Secondary CIR Bandwidth in Mbps/Kbps",
         "field_data_type_id": 19,
@@ -474,16 +464,6 @@
         "form_id": 872,
         "field_id": 5933,
         "field_name": "Service Provider PoP2, if dual homing",
-        "field_data_type_id": 19,
-        "field_data_type_category_id": 7,
-        "data_type_combo_id": 0,
-        "data_type_combo_value": "0",
-        "field_value": "",
-        "message_unique_id": "313591541834883314219"
-    }, {
-        "form_id": 872,
-        "field_id": 5935,
-        "field_name": "Secondary Last Mile Service Provider",
         "field_data_type_id": 19,
         "field_data_type_category_id": 7,
         "data_type_combo_id": 0,
