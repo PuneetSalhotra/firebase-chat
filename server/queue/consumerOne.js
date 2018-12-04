@@ -102,7 +102,6 @@ var Consumer = function () {
                     activityCommonService.duplicateMsgUniqueIdInsert(request, (err, data) => {});
                 }
             });
-
         });
 
         consumer.on('connect', function (err, data) {

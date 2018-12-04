@@ -1,0 +1,42 @@
+apps:
+  - name : "Main"
+    script   : ./main.js
+    instances: max    
+    out_file: '/dev/null'
+    exec_mode: cluster
+    
+  - name : "ConsumerZero"
+    script   : ./consumerZero.js    
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "ConsumerOne"
+    script   : ./consumerOne.js    
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "ConsumerTwo"
+    script   : ./consumerTwo.js    
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "ConsumerThree"
+    script   : ./consumerThree.js    
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "ConsumerFour"
+    script   : ./consumerFour.js    
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "ConsumerFive"
+    script   : ./consumerFive.js    
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
