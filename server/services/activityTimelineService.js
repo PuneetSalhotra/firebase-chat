@@ -35,6 +35,7 @@ function ActivityTimelineService(objectCollection) {
                     if(Number(request.activity_id) !== Number(data[0].activity_id)) { 
                         global.logger.write('debug', "\x1b[35m [Log] Activity_ID from request is different from retrived Activity_id hence proceeding \x1b[0m",{}, request);
                         global.logger.write('debug', "\x1b[35m [Log] Non Dedicated File \x1b[0m",{}, request);
+                        request.data_activity_id = Number(data[0].activity_id); //Dedicated file activity id
                         retrievingFormIdandProcess(request, data).then(()=>{});                   
                     } else {
                         global.logger.write('debug', "\x1b[35m [Log] Activity_ID from request is same as retrived Activity_id hence checking for device os id 7 \x1b[0m",{}, request);
@@ -49,7 +50,7 @@ function ActivityTimelineService(objectCollection) {
                         }            
                     }
                 } else {
-                    if(Number(request.device_os_id) === 7) { //7 means calling internal from services
+                    if(Number(request.device_os_id) === 7 || Number(request.device_os_id) === 5) { //7 means calling internal from services
                         retrievingFormIdandProcess(request, data).then(()=>{});
                         
                         //Form Transaction Insertion should happen only for dedicated files

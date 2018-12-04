@@ -414,6 +414,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             request.datetime_log
         );
         var queryString = util.getQueryString("ds_v1_2_asset_timeline_transaction_insert", paramsArr);
+        //var queryString = util.getQueryString("ds_v1_3_asset_timeline_transaction_insert", paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
@@ -653,6 +654,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         );
         //Beta
         var queryString = util.getQueryString("ds_v1_3_activity_timeline_transaction_insert", paramsArr);
+        //var queryString = util.getQueryString("ds_v1_5_activity_timeline_transaction_insert", paramsArr);        
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
