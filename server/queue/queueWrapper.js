@@ -49,10 +49,10 @@ function QueueWrapper(producer) {
         producer.send(payloads, function (err, data) {
             if (err) {                
                 global.logger.write('serverError', 'error in producing data : ' + err, err, event.payload);
-                callback(true, err);
+                // callback(true, err);
             } else {
                 global.logger.write('debug', 'Producer success callback message ' + JSON.stringify(data), JSON.stringify(data), event.payload);
-                callback(false, 'Producer success callback message');
+                // callback(false, 'Producer success callback message');
             }            
         });        
     }
