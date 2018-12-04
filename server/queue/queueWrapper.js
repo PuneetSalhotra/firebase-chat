@@ -36,7 +36,7 @@ function QueueWrapper(producer) {
 
     };
 
-    this.raiseFormWidgetEvent = function (event, activityId) {
+    this.raiseFormWidgetEvent = function (event, activityId, callback) {
         //var partition = Number(activityId) % 3;
         //var partition = 0;        
         //global.logger.write('debug', 'producing to partition id: ' + partition, {}, event.payload);
@@ -55,7 +55,26 @@ function QueueWrapper(producer) {
                 callback(false, 'Producer success callback message');
             }            
         });        
-    }
+    };    
+    
+    this.raiseLogEvent = async function(event) {         
+                    
+            var payloads = [{
+                topic: global.config.LOGS_TOPIC_NAME,
+                messages: JSON.stringify((event))                
+            }];
+
+            producer.send(payloads, function (err, data) {
+                if (err) {
+                    console.log('Error: Log message Production ', err);
+                } else {
+                    console.log('Log Message Produced');
+                }
+            });           
+        
+    };
+    
+    
 }
 
 module.exports = QueueWrapper;

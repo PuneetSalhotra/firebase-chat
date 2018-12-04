@@ -5,16 +5,58 @@
 var SQS = require("../queue/sqsProducer");
 var Util = require('./util');
 
-function Logger() {
+function Logger(queueWrapper) {
+    
+    let sqs = new SQS();
+    let util = new Util();    
+    
+    let logLevel = {
+            request: 1,
+            response: 2,
+            debug: 3,
+            warning: 4,
+            trace: 5,
+            appError: 6,
+            serverError: 7,
+            fatal: 8,
+            dbResponse: 9,
+            cacheResponse: 10
+        };
 
-    var sqs = new SQS();
-    var util = new Util();
-
+    /*
+        log_transaction_id
+        log_record_key
+        log_bundle_key
+        log_level_id
+        log_level_name
+        log_service_url
+        log_request_data
+        log_response_data
+        log_db_call
+        log_db_response
+        log_response_code
+        log_message
+        log_request_datetime
+        log_response_datetime
+        log_stack_trace_data
+        log_date
+        log_datetime
+        activity_id
+        activity_title
+        asset_id
+        asset_first_name
+        device_phone_country_code
+        device_phone_number
+        device_os_id
+     */
+    
     this.write = function (level, message, object, request) {
-        var isTargeted = false;
-        var loggerCollection = {
+        var isTargeted = false;    
+        
+        let loggerCollection = {
             message: message,
             object: object,
+            levelId: logLevel[level],
             level: level,
             request: request,
             environment: global.mode, //'prod'
@@ -25,11 +67,14 @@ function Logger() {
             isTargeted = true;
         }
 
-        util.writeLogs(message, isTargeted);
-
+        //Textual Logs
+        //util.writeLogs(message, isTargeted);        
         
-        try {
-            var loggerCollectionString = JSON.stringify(loggerCollection);
+        //Logs pushing to Kafka
+        queueWrapper.raiseLogEvent(loggerCollection).then(()=>{});            
+        
+        /*try {
+            let loggerCollectionString = JSON.stringify(loggerCollection);
             
             switch (level) {
                 case 'conLog':
@@ -44,7 +89,7 @@ function Logger() {
             }
         } catch(e) {
             
-        }       
+        }*/
         
     };
 
@@ -60,7 +105,7 @@ function Logger() {
             if (err)
                 console.log("error is: " + err);
         });
-    };
+    };      
 };
 
 module.exports = Logger;

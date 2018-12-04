@@ -3,8 +3,8 @@
  */
 
 mode = process.env.mode;
-var Logger = require(`${__dirname}/logger.js`);
-logger = new Logger();
+//var Logger = require(`${__dirname}/logger.js`);
+//logger = new Logger();
 
 config = {};
 
@@ -73,6 +73,8 @@ if (mode === 'local') {
     config.TOPIC_ID = 8;
     config.TOPIC_NAME = "desker-activities";
     config.WIDGET_TOPIC_NAME = 'desker-form-widgets';
+    config.LOGS_TOPIC_NAME = 'desker-logs';
+    config.LOG_TOPIC_ID = 9;
     config.CONSUMER_GROUP_ID = 'desker-activities-consumer-group';
     config.CONSUMER_AUTO_COMMIT = true;
     config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
