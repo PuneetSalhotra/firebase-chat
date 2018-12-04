@@ -48,12 +48,12 @@ apps:
     instances: 1
     exec_mode: fork
     
-  - name : "Staging_SQSConsumer"
-    env: {mode: staging}
-    script   : ./server/queue/sqsConsumer.js    
-    out_file: '/dev/null'
-    instances: 1
-    exec_mode: fork
+  #- name : "Staging_SQSConsumer"
+  #  env: {mode: staging}
+  #  script   : ./server/queue/sqsConsumer.js    
+  #  out_file: '/dev/null'
+  #  instances: 1
+  #  exec_mode: fork
     
   - name : "Staging_LogConsumerZero"
     env: {mode: staging, partition:0}

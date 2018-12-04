@@ -13,7 +13,6 @@ function VodafoneService(objectCollection) {
     const cacheWrapper = objectCollection.cacheWrapper;
     const makeRequest = require('request');
     const uuid = require('uuid');
-    const fs = require('fs');
     const moment = require('moment');
     const formFieldIdMapping = util.getVodafoneFormFieldIdMapping();
     const romsCafFieldsData = util.getVodafoneRomsCafFieldsData();
@@ -2924,6 +2923,10 @@ function VodafoneService(objectCollection) {
             // 
             sourceFormData.forEach(formEntry => {
                 if (Object.keys(HLD_TO_CAF_FIELD_ID_MAP).includes(String(formEntry.field_id))) {
+                    // Check for drop-downs
+                    if (Number(formEntry.field_data_type_id) === 33) {
+                        formEntry.field_value = formEntry.data_type_combo_value;
+                    }
                     // Push entries from the Supplementary Order Form, which have a defined CAF mapping
                     cafFormData.push({
                         "form_id": CAF_FORM_ID,
@@ -3396,6 +3399,7 @@ function VodafoneService(objectCollection) {
     
     var formatFormsListing = function (data, callback) {
         var responseData = new Array();
+        let prevFieldId = 0;
         data.forEach(function (rowData, index) {
 
             var rowDataArr = {
@@ -3404,11 +3408,19 @@ function VodafoneService(objectCollection) {
                 "field_id": util.replaceDefaultNumber(rowData['field_id']),
                 "field_description": util.replaceDefaultString(util.decodeSpecialChars(rowData['field_description'])),
                 "field_name": util.replaceDefaultString(util.decodeSpecialChars(rowData['field_name'])),
-                "data_type_id": util.replaceDefaultNumber(rowData['data_type_id']),
-                "data_type_category_id": util.replaceDefaultNumber(rowData['data_type_category_id']),
-                "data_type_category_name": util.replaceDefaultString(rowData['data_type_category_name'])
+                "field_data_type_id": util.replaceDefaultNumber(rowData['data_type_id']),
+                "field_data_type_category_id": util.replaceDefaultNumber(rowData['data_type_category_id']),
+                "data_type_category_name": util.replaceDefaultString(rowData['data_type_category_name']),
+                "data_type_combo_id": util.replaceDefaultNumber(rowData['data_type_combo_id']),
+                "data_type_combo_value": util.replaceDefaultString(rowData['data_type_combo_value'])
             };
-            responseData.push(rowDataArr);
+            
+            if (Number(prevFieldId) !== Number(rowData['field_id'])) {
+                responseData.push(rowDataArr);
+            }
+            // Keep track of the previous field_id, to avoid duplicates
+            prevFieldId = Number(rowData['field_id']);
+
         }, this);
         callback(false, responseData);
     };

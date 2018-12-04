@@ -1742,16 +1742,18 @@ function ActivityService(objectCollection) {
                  global.logger.write('debug', '*****STATUS CHANGE FLAG : '+request.status_changed_flag, {}, request);
                  
                  var timeDuration = util.differenceDatetimes(util.getCurrentUTCTime(), util.replaceDefaultDatetime(data[0].datetimeExistingActivityStatusUpdated))
-                 
-                 activityCommonService.activityStatusChangeTxnInsertV2(request, Number(timeDuration)/1000, {
-                     from_status_id: Number(data[0].idExistingActivityStatus),
-                     to_status_id: Number(request.activity_status_id),
-                     from_status_datetime: util.replaceDefaultDatetime(data[0].datetimeExistingActivityStatusUpdated),
-                     to_status_datetime: util.replaceDefaultDatetime(data[0].updatedDatetime)
-                 }).then(()=>{
-                	 global.logger.write('debug', '*****ALTER STATUS : HITTING WIDGET ENGINE*******', {}, request);
-                	 sendRequesttoWidgetEngine(request);
-                 });
+	              if(Number(data[0].idExistingActivityStatus) > 0 && Number(request.activity_status_id) > 0){
+	             
+	                 activityCommonService.activityStatusChangeTxnInsertV2(request, Number(timeDuration)/1000, {
+	                     from_status_id: Number(data[0].idExistingActivityStatus),
+	                     to_status_id: Number(request.activity_status_id),
+	                     from_status_datetime: util.replaceDefaultDatetime(data[0].datetimeExistingActivityStatusUpdated),
+	                     to_status_datetime: util.replaceDefaultDatetime(data[0].updatedDatetime)
+	                 }).then(()=>{
+	                	 global.logger.write('debug', '*****ALTER STATUS : HITTING WIDGET ENGINE*******', {}, request);
+	                	 sendRequesttoWidgetEngine(request);
+	                 });
+	             }
              }
 
                 //Remote Analytics

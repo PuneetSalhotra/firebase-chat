@@ -35,8 +35,8 @@ if (mode === 'local') {
     config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';       
     
     config.dbUser = 'apiuser';
-    //config.database = 'desker';// desker_staging
-    config.database = 'desker_staging';
+    config.database = 'desker';// desker_staging
+    //config.database = 'desker_staging';
     config.dbPassword = 'apidbuser';
     config.conLimit = 5;
     

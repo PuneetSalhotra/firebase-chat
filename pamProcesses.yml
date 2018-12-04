@@ -1,37 +1,37 @@
 apps:
   - name : "Pam_Main"
+    env: {mode: pam}
     script   : ./main.js
-    instances: max
-    #error_file: ../logger.txt
-    #out_file: ../logger.txt
-    exec_mode: cluster
+    instances: max    
+    out_file: '/dev/null'
+    exec_mode: cluster    
   - name : "Pam_ConsumerOne"
-    script   : ./consumerOne.js
-    #error_file: ../consumersLogger.txt
-    #out_file: ../consumersLogger.txt
+    env: {mode: staging, partition:2}
+    script   : ./consumerOne.js    
+    out_file: '/dev/null'
     instances: 1
     exec_mode: fork
   - name : "Pam_ConsumerTwo"
+    env: {mode: staging, partition:2}
     script   : ./consumerTwo.js
-    #error_file: ../consumersLogger.txt
-    #out_file: ../consumersLogger.txt
+    out_file: '/dev/null'    
     instances: 1
     exec_mode: fork
   - name : "Pam_ConsumerThree"
+    env: {mode: staging, partition:2}
     script   : ./consumerThree.js
-    #error_file: ../consumersLogger.txt
-    #out_file: ../consumersLogger.txt
+    out_file: '/dev/null'    
     instances: 1
     exec_mode: fork
   - name : "Pam_SQSConsumer"
-    script   : ./server/queue/sqsConsumer.js
-    #error_file: ../sqsConsumerLogger.txt
-    #out_file: ../sqsConsumerLogger.txt
+    env: {mode: staging, partition:2}
+    script   : ./server/queue/sqsConsumer.js    
+    out_file: '/dev/null'
     instances: 1
     exec_mode: fork
   - name : "pam_PAM"
+    env: {mode: staging, partition:2}
     script   : ./server/pam/server.js
-    #error_file: ../pamlogger.txt
-    #out_file: ../pamlogger.txt
+    out_file: '/dev/null'    
     instances: 1
     exec_mode: fork

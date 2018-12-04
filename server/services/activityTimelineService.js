@@ -141,13 +141,9 @@ function ActivityTimelineService(objectCollection) {
             // 
             // [VODAFONE] Listen for Account Manager Approval or Customer (Service Desk) Approval Form
             // [VODAFONE] The above no longer applies. New trigger on CRM Acknowledgement Form submission.
-            if (
-                activityStreamTypeId === 705 &&
-                (
-                    Number(request.form_id) === 868 ||
-                    Number(request.form_id) === 863
-                )
-            ) {
+            const CRM_ACKNOWLEDGEMENT_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CRM_ACKNOWLEDGEMENT;
+
+            if (activityStreamTypeId === 705 && (Number(request.form_id) === Number(CRM_ACKNOWLEDGEMENT_FORM_ID))) {
                 console.log('CALLING approvalFormsSubmissionCheck')
                 const approvalCheckRequestEvent = {
                     name: "vodafoneService",
@@ -164,25 +160,23 @@ function ActivityTimelineService(objectCollection) {
                         global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
                     }
                 });
-
             }
             //
             // 
             // [VODAFONE] Provided the form file has submissions for New Order, FR, CRM and HLD, 
             // only then proceed with CAF Form building
+            const NEW_ORDER_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER,
+                FR_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.FR,
+                CRM_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CRM,
+                HLD_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.HLD;
+
             if (
                 activityStreamTypeId === 705 &&
                 (
-                    Number(request.form_id) === 873 || // BETA | New Order
-                    Number(request.form_id) === 871 || // BETA | FR
-                    Number(request.form_id) === 870 || // BETA | CRM
-                    Number(request.form_id) === 869 || // BETA | HLD
-                    // Number(request.form_id) === 878 || // ---- | Customer Approval
-                    // Number(request.form_id) === 882 || // ---- | Customer Approval
-                    Number(request.form_id) === 856 || // LIVE | New Order
-                    Number(request.form_id) === 866 || // LIVE | FR
-                    Number(request.form_id) === 865 || // LIVE | CRM
-                    Number(request.form_id) === 864 // LIVE | HLD
+                    Number(request.form_id) === NEW_ORDER_FORM_ID || // New Order
+                    Number(request.form_id) === FR_FORM_ID || // FR
+                    Number(request.form_id) === CRM_FORM_ID || // CRM
+                    Number(request.form_id) === HLD_FORM_ID // HLD
                 )
             ) {
                 console.log('CALLING buildAndSubmitCafForm');
@@ -207,11 +201,12 @@ function ActivityTimelineService(objectCollection) {
             // 
             // [VODAFONE] Alter the status of the form file to Approval Pending. Also modify the 
             // last status alter time and current status for all the queue activity mappings.
+            const OMT_APPROVAL_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.OMT_APPROVAL;
+
             if (
                 activityStreamTypeId === 705 &&
                 (
-                    Number(request.form_id) === 883 || // BETA | OMT Approval
-                    Number(request.form_id) === 879 // LIVE | OMT Approval
+                    Number(request.form_id) === OMT_APPROVAL_FORM_ID
                 )
             ) {
                 console.log('CALLING setStatusApprovalPendingAndFireEmail');

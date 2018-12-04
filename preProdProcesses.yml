@@ -1,55 +1,113 @@
 apps:
   - name : "PreProd_Main"
+    env: {mode: preprod}
     script   : ./main.js
-    instances: max
-    #error_file: ../logger.txt
+    instances: max    
     out_file: '/dev/null'
     exec_mode: cluster
+    
   - name : "PreProd_ConsumerZero"
-    script   : ./consumerZero.js
-    #error_file: ../consumersLogger.txt
+    env: {mode: preprod, partition: 0}
+    script   : ./consumer.js
     out_file: '/dev/null'
     instances: 1
     exec_mode: fork
+    
   - name : "PreProd_ConsumerOne"
-    script   : ./consumerOne.js
-    #error_file: ../consumersLogger.txt
+    env: {mode: preprod, partition: 1}
+    script   : ./consumer.js    
     out_file: '/dev/null'
     instances: 1
     exec_mode: fork
+    
   - name : "PreProd_ConsumerTwo"
-    script   : ./consumerTwo.js
-    #error_file: ../consumersLogger.txt
+    env: {mode: preprod, partition: 2}
+    script   : ./consumer.js    
     out_file: '/dev/null'
     instances: 1
     exec_mode: fork
+    
   - name : "PreProd_ConsumerThree"
-    script   : ./consumerThree.js
-    #error_file: ../consumersLogger.txt
+    env: {mode: preprod, partition: 3}
+    script   : ./consumer.js
     out_file: '/dev/null'
     instances: 1
     exec_mode: fork
+    
   - name : "PreProd_ConsumerFour"
-    script   : ./consumerFour.js
-    #error_file: ../consumersLogger.txt
+    env: {mode: preprod, partition: 4}
+    script   : ./consumer.js    
     out_file: '/dev/null'
     instances: 1
     exec_mode: fork
+    
   - name : "PreProd_ConsumerFive"
-    script   : ./consumerFive.js
-    #error_file: ../consumersLogger.txt
+    env: {mode: preprod, partition: 5}
+    script   : ./consumer.js
     out_file: '/dev/null'
     instances: 1
-    exec_mode: fork  
-  #- name : "PreProd_SQSConsumer"
-  #  script   : ./server/queue/sqsConsumer.js
-    #error_file: ../sqsConsumerLogger.txt
-  #  out_file: '/dev/null'
-  #  instances: 1
-  #  exec_mode: fork
-  #- name : "PreProd_PAM"
-   # script   : ./server/pam/server.js
-    #error_file: ../pamlogger.txt
-    #out_file: ../pamlogger.txt
-    #instances: 1
-    #exec_mode: fork
+    exec_mode: fork
+    
+  - name : "PreProd_Log_ConsumerZero"
+    env: {mode: preprod, partition: 0}
+    script   : ./logConsumer.js
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "PreProd_Log_ConsumerOne"
+    env: {mode: preprod, partition: 1}
+    script   : ./logConsumer.js
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "PreProd_Log_ConsumerTwo"
+    env: {mode: preprod, partition: 2}
+    script   : ./logConsumer.js
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "PreProd_Widget_ConsumerZero"
+    env: {mode: preprod, partition: 0}
+    script   : ./consumerServices/widgetEngine/server.js
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "PreProd_Widget_ConsumerOne"
+    env: {mode: preprod, partition: 1}
+    script   : ./consumerServices/widgetEngine/server.js
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "PreProd_Widget_ConsumerTwo"
+    env: {mode: preprod, partition: 2}
+    script   : ./consumerServices/widgetEngine/server.js
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "PreProd_Widget_ConsumerThree"
+    env: {mode: preprod, partition: 3}
+    script   : ./consumerServices/widgetEngine/server.js
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "PreProd_Widget_ConsumerFour"
+    env: {mode: preprod, partition: 4}
+    script   : ./consumerServices/widgetEngine/server.js
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "PreProd_Widget_ConsumerFive"
+    env: {mode: preprod, partition: 5}
+    script   : ./consumerServices/widgetEngine/server.js
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+  
