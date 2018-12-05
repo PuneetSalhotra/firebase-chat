@@ -166,6 +166,7 @@ function WidgetService(objCollection) {
         var responseData = new Array();
         data.forEach(function (rowData, index) {
             var rowDataArr = {
+            	"widget_mapping_id": util.replaceDefaultNumber(rowData['widget_mapping_id']),
                 "widget_id": util.replaceDefaultNumber(rowData['widget_id']),
                 "widget_name": util.replaceDefaultString(util.ucfirst(util.decodeSpecialChars(rowData['widget_name']))),
                 "widget_description": util.replaceDefaultString(util.decodeSpecialChars(rowData['widget_description'])),
@@ -223,6 +224,66 @@ function WidgetService(objCollection) {
         }, this);
         callback(false, responseData);
     };
+    
+    
+    this.widgetAccessLevelList = function (request) {
+		return new Promise((resolve, reject)=>{
+	        var paramsArr = new Array(
+	                request.organization_id,
+	                request.account_id,
+	                request.workforce_id,
+	                request.asset_id,
+	                request.activity_id,
+	                request.form_id,
+	                request.entity_level_id,
+	                request.is_search,
+	                request.search_string,
+	                request.sort_flag,
+	                request.page_start,
+                	util.replaceQueryLimit(request.page_limit)
+	                );
+	
+	        var queryString = util.getQueryString('ds_v1_widget_entity_mapping_select_level', paramsArr);
+	        if (queryString != '') {
+	            db.executeQuery(1, queryString, request, function (err, data) {
+	            	//console.log("err "+err);
+	               if(err === false) {
+	        		   resolve(data);
+                    } else {
+	                   reject(err);
+	               }
+	            });
+	   		}
+        });
+    };	  
+    
+    this.widgetTransactionSelectAll = function (request) {
+		return new Promise((resolve, reject)=>{
+	        var paramsArr = new Array(
+	                request.organization_id,
+	                request.widget_id,
+	                request.widget_timeline_id,
+	                request.widget_aggregate_id,
+	                request.start_date,
+	                request.end_date,
+	                request.page_start,
+                	util.replaceQueryLimit(request.page_limit)
+	                );
+	
+	        var queryString = util.getQueryString('ds_v1_widget_transaction_select', paramsArr);
+	        if (queryString != '') {
+	            db.executeQuery(1, queryString, request, function (err, data) {
+	            	//console.log("err "+err);
+	               if(err === false) {	        			
+	            	   resolve(data);  			  
+                    } else {
+	                   reject(err);
+	               }
+	            });
+	   		}
+        });
+    };	
+
 }
 ;
 

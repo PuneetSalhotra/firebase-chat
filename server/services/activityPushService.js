@@ -90,7 +90,29 @@ function ActivityPushService(objectCollection) {
                             case '/' + global.config.version + '/activity/timeline/entry/add':
 
                                 pushString.title = senderName;
-                                pushString.description = 'Has added an update to the form: ' + activityTitle;
+                                pushString.description = 'Has added an update to the form: ' + activityTitle;                                
+                                
+                                const newOrderFormId = global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER;
+                                
+                                if(Number(activityData[0].form_id) === Number(newOrderFormId)) {
+                                    switch(Number(request.form_id)) {
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.FR:
+                                             pushString.description = 'Has added FR to ' + activityTitle;
+                                             break;
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.CRM:
+                                             pushString.description = 'Has added CRM to ' + activityTitle;
+                                             break;
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.HLD:
+                                             pushString.description = 'Has added HLD to ' + activityTitle;
+                                             break;
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.BC_HLD:
+                                             pushString.description = 'Has added BC/HLD to ' + activityTitle;
+                                             break;
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.CAF:
+                                             pushString.description = 'Has added CAF to ' + activityTitle;
+                                             break;
+                                    }
+                                }
 
                                 msg.activity_type_category_id = 9
                                 msg.type = 'activity_unread'
@@ -114,7 +136,7 @@ function ActivityPushService(objectCollection) {
                                 pushString.description = 'Form has been shared for approval';
                                 break;
                                 
-                            case '/' + global.config.version + '/activity/timeline/entry/add/vodafone':
+                            case '/' + global.config.version + '/activity/timeline/entry/add/external':
                                 msg.activity_type_category_id = 9;
                                 msg.type = 'activity_unread';
                                 pushString.title = senderName;
@@ -351,7 +373,8 @@ function ActivityPushService(objectCollection) {
         pushStringObj.order_name = request.activity_title;
         pushStringObj.status_type_id = 0;
         pushStringObj.station_category_id = request.activity_channel_category_id;
-
+		pushStringObj.item_order_count = request.item_order_count;
+		
         data.forEach(function (arn, index) {
             //console.log(arn);
             global.logger.write('debug', arn, {}, request);

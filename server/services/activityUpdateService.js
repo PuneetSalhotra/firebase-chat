@@ -669,6 +669,9 @@ function ActivityUpdateService(objectCollection) {
                             case 8: // Mail
                                 activityStreamTypeId = 1705;
                                 break;
+                            case 9: //Form edit
+                                activityStreamTypeId = 710;
+                                break;
                             case 15: //Video Conference
                                 activityStreamTypeId = 1607;
                                 break;

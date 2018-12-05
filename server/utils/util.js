@@ -14,7 +14,12 @@ var os = require('os');
 // SendGrid
 const sgMail = require('@sendgrid/mail');
 sgMail.setApiKey('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');
-
+// 
+// Vodafone Form Field Mapping
+const vodafoneFormFieldIdMapping = require(`${__dirname}/formFieldIdMapping`);
+// [Vodafone ROMS] CAF Fields Data
+const vodafoneRomsCafFieldsData = require(`${__dirname}/vodafoneRomsCafFieldsData`);
+// 
 // SendInBlue
 const SibApiV3Sdk = require('sib-api-v3-sdk');
 const defaultClient = SibApiV3Sdk.ApiClient.instance;
@@ -139,6 +144,27 @@ function Util() {
 
             var res = {};
             if (typeof foo != 'undefined' && foo.status === 1) {
+                res['status'] = 1;
+                res['message'] = "Message sent";
+            } else {
+                res['status'] = 0;
+                res['message'] = "Message not sent";
+            }
+            if (error)
+                callback(error, false);
+            callback(false, res);
+        });
+    };
+    
+    this.sendSmsHorizon = function (messageString, countryCode, phoneNumber, callback) {
+        //        console.log("inside sendSmsMvaayoo");
+        messageString = encodeURI(messageString);
+        var url = "http://smshorizon.co.in/api/sendsms.php?user=GreneRobotics&apikey=oLm0MhRHBt2KPXFRrk8k&mobile="+countryCode+""+phoneNumber+"&message="+messageString+"&senderid=WDDESK&type=txt";
+        global.logger.write('debug', 'URL: '+url, {}, {});
+        request(url, function (error, response, body) {
+        	global.logger.write('debug', 'SMS HORIZON RESP:: '+body, {}, {});
+            var res = {};            
+            if (typeof body == 'string' && Number(body) > 0) {
                 res['status'] = 1;
                 res['message'] = "Message sent";
             } else {
@@ -948,15 +974,16 @@ function Util() {
         var targetedLogFilePath;
 
         if (global.mode === 'prod') {
-            locationInServer = global.config.efsPath + 'node/production_desker_api/';
+            locationInServer = global.config.efsPath + 'api/';
             logFilePath = locationInServer + 'logs/' + this.getCurrentDate() + '.txt';
             targetedLogFilePath = locationInServer + 'targeted_logs/' + this.getCurrentDate() + '.txt';
-
         } else {
-            logFilePath = 'logs/' + this.getCurrentDate() + '.txt';
+            locationInServer = global.config.efsPath + 'staging_api/';
+            logFilePath = locationInServer + 'logs/' + this.getCurrentDate() + '.txt';
             // Development and Pre-Production | Not Staging
-            targetedLogFilePath = 'targeted_logs/' + this.getCurrentDate() + '.txt';
-        }
+            targetedLogFilePath = locationInServer + 'targeted_logs/' + this.getCurrentDate() + '.txt';
+        }       
+        
 
         if (typeof data === 'object') {
             // console.log('JSON.stringify(data) : ' + JSON.stringify(data));
@@ -994,6 +1021,36 @@ function Util() {
                 });
             }
         }
+    };
+
+    // [VODAFONE]
+    this.getVodafoneFormFieldIdMapping = function () {
+        return vodafoneFormFieldIdMapping;
+    }
+    // [VODAFONE]
+    this.getVodafoneRomsCafFieldsData = function () {
+        return vodafoneRomsCafFieldsData;
+    }
+    
+    this.sendSmsHorizon = function (messageString, countryCode, phoneNumber, callback) {
+ 
+        messageString = encodeURI(messageString);
+        var url = "http://smshorizon.co.in/api/sendsms.php?user=GreneRobotics&apikey=oLm0MhRHBt2KPXFRrk8k&mobile="+countryCode+""+phoneNumber+"&message="+messageString+"&senderid=WDDESK&type=txt";
+        global.logger.write('debug', 'URL: '+url, {}, {});
+        request(url, function (error, response, body) {
+        	global.logger.write('debug', 'SMS HORIZON RESP:: '+body, {}, {});
+            var res = {};            
+            if (typeof body == 'string' && Number(body) > 0) {
+                res['status'] = 1;
+                res['message'] = "Message sent";
+            } else {
+                res['status'] = 0;
+                res['message'] = "Message not sent";
+            }
+            if (error)
+                callback(error, false);
+            callback(false, res);
+        });
     };
 
 };

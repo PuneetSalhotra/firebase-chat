@@ -9,6 +9,7 @@ const moment = require('moment');
 function ActivityListingController(objCollection) {
 
     var responseWrapper = objCollection.responseWrapper;
+    const activityCommonService = objCollection.activityCommonService;
     var app = objCollection.app;
 
     var activityListingService = new ActivityListingService(objCollection);
@@ -523,7 +524,7 @@ function ActivityListingController(objCollection) {
     app.post('/' + global.config.version + '/asset/access/chat/list', function (req, res) {
         // 
         // Fetch list of recent chats for the asset
-        activityListingService.fetchRecentChatList(req.body, function (err, data, statusCode) {        
+        activityListingService.fetchRecentChatList(req.body, function (err, data, statusCode) {
             if (err === false) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
@@ -532,6 +533,121 @@ function ActivityListingController(objCollection) {
             }
         });
     });
+
+    // Check if a form transaction with a specific form_id has already been 
+    // submitted on a form file
+    app.post('/' + global.config.version + '/activity/form_transaction/check', function (req, res) {
+        // 
+        // Check if a form transaction with a specific form_id has already 
+        // been submitted on a form file
+        activityCommonService
+            .getActivityTimelineTransactionByFormId(req.body, req.body.activity_id, req.body.form_id)
+            .then((data) => {
+                res.send(responseWrapper.getResponse(false, data, 200, req.body));
+            })
+            .catch((err) => {
+                let data = {};
+                res.send(responseWrapper.getResponse(err, data, -9998, req.body));
+            });
+    });
+
+    // List of forms with data submitted on the queue mapped activity
+    app.post('/' + global.config.version + '/activity/timeline/form/list', function (req, res) {
+        // 
+        // List of forms with data submitted on the queue mapped activity
+        activityCommonService
+            .getActivityTimelineTransactionByFormId(req.body, req.body.activity_id, req.body.form_id)
+            .then((data) => {
+                res.send(responseWrapper.getResponse(false, data, 200, req.body));
+            })
+            .catch((err) => {
+                let data = {};
+                res.send(responseWrapper.getResponse(err, data, -9998, req.body));
+            });
+    });
+
+    // [Vodafone Service] DUMMY SERVICE | For all retieving all forms associated 
+    // with a new order form_id
+    /*
+    app.post('/' + global.config.version + '/activity/category/form/mapping', function (req, res) {
+        // 
+        if (Number(req.body.form_id) === 873) {
+            // BETA
+            res.send(responseWrapper.getResponse(false, {
+            	"New Order Details":873,
+                "Order Supplementary Details": 874,
+                "CRM Details": 870,
+                "FR Details": 871, 
+                "BC/HLD Documents":889,
+                "HLD": 869,
+                "New Customer Documents": 880,
+                "Existing Customer Documents": 881,
+                "CAF Form": 872,
+                "OMT Approval": 883,  
+                "Account Manager Approval": 875, 
+                "Customer IT Approval":885,
+                "Customer Authorized Signatory Approval":887,
+                "Customer Management Approval": 882,
+                "CRM_Acknowledgement": 868
+            }, 200, req.body));
+
+        } else if (Number(req.body.form_id) === 856) {
+            // LIVE
+            res.send(responseWrapper.getResponse(false, {
+            	"New Order Details":856,
+                "Order Supplementary Details": 857,
+                "CRM Details": 865,
+                "FR Details": 866, 
+                "BC/HLD Documents":888,
+                "HLD": 864,
+                "New Customer Documents": 876,
+                "Existing Customer Documents": 877,
+                "CAF Form": 867,
+                "OMT Approval": 879,   
+                "Account Manager Approval": 858,
+                "Customer IT Approval":884,
+                "Customer Authorized Signatory Approval":886,
+                "Customer Management Approval": 878,
+                "CRM_Acknowledgement": 863
+            }, 200, req.body));
+
+        } else {
+            res.send(responseWrapper.getResponse(true, {
+                error: "Some parameter is incorrect."
+            }, -9998, req.body));
+        }
+    }); */
+    
+    app.post('/' + global.config.version + '/activity/category/form/mapping', function (req, res) {
+    	activityListingService.getFormList(req.body).then((data)=>{   
+    		
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -9998, req.body));
+        	});
+    }); 
+    
+    
+    app.post('/' + global.config.version + '/activity/form/validation/data', function (req, res) {
+    	activityListingService.getActivityFormFieldValidationData(req.body).then((data)=>{   
+    		
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        	});
+    });
+    
+    app.post('/' + global.config.version + '/activity/my_queue/list', function (req, res) {
+    	activityListingService.getMyQueueActivitiesV2(req.body).then((data)=>{   
+    		
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -9998, req.body));
+        	});
+    }); 
 }
 
 module.exports = ActivityListingController;

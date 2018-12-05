@@ -1,23 +1,23 @@
 #Author: V Nani Kalyan
 #Date: 02-Aug-2018
-#Description: yml file to run the Staging Mobile API Services
+#Description: yml file to run the PreProd Mobile API Services
 version: 0.0
 os: linux
 files:
   - source: .
-    destination: /api-staging-efs/node/development_desker_api
+    destination: /staging_desker_api  
 permissions:
-  - object: /api-staging-efs/node/development_desker_api/development_deployment
-    owner: nanikalyan
+  - object: /staging_desker_api/deployment
+    owner: root
     mode: 777
     type:
-      - directory
+      - directory  
 hooks:
   BeforeInstall:
     - location: development_deployment/install_dependencies.sh
       timeout: 300
-      runas: nanikalyan  
+      runas: root
   ApplicationStart:
-    - location: development_deployment/start_services.sh    
+    - location: deployment/start_services_staging.sh    
       timeout: 300    
-      runas: nanikalyan
+      runas: root  

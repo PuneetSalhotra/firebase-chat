@@ -29,7 +29,7 @@ class ActivityFormTransactionAnalytics {
                     data.account_id,
                     data.organization_id
                     );
-            var queryString = this.objCollection.util.getQueryString('ds_p1_activity_form_transaction_analytics_select_field_aggr_dt', paramsArr);
+            var queryString = this.objCollection.util.getQueryString('ds_p1_activity_form_transaction_select_field_aggr_dt', paramsArr);
             if (queryString === '')
                 return reject();
             this.objCollection.db.executeQuery(1, queryString, {}, function (err, data) {
@@ -63,7 +63,7 @@ class ActivityFormTransactionAnalytics {
              IN p_workforce_id BIGINT(20), IN p_account_id BIGINT(20), IN p_organization_id BIGINT(20)
              "
              */
-            var queryString = this.objCollection.util.getQueryString('ds_p1_activity_form_transaction_analytics_select_form_count_dt', paramsArr);
+            var queryString = this.objCollection.util.getQueryString('ds_p1_activity_form_transaction_select_form_count_dt', paramsArr);
             if (queryString === '')
                 return reject();
             this.objCollection.db.executeQuery(1, queryString, {}, function (err, data) {
@@ -85,7 +85,7 @@ class ActivityFormTransactionAnalytics {
             /*"ds_p1_activity_form_transaction_analytics_select_trans_field
              IN p_form_transaction_id BIGINT(20), IN p_form_id BIGINT(20), IN p_field_id1 BIGINT(20)
              "*/
-            var queryString = this.objCollection.util.getQueryString('ds_p1_activity_form_transaction_analytics_select_trans_field', paramsArr);
+            var queryString = this.objCollection.util.getQueryString('ds_p1_activity_form_transaction_select_trans_field', paramsArr);
             if (queryString === '')
                 return reject();
             this.objCollection.db.executeQuery(1, queryString, {}, function (err, data) {
@@ -118,7 +118,7 @@ class ActivityFormTransactionAnalytics {
                         limit
                         );
 
-                var queryString = self.objCollection.util.getQueryString('ds_p1_1_activity_form_transaction_analytics_select_fld_choice', paramsArr);
+                var queryString = self.objCollection.util.getQueryString('ds_p1_activity_form_transaction_select_fld_choice', paramsArr);
                 if (queryString === '')
                     return reject();
                 self.objCollection.db.executeQuery(1, queryString, {}, function (err, data) {
@@ -164,7 +164,7 @@ class ActivityFormTransactionAnalytics {
              IN p_choice VARCHAR(300), IN p_start_datetime DATETIME, 
              IN p_end_datetime DATETIME
              "*/
-            var queryString = this.objCollection.util.getQueryString('ds_p1_activity_form_transaction_analytics_select_fld_choice_cnt', paramsArr);
+            var queryString = this.objCollection.util.getQueryString('ds_p1_activity_form_transaction_select_fld_choice_cnt', paramsArr);
             if (queryString === '')
                 return reject();
             this.objCollection.db.executeQuery(1, queryString, {}, function (err, data) {

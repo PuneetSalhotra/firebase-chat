@@ -9,67 +9,79 @@ var AwsSss = function () {
     var s3 = new aws.S3();
     var util = new Util();
     
-    this.createAssetBucket = function(request, callback) {
-        
+    this.createAssetBucket = function (request, callback) {
+
         // Create the parameters for calling createBucket
         var bucketParams = {
-           Bucket : 'desker-' + request.bucket_asset_id + '-' + util.getcurrentTimeInMilliSecs()
-           //Bucket : 'ds-8674'
+            Bucket: 'desker-' + request.bucket_asset_id + '-' + util.getcurrentTimeInMilliSecs()
+            //Bucket : 'ds-8674'
         };
-        
+
         //Setting Tags for S3 Buckets
         var params = {
-          Bucket : 'desker-' + request.bucket_asset_id + '-' + util.getcurrentTimeInMilliSecs(),
-          Tagging: {
-           TagSet: [
-              { Key: "workforce_id", Value: request.workforce_id}, 
-              { Key: "account_id", Value: request.account_id},
-              { Key: "asset_id", Value: request.bucket_asset_id},
-              { Key: "organization_id", Value: request.organization_id}
-           ]
-          }
-         };
-         
-         /*s3.listBuckets(function(err, data) {
-            if (err) {
-               console.log("Error", err);
-               callback(true, [], -2999);
-            } else {
-               console.log('Got all the buckets');
-               searchBucket(data.Buckets, bucketParams).then((result)=>{
-                  if(result === true) {
-                       createBucket(bucketParams, params, callback)
-                               .catch(()=>{
-                                    //setTimeout(createBucket(bucketParams, params), 200);
-                                    createBucket(bucketParams, params, callback);
+            Bucket: 'desker-' + request.bucket_asset_id + '-' + util.getcurrentTimeInMilliSecs(),
+            Tagging: {
+                TagSet: [{
+                        Key: "workforce_id",
+                        Value: request.workforce_id
+                    },
+                    {
+                        Key: "account_id",
+                        Value: request.account_id
+                    },
+                    {
+                        Key: "asset_id",
+                        Value: request.bucket_asset_id
+                    },
+                    {
+                        Key: "organization_id",
+                        Value: request.organization_id
+                    }
+                ]
+            }
+        };
+
+        /*s3.listBuckets(function(err, data) {
+           if (err) {
+              console.log("Error", err);
+              callback(true, [], -2999);
+           } else {
+              console.log('Got all the buckets');
+              searchBucket(data.Buckets, bucketParams).then((result)=>{
+                 if(result === true) {
+                      createBucket(bucketParams, params, callback)
+                              .catch(()=>{
+                                   //setTimeout(createBucket(bucketParams, params), 200);
+                                   createBucket(bucketParams, params, callback);
+                               })
+                  } else {
+                      getBucketTaggings(bucketParams).then((data)=>{
+                          //console.log('data : ', data);
+                           if(data === false) {
+                              putBucketTags(params).then((resp)=>{ 
+                                  if(resp === true){
+                                      callback(false, bucketParams.Bucket, 200);
+                                  } else {
+                                      callback(true, [], -2998);
+                                  }
+                                }).catch(()=>{
+                                    callback(true, [], -2998);
                                 })
-                   } else {
-                       getBucketTaggings(bucketParams).then((data)=>{
-                           //console.log('data : ', data);
-                            if(data === false) {
-                               putBucketTags(params).then((resp)=>{ 
-                                   if(resp === true){
-                                       callback(false, bucketParams.Bucket, 200);
-                                   } else {
-                                       callback(true, [], -2998);
-                                   }
-                                 }).catch(()=>{
-                                     callback(true, [], -2998);
-                                 })
-                           } else {
-                               callback(false, bucketParams.Bucket, 200);
-                           }
-                       })
-                   }
-               })
-               }
-         });*/
-        
-        createBucket(bucketParams, params, callback)
-                               .catch(()=>{
-                                    //setTimeout(createBucket(bucketParams, params), 200);
-                                    createBucket(bucketParams, params, callback);
-                                })
+                          } else {
+                              callback(false, bucketParams.Bucket, 200);
+                          }
+                      })
+                  }
+              })
+              }
+        });*/
+
+        // createBucket(bucketParams, params, callback)
+        //     .catch(() => {
+        //         //setTimeout(createBucket(bucketParams, params), 200);
+        //         createBucket(bucketParams, params, callback);
+        //     })
+        callback(true, 'Unable to assign Bucket Tags', -2998);
 
     };
     

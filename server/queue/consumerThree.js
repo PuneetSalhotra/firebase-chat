@@ -3,6 +3,7 @@
  */
 
 require('../utils/globalConfig');
+require('../vodafone/utils/vodafoneConfig');
 var kafka = require('kafka-node');
 var kafkaConsumer = kafka.Consumer;
 var KafkaProducer = kafka.Producer;
@@ -36,16 +37,13 @@ var Consumer = function () {
         });
     var kafkaProducer = new KafkaProducer(kfkClient);
 
-    global.logger.write('conLog', 'global.config.BROKER_HOST : ' + global.config.BROKER_HOST, {}, {});
-    global.logger.write('conLog', global.config.TOPIC_NAME, {}, {});
-
     var consumer =
         new kafkaConsumer(
             kfkClient,
             [{
                 topic: global.config.TOPIC_NAME,
                 //partition: parseInt(process.env.partition)
-                partition: parseInt(2)
+                partition: parseInt(3)
             }], {
                 groupId: global.config.CONSUMER_GROUP_ID,
                 autoCommit: global.config.CONSUMER_AUTO_COMMIT,
@@ -58,6 +56,9 @@ var Consumer = function () {
                 keyEncoding: global.config.CONSUMER_KEY_ENCODING
             }
         );
+
+    global.logger.write('conLog', 'global.config.BROKER_HOST : ' + global.config.BROKER_HOST, {}, {});
+    global.logger.write('conLog', global.config.TOPIC_NAME, {}, {});
 
     new Promise((resolve, reject) => {
         if (kafkaProducer.ready)
@@ -87,6 +88,8 @@ var Consumer = function () {
 
             var messageJson = JSON.parse(message.value);
             var request = messageJson['payload'];
+            request.partition = message.partition;
+            request.offset = message.offset;
 
             activityCommonService.checkingPartitionOffset(request, (err, data) => {
                 global.logger.write('conLog', 'err from checkingPartitionOffset : ' + err, {}, request);
@@ -107,15 +110,15 @@ var Consumer = function () {
         });
 
         consumer.on('error', function (err) {
-            global.logger.write('conLog', 'err => ' + JSON.stringify(err), {}, {});
+            global.logger.write('debug', 'err => ' + JSON.stringify(err), {}, {});
         });
 
         consumer.on('offsetOutOfRange', function (err) {
-            global.logger.write('conLog', 'offsetOutOfRange => ' + JSON.stringify(err), {}, {});
+            global.logger.write('debug', 'offsetOutOfRange => ' + JSON.stringify(err), {}, {});
         });
 
         kafkaProducer.on('error', function (error) {
-            global.logger.write('conLog', error, {}, {});
+            global.logger.write('debug', error, {}, {});
         });
 
     });
@@ -129,7 +132,7 @@ var Consumer = function () {
                 metadata: 'm', //default 'm'
             }], (err, data) => {
                 if (err) {
-                    global.logger.write('conLog', "err:" + JSON.stringify(err), {}, {});
+                    global.logger.write('debug', "err:" + JSON.stringify(err), {}, {});
                     reject(err);
                 } else {
                     global.logger.write('conLog', 'successfully offset ' + message.offset + ' is committed', {}, {});
