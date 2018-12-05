@@ -102,7 +102,8 @@ if (mode === 'local') {
 if (mode === 'dev') {
 
     //Ports Config
-    config.version = 'rd';
+    //config.version = 'rd';
+    config.version = 'r1';
     config.servicePort = 3000;
     config.standAlonePamServicePort = 3100;
 
