@@ -22,33 +22,6 @@ function Logger(queueWrapper) {
             dbResponse: 9,
             cacheResponse: 10
         };
-
-    /*
-        log_transaction_id
-        log_record_key
-        log_bundle_key
-        log_level_id
-        log_level_name
-        log_service_url
-        log_request_data
-        log_response_data
-        log_db_call
-        log_db_response
-        log_response_code
-        log_message
-        log_request_datetime
-        log_response_datetime
-        log_stack_trace_data
-        log_date
-        log_datetime
-        activity_id
-        activity_title
-        asset_id
-        asset_first_name
-        device_phone_country_code
-        device_phone_number
-        device_os_id
-     */
     
     this.write = function (level, message, object, request) {
         var isTargeted = false;    
@@ -68,7 +41,7 @@ function Logger(queueWrapper) {
         }
 
         //Textual Logs
-        //util.writeLogs(message, isTargeted);        
+        util.writeLogs(message, isTargeted);        
         
         //Logs pushing to Kafka
         queueWrapper.raiseLogEvent(loggerCollection).then(()=>{});            

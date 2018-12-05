@@ -140,8 +140,11 @@ if (mode === 'dev') {
     config.SQSqueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/logs-staging"; //Staging SQS QUEUE
 
     //Portal Service URL & Mobile Service URL
-    config.portalBaseUrl = "https://stagingportal.worlddesk.cloud/";
-    config.mobileBaseUrl = "https://stagingapi.worlddesk.cloud/";
+    //config.portalBaseUrl = "https://stagingportal.worlddesk.cloud/";
+    //config.mobileBaseUrl = "https://stagingapi.worlddesk.cloud/";
+    
+    config.portalBaseUrl = "https://preprodportal.worlddesk.cloud/";
+    config.mobileBaseUrl = "https://preprodapi.worlddesk.cloud/";
 
     //making twilio, Nexmo Calls
     config.efsPath = "/apistaging-data/";
