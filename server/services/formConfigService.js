@@ -468,37 +468,80 @@ function FormConfigService(objCollection) {
                     request.activity_inline_data = JSON.stringify(retrievedInlineData);
                     request.activity_timeline_collection = request.activity_inline_data;          
                     
-                    getLatestUpdateSeqId(request).then((data)=>{
-                        
-                        if(data.length > 0) {
+                    getLatestUpdateSeqId(request).then(async (data) => {
+
+                        if (data.length > 0) {
                             let x = data[0];
                             console.log('update_sequence_id : ', x.update_sequence_id);
                             request.update_sequence_id = ++x.update_sequence_id;
                         } else {
-                            request.update_sequence_id = 1;                            
+                            request.update_sequence_id = 1;
                         }
 
-                        putLatestUpdateSeqId(request, activityInlineData).then(()=>{
+                        await putLatestUpdateSeqId(request, activityInlineData).then(() => {
 
                             var event = {
                                 name: "alterActivityInline",
                                 service: "activityUpdateService",
                                 method: "alterActivityInline",
-                                payload: request       
+                                payload: request
                             };
 
                             queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
                                 if (err) {
                                     global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
                                     throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
-                                } else {}                            
+                                } else {
+                                    global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                                    global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                                }
                             });
 
-                        }).catch((err)=>{
+                        }).catch((err) => {
                             global.logger.write(err);
                         });
 
-                    }).catch((err)=>{
+                        // [Vodafone] Update/Regenerate CAF when any of New Order Form, Order supplementary form, 
+                        // CRM Form, FR Form, HLD Form is edited
+                        const NEW_ORDER_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER,
+                            ORDER_SUPPLEMENTARY_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY,
+                            FR_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.FR,
+                            CRM_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CRM,
+                            HLD_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.HLD;
+
+                        if (
+                            Number(request.form_id) === NEW_ORDER_FORM_ID || // New Order
+                            Number(request.form_id) === ORDER_SUPPLEMENTARY_FORM_ID || // Order Supplementary
+                            Number(request.form_id) === FR_FORM_ID || // FR
+                            Number(request.form_id) === CRM_FORM_ID || // CRM
+                            Number(request.form_id) === HLD_FORM_ID // HLD
+                        ) {
+                            let rebuildCafRequest = Object.assign({}, request);
+                            rebuildCafRequest.activity_inline_data = JSON.stringify(activityInlineData);
+
+                            console.log("[regenerateAndSubmitCAF] activityInlineData: ", activityInlineData);
+
+                            let rebuildCafEvent = {
+                                name: "vodafoneService",
+                                service: "vodafoneService",
+                                method: "regenerateAndSubmitCAF",
+                                payload: rebuildCafRequest
+                            };
+
+                            console.log("[regenerateAndSubmitCAF] Calling regenerateAndSubmitCAF");
+                            
+                            queueWrapper.raiseActivityEvent(rebuildCafEvent, request.activity_id, (err, resp) => {
+                                if (err) {
+                                    global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                                    throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+                                } else {
+                                    global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                                    global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                                }
+                            });
+                        }
+
+                    }).catch((err) => {
                         global.logger.write(err);
                     });
                 });
