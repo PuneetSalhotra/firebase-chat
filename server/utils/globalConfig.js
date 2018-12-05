@@ -123,6 +123,10 @@ if (mode === 'dev') {
     config.database = 'desker_staging';
     config.dbPassword = 'apidbuser';
     config.conLimit = 2;
+    
+    //Log Mysql Config
+    config.logMasterIp = 'worlddesk-r1-log.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
+    config.logDatabase = 'worlddesk_log_staging'; 
 
     //Redis Config
     config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';
@@ -154,8 +158,16 @@ if (mode === 'dev') {
 
     config.TOPIC_ID = 1;
     config.TOPIC_NAME = "dev-desker-activities";
-    config.WIDGET_TOPIC_NAME = 'dev-desker-form-widgets';
-    config.CONSUMER_GROUP_ID = "dev-desker-activities-consumer-group";
+    config.CONSUMER_GROUP_ID = "dev-desker-activities-consumer-group";     
+    
+    //Widget
+    config.WIDGET_TOPIC_NAME = 'dev-desker-form-widgets';    
+    config.WIDGET_CONSUMER_GROUP_ID = 'dev-desker-activities-widget-cg';
+    
+    //LOGS
+    config.LOGS_TOPIC_NAME = 'dev-desker-logs';
+    config.WIDGET_CONSUMER_GROUP_ID = 'dev-desker-logs-cg';
+    
     config.CONSUMER_AUTO_COMMIT = true;
     config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
     config.CONSUMER_FETCH_MAX_WAIT = 10;
