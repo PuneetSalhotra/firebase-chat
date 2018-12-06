@@ -3424,6 +3424,300 @@ function VodafoneService(objectCollection) {
         }, this);
         callback(false, responseData);
     };
+
+    this.regenerateAndSubmitCAF = async function (request, callback) {
+
+        // Store the incoming form's field_id which is being edited
+        const incomingFormFieldId = Number(request.field_id);
+        // Without the following line, the getActivityTimelineTransactionByFormId method,
+        // is dependant on the 'field_id', and will fail the proceeding logic
+        delete request["field_id"];
+
+        const CAF_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CAF,
+            NEW_ORDER_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER,
+            SUPPLEMENTARY_ORDER_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY,
+            CRM_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CRM,
+            FR_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.FR,
+            HLD_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.HLD,
+            CUSTOMER_APPROVAL_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_APPROVAL;
+
+        let NEW_ORDER_TO_CAF_FIELD_ID_MAP,
+            SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP,
+            FR_TO_CAF_FIELD_ID_MAP,
+            CRM_TO_CAF_FIELD_ID_MAP,
+            HLD_TO_CAF_FIELD_ID_MAP,
+            CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
+
+        if (Number(request.organization_id) === 860) {
+            // BETA
+            NEW_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.NEW_ORDER_TO_CAF_FIELD_ID_MAP;
+            SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP;
+            FR_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.FR_TO_CAF_FIELD_ID_MAP;
+            CRM_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.CRM_TO_CAF_FIELD_ID_MAP;
+            HLD_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.HLD_TO_CAF_FIELD_ID_MAP;
+            CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
+
+        } else if (Number(request.organization_id) === 858) {
+            // LIVE
+            NEW_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.NEW_ORDER_TO_CAF_FIELD_ID_MAP;
+            SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP;
+            FR_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.FR_TO_CAF_FIELD_ID_MAP;
+            CRM_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.CRM_TO_CAF_FIELD_ID_MAP;
+            HLD_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.HLD_TO_CAF_FIELD_ID_MAP;
+            CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
+        }
+
+        let incomingFormToCafFormMapping = {};
+        incomingFormToCafFormMapping[NEW_ORDER_FORM_ID] = NEW_ORDER_TO_CAF_FIELD_ID_MAP;
+        incomingFormToCafFormMapping[SUPPLEMENTARY_ORDER_FORM_ID] = SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP;
+        incomingFormToCafFormMapping[FR_FORM_ID] = FR_TO_CAF_FIELD_ID_MAP;
+        incomingFormToCafFormMapping[CRM_FORM_ID] = CRM_TO_CAF_FIELD_ID_MAP;
+        incomingFormToCafFormMapping[HLD_FORM_ID] = HLD_TO_CAF_FIELD_ID_MAP;
+        incomingFormToCafFormMapping[CUSTOMER_APPROVAL_FORM_ID] = CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
+
+
+        let newOrderFormActivityId = 0,
+            newOrderFormTransactionId = 0,
+            cafFormActivityId = 0,
+            cafFormTransactionId = 0,
+            cafFormTargetFieldId = 0,
+            cafActivityInlineData = {},
+            cafActivityTimelineCollectionData = {},
+            cafFormData = [];
+
+        await fetchReferredFormActivityId(request, request.activity_id, request.form_transaction_id, request.form_id)
+            .then((data) => {
+                if (data.length > 0) {
+                    newOrderFormActivityId = Number(data[0].activity_id);
+
+                    // Fetch form_transaction_id of the new order form
+                    return activityCommonService
+                        .getActivityTimelineTransactionByFormId(request, newOrderFormActivityId, NEW_ORDER_FORM_ID)
+
+                } else {
+                    throw new Error("newOrderReferenceNotFound");
+                }
+            })
+            .then((newOrderFormData) => {
+                if (newOrderFormData.length > 0) {
+                    newOrderFormTransactionId = Number(newOrderFormData[0].data_form_transaction_id);
+
+                    // Fetch CAF form transaction details
+                    let newRequest = Object.assign({}, request);
+                    delete newRequest["field_id"];
+
+                    return activityCommonService
+                        .getActivityTimelineTransactionByFormId(newRequest, newOrderFormActivityId, CAF_FORM_ID)
+
+                } else {
+                    throw new Error("newOrderFormTransactionNotFound");
+                }
+            })
+            .then((cafFormData) => {
+                if (cafFormData.length > 0) {
+                    cafFormTransactionId = cafFormData[0].data_form_transaction_id;
+                    cafActivityTimelineCollectionData = JSON.parse(cafFormData[0].data_entity_inline);
+
+                    // Fetch CAF form (dedicated) details
+                    return getActivityIdBasedOnTransactionId(request, cafFormTransactionId)
+
+                } else {
+                    throw new Error("cafFormTransactionDataNotFound");
+                }
+            })
+            .then((cafFormTransactionData) => {
+                if (cafFormTransactionData.length > 0) {
+                    cafFormActivityId = cafFormTransactionData[0].activity_id;
+                    cafActivityInlineData = JSON.parse(cafFormTransactionData[0].activity_inline_data);
+
+                    // Check if mapping exists for the field_id of the form
+                    // being edited with a field_id in CAF
+                    console.log("Object.keys(incomingFormToCafFormMapping[request.form_id]): ", Object.keys(incomingFormToCafFormMapping[request.form_id]))
+                    if (Object.keys(incomingFormToCafFormMapping[request.form_id]).includes(String(incomingFormFieldId))) {
+                        return Promise.resolve(true);
+                    } else {
+                        return Promise.resolve(false);
+                    }
+
+                } else {
+                    throw new Error("cafFormDataNotFound");
+                }
+            })
+            .then((mappingExists) => {
+
+                if (mappingExists) {
+                    console.log("mappingExists: ", mappingExists)
+                    
+                    cafFormTargetFieldId = incomingFormToCafFormMapping[request.form_id][incomingFormFieldId];
+
+                    let newActivityInlineData = JSON.parse(request.activity_inline_data);
+                    newActivityInlineData[0].field_id = cafFormTargetFieldId;
+                    newActivityInlineData[0].form_transaction_id = cafFormTransactionId;
+                    
+                    // Fire the 'alterFormActivity' service | '/form/activity/alter' for CAF file
+                    let cafFieldUpdateRequest = Object.assign({}, request);
+                    let cafFieldUpdateEvent = {
+                        name: "alterFormActivity",
+                        service: "formConfigService",
+                        method: "alterFormActivity",
+                        payload: cafFieldUpdateRequest
+                    };
+                    cafFieldUpdateRequest.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
+                    cafFieldUpdateRequest.activity_id = cafFormActivityId;
+                    cafFieldUpdateRequest.form_id = CAF_FORM_ID;
+                    cafFieldUpdateRequest.form_transaction_id = cafFormTransactionId;
+                    cafFieldUpdateRequest.field_id = cafFormTargetFieldId;
+                    cafFieldUpdateRequest.activity_inline_data = JSON.stringify(newActivityInlineData);
+                    cafFieldUpdateRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+
+                    queueWrapper.raiseActivityEvent(cafFieldUpdateEvent, cafFieldUpdateRequest.activity_id, (err, resp) => {
+                        if (err) {
+                            global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                            global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                        } else {
+                            global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                            global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                        }
+                    });
+
+                    return Promise.resolve(true);
+                    
+                } else {
+                    throw new Error("noCafMappingExistsForIncomingFormFieldId");
+                }
+            })
+            .then((alterFormActivitySuccess) => {
+                if (alterFormActivitySuccess) {
+                    console.log("[Success] alterFormActivity: ", alterFormActivitySuccess)
+
+                    if (Array.isArray(cafActivityTimelineCollectionData.form_submitted) === true || typeof cafActivityTimelineCollectionData.form_submitted === 'object') {
+                        cafFormData = cafActivityTimelineCollectionData.form_submitted;
+                    } else {
+                        cafFormData = JSON.parse(cafActivityTimelineCollectionData.form_submitted);
+                    }
+                    console.log();
+
+                    // Update the CAF Data
+                    cafFormData.forEach((formEntry, index) => {
+                        if (Number(formEntry.field_id) === Number(cafFormTargetFieldId)) {
+                            cafFormData[index].field_value = JSON.parse(request.activity_inline_data)[0].field_value;
+                        }
+                    });
+                    // Update the form data in the timeline collection 
+                    cafActivityTimelineCollectionData.form_submitted = cafFormData;
+
+                    // [NEW ORDER FORM] Insert 705 record with the updated JSON data in activity_timeline_transaction 
+                    // and asset_timeline_transaction
+                    let fire705OnNewOrderFileRequest = Object.assign({}, request);
+                    fire705OnNewOrderFileRequest.activity_id = Number(newOrderFormActivityId);
+                    // The 'form_transaction_id' parameter is intentionally being set to an incorrect value
+                    fire705OnNewOrderFileRequest.form_transaction_id = Number(cafFormTransactionId);
+                    fire705OnNewOrderFileRequest.activity_timeline_collection = JSON.stringify(cafActivityTimelineCollectionData);
+                    // Append the incremental form data as well
+                    // fire705OnNewOrderFileRequest.incremental_form_data = incrementalCafFormData;
+                    fire705OnNewOrderFileRequest.activity_stream_type_id = 705;
+                    fire705OnNewOrderFileRequest.form_id = Number(CAF_FORM_ID);
+                    fire705OnNewOrderFileRequest.asset_message_counter = 0;
+                    fire705OnNewOrderFileRequest.message_unique_id = util.getMessageUniqueId(request.asset_id);
+                    fire705OnNewOrderFileRequest.activity_timeline_text = '';
+                    fire705OnNewOrderFileRequest.activity_timeline_url = '';
+                    fire705OnNewOrderFileRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+                    fire705OnNewOrderFileRequest.flag_timeline_entry = 1;
+                    fire705OnNewOrderFileRequest.service_version = '1.0';
+                    fire705OnNewOrderFileRequest.app_version = '2.8.16';
+                    fire705OnNewOrderFileRequest.device_os_id = 7;
+
+                    let fire705OnNewOrderFileEvent = {
+                        name: "addTimelineTransaction",
+                        service: "activityTimelineService",
+                        method: "addTimelineTransaction",
+                        payload: fire705OnNewOrderFileRequest
+                    };
+
+                    queueWrapper.raiseActivityEvent(fire705OnNewOrderFileEvent, request.activity_id, (err, resp) => {
+                        if (err) {
+                            global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                            global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                        } else {
+                            global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                            global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                        }
+                    });
+
+
+                    // [CAF FORM] Insert 705 record with the updated JSON data in activity_timeline_transaction 
+                    let fire705OnCafFileRequest = Object.assign({}, fire705OnNewOrderFileRequest);
+                    fire705OnCafFileRequest.activity_id = Number(cafFormActivityId);
+                    fire705OnCafFileRequest.form_transaction_id = Number(cafFormTransactionId);
+                    fire705OnCafFileRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+                    fire705OnCafFileRequest.device_os_id = 8;
+
+                    let fire705OnCafFileEvent = {
+                        name: "addTimelineTransaction",
+                        service: "activityTimelineService",
+                        method: "addTimelineTransaction",
+                        payload: fire705OnCafFileRequest
+                    };
+
+                    queueWrapper.raiseActivityEvent(fire705OnCafFileEvent, request.activity_id, (err, resp) => {
+                        if (err) {
+                            global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                            global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                        } else {
+                            global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                            global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                        }
+                    });
+
+
+                } else {
+                    console.log("[Failure] alterFormActivity: ", alterFormActivitySuccess)
+                }
+
+            })
+            .catch((error) => {
+                console.log("[regenerateAndSubmitCAF] Promise Chain Error: ", error)
+                callback(true, false);
+                return;
+            });
+
+        callback(false, {
+            newOrderFormActivityId,
+            newOrderFormTransactionId,
+            cafFormActivityId,
+            cafFormTransactionId,
+            cafFormData
+        });
+        return;
+    }
+
+    // [Vodafone] This is written to fetch the activity_id of the new order form 
+    // given that the activity_id and form_transaction_id of a particular form
+    // (such as, FR, CRM, HLD, etc.) is known.
+    // 
+    function fetchReferredFormActivityId(request, activityId, formTransactionId, formId) {
+        return new Promise((resolve, reject) => {
+            // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
+            // IN p_activity_id BIGINT(20), IN p_form_id BIGINT(20), 
+            // IN p_form_transaction_id BIGINT(20), IN p_start_from SMALLINT(6), 
+            // IN p_limit_value smallint(6)
+            let paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                activityId,
+                formId,
+                formTransactionId,
+                request.start_from || 0,
+                request.limit_value || 50
+            );
+            const queryString = util.getQueryString('ds_p1_activity_timeline_transaction_select_refered_activity', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                })
+            }
+        })
+    }
     
 };
 

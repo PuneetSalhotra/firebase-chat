@@ -46,7 +46,14 @@ function ActivityTimelineService(objectCollection) {
                             
                             //Form Transaction Insertion should happen only for dedicated files
                             addFormEntries(request, function (err, approvalFieldsArr) {});
-                        }            
+                        }
+
+                        if(Number(request.device_os_id) === 8) {
+                            global.logger.write('debug', "\x1b[35m [Log] Activity_ID from request is same as retrived Activity_id and device_os_id 8 \x1b[0m", {}, request);
+                            // If request for dedicated file, and if there should not be any form entries for this
+                            // timeline transaction request
+                            retrievingFormIdandProcess(request, data).then(()=>{});                
+                        }
                     }
                 } else {
                     if(Number(request.device_os_id) === 7 || Number(request.device_os_id) === 5) { //7 means calling internal from services
