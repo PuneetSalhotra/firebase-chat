@@ -2,7 +2,9 @@
  * author: SBK
  */
 const globalConfig = require('../utils/globalConfig');
+let Logger = require('../utils/logger.js');
 const kafka = require('kafka-node');
+var QueueWrapper = require('./queueWrapper');
 const db = require("../utils/dbWrapper");
 const util = new (require('../utils/util'))();
 const redis = require('redis');   //using elasticache as redis
@@ -10,6 +12,7 @@ const AwsSns = require('../utils/snsWrapper');
 const _ = require('lodash');
 
 const KafkaConsumer = kafka.Consumer;
+var KafkaProducer = kafka.Producer;
 const kafkaClient =
         new kafka.KafkaClient({
             kafkaHost: global.config.BROKER_HOST,
@@ -22,6 +25,10 @@ const redisClient = redis.createClient(global.config.redisPort, global.config.re
 const cacheWrapper = new (require('../utils/cacheWrapper'))(redisClient);
 const sns = new AwsSns(); 
 const pubnubWrapper = new (require('../utils/pubnubWrapper'))(); //BETA
+
+var kafkaProducer = new KafkaProducer(kafkaClient);
+var queueWrapper = new QueueWrapper(kafkaProducer);
+global.logger = new Logger(queueWrapper);
 
 class ConsumerBase {
     constructor(opts) {

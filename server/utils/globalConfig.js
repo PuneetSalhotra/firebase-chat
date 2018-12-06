@@ -35,8 +35,8 @@ if (mode === 'local') {
     config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';       
     
     config.dbUser = 'apiuser';
-    config.database = 'desker';// desker_staging
-    //config.database = 'desker_staging';
+    //config.database = 'desker';// desker_staging
+    config.database = 'desker_staging';
     config.dbPassword = 'apidbuser';
     config.conLimit = 5;
     
@@ -45,8 +45,11 @@ if (mode === 'local') {
     config.logDatabase = 'worlddesk_log_staging';    
 
     //Redis Config
-    config.redisIp = '127.0.0.1';
-    config.redisPort = 6379;        
+    //config.redisIp = '127.0.0.1';
+    //config.redisPort = 6379;  
+    
+    config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';
+    config.redisPort = 6379;
     
     //IOS Push
     config.iosPushMode = 'dev';

@@ -135,7 +135,7 @@ let Consumer = function () {
            request.log_request_datetime  || '',
            request.log_response_datetime  || '',
            request.log_stack_trace_data  || '{}',
-           request.datetime_log || '',
+           request.datetime_log || util.getCurrentUTCTime(),
            request.activity_id || 0,
            request.activity_title || "",
            request.asset_id || 0,
