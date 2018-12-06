@@ -1,4 +1,4 @@
-var Consumer = require("./server/queue/consumerThree.js");
+var Consumer = require("./server/queue/consumer.js");
 new Consumer();
 
 process.on('uncaughtException', (err) => {
@@ -11,8 +11,8 @@ process.on('error', (err) => {
   throw new Error('error');
 });
 
-var http = require('http');
+/*var http = require('http');
 http.createServer((req, res)=>{
     res.write('I am Alive');
     res.end();
-}).listen(global.config.consumerThree);
+}).listen(global.config.consumerZero);*/

@@ -1,29 +1,23 @@
 /**
- * author: SBK
+ * author: V Nani Kalyan
  */
-var cluster = require('cluster');
-const http = require('http');
-var numCPUs = require('os').cpus().length;
 
-if (cluster.isMaster) {
-    
-    cluster.fork();
-    
-    Object.keys(cluster.workers).forEach(function (id) {
-        console.log("running with ID : " + cluster.workers[id].process.pid);
-    });
-
-    cluster.on('exit', function (worker, code, signal) {
-        console.log('Worker ' + worker.process.pid + ' died with code: ' + code + ', and signal: ' + signal);
-        console.log('Starting a new worker');
-        cluster.fork();
-    });
-} else {  
-    var WidgetEngineConsumer = require("./consumer.js");
-    var options = {
-        partition: Number(process.argv[2]),
+var WidgetEngineConsumer = require("./consumer.js");
+var options = {
+        partition: Number(process.env.partition),
         topic: global.config.WIDGET_TOPIC_NAME
-    };
-    new WidgetEngineConsumer(options);
-    
-}
+   };
+
+new WidgetEngineConsumer(options);
+
+
+process.on('uncaughtException', (err) => {
+  console.log(`process.on(uncaughtException): ${err}\n`);
+  //throw new Error('uncaughtException');
+});
+
+process.on('error', (err) => {
+  console.log(`process.on(error): ${err}\n`);
+  throw new Error('error');
+});
+

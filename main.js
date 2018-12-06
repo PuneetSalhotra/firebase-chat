@@ -3,6 +3,7 @@
  */
 var globalConfig = require('./server/utils/globalConfig');
 var vodafoneConfig = require('./server/vodafone/utils/vodafoneConfig');
+var Logger = require('./server/utils/logger.js');
 var express = require('express');
 var app = express();
 var server = require('http').createServer(app);//.listen(global.config.servicePort);
@@ -66,7 +67,7 @@ app.use(function (req, res, next) {
     }
 
     // Move on the next middleware
-    next()
+    next();
 });
 
 // Targetted logging:
@@ -110,7 +111,7 @@ app.use(function (req, res, next) {
 function connectToKafkaBroker(){
     console.log("redis is connected");
     
-    var kafkaClient = new kafka.KafkaClient({        
+    var kafkaClient = new kafka.KafkaClient({   
         kafkaHost: global.config.BROKER_HOST,
         connectTimeout: global.config.BROKER_CONNECT_TIMEOUT,
         requestTimeout: global.config.BROKER_REQUEST_TIMEOUT,
@@ -132,15 +133,18 @@ function connectToKafkaBroker(){
         if (kafkaProducer.ready)
             return resolve();
         kafkaProducer.on('ready', resolve);
-    }).then(() => {
-        console.log('Kafka Producer ready!!');
-        global.logger.write('debug', 'BROKER_HOST : ' + global.config.BROKER_HOST, {}, {});
-        
+    }).then(() => {  
+             
         var queueWrapper = new QueueWrapper(kafkaProducer);
+        //global.logger = new Logger();
+        global.logger = new Logger(queueWrapper);
+        
+        global.logger.write('debug', 'Kafka Producer is ready', {}, {});
+        global.logger.write('debug', 'BROKER_HOST : ' + global.config.BROKER_HOST, {}, {});
 
         var util = new Util();
         var responseWrapper = new ResponseWrapper(util);
-        var activityCommonService = new ActivityCommonService(db, util, forEachAsync);
+        var activityCommonService = new ActivityCommonService(db, util, forEachAsync);      
 
         var objCollection = {
             app: app,
@@ -164,6 +168,6 @@ function connectToKafkaBroker(){
     
     kafkaProducer.on('brokersChanged', function (error) {
         console.log('brokersChanged: ', error);
-    });       
+    });
     
 };
