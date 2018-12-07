@@ -3036,6 +3036,7 @@ function ActivityService(objectCollection) {
                     workforce_id: request.workforce_id,
                     asset_id: request.asset_id,
                     activity_id: request.activity_id,
+                    req_activity_status_id:request.activity_status_id,
                     activity_type_category_id: request.activity_type_category_id,
                     activity_stream_type_id: request.activity_stream_type_id,
                     track_gps_location: request.track_gps_location,
