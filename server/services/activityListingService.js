@@ -2040,6 +2040,23 @@ function ActivityListingService(objCollection) {
 	        }
     	});
     };
+    
+    
+    this.fetchActivityDetails = function (request) {
+        return new Promise((resolve, reject)=>{
+            let paramsArr = new Array(                
+                request.organization_id,                
+                request.activity_id
+            );
+            const queryString = util.getQueryString('ds_p1_queue_activity_mapping_select_activity', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+               });
+           }
+        });        
+    };
+    
 };
 
 module.exports = ActivityListingService;

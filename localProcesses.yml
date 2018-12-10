@@ -1,49 +1,55 @@
 apps:
-  - name : "Staging_Main"
+  - name : "Main"
     script   : ./main.js
     instances: max
     #error_file: ../logger.txt
     out_file: '/dev/null'
     exec_mode: cluster
-  - name : "Staging_ConsumerZero"
+  - name : "ConsumerZero"
     script   : ./consumerZero.js
     #error_file: ../consumersLogger.txt
     out_file: '/dev/null'
     instances: 1
     exec_mode: fork
-  - name : "Staging_ConsumerOne"
+  - name : "ConsumerOne"
     script   : ./consumerOne.js
     #error_file: ../consumersLogger.txt
     out_file: '/dev/null'
     instances: 1
     exec_mode: fork
-  - name : "Staging_ConsumerTwo"
+  - name : "ConsumerTwo"
     script   : ./consumerTwo.js
     #error_file: ../consumersLogger.txt
     out_file: '/dev/null'
     instances: 1
     exec_mode: fork
-  - name : "Staging_ConsumerThree"
+  - name : "ConsumerThree"
     script   : ./consumerThree.js
     #error_file: ../consumersLogger.txt
     out_file: '/dev/null'
     instances: 1
     exec_mode: fork
-  - name : "Staging_ConsumerFour"
+  - name : "ConsumerFour"
     script   : ./consumerFour.js
     #error_file: ../consumersLogger.txt
     out_file: '/dev/null'
     instances: 1
     exec_mode: fork
-  - name : "Staging_ConsumerFive"
+  - name : "ConsumerFive"
     script   : ./consumerFive.js
     #error_file: ../consumersLogger.txt
     out_file: '/dev/null'
     instances: 1
     exec_mode: fork  
-  - name : "Staging_SQSConsumer"
+  - name : "SQSConsumer"
     script   : ./server/queue/sqsConsumer.js
     #error_file: ../sqsConsumerLogger.txt
     out_file: '/dev/null'
     instances: 1
-    exec_mode: fork  
+    exec_mode: fork
+  #- name : "PAM"
+  #  script   : ./server/pam/server.js
+    #error_file: ../pamlogger.txt
+  #  out_file: '/dev/null'
+  #  instances: 1
+   # exec_mode: fork

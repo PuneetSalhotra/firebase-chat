@@ -5,16 +5,31 @@
 var SQS = require("../queue/sqsProducer");
 var Util = require('./util');
 
-function Logger() {
-
-    var sqs = new SQS();
-    var util = new Util();
-
+function Logger(queueWrapper) {
+    
+    let sqs = new SQS();
+    let util = new Util();    
+    
+    let logLevel = {
+            request: 1,
+            response: 2,
+            debug: 3,
+            warning: 4,
+            trace: 5,
+            appError: 6,
+            serverError: 7,
+            fatal: 8,
+            dbResponse: 9,
+            cacheResponse: 10
+        };    
+    
     this.write = function (level, message, object, request) {
-        var isTargeted = false;
-        var loggerCollection = {
+        var isTargeted = false;    
+        
+        let loggerCollection = {
             message: message,
             object: object,
+            levelId: logLevel[level],
             level: level,
             request: request,
             environment: global.mode, //'prod'
@@ -25,11 +40,14 @@ function Logger() {
             isTargeted = true;
         }
 
-        util.writeLogs(message, isTargeted);
-
+        //Textual Logs
+        util.writeLogs(message, isTargeted);        
         
-        try {
-            var loggerCollectionString = JSON.stringify(loggerCollection);
+        //Logs pushing to Kafka
+        queueWrapper.raiseLogEvent(loggerCollection).then(()=>{});            
+        
+        /*try {
+            let loggerCollectionString = JSON.stringify(loggerCollection);
             
             switch (level) {
                 case 'conLog':
@@ -44,7 +62,7 @@ function Logger() {
             }
         } catch(e) {
             
-        }       
+        }*/
         
     };
 
@@ -60,7 +78,7 @@ function Logger() {
             if (err)
                 console.log("error is: " + err);
         });
-    };
+    };      
 };
 
 module.exports = Logger;

@@ -65,39 +65,20 @@ var executeQuery = function (flag, queryString, request, callback) {
     try {
         conPool.getConnection(function (err, conn) {
             if (err) {
-                global.logger.write('serverError', 'ERROR WHILE GETTING CONNECTON - ' + err, err, request);
-                /*if(flag == 1) {
-                    conPool = writeCluster;
-                    global.logger.write('serverError','Connecting to Master DB - ', {}, request);
-                    retrieveFromMasterDbPool(conPool, queryString, request).then((result)=>{
-                        callback(false, result);
-                        return;
-                    }).catch((err) => {
-                        callback(err, false);
-                        return;
-                    });
-                } else {
-                    callback(err, false);
-                    return;
-                }*/
+                global.logger.write('serverError', 'ERROR WHILE GETTING CONNECTON - ' + err, err, request);                
                 callback(err, false);
                 return;
             } else {
-                global.logger.write('conLog', 'conPool flag - ' + flag, {}, request);
-                global.logger.write('conLog', 'Connection is: ' + conn.config.host, {}, request);
-                // console.log('conPool flag - ', flag);
-                // console.log('Connection is: ', conn.config.host);
+                //global.logger.write('conLog', 'conPool flag - ' + flag, {}, request);
+                //global.logger.write('conLog', 'Connection is: ' + conn.config.host, {}, request); 
                 conn.query(queryString, function (err, rows, fields) {
-                    if (!err) {
-                        //console.log(queryString);
+                    if (!err) {                        
                         global.logger.write('dbResponse', queryString, rows, request);
                         conn.release();
                         callback(false, rows[0]);
                         return;
-                    } else {
-                        //console.log('SOME ERROR IN QUERY | ', queryString);
-                        global.logger.write('dbResponse', 'SOME ERROR IN QUERY | ' + queryString, err, request);
-                        //console.log(err);
+                    } else {                        
+                        global.logger.write('dbResponse', 'SOME ERROR IN QUERY | ' + queryString, err, request);                        
                         global.logger.write('serverError', err, err, request);
                         conn.release();
                         callback(err, false);
