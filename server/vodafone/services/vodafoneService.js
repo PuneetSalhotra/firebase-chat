@@ -307,7 +307,7 @@ function VodafoneService(objectCollection) {
                 });
               });
         });
-    };
+    };  
     
     this.newOrderFormSubmission = function (request, callback) {
       
@@ -320,8 +320,7 @@ function VodafoneService(objectCollection) {
                     console.log("FRFormData: ", frFormData);
                     console.log("customerApprovalFormData.length: ", frFormData.length);
          
-                    if (frFormData.length > 0) {                                                
-                        isFrDone = true;
+                    if (frFormData.length > 0) {                        
                         
                         //check whether CRM form is submitted
                         activityCommonService.getActivityTimelineTransactionByFormId(request, request.activity_id, global.vodafoneConfig[request.organization_id].FORM_ID.CRM)
@@ -363,7 +362,7 @@ function VodafoneService(objectCollection) {
                                             formData.forEach(formEntry => {
                                                 switch (Number(formEntry.field_id)) {                   
 
-                                                    case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Person_Name:
+                                                    case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Company_Name:
                                                          customerData.first_name = formEntry.field_value;
                                                          break;                         
                                                     case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Company_Name:
@@ -378,7 +377,7 @@ function VodafoneService(objectCollection) {
                                                             customerData.contact_phone_number = formEntry.field_value;
                                                          }                                                     
                                                          break;                         
-                                                    case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Email_Id:
+                                                    case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Email:
                                                          customerData.contact_email_id = formEntry.field_value;
                                                          break;                         
                                                     case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Designation:
@@ -387,7 +386,7 @@ function VodafoneService(objectCollection) {
                                                 }
                                             });  
 
-                                            console.log('customerData after processing : ', customerData);  
+                                            console.log('customerData after processing : ', customerData);
                                             
                                             if(Object.keys(customerData).length > 0) {
                                                 customerFormSubmission(request, customerData).then(()=>{
@@ -509,7 +508,7 @@ function VodafoneService(objectCollection) {
                                             /*activityCommonService.getActivityDetails(request, request.form_order_activity_id, (err, data)=>{
                                                 if(err === false) {
                                                     console.log('data[0].activity_inline_data : ', data[0].activity_inline_data);
-                                                    request.activity_inline_data = data[0].activity_inline_data;*/
+                                                    request.activity_inline_data = data[0].activity_inline_data;
                                                     
                                                     let response = {};
                                                     response.asset_id = operatingAssetId;
@@ -572,7 +571,7 @@ function VodafoneService(objectCollection) {
             
                                             /*activityCommonService.getActivityDetails(request, request.activity_id, (err, data)=>{
                                                 if(err === false) {
-                                                    request.activity_inline_data = data[0].activity_inline_data;*/
+                                                    request.activity_inline_data = data[0].activity_inline_data;
                                                     
                                                     let response = {};                                                    
                                                     response.desk_asset_id = deskAssetId;     
@@ -643,7 +642,7 @@ function VodafoneService(objectCollection) {
                                     
                                     /*activityCommonService.getActivityDetails(request, request.activity_id, (err, data)=>{
                                         if(err === false) {
-                                            request.activity_inline_data = data[0].activity_inline_data;*/
+                                            request.activity_inline_data = data[0].activity_inline_data;
                                              
                                             let response = {};
                                             response.asset_id = assetId;
@@ -1110,9 +1109,9 @@ function VodafoneService(objectCollection) {
         let contactPhoneCountryCode = request.contact_phone_country_code;
         let contactPhoneNumber = request.contact_phone_number;
         let contactEmailId = request.contact_email_id;
-        let deskAssetId = request.desk_asset_id;
+        let deskAssetId = Number(request.desk_asset_id) || 0;
             
-        /*vodafoneSendEmail(request, {
+        vodafoneSendEmail(request, {
             firstName,
             contactPhoneCountryCode,
             contactPhoneNumber,
@@ -1124,7 +1123,7 @@ function VodafoneService(objectCollection) {
                 console.log('err : ' , err);
                 global.logger.write('debug', err, {}, request);
                 callback(true,{},-9998);
-            });*/
+            });
     };
     
     function vodafoneSendEmail (request, customerCollection) {
@@ -1134,7 +1133,7 @@ function VodafoneService(objectCollection) {
             
             let fieldHTML = '',
                 nameStr = unescape(customerCollection.firstName),
-                emailSubject = 'Track your Order Status',
+                emailSubject = 'Vodafone Idea Fixed Line Order Application Status',
                 callToction,
                 openingMessage = 'Please verify the below form details.';
 
@@ -1164,27 +1163,27 @@ function VodafoneService(objectCollection) {
             const baseUrlOrderStatus = global.config.emailbaseUrlApprove + "/#/orderstatus/" + encodedString;
 
             switch(Number(customerCollection.activity_form_id)) {
-                case 856: emailSubject = 'Upload Documents for Order';
+                case 856: //emailSubject = 'Upload Documents for Order';
                           openingMessage = "Please verify the order details and upload the required documentation.";
                           callToction = "<a style='background: #ED212C; display: inline-block; color: #FFFFFF; border-top: 10px solid #ED212C; border-bottom: 10px solid #ED212C; border-left: 20px solid #ED212C; border-right: 20px solid #ED212C; text-decoration: none; font-size: 12px; margin-top: 1.0em; border-radius: 3px 3px 3px 3px; background-clip: padding-box;' target='_blank' class='blue-btn' href='" + baseUrlUpload + "'>UPLOAD DOCUMENTS</a>"
                           break;
-                case 844: emailSubject = "Approve Order Data";
+                case 844: //emailSubject = "Approve Order Data";
                           openingMessage = "Please verify the customer application form and approve by providing a digital signature.";
                           callToction = "<a style='background: #ED212C; display: inline-block; color: #FFFFFF; border-top: 10px solid #ED212C; border-bottom: 10px solid #ED212C; border-left: 20px solid #ED212C; border-right: 20px solid #ED212C; text-decoration: none; font-size: 12px; margin-top: 1.0em; border-radius: 3px 3px 3px 3px; background-clip: padding-box;' target='_blank' class='blue-btn' href='" + baseUrlApprove + "'>APPROVE</a>"
                           break;
                 case global.vodafoneConfig[request.organization_id].FORM_ID.HLD:
-                          emailSubject = "Upload HLD Documents for Order";
+                          //emailSubject = "Upload HLD Documents for Order";
                           openingMessage = "Please verify the order details and upload the required documentation.";
                           callToction = "<a style='background: #ED212C; display: inline-block; color: #FFFFFF; border-top: 10px solid #ED212C; border-bottom: 10px solid #ED212C; border-left: 20px solid #ED212C; border-right: 20px solid #ED212C; text-decoration: none; font-size: 12px; margin-top: 1.0em; border-radius: 3px 3px 3px 3px; background-clip: padding-box;' target='_blank' class='blue-btn' href='" + baseUrlUpload + "'>UPLOAD DOCUMENTS</a>"
                           break;                
                 case global.vodafoneConfig[request.organization_id].FORM_ID.NEW_CUSTOMER:
-                          emailSubject = 'Upload Documents for Order';
+                          //emailSubject = 'Upload Documents for Order';
                           openingMessage = "Please verify the order details and upload the required documentation.";
                           callToction = "<a style='background: #ED212C; display: inline-block; color: #FFFFFF; border-top: 10px solid #ED212C; border-bottom: 10px solid #ED212C; border-left: 20px solid #ED212C; border-right: 20px solid #ED212C; text-decoration: none; font-size: 12px; margin-top: 1.0em; border-radius: 3px 3px 3px 3px; background-clip: padding-box;' target='_blank' class='blue-btn' href='" + baseUrlUpload + "'>UPLOAD DOCUMENTS</a>"
                           break;
                 //Existing Customer
                 case global.vodafoneConfig[request.organization_id].FORM_ID.EXISTING_CUSTOMER:
-                          emailSubject = 'Upload Documents for Order';
+                          //emailSubject = 'Upload Documents for Order';
                           openingMessage = "Please verify the order details and upload the required documentation.";
                           callToction = "<a style='background: #ED212C; display: inline-block; color: #FFFFFF; border-top: 10px solid #ED212C; border-bottom: 10px solid #ED212C; border-left: 20px solid #ED212C; border-right: 20px solid #ED212C; text-decoration: none; font-size: 12px; margin-top: 1.0em; border-radius: 3px 3px 3px 3px; background-clip: padding-box;' target='_blank' class='blue-btn' href='" + baseUrlUpload + "'>UPLOAD DOCUMENTS</a>"
                           break;
@@ -1243,14 +1242,20 @@ function VodafoneService(objectCollection) {
     Dear <strong>${customerCollection.firstName},</strong></p> 
    
     <p style=' color: #545454; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>
-    Thank you for providing your documents for your fixed Line connection with Vodafone Idea Limited.</p> 
-    <p style=' color: #545454; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 30px; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>In order to track the progress of you order you can click on the below link.</p> 
+    Thank you for providing your details, your order is currently being processed and will be released for delivery shortly.</p> 
+    <p style=' color: #545454; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 30px; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>You can also track the progress of your order by clicking on the below tab</p> 
    
     <a style='background: #f47920;display: inline-block;color: #FFFFFF;text-decoration: none;font-size: 12px;margin-top: 1.0em;background-clip: padding-box;padding: 5px 15px;box-shadow: 4px 4px 6px 1px #cbcbcb;margin-left:10px' target='_blank' class='blue-btn' href='${baseUrlOrderStatus}'>Check Order Status</a> 
     
+    <p style=' color: #545454; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 30px; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>
+    Once your order is logged you will receive a confirmation email with your order ID.</p> 
+    <p style=' color: #545454; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>
+    We thank you for your business with Vodafone Idea Limited.</p> 
+
     <p style=' color: #545454; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 40px; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'> Regards, </p> 
-     <p style=' color: #f47920; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 25px; margin-right: 0; margin-bottom: 0px; margin-left: 0; text-align: left;'>  </p> 
-    <p style=' color: #545454; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; text-align: left;'> Vodafone Idea Team </p> </td></tr> 
+    <p style=' color: #f47920; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 0px; margin-left: 0; text-align: left;'>  </p> 
+    <p style=' color: #545454; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 20px; margin-right: 0; margin-bottom: 0; margin-left: 0; text-align: left;'> Central Order Management Team </p> 
+    <p style=' color: #545454; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; text-align: left;'> Vodafone Idea Limited </p> </td></tr> 
     <tr>
         <td style='padding-left: 3em;'>
             <img style='width: 120px' src='https://staging.officedesk.app/Vodafone_Idea_logo.png'/>

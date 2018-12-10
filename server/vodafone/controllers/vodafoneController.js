@@ -115,7 +115,7 @@ function VodafoneController(objCollection) {
     
     //BOT 4
     app.post('/' + global.config.version + '/vodafone/send/email', function (req, res) {        
-        vodafoneService.sendEmailVodafone(req.body, function (err, data, statusCode) {
+        /*vodafoneService.sendEmailVodafone(req.body, function (err, data, statusCode) {
             if (err === false) {                
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {                
@@ -123,7 +123,25 @@ function VodafoneController(objCollection) {
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
-        });          
+        });*/
+        
+        req.body.message_unique_id = util.getMessageUniqueId(req.body.asset_id);
+        var event = {
+            name: "vodafone",
+            service: "vodafoneService",
+            method: "sendEmailVodafone",
+            payload: req.body
+        };
+
+        queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp) => {
+            if (err) {
+                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req.body);
+                res.send(responseWrapper.getResponse(err, {}, -5999, req));
+                throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+            } else {
+                res.send(responseWrapper.getResponse(false, {}, 200, req.body));
+            }                            
+        });
     });
         
     
