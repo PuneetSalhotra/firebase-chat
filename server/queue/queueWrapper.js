@@ -68,7 +68,7 @@ function QueueWrapper(producer) {
                 if (err) {
                     console.log('Error: Log message Production ', err);
                 } else {
-                    console.log('Log Message Produced');
+                    // console.log('Log Message Produced');
                 }
             });           
         

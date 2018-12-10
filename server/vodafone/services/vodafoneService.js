@@ -2036,12 +2036,14 @@ function VodafoneService(objectCollection) {
                     ROMS_CAF_FIELDS_DATA = romsCafFieldsData.LIVE;
                 }
 
+                // The 1st (0th) element in the array which populateRomsCafFieldValues() returns is 
+                // ROMS_CAF_FIELDS_DATA
                 const romsCafFieldsAndValues = populateRomsCafFieldValues(
                     Object.assign(ROMS_CAF_FIELDS_DATA),
                     calculatedValuesJSON,
                     formParticipantsData,
                     formActivityData
-                );
+                )[0];
 
                 // console.log("calculatedValuesJSON: ", calculatedValuesJSON);
                 // console.log("formParticipantsData: ", formParticipantsData);
@@ -2523,7 +2525,8 @@ function VodafoneService(objectCollection) {
         });
     }
 
-    function populateRomsCafFieldValues(ROMS_CAF_FIELDS_DATA, calculatedValuesJSON, formParticipantsData, formActivityData) {
+    function populateRomsCafFieldValues(ROMS_CAF_FIELDS_DATA, calculatedValuesJSON, formParticipantsData = [], formActivityData = []) {
+        let updatedFields = [];
         ROMS_CAF_FIELDS_DATA.forEach((formEntry, index) => {
             switch (formEntry.field_id) {
                 case 5568: // LIVE | CAF ID
@@ -2534,66 +2537,82 @@ function VodafoneService(objectCollection) {
                     break;
                 case 5726: // LIVE | Service Rental-Grand Total(A+B+C) 
                 case 5994: // BETA | Service Rental-Grand Total(A+B+C)
+                    accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.serviceRentalGrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.serviceRentalGrandTotal;
                     break;
                 case 5729: // LIVE | IP Address Charges-Grand Total(A+B+C)
                 case 5997: // BETA | IP Address Charges-Grand Total(A+B+C)
+                    accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.ipAddressChargesGrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.ipAddressChargesGrandTotal;
                     break;
                 case 5732: // LIVE | SLA Charges-Grand Total(A+B+C)
                 case 6000: // BETA | SLA Charges-Grand Total(A+B+C)
+                    accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.slaChargesGrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.slaChargesGrandTotal;
                     break;
                 case 5735: // LIVE | Self Care Portal Service Charges-Grand Total(A+B+C)
                 case 6003: // BETA | Self Care Portal Service Charges-Grand Total(A+B+C)
+                    accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.selfCarePortalServiceChargesGrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.selfCarePortalServiceChargesGrandTotal;
                     break;
                 case 5738: // LIVE | Managed Services Charges-Grand Total(A+B+C)
                 case 6006: // BETA | Managed Services Charges-Grand Total(A+B+C)
+                    accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.managedServicesChargesGrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.managedServicesChargesGrandTotal;
                     break;
                 case 5741: // LIVE | Managed CPE Charges-Grand Total(A+B+C)
                 case 6009: // BETA | Managed CPE Charges-Grand Total(A+B+C)
+                    accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.managedCPEChargesGrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.managedCPEChargesGrandTotal;
                     break;
                 case 5745: // LIVE | CPE Rentals-Grand Total(A+B+C)
                 case 6013: // BETA | CPE Rentals-Grand Total(A+B+C)
+                    accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.cpeRentalsGrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.cpeRentalsGrandTotal;
                     break;
                 case 5749: // LIVE | CPE 1-Grand Total(A+B+C)
                 case 6017: // BETA | CPE 1-Grand Total(A+B+C)
+                    accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.cpe1GrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.cpe1GrandTotal;
                     break;
                 case 5753: // LIVE | CPE 2-Grand Total(A+B+C)
                 case 6021: // BETA | CPE 2-Grand Total(A+B+C)
+                    accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.cpe2GrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.cpe2GrandTotal;
                     break;
                 case 5757: // LIVE | CPE 3-Grand Total(A+B+C)
                 case 6025: // BETA | CPE 3-Grand Total(A+B+C)
+                    accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.cpe3GrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.cpe3GrandTotal;
                     break;
                 case 5761: // LIVE | CPE 4-Grand Total(A+B+C)
                 case 6029: // BETA | CPE 4-Grand Total(A+B+C)
+                    accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.cpe4GrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.cpe4GrandTotal;
                     break;
                 case 5765: // LIVE | CPE 5-Grand Total(A+B+C)
                 case 6033: // BETA | CPE 5-Grand Total(A+B+C)
+                    accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.cpe5GrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.cpe5GrandTotal;
                     break;
                 case 5769: // LIVE | Miscellaneous Charges-1-Grand Total(A+B+C)
                 case 6037: // BETA | Miscellaneous Charges-1-Grand Total(A+B+C)
+                    accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.miscellaneousCharges1GrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.miscellaneousCharges1GrandTotal;
                     break;
                 case 5773: // LIVE | Miscellaneous Charges2-Grand Total(A+B+C)
                 case 6041: // BETA | Miscellaneous Charges2-Grand Total(A+B+C)
+                    accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.miscellaneousCharges2GrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.miscellaneousCharges2GrandTotal;
                     break;
                 case 5775: // LIVE | Registration Charges-Grand Total(A+B+C)
                 case 6043: // BETA | Registration Charges-Grand Total(A+B+C)
+                    accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.registrationChargesGrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.registrationChargesGrandTotal;
                     break;
                 case 5828: // LIVE | Total Amount Payable-Grand Total(A+B+C)
                 case 6096: // BETA | Total Amount Payable-Grand Total(A+B+C)
+                    accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.totalAmountPayableGrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.totalAmountPayableGrandTotal;
                     break;
                     // case 5780: // LIVE | Total Order Value
@@ -2602,14 +2621,16 @@ function VodafoneService(objectCollection) {
                     //     break;
                 case 5705: // LIVE | Account Manager Name
                 case 5973: // BETA | Account Manager Name
-                    formParticipantsData.forEach(participant => {
-                        switch (participant.asset_type_id) {
-                            case 126035: // LIVE | Account Managers - Mumbai Circle
-                            case 126305: // BETA | Account Managers - Mumbai Circle
-                                ROMS_CAF_FIELDS_DATA[index].field_value = `${participant.operating_asset_first_name} ${participant.operating_asset_last_name}`;
-                                break;
-                        }
-                    });
+                    if (formParticipantsData.length > 0) {
+                        formParticipantsData.forEach(participant => {
+                            switch (participant.asset_type_id) {
+                                case 126035: // LIVE | Account Managers - Mumbai Circle
+                                case 126305: // BETA | Account Managers - Mumbai Circle
+                                    ROMS_CAF_FIELDS_DATA[index].field_value = `${participant.operating_asset_first_name} ${participant.operating_asset_last_name}`;
+                                    break;
+                            }
+                        });   
+                    }
                     break;
                 case 5706: // LIVE | Account Manager Circle Office
                 case 5974: // BETA | Account Manager Circle Office
@@ -2617,14 +2638,27 @@ function VodafoneService(objectCollection) {
                     break;
                 case 5703: // LIVE | Date
                 case 5971: // BETA | Date
-                    ROMS_CAF_FIELDS_DATA[index].field_value = formActivityData[0].activity_datetime_created;
+                    if (formActivityData.length > 0) {
+                        ROMS_CAF_FIELDS_DATA[index].field_value = formActivityData[0].activity_datetime_created;
+                    }
                     break;
             }
         });
 
         // console.log(ROMS_CAF_FIELDS_DATA);
+        function accumulateUpdatedFields(romsField, newValue) {
+            if (Number(romsField.field_value) !== Number(newValue)) {
+                let tempFieldJson = Object.assign({}, romsField);
+                tempFieldJson.old_field_value = romsField.field_value;
+                tempFieldJson.field_value = Number(newValue);
+                updatedFields.push(tempFieldJson)
+            }
+        }
 
-        return ROMS_CAF_FIELDS_DATA;
+        return [
+            ROMS_CAF_FIELDS_DATA,
+            updatedFields
+        ];
     }
 
     function calculateAllSums(cafFormData) {
@@ -3483,7 +3517,9 @@ function VodafoneService(objectCollection) {
             cafFormTargetFieldId = 0,
             cafActivityInlineData = {},
             cafActivityTimelineCollectionData = {},
-            cafFormData = [];
+            cafFormData = [],
+            updatedRomsFields = [],
+            newActivityInlineData = [];
 
         await fetchReferredFormActivityId(request, request.activity_id, request.form_transaction_id, request.form_id)
             .then((data) => {
@@ -3550,7 +3586,7 @@ function VodafoneService(objectCollection) {
                     
                     cafFormTargetFieldId = incomingFormToCafFormMapping[request.form_id][incomingFormFieldId];
 
-                    let newActivityInlineData = JSON.parse(request.activity_inline_data);
+                    newActivityInlineData = JSON.parse(request.activity_inline_data);
                     newActivityInlineData[0].field_id = cafFormTargetFieldId;
                     newActivityInlineData[0].form_transaction_id = cafFormTransactionId;
                     
@@ -3598,13 +3634,31 @@ function VodafoneService(objectCollection) {
                     console.log();
 
                     // Update the CAF Data
+                    let oldCafFieldValue, newCafFieldValue;
                     cafFormData.forEach((formEntry, index) => {
                         if (Number(formEntry.field_id) === Number(cafFormTargetFieldId)) {
+                            oldCafFieldValue = cafFormData[index].field_value;
+                            newCafFieldValue = JSON.parse(request.activity_inline_data)[0].field_value;
                             cafFormData[index].field_value = JSON.parse(request.activity_inline_data)[0].field_value;
                         }
                     });
+
+                    // Sum all relevant fields and store them
+                    const calculatedValuesJSON = calculateAllSums(cafFormData);
+                    console.log("[regenerateAndSubmitCAF] calculatedValuesJSON: ", calculatedValuesJSON);
+                    
+                    // Get the updated the CAF form Json and the specific derived ROMS field which was updated 
+                    [cafFormData, updatedRomsFields] = populateRomsCafFieldValues(cafFormData, calculatedValuesJSON);
+
+                    console.log("[regenerateAndSubmitCAF] cafFormData: ", cafFormData[155]);
+                    console.log("[regenerateAndSubmitCAF] updatedRomsFields: ", updatedRomsFields);
+
                     // Update the form data in the timeline collection 
                     cafActivityTimelineCollectionData.form_submitted = cafFormData;
+                    cafActivityTimelineCollectionData.subject = "Field Updated";
+                    cafActivityTimelineCollectionData.content = `In the Digital CAF, the field ${newActivityInlineData[0].field_name} was updated from ${oldCafFieldValue} to ${newCafFieldValue}`;
+
+                    console.log("[regenerateAndSubmitCAF] cafActivityTimelineCollectionData.form_submitted: ", cafActivityTimelineCollectionData.form_submitted[155]);
 
                     // [NEW ORDER FORM] Insert 705 record with the updated JSON data in activity_timeline_transaction 
                     // and asset_timeline_transaction
@@ -3631,6 +3685,7 @@ function VodafoneService(objectCollection) {
                         name: "addTimelineTransaction",
                         service: "activityTimelineService",
                         method: "addTimelineTransaction",
+                        location: "regenerateAndSubmitCAF",
                         payload: fire705OnNewOrderFileRequest
                     };
 
@@ -3656,6 +3711,7 @@ function VodafoneService(objectCollection) {
                         name: "addTimelineTransaction",
                         service: "activityTimelineService",
                         method: "addTimelineTransaction",
+                        location: "regenerateAndSubmitCAF",
                         payload: fire705OnCafFileRequest
                     };
 
@@ -3669,6 +3725,36 @@ function VodafoneService(objectCollection) {
                         }
                     });
 
+                    // Fire the 'alterFormActivity' service | '/form/activity/alter' for the derived ROMS fields in the 
+                    // CAF file
+                    console.log("[regenerateAndSubmitCAF] updatedRomsFields: ", updatedRomsFields)
+                    if (updatedRomsFields.length > 0) {
+                        let cafFieldUpdateRequest = Object.assign({}, request);
+                        let cafFieldUpdateEvent = {
+                            name: "alterFormActivity",
+                            service: "formConfigService",
+                            method: "alterFormActivity",
+                            location: "derivedRomsFieldUpdate",
+                            payload: cafFieldUpdateRequest
+                        };
+                        cafFieldUpdateRequest.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
+                        cafFieldUpdateRequest.activity_id = cafFormActivityId;
+                        cafFieldUpdateRequest.form_id = CAF_FORM_ID;
+                        cafFieldUpdateRequest.form_transaction_id = cafFormTransactionId;
+                        cafFieldUpdateRequest.field_id = Number(updatedRomsFields[0].field_id);
+                        cafFieldUpdateRequest.activity_inline_data = JSON.stringify(updatedRomsFields);
+                        cafFieldUpdateRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+
+                        queueWrapper.raiseActivityEvent(cafFieldUpdateEvent, cafFormActivityId, (err, resp) => {
+                            if (err) {
+                                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                                global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                            } else {
+                                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                                global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                            }
+                        });
+                    }
 
                 } else {
                     console.log("[Failure] alterFormActivity: ", alterFormActivitySuccess)
