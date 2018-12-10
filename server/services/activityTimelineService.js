@@ -123,29 +123,48 @@ function ActivityTimelineService(objectCollection) {
                 });
             }
             
+            //BOT to send email on CRM form submission
+            if (Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.CRM)) {
+                global.logger.write('debug', "\x1b[35m [Log] Triggering BOT to send email on CRM form submission \x1b[0m", {}, request);
+                
+                let newRequest = Object.assign({}, request);
+                const crmFormData = JSON.parse(request.activity_inline_data);
+
+                crmFormData.forEach(formEntry => {
+                    switch (Number(formEntry.field_id)) {                   
+
+                        case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Company_Name:
+                             newRequest.first_name = formEntry.field_value;
+                             break;                         
+                        case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Company_Name:
+                             newRequest.contact_company = formEntry.field_value;
+                             break;                    
+                        case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Number:                        
+                             if(String(formEntry.field_value).includes('||')) {
+                                newRequest.contact_phone_country_code = String(formEntry.field_value).split('||')[0];
+                                newRequest.contact_phone_number = String(formEntry.field_value).split('||')[1];
+                             } else {
+                                newRequest.contact_phone_country_code = 91;
+                                newRequest.contact_phone_number = formEntry.field_value;
+                             }                                                     
+                             break;                         
+                        case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Email:
+                             newRequest.contact_email_id = formEntry.field_value;
+                             break;                         
+                        case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Designation:
+                             newRequest.contact_designation = formEntry.field_value;
+                             break;
+                         }
+                    });                 
+                
+                activityCommonService.makeRequest(newRequest, "vodafone/send/email", 1).then((resp)=>{
+                    global.logger.write('debug', resp, {}, request);
+                });
+            }
+            
             //Generic Function to updated the CAF percentage
             updateCAFPercentage(request).then(()=>{});
-
-            // Trigger Email For Vodafone CAF Form Submission
-            /*if (Number(request.form_id) === 844) {
-                console.log("\x1b[35m [Log] Calling vodafoneFormSubmissionFlow \x1b[0m")
-                request.activity_inline_data = request.activity_timeline_collection;
-                request.activity_form_id = 844;
-                //vodafoneFormSubmissionFlow(request, activityCommonService, objectCollection, () => {});
-                                
-                //MakeRequest to /vodafone/caf_form/add                               
-                request.worflow_trigger_url = util.getWorkFlowUrl(request.url);
-                global.logger.write('debug', 'worflow_trigger_url: ' + request.worflow_trigger_url, {}, request);
-                    
-                activityCommonService.getWorkflowForAGivenUrl(request).then((data)=>{
-                    global.logger.write('debug', 'workflow_execution_url: ' + data[0].workflow_execution_url, {}, request);
-                    activityCommonService.makeRequest(request, data[0].workflow_execution_url, 1).then((resp)=>{
-                        global.logger.write('debug', resp, {}, request);
-                    });
-                });
-            }*/
-
-            // 
+            
             // [VODAFONE] Listen for Account Manager Approval or Customer (Service Desk) Approval Form
             // [VODAFONE] The above no longer applies. New trigger on CRM Acknowledgement Form submission.
             const CRM_ACKNOWLEDGEMENT_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CRM_ACKNOWLEDGEMENT;
