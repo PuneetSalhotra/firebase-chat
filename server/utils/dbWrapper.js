@@ -69,8 +69,8 @@ var executeQuery = function (flag, queryString, request, callback) {
                 callback(err, false);
                 return;
             } else {
-                global.logger.write('conLog', 'conPool flag - ' + flag, {}, request);
-                global.logger.write('conLog', 'Connection is: ' + conn.config.host, {}, request); 
+                //global.logger.write('conLog', 'conPool flag - ' + flag, {}, request);
+                //global.logger.write('conLog', 'Connection is: ' + conn.config.host, {}, request); 
                 conn.query(queryString, function (err, rows, fields) {
                     if (!err) {                        
                         global.logger.write('dbResponse', queryString, rows, request);
