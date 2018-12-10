@@ -374,7 +374,8 @@ function VodafoneService(objectCollection) {
                                                             customerData.contact_phone_country_code = String(formEntry.field_value).split('||')[0];
                                                             customerData.contact_phone_number = String(formEntry.field_value).split('||')[1];
                                                          } else {
-                                                             customerData.contact_phone_number = formEntry.field_value;
+                                                            customerData.contact_phone_country_code = 91;
+                                                            customerData.contact_phone_number = formEntry.field_value;
                                                          }                                                     
                                                          break;                         
                                                     case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Email_Id:
@@ -515,13 +516,13 @@ function VodafoneService(objectCollection) {
                                                     response.desk_asset_id = deskAssetId;                                                    
                                                     
                                                     //Fire Email to Customer
-                                                    /*vodafoneSendEmail(request, customerCollection).then(()=>{
+                                                    vodafoneSendEmail(request, customerCollection).then(()=>{
                                                         resolve(response);
                                                     }).catch((err)=>{
                                                         console.log('err : ' , err);
                                                         global.logger.write('debug', err, {}, request);
                                                         reject(err);
-                                                    });*/
+                                                    });
                                                     
                                                     /*var solutionsRepCollection = {};
                                                     solutionsRepCollection.firstName = solutionsRepName;
@@ -577,13 +578,13 @@ function VodafoneService(objectCollection) {
                                                     response.desk_asset_id = deskAssetId;     
                                                     
                                                     //Fire Email to customer
-                                                    /*vodafoneSendEmail(request, customerCollection).then(()=>{
+                                                    vodafoneSendEmail(request, customerCollection).then(()=>{
                                                         resolve(response);
                                                     }).catch((err)=>{
                                                         console.log('vnk err : ' , err);
                                                         global.logger.write('debug', err, {}, request);
                                                         reject(err);
-                                                    });*/
+                                                    });
                                                     
                                                     /*var solutionsRepCollection = {};
                                                     solutionsRepCollection.firstName = solutionsRepName;
@@ -650,13 +651,13 @@ function VodafoneService(objectCollection) {
                                             response.contact_card_activity_id = contactfileActId;
                                             
                                             //Fire Email to Customer
-                                            /*vodafoneSendEmail(request, customerCollection).then(()=>{
+                                            vodafoneSendEmail(request, customerCollection).then(()=>{
                                                 resolve(response);
                                             }).catch((err)=>{
                                                 console.log('err : ' , err);
                                                 global.logger.write('debug', err, {}, request);
                                                 reject(err);
-                                            });*/
+                                            });
                                             
                                             /*var solutionsRepCollection = {};
                                             solutionsRepCollection.firstName = solutionsRepName;
@@ -1128,11 +1129,12 @@ function VodafoneService(objectCollection) {
     
     function vodafoneSendEmail (request, customerCollection) {
         return new Promise((resolve, reject)=>{
-            console.log("\x1b[35m [Log] Inside vodafoneSendEmail \x1b[0m")
-
+            console.log("\x1b[35m [Log] Inside vodafoneSendEmail \x1b[0m");
+            let date = util.getFormatedSlashDate();
+            
             let fieldHTML = '',
                 nameStr = unescape(customerCollection.firstName),
-                emailSubject = '',
+                emailSubject = 'Track your Order Status',
                 callToction,
                 openingMessage = 'Please verify the below form details.';
 
@@ -1159,6 +1161,7 @@ function VodafoneService(objectCollection) {
 
             const baseUrlApprove = global.config.emailbaseUrlApprove + "/#/forms/entry/" + encodedString;
             const baseUrlUpload = global.config.emailbaseUrlUpload + "/#/forms/entry/" + encodedString;
+            const baseUrlOrderStatus = global.config.emailbaseUrlApprove + "/#/orderstatus/" + encodedString;
 
             switch(Number(customerCollection.activity_form_id)) {
                 case 856: emailSubject = 'Upload Documents for Order';
@@ -1215,10 +1218,57 @@ function VodafoneService(objectCollection) {
                 console.log('In Catch Block : ', e);
             }       
 
-            console.log("\x1b[35m [vodafoneSendEmail] fieldHTML: \x1b[0m", fieldHTML)
+            //console.log("\x1b[35m [vodafoneSendEmail] fieldHTML: \x1b[0m", fieldHTML)
             const allFields = fieldHTML;
 
-            const templateDesign = "<table style='border-collapse: collapse !important;' width='100%' bgcolor='#ffffff' border='0' cellpadding='10' cellspacing='0'><tbody><tr> <td> <table bgcolor='#ffffff' style='width: 100%;max-width: 600px;' class='content' align='center' cellpadding='0' cellspacing='0' border='0'> <tbody><tr><td align='center' valign='top'><table style='border: 1px solid #e2e2e2; border-radius: 4px; background-clip: padding-box; border-spacing: 0;' border='0' cellpadding='0' cellspacing='0' width='100%' id='templateContainer'><tbody> <tr> <td align='left' style='float: right;padding: 20px;' valign='top'> <img style='width: 100px' src ='https://office.desker.co/Vodafone_logo.png'/> <img style='height: 44px;margin-left: 10px;' src ='https://office.desker.co/Idea_logo.png'/> </td> </tr> <tr><td valign='top' style=' color: #505050; font-family: Helvetica; font-size: 14px; line-height: 150%; padding-top: 3.143em; padding-right: 3.5em; padding-left: 3.5em; padding-bottom: 3.143em; text-align: left;' class='bodyContent' mc:edit='body_content'> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>Hey " + nameStr + ",</p> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>" + openingMessage + "</p> <p style=' color: #808080; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: bold; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 10px; margin-left: 0; text-align: left;'>Order Management Form</p> " + allFields + "<table style='width: 100%;margin-top: 5px'></table> " + callToction + " <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 40px; margin-right: 0; margin-bottom: 0px; margin-left: 0; text-align: left;'> Parmeshwar Reddy </p> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; text-align: left;'> Vice President </p> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; text-align: left;'> Customer Care </p></td></tr> <tr> <td style='height: 35px;background: #cbcbcb;'></td> </tr></tbody></table><!-- // END BODY --></td></tr> </tbody></table> </td> </tr></tbody></table>";
+            //const templateDesign = "<table style='border-collapse: collapse !important;' width='100%' bgcolor='#ffffff' border='0' cellpadding='10' cellspacing='0'><tbody><tr> <td> <table bgcolor='#ffffff' style='width: 100%;max-width: 600px;' class='content' align='center' cellpadding='0' cellspacing='0' border='0'> <tbody><tr><td align='center' valign='top'><table style='border: 1px solid #e2e2e2; border-radius: 4px; background-clip: padding-box; border-spacing: 0;' border='0' cellpadding='0' cellspacing='0' width='100%' id='templateContainer'><tbody> <tr> <td align='left' style='float: right;padding: 20px;' valign='top'> <img style='width: 100px' src ='https://office.desker.co/Vodafone_logo.png'/> <img style='height: 44px;margin-left: 10px;' src ='https://office.desker.co/Idea_logo.png'/> </td> </tr> <tr><td valign='top' style=' color: #505050; font-family: Helvetica; font-size: 14px; line-height: 150%; padding-top: 3.143em; padding-right: 3.5em; padding-left: 3.5em; padding-bottom: 3.143em; text-align: left;' class='bodyContent' mc:edit='body_content'> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>Hey " + nameStr + ",</p> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>" + openingMessage + "</p> <p style=' color: #808080; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: bold; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 10px; margin-left: 0; text-align: left;'>Order Management Form</p> " + allFields + "<table style='width: 100%;margin-top: 5px'></table> " + callToction + " <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 40px; margin-right: 0; margin-bottom: 0px; margin-left: 0; text-align: left;'> Parmeshwar Reddy </p> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; text-align: left;'> Vice President </p> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; text-align: left;'> Customer Care </p></td></tr> <tr> <td style='height: 35px;background: #cbcbcb;'></td> </tr></tbody></table><!-- // END BODY --></td></tr> </tbody></table> </td> </tr></tbody></table>";
+            
+            const Template = `
+ <table style='border-collapse: collapse !important;' width='100%' bgcolor='#ffffff' border='0' cellpadding='10' cellspacing='0'>
+    <tbody><tr> <td> 
+    <table bgcolor='#ffffff' style='width: 100%;max-width: 600px;' class='content' align='center' cellpadding='0' cellspacing='0' border='0'> 
+    <tbody><tr><td align='center' valign='top'><table style='border: 1px solid #e2e2e2; border-radius: 4px; background-clip: padding-box; border-spacing: 0;' border='0' cellpadding='0' cellspacing='0' width='100%' id='templateContainer'>
+    <tbody> <tr> <td align='left' style='float: right;' valign='top'> 
+    <img style='width: 600px' src ='https://staging.officedesk.app/header_banner.png'/> 
+    <table style='position: relative;top: -30px;left: 215px;font-size:12px;color: #fff;font-family: Helvetica;'>
+    <tbody><tr><td><strong>Order Management Team</strong></td></tr></tbody>
+    </table>
+    </td> 
+    </tr> 
+     <tr>
+    <td valign='top' style=' color: #505050; font-family: Helvetica; font-size: 14px; line-height: 150%; padding-top: 3.143em; padding-right: 3.5em; padding-left: 3.5em; padding-bottom: 1em; text-align: left;' class='bodyContent' mc:edit='body_content'> 
+     <p style='  display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>
+   Date: ${date}</p> 
+    <p style=' color: #f47920; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>
+    Dear <strong>${customerCollection.firstName},</strong></p> 
+   
+    <p style=' color: #545454; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>
+    Thank you for providing your documents for your fixed Line connection with Vodafone Idea Limited.</p> 
+    <p style=' color: #545454; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 30px; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>In order to track the progress of you order you can click on the below link.</p> 
+   
+    <a style='background: #f47920;display: inline-block;color: #FFFFFF;text-decoration: none;font-size: 12px;margin-top: 1.0em;background-clip: padding-box;padding: 5px 15px;box-shadow: 4px 4px 6px 1px #cbcbcb;margin-left:10px' target='_blank' class='blue-btn' href='${baseUrlOrderStatus}'>Check Order Status</a> 
+    
+    <p style=' color: #545454; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 40px; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'> Regards, </p> 
+     <p style=' color: #f47920; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 25px; margin-right: 0; margin-bottom: 0px; margin-left: 0; text-align: left;'>  </p> 
+    <p style=' color: #545454; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; text-align: left;'> Vodafone Idea Team </p> </td></tr> 
+    <tr>
+        <td style='padding-left: 3em;'>
+            <img style='width: 120px' src='https://staging.officedesk.app/Vodafone_Idea_logo.png'/>
+        </td>
+    </tr>
+    <tr>
+        <td style='color:#545454;padding-left: 50px;font-family: Helvetica;font-size: 10px;padding-bottom: 40px'>
+            <strong>Vodafone Idea Limited</strong> (formerly Idea Cellular Limited)<br/>
+            An Aditya Birla Group & Vodafone partnership
+        </td>
+    </tr>
+    <tr>
+        <td style='padding: 40px;color: #c8c8c8;'>
+            <p style='font-family: Helvetica;font-size: 9px;'>This E-Mail (including any attachments) may contain Confidential and/or legally privileged Information and is meant for the intended recipient(s) only. If you have received this e-mail in error and are not the intended recipient/s, kindly delete this e-mail immediately from your system. You are also hereby notified that any use, any form of reproduction, dissemination, copying, disclosure, modification, distribution and/or publication of this e-mail, its contents or its attachment/s other than by its intended recipient/s is strictly prohibited and may be construed unlawful. Internet Communications cannot be guaranteed to be secure or error-free as information could be delayed, intercepted, corrupted, lost, or may contain viruses. Vodafone Idea Limited does not accept any liability for any errors, omissions, viruses or computer shutdown (s) or any kind of disruption/denial of services if any experienced by any recipient as a result of this e-mail.</p>
+        </td>
+    </tr>
+
+  </tbody></table> </td> </tr></tbody></table>`;
 
             request.email_sender = 'vodafone_idea@grenerobotics.com';
             request.email_sender_name = 'vodafone_idea grenerobotics.com';            
@@ -1227,7 +1277,7 @@ function VodafoneService(objectCollection) {
                 customerCollection.contactEmailId,
                 emailSubject,
                 "IGNORE",
-                templateDesign,
+                Template,
                 (err, data) => {
                     if (err) {
                         console.log("[Send Email On Form Submission | Error]: ", data);

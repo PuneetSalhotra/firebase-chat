@@ -648,6 +648,18 @@ function ActivityListingController(objCollection) {
     		res.send(responseWrapper.getResponse(err, data, -9998, req.body));
         	});
     }); 
+    
+    // Fetch Activity Details based on activity_id - To show the queue status - VODAFONE
+    app.post('/' + global.config.version + '/activity/list', function (req, res) {
+        activityListingService.fetchActivityDetails(req.body).then((data) => {
+                (data.length > 0) ?
+                    res.send(responseWrapper.getResponse(false, data, 200, req.body)):
+                    res.send(responseWrapper.getResponse(false, {}, 200, req.body))
+            }).catch((err) => {                
+                let data = {};
+                res.send(responseWrapper.getResponse(err, data, -9998, req.body));
+            });
+    });
 }
 
 module.exports = ActivityListingController;
