@@ -24,7 +24,7 @@ function ActivityTimelineService(objectCollection) {
         
         activityCommonService.updateAssetLocation(request, function (err, data) {});
         
-        if (activityTypeCategoryId === 9 && activityStreamTypeId === 705) {   // add form case
+        if (activityTypeCategoryId === 9 && ((activityStreamTypeId === 705) || (activityStreamTypeId === 713))) {   // add form case
             
             getActivityIdBasedOnTransId(request).then((data)=>{
                 if(data.length > 0) {
