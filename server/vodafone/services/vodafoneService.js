@@ -3785,33 +3785,36 @@ function VodafoneService(objectCollection) {
                     // CAF file
                     console.log("[regenerateAndSubmitCAF] updatedRomsFields: ", updatedRomsFields)
                     if (updatedRomsFields.length > 0) {
-                        updatedRomsFields[0].form_name = "Digital CAF";
+                        setTimeout(() => {
+                            updatedRomsFields[0].form_name = "Digital CAF";
+                            let cafFieldUpdateRequest = Object.assign({}, request);
+                            let cafFieldUpdateEvent = {
+                                name: "alterFormActivity",
+                                service: "formConfigService",
+                                method: "alterFormActivity",
+                                location: "derivedRomsFieldUpdate",
+                                payload: cafFieldUpdateRequest
+                            };
+                            cafFieldUpdateRequest.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
+                            cafFieldUpdateRequest.activity_id = cafFormActivityId;
+                            cafFieldUpdateRequest.form_id = CAF_FORM_ID;
+                            cafFieldUpdateRequest.form_transaction_id = cafFormTransactionId;
+                            cafFieldUpdateRequest.field_id = Number(updatedRomsFields[0].field_id);
+                            cafFieldUpdateRequest.activity_inline_data = JSON.stringify(updatedRomsFields);
+                            cafFieldUpdateRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
 
-                        let cafFieldUpdateRequest = Object.assign({}, request);
-                        let cafFieldUpdateEvent = {
-                            name: "alterFormActivity",
-                            service: "formConfigService",
-                            method: "alterFormActivity",
-                            location: "derivedRomsFieldUpdate",
-                            payload: cafFieldUpdateRequest
-                        };
-                        cafFieldUpdateRequest.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
-                        cafFieldUpdateRequest.activity_id = cafFormActivityId;
-                        cafFieldUpdateRequest.form_id = CAF_FORM_ID;
-                        cafFieldUpdateRequest.form_transaction_id = cafFormTransactionId;
-                        cafFieldUpdateRequest.field_id = Number(updatedRomsFields[0].field_id);
-                        cafFieldUpdateRequest.activity_inline_data = JSON.stringify(updatedRomsFields);
-                        cafFieldUpdateRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+                            console.log("[regenerateAndSubmitCAF] cafFieldUpdateRequest: ", cafFieldUpdateRequest)
 
-                        queueWrapper.raiseActivityEvent(cafFieldUpdateEvent, cafFormActivityId, (err, resp) => {
-                            if (err) {
-                                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                                global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
-                            } else {
-                                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                                global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
-                            }
-                        });
+                            queueWrapper.raiseActivityEvent(cafFieldUpdateEvent, cafFormActivityId, (err, resp) => {
+                                if (err) {
+                                    global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                                    global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                                } else {
+                                    global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                                    global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                                }
+                            });
+                        }, 2000)
                     }
 
                 } else {

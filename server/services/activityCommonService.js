@@ -754,6 +754,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityText2 = request.activity_timeline_collection;
                 break;
             case 705: // form
+            case 713: // 
                 entityTypeId = 0;
                 entityText1 = request.form_transaction_id;
                 // entityText2 = request.activity_timeline_collection;
@@ -763,7 +764,6 @@ function ActivityCommonService(db, util, forEachAsync) {
                 dataTypeId = 37; //static for all form submissions
                 break;
             case 710: // form field alter
-            case 713: // 
                 entityTypeId = 0;
                 //entityText2 = request.activity_timeline_collection;
                 activityTimelineCollection = request.activity_timeline_collection || '{}';
@@ -964,6 +964,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 activityTimelineCollection = request.activity_timeline_collection || '{}';
                 break;
             case 705: // form
+            case 713: // form field alter
                 entityTypeId = 0;
                 entityText1 = request.form_transaction_id;
                 entityText2 = '';
@@ -974,7 +975,6 @@ function ActivityCommonService(db, util, forEachAsync) {
                 dataTypeId = 37; //static for all form submissions
                 break;
             case 710: // form field alter
-            case 713: // form field alter
                 entityTypeId = 0;
                 //entityText2 = request.activity_timeline_collection;
                 activityTimelineCollection = request.activity_timeline_collection || '{}';

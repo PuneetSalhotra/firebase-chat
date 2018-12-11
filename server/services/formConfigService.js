@@ -451,14 +451,17 @@ function FormConfigService(objCollection) {
                 console.log('Data from activity_list: ', data);
                 var retrievedInlineData = [];
                 if(data.length > 0){
-                	request['activity_id'] = data[0].activity_id;
-                
-                	retrievedInlineData = JSON.parse(data[0].activity_inline_data);               
+                    request['activity_id'] = data[0].activity_id;
+                    
+                    retrievedInlineData = JSON.parse(data[0].activity_inline_data);
+
+                    newData.form_name =  data[0].form_name || newData.form_name;
                 }
                 forEachAsync(retrievedInlineData, (next, row)=>{
                    if(Number(row.field_id) === Number(newData.field_id)) {
                        oldFieldValue = row.field_value;
                        row.field_value = newData.field_value;
+                       newData.field_name = row.field_name;
                        cnt++;
                    }
                    next();
@@ -468,6 +471,7 @@ function FormConfigService(objCollection) {
                         newData.update_sequence_id = 1;
                         retrievedInlineData.push(newData);
                         oldFieldValue = newData.field_value;
+                        newData.field_name = row.field_name;
                     }
                     
                     request.activity_inline_data = JSON.stringify(retrievedInlineData);
