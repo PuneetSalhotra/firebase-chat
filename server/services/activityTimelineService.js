@@ -26,7 +26,8 @@ function ActivityTimelineService(objectCollection) {
         
         if (activityTypeCategoryId === 9 && activityStreamTypeId === 705) {   // add form case
             
-            getActivityIdBasedOnTransId(request).then((data)=>{
+            setTimeout(()=>{
+                getActivityIdBasedOnTransId(request).then((data)=>{
                 if(data.length > 0) {
                     
                     //act id in request is different from retrieved one
@@ -69,7 +70,7 @@ function ActivityTimelineService(objectCollection) {
                     }
                 }
             }).catch(()=>{});
-
+            }, 2000);
         } else {
             request.form_id = 0;            
             timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request)});
@@ -106,7 +107,7 @@ function ActivityTimelineService(objectCollection) {
                         global.logger.write('debug', "\x1b[35m [Log] Triggering the BOT 1 \x1b[0m", {}, request);
                         
                         //makeRequest to /vodafone/neworder_form/queue/add
-                        let newRequest = Object.assign(request);
+                        let newRequest = Object.assign({}, request);
                         newRequest.activity_inline_data = {};
                         activityCommonService.makeRequest(newRequest, "vodafone/neworder_form/queue/add", 1).then((resp)=>{
                                global.logger.write('debug', resp, {}, request);
@@ -124,7 +125,7 @@ function ActivityTimelineService(objectCollection) {
             }
             
             //BOT to send email on CRM form submission
-            if (Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.CRM)) {
+            if (Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.CRM) && Number(request.device_os_id) === 7) {
                 global.logger.write('debug', "\x1b[35m [Log] Triggering BOT to send email on CRM form submission \x1b[0m", {}, request);
                 
                 let newRequest = Object.assign({}, request);
