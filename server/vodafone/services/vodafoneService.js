@@ -3642,6 +3642,7 @@ function VodafoneService(objectCollection) {
                     cafFormTargetFieldId = incomingFormToCafFormMapping[request.form_id][incomingFormFieldId];
 
                     newActivityInlineData = JSON.parse(request.activity_inline_data);
+                    newActivityInlineData[0].form_name = "Digital CAF";
                     newActivityInlineData[0].field_id = cafFormTargetFieldId;
                     newActivityInlineData[0].form_transaction_id = cafFormTransactionId;
                     
@@ -3710,12 +3711,12 @@ function VodafoneService(objectCollection) {
 
                     // Update the form data in the timeline collection 
                     cafActivityTimelineCollectionData.form_submitted = cafFormData;
-                    cafActivityTimelineCollectionData.subject = "Field Updated";
+                    cafActivityTimelineCollectionData.subject = "Field Updated for Digital CAF";
                     cafActivityTimelineCollectionData.content = `In the Digital CAF, the field ${newActivityInlineData[0].field_name} was updated from ${oldCafFieldValue} to ${newCafFieldValue}`;
 
                     console.log("[regenerateAndSubmitCAF] cafActivityTimelineCollectionData.form_submitted: ", cafActivityTimelineCollectionData.form_submitted[155]);
 
-                    // [NEW ORDER FORM] Insert 705 record with the updated JSON data in activity_timeline_transaction 
+                    // [NEW ORDER FORM] Insert 713 record with the updated JSON data in activity_timeline_transaction 
                     // and asset_timeline_transaction
                     let fire705OnNewOrderFileRequest = Object.assign({}, request);
                     fire705OnNewOrderFileRequest.activity_id = Number(newOrderFormActivityId);
@@ -3724,7 +3725,7 @@ function VodafoneService(objectCollection) {
                     fire705OnNewOrderFileRequest.activity_timeline_collection = JSON.stringify(cafActivityTimelineCollectionData);
                     // Append the incremental form data as well
                     // fire705OnNewOrderFileRequest.incremental_form_data = incrementalCafFormData;
-                    fire705OnNewOrderFileRequest.activity_stream_type_id = 705;
+                    fire705OnNewOrderFileRequest.activity_stream_type_id = 713;
                     fire705OnNewOrderFileRequest.form_id = Number(CAF_FORM_ID);
                     fire705OnNewOrderFileRequest.asset_message_counter = 0;
                     fire705OnNewOrderFileRequest.message_unique_id = util.getMessageUniqueId(request.asset_id);
@@ -3756,34 +3757,36 @@ function VodafoneService(objectCollection) {
 
 
                     // [CAF FORM] Insert 705 record with the updated JSON data in activity_timeline_transaction 
-                    let fire705OnCafFileRequest = Object.assign({}, fire705OnNewOrderFileRequest);
-                    fire705OnCafFileRequest.activity_id = Number(cafFormActivityId);
-                    fire705OnCafFileRequest.form_transaction_id = Number(cafFormTransactionId);
-                    fire705OnCafFileRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
-                    fire705OnCafFileRequest.device_os_id = 8;
+                    // let fire705OnCafFileRequest = Object.assign({}, fire705OnNewOrderFileRequest);
+                    // fire705OnCafFileRequest.activity_id = Number(cafFormActivityId);
+                    // fire705OnCafFileRequest.form_transaction_id = Number(cafFormTransactionId);
+                    // fire705OnCafFileRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+                    // fire705OnCafFileRequest.device_os_id = 8;
 
-                    let fire705OnCafFileEvent = {
-                        name: "addTimelineTransaction",
-                        service: "activityTimelineService",
-                        method: "addTimelineTransaction",
-                        location: "regenerateAndSubmitCAF",
-                        payload: fire705OnCafFileRequest
-                    };
+                    // let fire705OnCafFileEvent = {
+                    //     name: "addTimelineTransaction",
+                    //     service: "activityTimelineService",
+                    //     method: "addTimelineTransaction",
+                    //     location: "regenerateAndSubmitCAF",
+                    //     payload: fire705OnCafFileRequest
+                    // };
 
-                    queueWrapper.raiseActivityEvent(fire705OnCafFileEvent, request.activity_id, (err, resp) => {
-                        if (err) {
-                            global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                            global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
-                        } else {
-                            global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                            global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
-                        }
-                    });
+                    // queueWrapper.raiseActivityEvent(fire705OnCafFileEvent, request.activity_id, (err, resp) => {
+                    //     if (err) {
+                    //         global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                    //         global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                    //     } else {
+                    //         global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                    //         global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                    //     }
+                    // });
 
                     // Fire the 'alterFormActivity' service | '/form/activity/alter' for the derived ROMS fields in the 
                     // CAF file
                     console.log("[regenerateAndSubmitCAF] updatedRomsFields: ", updatedRomsFields)
                     if (updatedRomsFields.length > 0) {
+                        updatedRomsFields[0].form_name = "Digital CAF";
+
                         let cafFieldUpdateRequest = Object.assign({}, request);
                         let cafFieldUpdateEvent = {
                             name: "alterFormActivity",
