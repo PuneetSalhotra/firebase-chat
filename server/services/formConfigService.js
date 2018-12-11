@@ -426,7 +426,7 @@ function FormConfigService(objCollection) {
                             callback(false, {}, 200);
                         }
                     } else {
-                        callback(err, data, -9999)
+                        callback(err, data, -9999);
                     }
             });
         }
@@ -528,7 +528,8 @@ function FormConfigService(objCollection) {
                             ORDER_SUPPLEMENTARY_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY,
                             FR_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.FR,
                             CRM_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CRM,
-                            HLD_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.HLD;
+                            HLD_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.HLD,
+                            CAF_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CAF;
 
                         if (
                             Number(request.form_id) === NEW_ORDER_FORM_ID || // New Order
@@ -559,8 +560,59 @@ function FormConfigService(objCollection) {
                                     global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
                                     global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
                                 }
-                            });
+                            });                       
                         }
+                        
+                            //The following piece of code will be executed only if it is CAF Form Edit and 
+                            //the request is not fired internally device_os_id = 7 means internal call
+                            if (Number(request.form_id) === CAF_FORM_ID && Number(request.device_os_id) !== 7) {
+                                global.logger.write('debug', "\x1b[35m [Log] CAF EDIT \x1b[0m",{}, request);
+                                await fetchReferredFormActivityId(request, request.activity_id, newData.form_transaction_id, request.form_id).then((data)=>{
+                                    global.logger.write('debug', "\x1b[35m [Log] DATA \x1b[0m",{}, request);
+                                    global.logger.write('debug', data,{}, request);
+                                    
+                                    if (data.length > 0) {
+                                        newOrderFormActivityId = Number(data[0].activity_id);
+
+                                        let fire713OnNewOrderFileRequest = Object.assign({}, request);
+                                        fire713OnNewOrderFileRequest.activity_id = Number(newOrderFormActivityId);                                        
+                                        fire713OnNewOrderFileRequest.form_transaction_id = newData.form_transaction_id;
+                                        fire713OnNewOrderFileRequest.activity_timeline_collection = request.activity_timeline_collection;
+                                        fire713OnNewOrderFileRequest.activity_stream_type_id = 713;
+                                        fire713OnNewOrderFileRequest.form_id = CAF_FORM_ID;
+                                        fire713OnNewOrderFileRequest.asset_message_counter = 0;
+                                        fire713OnNewOrderFileRequest.message_unique_id = util.getMessageUniqueId(request.asset_id);
+                                        fire713OnNewOrderFileRequest.activity_timeline_text = '';
+                                        fire713OnNewOrderFileRequest.activity_timeline_url = '';
+                                        fire713OnNewOrderFileRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+                                        fire713OnNewOrderFileRequest.flag_timeline_entry = 1;
+                                        fire713OnNewOrderFileRequest.service_version = '1.0';
+                                        fire713OnNewOrderFileRequest.app_version = '2.8.16';
+                                        fire713OnNewOrderFileRequest.device_os_id = 7;
+                                        fire713OnNewOrderFileRequest.data_activity_id = request.activity_id;
+
+                                        let fire705OnNewOrderFileEvent = {
+                                            name: "addTimelineTransaction",
+                                            service: "activityTimelineService",
+                                            method: "addTimelineTransaction",                                            
+                                            payload: fire713OnNewOrderFileRequest
+                                        };
+
+                                      global.logger.write('debug', "\x1b[35m [Log]  Raising 713 entry onto New Order Form \x1b[0m",{}, request);
+                                      queueWrapper.raiseActivityEvent(fire705OnNewOrderFileEvent, request.activity_id, (err, resp) => {
+                                            if (err) {
+                                                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                                                global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                                            } else {
+                                                global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                                            }
+                                        });
+                                    } else {
+                                        global.logger.write('debug', "\x1b[35m [Log] Data from this call fetchReferredFormActivityId is empty \x1b[0m",{}, request);
+                                    }
+
+                                });
+                            }
 
                     }).catch((err) => {
                         global.logger.write(err);
@@ -793,6 +845,27 @@ function FormConfigService(objCollection) {
                 });
             }
             
+        })
+    };
+    
+    function fetchReferredFormActivityId(request, activityId, formTransactionId, formId) {
+        return new Promise((resolve, reject) => {            
+            // IN p_limit_value smallint(6)
+            let paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                activityId,
+                formId,
+                formTransactionId,
+                request.start_from || 0,
+                request.limit_value || 50
+            );
+            const queryString = util.getQueryString('ds_p1_activity_timeline_transaction_select_refered_activity', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                })
+            }
         })
     };
 
