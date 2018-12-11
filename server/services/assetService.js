@@ -3296,13 +3296,25 @@ function AssetService(objectCollection) {
 
 		var paramsArr = new Array();
 		var queryString = "";
-		var paramsArr = new Array(
-			request.organization_id,
-	        phoneNumber,
-	        phoneCountryCode
-	    );
 		
-	    queryString = util.getQueryString('pm_v1_asset_list_select_phone_number', paramsArr);
+        if(request.hasOwnProperty('member_code')){
+        	
+        	var paramsArr = new Array(
+        			request.organization_id,
+	                request.account_id,
+	                request.member_code
+	            );
+        	queryString = util.getQueryString('ds_v1_asset_list_passcode_check_member', paramsArr);
+        	
+        }else{
+        	var paramsArr = new Array(
+        			request.organization_id,
+        			request.asset_phone_number,
+        			request.asset_phone_country_code
+        	    );
+        		
+        	queryString = util.getQueryString('pm_v1_asset_list_select_member_phone_number', paramsArr);
+        }
 
 		if (queryString != '') {
 		    db.executeQuery(1, queryString, request, function (err, data) {
@@ -3311,19 +3323,18 @@ function AssetService(objectCollection) {
 		    			 if(verificationCode == data[0].asset_email_password){
 		    				 callback(false, data, 200);
 		    			 }else{			    				 
-		    				 callback(false, {}, -3107);
+		    				 callback(false, {"Error":"OTP Mismatch"}, -3107);
 		    			 }
 		    		 }else{
-		    			 callback(false, {}, -3202);
+		    			 callback(false, {"Error":"Member Code or Phone Number Not Valid"}, -3202);
 		    		 }
 		    	 }else{
-		    		 callback(false, {}, -9998);
+		    		 callback(false, {"Error":"DB Error"}, -9998);
 		    	 }
 		    });
 		}
 
     };
-    
     
     this.getPamMemberPhoneNumberAsset = function (request, callback) {
 
@@ -3375,7 +3386,7 @@ function AssetService(objectCollection) {
                                     });                                  
                                 });
                             
-                            sendCallOrSms(verificationMethod, countryCode, phoneNumber, verificationCode, request);
+                            sendCallOrSms(verificationMethod, selectData[0].asset_phone_country_code, selectData[0].asset_phone_number, verificationCode, request);
                             callback(err, true, 200);
                         }else{
                         	callback(err, false, -9997);
