@@ -670,7 +670,8 @@ function ActivityUpdateService(objectCollection) {
                                 activityStreamTypeId = 1705;
                                 break;
                             case 9: //Form edit
-                                activityStreamTypeId = 710;
+                                // activityStreamTypeId = 710;
+                                activityStreamTypeId = 713;
                                 break;
                             case 15: //Video Conference
                                 activityStreamTypeId = 1607;
