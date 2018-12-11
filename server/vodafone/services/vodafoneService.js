@@ -3598,7 +3598,7 @@ function VodafoneService(objectCollection) {
                     delete newRequest["field_id"];
 
                     return activityCommonService
-                        .getActivityTimelineTransactionByFormId(newRequest, newOrderFormActivityId, CAF_FORM_ID)
+                        .getActivityTimelineTransactionByFormId713(newRequest, newOrderFormActivityId, CAF_FORM_ID)
 
                 } else {
                     throw new Error("newOrderFormTransactionNotFound");
@@ -3661,6 +3661,7 @@ function VodafoneService(objectCollection) {
                     cafFieldUpdateRequest.field_id = cafFormTargetFieldId;
                     cafFieldUpdateRequest.activity_inline_data = JSON.stringify(newActivityInlineData);
                     cafFieldUpdateRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+                    cafFieldUpdateRequest.device_os_id = 7;
 
                     queueWrapper.raiseActivityEvent(cafFieldUpdateEvent, cafFieldUpdateRequest.activity_id, (err, resp) => {
                         if (err) {
@@ -3713,14 +3714,20 @@ function VodafoneService(objectCollection) {
                     cafActivityTimelineCollectionData.form_submitted = cafFormData;
                     cafActivityTimelineCollectionData.subject = "Field Updated for Digital CAF";
                     cafActivityTimelineCollectionData.content = `In the Digital CAF, the field ${newActivityInlineData[0].field_name} was updated from ${oldCafFieldValue} to ${newCafFieldValue}`;
+                    
+                    console.log("[regenerateAndSubmitCAF] oldCafFieldValue  : ", oldCafFieldValue);
+                    if (String(oldCafFieldValue).trim().length === 0) {
+                        cafActivityTimelineCollectionData.content = `In the Digital CAF, the field ${newActivityInlineData[0].field_name} was updated to ${newCafFieldValue}`;
+                    }
 
-                    console.log("[regenerateAndSubmitCAF] cafActivityTimelineCollectionData.form_submitted: ", cafActivityTimelineCollectionData.form_submitted[155]);
+                    // console.log("[regenerateAndSubmitCAF] cafActivityTimelineCollectionData.form_submitted: ", cafActivityTimelineCollectionData.form_submitted[155]);
 
                     // [NEW ORDER FORM] Insert 713 record with the updated JSON data in activity_timeline_transaction 
                     // and asset_timeline_transaction
                     let fire705OnNewOrderFileRequest = Object.assign({}, request);
                     fire705OnNewOrderFileRequest.activity_id = Number(newOrderFormActivityId);
                     // The 'form_transaction_id' parameter is intentionally being set to an incorrect value
+                    fire705OnNewOrderFileRequest.data_activity_id = Number(cafFormActivityId);
                     fire705OnNewOrderFileRequest.form_transaction_id = Number(cafFormTransactionId);
                     fire705OnNewOrderFileRequest.activity_timeline_collection = JSON.stringify(cafActivityTimelineCollectionData);
                     // Append the incremental form data as well
@@ -3736,6 +3743,9 @@ function VodafoneService(objectCollection) {
                     fire705OnNewOrderFileRequest.service_version = '1.0';
                     fire705OnNewOrderFileRequest.app_version = '2.8.16';
                     fire705OnNewOrderFileRequest.device_os_id = 7;
+
+                    // console.log("Number(CAF_FORM_ID): ", Number(CAF_FORM_ID))
+                    // console.log("[regenerateAndSubmitCAF] fire705OnNewOrderFileRequest: ", fire705OnNewOrderFileRequest);
 
                     let fire705OnNewOrderFileEvent = {
                         name: "addTimelineTransaction",
@@ -3802,6 +3812,7 @@ function VodafoneService(objectCollection) {
                             cafFieldUpdateRequest.field_id = Number(updatedRomsFields[0].field_id);
                             cafFieldUpdateRequest.activity_inline_data = JSON.stringify(updatedRomsFields);
                             cafFieldUpdateRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+                            cafFieldUpdateRequest.device_os_id = 7;
 
                             console.log("[regenerateAndSubmitCAF] cafFieldUpdateRequest: ", cafFieldUpdateRequest)
 

@@ -471,15 +471,22 @@ function FormConfigService(objCollection) {
                         newData.update_sequence_id = 1;
                         retrievedInlineData.push(newData);
                         oldFieldValue = newData.field_value;
-                        newData.field_name = row.field_name;
+                        // newData.field_name = row.field_name;
                     }
                     
                     request.activity_inline_data = JSON.stringify(retrievedInlineData);
+
+                    let content = '';
+                    if (String(oldFieldValue).trim().length === 0) {
+                        content = `In the ${newData.form_name}, the field ${newData.field_name} was updated to ${newFieldValue}`;
+                    } else {
+                        content = `In the ${newData.form_name}, the field ${newData.field_name} was updated from ${oldFieldValue} to ${newFieldValue}`
+                    }
                     
                     let activityTimelineCollection = {
                         form_submitted: retrievedInlineData,
                         subject: `Field Updated for ${newData.form_name}`,
-                        content: `In the ${newData.form_name}, the field ${newData.field_name} was updated from ${oldFieldValue} to ${newFieldValue}`,
+                        content: content,
                         mail_body: `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
                         attachments: [],
                         asset_reference: [],
@@ -559,6 +566,11 @@ function FormConfigService(objCollection) {
                                 } else {
                                     global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
                                     global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+
+                                    // Fire 713 addTimelineTransaction entry for the incoming dedicated form
+                                    // ...
+                                    fire713OnNewOrderFileForDedicatedFile(request).then(() => {});
+
                                 }
                             });                       
                         }
@@ -868,6 +880,59 @@ function FormConfigService(objCollection) {
             }
         })
     };
+
+    function fire713OnNewOrderFileForDedicatedFile(request) {
+        return new Promise((resolve, reject) => {
+
+            fetchReferredFormActivityId(request, request.activity_id, request.form_transaction_id, request.form_id).then((data) => {
+                global.logger.write('debug', "\x1b[35m [Log] DATA \x1b[0m", {}, request);
+                global.logger.write('debug', data, {}, request);
+                if (data.length > 0) {
+                    let newOrderFormActivityId = Number(data[0].activity_id);
+
+                    let fire713OnNewOrderFileRequest = Object.assign({}, request);
+                    fire713OnNewOrderFileRequest.activity_id = Number(newOrderFormActivityId);
+                    fire713OnNewOrderFileRequest.data_activity_id = Number(request.activity_id);
+                    fire713OnNewOrderFileRequest.form_transaction_id = Number(request.form_transaction_id);
+                    fire713OnNewOrderFileRequest.activity_timeline_collection = request.activity_timeline_collection;
+                    fire713OnNewOrderFileRequest.activity_stream_type_id = 713;
+                    fire713OnNewOrderFileRequest.form_id = Number(request.form_id);
+                    fire713OnNewOrderFileRequest.asset_message_counter = 0;
+                    fire713OnNewOrderFileRequest.message_unique_id = util.getMessageUniqueId(request.asset_id);
+                    fire713OnNewOrderFileRequest.activity_timeline_text = '';
+                    fire713OnNewOrderFileRequest.activity_timeline_url = '';
+                    fire713OnNewOrderFileRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+                    fire713OnNewOrderFileRequest.flag_timeline_entry = 1;
+                    fire713OnNewOrderFileRequest.service_version = '1.0';
+                    fire713OnNewOrderFileRequest.app_version = '2.8.16';
+                    fire713OnNewOrderFileRequest.device_os_id = 7;
+
+                    let fire713OnNewOrderFileEvent = {
+                        name: "addTimelineTransaction",
+                        service: "activityTimelineService",
+                        method: "addTimelineTransaction",
+                        payload: fire713OnNewOrderFileRequest
+                    };
+
+                    queueWrapper.raiseActivityEvent(fire713OnNewOrderFileEvent, request.activity_id, (err, resp) => {
+                        if (err) {
+
+                            global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                            global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+
+                            reject(err);
+
+                        } else {
+                            
+                            global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                            
+                            resolve();
+                        }
+                    });
+                }
+            });
+        });
+    }
 
 };
 

@@ -2862,6 +2862,29 @@ function ActivityCommonService(db, util, forEachAsync) {
         });
     };
 
+    this.getActivityTimelineTransactionByFormId713 = function (request, activityId, formId) {
+        return new Promise((resolve, reject) => {
+            // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_activity_id BIGINT(20), 
+            // IN p_form_id BIGINT(20), IN p_start_from SMALLINT(6), IN p_limit_value smallint(6)
+            let paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                activityId,
+                formId,
+                0,
+                50
+            );
+            const queryString = util.getQueryString('ds_p1_1_activity_timeline_transaction_select_activity_form', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    // console.log("[ds_p1_activity_timeline_transaction_select_activity_form] err: ", err);
+                    // console.log("[ds_p1_activity_timeline_transaction_select_activity_form] data: ", data);
+                    (err) ? reject(err): resolve(data);
+                });
+            }
+        });
+    };
+
     this.activityFormTransactionSelect = function (request, formTransactionId, formId) {
         return new Promise((resolve, reject) => {
             let paramsArr = new Array(
