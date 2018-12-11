@@ -270,11 +270,11 @@ function VodafoneService(objectCollection) {
                                 // Fire a 325 request to the new order form too! - Modified to 705
                                 let activityTimelineCollectionFor325 = {
                                     "mail_body": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
-                                    "subject": "Submitted - Order Supplementary Form",
+                                    "subject": "Order Supplementary Form",
                                     "content": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
                                     "asset_reference": [],
                                     "activity_reference": [],
-                                    "form_approval_field_reference": [],                                    
+                                    "form_approval_field_reference": [],                                 
                                     "form_submitted": data,
                                     "attachments": []
                                 };
@@ -3461,7 +3461,7 @@ function VodafoneService(objectCollection) {
                 formId,
                 '1970-01-01 00:00:00',
                 0,
-                50
+                500
             );
             queryString = util.getQueryString('ds_v1_workforce_form_field_mapping_select', paramsArr);
             if (queryString != '') {
