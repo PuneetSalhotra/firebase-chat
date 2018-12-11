@@ -2005,7 +2005,8 @@ function ActivityListingService(objCollection) {
     		var array = [];
 			forEachAsync(data, function (next, newOrderData) {	
 				getQueueActivity(request, newOrderData.activity_id).then((queueData)=>{
-					if(queueData.length > 0)
+                    if(queueData.length > 0)
+                    queueData[0].asset_unread_updates_count = newOrderData.asset_unread_updates_count;
 					array.push(queueData[0]);
 				}).then(()=>{
 					next();

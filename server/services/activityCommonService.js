@@ -235,7 +235,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
     };
 
-    this.assetTimelineTransactionInsert = function (request, participantData, streamTypeId, callback) {
+    /*this.assetTimelineTransactionInsert = function (request, participantData, streamTypeId, callback) {
         //console.log('vnk streamTypeId : ', streamTypeId);
         var assetId = request.asset_id;
         var organizationId = request.organization_id;
@@ -663,6 +663,435 @@ function ActivityCommonService(db, util, forEachAsync) {
                 } else {
                     callback(err, false);
                     //console.log(err);
+                    global.logger.write('serverError', JSON.stringify(err), err, request)
+                    return;
+                }
+            });
+        }
+    };*/
+    
+    this.assetTimelineTransactionInsert = function (request, participantData, streamTypeId, callback) {
+        //console.log('vnk streamTypeId : ', streamTypeId);
+        var assetId = request.asset_id;
+        var organizationId = request.organization_id;
+        var accountId = request.account_id;
+        var workforceId = request.workforce_id;
+        var messageUniqueId = request.message_unique_id;
+        var entityTypeId = 0;
+        var entityText1 = "";
+        var entityText2 = "";
+        var entityText3 = "";
+        var activityTimelineCollection = "{}"; //BETA
+        var retryFlag = 0;
+        var formTransactionId = 0;
+        var dataTypeId = 0;
+        var formId = 0;
+        if (Number(request.device_os_id) === 5)
+            retryFlag = 1;
+
+        entityText3 = (request.hasOwnProperty('activity_timeline_title')) ? request.activity_timeline_title : "";
+
+        if (request.hasOwnProperty('activity_type_category_id')) {
+            var activityTypeCategoryId = Number(request.activity_type_category_id);
+            if (activityTypeCategoryId === 4) {
+                if (request.hasOwnProperty('activity_inline_data')) {
+                    var inlineJson = JSON.parse(request.activity_inline_data);
+                    assetId = inlineJson.employee_asset_id;
+                } else {
+                    assetId = request.asset_id;
+                }
+            } else {
+                assetId = request.asset_id;
+            }
+        } else {
+            assetId = request.asset_id;
+        }
+
+
+        if (Object.keys(participantData).length > 0) {
+            organizationId = participantData.organization_id;
+            accountId = participantData.account_id;
+            workforceId = participantData.workforce_id;
+            assetId = participantData.asset_id;
+            messageUniqueId = participantData.message_unique_id
+        }
+
+        switch (streamTypeId) {
+            case 4: // activity updated
+                entityTypeId = 0;
+                entityText1 = "activity updated";
+                entityText2 = request.activity_inline_data;
+                break;
+            case 207: // Contact card has been clipped to a Document
+                entityTypeId = 0;
+                entityText1 = request.activity_timeline_collection;
+                entityText2 = '';
+                break;
+            case 309: // activity cover altered
+                entityTypeId = 0;
+                entityText1 = ""
+                entityText2 = request.activity_cover_collection;
+                break;
+            case 310: // text message     --> File
+            case 607: // text message     --> Customer Request
+            case 1307: // text message    --> Visitor Request
+            case 1507: // text message    --> Time Card
+                entityTypeId = 0;
+                entityText1 = "";
+                entityText2 = request.activity_timeline_text;
+                break;
+            case 311: // image    --> file
+            case 608: // image    --> Customer Request
+            case 1308: // image    --> Visitor Request
+            case 1508: // image   --> Time Card
+                entityTypeId = 0;
+                entityText1 = request.activity_timeline_url;
+                entityText2 = (request.hasOwnProperty('activity_timeline_url_preview')) ? request.activity_timeline_url_preview : '';
+                break;
+            case 313: // form
+                entityTypeId = 0;
+                entityText1 = request.form_transaction_id;
+                entityText2 = request.activity_timeline_collection;
+                break;
+            case 705: // form
+                entityTypeId = 0;
+                entityText1 = request.form_transaction_id;
+                // entityText2 = request.activity_timeline_collection;
+                activityTimelineCollection = request.activity_timeline_collection || '{}';
+                formTransactionId = request.form_transaction_id;
+                formId = request.form_id;
+                dataTypeId = 37; //static for all form submissions
+                break;
+            case 710: // form field alter
+            case 713: // 
+                entityTypeId = 0;
+                //entityText2 = request.activity_timeline_collection;
+                activityTimelineCollection = request.activity_timeline_collection || '{}';
+                break;
+            case 314: // cloud based document -- file
+            case 610: // cloud based document -- Customer Request
+            case 709: // cloud based document -- Form
+            case 1310: // cloud based document -- Visitor Request
+            case 1408: // cloud based document -- Project
+            case 1510: // cloud based document -- Time Card
+                entityTypeId = 0;
+                entityText1 = request.activity_timeline_url;
+                entityText2 = (request.hasOwnProperty('activity_timeline_url_preview')) ? request.activity_timeline_url_preview : '';
+                break;
+            case 315: // clip mail to task
+                entityTypeId = 0;
+                entityText1 = request.activity_timeline_collection;
+                entityText2 = '';
+                break;
+            case 316: // clip notepad
+                entityTypeId = 0;
+                entityText1 = request.activity_timeline_collection;
+                entityText2 = '';
+                break;
+            case 320: // Add video call communication
+            case 321: // Add phone call communication
+            case 322: // Add mobile call communication
+                entityTypeId = 0;
+                entityText1 = request.activity_timeline_url;
+                entityText2 = (request.hasOwnProperty('activity_timeline_url_preview')) ? request.activity_timeline_url_preview : '';
+                break;
+            case 323: // Add message communication
+                entityTypeId = 0;
+                entityText1 = "";
+                entityText2 = request.activity_timeline_text;
+                break;
+            case 325: // Add Participant Collection for taskList BETA
+                activityTimelineCollection = request.activity_timeline_collection;
+                entityText1 = "";
+                entityText2 = request.activity_timeline_text;
+                break;
+            default:
+                entityTypeId = 0;
+                entityText1 = "";
+                entityText2 = "";
+                break;
+        };
+
+        var paramsArr = new Array(
+            request.activity_id || 0,
+            assetId,
+            workforceId,
+            accountId,
+            organizationId,
+            streamTypeId,
+            entityTypeId, // entity type id
+            request.entity_datetime_1 || '1970-01-01 00:00:00', // entity type id
+            request.entity_datetime_2 || '1970-01-01 00:00:00', // entity type id
+            entityText1, // entity text 1
+            entityText2, // entity text 2
+            entityText3, //Beta
+            activityTimelineCollection, //BETA
+            request.track_latitude,
+            request.track_longitude,
+            request.entity_tinyint_1 || 0,
+            request.entity_tinyint_2 || 0,
+            request.entity_bigint_1 || 0,
+            request.entity_bigint_2 || 0,
+            formTransactionId, //form_transaction_id
+            formId, //form_id
+            dataTypeId, //data_type_id  should be 37 static
+            request.track_latitude, //location latitude
+            request.track_longitude, //location longitude
+            request.track_gps_accuracy,
+            request.track_gps_status,
+            request.track_gps_location,
+            request.track_gps_datetime,
+            "",
+            "",
+            request.device_os_id,
+            "",
+            "",
+            request.app_version,
+            request.service_version,
+            request.asset_id,
+            messageUniqueId,
+            retryFlag,
+            request.flag_offline,
+            request.track_gps_datetime,
+            request.datetime_log,
+            request.data_activity_id || 0
+        );        
+        let queryString = util.getQueryString("ds_v1_3_asset_timeline_transaction_insert", paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                if (err === false) {
+                    callback(false, true);
+                    return;
+                } else {
+                    callback(err, false);                    
+                    global.logger.write('serverError', JSON.stringify(err), err, request)
+                    return;
+                }
+            });
+        }
+    };
+
+    this.activityTimelineTransactionInsert = function (request, participantData, streamTypeId, callback) {        
+
+        var assetId = request.asset_id;
+        var organizationId = request.organization_id;
+        var accountId = request.account_id;
+        var workforceId = request.workforce_id;
+        var messageUniqueId = request.message_unique_id;
+        var entityTypeId = 0;
+        var entityText1 = "";
+        var entityText2 = "";
+        var entityText3 = ""; //Beta
+        var activityTimelineCollection = "{}"; //BETA
+        var retryFlag = 0;
+        var formTransactionId = 0;
+        var dataTypeId = 0;
+        var formId = 0;
+        var newUserAssetId = (request.hasOwnProperty('signedup_asset_id')) ? request.signedup_asset_id : 0;
+        if (Number(request.device_os_id) === 5)
+            retryFlag = 1;
+
+        entityText3 = (request.hasOwnProperty('activity_timeline_title')) ? request.activity_timeline_title : "";
+
+        if (request.hasOwnProperty('activity_type_category_id')) {
+            var activityTypeCategoryId = Number(request.activity_type_category_id);
+            if (activityTypeCategoryId === 4) {
+                if (request.hasOwnProperty('activity_inline_data')) {
+                    var inlineJson = JSON.parse(request.activity_inline_data);
+                    assetId = inlineJson.employee_asset_id;
+                } else {
+                    assetId = request.asset_id;
+                }
+            } else {
+                assetId = request.asset_id;
+            }
+        } else {
+            assetId = request.asset_id;
+        }
+
+
+        if (Object.keys(participantData).length > 0) {
+            organizationId = participantData.organization_id;
+            accountId = participantData.account_id;
+            workforceId = participantData.workforce_id;
+            assetId = participantData.asset_id;
+            messageUniqueId = participantData.message_unique_id;
+        }
+
+        global.logger.write('debug', 'streamTypeId: ' + streamTypeId, {}, request);
+        global.logger.write('debug', 'typeof streamTypeId: ' + typeof streamTypeId, {}, request);
+
+        switch (streamTypeId) {
+            case 4: // activity updated
+                entityTypeId = 0;
+                entityText1 = "activity updated";
+                entityText2 = request.activity_inline_data;
+                break;
+            case 207: // Contact card has been clipped to a Document
+                entityTypeId = 0;
+                entityText1 = request.activity_timeline_collection;
+                entityText2 = '';
+                break;
+            case 309: // activity cover altered
+                entityTypeId = 0;
+                entityText1 = ""
+                entityText2 = request.activity_cover_collection;
+                break;
+            case 310: // text message     --> File
+            case 607: // text message     --> Customer Request
+            case 1307: // text message    --> Visitor Request
+            case 1507: // text message    --> Time Card
+                entityTypeId = 0;
+                entityText1 = ""
+                entityText2 = JSON.stringify(request.activity_timeline_text);
+                break;
+            case 311: // image    --> file
+            case 608: // image    --> Customer Request
+            case 1308: // image    --> Visitor Request
+            case 1508: // image   --> Time Card
+                entityTypeId = 0;
+                entityText1 = request.activity_timeline_url;
+                entityText2 = (request.hasOwnProperty('activity_timeline_url_preview')) ? request.activity_timeline_url_preview : '';
+                break;
+            case 313: // form
+                entityTypeId = 0;
+                entityText1 = request.form_transaction_id;
+                entityText2 = request.activity_timeline_collection;
+                break;
+            case 704: // form: status alter
+                entityTypeId = 0;
+                entityText2 = request.activity_timeline_collection;
+                activityTimelineCollection = request.activity_timeline_collection || '{}';
+                break;
+            case 705: // form
+                entityTypeId = 0;
+                entityText1 = request.form_transaction_id;
+                entityText2 = '';
+                activityTimelineCollection = request.activity_timeline_collection;
+                formTransactionId = request.form_transaction_id;
+                formId = request.form_id;
+                request.entity_bigint_1 = request.reference_form_activity_id || 0;
+                dataTypeId = 37; //static for all form submissions
+                break;
+            case 710: // form field alter
+            case 713: // form field alter
+                entityTypeId = 0;
+                //entityText2 = request.activity_timeline_collection;
+                activityTimelineCollection = request.activity_timeline_collection || '{}';
+                break;
+            case 314: // cloud based document -- file
+            case 610: // cloud based document -- Customer Request
+            case 709: // cloud based document -- Form
+            case 1310: // cloud based document -- Visitor Request
+            case 1408: // cloud based document -- Project
+            case 1510: // cloud based document -- Time Card
+                entityTypeId = 0;
+                entityText1 = request.activity_timeline_url;
+                entityText2 = (request.hasOwnProperty('activity_timeline_url_preview')) ? request.activity_timeline_url_preview : '';
+                break;
+            case 315: // clip mail to task
+                entityTypeId = 0;
+                entityText1 = request.activity_timeline_collection;
+                entityText2 = '';
+                break;
+            case 316: // clip notepad
+                entityTypeId = 0;
+                entityText1 = request.activity_timeline_collection;
+                entityText2 = '';
+                break;
+            case 320: // Add video call communication
+            case 321: // Add phone call communication
+            case 322: // Add mobile call communication
+                entityTypeId = 0;
+                entityText1 = request.activity_timeline_url;
+                entityText2 = (request.hasOwnProperty('activity_timeline_url_preview')) ? request.activity_timeline_url_preview : '';
+                break;
+            case 323: // Add message communication
+                entityTypeId = 0;
+                entityText1 = "";
+                entityText2 = request.activity_timeline_text;
+                break;
+            case 325: // Add Participant Collection for taskList
+                activityTimelineCollection = request.activity_timeline_collection;
+                entityText1 = "";
+                entityText2 = request.activity_timeline_text;
+                break;
+            case 23002: // Telephone Module: Altered the status of the chat
+            case 23003: // Telephone Module: Added an update to the chat
+            case 23004: // Telephone Module: Voice call started
+            case 23005: // Telephone Module: Voice call answered
+            case 23006: // Telephone Module: Voice call ended
+            case 23007: // Telephone Module: Voice call Missed
+            case 23008: // Telephone Module: Video call started
+            case 23009: // Telephone Module: Video call answered
+            case 23010: // Telephone Module: Video call ended
+            case 23011: // Telephone Module: Video call Missed
+                activityTimelineCollection = request.activity_timeline_collection;
+                entityText1 = "";
+                entityText2 = JSON.stringify(request.activity_timeline_text);
+                break;
+            default:
+                entityTypeId = 0;
+                entityText1 = "";
+                entityText2 = "";
+                break;
+        };
+
+        global.logger.write('debug', 'activityTimelineCollection : ', {}, request);
+        global.logger.write('debug', activityTimelineCollection, {}, request);
+
+        var paramsArr = new Array(
+            request.activity_id,
+            assetId,
+            workforceId,
+            accountId,
+            organizationId,
+            streamTypeId,
+            entityTypeId, // entity type id
+            request.entity_datetime_1 || '1970-01-01 00:00:00', // entity type id
+            request.entity_datetime_2 || '1970-01-01 00:00:00', // entity type id
+            entityText1, // entity text 1
+            entityText2, // entity text 2
+            entityText3, //Beta
+            activityTimelineCollection, //BETA
+            newUserAssetId, //New User Signed Up Asset ID
+            request.track_longitude,
+            request.entity_tinyint_1 || 0,
+            request.entity_tinyint_2 || 0,
+            request.entity_bigint_1 || 0,
+            request.entity_bigint_2 || 0, //Added on 10-12-2018
+            formTransactionId, //form_transaction_id
+            formId, //form_id
+            dataTypeId, //data_type_id  should be 37 static
+            request.track_latitude, //location latitude
+            request.track_longitude, //location longitude
+            request.track_gps_accuracy,
+            request.track_gps_status,
+            request.track_gps_location,
+            request.track_gps_datetime,
+            "",
+            "",
+            request.device_os_id,
+            "",
+            "",
+            request.app_version,
+            request.service_version,
+            request.asset_id,
+            messageUniqueId,
+            retryFlag,
+            request.flag_offline,
+            request.track_gps_datetime,
+            request.datetime_log,
+            request.data_activity_id || 0 //Added on 10-12-2018
+        );
+        let queryString = util.getQueryString("ds_v1_5_activity_timeline_transaction_insert", paramsArr);        
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                if (err === false) {
+                    callback(false, true);
+                    return;
+                } else {
+                    callback(err, false);                    
                     global.logger.write('serverError', JSON.stringify(err), err, request)
                     return;
                 }

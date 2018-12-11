@@ -9,6 +9,7 @@ function FormConfigService(objCollection) {
     var activityCommonService = objCollection.activityCommonService;
     var queueWrapper = objCollection.queueWrapper;
     var forEachAsync = objCollection.forEachAsync;
+    const moment = require('moment');
 
     this.getOrganizationalLevelForms = function (request, callback) {
         var paramsArr = new Array();
@@ -441,7 +442,9 @@ function FormConfigService(objCollection) {
         console.log('newData from Request: ', newData);
         request.new_field_value = newData.field_value;
         
-        let cnt = 0;
+        let cnt = 0,
+            oldFieldValue,
+            newFieldValue = newData.field_value;
         
         activityCommonService.getActivityByFormTransactionCallback(request, request.activity_id, (err, data)=>{
             if(err === false) {
@@ -454,6 +457,7 @@ function FormConfigService(objCollection) {
                 }
                 forEachAsync(retrievedInlineData, (next, row)=>{
                    if(Number(row.field_id) === Number(newData.field_id)) {
+                       oldFieldValue = row.field_value;
                        row.field_value = newData.field_value;
                        cnt++;
                    }
@@ -463,11 +467,24 @@ function FormConfigService(objCollection) {
                     if(cnt == 0) {
                         newData.update_sequence_id = 1;
                         retrievedInlineData.push(newData);
+                        oldFieldValue = newData.field_value;
                     }
                     
                     request.activity_inline_data = JSON.stringify(retrievedInlineData);
-                    request.activity_timeline_collection = request.activity_inline_data;          
                     
+                    let activityTimelineCollection = {
+                        form_submitted: retrievedInlineData,
+                        subject: `Field Updated for ${newData.form_name}`,
+                        content: `In the ${newData.form_name}, the field ${newData.field_name} was updated from ${oldFieldValue} to ${newFieldValue}`,
+                        mail_body: `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+                        attachments: [],
+                        asset_reference: [],
+                        activity_reference: [],
+                        form_approval_field_reference: []
+
+                    }
+                    request.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
+
                     getLatestUpdateSeqId(request).then(async (data) => {
 
                         if (data.length > 0) {
