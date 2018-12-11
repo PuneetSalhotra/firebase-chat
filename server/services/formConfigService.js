@@ -9,6 +9,7 @@ function FormConfigService(objCollection) {
     var activityCommonService = objCollection.activityCommonService;
     var queueWrapper = objCollection.queueWrapper;
     var forEachAsync = objCollection.forEachAsync;
+    const moment = require('moment');
 
     this.getOrganizationalLevelForms = function (request, callback) {
         var paramsArr = new Array();
@@ -425,7 +426,7 @@ function FormConfigService(objCollection) {
                             callback(false, {}, 200);
                         }
                     } else {
-                        callback(err, data, -9999)
+                        callback(err, data, -9999);
                     }
             });
         }
@@ -441,20 +442,26 @@ function FormConfigService(objCollection) {
         console.log('newData from Request: ', newData);
         request.new_field_value = newData.field_value;
         
-        let cnt = 0;
+        let cnt = 0,
+            oldFieldValue,
+            newFieldValue = newData.field_value;
         
         activityCommonService.getActivityByFormTransactionCallback(request, request.activity_id, (err, data)=>{
             if(err === false) {
                 console.log('Data from activity_list: ', data);
                 var retrievedInlineData = [];
                 if(data.length > 0){
-                	request['activity_id'] = data[0].activity_id;
-                
-                	retrievedInlineData = JSON.parse(data[0].activity_inline_data);               
+                    request['activity_id'] = data[0].activity_id;
+                    
+                    retrievedInlineData = JSON.parse(data[0].activity_inline_data);
+
+                    newData.form_name =  data[0].form_name || newData.form_name;
                 }
                 forEachAsync(retrievedInlineData, (next, row)=>{
                    if(Number(row.field_id) === Number(newData.field_id)) {
+                       oldFieldValue = row.field_value;
                        row.field_value = newData.field_value;
+                       newData.field_name = row.field_name;
                        cnt++;
                    }
                    next();
@@ -463,42 +470,163 @@ function FormConfigService(objCollection) {
                     if(cnt == 0) {
                         newData.update_sequence_id = 1;
                         retrievedInlineData.push(newData);
+                        oldFieldValue = newData.field_value;
+                        // newData.field_name = row.field_name;
                     }
                     
                     request.activity_inline_data = JSON.stringify(retrievedInlineData);
-                    request.activity_timeline_collection = request.activity_inline_data;          
+
+                    let content = '';
+                    if (String(oldFieldValue).trim().length === 0) {
+                        content = `In the ${newData.form_name}, the field ${newData.field_name} was updated to ${newFieldValue}`;
+                    } else {
+                        content = `In the ${newData.form_name}, the field ${newData.field_name} was updated from ${oldFieldValue} to ${newFieldValue}`
+                    }
                     
-                    getLatestUpdateSeqId(request).then((data)=>{
-                        
-                        if(data.length > 0) {
+                    let activityTimelineCollection = {
+                        form_submitted: retrievedInlineData,
+                        subject: `Field Updated for ${newData.form_name}`,
+                        content: content,
+                        mail_body: `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+                        attachments: [],
+                        asset_reference: [],
+                        activity_reference: [],
+                        form_approval_field_reference: []
+
+                    }
+                    request.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
+
+                    getLatestUpdateSeqId(request).then(async (data) => {
+
+                        if (data.length > 0) {
                             let x = data[0];
                             console.log('update_sequence_id : ', x.update_sequence_id);
                             request.update_sequence_id = ++x.update_sequence_id;
                         } else {
-                            request.update_sequence_id = 1;                            
+                            request.update_sequence_id = 1;
                         }
 
-                        putLatestUpdateSeqId(request, activityInlineData).then(()=>{
+                        await putLatestUpdateSeqId(request, activityInlineData).then(() => {
 
                             var event = {
                                 name: "alterActivityInline",
                                 service: "activityUpdateService",
                                 method: "alterActivityInline",
-                                payload: request       
+                                payload: request
                             };
 
                             queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
                                 if (err) {
                                     global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
                                     throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
-                                } else {}                            
+                                } else {
+                                    global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                                    global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                                }
                             });
 
-                        }).catch((err)=>{
+                        }).catch((err) => {
                             global.logger.write(err);
                         });
 
-                    }).catch((err)=>{
+                        // [Vodafone] Update/Regenerate CAF when any of New Order Form, Order supplementary form, 
+                        // CRM Form, FR Form, HLD Form is edited
+                        const NEW_ORDER_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER,
+                            ORDER_SUPPLEMENTARY_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY,
+                            FR_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.FR,
+                            CRM_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CRM,
+                            HLD_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.HLD,
+                            CAF_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CAF;
+
+                        if (
+                            Number(request.form_id) === NEW_ORDER_FORM_ID || // New Order
+                            Number(request.form_id) === ORDER_SUPPLEMENTARY_FORM_ID || // Order Supplementary
+                            Number(request.form_id) === FR_FORM_ID || // FR
+                            Number(request.form_id) === CRM_FORM_ID || // CRM
+                            Number(request.form_id) === HLD_FORM_ID // HLD
+                        ) {
+                            let rebuildCafRequest = Object.assign({}, request);
+                            rebuildCafRequest.activity_inline_data = JSON.stringify(activityInlineData);
+
+                            console.log("[regenerateAndSubmitCAF] activityInlineData: ", activityInlineData);
+
+                            let rebuildCafEvent = {
+                                name: "vodafoneService",
+                                service: "vodafoneService",
+                                method: "regenerateAndSubmitCAF",
+                                payload: rebuildCafRequest
+                            };
+
+                            console.log("[regenerateAndSubmitCAF] Calling regenerateAndSubmitCAF");
+                            
+                            queueWrapper.raiseActivityEvent(rebuildCafEvent, request.activity_id, (err, resp) => {
+                                if (err) {
+                                    global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                                    throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+                                } else {
+                                    global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                                    global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+
+                                    // Fire 713 addTimelineTransaction entry for the incoming dedicated form
+                                    // ...
+                                    fire713OnNewOrderFileForDedicatedFile(request).then(() => {});
+
+                                }
+                            });                       
+                        }
+                        
+                            //The following piece of code will be executed only if it is CAF Form Edit and 
+                            //the request is not fired internally device_os_id = 7 means internal call
+                            if (Number(request.form_id) === CAF_FORM_ID && Number(request.device_os_id) !== 7) {
+                                global.logger.write('debug', "\x1b[35m [Log] CAF EDIT \x1b[0m",{}, request);
+                                await fetchReferredFormActivityId(request, request.activity_id, newData.form_transaction_id, request.form_id).then((data)=>{
+                                    global.logger.write('debug', "\x1b[35m [Log] DATA \x1b[0m",{}, request);
+                                    global.logger.write('debug', data,{}, request);
+                                    
+                                    if (data.length > 0) {
+                                        newOrderFormActivityId = Number(data[0].activity_id);
+
+                                        let fire713OnNewOrderFileRequest = Object.assign({}, request);
+                                        fire713OnNewOrderFileRequest.activity_id = Number(newOrderFormActivityId);                                        
+                                        fire713OnNewOrderFileRequest.form_transaction_id = newData.form_transaction_id;
+                                        fire713OnNewOrderFileRequest.activity_timeline_collection = request.activity_timeline_collection;
+                                        fire713OnNewOrderFileRequest.activity_stream_type_id = 713;
+                                        fire713OnNewOrderFileRequest.form_id = CAF_FORM_ID;
+                                        fire713OnNewOrderFileRequest.asset_message_counter = 0;
+                                        fire713OnNewOrderFileRequest.message_unique_id = util.getMessageUniqueId(request.asset_id);
+                                        fire713OnNewOrderFileRequest.activity_timeline_text = '';
+                                        fire713OnNewOrderFileRequest.activity_timeline_url = '';
+                                        fire713OnNewOrderFileRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+                                        fire713OnNewOrderFileRequest.flag_timeline_entry = 1;
+                                        fire713OnNewOrderFileRequest.service_version = '1.0';
+                                        fire713OnNewOrderFileRequest.app_version = '2.8.16';
+                                        fire713OnNewOrderFileRequest.device_os_id = 7;
+                                        fire713OnNewOrderFileRequest.data_activity_id = request.activity_id;
+
+                                        let fire705OnNewOrderFileEvent = {
+                                            name: "addTimelineTransaction",
+                                            service: "activityTimelineService",
+                                            method: "addTimelineTransaction",                                            
+                                            payload: fire713OnNewOrderFileRequest
+                                        };
+
+                                      global.logger.write('debug', "\x1b[35m [Log]  Raising 713 entry onto New Order Form \x1b[0m",{}, request);
+                                      queueWrapper.raiseActivityEvent(fire705OnNewOrderFileEvent, request.activity_id, (err, resp) => {
+                                            if (err) {
+                                                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                                                global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                                            } else {
+                                                global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                                            }
+                                        });
+                                    } else {
+                                        global.logger.write('debug', "\x1b[35m [Log] Data from this call fetchReferredFormActivityId is empty \x1b[0m",{}, request);
+                                    }
+
+                                });
+                            }
+
+                    }).catch((err) => {
                         global.logger.write(err);
                     });
                 });
@@ -703,6 +831,7 @@ function FormConfigService(objCollection) {
                      });
             });  
     };
+
     
     this.getFormFieldComboValues = function(request){
         return new Promise((resolve, reject)=>{
@@ -729,8 +858,82 @@ function FormConfigService(objCollection) {
             }
             
         })
-    }
+    };
     
+    function fetchReferredFormActivityId(request, activityId, formTransactionId, formId) {
+        return new Promise((resolve, reject) => {            
+            // IN p_limit_value smallint(6)
+            let paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                activityId,
+                formId,
+                formTransactionId,
+                request.start_from || 0,
+                request.limit_value || 50
+            );
+            const queryString = util.getQueryString('ds_p1_activity_timeline_transaction_select_refered_activity', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                })
+            }
+        })
+    };
+
+    function fire713OnNewOrderFileForDedicatedFile(request) {
+        return new Promise((resolve, reject) => {
+
+            fetchReferredFormActivityId(request, request.activity_id, request.form_transaction_id, request.form_id).then((data) => {
+                global.logger.write('debug', "\x1b[35m [Log] DATA \x1b[0m", {}, request);
+                global.logger.write('debug', data, {}, request);
+                if (data.length > 0) {
+                    let newOrderFormActivityId = Number(data[0].activity_id);
+
+                    let fire713OnNewOrderFileRequest = Object.assign({}, request);
+                    fire713OnNewOrderFileRequest.activity_id = Number(newOrderFormActivityId);
+                    fire713OnNewOrderFileRequest.data_activity_id = Number(request.activity_id);
+                    fire713OnNewOrderFileRequest.form_transaction_id = Number(request.form_transaction_id);
+                    fire713OnNewOrderFileRequest.activity_timeline_collection = request.activity_timeline_collection;
+                    fire713OnNewOrderFileRequest.activity_stream_type_id = 713;
+                    fire713OnNewOrderFileRequest.form_id = Number(request.form_id);
+                    fire713OnNewOrderFileRequest.asset_message_counter = 0;
+                    fire713OnNewOrderFileRequest.message_unique_id = util.getMessageUniqueId(request.asset_id);
+                    fire713OnNewOrderFileRequest.activity_timeline_text = '';
+                    fire713OnNewOrderFileRequest.activity_timeline_url = '';
+                    fire713OnNewOrderFileRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+                    fire713OnNewOrderFileRequest.flag_timeline_entry = 1;
+                    fire713OnNewOrderFileRequest.service_version = '1.0';
+                    fire713OnNewOrderFileRequest.app_version = '2.8.16';
+                    fire713OnNewOrderFileRequest.device_os_id = 7;
+
+                    let fire713OnNewOrderFileEvent = {
+                        name: "addTimelineTransaction",
+                        service: "activityTimelineService",
+                        method: "addTimelineTransaction",
+                        payload: fire713OnNewOrderFileRequest
+                    };
+
+                    queueWrapper.raiseActivityEvent(fire713OnNewOrderFileEvent, request.activity_id, (err, resp) => {
+                        if (err) {
+
+                            global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                            global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+
+                            reject(err);
+
+                        } else {
+                            
+                            global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                            
+                            resolve();
+                        }
+                    });
+                }
+            });
+        });
+    }
+
 };
 
 module.exports = FormConfigService;

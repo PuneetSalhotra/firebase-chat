@@ -13,7 +13,7 @@ phases:
     commands:      
   build:
     commands:
-      - mode=staging pm2 start startStagProcesses.yml  
+      - pm2 start stagingProcesses.yml
   post_build:
     commands:
       - echo Build completed on `date`

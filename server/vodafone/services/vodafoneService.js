@@ -13,7 +13,6 @@ function VodafoneService(objectCollection) {
     const cacheWrapper = objectCollection.cacheWrapper;
     const makeRequest = require('request');
     const uuid = require('uuid');
-    const fs = require('fs');
     const moment = require('moment');
     const formFieldIdMapping = util.getVodafoneFormFieldIdMapping();
     const romsCafFieldsData = util.getVodafoneRomsCafFieldsData();
@@ -271,11 +270,11 @@ function VodafoneService(objectCollection) {
                                 // Fire a 325 request to the new order form too! - Modified to 705
                                 let activityTimelineCollectionFor325 = {
                                     "mail_body": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
-                                    "subject": "Submitted - Order Supplementary Form",
+                                    "subject": "Order Supplementary Form",
                                     "content": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
                                     "asset_reference": [],
                                     "activity_reference": [],
-                                    "form_approval_field_reference": [],                                    
+                                    "form_approval_field_reference": [],                                 
                                     "form_submitted": data,
                                     "attachments": []
                                 };
@@ -308,7 +307,7 @@ function VodafoneService(objectCollection) {
                 });
               });
         });
-    };
+    };  
     
     this.newOrderFormSubmission = function (request, callback) {
       
@@ -321,8 +320,7 @@ function VodafoneService(objectCollection) {
                     console.log("FRFormData: ", frFormData);
                     console.log("customerApprovalFormData.length: ", frFormData.length);
          
-                    if (frFormData.length > 0) {                                                
-                        isFrDone = true;
+                    if (frFormData.length > 0) {                        
                         
                         //check whether CRM form is submitted
                         activityCommonService.getActivityTimelineTransactionByFormId(request, request.activity_id, global.vodafoneConfig[request.organization_id].FORM_ID.CRM)
@@ -364,7 +362,7 @@ function VodafoneService(objectCollection) {
                                             formData.forEach(formEntry => {
                                                 switch (Number(formEntry.field_id)) {                   
 
-                                                    case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Person_Name:
+                                                    case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Company_Name:
                                                          customerData.first_name = formEntry.field_value;
                                                          break;                         
                                                     case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Company_Name:
@@ -375,10 +373,11 @@ function VodafoneService(objectCollection) {
                                                             customerData.contact_phone_country_code = String(formEntry.field_value).split('||')[0];
                                                             customerData.contact_phone_number = String(formEntry.field_value).split('||')[1];
                                                          } else {
-                                                             customerData.contact_phone_number = formEntry.field_value;
+                                                            customerData.contact_phone_country_code = 91;
+                                                            customerData.contact_phone_number = formEntry.field_value;
                                                          }                                                     
                                                          break;                         
-                                                    case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Email_Id:
+                                                    case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Email:
                                                          customerData.contact_email_id = formEntry.field_value;
                                                          break;                         
                                                     case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Designation:
@@ -387,7 +386,7 @@ function VodafoneService(objectCollection) {
                                                 }
                                             });  
 
-                                            console.log('customerData after processing : ', customerData);  
+                                            console.log('customerData after processing : ', customerData);
                                             
                                             if(Object.keys(customerData).length > 0) {
                                                 customerFormSubmission(request, customerData).then(()=>{
@@ -509,20 +508,20 @@ function VodafoneService(objectCollection) {
                                             /*activityCommonService.getActivityDetails(request, request.form_order_activity_id, (err, data)=>{
                                                 if(err === false) {
                                                     console.log('data[0].activity_inline_data : ', data[0].activity_inline_data);
-                                                    request.activity_inline_data = data[0].activity_inline_data;*/
+                                                    request.activity_inline_data = data[0].activity_inline_data;
                                                     
                                                     let response = {};
                                                     response.asset_id = operatingAssetId;
                                                     response.desk_asset_id = deskAssetId;                                                    
                                                     
                                                     //Fire Email to Customer
-                                                    /*vodafoneSendEmail(request, customerCollection).then(()=>{
+                                                    vodafoneSendEmail(request, customerCollection).then(()=>{
                                                         resolve(response);
                                                     }).catch((err)=>{
                                                         console.log('err : ' , err);
                                                         global.logger.write('debug', err, {}, request);
                                                         reject(err);
-                                                    });*/
+                                                    });
                                                     
                                                     /*var solutionsRepCollection = {};
                                                     solutionsRepCollection.firstName = solutionsRepName;
@@ -572,19 +571,19 @@ function VodafoneService(objectCollection) {
             
                                             /*activityCommonService.getActivityDetails(request, request.activity_id, (err, data)=>{
                                                 if(err === false) {
-                                                    request.activity_inline_data = data[0].activity_inline_data;*/
+                                                    request.activity_inline_data = data[0].activity_inline_data;
                                                     
                                                     let response = {};                                                    
                                                     response.desk_asset_id = deskAssetId;     
                                                     
                                                     //Fire Email to customer
-                                                    /*vodafoneSendEmail(request, customerCollection).then(()=>{
+                                                    vodafoneSendEmail(request, customerCollection).then(()=>{
                                                         resolve(response);
                                                     }).catch((err)=>{
                                                         console.log('vnk err : ' , err);
                                                         global.logger.write('debug', err, {}, request);
                                                         reject(err);
-                                                    });*/
+                                                    });
                                                     
                                                     /*var solutionsRepCollection = {};
                                                     solutionsRepCollection.firstName = solutionsRepName;
@@ -643,7 +642,7 @@ function VodafoneService(objectCollection) {
                                     
                                     /*activityCommonService.getActivityDetails(request, request.activity_id, (err, data)=>{
                                         if(err === false) {
-                                            request.activity_inline_data = data[0].activity_inline_data;*/
+                                            request.activity_inline_data = data[0].activity_inline_data;
                                              
                                             let response = {};
                                             response.asset_id = assetId;
@@ -651,13 +650,13 @@ function VodafoneService(objectCollection) {
                                             response.contact_card_activity_id = contactfileActId;
                                             
                                             //Fire Email to Customer
-                                            /*vodafoneSendEmail(request, customerCollection).then(()=>{
+                                            vodafoneSendEmail(request, customerCollection).then(()=>{
                                                 resolve(response);
                                             }).catch((err)=>{
                                                 console.log('err : ' , err);
                                                 global.logger.write('debug', err, {}, request);
                                                 reject(err);
-                                            });*/
+                                            });
                                             
                                             /*var solutionsRepCollection = {};
                                             solutionsRepCollection.firstName = solutionsRepName;
@@ -1110,9 +1109,9 @@ function VodafoneService(objectCollection) {
         let contactPhoneCountryCode = request.contact_phone_country_code;
         let contactPhoneNumber = request.contact_phone_number;
         let contactEmailId = request.contact_email_id;
-        let deskAssetId = request.desk_asset_id;
+        let deskAssetId = Number(request.desk_asset_id) || 0;
             
-        /*vodafoneSendEmail(request, {
+        vodafoneSendEmail(request, {
             firstName,
             contactPhoneCountryCode,
             contactPhoneNumber,
@@ -1124,16 +1123,17 @@ function VodafoneService(objectCollection) {
                 console.log('err : ' , err);
                 global.logger.write('debug', err, {}, request);
                 callback(true,{},-9998);
-            });*/
+            });
     };
     
     function vodafoneSendEmail (request, customerCollection) {
         return new Promise((resolve, reject)=>{
-            console.log("\x1b[35m [Log] Inside vodafoneSendEmail \x1b[0m")
-
+            console.log("\x1b[35m [Log] Inside vodafoneSendEmail \x1b[0m");
+            let date = util.getFormatedSlashDate();
+            
             let fieldHTML = '',
                 nameStr = unescape(customerCollection.firstName),
-                emailSubject = '',
+                emailSubject = 'Vodafone Idea Fixed Line Order Application Status',
                 callToction,
                 openingMessage = 'Please verify the below form details.';
 
@@ -1160,29 +1160,30 @@ function VodafoneService(objectCollection) {
 
             const baseUrlApprove = global.config.emailbaseUrlApprove + "/#/forms/entry/" + encodedString;
             const baseUrlUpload = global.config.emailbaseUrlUpload + "/#/forms/entry/" + encodedString;
+            const baseUrlOrderStatus = global.config.emailbaseUrlApprove + "/#/orderstatus/" + encodedString;
 
             switch(Number(customerCollection.activity_form_id)) {
-                case 856: emailSubject = 'Upload Documents for Order';
+                case 856: //emailSubject = 'Upload Documents for Order';
                           openingMessage = "Please verify the order details and upload the required documentation.";
                           callToction = "<a style='background: #ED212C; display: inline-block; color: #FFFFFF; border-top: 10px solid #ED212C; border-bottom: 10px solid #ED212C; border-left: 20px solid #ED212C; border-right: 20px solid #ED212C; text-decoration: none; font-size: 12px; margin-top: 1.0em; border-radius: 3px 3px 3px 3px; background-clip: padding-box;' target='_blank' class='blue-btn' href='" + baseUrlUpload + "'>UPLOAD DOCUMENTS</a>"
                           break;
-                case 844: emailSubject = "Approve Order Data";
+                case 844: //emailSubject = "Approve Order Data";
                           openingMessage = "Please verify the customer application form and approve by providing a digital signature.";
                           callToction = "<a style='background: #ED212C; display: inline-block; color: #FFFFFF; border-top: 10px solid #ED212C; border-bottom: 10px solid #ED212C; border-left: 20px solid #ED212C; border-right: 20px solid #ED212C; text-decoration: none; font-size: 12px; margin-top: 1.0em; border-radius: 3px 3px 3px 3px; background-clip: padding-box;' target='_blank' class='blue-btn' href='" + baseUrlApprove + "'>APPROVE</a>"
                           break;
                 case global.vodafoneConfig[request.organization_id].FORM_ID.HLD:
-                          emailSubject = "Upload HLD Documents for Order";
+                          //emailSubject = "Upload HLD Documents for Order";
                           openingMessage = "Please verify the order details and upload the required documentation.";
                           callToction = "<a style='background: #ED212C; display: inline-block; color: #FFFFFF; border-top: 10px solid #ED212C; border-bottom: 10px solid #ED212C; border-left: 20px solid #ED212C; border-right: 20px solid #ED212C; text-decoration: none; font-size: 12px; margin-top: 1.0em; border-radius: 3px 3px 3px 3px; background-clip: padding-box;' target='_blank' class='blue-btn' href='" + baseUrlUpload + "'>UPLOAD DOCUMENTS</a>"
                           break;                
                 case global.vodafoneConfig[request.organization_id].FORM_ID.NEW_CUSTOMER:
-                          emailSubject = 'Upload Documents for Order';
+                          //emailSubject = 'Upload Documents for Order';
                           openingMessage = "Please verify the order details and upload the required documentation.";
                           callToction = "<a style='background: #ED212C; display: inline-block; color: #FFFFFF; border-top: 10px solid #ED212C; border-bottom: 10px solid #ED212C; border-left: 20px solid #ED212C; border-right: 20px solid #ED212C; text-decoration: none; font-size: 12px; margin-top: 1.0em; border-radius: 3px 3px 3px 3px; background-clip: padding-box;' target='_blank' class='blue-btn' href='" + baseUrlUpload + "'>UPLOAD DOCUMENTS</a>"
                           break;
                 //Existing Customer
                 case global.vodafoneConfig[request.organization_id].FORM_ID.EXISTING_CUSTOMER:
-                          emailSubject = 'Upload Documents for Order';
+                          //emailSubject = 'Upload Documents for Order';
                           openingMessage = "Please verify the order details and upload the required documentation.";
                           callToction = "<a style='background: #ED212C; display: inline-block; color: #FFFFFF; border-top: 10px solid #ED212C; border-bottom: 10px solid #ED212C; border-left: 20px solid #ED212C; border-right: 20px solid #ED212C; text-decoration: none; font-size: 12px; margin-top: 1.0em; border-radius: 3px 3px 3px 3px; background-clip: padding-box;' target='_blank' class='blue-btn' href='" + baseUrlUpload + "'>UPLOAD DOCUMENTS</a>"
                           break;
@@ -1216,10 +1217,63 @@ function VodafoneService(objectCollection) {
                 console.log('In Catch Block : ', e);
             }       
 
-            console.log("\x1b[35m [vodafoneSendEmail] fieldHTML: \x1b[0m", fieldHTML)
+            //console.log("\x1b[35m [vodafoneSendEmail] fieldHTML: \x1b[0m", fieldHTML)
             const allFields = fieldHTML;
 
-            const templateDesign = "<table style='border-collapse: collapse !important;' width='100%' bgcolor='#ffffff' border='0' cellpadding='10' cellspacing='0'><tbody><tr> <td> <table bgcolor='#ffffff' style='width: 100%;max-width: 600px;' class='content' align='center' cellpadding='0' cellspacing='0' border='0'> <tbody><tr><td align='center' valign='top'><table style='border: 1px solid #e2e2e2; border-radius: 4px; background-clip: padding-box; border-spacing: 0;' border='0' cellpadding='0' cellspacing='0' width='100%' id='templateContainer'><tbody> <tr> <td align='left' style='float: right;padding: 20px;' valign='top'> <img style='width: 100px' src ='https://office.desker.co/Vodafone_logo.png'/> <img style='height: 44px;margin-left: 10px;' src ='https://office.desker.co/Idea_logo.png'/> </td> </tr> <tr><td valign='top' style=' color: #505050; font-family: Helvetica; font-size: 14px; line-height: 150%; padding-top: 3.143em; padding-right: 3.5em; padding-left: 3.5em; padding-bottom: 3.143em; text-align: left;' class='bodyContent' mc:edit='body_content'> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>Hey " + nameStr + ",</p> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>" + openingMessage + "</p> <p style=' color: #808080; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: bold; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 10px; margin-left: 0; text-align: left;'>Order Management Form</p> " + allFields + "<table style='width: 100%;margin-top: 5px'></table> " + callToction + " <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 40px; margin-right: 0; margin-bottom: 0px; margin-left: 0; text-align: left;'> Parmeshwar Reddy </p> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; text-align: left;'> Vice President </p> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; text-align: left;'> Customer Care </p></td></tr> <tr> <td style='height: 35px;background: #cbcbcb;'></td> </tr></tbody></table><!-- // END BODY --></td></tr> </tbody></table> </td> </tr></tbody></table>";
+            //const templateDesign = "<table style='border-collapse: collapse !important;' width='100%' bgcolor='#ffffff' border='0' cellpadding='10' cellspacing='0'><tbody><tr> <td> <table bgcolor='#ffffff' style='width: 100%;max-width: 600px;' class='content' align='center' cellpadding='0' cellspacing='0' border='0'> <tbody><tr><td align='center' valign='top'><table style='border: 1px solid #e2e2e2; border-radius: 4px; background-clip: padding-box; border-spacing: 0;' border='0' cellpadding='0' cellspacing='0' width='100%' id='templateContainer'><tbody> <tr> <td align='left' style='float: right;padding: 20px;' valign='top'> <img style='width: 100px' src ='https://office.desker.co/Vodafone_logo.png'/> <img style='height: 44px;margin-left: 10px;' src ='https://office.desker.co/Idea_logo.png'/> </td> </tr> <tr><td valign='top' style=' color: #505050; font-family: Helvetica; font-size: 14px; line-height: 150%; padding-top: 3.143em; padding-right: 3.5em; padding-left: 3.5em; padding-bottom: 3.143em; text-align: left;' class='bodyContent' mc:edit='body_content'> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>Hey " + nameStr + ",</p> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>" + openingMessage + "</p> <p style=' color: #808080; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: bold; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 10px; margin-left: 0; text-align: left;'>Order Management Form</p> " + allFields + "<table style='width: 100%;margin-top: 5px'></table> " + callToction + " <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 40px; margin-right: 0; margin-bottom: 0px; margin-left: 0; text-align: left;'> Parmeshwar Reddy </p> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; text-align: left;'> Vice President </p> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; text-align: left;'> Customer Care </p></td></tr> <tr> <td style='height: 35px;background: #cbcbcb;'></td> </tr></tbody></table><!-- // END BODY --></td></tr> </tbody></table> </td> </tr></tbody></table>";
+            
+            const Template = `
+ <table style='border-collapse: collapse !important;' width='100%' bgcolor='#ffffff' border='0' cellpadding='10' cellspacing='0'>
+    <tbody><tr> <td> 
+    <table bgcolor='#ffffff' style='width: 100%;max-width: 600px;' class='content' align='center' cellpadding='0' cellspacing='0' border='0'> 
+    <tbody><tr><td align='center' valign='top'><table style='border: 1px solid #e2e2e2; border-radius: 4px; background-clip: padding-box; border-spacing: 0;' border='0' cellpadding='0' cellspacing='0' width='100%' id='templateContainer'>
+    <tbody> <tr> <td align='left' style='float: right;' valign='top'> 
+    <img style='width: 600px' src ='https://staging.officedesk.app/header_banner.png'/> 
+    <table style='position: relative;top: -30px;left: 215px;font-size:12px;color: #fff;font-family: Helvetica;'>
+    <tbody><tr><td><strong>Order Management Team</strong></td></tr></tbody>
+    </table>
+    </td> 
+    </tr> 
+     <tr>
+    <td valign='top' style=' color: #505050; font-family: Helvetica; font-size: 14px; line-height: 150%; padding-top: 3.143em; padding-right: 3.5em; padding-left: 3.5em; padding-bottom: 1em; text-align: left;' class='bodyContent' mc:edit='body_content'> 
+     <p style='  display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>
+   Date: ${date}</p> 
+    <p style=' color: #f47920; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>
+    Dear <strong>${customerCollection.firstName},</strong></p> 
+   
+    <p style=' color: #545454; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>
+    Thank you for providing your details, your order is currently being processed and will be released for delivery shortly.</p> 
+    <p style=' color: #545454; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 30px; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>You can also track the progress of your order by clicking on the below tab</p> 
+   
+    <a style='background: #f47920;display: inline-block;color: #FFFFFF;text-decoration: none;font-size: 12px;margin-top: 1.0em;background-clip: padding-box;padding: 5px 15px;box-shadow: 4px 4px 6px 1px #cbcbcb;margin-left:10px' target='_blank' class='blue-btn' href='${baseUrlOrderStatus}'>Check Order Status</a> 
+    
+    <p style=' color: #545454; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 30px; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>
+    Once your order is logged you will receive a confirmation email with your order ID.</p> 
+    <p style=' color: #545454; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>
+    We thank you for your business with Vodafone Idea Limited.</p> 
+
+    <p style=' color: #545454; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 40px; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'> Regards, </p> 
+    <p style=' color: #f47920; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 0px; margin-left: 0; text-align: left;'>  </p> 
+    <p style=' color: #545454; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 20px; margin-right: 0; margin-bottom: 0; margin-left: 0; text-align: left;'> Central Order Management Team </p> 
+    <p style=' color: #545454; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; text-align: left;'> Vodafone Idea Limited </p> </td></tr> 
+    <tr>
+        <td style='padding-left: 3em;'>
+            <img style='width: 120px' src='https://staging.officedesk.app/Vodafone_Idea_logo.png'/>
+        </td>
+    </tr>
+    <tr>
+        <td style='color:#545454;padding-left: 50px;font-family: Helvetica;font-size: 10px;padding-bottom: 40px'>
+            <strong>Vodafone Idea Limited</strong> (formerly Idea Cellular Limited)<br/>
+            An Aditya Birla Group & Vodafone partnership
+        </td>
+    </tr>
+    <tr>
+        <td style='padding: 40px;color: #c8c8c8;'>
+            <p style='font-family: Helvetica;font-size: 9px;'>This E-Mail (including any attachments) may contain Confidential and/or legally privileged Information and is meant for the intended recipient(s) only. If you have received this e-mail in error and are not the intended recipient/s, kindly delete this e-mail immediately from your system. You are also hereby notified that any use, any form of reproduction, dissemination, copying, disclosure, modification, distribution and/or publication of this e-mail, its contents or its attachment/s other than by its intended recipient/s is strictly prohibited and may be construed unlawful. Internet Communications cannot be guaranteed to be secure or error-free as information could be delayed, intercepted, corrupted, lost, or may contain viruses. Vodafone Idea Limited does not accept any liability for any errors, omissions, viruses or computer shutdown (s) or any kind of disruption/denial of services if any experienced by any recipient as a result of this e-mail.</p>
+        </td>
+    </tr>
+
+  </tbody></table> </td> </tr></tbody></table>`;
 
             request.email_sender = 'vodafone_idea@grenerobotics.com';
             request.email_sender_name = 'vodafone_idea grenerobotics.com';            
@@ -1228,7 +1282,7 @@ function VodafoneService(objectCollection) {
                 customerCollection.contactEmailId,
                 emailSubject,
                 "IGNORE",
-                templateDesign,
+                Template,
                 (err, data) => {
                     if (err) {
                         console.log("[Send Email On Form Submission | Error]: ", data);
@@ -2037,12 +2091,14 @@ function VodafoneService(objectCollection) {
                     ROMS_CAF_FIELDS_DATA = romsCafFieldsData.LIVE;
                 }
 
+                // The 1st (0th) element in the array which populateRomsCafFieldValues() returns is 
+                // ROMS_CAF_FIELDS_DATA
                 const romsCafFieldsAndValues = populateRomsCafFieldValues(
                     Object.assign(ROMS_CAF_FIELDS_DATA),
                     calculatedValuesJSON,
                     formParticipantsData,
                     formActivityData
-                );
+                )[0];
 
                 // console.log("calculatedValuesJSON: ", calculatedValuesJSON);
                 // console.log("formParticipantsData: ", formParticipantsData);
@@ -2524,7 +2580,8 @@ function VodafoneService(objectCollection) {
         });
     }
 
-    function populateRomsCafFieldValues(ROMS_CAF_FIELDS_DATA, calculatedValuesJSON, formParticipantsData, formActivityData) {
+    function populateRomsCafFieldValues(ROMS_CAF_FIELDS_DATA, calculatedValuesJSON, formParticipantsData = [], formActivityData = []) {
+        let updatedFields = [];
         ROMS_CAF_FIELDS_DATA.forEach((formEntry, index) => {
             switch (formEntry.field_id) {
                 case 5568: // LIVE | CAF ID
@@ -2535,66 +2592,82 @@ function VodafoneService(objectCollection) {
                     break;
                 case 5726: // LIVE | Service Rental-Grand Total(A+B+C) 
                 case 5994: // BETA | Service Rental-Grand Total(A+B+C)
+                    accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.serviceRentalGrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.serviceRentalGrandTotal;
                     break;
                 case 5729: // LIVE | IP Address Charges-Grand Total(A+B+C)
                 case 5997: // BETA | IP Address Charges-Grand Total(A+B+C)
+                    accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.ipAddressChargesGrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.ipAddressChargesGrandTotal;
                     break;
                 case 5732: // LIVE | SLA Charges-Grand Total(A+B+C)
                 case 6000: // BETA | SLA Charges-Grand Total(A+B+C)
+                    accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.slaChargesGrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.slaChargesGrandTotal;
                     break;
                 case 5735: // LIVE | Self Care Portal Service Charges-Grand Total(A+B+C)
                 case 6003: // BETA | Self Care Portal Service Charges-Grand Total(A+B+C)
+                    accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.selfCarePortalServiceChargesGrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.selfCarePortalServiceChargesGrandTotal;
                     break;
                 case 5738: // LIVE | Managed Services Charges-Grand Total(A+B+C)
                 case 6006: // BETA | Managed Services Charges-Grand Total(A+B+C)
+                    accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.managedServicesChargesGrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.managedServicesChargesGrandTotal;
                     break;
                 case 5741: // LIVE | Managed CPE Charges-Grand Total(A+B+C)
                 case 6009: // BETA | Managed CPE Charges-Grand Total(A+B+C)
+                    accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.managedCPEChargesGrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.managedCPEChargesGrandTotal;
                     break;
                 case 5745: // LIVE | CPE Rentals-Grand Total(A+B+C)
                 case 6013: // BETA | CPE Rentals-Grand Total(A+B+C)
+                    accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.cpeRentalsGrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.cpeRentalsGrandTotal;
                     break;
                 case 5749: // LIVE | CPE 1-Grand Total(A+B+C)
                 case 6017: // BETA | CPE 1-Grand Total(A+B+C)
+                    accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.cpe1GrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.cpe1GrandTotal;
                     break;
                 case 5753: // LIVE | CPE 2-Grand Total(A+B+C)
                 case 6021: // BETA | CPE 2-Grand Total(A+B+C)
+                    accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.cpe2GrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.cpe2GrandTotal;
                     break;
                 case 5757: // LIVE | CPE 3-Grand Total(A+B+C)
                 case 6025: // BETA | CPE 3-Grand Total(A+B+C)
+                    accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.cpe3GrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.cpe3GrandTotal;
                     break;
                 case 5761: // LIVE | CPE 4-Grand Total(A+B+C)
                 case 6029: // BETA | CPE 4-Grand Total(A+B+C)
+                    accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.cpe4GrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.cpe4GrandTotal;
                     break;
                 case 5765: // LIVE | CPE 5-Grand Total(A+B+C)
                 case 6033: // BETA | CPE 5-Grand Total(A+B+C)
+                    accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.cpe5GrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.cpe5GrandTotal;
                     break;
                 case 5769: // LIVE | Miscellaneous Charges-1-Grand Total(A+B+C)
                 case 6037: // BETA | Miscellaneous Charges-1-Grand Total(A+B+C)
+                    accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.miscellaneousCharges1GrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.miscellaneousCharges1GrandTotal;
                     break;
                 case 5773: // LIVE | Miscellaneous Charges2-Grand Total(A+B+C)
                 case 6041: // BETA | Miscellaneous Charges2-Grand Total(A+B+C)
+                    accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.miscellaneousCharges2GrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.miscellaneousCharges2GrandTotal;
                     break;
                 case 5775: // LIVE | Registration Charges-Grand Total(A+B+C)
                 case 6043: // BETA | Registration Charges-Grand Total(A+B+C)
+                    accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.registrationChargesGrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.registrationChargesGrandTotal;
                     break;
                 case 5828: // LIVE | Total Amount Payable-Grand Total(A+B+C)
                 case 6096: // BETA | Total Amount Payable-Grand Total(A+B+C)
+                    accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.totalAmountPayableGrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.totalAmountPayableGrandTotal;
                     break;
                     // case 5780: // LIVE | Total Order Value
@@ -2603,14 +2676,16 @@ function VodafoneService(objectCollection) {
                     //     break;
                 case 5705: // LIVE | Account Manager Name
                 case 5973: // BETA | Account Manager Name
-                    formParticipantsData.forEach(participant => {
-                        switch (participant.asset_type_id) {
-                            case 126035: // LIVE | Account Managers - Mumbai Circle
-                            case 126305: // BETA | Account Managers - Mumbai Circle
-                                ROMS_CAF_FIELDS_DATA[index].field_value = `${participant.operating_asset_first_name} ${participant.operating_asset_last_name}`;
-                                break;
-                        }
-                    });
+                    if (formParticipantsData.length > 0) {
+                        formParticipantsData.forEach(participant => {
+                            switch (participant.asset_type_id) {
+                                case 126035: // LIVE | Account Managers - Mumbai Circle
+                                case 126305: // BETA | Account Managers - Mumbai Circle
+                                    ROMS_CAF_FIELDS_DATA[index].field_value = `${participant.operating_asset_first_name} ${participant.operating_asset_last_name}`;
+                                    break;
+                            }
+                        });   
+                    }
                     break;
                 case 5706: // LIVE | Account Manager Circle Office
                 case 5974: // BETA | Account Manager Circle Office
@@ -2618,14 +2693,27 @@ function VodafoneService(objectCollection) {
                     break;
                 case 5703: // LIVE | Date
                 case 5971: // BETA | Date
-                    ROMS_CAF_FIELDS_DATA[index].field_value = formActivityData[0].activity_datetime_created;
+                    if (formActivityData.length > 0) {
+                        ROMS_CAF_FIELDS_DATA[index].field_value = formActivityData[0].activity_datetime_created;
+                    }
                     break;
             }
         });
 
         // console.log(ROMS_CAF_FIELDS_DATA);
+        function accumulateUpdatedFields(romsField, newValue) {
+            if (Number(romsField.field_value) !== Number(newValue)) {
+                let tempFieldJson = Object.assign({}, romsField);
+                tempFieldJson.old_field_value = romsField.field_value;
+                tempFieldJson.field_value = Number(newValue);
+                updatedFields.push(tempFieldJson)
+            }
+        }
 
-        return ROMS_CAF_FIELDS_DATA;
+        return [
+            ROMS_CAF_FIELDS_DATA,
+            updatedFields
+        ];
     }
 
     function calculateAllSums(cafFormData) {
@@ -2924,6 +3012,10 @@ function VodafoneService(objectCollection) {
             // 
             sourceFormData.forEach(formEntry => {
                 if (Object.keys(HLD_TO_CAF_FIELD_ID_MAP).includes(String(formEntry.field_id))) {
+                    // Check for drop-downs
+                    if (Number(formEntry.field_data_type_id) === 33) {
+                        formEntry.field_value = formEntry.data_type_combo_value;
+                    }
                     // Push entries from the Supplementary Order Form, which have a defined CAF mapping
                     cafFormData.push({
                         "form_id": CAF_FORM_ID,
@@ -3369,7 +3461,7 @@ function VodafoneService(objectCollection) {
                 formId,
                 '1970-01-01 00:00:00',
                 0,
-                50
+                500
             );
             queryString = util.getQueryString('ds_v1_workforce_form_field_mapping_select', paramsArr);
             if (queryString != '') {
@@ -3396,6 +3488,7 @@ function VodafoneService(objectCollection) {
     
     var formatFormsListing = function (data, callback) {
         var responseData = new Array();
+        let prevFieldId = 0;
         data.forEach(function (rowData, index) {
 
             var rowDataArr = {
@@ -3404,14 +3497,385 @@ function VodafoneService(objectCollection) {
                 "field_id": util.replaceDefaultNumber(rowData['field_id']),
                 "field_description": util.replaceDefaultString(util.decodeSpecialChars(rowData['field_description'])),
                 "field_name": util.replaceDefaultString(util.decodeSpecialChars(rowData['field_name'])),
-                "data_type_id": util.replaceDefaultNumber(rowData['data_type_id']),
-                "data_type_category_id": util.replaceDefaultNumber(rowData['data_type_category_id']),
-                "data_type_category_name": util.replaceDefaultString(rowData['data_type_category_name'])
+                "field_data_type_id": util.replaceDefaultNumber(rowData['data_type_id']),
+                "field_data_type_category_id": util.replaceDefaultNumber(rowData['data_type_category_id']),
+                "data_type_category_name": util.replaceDefaultString(rowData['data_type_category_name']),
+                "data_type_combo_id": util.replaceDefaultNumber(rowData['data_type_combo_id']),
+                "data_type_combo_value": util.replaceDefaultString(rowData['data_type_combo_value'])
             };
-            responseData.push(rowDataArr);
+            
+            if (Number(prevFieldId) !== Number(rowData['field_id'])) {
+                responseData.push(rowDataArr);
+            }
+            // Keep track of the previous field_id, to avoid duplicates
+            prevFieldId = Number(rowData['field_id']);
+
         }, this);
         callback(false, responseData);
     };
+
+    this.regenerateAndSubmitCAF = async function (request, callback) {
+
+        // Store the incoming form's field_id which is being edited
+        const incomingFormFieldId = Number(request.field_id);
+        // Without the following line, the getActivityTimelineTransactionByFormId method,
+        // is dependant on the 'field_id', and will fail the proceeding logic
+        delete request["field_id"];
+
+        const CAF_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CAF,
+            NEW_ORDER_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER,
+            SUPPLEMENTARY_ORDER_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY,
+            CRM_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CRM,
+            FR_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.FR,
+            HLD_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.HLD,
+            CUSTOMER_APPROVAL_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_APPROVAL;
+
+        let NEW_ORDER_TO_CAF_FIELD_ID_MAP,
+            SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP,
+            FR_TO_CAF_FIELD_ID_MAP,
+            CRM_TO_CAF_FIELD_ID_MAP,
+            HLD_TO_CAF_FIELD_ID_MAP,
+            CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
+
+        if (Number(request.organization_id) === 860) {
+            // BETA
+            NEW_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.NEW_ORDER_TO_CAF_FIELD_ID_MAP;
+            SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP;
+            FR_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.FR_TO_CAF_FIELD_ID_MAP;
+            CRM_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.CRM_TO_CAF_FIELD_ID_MAP;
+            HLD_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.HLD_TO_CAF_FIELD_ID_MAP;
+            CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
+
+        } else if (Number(request.organization_id) === 858) {
+            // LIVE
+            NEW_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.NEW_ORDER_TO_CAF_FIELD_ID_MAP;
+            SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP;
+            FR_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.FR_TO_CAF_FIELD_ID_MAP;
+            CRM_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.CRM_TO_CAF_FIELD_ID_MAP;
+            HLD_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.HLD_TO_CAF_FIELD_ID_MAP;
+            CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
+        }
+
+        let incomingFormToCafFormMapping = {};
+        incomingFormToCafFormMapping[NEW_ORDER_FORM_ID] = NEW_ORDER_TO_CAF_FIELD_ID_MAP;
+        incomingFormToCafFormMapping[SUPPLEMENTARY_ORDER_FORM_ID] = SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP;
+        incomingFormToCafFormMapping[FR_FORM_ID] = FR_TO_CAF_FIELD_ID_MAP;
+        incomingFormToCafFormMapping[CRM_FORM_ID] = CRM_TO_CAF_FIELD_ID_MAP;
+        incomingFormToCafFormMapping[HLD_FORM_ID] = HLD_TO_CAF_FIELD_ID_MAP;
+        incomingFormToCafFormMapping[CUSTOMER_APPROVAL_FORM_ID] = CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
+
+
+        let newOrderFormActivityId = 0,
+            newOrderFormTransactionId = 0,
+            cafFormActivityId = 0,
+            cafFormTransactionId = 0,
+            cafFormTargetFieldId = 0,
+            cafActivityInlineData = {},
+            cafActivityTimelineCollectionData = {},
+            cafFormData = [],
+            updatedRomsFields = [],
+            newActivityInlineData = [];
+
+        await fetchReferredFormActivityId(request, request.activity_id, request.form_transaction_id, request.form_id)
+            .then((data) => {
+                if (data.length > 0) {
+                    newOrderFormActivityId = Number(data[0].activity_id);
+
+                    // Fetch form_transaction_id of the new order form
+                    return activityCommonService
+                        .getActivityTimelineTransactionByFormId(request, newOrderFormActivityId, NEW_ORDER_FORM_ID)
+
+                } else {
+                    throw new Error("newOrderReferenceNotFound");
+                }
+            })
+            .then((newOrderFormData) => {
+                if (newOrderFormData.length > 0) {
+                    newOrderFormTransactionId = Number(newOrderFormData[0].data_form_transaction_id);
+
+                    // Fetch CAF form transaction details
+                    let newRequest = Object.assign({}, request);
+                    delete newRequest["field_id"];
+
+                    return activityCommonService
+                        .getActivityTimelineTransactionByFormId713(newRequest, newOrderFormActivityId, CAF_FORM_ID)
+
+                } else {
+                    throw new Error("newOrderFormTransactionNotFound");
+                }
+            })
+            .then((cafFormData) => {
+                if (cafFormData.length > 0) {
+                    cafFormTransactionId = cafFormData[0].data_form_transaction_id;
+                    cafActivityTimelineCollectionData = JSON.parse(cafFormData[0].data_entity_inline);
+
+                    // Fetch CAF form (dedicated) details
+                    return getActivityIdBasedOnTransactionId(request, cafFormTransactionId)
+
+                } else {
+                    throw new Error("cafFormTransactionDataNotFound");
+                }
+            })
+            .then((cafFormTransactionData) => {
+                if (cafFormTransactionData.length > 0) {
+                    cafFormActivityId = cafFormTransactionData[0].activity_id;
+                    cafActivityInlineData = JSON.parse(cafFormTransactionData[0].activity_inline_data);
+
+                    // Check if mapping exists for the field_id of the form
+                    // being edited with a field_id in CAF
+                    console.log("Object.keys(incomingFormToCafFormMapping[request.form_id]): ", Object.keys(incomingFormToCafFormMapping[request.form_id]))
+                    if (Object.keys(incomingFormToCafFormMapping[request.form_id]).includes(String(incomingFormFieldId))) {
+                        return Promise.resolve(true);
+                    } else {
+                        return Promise.resolve(false);
+                    }
+
+                } else {
+                    throw new Error("cafFormDataNotFound");
+                }
+            })
+            .then((mappingExists) => {
+
+                if (mappingExists) {
+                    console.log("mappingExists: ", mappingExists)
+                    
+                    cafFormTargetFieldId = incomingFormToCafFormMapping[request.form_id][incomingFormFieldId];
+
+                    newActivityInlineData = JSON.parse(request.activity_inline_data);
+                    newActivityInlineData[0].form_name = "Digital CAF";
+                    newActivityInlineData[0].field_id = cafFormTargetFieldId;
+                    newActivityInlineData[0].form_transaction_id = cafFormTransactionId;
+                    
+                    // Fire the 'alterFormActivity' service | '/form/activity/alter' for CAF file
+                    let cafFieldUpdateRequest = Object.assign({}, request);
+                    let cafFieldUpdateEvent = {
+                        name: "alterFormActivity",
+                        service: "formConfigService",
+                        method: "alterFormActivity",
+                        payload: cafFieldUpdateRequest
+                    };
+                    cafFieldUpdateRequest.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
+                    cafFieldUpdateRequest.activity_id = cafFormActivityId;
+                    cafFieldUpdateRequest.form_id = CAF_FORM_ID;
+                    cafFieldUpdateRequest.form_transaction_id = cafFormTransactionId;
+                    cafFieldUpdateRequest.field_id = cafFormTargetFieldId;
+                    cafFieldUpdateRequest.activity_inline_data = JSON.stringify(newActivityInlineData);
+                    cafFieldUpdateRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+                    cafFieldUpdateRequest.device_os_id = 7;
+
+                    queueWrapper.raiseActivityEvent(cafFieldUpdateEvent, cafFieldUpdateRequest.activity_id, (err, resp) => {
+                        if (err) {
+                            global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                            global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                        } else {
+                            global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                            global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                        }
+                    });
+
+                    return Promise.resolve(true);
+                    
+                } else {
+                    throw new Error("noCafMappingExistsForIncomingFormFieldId");
+                }
+            })
+            .then((alterFormActivitySuccess) => {
+                if (alterFormActivitySuccess) {
+                    console.log("[Success] alterFormActivity: ", alterFormActivitySuccess)
+
+                    if (Array.isArray(cafActivityTimelineCollectionData.form_submitted) === true || typeof cafActivityTimelineCollectionData.form_submitted === 'object') {
+                        cafFormData = cafActivityTimelineCollectionData.form_submitted;
+                    } else {
+                        cafFormData = JSON.parse(cafActivityTimelineCollectionData.form_submitted);
+                    }
+                    console.log();
+
+                    // Update the CAF Data
+                    let oldCafFieldValue, newCafFieldValue;
+                    cafFormData.forEach((formEntry, index) => {
+                        if (Number(formEntry.field_id) === Number(cafFormTargetFieldId)) {
+                            oldCafFieldValue = cafFormData[index].field_value;
+                            newCafFieldValue = JSON.parse(request.activity_inline_data)[0].field_value;
+                            cafFormData[index].field_value = JSON.parse(request.activity_inline_data)[0].field_value;
+                        }
+                    });
+
+                    // Sum all relevant fields and store them
+                    const calculatedValuesJSON = calculateAllSums(cafFormData);
+                    console.log("[regenerateAndSubmitCAF] calculatedValuesJSON: ", calculatedValuesJSON);
+                    
+                    // Get the updated the CAF form Json and the specific derived ROMS field which was updated 
+                    [cafFormData, updatedRomsFields] = populateRomsCafFieldValues(cafFormData, calculatedValuesJSON);
+
+                    console.log("[regenerateAndSubmitCAF] cafFormData: ", cafFormData[155]);
+                    console.log("[regenerateAndSubmitCAF] updatedRomsFields: ", updatedRomsFields);
+
+                    // Update the form data in the timeline collection 
+                    cafActivityTimelineCollectionData.form_submitted = cafFormData;
+                    cafActivityTimelineCollectionData.subject = "Field Updated for Digital CAF";
+                    cafActivityTimelineCollectionData.content = `In the Digital CAF, the field ${newActivityInlineData[0].field_name} was updated from ${oldCafFieldValue} to ${newCafFieldValue}`;
+                    
+                    console.log("[regenerateAndSubmitCAF] oldCafFieldValue  : ", oldCafFieldValue);
+                    if (String(oldCafFieldValue).trim().length === 0) {
+                        cafActivityTimelineCollectionData.content = `In the Digital CAF, the field ${newActivityInlineData[0].field_name} was updated to ${newCafFieldValue}`;
+                    }
+
+                    // console.log("[regenerateAndSubmitCAF] cafActivityTimelineCollectionData.form_submitted: ", cafActivityTimelineCollectionData.form_submitted[155]);
+
+                    // [NEW ORDER FORM] Insert 713 record with the updated JSON data in activity_timeline_transaction 
+                    // and asset_timeline_transaction
+                    let fire705OnNewOrderFileRequest = Object.assign({}, request);
+                    fire705OnNewOrderFileRequest.activity_id = Number(newOrderFormActivityId);
+                    // The 'form_transaction_id' parameter is intentionally being set to an incorrect value
+                    fire705OnNewOrderFileRequest.data_activity_id = Number(cafFormActivityId);
+                    fire705OnNewOrderFileRequest.form_transaction_id = Number(cafFormTransactionId);
+                    fire705OnNewOrderFileRequest.activity_timeline_collection = JSON.stringify(cafActivityTimelineCollectionData);
+                    // Append the incremental form data as well
+                    // fire705OnNewOrderFileRequest.incremental_form_data = incrementalCafFormData;
+                    fire705OnNewOrderFileRequest.activity_stream_type_id = 713;
+                    fire705OnNewOrderFileRequest.form_id = Number(CAF_FORM_ID);
+                    fire705OnNewOrderFileRequest.asset_message_counter = 0;
+                    fire705OnNewOrderFileRequest.message_unique_id = util.getMessageUniqueId(request.asset_id);
+                    fire705OnNewOrderFileRequest.activity_timeline_text = '';
+                    fire705OnNewOrderFileRequest.activity_timeline_url = '';
+                    fire705OnNewOrderFileRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+                    fire705OnNewOrderFileRequest.flag_timeline_entry = 1;
+                    fire705OnNewOrderFileRequest.service_version = '1.0';
+                    fire705OnNewOrderFileRequest.app_version = '2.8.16';
+                    fire705OnNewOrderFileRequest.device_os_id = 7;
+
+                    // console.log("Number(CAF_FORM_ID): ", Number(CAF_FORM_ID))
+                    // console.log("[regenerateAndSubmitCAF] fire705OnNewOrderFileRequest: ", fire705OnNewOrderFileRequest);
+
+                    let fire705OnNewOrderFileEvent = {
+                        name: "addTimelineTransaction",
+                        service: "activityTimelineService",
+                        method: "addTimelineTransaction",
+                        location: "regenerateAndSubmitCAF",
+                        payload: fire705OnNewOrderFileRequest
+                    };
+
+                    queueWrapper.raiseActivityEvent(fire705OnNewOrderFileEvent, request.activity_id, (err, resp) => {
+                        if (err) {
+                            global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                            global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                        } else {
+                            global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                            global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                        }
+                    });
+
+
+                    // [CAF FORM] Insert 705 record with the updated JSON data in activity_timeline_transaction 
+                    // let fire705OnCafFileRequest = Object.assign({}, fire705OnNewOrderFileRequest);
+                    // fire705OnCafFileRequest.activity_id = Number(cafFormActivityId);
+                    // fire705OnCafFileRequest.form_transaction_id = Number(cafFormTransactionId);
+                    // fire705OnCafFileRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+                    // fire705OnCafFileRequest.device_os_id = 8;
+
+                    // let fire705OnCafFileEvent = {
+                    //     name: "addTimelineTransaction",
+                    //     service: "activityTimelineService",
+                    //     method: "addTimelineTransaction",
+                    //     location: "regenerateAndSubmitCAF",
+                    //     payload: fire705OnCafFileRequest
+                    // };
+
+                    // queueWrapper.raiseActivityEvent(fire705OnCafFileEvent, request.activity_id, (err, resp) => {
+                    //     if (err) {
+                    //         global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                    //         global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                    //     } else {
+                    //         global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                    //         global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                    //     }
+                    // });
+
+                    // Fire the 'alterFormActivity' service | '/form/activity/alter' for the derived ROMS fields in the 
+                    // CAF file
+                    console.log("[regenerateAndSubmitCAF] updatedRomsFields: ", updatedRomsFields)
+                    if (updatedRomsFields.length > 0) {
+                        setTimeout(() => {
+                            updatedRomsFields[0].form_name = "Digital CAF";
+                            let cafFieldUpdateRequest = Object.assign({}, request);
+                            let cafFieldUpdateEvent = {
+                                name: "alterFormActivity",
+                                service: "formConfigService",
+                                method: "alterFormActivity",
+                                location: "derivedRomsFieldUpdate",
+                                payload: cafFieldUpdateRequest
+                            };
+                            cafFieldUpdateRequest.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
+                            cafFieldUpdateRequest.activity_id = cafFormActivityId;
+                            cafFieldUpdateRequest.form_id = CAF_FORM_ID;
+                            cafFieldUpdateRequest.form_transaction_id = cafFormTransactionId;
+                            cafFieldUpdateRequest.field_id = Number(updatedRomsFields[0].field_id);
+                            cafFieldUpdateRequest.activity_inline_data = JSON.stringify(updatedRomsFields);
+                            cafFieldUpdateRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+                            cafFieldUpdateRequest.device_os_id = 7;
+
+                            console.log("[regenerateAndSubmitCAF] cafFieldUpdateRequest: ", cafFieldUpdateRequest)
+
+                            queueWrapper.raiseActivityEvent(cafFieldUpdateEvent, cafFormActivityId, (err, resp) => {
+                                if (err) {
+                                    global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                                    global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                                } else {
+                                    global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                                    global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                                }
+                            });
+                        }, 2000)
+                    }
+
+                } else {
+                    console.log("[Failure] alterFormActivity: ", alterFormActivitySuccess)
+                }
+
+            })
+            .catch((error) => {
+                console.log("[regenerateAndSubmitCAF] Promise Chain Error: ", error)
+                callback(true, false);
+                return;
+            });
+
+        callback(false, {
+            newOrderFormActivityId,
+            newOrderFormTransactionId,
+            cafFormActivityId,
+            cafFormTransactionId,
+            cafFormData
+        });
+        return;
+    }
+
+    // [Vodafone] This is written to fetch the activity_id of the new order form 
+    // given that the activity_id and form_transaction_id of a particular form
+    // (such as, FR, CRM, HLD, etc.) is known.
+    // 
+    function fetchReferredFormActivityId(request, activityId, formTransactionId, formId) {
+        return new Promise((resolve, reject) => {
+            // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
+            // IN p_activity_id BIGINT(20), IN p_form_id BIGINT(20), 
+            // IN p_form_transaction_id BIGINT(20), IN p_start_from SMALLINT(6), 
+            // IN p_limit_value smallint(6)
+            let paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                activityId,
+                formId,
+                formTransactionId,
+                request.start_from || 0,
+                request.limit_value || 50
+            );
+            const queryString = util.getQueryString('ds_p1_activity_timeline_transaction_select_refered_activity', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                })
+            }
+        })
+    }
     
 };
 
