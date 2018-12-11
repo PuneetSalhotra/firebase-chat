@@ -132,8 +132,8 @@ let Consumer = function () {
            JSON.stringify(dbResponse),
            responseCode || '',                             //Log Response Code
            JSON.stringify(messageJson.message) || '{}',    //Log Message
-           request.log_request_datetime  || '',
-           request.log_response_datetime  || '',
+           request.datetime_log  || '',
+           request.log_response_datetime  || util.getCurrentUTCTime(),
            request.log_stack_trace_data  || '{}',
            request.datetime_log || util.getCurrentUTCTime(),
            request.activity_id || 0,

@@ -240,6 +240,17 @@ function FormConfigController(objCollection) {
 
     });
     
+    app.post('/' + global.config.version + '/form/field/combo/list', function (req, res) {
+
+    	formConfigService.getFormFieldComboValues(req.body).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        	});
+    });
+    
 };
 
 module.exports = FormConfigController;
