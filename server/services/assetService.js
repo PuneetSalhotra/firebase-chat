@@ -3285,7 +3285,6 @@ function AssetService(objectCollection) {
             });
         }
     };
-
     
     this.checkPamAssetPasscode = function (request, callback) {
     	
@@ -3335,6 +3334,7 @@ function AssetService(objectCollection) {
 		}
 
     };
+
     
     this.getPamMemberPhoneNumberAsset = function (request, callback) {
 
@@ -3356,6 +3356,8 @@ function AssetService(objectCollection) {
         	queryString = util.getQueryString('ds_v1_asset_list_passcode_check_member', paramsArr);
         	
         }else{
+        	console.log('phoneNumber: '+phoneNumber);
+        	console.log('countryCode: '+countryCode);
 	        var paramsArr = new Array(
 		                organizationId,
 		                phoneNumber,
@@ -3386,7 +3388,7 @@ function AssetService(objectCollection) {
                                     });                                  
                                 });
                             
-                            sendCallOrSms(verificationMethod, selectData[0].asset_phone_country_code, selectData[0].asset_phone_number, verificationCode, request);
+                                sendCallOrSms(verificationMethod, selectData[0].asset_phone_country_code, selectData[0].asset_phone_number, verificationCode, request);
                             callback(err, true, 200);
                         }else{
                         	callback(err, false, -9997);
