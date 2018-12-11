@@ -228,11 +228,12 @@ function ActivityTimelineService(objectCollection) {
             // [VODAFONE] Alter the status of the form file to Approval Pending. Also modify the 
             // last status alter time and current status for all the queue activity mappings.
             const OMT_APPROVAL_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.OMT_APPROVAL;
+            const CUSTOMER_APPROVAL_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_APPROVAL;
 
             if (
                 activityStreamTypeId === 705 &&
                 (
-                    Number(request.form_id) === OMT_APPROVAL_FORM_ID
+                    Number(request.form_id) === CUSTOMER_APPROVAL_FORM_ID
                 )
             ) {
                 console.log('CALLING setStatusApprovalPendingAndFireEmail');
