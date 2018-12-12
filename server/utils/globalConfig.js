@@ -250,9 +250,9 @@ if (mode === 'staging') {
     config.CONSUMER_KEY_ENCODING = "utf8";
     ///////////////////////////////
     
-    config.emailbaseUrlApprove = "https://stagingmydesk.desker.co"; 
-    config.emailbaseUrlUpload = "https://stagingmydesk.desker.co";    
-    
+    config.emailbaseUrlApprove = "https://staging.officedesk.app"; 
+    config.emailbaseUrlUpload = "https://staging.officedesk.app";
+    //config.emailbaseUrlUpload = "https://stagingmydesk.desker.co";
 }
 
 if (mode === 'preprod') {

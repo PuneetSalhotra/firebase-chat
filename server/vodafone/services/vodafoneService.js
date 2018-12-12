@@ -1110,20 +1110,30 @@ function VodafoneService(objectCollection) {
         let contactPhoneNumber = request.contact_phone_number;
         let contactEmailId = request.contact_email_id;
         let deskAssetId = Number(request.desk_asset_id) || 0;
-            
-        vodafoneSendEmail(request, {
-            firstName,
-            contactPhoneCountryCode,
-            contactPhoneNumber,
-            contactEmailId,
-            customerServiceDeskAssetID: deskAssetId
-            }).then(()=>{
-                callback(false,{},200);
-            }).catch((err)=>{
-                console.log('err : ' , err);
-                global.logger.write('debug', err, {}, request);
-                callback(true,{},-9998);
-            });
+        
+        
+        fetchReferredFormActivityId(request, request.activity_id, request.form_transaction_id, request.form_id).then((data)=>{               
+               global.logger.write('debug', data,{}, request);
+                                    
+               if (data.length > 0) {
+                    request.new_order_activity_id = Number(data[0].activity_id);
+               }
+               
+               vodafoneSendEmail(request, {
+                    firstName,
+                    contactPhoneCountryCode,
+                    contactPhoneNumber,
+                    contactEmailId,
+                    customerServiceDeskAssetID: deskAssetId
+                    }).then(()=>{
+                        callback(false,{},200);
+                    }).catch((err)=>{
+                        console.log('err : ' , err);
+                        global.logger.write('debug', err, {}, request);
+                        callback(true,{},-9998);
+                    });
+        });            
+        
     };
     
     function vodafoneSendEmail (request, customerCollection) {
@@ -1144,7 +1154,7 @@ function VodafoneService(objectCollection) {
                 asset_id: Number(customerCollection.customerServiceDeskAssetID),
                 asset_token_auth: global.vodafoneConfig[request.organization_id].BOT.ENC_TOKEN,
                 auth_asset_id: global.vodafoneConfig[request.organization_id].BOT.ASSET_ID,
-                activity_id: request.activity_id || 0,
+                activity_id: request.new_order_activity_id || 0,
                 activity_type_category_id: 9,
                 activity_type_id: global.vodafoneConfig[request.organization_id].ACTIVITY_TYPE_IDS[request.workforce_id],
                 activity_stream_type_id : 705,                
