@@ -3028,36 +3028,35 @@ function ActivityService(objectCollection) {
         global.logger.write('debug', '********IN HITTING WIDGET *********************************************: ', {}, request);
         if (request.activity_type_category_id == 9) { //form and submitted state                    
         	activityCommonService.getActivityCollection(request).then((activityData)=> { // get activity form_id and form_transaction id
-        		console.log('activityData:', activityData[0]);
-                        
-                        var widgetEngineQueueMessage = {
-                           form_id: activityData[0].form_id,
-                           form_transaction_id: activityData[0].form_transaction_id,
-                           organization_id: request.organization_id,
-                           account_id: request.account_id,
-                           workforce_id: request.workforce_id,
-                           asset_id: request.asset_id,
-                           activity_id: request.activity_id,
-                           activity_type_category_id: request.activity_type_category_id,
-                           activity_stream_type_id: request.activity_stream_type_id,
-                           track_gps_location: request.track_gps_location,
-                           track_gps_datetime: util.replaceDefaultDatetime(activityData[0].activity_datetime_created),
-                           track_gps_accuracy: request.track_gps_accuracy,
-                           track_gps_status: request.track_gps_status,
-                           device_os_id: request.device_os_id,
-                           service_version: request.service_version,
-                           app_version: request.app_version,
-                           api_version: request.api_version,
-                           widget_type_category_id:2
-                       };
-                       var event = {
-                           name: "File Based Widget Engine",
-                           payload: widgetEngineQueueMessage
-                       };
-                       global.logger.write('debug', 'Hitting Widget Engine with request:', {}, request);
-                       global.logger.write('debug', event, {}, request);
-
-                       queueWrapper.raiseFormWidgetEvent(event, request.activity_id);
+        		console.log('activityData:'+activityData[0]);
+                 var widgetEngineQueueMessage = {
+                    form_id: activityData[0].form_id,
+                    form_transaction_id: activityData[0].form_transaction_id,
+                    organization_id: request.organization_id,
+                    account_id: request.account_id,
+                    workforce_id: request.workforce_id,
+                    asset_id: request.asset_id,
+                    activity_id: request.activity_id,
+                    req_activity_status_id:request.activity_status_id,
+                    activity_type_category_id: request.activity_type_category_id,
+                    activity_stream_type_id: request.activity_stream_type_id,
+                    track_gps_location: request.track_gps_location,
+                    track_gps_datetime: util.replaceDefaultDatetime(activityData[0].activity_datetime_created),
+                    track_gps_accuracy: request.track_gps_accuracy,
+                    track_gps_status: request.track_gps_status,
+                    device_os_id: request.device_os_id,
+                    service_version: request.service_version,
+                    app_version: request.app_version,
+                    api_version: request.api_version,
+                    widget_type_category_id:2
+                };
+                var event = {
+                    name: "File Based Widget Engine",
+                    payload: widgetEngineQueueMessage
+                };
+                global.logger.write('debug', 'Hitting Widget Engine with request:' + event, {}, request);
+                
+                queueWrapper.raiseFormWidgetEvent(event, request.activity_id);
             });
         }
     }
