@@ -155,6 +155,7 @@ function ActivityService(objectCollection) {
                                 switch(Number(request.activity_form_id)) {
                                     case global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER:
                                          activityTitle = "New Order";
+
                                          break;
                                     case global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY:
                                          activityTitle = "Order Supplementary";
@@ -207,6 +208,7 @@ function ActivityService(objectCollection) {
                                     "attachments": []
                                 };
 
+                                newRequest.data_activity_id = Number(request.activity_id);
                                 newRequest.activity_timeline_collection = JSON.stringify(activityTimelineCollectionFor705);                            
                                 newRequest.activity_stream_type_id = 705;
                                 newRequest.flag_timeline_entry = 1;

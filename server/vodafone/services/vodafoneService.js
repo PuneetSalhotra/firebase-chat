@@ -3578,8 +3578,15 @@ function VodafoneService(objectCollection) {
 
         await fetchReferredFormActivityId(request, request.activity_id, request.form_transaction_id, request.form_id)
             .then((data) => {
-                if (data.length > 0) {
-                    newOrderFormActivityId = Number(data[0].activity_id);
+                if (data.length > 0 || Number(request.form_id) === Number(NEW_ORDER_FORM_ID)) {
+
+                    if (Number(request.form_id) === Number(NEW_ORDER_FORM_ID)) {
+                        newOrderFormActivityId = Number(request.activity_id);
+                        
+                    } else {
+                        newOrderFormActivityId = Number(data[0].activity_id);
+                        
+                    }
 
                     // Fetch form_transaction_id of the new order form
                     return activityCommonService
@@ -3732,6 +3739,7 @@ function VodafoneService(objectCollection) {
                     fire705OnNewOrderFileRequest.activity_timeline_collection = JSON.stringify(cafActivityTimelineCollectionData);
                     // Append the incremental form data as well
                     // fire705OnNewOrderFileRequest.incremental_form_data = incrementalCafFormData;
+                    fire705OnNewOrderFileRequest.activity_type_category_id = 9;
                     fire705OnNewOrderFileRequest.activity_stream_type_id = 713;
                     fire705OnNewOrderFileRequest.form_id = Number(CAF_FORM_ID);
                     fire705OnNewOrderFileRequest.asset_message_counter = 0;
@@ -3751,7 +3759,7 @@ function VodafoneService(objectCollection) {
                         name: "addTimelineTransaction",
                         service: "activityTimelineService",
                         method: "addTimelineTransaction",
-                        location: "regenerateAndSubmitCAF",
+                        location: "123123123123123123123",
                         payload: fire705OnNewOrderFileRequest
                     };
 
