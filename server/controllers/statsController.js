@@ -45,7 +45,7 @@ function statsController(objCollection) {
     });
 
     // [VODAFONE] Get breakdown for count of orders on the basis of status of the order
-    /*app.post('/' + global.config.version + '/stats/form/orders/count', function (req, res) {
+    app.post('/' + global.config.version + '/stats/form/orders/count', function (req, res) {
         statsService.activityListSelectFormCountActivityStatus(req.body, function (err, data, statusCode) {
             if (!err) {
                 console.log("data: ", data);
@@ -891,7 +891,7 @@ function statsController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })
-    });*/
+    });
 }
 
 module.exports = statsController;
