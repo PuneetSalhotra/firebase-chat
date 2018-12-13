@@ -5,9 +5,9 @@ version: 0.0
 os: linux
 files:
   - source: .
-    destination: /staging_desker_api  
+    destination: /production_desker_api/2018-12-13-01
 permissions:
-  - object: /staging_desker_api/deployment
+  - object: /production_desker_api/2018-12-13-01/deployment
     owner: root
     mode: 777
     type:
@@ -18,6 +18,6 @@ hooks:
       timeout: 300
       runas: root
   ApplicationStart:
-    - location: deployment/start_services_staging.sh    
+    - location: deployment/start_services_preprod_prod.sh
       timeout: 300    
       runas: root  
