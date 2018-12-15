@@ -557,7 +557,7 @@ function FormConfigService(objCollection) {
                                 payload: rebuildCafRequest
                             };
 
-                            console.log("[regenerateAndSubmitCAF] Calling regenerateAndSubmitCAF");
+                            // console.log("[regenerateAndSubmitCAF] Calling regenerateAndSubmitCAF");
                             
                             queueWrapper.raiseActivityEvent(rebuildCafEvent, request.activity_id, (err, resp) => {
                                 if (err) {
@@ -911,6 +911,7 @@ function FormConfigService(objCollection) {
                         name: "addTimelineTransaction",
                         service: "activityTimelineService",
                         method: "addTimelineTransaction",
+                        "location": "7777777777777777",
                         payload: fire713OnNewOrderFileRequest
                     };
 
