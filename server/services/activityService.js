@@ -148,51 +148,55 @@ function ActivityService(objectCollection) {
                     global.logger.write('debug', 'streamtype id is: ' + activityStreamTypeId, {}, request);
                     assetActivityListInsertAddActivity(request, function (err, status) {
                         if (err === false) {
-                            let activityTitle;
+                            let activityTitle = "Form Submitted";
                             
                             if(activityTypeCategroyId === 9) {
                                 
-                                switch(Number(request.activity_form_id)) {
-                                    case global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER:
-                                         activityTitle = "New Order";
+                                if(Number(request.organization_id) === 860 || Number(request.organization_id) === 858) {
+                                    
+                                    switch(Number(request.activity_form_id)) {
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER:
+                                             activityTitle = "New Order";
 
-                                         break;
-                                    case global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY:
-                                         activityTitle = "Order Supplementary";
-                                         break;
-                                    case global.vodafoneConfig[request.organization_id].FORM_ID.FR:                                        
-                                         activityTitle = "Feasibility Report";
-                                         break;
-                                    case global.vodafoneConfig[request.organization_id].FORM_ID.CRM:
-                                         activityTitle = "Customer Details";
-                                         break;
-                                    case global.vodafoneConfig[request.organization_id].FORM_ID.HLD:
-                                         activityTitle = "HLD Form";
-                                         break;
-                                    case global.vodafoneConfig[request.organization_id].FORM_ID.BC_HLD:
-                                         activityTitle = "BC_HLD Form";
-                                         break;
-                                    case global.vodafoneConfig[request.organization_id].FORM_ID.NEW_CUSTOMER:
-                                         activityTitle = "New Customer Form";
-                                         break;
-                                    case global.vodafoneConfig[request.organization_id].FORM_ID.EXISTING_CUSTOMER:
-                                         activityTitle = "Existing Customer Form";
-                                         break;                            
-                                    case global.vodafoneConfig[request.organization_id].FORM_ID.OMT_APPROVAL:
-                                         activityTitle = "OMT Approval Form";
-                                         break;
-                                    case global.vodafoneConfig[request.organization_id].FORM_ID.ACCOUNT_MANAGER_APPROVAL:
-                                         activityTitle = "Account Manager Approval Form";
-                                         break;
-                                    case global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_APPROVAL:
-                                         activityTitle = "Customer Approval Form";
-                                         break;      
-                                    case global.vodafoneConfig[request.organization_id].FORM_ID.CAF:
-                                         activityTitle = "CAF Form";
-                                         break;
-                                    default: activityTitle = "Form Submitted";
-                                }
-                                            
+                                             break;
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY:
+                                             activityTitle = "Order Supplementary";
+                                             break;
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.FR:                                        
+                                             activityTitle = "Feasibility Report";
+                                             break;
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.CRM:
+                                             activityTitle = "Customer Details";
+                                             break;
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.HLD:
+                                             activityTitle = "HLD Form";
+                                             break;
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.BC_HLD:
+                                             activityTitle = "BC_HLD Form";
+                                             break;
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.NEW_CUSTOMER:
+                                             activityTitle = "New Customer Form";
+                                             break;
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.EXISTING_CUSTOMER:
+                                             activityTitle = "Existing Customer Form";
+                                             break;                            
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.OMT_APPROVAL:
+                                             activityTitle = "OMT Approval Form";
+                                             break;
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.ACCOUNT_MANAGER_APPROVAL:
+                                             activityTitle = "Account Manager Approval Form";
+                                             break;
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_APPROVAL:
+                                             activityTitle = "Customer Approval Form";
+                                             break;      
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.CAF:
+                                             activityTitle = "CAF Form";
+                                             break;
+                                        default: activityTitle = "Form Submitted";
+                                    }
+                                    
+                                }                         
+                                           
                                 let newRequest = Object.assign({}, request);
 
                                 // Fire a 705 request for this activity
