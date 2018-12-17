@@ -536,14 +536,17 @@ function FormConfigService(objCollection) {
                             FR_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.FR,
                             CRM_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CRM,
                             HLD_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.HLD,
-                            CAF_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CAF;
+                            CAF_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CAF,
+                            CUSTOMER_APPROVAL_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_APPROVAL;
 
                         if (
                             Number(request.form_id) === NEW_ORDER_FORM_ID || // New Order
                             Number(request.form_id) === ORDER_SUPPLEMENTARY_FORM_ID || // Order Supplementary
                             Number(request.form_id) === FR_FORM_ID || // FR
                             Number(request.form_id) === CRM_FORM_ID || // CRM
-                            Number(request.form_id) === HLD_FORM_ID // HLD
+                            Number(request.form_id) === HLD_FORM_ID || // HLD
+                            Number(request.form_id) === CUSTOMER_APPROVAL_FORM_ID // Customer Sign & Seal
+
                         ) {
                             let rebuildCafRequest = Object.assign({}, request);
                             rebuildCafRequest.activity_inline_data = JSON.stringify(activityInlineData);
@@ -557,7 +560,7 @@ function FormConfigService(objCollection) {
                                 payload: rebuildCafRequest
                             };
 
-                            console.log("[regenerateAndSubmitCAF] Calling regenerateAndSubmitCAF");
+                            // console.log("[regenerateAndSubmitCAF] Calling regenerateAndSubmitCAF");
                             
                             queueWrapper.raiseActivityEvent(rebuildCafEvent, request.activity_id, (err, resp) => {
                                 if (err) {
@@ -911,6 +914,7 @@ function FormConfigService(objCollection) {
                         name: "addTimelineTransaction",
                         service: "activityTimelineService",
                         method: "addTimelineTransaction",
+                        "location": "7777777777777777",
                         payload: fire713OnNewOrderFileRequest
                     };
 
