@@ -232,8 +232,8 @@ if (mode === 'staging') {
     config.PRODUCER_PARTITONER_TYPE = 3;
 
     config.TOPIC_ID = 2;
-    config.TOPIC_NAME = 'staging-desker-activities';
-    config.CONSUMER_GROUP_ID = 'staging-desker-activities-consumer-group';
+    config.TOPIC_NAME = 'staging-desker-activities_v1'; //v1 is only one partition
+    config.CONSUMER_GROUP_ID = 'staging-desker-activities-consumer-v1';
     config.WIDGET_TOPIC_NAME = 'staging-desker-form-widgets';    
     config.WIDGET_CONSUMER_GROUP_ID = 'staging-desker-activities-widget-cg';
     
