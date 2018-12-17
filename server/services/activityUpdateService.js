@@ -672,6 +672,7 @@ function ActivityUpdateService(objectCollection) {
                             case 9: //Form edit
                                 // activityStreamTypeId = 710;
                                 activityStreamTypeId = 713;
+                                request.data_activity_id = Number(request.activity_id);
                                 break;
                             case 15: //Video Conference
                                 activityStreamTypeId = 1607;

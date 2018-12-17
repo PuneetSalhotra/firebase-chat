@@ -33,10 +33,13 @@ function ActivityTimelineService(objectCollection) {
                     //act id in request is different from retrieved one
                     // Adding 705 entires onto a diff file not a dedicated file
                     //Should not do Form Transaction Insertion as it is not a dedicated file
+                    global.logger.write('debug', "\x1b[35m [Log] request.activity_id \x1b[0m" + Number(request.activity_id) ,{}, request);
+                    global.logger.write('debug', "\x1b[35m [Log] data[0].activity_id \x1b[0m" + Number(data[0].activity_id) ,{}, request);
                     if(Number(request.activity_id) !== Number(data[0].activity_id)) { 
                         global.logger.write('debug', "\x1b[35m [Log] Activity_ID from request is different from retrived Activity_id hence proceeding \x1b[0m",{}, request);
                         global.logger.write('debug', "\x1b[35m [Log] Non Dedicated File \x1b[0m",{}, request);
                         request.data_activity_id = Number(data[0].activity_id); //Dedicated file activity id
+                        request.non_dedicated_file = 1;
                         retrievingFormIdandProcess(request, data).then(()=>{});                   
                     } else {
                         global.logger.write('debug', "\x1b[35m [Log] Activity_ID from request is same as retrived Activity_id hence checking for device os id 7 \x1b[0m",{}, request);
@@ -44,7 +47,13 @@ function ActivityTimelineService(objectCollection) {
                         
                         //705 for Dedicated file
                         if(Number(request.device_os_id) === 7) {
-                            retrievingFormIdandProcess(request, data).then(()=>{});
+                            //retrievingFormIdandProcess(request, data).then(()=>{});
+                            
+                            if(Number(request.organization_id) === 860 || Number(request.organization_id) === 858) { 
+                                retrievingFormIdandProcess(request, data).then(()=>{});
+                            } else {
+                                timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request)});
+                            }
                             
                             //Form Transaction Insertion should happen only for dedicated files
                             addFormEntries(request, function (err, approvalFieldsArr) {});
@@ -59,13 +68,20 @@ function ActivityTimelineService(objectCollection) {
                     }
                 } else {
                     if(Number(request.device_os_id) === 7) { //7 means calling internal from services
-                        retrievingFormIdandProcess(request, data).then(()=>{});
+                        //retrievingFormIdandProcess(request, data).then(()=>{});
+                        
+                        if(Number(request.organization_id) === 860 || Number(request.organization_id) === 858) { 
+                            retrievingFormIdandProcess(request, data).then(()=>{});
+                        } else {
+                            timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request)});
+                        }
                         
                         //Form Transaction Insertion should happen only for dedicated files
                         addFormEntries(request, function (err, approvalFieldsArr) {});
                     }
                     
                     if(Number(request.device_os_id) === 8  || Number(request.device_os_id) === 5) {
+                        request.non_dedicated_file = 1;
                         retrievingFormIdandProcess(request, data).then(()=>{});                
                     }
                 }
@@ -129,7 +145,8 @@ function ActivityTimelineService(objectCollection) {
             }
             
             //BOT to send email on CRM form submission
-            if (Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.CRM) && Number(request.device_os_id) === 7) {
+            //if (Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.CRM) && Number(request.device_os_id) === 7) {
+            if (Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.CRM) && Number(request.non_dedicated_file) === 1) {
                 global.logger.write('debug', "\x1b[35m [Log] Triggering BOT to send email on CRM form submission \x1b[0m", {}, request);
                 
                 let newRequest = Object.assign({}, request);
@@ -172,8 +189,9 @@ function ActivityTimelineService(objectCollection) {
             
             // [VODAFONE] Listen for Account Manager Approval or Customer (Service Desk) Approval Form
             // [VODAFONE] The above no longer applies. New trigger on CRM Acknowledgement Form submission.
+            
             const CRM_ACKNOWLEDGEMENT_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CRM_ACKNOWLEDGEMENT;
-
+            
             if (activityStreamTypeId === 705 && (Number(request.form_id) === Number(CRM_ACKNOWLEDGEMENT_FORM_ID))) {
                 console.log('CALLING approvalFormsSubmissionCheck')
                 const approvalCheckRequestEvent = {

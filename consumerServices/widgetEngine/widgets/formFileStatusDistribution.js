@@ -37,8 +37,7 @@ class FormFileStatusDistributionWidget extends WidgetBase {
                 	statuses.activity_status_name = row.widget_axis_x_value_varchar;*/
                 	array.push(row.widget_axis_x_index);
                 	next();
-            	});
-            });
+            	}).then(()=>{
     	
             this.services.activityListService.getStatusCounts(activityQueryData).then((result)=>{
             	var myArr = [];
@@ -47,13 +46,13 @@ class FormFileStatusDistributionWidget extends WidgetBase {
             		next2();
             	}).then(()=>{
             		var diffArray = [];
-            		forEachAsync(array, (n, x)=>{ 
-	    				console.log("EXISTS :: "+JSON.stringify(array2).indexOf(x));
-	    				if(JSON.stringify(array2).indexOf(x) == -1){
+            		forEachAsync(array, (n, x)=>{ 	    				
+	    				global.logger.write('debug', 'Distribution: WidgetId : '+this.rule.widget_id+" : "+x+" includes"+array2.includes(x), {}, data);
+	    				if(array2.includes(x) == false){
 	    					diffArray.push(x);
 	    					var obj = {};
 	    					obj.status_count = 0;
-	    					obj.activity_status_id = x
+	    					obj.activity_status_id = x;
 	    					obj.activity_status_name = '';
 	    					result.push(obj);
 	    					n();
@@ -62,8 +61,9 @@ class FormFileStatusDistributionWidget extends WidgetBase {
 	    				}
 	    				
 	    			}).then(()=>{
+	    				global.logger.write('debug', 'Distribution: WidgetId : '+this.rule.widget_id+" StatusJsonData: "+JSON.stringify(result), {}, data);
 			    			forEachAsync(result, (next, rowData)=>{  
-				    		console.log(result);
+				    		console.log(rowData)
 				    		const count = rowData ? rowData.status_count: undefined;
 				    		let widgetData = {
 				                    date: formSubmissionDate.valueInRuleTimeZone,
@@ -76,7 +76,8 @@ class FormFileStatusDistributionWidget extends WidgetBase {
 				                };
 				    			//array2.push(rowData.activity_status_id);
 				    			
-				                console.log("CALCULATED FORM COUNT "+count);
+				    			console.log("Distribution: WidgetId: "+this.rule.widget_id+" : StatusId: "+rowData.activity_status_id+" : StatusName: "+rowData.activity_status_name+" : "+count);
+				                
 				                widgetData = _.merge(widgetData, data);  
 				                
 				                var msg = {};
@@ -92,14 +93,13 @@ class FormFileStatusDistributionWidget extends WidgetBase {
 				                	next();
 				                }
 			    		}).then(()=>{
-			    			console.log("ACTIVITY: AFTER THE EXCECUTION SEARCHING FOR REMAINING :::"+JSON.stringify(array2));
-			    			console.log("WIDGET: AFTER THE EXCECUTION SEARCHING FOR REMAINING :::"+JSON.stringify(array));
-
+			    			
+			    			 global.logger.write('debug', 'Distribution: WidgetId : '+this.rule.widget_id+' Done', {}, data);
 			    		});
 	    			})
             	});
-            	
-	    		
+            })
+            })
     		});    	
     	}
     
@@ -109,7 +109,7 @@ class FormFileStatusDistributionWidget extends WidgetBase {
             .then((result) => {
                 const widgetTransId = result[0] ? result[0].idWidgetTransaction : undefined;
                 widgetData.widget_transaction_id = widgetTransId;
-                console.log("NEW COUNT: "+widgetData.count+"; "+"EXISTING COUNT: "+result[0].valueInteger)
+                console.log("***formFileStatusDistribution*** NEW COUNT: "+widgetData.count+"; "+"EXISTING COUNT: "+result[0].valueInteger+": widgetTransId :"+widgetTransId);
                 if(widgetData.count != result[0].valueInteger){
                     if(widgetTransId > 0) {
                         //Pubnub PUSH

@@ -3,13 +3,13 @@
  */
 var PubNub = require('pubnub');
 
-pubnub = new PubNub({
+var pubnub = new PubNub({
                publishKey : 'pub-c-2df152ea-248e-493d-8271-a21463a0c1b4',
                subscribeKey : 'sub-c-d5a2bff8-2c13-11e3-9343-02ee2ddab7fe'
             });
             
 function PubnubPush() {
-        //console.log("In Publish Function");
+        
         var publishConfig;
         
         this.push = function(channelId, message) {
@@ -17,17 +17,39 @@ function PubnubPush() {
             publishConfig = {
                 channel : channelId,
                 message : message
-            }
+            };
             
-             pubnub.publish(publishConfig, function(status, response) {
-                //console.log('STATUS : ' , status);
-                //console.log('');
-                //console.log('RESPONSE : ' , response);
-                
+             pubnub.publish(publishConfig, function(status, response) {               
                 global.logger.write('debug', status, {}, {});                
                 global.logger.write('debug', response, {}, {});
             });
-        }      
+        };
+        
+        this.publish = function(channelId, message) {
+            
+            let publishConf = {
+                channel : channelId,
+                message : message
+            };
+            
+             pubnub.publish(publishConf, function(status, response) {               
+                global.logger.write('debug', status, {}, {});
+                global.logger.write('debug', response, {}, {});
+            });
+        };
+         
+        this.subscribe = function(channelId) {
+            return new Promise((resolve, reject)=>{
+                pubnub.subscribe({ channels: [channelId] });
+                pubnub.addListener({
+                    message: function (message) {                                
+                                global.logger.write('debug', message, {}, {});
+                                resolve(message.message);
+                             }
+                });
+            });                        
+        };  
+        
 };
 
 module.exports = PubnubPush;
