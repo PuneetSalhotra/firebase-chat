@@ -374,12 +374,15 @@ if (mode === 'prod') {
 
     config.TOPIC_ID = 12;
     config.TOPIC_NAME = 'prod-desker-activities-v1'; //Only one partition
-    config.WIDGET_TOPIC_NAME = 'prod-desker-form-widgets';
     config.CONSUMER_GROUP_ID = 'prod-desker-activities-consumer-group-v1';
+    
+    //WIDGETS
+    config.WIDGET_TOPIC_NAME = 'prod-desker-form-widgets';
+    config.WIDGET_CONSUMER_GROUP_ID = 'prod-desker-widgets-cg';
     
     //LOGS
     config.LOGS_TOPIC_NAME = 'prod-desker-logs';
-    config.WIDGET_CONSUMER_GROUP_ID = 'prod-desker-logs-cg';
+    config.LOG_CONSUMER_GROUP_ID = 'prod-desker-logs-cg';
     
     config.CONSUMER_AUTO_COMMIT = true;
     config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;

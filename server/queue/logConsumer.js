@@ -34,7 +34,7 @@ let Consumer = function () {
                 partition: parseInt(process.env.partition)
                 // partition: parseInt(0)
             }], {
-                groupId: global.config.WIDGET_CONSUMER_GROUP_ID,
+                groupId: global.config.LOG_CONSUMER_GROUP_ID,
                 autoCommit: global.config.CONSUMER_AUTO_COMMIT,
                 autoCommitIntervalMs: global.config.CONSUMER_AUTO_COMMIT_INTERVAL,
                 fetchMaxWaitMs: global.config.CONSUMER_FETCH_MAX_WAIT,
