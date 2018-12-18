@@ -5,7 +5,7 @@ then
   pm2 reload preProdProcesses.yml
 elif [ "$DEPLOYMENT_GROUP_NAME" == "prodCodeDeploy-Group" ] 
 then
-  cd /production_desker_api/2018-12-13-01/
+  cd /production_desker_api/2018-12-18-01/
   pm2 start prodProcesses.yml
   #sleep 2
   #cd /production_portal_api/portal/

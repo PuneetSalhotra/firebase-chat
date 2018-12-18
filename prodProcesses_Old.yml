@@ -12,7 +12,42 @@ apps:
     out_file: '/dev/null'
     instances: 1
     exec_mode: fork
-  
+    
+  - name : "ConsumerOne"
+    env: {mode: prod, partition: 1}
+    script   : ./consumer.js    
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "ConsumerTwo"
+    env: {mode: prod, partition: 2}
+    script   : ./consumer.js    
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "ConsumerThree"
+    env: {mode: prod, partition: 3}
+    script   : ./consumer.js
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "ConsumerFour"
+    env: {mode: prod, partition: 4}
+    script   : ./consumer.js    
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "ConsumerFive"
+    env: {mode: prod, partition: 5}
+    script   : ./consumer.js
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
   - name : "Log_ConsumerZero"
     env: {mode: prod, partition: 0}
     script   : ./logConsumer.js
