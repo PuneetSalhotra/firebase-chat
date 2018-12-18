@@ -257,18 +257,28 @@ function VodafoneController(objCollection) {
     });
 
     // BOT 5
-    app.post('/' + global.config.version + '/vodafone/hld_form/timeline/entry/add', function (req, res) {
+    // app.post('/' + global.config.version + '/vodafone/hld_form/timeline/entry/add', function (req, res) {
 
-        vodafoneService.buildAndSubmitCafForm(req.body, (error, data) => {
-            if (error) {
-                return res.send(responseWrapper.getResponse(error, {
-                    error
-                }, -5999999, req.body));
-            }
-            return res.send(responseWrapper.getResponse(error, {data}, 200, req.body));
+        // vodafoneService.buildAndSubmitCafForm(req.body, (error, data) => {
+        //     if (error) {
+        //         return res.send(responseWrapper.getResponse(error, {
+        //             error
+        //         }, -5999999, req.body));
+        //     }
+        //     return res.send(responseWrapper.getResponse(error, {data}, 200, req.body));
 
-        })
-    });
+        // })
+
+    //     vodafoneService.customerManagementApprovalWorkflow(req.body, (error, data) => {
+    //         if (error) {
+    //             return res.send(responseWrapper.getResponse(error, {
+    //                 error
+    //             }, -5999999, req.body));
+    //         }
+    //         return res.send(responseWrapper.getResponse(error, {data}, 200, req.body));
+
+    //     })
+    // });
 
     // // BOT Test
     // app.post('/' + global.config.version + '/vodafone/bot/test_2', function (req, res) {
@@ -285,7 +295,7 @@ function VodafoneController(objCollection) {
     //             res.send(responseWrapper.getResponse(err, data, -999, req.body));
     //         });
     // });
-    // // BOT Test
+    // BOT Test
     // app.post('/' + global.config.version + '/vodafone/bot/test_3', function (req, res) {
 
     //     vodafoneService.regenerateAndSubmitCAF(req.body, (error, data) => {

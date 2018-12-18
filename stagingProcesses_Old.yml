@@ -12,7 +12,49 @@ apps:
     out_file: '/dev/null'
     instances: 1
     exec_mode: fork
-      
+    
+  - name : "Staging_ConsumerOne"
+    env: {mode: staging, partition:1}
+    script   : ./consumer.js    
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "Staging_ConsumerTwo"
+    env: {mode: staging, partition:2}
+    script   : ./consumer.js    
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "Staging_ConsumerThree"
+    env: {mode: staging, partition:3}
+    script   : ./consumer.js    
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "Staging_ConsumerFour"
+    env: {mode: staging, partition:4}
+    script   : ./consumer.js    
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "Staging_ConsumerFive"
+    env: {mode: staging, partition:5}
+    script   : ./consumer.js    
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  #- name : "Staging_SQSConsumer"
+  #  env: {mode: staging}
+  #  script   : ./server/queue/sqsConsumer.js    
+  #  out_file: '/dev/null'
+  #  instances: 1
+  #  exec_mode: fork
+    
   - name : "Staging_LogConsumerZero"
     env: {mode: staging, partition:0}
     script   : ./logConsumer.js

@@ -17,6 +17,7 @@ var AwsSns = require('../utils/snsWrapper');
 var forEachAsync = require('forEachAsync').forEachAsync;
 var ActivityCommonService = require("../services/activityCommonService");
 var ActivityPushService = require("../services/activityPushService");
+const pubnubWrapper = new(require('../utils/pubnubWrapper'))();
 
 var Consumer = function () {
 
@@ -101,7 +102,17 @@ var Consumer = function () {
                 if (err === false) {
                     global.logger.write('conLog', 'Consuming the message', {}, request);
                     activityCommonService.partitionOffsetInsert(request, (err, data) => {});
-                    consumingMsg(message, kafkaMsgId, objCollection).then(() => {});
+                    
+                    consumingMsg(message, kafkaMsgId, objCollection).then(() => {                        
+                        /*if(Number(request.pubnub_push) === 1) {
+                            pubnubWrapper.publish(kafkaMsgId, {"status": 200});
+                        }*/                       
+                    }).catch((err)=>{
+                        /*if(Number(request.pubnub_push) === 1) {
+                            pubnubWrapper.publish(kafkaMsgId, {"status": err});
+                        }*/
+                    });
+                    
                 } else {
                     global.logger.write('conLog', 'Before calling this duplicateMsgUniqueIdInsert', {}, request);
                     activityCommonService.duplicateMsgUniqueIdInsert(request, (err, data) => {});
