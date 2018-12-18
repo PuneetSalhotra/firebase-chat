@@ -231,7 +231,7 @@ if (mode === 'staging') {
     config.PRODUCER_ACKS_TIMEOUT = 100;
     config.PRODUCER_PARTITONER_TYPE = 3;
 
-    config.TOPIC_ID = 2;
+    config.TOPIC_ID = 10;
     config.TOPIC_NAME = 'staging-desker-activities_v1'; //v1 is only one partition
     config.CONSUMER_GROUP_ID = 'staging-desker-activities-consumer-v1';
     config.WIDGET_TOPIC_NAME = 'staging-desker-form-widgets';    
@@ -309,10 +309,10 @@ if (mode === 'preprod') {
     config.PRODUCER_ACKS_TIMEOUT = 100;
     config.PRODUCER_PARTITONER_TYPE = 3;
 
-    config.TOPIC_ID = 3;
-    config.TOPIC_NAME = 'preprod-desker-activities';
+    config.TOPIC_ID = 11;
+    config.TOPIC_NAME = 'preprod-desker-activities-v1'; //Only one partition
     config.WIDGET_TOPIC_NAME = 'preprod-desker-form-widgets';
-    config.CONSUMER_GROUP_ID = 'preprod-desker-activities-consumer-group';
+    config.CONSUMER_GROUP_ID = 'preprod-desker-activities-consumer-group-v1';
     config.CONSUMER_AUTO_COMMIT = true;
     config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
     config.CONSUMER_FETCH_MAX_WAIT = 10;
@@ -372,10 +372,10 @@ if (mode === 'prod') {
     config.PRODUCER_ACKS_TIMEOUT = 100;
     config.PRODUCER_PARTITONER_TYPE = 3;
 
-    config.TOPIC_ID = 3;
-    config.TOPIC_NAME = 'prod-desker-activities';
+    config.TOPIC_ID = 12;
+    config.TOPIC_NAME = 'prod-desker-activities-v1'; //Only one partition
     config.WIDGET_TOPIC_NAME = 'prod-desker-form-widgets';
-    config.CONSUMER_GROUP_ID = 'prod-desker-activities-consumer-group';
+    config.CONSUMER_GROUP_ID = 'prod-desker-activities-consumer-group-v1';
     
     //LOGS
     config.LOGS_TOPIC_NAME = 'prod-desker-logs';
