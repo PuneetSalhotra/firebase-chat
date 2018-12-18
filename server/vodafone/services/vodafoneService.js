@@ -1298,8 +1298,10 @@ function VodafoneService(objectCollection) {
 
   </tbody></table> </td> </tr></tbody></table>`;
 
-            request.email_sender = 'vodafone_idea@grenerobotics.com';
-            request.email_sender_name = 'vodafone_idea grenerobotics.com';            
+            //request.email_sender = 'vodafone_idea@grenerobotics.com';
+            //request.email_sender_name = 'vodafone_idea grenerobotics.com';
+            request.email_sender = 'OMT.IN1@vodafoneidea.com'; 
+            request.email_sender_name = 'Vodafoneidea';            
                     
             util.sendEmailV3(request,
                 customerCollection.contactEmailId,
