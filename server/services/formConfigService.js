@@ -1342,6 +1342,117 @@ function FormConfigService(objCollection) {
 
         return [error, workflowFormsTimelineTransactionData];
     }
+
+    this.setActivityTypeAndConfig = async function (request) {
+        // Update asset's GPS data
+        request.datetime_log = util.getCurrentUTCTime();
+        activityCommonService.updateAssetLocation(request, () => {});
+
+        // Update form
+        const [formUpdateError, formUpdateStatus] = await workforceFormMappingUpdateWorkflow(request);
+        if (formUpdateError !== false) {
+            return [formUpdateError, {
+                formUpdateStatus,
+                formFieldUpdateStatus: []
+            }];
+        }
+        // History update
+        request.update_type_id = 606;
+        workforceFormMappingHistoryInsert(request);
+
+        // Update form fields
+        const [formFieldUpdateError, formFieldUpdateStatus] = await workforceFormFieldMappingUpdateWorkflow(request);
+        if (formFieldUpdateError !== false) {
+            return [formFieldUpdateError, {
+                formUpdateStatus,
+                formFieldUpdateStatus
+            }];
+        }
+        // History update: This is not happening for now, because I don't have the list of 
+        // field_ids that need to be updated. Also, the activity_type_id and the config values update 
+        // for all the fields are being taken care of internally by the stored db procedure.
+
+        // Process the data if needed
+        // ...
+        // ...
+        // 
+        return [false, {
+            formUpdateStatus,
+            formFieldUpdateStatus
+        }];
+    }
+
+    async function workforceFormMappingUpdateWorkflow(request) {
+        // IN p_flag TINYINT(4), IN p_activity_type_id BIGINT(20), IN p_is_workflow TINYINT(4), 
+        // IN p_form_sequence_id BIGINT(20), IN p_is_workflow_origin TINYINT(4), IN p_workflow_percentage TINYINT(4), 
+        // IN p_form_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+
+        let updateStatus = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.flag,
+            request.activity_type_id,
+            request.is_workflow,
+            request.form_sequence_id,
+            request.is_workflow_origin,
+            request.workflow_percentage,
+            request.form_id,
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime(),
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_form_mapping_update_workflow', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    updateStatus = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, updateStatus];
+    }
+
+    async function workforceFormFieldMappingUpdateWorkflow(request) {
+        // IN p_flag TINYINT(4), IN p_activity_type_id BIGINT(20), IN p_is_workflow TINYINT(4), 
+        // IN p_form_sequence_id BIGINT(20), IN p_is_workflow_origin TINYINT(4), IN p_workflow_percentage TINYINT(4), 
+        // IN p_form_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+
+        let updateStatus = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.flag,
+            request.activity_type_id,
+            request.is_workflow,
+            request.form_sequence_id,
+            request.is_workflow_origin,
+            request.workflow_percentage,
+            request.form_id,
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime(),
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_form_field_mapping_update_workflow', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    updateStatus = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, updateStatus];
+    }
     
 };
 
