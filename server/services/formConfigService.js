@@ -968,7 +968,9 @@ function FormConfigService(objCollection) {
     this.formAdd = async function (request) {
 
         let formId = 0,
-            formFields = [];
+            formFields = [],
+            formData = [],
+            error;
 
         await workforceFormMappingInsert(request)
             .then(async (newFormData) => {
@@ -1044,7 +1046,7 @@ function FormConfigService(objCollection) {
                             fieldId = 0;
 
                         } else {
-                            
+
                             await workforceFormFieldMappingInsert(request, {
                                     field_id: 0,
                                     field_name: fieldName,
@@ -1069,19 +1071,18 @@ function FormConfigService(objCollection) {
 
                         fieldSequenceId++;
                     }
-
-                    return Promise.resolve(newFormData)
                 }
-            })
-            .then(async (data) => {
-                console.log("data: ", data)
-                await Promise.resolve(data)
-                // return;
-                // return await Promise.resolve("data");
+                // return [false, newFormData]
+                error = false;
+                formData = newFormData;
             })
             .catch((err) => {
                 console.log("Error: ", err)
+                error = err;
+                formData = [];
             })
+
+        return [error, formData];
     }
 
     function workforceFormMappingInsert(request) {
@@ -1111,17 +1112,11 @@ function FormConfigService(objCollection) {
             );
 
             const queryString = util.getQueryString('ds_p1_1_workforce_form_mapping_insert', paramsArr);
-            console.log("workforceFormMappingInsert | ", queryString)
             if (queryString !== '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err) ? reject(err): resolve(data);
                 })
-                // resolve([{
-                //     query_status: 0,
-                //     form_id: 111
-                // }])
             }
-
         });
     }
 
@@ -1155,11 +1150,7 @@ function FormConfigService(objCollection) {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err) ? reject(err): resolve(data);
                 })
-                // await sleep(500);
-                // console.log("workforceFormFieldMappingInsert | ", queryString)
-                // resolve([{field_id: 7777}])
             }
-
         });
     }
 
@@ -1178,11 +1169,7 @@ function FormConfigService(objCollection) {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err) ? reject(err): resolve(data);
                 })
-                // await sleep(500);
-                // console.log("workforceFormMappingHistoryInsert | ", queryString)
-                // resolve([{field_id: 7777}])
             }
-
         });
     }
 
@@ -1207,7 +1194,6 @@ function FormConfigService(objCollection) {
                 // console.log("workforceFormFieldMappingHistoryInsert | ", queryString)
                 // resolve([{field_id: 7777}])
             }
-
         });
     }
 
