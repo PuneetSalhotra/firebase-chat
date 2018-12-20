@@ -266,7 +266,15 @@ function FormConfigController(objCollection) {
 
     });
 
-    app.post('/' + global.config.version + '/form/field/list', function (req, res) {
+    app.post('/' + global.config.version + '/form/field/list', async function (req, res) {
+
+        const [err, formFieldList] = await formConfigService.fetchFormFieldList(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, formFieldList, 200, req.body));
+        } else {
+            console.log("Error: ", err)
+            res.send(responseWrapper.getResponse(err, formFieldList, -9999, req.body));
+        }
 
     });
 

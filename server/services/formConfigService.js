@@ -1201,6 +1201,51 @@ function FormConfigService(objCollection) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
+    this.fetchFormFieldList = async function (request) {
+        // Update asset's GPS data
+        request.datetime_log = util.getCurrentUTCTime();
+        activityCommonService.updateAssetLocation(request, () => {});
+
+        const [error, formFieldMappingData] = await workforceFormFieldMappingSelect(request);
+        // Process the data if needed
+        // ...
+        // ...
+        // 
+        return [error, formFieldMappingData];
+    }
+
+    async function workforceFormFieldMappingSelect(request) {
+        // IN p_organization_id BIGINT(20), IN p_account_id bigint(20), 
+        // IN p_workforce_id bigint(20), IN p_form_id BIGINT(20), IN p_field_id BIGINT(20), 
+        // IN p_start_from INT(11), IN p_limit_value TINYINT(4)
+        let formFieldMappingData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.form_id,
+            request.field_id,
+            request.start_from,
+            util.replaceQueryLimit(request.limit_value)
+        );
+        const queryString = util.getQueryString('ds_p1_1_workforce_form_field_mapping_select', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    formFieldMappingData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, formFieldMappingData];
+
+    }
     
 };
 
