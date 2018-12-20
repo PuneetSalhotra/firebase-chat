@@ -1293,6 +1293,55 @@ function FormConfigService(objCollection) {
 
         return [error, workflowFormsData];
     }
+
+    this.fetchWorkflowFormSubmittedStatusList = async function (request) {
+        // Update asset's GPS data
+        request.datetime_log = util.getCurrentUTCTime();
+        activityCommonService.updateAssetLocation(request, () => {});
+
+        const [error, workflowFormSubmittedStatusList] = await activityTimelineTransactionSelectActivityForm(
+            request,
+            Number(request.activity_id),
+            Number(request.form_id)
+        );
+        // Process the data if needed
+        // ...
+        // ...
+        // 
+        return [error, workflowFormSubmittedStatusList];
+
+    }
+
+    async function activityTimelineTransactionSelectActivityForm(request, activityId, formId) {
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_activity_id BIGINT(20), 
+        // IN p_form_id BIGINT(20), IN p_start_from SMALLINT(6), IN p_limit_value smallint(6)
+
+        let workflowFormsTimelineTransactionData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            activityId,
+            formId,
+            request.start_from,
+            util.replaceQueryLimit(request.limit_value)
+        );
+        const queryString = util.getQueryString('ds_p1_1_activity_timeline_transaction_select_activity_form', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    workflowFormsTimelineTransactionData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, workflowFormsTimelineTransactionData];
+    }
     
 };
 
