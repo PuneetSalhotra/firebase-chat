@@ -26,7 +26,10 @@ vodafoneConfig = {
             "CRM": 870,
             "CAF": 872,
             "CRM_ACKNOWLEDGEMENT": 868,
-            "BC_HLD": 889
+            "BC_HLD": 889,
+            "CUSTOMER_IT_APPROVAL": 885,
+            "CUSTOMER_AUTHORISED_SIGNATORY_APPROVAL": 887,
+            "CAF_REVISE": 982
         },
         "CUSTOMER": {
             "ACCOUNT_ID": 976,
@@ -86,7 +89,9 @@ vodafoneConfig = {
             "CRM": 865,
             "CAF": 867,
             "CRM_ACKNOWLEDGEMENT": 863,
-            "BC_HLD": 888
+            "BC_HLD": 888,
+            "CUSTOMER_IT_APPROVAL": 884,
+            "CUSTOMER_AUTHORISED_SIGNATORY_APPROVAL": 886
         },
         "CUSTOMER": {
             "ACCOUNT_ID": 974,
