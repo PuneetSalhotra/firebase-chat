@@ -109,6 +109,14 @@ function ActivityConfigController(objCollection) {
         	res.send(responseWrapper.getResponse(err, {}, -999, req.body));
         });    		
     });
+    
+    app.post('/' + global.config.version + '/activtity_type/communication/list', function (req, res) {
+    	activityConfigService.getCommunicationList(req.body).then((data)=>{    		
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));     	
+    	}).catch((err) => {        	
+        	res.send(responseWrapper.getResponse(err, {}, -999, req.body));
+        });    		
+    });
 }
 
 
