@@ -992,6 +992,12 @@ function FormConfigService(objCollection) {
 
                     formFields = JSON.parse(request.form_fields)
 
+                    formFields.unshift({
+                        label: request.form_name,
+                        description: 'Form Name',
+                        datatypeid: 19
+                    })
+
                     for (const formField of formFields) {
                         let fieldName = (typeof formField.label == 'undefined') ? formField.title : formField.label;
                         let fieldDescription = (typeof formField.description == 'undefined') ? '' : formField.description;
@@ -1201,6 +1207,299 @@ function FormConfigService(objCollection) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
+    this.fetchFormFieldList = async function (request) {
+        // Update asset's GPS data
+        request.datetime_log = util.getCurrentUTCTime();
+        activityCommonService.updateAssetLocation(request, () => {});
+
+        const [error, formFieldMappingData] = await workforceFormFieldMappingSelect(request);
+        // Process the data if needed
+        // ...
+        // ...
+        // 
+        return [error, formFieldMappingData];
+    }
+
+    async function workforceFormFieldMappingSelect(request) {
+        // IN p_organization_id BIGINT(20), IN p_account_id bigint(20), 
+        // IN p_workforce_id bigint(20), IN p_form_id BIGINT(20), IN p_field_id BIGINT(20), 
+        // IN p_start_from INT(11), IN p_limit_value TINYINT(4)
+        let formFieldMappingData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.form_id,
+            request.field_id,
+            request.start_from,
+            util.replaceQueryLimit(request.limit_value)
+        );
+        const queryString = util.getQueryString('ds_p1_1_workforce_form_field_mapping_select', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    formFieldMappingData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, formFieldMappingData];
+
+    }
+
+    this.fetchFormAccessList = async function (request) {
+        // Update asset's GPS data
+        request.datetime_log = util.getCurrentUTCTime();
+        activityCommonService.updateAssetLocation(request, () => {});
+
+        const [error, workflowFormsData] = await workforceFormMappingSelectWorkflowForms(request);
+        // Process the data if needed
+        // ...
+        // ...
+        // 
+        return [error, workflowFormsData];
+
+    }
+
+    async function workforceFormMappingSelectWorkflowForms(request) {
+        // IN p_organization_id BIGINT(20), IN p_account_id bigint(20), 
+        // IN p_workforce_id bigint(20), IN p_activity_type_id BIGINT(20), 
+        // IN p_log_datetime DATETIME, IN p_start_from INT(11), IN p_limit_value TINYINT(4)
+
+        let workflowFormsData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_id || 0,
+            util.getCurrentUTCTime(),
+            request.start_from,
+            util.replaceQueryLimit(request.limit_value)
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_form_mapping_select_workflow_forms', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    workflowFormsData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, workflowFormsData];
+    }
+
+    this.fetchWorkflowFormSubmittedStatusList = async function (request) {
+        // Update asset's GPS data
+        request.datetime_log = util.getCurrentUTCTime();
+        activityCommonService.updateAssetLocation(request, () => {});
+
+        const [error, workflowFormSubmittedStatusList] = await activityTimelineTransactionSelectActivityForm(
+            request,
+            Number(request.activity_id),
+            Number(request.form_id)
+        );
+        // Process the data if needed
+        // ...
+        // ...
+        // 
+        return [error, workflowFormSubmittedStatusList];
+
+    }
+
+    async function activityTimelineTransactionSelectActivityForm(request, activityId, formId) {
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_activity_id BIGINT(20), 
+        // IN p_form_id BIGINT(20), IN p_start_from SMALLINT(6), IN p_limit_value smallint(6)
+
+        let workflowFormsTimelineTransactionData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            activityId,
+            formId,
+            request.start_from,
+            util.replaceQueryLimit(request.limit_value)
+        );
+        const queryString = util.getQueryString('ds_p1_1_activity_timeline_transaction_select_activity_form', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    workflowFormsTimelineTransactionData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, workflowFormsTimelineTransactionData];
+    }
+
+    // SET
+    this.setActivityTypeAndConfig = async function (request) {
+        // Update asset's GPS data
+        request.datetime_log = util.getCurrentUTCTime();
+        activityCommonService.updateAssetLocation(request, () => {});
+
+        // Update form
+        const [formUpdateError, formUpdateStatus] = await workforceFormMappingUpdateWorkflow(request);
+        if (formUpdateError !== false) {
+            return [formUpdateError, {
+                formUpdateStatus,
+                formFieldUpdateStatus: []
+            }];
+        }
+        // History update
+        request.update_type_id = 606;
+        workforceFormMappingHistoryInsert(request);
+
+        // Update form fields
+        const [formFieldUpdateError, formFieldUpdateStatus] = await workforceFormFieldMappingUpdateWorkflow(request);
+        if (formFieldUpdateError !== false) {
+            return [formFieldUpdateError, {
+                formUpdateStatus,
+                formFieldUpdateStatus
+            }];
+        }
+        // History update: This is not happening for now, because I don't have the list of 
+        // field_ids that need to be updated. Also, the activity_type_id and the config values update 
+        // for all the fields are being taken care of internally by the stored db procedure.
+
+        // Process the data if needed
+        // ...
+        // ...
+        // 
+        return [false, {
+            formUpdateStatus,
+            formFieldUpdateStatus
+        }];
+    }
+
+    // RESET
+    this.resetActivityTypeAndConfig = async function (request) {
+        // Update asset's GPS data
+        request.datetime_log = util.getCurrentUTCTime();
+        activityCommonService.updateAssetLocation(request, () => {});
+
+        // Update form
+        const [formUpdateError, formUpdateStatus] = await workforceFormMappingUpdateWorkflow(request);
+        if (formUpdateError !== false) {
+            return [formUpdateError, {
+                formUpdateStatus,
+                formFieldUpdateStatus: []
+            }];
+        }
+        // History update
+        request.update_type_id = 605;
+        workforceFormMappingHistoryInsert(request);
+
+        // Update form fields
+        const [formFieldUpdateError, formFieldUpdateStatus] = await workforceFormFieldMappingUpdateWorkflow(request);
+        if (formFieldUpdateError !== false) {
+            return [formFieldUpdateError, {
+                formUpdateStatus,
+                formFieldUpdateStatus
+            }];
+        }
+        // History update: This is not happening for now, because I don't have the list of 
+        // field_ids that need to be updated. Also, the activity_type_id and the config values update 
+        // for all the fields are being taken care of internally by the stored db procedure.
+
+        // Process the data if needed
+        // ...
+        // ...
+        // 
+        return [false, {
+            formUpdateStatus,
+            formFieldUpdateStatus
+        }];
+    }
+
+    async function workforceFormMappingUpdateWorkflow(request) {
+        // IN p_flag TINYINT(4), IN p_activity_type_id BIGINT(20), IN p_is_workflow TINYINT(4), 
+        // IN p_form_sequence_id BIGINT(20), IN p_is_workflow_origin TINYINT(4), IN p_workflow_percentage TINYINT(4), 
+        // IN p_form_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+
+        let updateStatus = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.flag,
+            request.activity_type_id,
+            request.is_workflow,
+            request.form_sequence_id,
+            request.is_workflow_origin,
+            request.workflow_percentage,
+            request.form_id,
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime(),
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_form_mapping_update_workflow', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    updateStatus = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, updateStatus];
+    }
+
+    async function workforceFormFieldMappingUpdateWorkflow(request) {
+        // IN p_flag TINYINT(4), IN p_activity_type_id BIGINT(20), IN p_is_workflow TINYINT(4), 
+        // IN p_form_sequence_id BIGINT(20), IN p_is_workflow_origin TINYINT(4), IN p_workflow_percentage TINYINT(4), 
+        // IN p_form_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+
+        let updateStatus = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.flag,
+            request.activity_type_id,
+            request.is_workflow,
+            request.form_sequence_id,
+            request.is_workflow_origin,
+            request.workflow_percentage,
+            request.form_id,
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime(),
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_form_field_mapping_update_workflow', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    updateStatus = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, updateStatus];
+    }
     
 };
 
