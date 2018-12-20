@@ -278,6 +278,21 @@ function FormConfigController(objCollection) {
 
     });
 
+    // Service for getting the list of forms at the specified access level and optionally 
+    // mapped to an activity type. If mapped to activity type also return the sequnece id, 
+    // origin flag and percentage contribution to the workflow
+    app.post('/' + global.config.version + '/form/access/list', async function (req, res) {
+
+        const [err, formAccessList] = await formConfigService.fetchFormAccessList(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, formAccessList, 200, req.body));
+        } else {
+            console.log("Error: ", err)
+            res.send(responseWrapper.getResponse(err, formAccessList, -9999, req.body));
+        }
+
+    });
+
     
 };
 

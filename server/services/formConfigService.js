@@ -1246,6 +1246,53 @@ function FormConfigService(objCollection) {
         return [error, formFieldMappingData];
 
     }
+
+    this.fetchFormAccessList = async function (request) {
+        // Update asset's GPS data
+        request.datetime_log = util.getCurrentUTCTime();
+        activityCommonService.updateAssetLocation(request, () => {});
+
+        const [error, workflowFormsData] = await workforceFormMappingSelectWorkflowForms(request);
+        // Process the data if needed
+        // ...
+        // ...
+        // 
+        return [error, workflowFormsData];
+
+    }
+
+    async function workforceFormMappingSelectWorkflowForms(request) {
+        // IN p_organization_id BIGINT(20), IN p_account_id bigint(20), 
+        // IN p_workforce_id bigint(20), IN p_activity_type_id BIGINT(20), 
+        // IN p_log_datetime DATETIME, IN p_start_from INT(11), IN p_limit_value TINYINT(4)
+
+        let workflowFormsData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_id || 0,
+            util.getCurrentUTCTime(),
+            request.start_from,
+            util.replaceQueryLimit(request.limit_value)
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_form_mapping_select_workflow_forms', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    workflowFormsData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, workflowFormsData];
+    }
     
 };
 
