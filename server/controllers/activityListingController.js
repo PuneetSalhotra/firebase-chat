@@ -679,6 +679,15 @@ function ActivityListingController(objCollection) {
     		res.send(responseWrapper.getResponse(err, data, -9998, req.body));
         	});
     });
+    
+    app.post('/' + global.config.version + '/activity/mapping/queue/list', function (req, res) {
+    	activityCommonService.fetchActivitiesMappedToQueue(req.body).then((data)=>{    
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));    	
+    	}).catch((err) => {        	
+        	res.send(responseWrapper.getResponse(err, {}, -999, req.body));
+        });    		
+    });
 }
 
 module.exports = ActivityListingController;
