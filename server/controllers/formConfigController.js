@@ -250,6 +250,42 @@ function FormConfigController(objCollection) {
     		res.send(responseWrapper.getResponse(err, data, -999, req.body));
         	});
     });
+
+    // "Service for creating form definition
+    // This should also have provision to map the form at the specified access level
+    // There should be an optional provision to map the form definition to an activity_type"
+    app.post('/' + global.config.version + '/form/add', function (req, res) {
+
+        formConfigService
+            .formAdd(req.body)
+            .then((data) => {
+                console.log("data: ", data)
+                res.send(responseWrapper.getResponse({}, data, 200, req.body));
+
+            }).catch((err) => {
+
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, -999, req.body));
+
+            });
+    });
+
+    app.post('/' + global.config.version + '/form/field/list', function (req, res) {
+
+        formConfigService
+            .formAdd(req.body)
+            .then((data) => {
+                console.log("data: ", data)
+                res.send(responseWrapper.getResponse({}, data, 200, req.body));
+
+            }).catch((err) => {
+
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, -999, req.body));
+
+            });
+    });
+
     
 };
 
