@@ -306,6 +306,26 @@ function FormConfigController(objCollection) {
 
     });
 
+    // Service for mapping form definitions to activity type. Forms are mapped mutually exclusively to activity types.
+    // This service should have provision for setting or resetting the origin flag, altering the sequnce id and 
+    // percentage contribution to the workflow. Only one out of all the forms mapped to an activity type can have 
+    // the origin flag enabled
+    app.post('/' + global.config.version + '/form/mapping/activity_type/set', async function (req, res) {
+
+        // flag: 1 => Udpdate both activity_type mapping and config values
+        // flag: 2 => Udpdate activity_type mapping only
+        // flag: 3 => Udpdate config values only
+
+        const [err, updateStatus] = await formConfigService.setActivityTypeAndConfig(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, updateStatus, 200, req.body));
+        } else {
+            console.log("Error: ", err)
+            res.send(responseWrapper.getResponse(err, updateStatus, -9999, req.body));
+        }
+
+    });
+
     
 };
 
