@@ -1343,6 +1343,7 @@ function FormConfigService(objCollection) {
         return [error, workflowFormsTimelineTransactionData];
     }
 
+    // SET
     this.setActivityTypeAndConfig = async function (request) {
         // Update asset's GPS data
         request.datetime_log = util.getCurrentUTCTime();
@@ -1358,6 +1359,46 @@ function FormConfigService(objCollection) {
         }
         // History update
         request.update_type_id = 606;
+        workforceFormMappingHistoryInsert(request);
+
+        // Update form fields
+        const [formFieldUpdateError, formFieldUpdateStatus] = await workforceFormFieldMappingUpdateWorkflow(request);
+        if (formFieldUpdateError !== false) {
+            return [formFieldUpdateError, {
+                formUpdateStatus,
+                formFieldUpdateStatus
+            }];
+        }
+        // History update: This is not happening for now, because I don't have the list of 
+        // field_ids that need to be updated. Also, the activity_type_id and the config values update 
+        // for all the fields are being taken care of internally by the stored db procedure.
+
+        // Process the data if needed
+        // ...
+        // ...
+        // 
+        return [false, {
+            formUpdateStatus,
+            formFieldUpdateStatus
+        }];
+    }
+
+    // RESET
+    this.resetActivityTypeAndConfig = async function (request) {
+        // Update asset's GPS data
+        request.datetime_log = util.getCurrentUTCTime();
+        activityCommonService.updateAssetLocation(request, () => {});
+
+        // Update form
+        const [formUpdateError, formUpdateStatus] = await workforceFormMappingUpdateWorkflow(request);
+        if (formUpdateError !== false) {
+            return [formUpdateError, {
+                formUpdateStatus,
+                formFieldUpdateStatus: []
+            }];
+        }
+        // History update
+        request.update_type_id = 605;
         workforceFormMappingHistoryInsert(request);
 
         // Update form fields
