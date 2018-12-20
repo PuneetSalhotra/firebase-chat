@@ -577,6 +577,33 @@ function FormConfigService(objCollection) {
                                 }
                             });                       
                         }
+
+                        // [Vodafone] New order 713 entry trigger point for non-CAF-impacting forms 
+                        const ORDER_CLOSURE_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CRM_ACKNOWLEDGEMENT,
+                            CAF_APPROVAL_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.ACCOUNT_MANAGER_APPROVAL,
+                            NEW_CUSTOMER_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.NEW_CUSTOMER,
+                            EXISTING_CUSTOMER_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.EXISTING_CUSTOMER,
+                            OMT_APPROVAL_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.OMT_APPROVAL,
+                            CUSTOMER_IT_APPROVAL_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_IT_APPROVAL,
+                            CUSTOMER_AUTHORISED_SIGNATORY_APPROVAL_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_AUTHORISED_SIGNATORY_APPROVAL,
+                            ORDER_DOCUMENTS_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.BC_HLD,
+                            CAF_REVISE_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CAF_REVISE;
+
+                        if (
+                            Number(request.form_id) === ORDER_CLOSURE_FORM_ID ||
+                            Number(request.form_id) === CAF_APPROVAL_FORM_ID ||
+                            Number(request.form_id) === NEW_CUSTOMER_FORM_ID ||
+                            Number(request.form_id) === EXISTING_CUSTOMER_FORM_ID ||
+                            Number(request.form_id) === OMT_APPROVAL_FORM_ID ||
+                            Number(request.form_id) === CUSTOMER_IT_APPROVAL_FORM_ID ||
+                            Number(request.form_id) === CUSTOMER_AUTHORISED_SIGNATORY_APPROVAL_FORM_ID ||
+                            Number(request.form_id) === ORDER_DOCUMENTS_FORM_ID ||
+                            Number(request.form_id) === CAF_REVISE_FORM_ID
+                        ) {
+                            // Fire 713 addTimelineTransaction entry for the incoming dedicated form
+                            // ...
+                            fire713OnNewOrderFileForDedicatedFile(request).then(() => {});
+                        }
                         
                             //The following piece of code will be executed only if it is CAF Form Edit and 
                             //the request is not fired internally device_os_id = 7 means internal call
@@ -938,6 +965,243 @@ function FormConfigService(objCollection) {
         });
     }
 
+    this.formAdd = async function (request) {
+
+        let formId = 0,
+            formFields = [],
+            formData = [],
+            error;
+
+        await workforceFormMappingInsert(request)
+            .then(async (newFormData) => {
+                console.log("newFormData: ", newFormData);
+
+                let fieldSequenceId = 0;
+
+                if (Number(newFormData[0].query_status) === 0 && newFormData[0].form_id > 0) {
+
+                    formId = newFormData[0].form_id;
+                    request.form_id = Number(newFormData[0].form_id);
+
+                    // History insert in the workforce_form_mapping_history_insert table
+                    await workforceFormMappingHistoryInsert(request);
+
+                    // Update asset's GPS data
+                    request.datetime_log = util.getCurrentUTCTime();
+                    activityCommonService.updateAssetLocation(request, () => {});
+
+                    formFields = JSON.parse(request.form_fields)
+
+                    for (const formField of formFields) {
+                        let fieldName = (typeof formField.label == 'undefined') ? formField.title : formField.label;
+                        let fieldDescription = (typeof formField.description == 'undefined') ? '' : formField.description;
+                        let fieldMandatoryEnabled = (typeof formField.validate == 'undefined') ? 0 : (formField.validate.required == true ? 1 : 0);
+                        let nextFieldId = (typeof formField.next_field_id == 'undefined') ? 0 : Number(formField.next_field_id);
+
+                        let dataTypeCategoryId = Number(formField.datatypecategoryid);
+
+                        console.log('\x1b[36m\n\n%s\x1b[0m', 'fieldSequenceId: ', fieldSequenceId);
+
+                        if (dataTypeCategoryId === 14 || dataTypeCategoryId === 15) {
+                            // For Single Select Component and 
+                            let fieldId = 0,
+                                comboEntries = [];
+
+                            if (dataTypeCategoryId === 14) {
+                                comboEntries = formField.data.values;
+
+                            } else if (dataTypeCategoryId === 15) {
+                                comboEntries = formField.values;
+                            }
+
+                            for (const [index, comboEntry] of Array.from(comboEntries).entries()) {
+                                await workforceFormFieldMappingInsert(request, {
+                                        field_id: fieldId,
+                                        field_name: fieldName,
+                                        field_description: fieldDescription,
+                                        field_sequence_id: fieldSequenceId,
+                                        field_mandatory_enabled: fieldMandatoryEnabled,
+                                        field_preview_enabled: 0, // THIS NEEDS WORK
+                                        data_type_combo_id: index + 1,
+                                        data_type_combo_value: comboEntry.label,
+                                        data_type_id: Number(formField.datatypeid),
+                                        next_field_id: nextFieldId
+                                    })
+                                    .then((fieldData) => {
+                                        // console.log("someData: ", someData)
+                                        if (fieldId === 0) {
+                                            fieldId = Number(fieldData[0].p_field_id);
+                                        }
+                                    });
+
+                                // History insert in the workforce_form_field_mapping_history_insert table
+                                await workforceFormFieldMappingHistoryInsert(request, {
+                                    field_id: fieldId,
+                                    data_type_combo_id: index + 1
+                                })
+                            }
+
+                            // Reset fieldId to 0, so it can be re-used by other fields
+                            // in the subsequent iterations
+                            fieldId = 0;
+
+                        } else {
+
+                            await workforceFormFieldMappingInsert(request, {
+                                    field_id: 0,
+                                    field_name: fieldName,
+                                    field_description: fieldDescription,
+                                    field_sequence_id: fieldSequenceId,
+                                    field_mandatory_enabled: fieldMandatoryEnabled,
+                                    field_preview_enabled: 0, // THIS NEEDS WORK
+                                    data_type_combo_id: 0,
+                                    data_type_combo_value: '',
+                                    data_type_id: Number(formField.datatypeid),
+                                    next_field_id: nextFieldId
+                                })
+                                .then(async (fieldData) => {
+                                    // console.log("someData: ", someData)
+                                    // History insert in the workforce_form_field_mapping_history_insert table
+                                    await workforceFormFieldMappingHistoryInsert(request, {
+                                        field_id: Number(fieldData[0].p_field_id),
+                                        data_type_combo_id: 0
+                                    })
+                                });
+                        }
+
+                        fieldSequenceId++;
+                    }
+                }
+                // return [false, newFormData]
+                error = false;
+                formData = newFormData;
+            })
+            .catch((err) => {
+                console.log("Error: ", err)
+                error = err;
+                formData = [];
+            })
+
+        return [error, formData];
+    }
+
+    function workforceFormMappingInsert(request) {
+        return new Promise((resolve, reject) => {
+            // IN p_form_name VARCHAR(100), IN p_form_description VARCHAR(150), IN p_form_type_id BIGINT(20), 
+            // IN p_entity_level_id SMALLINT(6), IN p_activity_id BIGINT(20), IN p_activity_type_id BIGINT(20), 
+            // IN p_workforce_id BIGINT(20), IN p_account_id BIGINT(20), IN p_organization_id BIGINT(20), 
+            // IN p_form_activity_type_id BIGINT(20), IN p_is_workflow TINYINT(4), IN p_is_workflow_origin TINYINT(4), 
+            // IN p_workflow_percentage TINYINT(4), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+
+            let paramsArr = new Array(
+                request.form_name,
+                request.form_description,
+                request.form_type_id,
+                request.entity_level_id,
+                request.activity_id || 0,
+                request.activity_type_id || 0,
+                request.workforce_id,
+                request.account_id,
+                request.organization_id,
+                request.form_activity_type_id || 0,
+                request.is_workflow || 0,
+                request.is_workflow_origin || 0,
+                request.workflow_percentage || 0,
+                request.asset_id,
+                util.getCurrentUTCTime()
+            );
+
+            const queryString = util.getQueryString('ds_p1_1_workforce_form_mapping_insert', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                })
+            }
+        });
+    }
+
+    function workforceFormFieldMappingInsert(request, formFieldCollection) {
+        return new Promise(async (resolve, reject) => {
+            // IN p_field_id BIGINT(20), IN p_field_name VARCHAR(1200), IN p_field_description VARCHAR(150), 
+            // IN p_field_sequence_id BIGINT(20), IN p_field_mandatory_enabled TINYINT(4), 
+            // IN p_field_preview_enabled TINYINT(4), IN p_data_type_combo_id SMALLINT(6), 
+            // IN p_data_type_combo_value VARCHAR(1200), IN p_data_type_id SMALLINT(6), IN p_next_field_id BIGINT(20), 
+            // IN p_form_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+
+            let paramsArr = new Array(
+                formFieldCollection.field_id,
+                formFieldCollection.field_name,
+                formFieldCollection.field_description,
+                formFieldCollection.field_sequence_id,
+                formFieldCollection.field_mandatory_enabled,
+                formFieldCollection.field_preview_enabled,
+                formFieldCollection.data_type_combo_id,
+                formFieldCollection.data_type_combo_value,
+                formFieldCollection.data_type_id,
+                formFieldCollection.next_field_id,
+                request.form_id,
+                request.organization_id,
+                request.asset_id,
+                util.getCurrentUTCTime()
+            );
+
+            const queryString = util.getQueryString('ds_p1_1_workforce_form_field_mapping_insert', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                })
+            }
+        });
+    }
+
+    function workforceFormMappingHistoryInsert(request) {
+        return new Promise(async (resolve, reject) => {
+            // IN p_form_id BIGINT(20), IN p_organization_id BIGINT(20), 
+            // IN p_update_type_id SMALLINT(6), IN p_update_datetime DATETIME
+            let paramsArr = new Array(
+                request.form_id,
+                request.organization_id,
+                request.update_type_id || 0,
+                util.getCurrentUTCTime()
+            );
+            const queryString = util.getQueryString('ds_p1_workforce_form_mapping_history_insert', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                })
+            }
+        });
+    }
+
+    function workforceFormFieldMappingHistoryInsert(request, formFieldCollection) {
+        return new Promise(async (resolve, reject) => {
+            // IN p_field_id BIGINT(20), IN p_data_type_combo_id SMALLINT(6), IN p_form_id BIGINT(20), 
+            // IN p_organization_id BIGINT(20), IN p_update_type_id SMALLINT(6), IN p_update_datetime DATETIME
+            let paramsArr = new Array(
+                formFieldCollection.field_id,
+                formFieldCollection.data_type_combo_id,
+                request.form_id,
+                request.organization_id,
+                request.update_type_id || 0,
+                util.getCurrentUTCTime()
+            );
+            const queryString = util.getQueryString('ds_p1_workforce_form_field_mapping_history_insert', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                })
+                // await sleep(500);
+                // console.log("workforceFormFieldMappingHistoryInsert | ", queryString)
+                // resolve([{field_id: 7777}])
+            }
+        });
+    }
+
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    
 };
 
 module.exports = FormConfigService;
