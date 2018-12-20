@@ -326,6 +326,23 @@ function FormConfigController(objCollection) {
 
     });
 
+    // Services for unmapping form definitions to activity type
+    app.post('/' + global.config.version + '/form/mapping/activity_type/reset', async function (req, res) {
+
+        // flag: 1 => Udpdate both activity_type mapping and config values
+        // flag: 2 => Udpdate activity_type mapping only
+        // flag: 3 => Udpdate config values only
+
+        const [err, updateStatus] = await formConfigService.resetActivityTypeAndConfig(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, updateStatus, 200, req.body));
+        } else {
+            console.log("Error: ", err)
+            res.send(responseWrapper.getResponse(err, updateStatus, -9999, req.body));
+        }
+
+    });
+
     
 };
 
