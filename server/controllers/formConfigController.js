@@ -293,6 +293,19 @@ function FormConfigController(objCollection) {
 
     });
 
+    // Service for getting the submitted flag status of all the forms mapped to an activity of category workflow
+    app.post('/' + global.config.version + '/workflow/form/status/submitted/list', async function (req, res) {
+
+        const [err, workflowFormSubmittedStatusList] = await formConfigService.fetchWorkflowFormSubmittedStatusList(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, workflowFormSubmittedStatusList, 200, req.body));
+        } else {
+            console.log("Error: ", err)
+            res.send(responseWrapper.getResponse(err, workflowFormSubmittedStatusList, -9999, req.body));
+        }
+
+    });
+
     
 };
 
