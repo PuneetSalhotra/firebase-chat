@@ -138,6 +138,9 @@ function ActivityService(objectCollection) {
                             var inlineJson = JSON.parse(request.activity_inline_data);
                             util.pamSendSmsMvaayoo('Dear Sir/Madam, Our executive will contact you soon.', inlineJson.country_code, inlineJson.phone_number, function (err, res) {});
                             break;
+                        case 48: // Workflow
+                            activityStreamTypeId = 701;
+                            break;
                         default:
                             activityStreamTypeId = 1; //by default so that we know
                             //console.log('adding streamtype id 1');
