@@ -259,10 +259,30 @@ function ActivityService(objectCollection) {
                             	activityCommonService.processReservationBilling(request, request.activity_parent_id).then(()=>{});
                             }
                             
-                            if (activityTypeCategroyId === 9) {                                
+                            if (activityTypeCategroyId === 9) {
                                 global.logger.write('debug', '*****ADD ACTIVITY :HITTING WIDGET ENGINE*******', {}, request);
                                 sendRequesttoWidgetEngine(request);
-                                }
+                            }
+
+                            // Workflow Trigger
+                            if (activityTypeCategroyId === 9) {
+                                let workflowEngineRequest = Object.assign({}, request)
+
+                                let workflowEngineEvent = {
+                                    name: "workflowEngine",
+                                    service: "formConfigService",
+                                    method: "workflowEngine",
+                                    payload: workflowEngineRequest
+                                };
+
+                                queueWrapper.raiseActivityEvent(workflowEngineEvent, request.activity_id, (err, resp) => {
+                                    if (err) {
+                                        console.log("\x1b[35m [ERROR] Raising queue activity raised for workflow engine. \x1b[0m");
+                                    } else {
+                                        console.log("\x1b[35m Queue activity raised for workflow engine. \x1b[0m");
+                                    }
+                                });
+                            }
                             
                             activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
 
