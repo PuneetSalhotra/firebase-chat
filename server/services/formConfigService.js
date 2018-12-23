@@ -9,7 +9,18 @@ function FormConfigService(objCollection) {
     var activityCommonService = objCollection.activityCommonService;
     var queueWrapper = objCollection.queueWrapper;
     var forEachAsync = objCollection.forEachAsync;
+    
+    const ActivityService = require('../services/activityService');
+    const activityService = new ActivityService(objCollection);
+    
+    const ActivityTimelineService = require('../services/activityTimelineService');
+    const activityTimelineService = new ActivityTimelineService(objCollection);
+    
+    const cacheWrapper = objCollection.cacheWrapper;
     const moment = require('moment');
+    const nodeUtil = require('util');
+
+    console.log("[FormConfigService] Object.keys(objCollection): ", Object.keys(objCollection))
 
     this.getOrganizationalLevelForms = function (request, callback) {
         var paramsArr = new Array();
@@ -1499,6 +1510,118 @@ function FormConfigService(objCollection) {
         }
 
         return [error, updateStatus];
+    }
+
+    this.workflowEngine = async function (request) {
+        
+        let workflowActivityId = request.workflow_activity_id || 0;
+
+        request.form_id = Number(request.activity_form_id);
+
+        // Fetch form's config data
+        const [formConfigError, formConfigData] = await workforceFormMappingSelect(request);
+        if (formConfigError !== false) {
+            return [formConfigError, formConfigData];
+        }
+
+        if (Number(formConfigData.length) > 0) {
+            // Check if the form has an origin flag set
+            let activityId;
+            let originFlagSet = Number(formConfigData[0].form_flag_workflow_origin),
+                isWorkflowEnabled = Number(formConfigData[0].form_flag_workflow_enabled),
+                workflowActivityTypeId = Number(formConfigData[0].form_workflow_activity_type_id),
+                workflowActivityTypeName = formConfigData[0].form_workflow_activity_type_name;
+
+            if (isWorkflowEnabled && originFlagSet) {
+                // Fetch the next activity_id to be inserted
+                await cacheWrapper
+                    .getActivityIdAsync()
+                    .then((id) => {
+                        activityId = id;
+                    })
+                    .catch((err) => {
+                        console.log("Error 2: ", err)
+                        return [err, formConfigData];
+                    })
+
+                global.logger.write('debug', "New activityId is :" + activityId, {}, request);
+
+                // Prepare a new request object and fire the addActivity service
+                let createWorkflowRequest = Object.assign({}, request);
+                createWorkflowRequest.activity_id = Number(activityId);
+                createWorkflowRequest.activity_type_category_id = 48;
+                createWorkflowRequest.activity_type_id = workflowActivityTypeId;
+                createWorkflowRequest.activity_title = workflowActivityTypeName;
+                createWorkflowRequest.activity_description = workflowActivityTypeName;
+
+                const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
+                await addActivityAsync(createWorkflowRequest);
+
+                workflowActivityId = Number(activityId);
+
+            }
+
+            if (isWorkflowEnabled) {
+                let workflowFile713Request = Object.assign({}, request);
+                workflowFile713Request.activity_id = workflowActivityId;
+                workflowFile713Request.data_activity_id = Number(request.activity_id);
+                workflowFile713Request.form_transaction_id = Number(request.form_transaction_id);
+                workflowFile713Request.activity_timeline_collection = JSON.stringify({
+                    "mail_body": `Form Updated at ${moment().utcOffset('+05:30').format('LLLL')}`,
+                    "subject": "Form Name",
+                    "content": `Form Name`,
+                    "asset_reference": [],
+                    "activity_reference": [],
+                    "form_approval_field_reference": [],
+                    "form_submitted": JSON.parse(request.activity_inline_data),
+                    "attachments": []
+                });
+                // Append the incremental form data as well
+                workflowFile713Request.form_id = workflowFile713Request.activity_form_id;
+                workflowFile713Request.activity_type_category_id = 48;
+                workflowFile713Request.activity_stream_type_id = 705;
+                workflowFile713Request.flag_timeline_entry = 1;
+                workflowFile713Request.message_unique_id = util.getMessageUniqueId(request.asset_id);
+                workflowFile713Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+                workflowFile713Request.device_os_id = 8;
+
+                const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
+                await addTimelineTransactionAsync(workflowFile713Request);
+            }
+        }
+
+        return [formConfigError, {
+            formConfigData
+        }];
+    }
+
+    async function workforceFormMappingSelect(request, activityId, formId) {
+        // IN p_organization_id BIGINT(20), IN p_account_id bigint(20), 
+        // IN p_workforce_id bigint(20), IN p_form_id BIGINT(20)
+
+        let formData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.form_id
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_form_mapping_select', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    formData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, formData];
     }
     
 };
