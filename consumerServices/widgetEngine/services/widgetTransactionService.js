@@ -537,6 +537,51 @@ class WidgetTransactionService {
             });
         });
     }
+    
+    createFileDistribution(data) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                    data.widget_id,
+                    data.asset_id,
+                    data.organization_id,
+                    data.date,
+                    data.count,
+                    data.asset_id,
+                    this.objCollection.util.getCurrentUTCTime()
+                    );
+            
+            var queryString = this.objCollection.util.getQueryString('ds_p1_widget_transaction_insert_form_file_count', paramsArr);
+            if (queryString === '')
+                return reject();
+            this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
+                if (err)
+                    return reject();
+                return resolve();
+            });
+        });
+    }
+    
+    updateFileDistribution(data) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                    data.widget_transaction_id,
+                    data.widget_id,
+                    data.date,
+                    data.count,
+                    data.asset_id,
+                    this.objCollection.util.getCurrentUTCTime()
+                    );
+
+            var queryString = this.objCollection.util.getQueryString('ds_p1_widget_transaction_update_form_file_count', paramsArr);
+            if (queryString === '')
+                return reject();
+            this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
+                if (err)
+                    return reject(err);
+                return resolve(data);
+            });
+        });
+    }
 }
 
 module.exports = WidgetTransactionService;
