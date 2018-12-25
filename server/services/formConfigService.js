@@ -9,13 +9,13 @@ function FormConfigService(objCollection) {
     var activityCommonService = objCollection.activityCommonService;
     var queueWrapper = objCollection.queueWrapper;
     var forEachAsync = objCollection.forEachAsync;
-    
+
     const ActivityService = require('../services/activityService');
     const activityService = new ActivityService(objCollection);
-    
+
     const ActivityTimelineService = require('../services/activityTimelineService');
     const activityTimelineService = new ActivityTimelineService(objCollection);
-    
+
     const BotService = require('../botEngine/services/botService');
     const botService = new BotService(objCollection);
 
@@ -302,7 +302,7 @@ function FormConfigService(objCollection) {
                     if (data.length > 0) {
                         //console.log(data);
                         activityCommonService.formatFormDataCollection(data, function (err, finalData) {
-                        //formatFromsListing(data, function (err, finalData) {
+                            //formatFromsListing(data, function (err, finalData) {
                             if (err === false) {
                                 callback(false, {
                                     data: finalData
@@ -394,100 +394,104 @@ function FormConfigService(objCollection) {
         let queryString = util.getQueryString('ds_p1_activity_form_transaction_select_timecard_forms', paramsArr);
         if (queryString !== '') {
             db.executeQuery(1, queryString, request, function (err, data) {
-                if (!err) {                   
+                if (!err) {
                     console.log('Retrieved Data: ', data);
-                    if(data.length > 0 ) {
+                    if (data.length > 0) {
                         activityCommonService.formatFormDataCollection(data, function (err, formattedData) {
-                            (err === false) ? callback(false, { data: formattedData}, 200) : callback(true, {}, -9999);
-                            });
-                        } else {
-                            callback(false, {}, 200);
-                        }
+                            (err === false) ? callback(false, {
+                                data: formattedData
+                            }, 200): callback(true, {}, -9999);
+                        });
                     } else {
-                        callback(err, data, -9999)
+                        callback(false, {}, 200);
                     }
+                } else {
+                    callback(err, data, -9999)
+                }
             });
         }
     };
-    
-    
+
+
     this.getSearchUserForms = function (request, callback) {
 
         let paramsArr = new Array(
-            request.organization_id, 
-            request.account_id, 
-            request.workforce_id, 
-            request.asset_id, 
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.asset_id,
             request.form_id,
-            request.is_search, 
-            request.search_string, 
-            request.activity_status_type_id, 
-            request.start_datetime, 
-            request.end_datetime, 
-            request.start_from, 
+            request.is_search,
+            request.search_string,
+            request.activity_status_type_id,
+            request.start_datetime,
+            request.end_datetime,
+            request.start_from,
             request.limit_value || 50
         );
         let queryString = util.getQueryString('ds_p1_activity_list_select_asset_forms', paramsArr);
         if (queryString !== '') {
             db.executeQuery(1, queryString, request, function (err, data) {
-                if (!err) {                   
+                if (!err) {
                     //console.log('Retrieved Data: ', data);
-                    if(data.length > 0 ) {
+                    if (data.length > 0) {
                         activityCommonService.formatFormDataCollection(data, function (err, formattedData) {
-                            (err === false) ? callback(false, { data: formattedData}, 200) : callback(true, {}, -9999);
-                            });
-                        } else {
-                            callback(false, {}, 200);
-                        }
+                            (err === false) ? callback(false, {
+                                data: formattedData
+                            }, 200): callback(true, {}, -9999);
+                        });
                     } else {
-                        callback(err, data, -9999);
+                        callback(false, {}, 200);
                     }
+                } else {
+                    callback(err, data, -9999);
+                }
             });
         }
     };
-    
-    this.alterFormActivity = function(request, callback) {
-      
-        var logDatetime = util.getCurrentUTCTime();        
+
+    this.alterFormActivity = function (request, callback) {
+
+        var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
-        
-        var activityInlineData = JSON.parse(request.activity_inline_data);       
+
+        var activityInlineData = JSON.parse(request.activity_inline_data);
         var newData = activityInlineData[0];
         console.log('newData from Request: ', newData);
         request.new_field_value = newData.field_value;
-        
+
         let cnt = 0,
             oldFieldValue,
             newFieldValue = newData.field_value;
-        
-        activityCommonService.getActivityByFormTransactionCallback(request, request.activity_id, (err, data)=>{
-            if(err === false) {
+
+        activityCommonService.getActivityByFormTransactionCallback(request, request.activity_id, (err, data) => {
+            if (err === false) {
                 console.log('Data from activity_list: ', data);
                 var retrievedInlineData = [];
-                if(data.length > 0){
+                if (data.length > 0) {
                     request['activity_id'] = data[0].activity_id;
-                    
+
                     retrievedInlineData = JSON.parse(data[0].activity_inline_data);
 
-                    newData.form_name =  data[0].form_name || newData.form_name;
+                    newData.form_name = data[0].form_name || newData.form_name;
                 }
-                forEachAsync(retrievedInlineData, (next, row)=>{
-                   if(Number(row.field_id) === Number(newData.field_id)) {
-                       oldFieldValue = row.field_value;
-                       row.field_value = newData.field_value;
-                       newData.field_name = row.field_name;
-                       cnt++;
-                   }
-                   next();
-                }).then(()=>{
-                    
-                    if(cnt == 0) {
+                forEachAsync(retrievedInlineData, (next, row) => {
+                    if (Number(row.field_id) === Number(newData.field_id)) {
+                        oldFieldValue = row.field_value;
+                        row.field_value = newData.field_value;
+                        newData.field_name = row.field_name;
+                        cnt++;
+                    }
+                    next();
+                }).then(() => {
+
+                    if (cnt == 0) {
                         newData.update_sequence_id = 1;
                         retrievedInlineData.push(newData);
                         oldFieldValue = newData.field_value;
                         // newData.field_name = row.field_name;
                     }
-                    
+
                     request.activity_inline_data = JSON.stringify(retrievedInlineData);
 
                     let content = '';
@@ -496,7 +500,7 @@ function FormConfigService(objCollection) {
                     } else {
                         content = `In the ${newData.form_name}, the field ${newData.field_name} was updated from ${oldFieldValue} to ${newFieldValue}`
                     }
-                    
+
                     let activityTimelineCollection = {
                         form_submitted: retrievedInlineData,
                         subject: `Field Updated for ${newData.form_name}`,
@@ -575,7 +579,7 @@ function FormConfigService(objCollection) {
                             };
 
                             // console.log("[regenerateAndSubmitCAF] Calling regenerateAndSubmitCAF");
-                            
+
                             queueWrapper.raiseActivityEvent(rebuildCafEvent, request.activity_id, (err, resp) => {
                                 if (err) {
                                     global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
@@ -589,7 +593,7 @@ function FormConfigService(objCollection) {
                                     fire713OnNewOrderFileForDedicatedFile(request).then(() => {});
 
                                 }
-                            });                       
+                            });
                         }
 
                         // [Vodafone] New order 713 entry trigger point for non-CAF-impacting forms 
@@ -618,73 +622,73 @@ function FormConfigService(objCollection) {
                             // ...
                             fire713OnNewOrderFileForDedicatedFile(request).then(() => {});
                         }
-                        
-                            //The following piece of code will be executed only if it is CAF Form Edit and 
-                            //the request is not fired internally device_os_id = 7 means internal call
-                            if (Number(request.form_id) === CAF_FORM_ID && Number(request.device_os_id) !== 7) {
-                                global.logger.write('debug', "\x1b[35m [Log] CAF EDIT \x1b[0m",{}, request);
-                                await fetchReferredFormActivityId(request, request.activity_id, newData.form_transaction_id, request.form_id).then((data)=>{
-                                    global.logger.write('debug', "\x1b[35m [Log] DATA \x1b[0m",{}, request);
-                                    global.logger.write('debug', data,{}, request);
-                                    
-                                    if (data.length > 0) {
-                                        newOrderFormActivityId = Number(data[0].activity_id);
 
-                                        let fire713OnNewOrderFileRequest = Object.assign({}, request);
-                                        fire713OnNewOrderFileRequest.activity_id = Number(newOrderFormActivityId);                                        
-                                        fire713OnNewOrderFileRequest.form_transaction_id = newData.form_transaction_id;
-                                        fire713OnNewOrderFileRequest.activity_timeline_collection = request.activity_timeline_collection;
-                                        fire713OnNewOrderFileRequest.activity_stream_type_id = 713;
-                                        fire713OnNewOrderFileRequest.form_id = CAF_FORM_ID;
-                                        fire713OnNewOrderFileRequest.asset_message_counter = 0;
-                                        fire713OnNewOrderFileRequest.message_unique_id = util.getMessageUniqueId(request.asset_id);
-                                        fire713OnNewOrderFileRequest.activity_timeline_text = '';
-                                        fire713OnNewOrderFileRequest.activity_timeline_url = '';
-                                        fire713OnNewOrderFileRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
-                                        fire713OnNewOrderFileRequest.flag_timeline_entry = 1;
-                                        fire713OnNewOrderFileRequest.service_version = '1.0';
-                                        fire713OnNewOrderFileRequest.app_version = '2.8.16';
-                                        fire713OnNewOrderFileRequest.device_os_id = 7;
-                                        fire713OnNewOrderFileRequest.data_activity_id = request.activity_id;
+                        //The following piece of code will be executed only if it is CAF Form Edit and 
+                        //the request is not fired internally device_os_id = 7 means internal call
+                        if (Number(request.form_id) === CAF_FORM_ID && Number(request.device_os_id) !== 7) {
+                            global.logger.write('debug', "\x1b[35m [Log] CAF EDIT \x1b[0m", {}, request);
+                            await fetchReferredFormActivityId(request, request.activity_id, newData.form_transaction_id, request.form_id).then((data) => {
+                                global.logger.write('debug', "\x1b[35m [Log] DATA \x1b[0m", {}, request);
+                                global.logger.write('debug', data, {}, request);
 
-                                        let fire705OnNewOrderFileEvent = {
-                                            name: "addTimelineTransaction",
-                                            service: "activityTimelineService",
-                                            method: "addTimelineTransaction",                                            
-                                            payload: fire713OnNewOrderFileRequest
-                                        };
+                                if (data.length > 0) {
+                                    newOrderFormActivityId = Number(data[0].activity_id);
 
-                                      global.logger.write('debug', "\x1b[35m [Log]  Raising 713 entry onto New Order Form \x1b[0m",{}, request);
-                                      queueWrapper.raiseActivityEvent(fire705OnNewOrderFileEvent, request.activity_id, (err, resp) => {
-                                            if (err) {
-                                                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                                                global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
-                                            } else {
-                                                global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
-                                            }
-                                        });
-                                    } else {
-                                        global.logger.write('debug', "\x1b[35m [Log] Data from this call fetchReferredFormActivityId is empty \x1b[0m",{}, request);
-                                    }
+                                    let fire713OnNewOrderFileRequest = Object.assign({}, request);
+                                    fire713OnNewOrderFileRequest.activity_id = Number(newOrderFormActivityId);
+                                    fire713OnNewOrderFileRequest.form_transaction_id = newData.form_transaction_id;
+                                    fire713OnNewOrderFileRequest.activity_timeline_collection = request.activity_timeline_collection;
+                                    fire713OnNewOrderFileRequest.activity_stream_type_id = 713;
+                                    fire713OnNewOrderFileRequest.form_id = CAF_FORM_ID;
+                                    fire713OnNewOrderFileRequest.asset_message_counter = 0;
+                                    fire713OnNewOrderFileRequest.message_unique_id = util.getMessageUniqueId(request.asset_id);
+                                    fire713OnNewOrderFileRequest.activity_timeline_text = '';
+                                    fire713OnNewOrderFileRequest.activity_timeline_url = '';
+                                    fire713OnNewOrderFileRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+                                    fire713OnNewOrderFileRequest.flag_timeline_entry = 1;
+                                    fire713OnNewOrderFileRequest.service_version = '1.0';
+                                    fire713OnNewOrderFileRequest.app_version = '2.8.16';
+                                    fire713OnNewOrderFileRequest.device_os_id = 7;
+                                    fire713OnNewOrderFileRequest.data_activity_id = request.activity_id;
 
-                                });
-                            }
+                                    let fire705OnNewOrderFileEvent = {
+                                        name: "addTimelineTransaction",
+                                        service: "activityTimelineService",
+                                        method: "addTimelineTransaction",
+                                        payload: fire713OnNewOrderFileRequest
+                                    };
+
+                                    global.logger.write('debug', "\x1b[35m [Log]  Raising 713 entry onto New Order Form \x1b[0m", {}, request);
+                                    queueWrapper.raiseActivityEvent(fire705OnNewOrderFileEvent, request.activity_id, (err, resp) => {
+                                        if (err) {
+                                            global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                                            global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                                        } else {
+                                            global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                                        }
+                                    });
+                                } else {
+                                    global.logger.write('debug', "\x1b[35m [Log] Data from this call fetchReferredFormActivityId is empty \x1b[0m", {}, request);
+                                }
+
+                            });
+                        }
 
                     }).catch((err) => {
                         global.logger.write(err);
                     });
                 });
-                
+
             } else {
                 callback(true, {}, -9998);
             }
-        });     
-        
+        });
+
         callback(false, {}, 200);
     };
-    
+
     function getLatestUpdateSeqId(request) {
-        return new Promise((resolve, reject)=>{
+        return new Promise((resolve, reject) => {
             var paramsArr = new Array(
                 request.form_transaction_id,
                 request.form_id,
@@ -695,16 +699,16 @@ function FormConfigService(objCollection) {
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     //console.log('data from getLatestUpdateSeqId : ', data);
-                    (err === false) ?  resolve(data) : reject();
+                    (err === false) ? resolve(data): reject();
                 });
             }
         });
     };
-    
-    function putLatestUpdateSeqId(request, activityInlineData){
-        return new Promise((resolve, reject)=>{
-            
-            forEachAsync(activityInlineData, (next, row)=>{
+
+    function putLatestUpdateSeqId(request, activityInlineData) {
+        return new Promise((resolve, reject) => {
+
+            forEachAsync(activityInlineData, (next, row) => {
                 var params = new Array(
                     request.form_transaction_id, //0
                     request.form_id, //1
@@ -732,153 +736,152 @@ function FormConfigService(objCollection) {
                     '', //IN p_location_gps_accuracy DOUBLE(16,4)                   23
                     '', //IN p_location_gps_enabled TINYINT(1)                      24
                     '', //IN p_location_address VARCHAR(300)                        25
-                    '',  //IN p_location_datetime DATETIME                          26                    
-                    );
+                    '', //IN p_location_datetime DATETIME                          26                    
+                );
 
-                    var dataTypeId = Number(row.field_data_type_id);
-                    console.log('dataTypeId : ', dataTypeId);
-                    switch (dataTypeId) {
-                        case 1:     // Date
-                        case 2:     // future Date
-                        case 3:     // past Date
-                            params[9] = row.field_value;
-                            break;
-                        case 4:     // Date and time
-                            params[10] = row.field_value;
-                            break;
-                        case 5:     //Number
-                            //params[12] = row.field_value;
-                            params[13] = row.field_value;
-                            break;
-                        case 6:     //Decimal
-                            //params[13] = row.field_value;
-                            params[14] = row.field_value;
-                            break;
-                        case 7:     //Scale (0 to 100)
-                        case 8:     //Scale (0 to 5)
-                            params[11] = row.field_value;
-                            break;
-                        case 9:     // Reference - Organization
-                        case 10:    // Reference - Building
-                        case 11:    // Reference - Floor
-                        case 12:    // Reference - Person
-                        case 13:    // Reference - Vehicle
-                        case 14:    // Reference - Room
-                        case 15:    // Reference - Desk
-                        case 16:    // Reference - Assistant
-                            //params[12] = row.field_value;
-                            params[13] = row.field_value;
-                            break;
-                        case 50:    // Reference - File
-                            params[13] = Number(JSON.parse(row.field_value).activity_id); // p_entity_bigint_1
-                            params[18] = row.field_value; // p_entity_text_1
-                            break;
-                        case 17:    //Location
-                            var location = row.field_value.split('|');
-                            params[16] = location[0];
-                            params[17] = location[1];
-                            break;
-                        case 18:    //Money with currency name
-                            var money = row.field_value.split('|');
-                            params[15] = money[0];
-                            params[18] = money[1];
-                            break;
-                        case 19:    //Short Text
-                            params[18] = request.new_field_value;
-                            break;
-                        case 20:    //Long Text
-                            params[19] = row.field_value;
-                            break;
-                        case 21:    //Label
-                            params[18] = row.field_value;
-                            break;
-                        case 22:    //Email ID
-                            params[18] = row.field_value;
-                            break;
-                        case 23:    //Phone Number with Country Code
-                            var phone = row.field_value.split('|');
-                            params[13] = phone[0];  //country code
-                            params[18] = phone[1];  //phone number
-                            break;
-                        case 24:    //Gallery Image
-                        case 25:    //Camera Front Image
-                        case 26:    //Video Attachment
-                            params[18] = row.field_value;
-                            break;
-                        case 27:    //General Signature with asset reference
-                        case 28:    //General Picnature with asset reference
-                            var signatureData = row.field_value.split('|');
-                            params[18] = signatureData[0];  //image path
-                            params[13] = signatureData[1];  // asset reference
-                            params[11] = signatureData[1];  // accepted /rejected flag
-                            break;
-                        case 29:    //Coworker Signature with asset reference
-                        case 30:    //Coworker Picnature with asset reference
-                            approvalFields.push(row.field_id);
-                            var signatureData = row.field_value.split('|');
-                            params[18] = signatureData[0];  //image path
-                            params[13] = signatureData[1];  // asset reference
-                            params[11] = signatureData[1];  // accepted /rejected flag
-                            break;
-                        case 31:    //Cloud Document Link
-                            params[18] = row.field_value;
-                            break;
-                        case 32:    // PDF Document
-                        case 51:    // PDF Scan
-                            params[18] = row.field_value;
-                            break;
-                        case 33:    //Single Selection List
-                            params[18] = row.field_value;
-                            break;
-                        case 34:    //Multi Selection List
-                            params[18] = row.field_value;
-                            break;
-                        case 35:    //QR Code
-                        case 36:    //Barcode
-                            params[18] = row.field_value;
-                            break;
-                        case 38:    //Audio Attachment
-                            params[18] = row.field_value;
-                            break;
-                        case 39:    //Flag
-                            params[11] = row.field_value;
-                    }
-                    ;
+                var dataTypeId = Number(row.field_data_type_id);
+                console.log('dataTypeId : ', dataTypeId);
+                switch (dataTypeId) {
+                    case 1: // Date
+                    case 2: // future Date
+                    case 3: // past Date
+                        params[9] = row.field_value;
+                        break;
+                    case 4: // Date and time
+                        params[10] = row.field_value;
+                        break;
+                    case 5: //Number
+                        //params[12] = row.field_value;
+                        params[13] = row.field_value;
+                        break;
+                    case 6: //Decimal
+                        //params[13] = row.field_value;
+                        params[14] = row.field_value;
+                        break;
+                    case 7: //Scale (0 to 100)
+                    case 8: //Scale (0 to 5)
+                        params[11] = row.field_value;
+                        break;
+                    case 9: // Reference - Organization
+                    case 10: // Reference - Building
+                    case 11: // Reference - Floor
+                    case 12: // Reference - Person
+                    case 13: // Reference - Vehicle
+                    case 14: // Reference - Room
+                    case 15: // Reference - Desk
+                    case 16: // Reference - Assistant
+                        //params[12] = row.field_value;
+                        params[13] = row.field_value;
+                        break;
+                    case 50: // Reference - File
+                        params[13] = Number(JSON.parse(row.field_value).activity_id); // p_entity_bigint_1
+                        params[18] = row.field_value; // p_entity_text_1
+                        break;
+                    case 17: //Location
+                        var location = row.field_value.split('|');
+                        params[16] = location[0];
+                        params[17] = location[1];
+                        break;
+                    case 18: //Money with currency name
+                        var money = row.field_value.split('|');
+                        params[15] = money[0];
+                        params[18] = money[1];
+                        break;
+                    case 19: //Short Text
+                        params[18] = request.new_field_value;
+                        break;
+                    case 20: //Long Text
+                        params[19] = row.field_value;
+                        break;
+                    case 21: //Label
+                        params[18] = row.field_value;
+                        break;
+                    case 22: //Email ID
+                        params[18] = row.field_value;
+                        break;
+                    case 23: //Phone Number with Country Code
+                        var phone = row.field_value.split('|');
+                        params[13] = phone[0]; //country code
+                        params[18] = phone[1]; //phone number
+                        break;
+                    case 24: //Gallery Image
+                    case 25: //Camera Front Image
+                    case 26: //Video Attachment
+                        params[18] = row.field_value;
+                        break;
+                    case 27: //General Signature with asset reference
+                    case 28: //General Picnature with asset reference
+                        var signatureData = row.field_value.split('|');
+                        params[18] = signatureData[0]; //image path
+                        params[13] = signatureData[1]; // asset reference
+                        params[11] = signatureData[1]; // accepted /rejected flag
+                        break;
+                    case 29: //Coworker Signature with asset reference
+                    case 30: //Coworker Picnature with asset reference
+                        approvalFields.push(row.field_id);
+                        var signatureData = row.field_value.split('|');
+                        params[18] = signatureData[0]; //image path
+                        params[13] = signatureData[1]; // asset reference
+                        params[11] = signatureData[1]; // accepted /rejected flag
+                        break;
+                    case 31: //Cloud Document Link
+                        params[18] = row.field_value;
+                        break;
+                    case 32: // PDF Document
+                    case 51: // PDF Scan
+                        params[18] = row.field_value;
+                        break;
+                    case 33: //Single Selection List
+                        params[18] = row.field_value;
+                        break;
+                    case 34: //Multi Selection List
+                        params[18] = row.field_value;
+                        break;
+                    case 35: //QR Code
+                    case 36: //Barcode
+                        params[18] = row.field_value;
+                        break;
+                    case 38: //Audio Attachment
+                        params[18] = row.field_value;
+                        break;
+                    case 39: //Flag
+                        params[11] = row.field_value;
+                };
 
-                    params.push('');                                                    //IN p_device_manufacturer_name VARCHAR(50)
-                    params.push('');                                                    // IN p_device_model_name VARCHAR(50)
-                    params.push(request.device_os_id);                                  // IN p_device_os_id TINYINT(4)
-                    params.push('');                                                    // IN p_device_os_name VARCHAR(50),
-                    params.push('');                                                    // IN p_device_os_version VARCHAR(50)
-                    params.push(request.app_version);                                   // IIN p_device_app_version VARCHAR(50)
-                    params.push(request.api_version);                                   // IN p_device_api_version VARCHAR(50)
-                    params.push(request.asset_id);                                      // IN p_log_asset_id BIGINT(20)
-                    params.push(request.message_unique_id);                             // IN p_log_message_unique_id VARCHAR(50)
-                    params.push(request.flag_retry || 0);                               // IN p_log_retry TINYINT(1)
-                    params.push(request.flag_offline || 0);                             // IN p_log_offline TINYINT(1)
-                    params.push(request.datetime_log);                                  // IN p_transaction_datetime DATETIME
-                    params.push(request.datetime_log);                                  // IN p_log_datetime DATETIME
-                    params.push(request.datetime_log);                                  // IN p_entity_datetime_2 DATETIME            
-                    params.push(request.update_sequence_id);            
+                params.push(''); //IN p_device_manufacturer_name VARCHAR(50)
+                params.push(''); // IN p_device_model_name VARCHAR(50)
+                params.push(request.device_os_id); // IN p_device_os_id TINYINT(4)
+                params.push(''); // IN p_device_os_name VARCHAR(50),
+                params.push(''); // IN p_device_os_version VARCHAR(50)
+                params.push(request.app_version); // IIN p_device_app_version VARCHAR(50)
+                params.push(request.api_version); // IN p_device_api_version VARCHAR(50)
+                params.push(request.asset_id); // IN p_log_asset_id BIGINT(20)
+                params.push(request.message_unique_id); // IN p_log_message_unique_id VARCHAR(50)
+                params.push(request.flag_retry || 0); // IN p_log_retry TINYINT(1)
+                params.push(request.flag_offline || 0); // IN p_log_offline TINYINT(1)
+                params.push(request.datetime_log); // IN p_transaction_datetime DATETIME
+                params.push(request.datetime_log); // IN p_log_datetime DATETIME
+                params.push(request.datetime_log); // IN p_entity_datetime_2 DATETIME            
+                params.push(request.update_sequence_id);
 
-                    global.logger.write('debug', '\x1b[32m addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
-                    
-                    queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
-                    if (queryString != '') {
-                        db.executeQuery(0, queryString, request, function (err, data) {                    
-                            next();
-                            //(err === false) ?  resolve() : reject();
-                        });
-                    }
-                })  .then(()=>{               
-                        resolve();
-                     });
-            });  
+                global.logger.write('debug', '\x1b[32m addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
+
+                queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
+                if (queryString != '') {
+                    db.executeQuery(0, queryString, request, function (err, data) {
+                        next();
+                        //(err === false) ?  resolve() : reject();
+                    });
+                }
+            }).then(() => {
+                resolve();
+            });
+        });
     };
 
-    
-    this.getFormFieldComboValues = function(request){
-        return new Promise((resolve, reject)=>{
+
+    this.getFormFieldComboValues = function (request) {
+        return new Promise((resolve, reject) => {
             var queryString = '';
 
             var paramsArr = new Array(
@@ -894,18 +897,18 @@ function FormConfigService(objCollection) {
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     if (err === false) {
-                       resolve(data);
-                    } else {                    
-                       reject(err);
+                        resolve(data);
+                    } else {
+                        reject(err);
                     }
                 });
             }
-            
+
         })
     };
-    
+
     function fetchReferredFormActivityId(request, activityId, formTransactionId, formId) {
-        return new Promise((resolve, reject) => {            
+        return new Promise((resolve, reject) => {
             // IN p_limit_value smallint(6)
             let paramsArr = new Array(
                 request.organization_id,
@@ -968,9 +971,9 @@ function FormConfigService(objCollection) {
                             reject(err);
 
                         } else {
-                            
+
                             global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
-                            
+
                             resolve();
                         }
                     });
@@ -1516,7 +1519,7 @@ function FormConfigService(objCollection) {
     }
 
     this.workflowEngine = async function (request) {
-        
+
         let workflowActivityId = request.workflow_activity_id || 0;
 
         request.form_id = Number(request.activity_form_id);
@@ -1640,7 +1643,7 @@ function FormConfigService(objCollection) {
             formWorkflowActivityTypeId = 0,
             botId = 0,
             copyFormFieldOperation = {};
-        
+
         // Get the corresponding workflow's activity_id
         const [workflowError, workflowData] = await fetchReferredFormActivityId(request, request.activity_id, request.form_transaction_id, request.form_id);
         if (workflowError !== false || workflowData.length === 0) {
@@ -1808,7 +1811,7 @@ function FormConfigService(objCollection) {
 
         return [error, formData];
     }
-    
+
 };
 
 module.exports = FormConfigService;
