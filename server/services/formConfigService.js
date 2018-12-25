@@ -16,6 +16,9 @@ function FormConfigService(objCollection) {
     const ActivityTimelineService = require('../services/activityTimelineService');
     const activityTimelineService = new ActivityTimelineService(objCollection);
     
+    const BotService = require('../botEngine/services/botService');
+    const botService = new BotService(objCollection);
+
     const cacheWrapper = objCollection.cacheWrapper;
     const moment = require('moment');
     const nodeUtil = require('util');
@@ -1609,6 +1612,188 @@ function FormConfigService(objCollection) {
             request.form_id
         );
         const queryString = util.getQueryString('ds_p1_workforce_form_mapping_select', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    formData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, formData];
+    }
+
+    this.workflowOnFormEdit = async function (request) {
+
+        // Fetch form's config data
+        request.page_start = 0;
+        const [formConfigError, formConfigData] = await workforceFormMappingSelect(request);
+        if (formConfigError !== false) {
+            return [formConfigError, formConfigData];
+        }
+
+        let workflowActivityId = 0,
+            formWorkflowActivityTypeId = 0,
+            botId = 0,
+            copyFormFieldOperation = {};
+        
+        // Get the corresponding workflow's activity_id
+        const [workflowError, workflowData] = await fetchReferredFormActivityId(request, request.activity_id, request.form_transaction_id, request.form_id);
+        if (workflowError !== false || workflowData.length === 0) {
+            return [workflowError, workflowData];
+        }
+        workflowActivityId = Number(workflowData[0].activity_id);
+        console.log("workflowActivityId: ", workflowActivityId);
+
+
+        if (Number(formConfigData.length) > 0) {
+
+            formWorkflowActivityTypeId = formConfigData[0].form_workflow_activity_type_id;
+            console.log("formWorkflowActivityTypeId: ", formWorkflowActivityTypeId);
+
+            try {
+                let newRequest = Object.assign({}, request);
+                newRequest.flag = 2;
+                newRequest.activity_type_id = formWorkflowActivityTypeId;
+                newRequest.account_id = 0;
+                newRequest.workforce_id = 0;
+                let result = await botService.getBotsMappedToActType(newRequest);
+                if (result.length > 0) {
+                    botId = result[0].bot_id;
+                }
+                // return [false, {
+                //     result
+                // }];
+            } catch (error) {
+                return [error, {
+                    result: []
+                }];
+            }
+        }
+
+        if (botId > 0) {
+            try {
+                let newRequest = Object.assign({}, request);
+                newRequest.bot_id = botId;
+                newRequest.activity_type_id = formWorkflowActivityTypeId;
+                result = await botService.getBotworkflowSteps(newRequest);
+                if (result.length > 0) {
+                    result.forEach(botOperation => {
+                        console.log("botOperation.bot_operation_type_id: ", Number(botOperation.bot_operation_type_id))
+                        if (Number(botOperation.bot_operation_type_id) === 3) {
+                            copyFormFieldOperation = botOperation;
+                        }
+                    });
+                }
+                // return [false, {
+                //     result
+                // }];
+            } catch (error) {
+                return [error, {
+                    result: []
+                }];
+            }
+        }
+
+        let targetFormActivityId = 0,
+            targetFormTransactionId = 0,
+            targetFormName,
+            targetFormInlineData = {},
+            targetFormSubmittedData = [];
+        if (Object.keys(copyFormFieldOperation).length > 0) {
+            // console.log("copyFormFieldOperation: ", copyFormFieldOperation)
+            let botOperationInlineData = JSON.parse(copyFormFieldOperation.bot_operation_inline_data);
+            let formFieldMapping = botOperationInlineData.bot_operations.form_field_copy;
+
+            console.log("formFieldMapping: ", formFieldMapping)
+            if (formFieldMapping.length > 0) {
+                for (const mapping of formFieldMapping) {
+                    if (
+                        Number(mapping.source_form_id) === Number(request.form_id) &&
+                        Number(mapping.source_field_id) === Number(request.field_id)
+                    ) {
+                        console.log("Match Found: ", mapping);
+                        await activityCommonService
+                            .getActivityTimelineTransactionByFormId713(request, workflowActivityId, mapping.target_form_id)
+                            .then((targetFormData) => {
+                                if (targetFormData.length > 0) {
+                                    // targetFormActivityId = Number(targetFormData[0].data_activity_id);
+                                    targetFormActivityId = 152002;
+                                    targetFormTransactionId = Number(targetFormData[0].data_form_transaction_id);
+                                    targetFormInlineData = JSON.parse(targetFormData[0].data_entity_inline);
+                                    targetFormName = targetFormData[0].data_form_name;
+                                }
+                            })
+
+                        // 
+                        if (Array.isArray(targetFormInlineData.form_submitted) === true || typeof targetFormInlineData.form_submitted === 'object') {
+                            targetFormSubmittedData = targetFormInlineData.form_submitted;
+                        } else {
+                            targetFormSubmittedData = JSON.parse(targetFormInlineData.form_submitted);
+                        }
+
+                        let newActivityInlineData = JSON.parse(request.activity_inline_data);
+                        newActivityInlineData[0].form_id = Number(mapping.target_form_id);
+                        newActivityInlineData[0].form_name = targetFormName;
+                        newActivityInlineData[0].field_id = Number(mapping.target_field_id);
+                        newActivityInlineData[0].form_transaction_id = targetFormTransactionId;
+
+                        let fieldAlterRequest = Object.assign({}, request);
+                        fieldAlterRequest.activity_id = targetFormActivityId;
+                        fieldAlterRequest.form_id = Number(mapping.target_form_id);
+                        fieldAlterRequest.form_transaction_id = targetFormTransactionId;
+                        fieldAlterRequest.field_id = Number(mapping.target_field_id);
+                        fieldAlterRequest.activity_inline_data = JSON.stringify(newActivityInlineData);
+                        fieldAlterRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+                        fieldAlterRequest.device_os_id = 7;
+
+                        const alterFormActivityAsync = nodeUtil.promisify(this.alterFormActivity);
+                        await alterFormActivityAsync(fieldAlterRequest);
+                    }
+                }
+            }
+
+        }
+
+        console.log()
+        console.log()
+        console.log()
+        console.log("targetFormActivityId: ", targetFormActivityId)
+        console.log("targetFormTransactionId: ", targetFormTransactionId)
+        // console.log("targetFormInlineData: ", targetFormInlineData)
+        console.log("targetFormSubmittedData: ", targetFormSubmittedData)
+        console.log("targetFormName: ", targetFormName)
+
+        return [formConfigError, {
+            formConfigData
+        }];
+
+
+    }
+
+    async function fetchReferredFormActivityId(request, activityId, formTransactionId, formId) {
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
+        // IN p_activity_id BIGINT(20), IN p_form_id BIGINT(20), 
+        // IN p_form_transaction_id BIGINT(20), IN p_start_from SMALLINT(6), 
+        // IN p_limit_value smallint(6)
+
+        let formData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            activityId,
+            formId,
+            formTransactionId,
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+        const queryString = util.getQueryString('ds_p1_activity_timeline_transaction_select_refered_activity', paramsArr);
         if (queryString !== '') {
 
             await db.executeQueryPromise(0, queryString, request)
