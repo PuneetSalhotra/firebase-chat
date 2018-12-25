@@ -2059,6 +2059,33 @@ function ActivityListingService(objCollection) {
         });        
     };
     
+    this.getEntityQueueMapping = function (request) {
+		return new Promise((resolve, reject)=>{
+	        var paramsArr = new Array(
+	        		request.organization_id,
+	        		request.account_id,
+	        		request.workforce_id,
+	        		request.activity_type_id,
+	        		2,
+	        		request.page_start,
+	        		util.replaceQueryLimit(request.page_limit)
+	                );
+	
+	        var queryString = util.getQueryString('ds_p1_1_queue_list_select', paramsArr);
+	        if (queryString != '') {
+	            db.executeQuery(1, queryString, request, function (err, data) {
+	            	//console.log("err "+err);
+	               if(err === false) {
+	               		console.log('data: '+data.length);
+	               		resolve(data);        				        			      			  
+	                } else {
+	                   reject(err);
+	               }
+	            });
+	   		}
+		});
+    };
+    
 };
 
 module.exports = ActivityListingService;
