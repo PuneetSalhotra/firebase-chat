@@ -22,6 +22,7 @@ function FormConfigService(objCollection) {
     const cacheWrapper = objCollection.cacheWrapper;
     const moment = require('moment');
     const nodeUtil = require('util');
+    const self = this;
 
     console.log("[FormConfigService] Object.keys(objCollection): ", Object.keys(objCollection))
 
@@ -546,6 +547,21 @@ function FormConfigService(objCollection) {
                         }).catch((err) => {
                             global.logger.write(err);
                         });
+
+                        // Workflow trigger on form edit
+                        const [formConfigError, formConfigData] = await workforceFormMappingSelect(request);
+                        if (formConfigError !== false) {
+                            // return [formConfigError, formConfigData];
+                            console.log("Error: ", formConfigError)
+                        
+                        } else if (Number(formConfigData.length) > 0 && Number(formConfigData[0].form_flag_workflow_enabled) === 1) {
+                            let workflowRequest = Object.assign({}, request);
+                            try {
+                                self.workflowOnFormEdit(workflowRequest)
+                            } catch (error) {
+                                console.log("[alterFormActivity] Workflow trigger on form edit: ", error)
+                            }
+                        }
 
                         // [Vodafone] Update/Regenerate CAF when any of New Order Form, Order supplementary form, 
                         // CRM Form, FR Form, HLD Form is edited
@@ -1637,6 +1653,9 @@ function FormConfigService(objCollection) {
         const [formConfigError, formConfigData] = await workforceFormMappingSelect(request);
         if (formConfigError !== false) {
             return [formConfigError, formConfigData];
+
+        } else if (Number(formConfigData.length) === 0 || Number(formConfigData[0].form_flag_workflow_enabled) !== 1) {
+            return [new Error("formConfigData Not Found Error"), formConfigData];
         }
 
         let workflowActivityId = 0,
@@ -1651,6 +1670,21 @@ function FormConfigService(objCollection) {
         }
         workflowActivityId = Number(workflowData[0].activity_id);
         console.log("workflowActivityId: ", workflowActivityId);
+        
+        // Make a 713 timeline transaction entry in the workflow file
+        let workflowFile713Request = Object.assign({}, request);
+        workflowFile713Request.activity_id = workflowActivityId;
+        workflowFile713Request.data_activity_id = Number(request.activity_id);
+        workflowFile713Request.form_transaction_id = Number(request.form_transaction_id);
+        workflowFile713Request.activity_type_category_id = 48;
+        workflowFile713Request.activity_stream_type_id = 713;
+        workflowFile713Request.flag_timeline_entry = 1;
+        workflowFile713Request.message_unique_id = util.getMessageUniqueId(request.asset_id);
+        workflowFile713Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+        workflowFile713Request.device_os_id = 8;
+
+        const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
+        await addTimelineTransactionAsync(workflowFile713Request);
 
 
         if (Number(formConfigData.length) > 0) {
@@ -1724,8 +1758,8 @@ function FormConfigService(objCollection) {
                             .getActivityTimelineTransactionByFormId713(request, workflowActivityId, mapping.target_form_id)
                             .then((targetFormData) => {
                                 if (targetFormData.length > 0) {
-                                    // targetFormActivityId = Number(targetFormData[0].data_activity_id);
-                                    targetFormActivityId = 152002;
+                                    targetFormActivityId = Number(targetFormData[0].data_activity_id);
+                                    // targetFormActivityId = 152002;
                                     targetFormTransactionId = Number(targetFormData[0].data_form_transaction_id);
                                     targetFormInlineData = JSON.parse(targetFormData[0].data_entity_inline);
                                     targetFormName = targetFormData[0].data_form_name;
@@ -1754,7 +1788,7 @@ function FormConfigService(objCollection) {
                         fieldAlterRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
                         fieldAlterRequest.device_os_id = 7;
 
-                        const alterFormActivityAsync = nodeUtil.promisify(this.alterFormActivity);
+                        const alterFormActivityAsync = nodeUtil.promisify(self.alterFormActivity);
                         await alterFormActivityAsync(fieldAlterRequest);
                     }
                 }
