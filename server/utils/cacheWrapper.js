@@ -107,6 +107,24 @@ function CacheWrapper(client) {
         });
     };
 
+    this.getActivityIdAsync = function () {
+        return new Promise((resolve, reject) => {
+            const reqBodyObject = {
+                module: 'activity'
+            };
+            client.incr('activity_id', function (err, id) {
+                if (err) {
+                    console.log(err);
+                    global.logger.write('cacheResponse', `INCR activity_id`, err, reqBodyObject);
+                    reject(err)
+                }
+                reqBodyObject.activity_id = id;
+                global.logger.write('cacheResponse', `INCR activity_id`, id, reqBodyObject);
+                resolve(id)
+            });
+        });
+    };
+
     this.getFormTransactionId = function (callback) {
 
         const reqBodyObject = {
