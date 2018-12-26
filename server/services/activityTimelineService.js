@@ -378,6 +378,11 @@ function ActivityTimelineService(objectCollection) {
         });
     };
     
+    //To update the workflow percentage
+    this.workflowPercentageUpdate = async function(request) {
+        return await updateCAFPercentage(request);
+    };
+    
     function updateCAFPercentage(request) {
         return new Promise((resolve, reject)=>{
             
@@ -418,7 +423,7 @@ function ActivityTimelineService(objectCollection) {
                 // case global.vodafoneConfig[newrequest.organization_id].FORM_ID.CAF:
                 //     cafCompletionPercentage = 45;
                 //     break;
-                default: cafCompletionPercentage = 0;
+                default: cafCompletionPercentage = newrequest.workflow_completion_percentage || 0;
             }
             
             console.log('cafCompletionPercentage : ', cafCompletionPercentage);

@@ -34,7 +34,36 @@ function BotController(objCollection) {
         } catch(err) {
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
-    });    
+    });
+
+
+    //Initiate the Bot Engine
+    app.post('/' + global.config.version + '/engine/bot/init', async (req, res) => {
+
+        try {
+            JSON.parse(req.body.inline_data);
+        } catch(exception ) {
+            res.send(responseWrapper.getResponse(false, {data: "Invalid Json format"}, -3308,req.body));
+            return;
+        }
+
+        try {
+            let result = await botService.initBotEngine(req.body);
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch(err) {
+            console.log(err);
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+
+    /*app.post('/' + global.config.version + '/account/nani/kalyan', async (req, res) => {
+        try {
+            let result = await botService.nanikalyan(req.body);
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch(err) {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });*/
     
 };
 
