@@ -68,6 +68,55 @@ function ActivityConfigController(objCollection) {
         });
 
     });
+    
+    app.post('/' + global.config.version + '/activity_type/add', function (req, res) {
+    	activityConfigService.workForceActivityTypeInsert(req.body).then((data)=>{    		
+    		res.send(responseWrapper.getResponse(data, {}, 200, req.body));    	
+    	}).catch((err) => {        	
+        	res.send(responseWrapper.getResponse(err, {}, -999, req.body));
+        });    		
+    });
+    
+    app.put('/' + global.config.version + '/activity_type/alter', function (req, res) {
+    	activityConfigService.workForceActivityTypeUpdate(req.body).then((data)=>{    		
+    		res.send(responseWrapper.getResponse(data, {}, 200, req.body));    	
+    	}).catch((err) => {        	
+        	res.send(responseWrapper.getResponse(err, {}, -999, req.body));
+        });    		
+    });
+    
+    app.put('/' + global.config.version + '/activity_type/archive', function (req, res) {
+    	activityConfigService.workForceActivityTypeDelete(req.body).then((data)=>{    		
+    		res.send(responseWrapper.getResponse(data, {}, 200, req.body));    	
+    	}).catch((err) => {        	
+        	res.send(responseWrapper.getResponse(err, {}, -999, req.body));
+        });    		
+    });
+    
+    app.post('/' + global.config.version + '/activity_type/access/list', function (req, res) {
+    	activityConfigService.getAccessLevelActivityTypeList(req.body).then((data)=>{    
+    		console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));    	
+    	}).catch((err) => {        	
+        	res.send(responseWrapper.getResponse(err, {}, -999, req.body));
+        });    		
+    });
+    
+    app.post('/' + global.config.version + '/activity_status/mapping/activity_type/list', function (req, res) {
+    	activityConfigService.getEntityActivityStatusList(req.body).then((data)=>{    		
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));     	
+    	}).catch((err) => {        	
+        	res.send(responseWrapper.getResponse(err, {}, -999, req.body));
+        });    		
+    });
+    
+    app.post('/' + global.config.version + '/activtity_type/communication/list', function (req, res) {
+    	activityConfigService.getCommunicationList(req.body).then((data)=>{    		
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));     	
+    	}).catch((err) => {        	
+        	res.send(responseWrapper.getResponse(err, {}, -999, req.body));
+        });    		
+    });
 }
 
 

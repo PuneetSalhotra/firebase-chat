@@ -61,7 +61,7 @@ function VodafoneController(objCollection) {
     });
     
     
-    app.post('/' + global.config.version + '/vodafone/fr/pull', function (req, res) {
+    /*app.post('/' + global.config.version + '/vodafone/fr/pull', function (req, res) {
     	vodafoneService.fetchVodafoneFRPull(req.body,0).then((data)=>{   
     		//console.log(data);
     		res.send(responseWrapper.getResponse({}, data, 200, req.body));
@@ -69,7 +69,7 @@ function VodafoneController(objCollection) {
     		data = {};
     		res.send(responseWrapper.getResponse(err, data, -999, req.body));
         	});
-    });
+    });*/
     
     //BOT 2
     app.post('/' + global.config.version + '/vodafone/caf_form/add', function (req, res) {
@@ -94,7 +94,7 @@ function VodafoneController(objCollection) {
     });
         
     //BOT 
-    app.post('/' + global.config.version + '/vodafone/feasibility_checker/update', function (req, res) {
+    /*app.post('/' + global.config.version + '/vodafone/feasibility_checker/update', function (req, res) {
         req.body.message_unique_id = util.getMessageUniqueId(req.body.asset_id);
         var event = {
             name: "vodafone",
@@ -112,7 +112,7 @@ function VodafoneController(objCollection) {
                 res.send(responseWrapper.getResponse(false, {}, 200, req.body));
             }                            
         });        
-    }); 
+    });*/ 
     
     //BOT 4
     app.post('/' + global.config.version + '/vodafone/send/email', function (req, res) {        

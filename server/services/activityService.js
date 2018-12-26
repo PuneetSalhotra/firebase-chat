@@ -138,6 +138,9 @@ function ActivityService(objectCollection) {
                             var inlineJson = JSON.parse(request.activity_inline_data);
                             util.pamSendSmsMvaayoo('Dear Sir/Madam, Our executive will contact you soon.', inlineJson.country_code, inlineJson.phone_number, function (err, res) {});
                             break;
+                        case 48: // Workflow
+                            activityStreamTypeId = 701;
+                            break;
                         default:
                             activityStreamTypeId = 1; //by default so that we know
                             //console.log('adding streamtype id 1');
@@ -256,10 +259,30 @@ function ActivityService(objectCollection) {
                             	activityCommonService.processReservationBilling(request, request.activity_parent_id).then(()=>{});
                             }
                             
-                            if (activityTypeCategroyId === 9) {                                
+                            if (activityTypeCategroyId === 9) {
                                 global.logger.write('debug', '*****ADD ACTIVITY :HITTING WIDGET ENGINE*******', {}, request);
                                 sendRequesttoWidgetEngine(request);
-                                }
+                            }
+
+                            // Workflow Trigger
+                            if (activityTypeCategroyId === 9) {
+                                let workflowEngineRequest = Object.assign({}, request)
+
+                                let workflowEngineEvent = {
+                                    name: "workflowEngine",
+                                    service: "formConfigService",
+                                    method: "workflowEngine",
+                                    payload: workflowEngineRequest
+                                };
+
+                                queueWrapper.raiseActivityEvent(workflowEngineEvent, request.activity_id, (err, resp) => {
+                                    if (err) {
+                                        console.log("\x1b[35m [ERROR] Raising queue activity raised for workflow engine. \x1b[0m");
+                                    } else {
+                                        console.log("\x1b[35m Queue activity raised for workflow engine. \x1b[0m");
+                                    }
+                                });
+                            }
                             
                             activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
 

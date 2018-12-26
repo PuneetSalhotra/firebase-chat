@@ -1384,7 +1384,7 @@ function AssetService(objectCollection) {
                     callback(false, true);
                 } else {
                     // some thing is wrong and have to be dealt
-                    callback(err, false);
+                    callback(false, false);
                 }
             });
         }

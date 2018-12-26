@@ -104,13 +104,13 @@ var Consumer = function () {
                     activityCommonService.partitionOffsetInsert(request, (err, data) => {});
                     
                     consumingMsg(message, kafkaMsgId, objCollection).then(() => {                        
-                        /*if(Number(request.pubnub_push) === 1) {
+                        if(Number(request.pubnub_push) === 1) {
                             pubnubWrapper.publish(kafkaMsgId, {"status": 200});
-                        }*/                       
+                        }
                     }).catch((err)=>{
-                        /*if(Number(request.pubnub_push) === 1) {
+                        if(Number(request.pubnub_push) === 1) {
                             pubnubWrapper.publish(kafkaMsgId, {"status": err});
-                        }*/
+                        }
                     });
                     
                 } else {
