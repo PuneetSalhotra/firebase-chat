@@ -283,6 +283,35 @@ function WidgetService(objCollection) {
 	   		}
         });
     };	
+    
+    this.widgetAccessList = function (request) {
+		return new Promise((resolve, reject)=>{
+	        var paramsArr = new Array(
+	                request.organization_id,
+	                request.account_id,
+	                request.workforce_id,
+	                request.asset_id,
+	                request.activity_id,
+	                request.form_id,
+	                request.activity_type_id,
+	                request.access_level_id,
+	                request.page_start,
+                	util.replaceQueryLimit(request.page_limit)
+	                );
+	
+	        var queryString = util.getQueryString('ds_p1_widget_list_select_form_activity_type', paramsArr);
+	        if (queryString != '') {
+	            db.executeQuery(1, queryString, request, function (err, data) {
+	            	//console.log("err "+err);
+	               if(err === false) {
+	        		   resolve(data);
+                    } else {
+	                   reject(err);
+	               }
+	            });
+	   		}
+        });
+    };	
 
 }
 ;

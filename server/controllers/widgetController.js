@@ -89,6 +89,27 @@ function WidgetController(objCollection) {
     		res.send(responseWrapper.getResponse(err, data, -999, req.body));
         });
     });
+    
+    app.post('/' + global.config.version + '/widget/access/list', function (req, res) {
+    	widgetService.widgetAccessList(req.body,0).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        	});
+    	
+    });
+        
+    app.post('/' + global.config.version + '/widget/transaction/collection', function (req, res) {
+    	widgetService.widgetTransactionSelectAll(req.body,0).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        });
+    });
 
 }
 
