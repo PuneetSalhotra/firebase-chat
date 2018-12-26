@@ -904,6 +904,10 @@ function Util() {
 
     // SendInBlue
     this.sendEmailV3 = function (request, email, subject, text, htmlTemplate, callback) {
+        console.log('email : ', email);
+        console.log('subject : ', subject);
+        console.log('text : ', text);
+        
         // SendSmtpEmail | Values to send a transactional email
         var sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
         sendSmtpEmail.to = [{
