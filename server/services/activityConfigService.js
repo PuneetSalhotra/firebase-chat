@@ -299,7 +299,9 @@ function ActivityConfigService(db, util) {
         		request.organization_id,
         		request.account_id,
         		request.workforce_id,
+        		request.activity_type_category_id,
         		request.activity_type_id,
+        		request.flag,
         		request.datetime_log,
         		request.page_start,
         		util.replaceQueryLimit(request.page_limit)
