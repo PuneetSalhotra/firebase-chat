@@ -45,11 +45,11 @@ if (mode === 'local') {
     config.logDatabase = 'worlddesk_log_staging';    
 
     //Redis Config
-    config.redisIp = '127.0.0.1';
-    config.redisPort = 6379;  
+    // config.redisIp = '127.0.0.1';
+    // config.redisPort = 6379;  
     
-    //config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';
-    //config.redisPort = 6379;
+    config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';
+    config.redisPort = 6379;
     
     //IOS Push
     config.iosPushMode = 'dev';
