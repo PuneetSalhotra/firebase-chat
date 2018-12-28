@@ -29,6 +29,7 @@ function BotController(objCollection) {
     //Retrieve the workflow steps of a specific bot
     app.post('/' + global.config.version + '/bot/mapping/workflow_step/list', async (req, res) => {
         try {
+            console.log(req.body);
             let result = await botService.getBotworkflowSteps(req.body);
             res.send(responseWrapper.getResponse(false, result, 200, req.body));
         } catch(err) {
@@ -39,14 +40,6 @@ function BotController(objCollection) {
 
     //Initiate the Bot Engine
     app.post('/' + global.config.version + '/engine/bot/init', async (req, res) => {
-
-        try {
-            JSON.parse(req.body.inline_data);
-        } catch(exception ) {
-            res.send(responseWrapper.getResponse(false, {data: "Invalid Json format"}, -3308,req.body));
-            return;
-        }
-
         try {
             let result = await botService.initBotEngine(req.body);
             res.send(responseWrapper.getResponse(false, result, 200, req.body));
@@ -56,14 +49,14 @@ function BotController(objCollection) {
         }
     });
 
-    /*app.post('/' + global.config.version + '/account/nani/kalyan', async (req, res) => {
+    app.post('/' + global.config.version + '/account/nani/kalyan', async (req, res) => {
         try {
             let result = await botService.nanikalyan(req.body);
             res.send(responseWrapper.getResponse(false, result, 200, req.body));
         } catch(err) {
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
-    });*/
+    });
     
 };
 
