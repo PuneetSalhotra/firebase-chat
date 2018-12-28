@@ -40,7 +40,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                     (err) ? reject(err): resolve(data);
                 });
             }
-        })
+        });
     };
 
     this.getAllParticipantsExceptAsset = function (request, assetId, callback) {
@@ -112,7 +112,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 } else {
                     callback(true, false);
                     //console.log(err);
-                    global.logger.write('serverError', JSON.stringify(err), err, request)
+                    global.logger.write('serverError', JSON.stringify(err), err, request);
                     return;
                 }
             });
@@ -166,7 +166,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 updateActivityLogLastUpdatedDatetimeAsset(request, assetCollection, function (err, data) {
                     if (err !== false) {
                         //console.log(err);
-                        global.logger.write('serverError', '', err, request)
+                        global.logger.write('serverError', '', err, request);
                     }
                 });
             }, this);
@@ -713,7 +713,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             accountId = participantData.account_id;
             workforceId = participantData.workforce_id;
             assetId = participantData.asset_id;
-            messageUniqueId = participantData.message_unique_id
+            messageUniqueId = participantData.message_unique_id;
         }
 
         switch (streamTypeId) {
@@ -729,7 +729,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 break;
             case 309: // activity cover altered
                 entityTypeId = 0;
-                entityText1 = ""
+                entityText1 = "";
                 entityText2 = request.activity_cover_collection;
                 break;
             case 310: // text message     --> File
@@ -864,7 +864,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                     return;
                 } else {
                     callback(err, false);                    
-                    global.logger.write('serverError', JSON.stringify(err), err, request)
+                    global.logger.write('serverError', JSON.stringify(err), err, request);
                     return;
                 }
             });
@@ -934,7 +934,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 break;
             case 309: // activity cover altered
                 entityTypeId = 0;
-                entityText1 = ""
+                entityText1 = "";
                 entityText2 = request.activity_cover_collection;
                 break;
             case 310: // text message     --> File
@@ -942,7 +942,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             case 1307: // text message    --> Visitor Request
             case 1507: // text message    --> Time Card
                 entityTypeId = 0;
-                entityText1 = ""
+                entityText1 = "";
                 entityText2 = JSON.stringify(request.activity_timeline_text);
                 break;
             case 311: // image    --> file
@@ -963,6 +963,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityText2 = request.activity_timeline_collection;
                 activityTimelineCollection = request.activity_timeline_collection || '{}';
                 break;
+            case 714: //Bot Firing External API
             case 705: // form
             case 713: // form field alter
                 entityTypeId = 0;
@@ -1092,7 +1093,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                     return;
                 } else {
                     callback(err, false);                    
-                    global.logger.write('serverError', JSON.stringify(err), err, request)
+                    global.logger.write('serverError', JSON.stringify(err), err, request);
                     return;
                 }
             });
@@ -1105,7 +1106,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         return new Promise((resolve, reject) => {
             self.activityTimelineTransactionInsert(request, participantData, streamTypeId, (err, data) => {
                 (!err) ? resolve(data): reject(err);
-            })
+            });
         });
     };
 
@@ -1336,7 +1337,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 if (err) {
                     //console.log(err);
                     //console.log('error occured');
-                    global.logger.write('serverError', 'error occurred', err, rowData)
+                    global.logger.write('serverError', 'error occurred', err, rowData);
                 }
                 rowDataArr.field_value = fieldValue;
                 responseData.push(rowDataArr);
@@ -1433,8 +1434,8 @@ function ActivityCommonService(db, util, forEachAsync) {
                 fieldValue = util.replaceDefaultNumber(rowData['data_entity_tinyint_1']);
             default:
                 //console.log('came into default for data type id: ' + dataTypeId);
-                global.logger.write('debug', 'asset parity is set successfully', {}, rowData)
-                fieldValue = ''
+                global.logger.write('debug', 'asset parity is set successfully', {}, rowData);
+                fieldValue = '';
                 break;
         };
         //console.log(fieldValue, 'datatype of fieldvalue is '+ typeof fieldValue);
@@ -1552,7 +1553,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                         });
 
                     } else {
-                        callback(false, true, responseArray)
+                        callback(false, true, responseArray);
                     }
                 } else {
                     callback(err, false, -9999);
@@ -1591,7 +1592,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                                 next();
                             }).then(() => {
                                 resolve(response);
-                            })
+                            });
                         } else {
                             resolve([]);
                         }
@@ -1601,7 +1602,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 });
             }
 
-        })
+        });
     }
 
     //PAM
@@ -1623,7 +1624,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                     (err === false) ? resolve(true): reject(err);
                 });
             }
-        })
+        });
     };
 
     //PAM
@@ -1699,7 +1700,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 }
             });
         }
-    }
+    };
 
     //Get total count of desks occupied
     this.getOccupiedDeskCounts = function (request, callback) {
@@ -1877,7 +1878,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 } else {
                     callback(err, false, false);
                     //console.log(err);
-                    global.logger.write('serverError', err, {}, request)
+                    global.logger.write('serverError', err, {}, request);
                     return;
                 }
             });
@@ -1930,7 +1931,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 });
             }
         });
-    }
+    };
 
     this.monthlySummaryInsert = function (request, collection) {
         return new Promise((resolve, reject) => {
@@ -1974,7 +1975,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     if (err === false) {
-                        resolve(data)
+                        resolve(data);
                     } else {
                         reject(err);
                     }
@@ -2125,7 +2126,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 if (err === false) {
                     var participantCount = data[0].participant_count;
                     //console.log('participant count retrieved from query is: ' + participantCount);
-                    global.logger.write('debug', 'participant count retrieved from query is: ' + participantCount, request)
+                    global.logger.write('debug', 'participant count retrieved from query is: ' + participantCount, request);
                     paramsArr = new Array(
                         activityId,
                         organizationId,
@@ -2164,7 +2165,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                             } else {
                                 callback(err, false);
                                 //console.log(err);
-                                global.logger.write('serverError', err, {}, request)
+                                global.logger.write('serverError', err, {}, request);
                                 return;
                             }
                         });
@@ -2172,7 +2173,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', err, {}, request)
+                    global.logger.write('serverError', err, {}, request);
                     return;
                 }
             });
@@ -2365,7 +2366,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     if (err === false) {
-                        resolve(data)
+                        resolve(data);
                     } else {
                         reject(err);
                     }
@@ -2423,7 +2424,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                     if (err === false) {
                         //console.log('DATA : ', data);
                         global.logger.write('debug', 'DATA : ' + JSON.stringify(data, null, 2), {}, request);
-                        resolve(data)
+                        resolve(data);
                     } else {
                         reject(err);
                     }
@@ -2837,7 +2838,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             }
 
         });
-    }
+    };
 
     this.getActivityTimelineTransactionByFormId = function (request, activityId, formId) {
         return new Promise((resolve, reject) => {
@@ -3129,7 +3130,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                     }
                 });
             }
-        })
+        });
     };
 
     this.pamOrderListUpdate = function (request, idOrder) {
@@ -3151,7 +3152,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                     }
                 });
             }
-        })
+        });
     };
 
     // Queue History Insert
@@ -3167,7 +3168,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             if (queryString !== '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err) ? reject(err): resolve(data);
-                })
+                });
             }
         });
     };
@@ -3367,10 +3368,10 @@ function ActivityCommonService(db, util, forEachAsync) {
             if (queryString !== '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err) ? reject(err): resolve(data);
-                })
+                });
             }
         });
-    }
+    };
 };
 
 

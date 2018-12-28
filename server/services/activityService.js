@@ -70,6 +70,7 @@ function ActivityService(objectCollection) {
                         case 8: //  Mail
                             activityStreamTypeId = 1701;
                             break;
+                        case 48:
                         case 9: //form
                             activityStreamTypeId = 701;
                             break;
@@ -744,13 +745,20 @@ function ActivityService(objectCollection) {
     };
     var activityListInsert = function (request, callback) {
         var paramsArr = new Array();
-        var activityInlineData = JSON.parse(request.activity_inline_data);
+        var activityInlineData;
+        
+        try {
+            activityInlineData = JSON.parse(request.activity_inline_data);
+        } catch(err) {            
+            console.log(err);
+        }        
+        
         var activityTypeCategoryId = Number(request.activity_type_category_id);
         var activityChannelId = 0;
         var activityChannelCategoryId = 0;
         var activityStatusId = 0;
         var activityFormId = 0;
-        //var expiryDateTime = "";
+        
         if (request.hasOwnProperty('activity_channel_id'))
             activityChannelId = request.activity_channel_id;
         if (request.hasOwnProperty('activity_channel_category_id'))
@@ -971,6 +979,7 @@ function ActivityService(objectCollection) {
                         activityChannelCategoryId
                     );
                     break;
+                case 48:
                 case 9: // form
                     paramsArr = new Array(
                         request.activity_id,
@@ -2050,7 +2059,12 @@ function ActivityService(objectCollection) {
                 // 
                 // 
                 updateProjectStatusCounts(request).then(() => {});
-                activityPushService.sendPush(request, objectCollection, 0, function () {});
+                try {
+                    activityPushService.sendPush(request, objectCollection, 0, function () {});
+                } catch(err) {
+                    console.log(err);
+                }
+                
  /*               if (activityTypeCategoryId === 9 && activityStatusTypeId === 23) { //form and submitted state                    
                     duplicateFormTransactionData(request, function (err, data) {
                         var widgetEngineQueueMessage = {

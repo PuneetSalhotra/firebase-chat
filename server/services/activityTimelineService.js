@@ -396,7 +396,11 @@ function ActivityTimelineService(objectCollection) {
         return new Promise((resolve, reject)=>{
             
             let newrequest = Object.assign({},request);
-            newrequest.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
+            
+            (Number(request.organization_id) === 860 || Number(request.organization_id) === 858) ?
+                newrequest.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID :
+                newrequest.asset_id = request.asset_id;
+            
             let cafCompletionPercentage;
             
             switch(Number(newrequest.form_id)) {
