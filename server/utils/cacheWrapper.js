@@ -12,10 +12,10 @@ function CacheWrapper(client) {
                 callback(err, false);
             } else {
                 global.logger.write('cacheResponse', `HGET service_map ${url}`, reply, reqBodyObject);
-                callback(false, reply)
+                callback(false, reply);
             }
-        })
-    }
+        });
+    };
 
     this.getTokenAuth = function (assetId, callback) {
         const reqBodyObject = {
@@ -314,7 +314,7 @@ function CacheWrapper(client) {
                 callback(false, reply);
 
             }
-        })
+        });
     };
     
     this.setCSDNumber = function (accountCode, mobileNumber, callback) {

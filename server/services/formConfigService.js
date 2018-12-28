@@ -1050,7 +1050,7 @@ function FormConfigService(objCollection) {
                                 comboEntries = formField.data.values;
 
                             } else if (dataTypeCategoryId === 15) {
-                                comboEntries = formField.values;
+                                comboEntries = formField.data.values;
                             }
 
                             for (const [index, comboEntry] of Array.from(comboEntries).entries()) {
@@ -1301,19 +1301,41 @@ function FormConfigService(objCollection) {
     }
 
     async function workforceFormMappingSelectWorkflowForms(request) {
-        // IN p_organization_id BIGINT(20), IN p_account_id bigint(20), 
-        // IN p_workforce_id bigint(20), IN p_activity_type_id BIGINT(20), 
+        // IN p_flag SMALLINT(6), IN p_organization_id BIGINT(20), IN p_account_id bigint(20), 
+        // IN p_workforce_id bigint(20), IN p_activity_type_id BIGINT(20), IN p_access_level_id SMALLINT(6), 
         // IN p_log_datetime DATETIME, IN p_start_from INT(11), IN p_limit_value TINYINT(4)
+
+        // Access Levels
+        // 1 => Organization
+        // 2 => Account
+        // 3 => WorkForce
+        // 4 => Asset Type Category
+        // 5 => AssetType
+        // 6 => Asset
+        // 7 => Activity Type Category
+        // 8 => Activity Type
+        // 9 => Activity 
+        // 10 => Activity Status Type Category
+        // 11 => Activity Status Type
+        // 12 => Activity Status
+        // 13 => Form Type Category
+        // 14 => Form Type
+        // 15 => Form 
+        // 16 => Data Type Category
+        // 17 => Data Type
+        // 18 => Field
 
         let workflowFormsData = [],
             error = true;
 
         let paramsArr = new Array(
+            request.flag || 0,
             request.organization_id,
             request.account_id,
             request.workforce_id,
             request.activity_type_id || 0,
-            util.getCurrentUTCTime(),
+            request.access_level_id || 0,
+            request.log_datetime || '1970-01-01 00:00:00',
             request.start_from,
             util.replaceQueryLimit(request.limit_value)
         );
@@ -1575,6 +1597,8 @@ function FormConfigService(objCollection) {
                 createWorkflowRequest.activity_type_id = workflowActivityTypeId;
                 createWorkflowRequest.activity_title = workflowActivityTypeName;
                 createWorkflowRequest.activity_description = workflowActivityTypeName;
+                createWorkflowRequest.activity_form_id = Number(request.activity_form_id);
+                createWorkflowRequest.form_transaction_id = Number(request.form_transaction_id);
 
                 const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
                 await addActivityAsync(createWorkflowRequest);
@@ -1661,6 +1685,7 @@ function FormConfigService(objCollection) {
         let workflowActivityId = 0,
             formWorkflowActivityTypeId = 0,
             botId = 0,
+            botOperationId = 0,
             copyFormFieldOperation = {};
 
         // Get the corresponding workflow's activity_id
@@ -1743,54 +1768,76 @@ function FormConfigService(objCollection) {
             targetFormSubmittedData = [];
         if (Object.keys(copyFormFieldOperation).length > 0) {
             // console.log("copyFormFieldOperation: ", copyFormFieldOperation)
+            botOperationId = copyFormFieldOperation.bot_operation_id;
             let botOperationInlineData = JSON.parse(copyFormFieldOperation.bot_operation_inline_data);
             let formFieldMapping = botOperationInlineData.bot_operations.form_field_copy;
 
             console.log("formFieldMapping: ", formFieldMapping)
             if (formFieldMapping.length > 0) {
+                
+                let fieldCopyOperations = [];
                 for (const mapping of formFieldMapping) {
+                    // console.log("[formFieldMapping] mapping: ", mapping)
+                    // console.log(`mapping.source_form_id: ${mapping.source_form_id} | request.form_id: ${request.form_id} | ${Number(mapping.source_form_id) === Number(request.form_id)}`);
+                    // console.log(`mapping.source_field_id: ${mapping.source_field_id} | request.field_id: ${request.field_id} | ${Number(mapping.source_field_id) === Number(request.field_id)}`);
                     if (
                         Number(mapping.source_form_id) === Number(request.form_id) &&
                         Number(mapping.source_field_id) === Number(request.field_id)
                     ) {
                         console.log("Match Found: ", mapping);
-                        await activityCommonService
-                            .getActivityTimelineTransactionByFormId713(request, workflowActivityId, mapping.target_form_id)
-                            .then((targetFormData) => {
-                                if (targetFormData.length > 0) {
-                                    targetFormActivityId = Number(targetFormData[0].data_activity_id);
-                                    // targetFormActivityId = 152002;
-                                    targetFormTransactionId = Number(targetFormData[0].data_form_transaction_id);
-                                    targetFormInlineData = JSON.parse(targetFormData[0].data_entity_inline);
-                                    targetFormName = targetFormData[0].data_form_name;
-                                }
-                            })
+                        fieldCopyOperations.push(mapping);
+                        // await activityCommonService
+                        //     .getActivityTimelineTransactionByFormId713(request, workflowActivityId, mapping.target_form_id)
+                        //     .then((targetFormData) => {
+                        //         if (targetFormData.length > 0) {
+                        //             targetFormActivityId = Number(targetFormData[0].data_activity_id);
+                        //             // targetFormActivityId = 152002;
+                        //             targetFormTransactionId = Number(targetFormData[0].data_form_transaction_id);
+                        //             targetFormInlineData = JSON.parse(targetFormData[0].data_entity_inline);
+                        //             targetFormName = targetFormData[0].data_form_name;
+                        //         }
+                        //     })
 
                         // 
-                        if (Array.isArray(targetFormInlineData.form_submitted) === true || typeof targetFormInlineData.form_submitted === 'object') {
-                            targetFormSubmittedData = targetFormInlineData.form_submitted;
-                        } else {
-                            targetFormSubmittedData = JSON.parse(targetFormInlineData.form_submitted);
-                        }
+                        // if (Array.isArray(targetFormInlineData.form_submitted) === true || typeof targetFormInlineData.form_submitted === 'object') {
+                        //     targetFormSubmittedData = targetFormInlineData.form_submitted;
+                        // } else {
+                        //     targetFormSubmittedData = JSON.parse(targetFormInlineData.form_submitted);
+                        // }
 
-                        let newActivityInlineData = JSON.parse(request.activity_inline_data);
-                        newActivityInlineData[0].form_id = Number(mapping.target_form_id);
-                        newActivityInlineData[0].form_name = targetFormName;
-                        newActivityInlineData[0].field_id = Number(mapping.target_field_id);
-                        newActivityInlineData[0].form_transaction_id = targetFormTransactionId;
+                        // let newActivityInlineData = JSON.parse(request.activity_inline_data);
+                        // newActivityInlineData[0].form_id = Number(mapping.target_form_id);
+                        // newActivityInlineData[0].form_name = targetFormName;
+                        // newActivityInlineData[0].field_id = Number(mapping.target_field_id);
+                        // newActivityInlineData[0].form_transaction_id = targetFormTransactionId;
 
-                        let fieldAlterRequest = Object.assign({}, request);
-                        fieldAlterRequest.activity_id = targetFormActivityId;
-                        fieldAlterRequest.form_id = Number(mapping.target_form_id);
-                        fieldAlterRequest.form_transaction_id = targetFormTransactionId;
-                        fieldAlterRequest.field_id = Number(mapping.target_field_id);
-                        fieldAlterRequest.activity_inline_data = JSON.stringify(newActivityInlineData);
-                        fieldAlterRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
-                        fieldAlterRequest.device_os_id = 7;
+                        // let fieldAlterRequest = Object.assign({}, request);
+                        // fieldAlterRequest.activity_id = targetFormActivityId;
+                        // fieldAlterRequest.form_id = Number(mapping.target_form_id);
+                        // fieldAlterRequest.form_transaction_id = targetFormTransactionId;
+                        // fieldAlterRequest.field_id = Number(mapping.target_field_id);
+                        // fieldAlterRequest.activity_inline_data = JSON.stringify(newActivityInlineData);
+                        // fieldAlterRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+                        // fieldAlterRequest.device_os_id = 7;
 
-                        const alterFormActivityAsync = nodeUtil.promisify(self.alterFormActivity);
-                        await alterFormActivityAsync(fieldAlterRequest);
+                        // const alterFormActivityAsync = nodeUtil.promisify(self.alterFormActivity);
+                        // await alterFormActivityAsync(fieldAlterRequest);
                     }
+                }
+
+                let newRequest = Object.assign({}, request);
+                newRequest.bot_id = botId;
+                newRequest.bot_operation_id = botOperationId;
+                newRequest.inline_data = JSON.stringify({
+                    "bot_operations": {
+                        "form_field_copy": fieldCopyOperations
+                    }
+                });
+                try {
+                    botService.initBotEngine(newRequest);
+                } catch (error) {
+                    global.logger.write('conLog', 'botService.initBotEngine Error!', error, {}); 
+                    console.log("botService.initBotEngine Error!", error)
                 }
             }
 
