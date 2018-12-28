@@ -1147,7 +1147,7 @@ function ActivityService(objectCollection) {
                         request.asset_id,
                         request.datetime_log, // server log date time   
                         activityFormId,
-                        0,
+                        request.form_transaction_id || 0,
                         activityChannelId,
                         activityChannelCategoryId
                     );

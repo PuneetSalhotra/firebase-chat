@@ -629,14 +629,18 @@ function ActivityListingController(objCollection) {
     }); 
     
     
-    app.post('/' + global.config.version + '/activity/form/validation/data', function (req, res) {
-    	activityListingService.getActivityFormFieldValidationData(req.body).then((data)=>{   
-    		
-    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
-    	}).catch((err) => { 
-    		data = {};
-    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
-        	});
+    app.post([('/' + global.config.version + '/activity/form/validation/data'),
+        ('/' + global.config.version + '/form/field/validation/collection')
+    ], function (req, res) {
+
+        activityListingService.getActivityFormFieldValidationData(req.body).then((data) => {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+
+        }).catch((err) => {
+            data = {};
+            res.send(responseWrapper.getResponse(err, data, -999, req.body));
+
+        });
     });
     
     app.post('/' + global.config.version + '/activity/my_queue/list', function (req, res) {

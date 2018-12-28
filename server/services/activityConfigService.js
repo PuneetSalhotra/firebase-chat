@@ -294,12 +294,17 @@ function ActivityConfigService(db, util) {
     };
     
     this.getEntityActivityStatusList = function (request) {
+        // IN p_organization_id bigint(20), IN p_account_id bigint(20), IN p_workforce_id bigint(20), 
+        // IN p_activity_type_category_id SMALLINT(6), IN p_activity_type_id BIGINT(20), IN p_flag TINYINT(4), 
+        // IN p_log_datetime DATETIME, IN p_start_from SMALLINT(6), IN p_limit_value TINYINT(4)
 		return new Promise((resolve, reject)=>{
         var paramsArr = new Array(
         		request.organization_id,
         		request.account_id,
-        		request.workforce_id,
-        		request.activity_type_id,
+                request.workforce_id,
+                request.activity_type_category_id,
+                request.activity_type_id,
+                request.flag,
         		request.datetime_log,
         		request.page_start,
         		util.replaceQueryLimit(request.page_limit)
