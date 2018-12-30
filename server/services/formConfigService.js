@@ -1579,8 +1579,11 @@ function FormConfigService(objCollection) {
             if (isWorkflowEnabled && originFlagSet) {
                 // Fetch the next activity_id to be inserted
                 await cacheWrapper
-                    .getActivityIdAsync()
+                    .getActivityIdPromise()
                     .then((id) => {
+                        if (Number(id) === 0) {
+                            throw new Error("ErrorGettingActivityId")
+                        }
                         activityId = id;
                     })
                     .catch((err) => {
@@ -1828,6 +1831,7 @@ function FormConfigService(objCollection) {
                 let newRequest = Object.assign({}, request);
                 newRequest.bot_id = botId;
                 newRequest.bot_operation_id = botOperationId;
+                newRequest.activity_type_id = formWorkflowActivityTypeId;
                 newRequest.inline_data = JSON.stringify({
                     "bot_operations": {
                         "form_field_copy": fieldCopyOperations

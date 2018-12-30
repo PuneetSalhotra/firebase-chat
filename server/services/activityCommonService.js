@@ -3372,6 +3372,54 @@ function ActivityCommonService(db, util, forEachAsync) {
             }
         });
     };
+
+    this.workforceFormMappingSelect = async function (request) {
+        // IN p_organization_id BIGINT(20), IN p_account_id bigint(20), 
+        // IN p_workforce_id bigint(20), IN p_form_id BIGINT(20)
+
+        let formData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.form_id
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_form_mapping_select', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    formData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, formData];
+    }
+
+    this.getBotsMappedToActType = async (request) => {            
+        let paramsArr = new Array(
+            request.flag || 1, 
+            request.organization_id, 
+            request.account_id, 
+            request.workforce_id, 
+            request.activity_type_id, 
+            request.field_id, 
+            request.form_id, 
+            request.page_start,
+            util.replaceQueryLimit(request.page_limit)
+        );
+        let queryString = util.getQueryString('ds_p1_bot_list_select', paramsArr);
+        if (queryString != '') {                
+            return await (db.executeQueryPromise(1, queryString, request));
+        }
+    };
+    
 };
 
 
