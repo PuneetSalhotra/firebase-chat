@@ -47,7 +47,7 @@ function Logger(queueWrapper) {
         //Logs pushing to Kafka
         switch(level) {
             // eslint-disable-next-line no-console
-            case 'conLog': console.log(object);
+            case 'conLog': console.log(object);                                                  
                             break;
             default: queueWrapper.raiseLogEvent(loggerCollection).then(()=>{});
         }

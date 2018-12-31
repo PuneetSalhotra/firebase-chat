@@ -166,10 +166,8 @@ function ActivityTimelineService(objectCollection) {
 
                         case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Company_Name:
                              newRequest.first_name = formEntry.field_value;
-                             break;                         
-                        case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Company_Name:
                              newRequest.contact_company = formEntry.field_value;
-                             break;                    
+                             break;                        
                         case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Number:                        
                              if(String(formEntry.field_value).includes('||')) {
                                 newRequest.contact_phone_country_code = String(formEntry.field_value).split('||')[0];
@@ -202,7 +200,7 @@ function ActivityTimelineService(objectCollection) {
             const CRM_ACKNOWLEDGEMENT_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CRM_ACKNOWLEDGEMENT;
             
             if (activityStreamTypeId === 705 && (Number(request.form_id) === Number(CRM_ACKNOWLEDGEMENT_FORM_ID))) {
-                console.log('CALLING approvalFormsSubmissionCheck')
+                console.log('CALLING approvalFormsSubmissionCheck');
                 const approvalCheckRequestEvent = {
                     name: "vodafoneService",
                     service: "vodafoneService",

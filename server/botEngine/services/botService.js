@@ -119,6 +119,7 @@ function BotService(objectCollection) {
                 case 3: //Copy Form field
                     global.logger.write('conLog', 'FORM FIELD', {}, {});
                     try {                        
+                        global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
                         await copyFields(request, botOperationsJson.bot_operations.form_field_copy);
                     } catch(err) {
                         global.logger.write('serverError', 'Error in executing copyFields Step', {}, {});
@@ -221,7 +222,8 @@ function BotService(objectCollection) {
 
     //Bot Step Copying the fields
     async function copyFields(request, inlineData) {        
-        let newReq = Object.assign({}, request);
+        let newReq = Object.assign({}, request);      
+        newReq.activity_id = request.workflow_activity_id;
         //console.log(inlineData);
         let resp,
             fieldValue,
@@ -280,7 +282,7 @@ function BotService(objectCollection) {
                             //return (err === false) ? resolve() : reject();
 
                             if(err === false) {
-                                let fire713OnNewOrderFileRequest = Object.assign({}, newReqForActCreation);
+                                /*let fire713OnNewOrderFileRequest = Object.assign({}, newReqForActCreation);
                                 fire713OnNewOrderFileRequest.activity_id = request.activity_id;
                                 fire713OnNewOrderFileRequest.form_transaction_id = targetFormTxnId;
                                 fire713OnNewOrderFileRequest.activity_timeline_collection = newReqForActCreation.activity_inline_data;
@@ -298,13 +300,41 @@ function BotService(objectCollection) {
                                 fire713OnNewOrderFileRequest.data_activity_id = request.activity_id;
                                
                                 activityTimelineService.addTimelineTransaction(fire713OnNewOrderFileRequest, (err, resp)=>{
-                                    return (err === false)? resolve : reject();
-                                });
+                                    return (err === false)? resolve() : reject();
+                                });*/
+
+                                timeine713Entry(newReq, i.target_form_id, targetFormTxnId, i.target_field_id, fieldValue, fieldDataTypeId);
                             } else {
                                 return reject();
                             }
                     });                    
                 });
+            } else {               
+
+                targetFormTxnId = request.target_form_transaction_id;
+                targetActId = request.target_activity_id;
+
+                let actDetails = await activityCommonService.getActivityDetailsPromise(newReq, targetActId);
+                let activityInlineData = JSON.parse(actDetails[0].activity_inline_data);
+
+                if(activityInlineData.length > 0 ){
+                    for(let x in activityInlineData) {
+                        if(x.field_id === i.target_field_id) {
+                            x.field_value = fieldValue;
+                        }
+                    }                    
+                    activityInlineData = JSON.stringify(activityInlineData);
+                } else {
+                    activityInlineData = JSON.stringify({
+                        "form_id": i.target_form_id,
+                        "field_id": i.target_field_id,
+                        "field_value": fieldValue,
+                        "form_transaction_id": targetFormTxnId,
+                        "field_data_type_id": fieldDataTypeId        
+                    });
+                }
+
+                await timeine713Entry(newReq, i.target_form_id, targetFormTxnId, i.target_field_id, fieldValue, fieldDataTypeId);
             }           
 
             //insert in new formId field id with the value retrieved i.e. resp[0].data_entity_text_1
@@ -950,8 +980,7 @@ function BotService(objectCollection) {
             } else {
                 i.update_sequence_id = 1;                
                 global.logger.write('conLog', 'VALUE of i : ' + i,{},{});
-                global.logger.write('conLog', 'retrievedInlineData : ',{},{});
-                global.logger.write('conLog', retrievedInlineData,{},{});
+                global.logger.write('conLog', 'retrievedInlineData : ', retrievedInlineData,{});                
                 Array.from(retrievedInlineData).push(i);
                 //retrievedInlineData.push(i);
                 oldFieldValue = i.field_value;
@@ -963,13 +992,11 @@ function BotService(objectCollection) {
                                                         "organization_id" : request.organization_id
                                                      });
             
-            global.logger.write('conLog', 'respData : ',{},{});
-            global.logger.write('conLog', respData,{},{});
+            global.logger.write('conLog', 'respData : ', respData,{});            
             
             if (respData.length > 0) {
                     let x = respData[0];                    
-                    global.logger.write('conLog', 'update_sequence_id : ',{},{});
-                    global.logger.write('conLog', x.update_sequence_id,{},{});
+                    global.logger.write('conLog', 'update_sequence_id : ', x.update_sequence_id,{});                    
                     request.update_sequence_id = ++x.update_sequence_id;
             } else {
                 request.update_sequence_id = 1;
@@ -997,8 +1024,12 @@ function BotService(objectCollection) {
             form_approval_field_reference: []
         };
         
-        request.activity_timeline_collection = JSON.stringify(activityTimelineCollection);        
-        activityUpdateService.alterActivityInline(request, (err, resp)=>{
+        request.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
+        let reqForInlineAlter = Object.assign({}, request);
+            reqForInlineAlter.form_id = newData[0].form_id;
+            reqForInlineAlter.form_transaction_id = request.target_form_transaction_id;
+        
+        activityUpdateService.alterActivityInline(reqForInlineAlter, (err, resp)=>{
             return (err === false) ? {} : Promise.reject(err);
         });
 
@@ -1023,8 +1054,8 @@ function BotService(objectCollection) {
         for(let row of activityInlineData) {
             var params = new Array(
                 request.target_form_transaction_id, //0
-                request.form_id || row.form_id, //1
-                request.field_id || row.field_id, //2
+                row.form_id || 0, //1
+                row.field_id || 0, //2
                 request.data_type_combo_id || 0, //3
                 request.target_activity_id, //4
                 request.asset_id, //5
@@ -1225,6 +1256,58 @@ function BotService(objectCollection) {
         if (queryString != '') {
             return await db.executeQueryPromise(1, queryString, request);
         }
+    }
+
+    async function timeine713Entry(request, formId, formTxnId, fieldId, fieldValue, fieldDataTypeId) {       
+        let actDetails = await activityCommonService.getActivityDetailsPromise(request, request.target_activity_id);
+        let activityInlineData = JSON.parse(actDetails[0].activity_inline_data);
+        
+        if(activityInlineData.length > 0 ){
+            for(let x in activityInlineData) {
+                if(x.field_id === fieldId) {
+                    x.field_value = fieldValue;
+                }
+            }                    
+            activityInlineData = JSON.stringify(activityInlineData);
+        } else {
+            activityInlineData = JSON.stringify({
+                "form_id": formId,
+                "field_id": fieldId,
+                "field_value": fieldValue,
+                "form_transaction_id": formTxnId,
+                "field_data_type_id": fieldDataTypeId
+            });
+        }
+        
+        let fire713OnWFOrderFileRequest = Object.assign({},request);
+            fire713OnWFOrderFileRequest.activity_id = request.workflow_activity_id;
+            fire713OnWFOrderFileRequest.form_transaction_id = formTxnId;
+            fire713OnWFOrderFileRequest.activity_stream_type_id = 713;
+            fire713OnWFOrderFileRequest.form_id = formId;
+            fire713OnWFOrderFileRequest.asset_message_counter = 0;
+            fire713OnWFOrderFileRequest.message_unique_id = util.getMessageUniqueId(request.asset_id);
+            fire713OnWFOrderFileRequest.activity_timeline_text = '';
+            fire713OnWFOrderFileRequest.activity_timeline_url = '';
+            fire713OnWFOrderFileRequest.activity_timeline_collection = JSON.stringify({
+                "mail_body": `Form Updated at ${moment().utcOffset('+05:30').format('LLLL')}`,
+                "subject": "Form Name",
+                "content": `Form Name`,
+                "asset_reference": [],
+                "activity_reference": [],
+                "form_approval_field_reference": [],
+                "form_submitted": JSON.parse(activityInlineData),
+                "attachments": []
+            });
+            fire713OnWFOrderFileRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+            fire713OnWFOrderFileRequest.flag_timeline_entry = 1;
+            fire713OnWFOrderFileRequest.service_version = '1.0';
+            fire713OnWFOrderFileRequest.app_version = '2.8.16';
+            fire713OnWFOrderFileRequest.device_os_id = 7;
+            fire713OnWFOrderFileRequest.data_activity_id = request.activity_id;
+        
+        activityTimelineService.addTimelineTransaction(fire713OnWFOrderFileRequest, (err, resp)=>{
+            return (err === false)? Promise.resolve() : Promise.reject(err);
+        });
     }
 
 }
