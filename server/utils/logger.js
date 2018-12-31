@@ -42,11 +42,13 @@ function Logger(queueWrapper) {
         }
 
         //Textual Logs
-        util.writeLogs(message, isTargeted);        
+        util.writeLogs(message, isTargeted);
         
         //Logs pushing to Kafka
         switch(level) {
-            case 'conLog': break;
+            // eslint-disable-next-line no-console
+            case 'conLog': console.log(object);
+                            break;
             default: queueWrapper.raiseLogEvent(loggerCollection).then(()=>{});
         }
         
@@ -84,6 +86,6 @@ function Logger(queueWrapper) {
                 console.log("error is: " + err);
         });
     };*/      
-};
+}
 
 module.exports = Logger;

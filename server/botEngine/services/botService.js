@@ -6,7 +6,7 @@ var ActivityService = require('../../services/activityService.js');
 var ActivityParticipantService = require('../../services/activityParticipantService.js');
 var ActivityUpdateService = require('../../services/activityUpdateService.js');
 var ActivityTimelineService = require('../../services/activityTimelineService.js');
-var ActivityListingService = require('../../services/activityListingService.js');
+//var ActivityListingService = require('../../services/activityListingService.js');
 
 
 function BotService(objectCollection) {
@@ -82,7 +82,7 @@ function BotService(objectCollection) {
             botSteps;
 
         for(let i of wfSteps) {
-            console.log(i.bot_operation_type_id);            
+            global.logger.write('conLog', i.bot_operation_type_id, {}, {});            
 
             botOperationsJson = JSON.parse(i.bot_operation_inline_data);
             botSteps = Object.keys(botOperationsJson.bot_operations);
@@ -246,7 +246,7 @@ function BotService(objectCollection) {
                 fieldValue = resp[0].data_entity_text_1;
 
             txn_id = await activityCommonService.getActivityTimelineTransactionByFormId713(newReq, newReq.activity_id, i.target_form_id);
-            console.log(txn_id);
+            global.logger.write('conLog',txn_id,{},{});
             (txn_id.length > 0) ?
                 targetFormTxnId = txn_id[0].data_form_transaction_id:
                 targetFormTxnId = 0;
@@ -316,8 +316,9 @@ function BotService(objectCollection) {
                 field_data_type_id: fieldDataTypeId
             };
             finalArr.push(rowDataArr);
-        }
-        console.log('Final Json : ', finalArr);
+        }        
+        global.logger.write('conLog', 'Final Json : ',{},{});
+        global.logger.write('conLog', finalArr,{},{});
         newReq.target_form_transaction_id = targetFormTxnId;
         newReq.target_activity_id = targetActId;
         newReq.activity_inline_data = finalArr;
@@ -331,8 +332,8 @@ function BotService(objectCollection) {
         global.logger.write('conLog', inlineData, {}, {});
         newReq.message_unique_id = util.getMessageUniqueId(request.asset_id);
 
-        let type = Object.keys(inlineData);
-        console.log(type);
+        let type = Object.keys(inlineData);        
+        global.logger.write('conLog', type,{},{});
 
         if(type[0] === 'static') {                
             newReq.flag_asset = inlineData[type[0]].flag_asset;      
@@ -365,9 +366,9 @@ function BotService(objectCollection) {
         let newReq = Object.assign({}, request);        
         let resp;
 
-        console.log(inlineData);
-        let type = Object.keys(inlineData);
-        console.log(type);
+        global.logger.write('conLog', inlineData,{},{});
+        let type = Object.keys(inlineData);        
+        global.logger.write('conLog', type,{},{});
 
         if(type[0] === 'static') {            
             newReq.communication_id = inlineData[type[0]].template_id;
@@ -382,20 +383,20 @@ function BotService(objectCollection) {
         }
         
         let dbResp = await getCommTemplates(newReq);
-        let retrievedCommInlineData = JSON.parse(dbResp[0].communication_inline_data);
-        console.log(retrievedCommInlineData.communication_template.email);
+        let retrievedCommInlineData = JSON.parse(dbResp[0].communication_inline_data);        
+        global.logger.write('conLog', retrievedCommInlineData.communication_template.email,{},{});
         
         return await sendEmail(newReq, retrievedCommInlineData.communication_template.email);
-    };
+    }
 
     //Bot Step Firing a Text Message
     async function fireTextMsg(request, inlineData) {       
         let newReq = Object.assign({}, request);
         let resp;
 
-        console.log(inlineData);
+        global.logger.write('conLog', inlineData,{},{});
         let type = Object.keys(inlineData);
-        console.log(type);
+        global.logger.write('conLog', type,{},{});
 
         if(type[0] === 'static') {    
             newReq.communication_id = inlineData[type[0]].template_id;
@@ -413,8 +414,8 @@ function BotService(objectCollection) {
 
         let dbResp = await getCommTemplates(newReq);
         let retrievedCommInlineData = JSON.parse(dbResp[0].communication_inline_data);
-        newReq.smsText = retrievedCommInlineData.communication_template.text.message;
-        console.log(newReq.smsText);
+        newReq.smsText = retrievedCommInlineData.communication_template.text.message;        
+        global.logger.write('conLog', newReq.smsText,{},{});
 
         //return await activityCommonService.makeRequest(newReq, "send/smshorizon/sms", 1);
 
@@ -426,16 +427,16 @@ function BotService(objectCollection) {
                 return data.response;
             }
         });
-    };
+    }
 
     //Bot Step Firing an API
     async function fireApi(request, inlineData) {
         let newReq = Object.assign({}, request);
-        let resp;
+        let resp;        
         
-        console.log(inlineData);
-        let type = Object.keys(inlineData);
-        console.log(type);
+        global.logger.write('conLog', inlineData,{},{});
+        let type = Object.keys(inlineData);        
+        global.logger.write('conLog', type,{},{});
 
         if(type[0] === 'static') {
             newReq.endpoint = inlineData[type[0]].endpoint;
@@ -448,15 +449,14 @@ function BotService(objectCollection) {
             newReq.protocol = inlineData[type[0]].protocol;
             newReq.parameters = inlineData[type[0]].parameters;
 
-            for(let i of newReq.parameters) {
-                console.log('I : ', i);
+            for(let i of newReq.parameters) {                
                 resp = await getFieldValue({
                                             "form_transaction_id": newReq.form_transaction_id,
                                             "form_id": i.parameter_value.form_id,
                                             "field_id": i.parameter_value.field_id,
                                             "organization_id": newReq.organization_id
-                                        });
-                console.log('RESP: ', resp);                
+                                        });                
+                global.logger.write('conLog', resp,{},{});
                 i.parameter_value = resp[0].data_entity_text_1;
             }
         }
@@ -502,11 +502,11 @@ function BotService(objectCollection) {
     async function alterWFCompletionPercentage(request, inlineData) {
         let newrequest = Object.assign({},request);            
 
-        console.log(inlineData.workflow_percentage_contribution);
+        global.logger.write('conLog', inlineData.workflow_percentage_contribution,{},{});
         newrequest.workflow_completion_percentage = inlineData.workflow_percentage_contribution;
         let wfCompletionPercentage = newrequest.workflow_completion_percentage;
-        let resp = await getQueueActivity(newrequest, newrequest.activity_id);
-        console.log('RESP : ', resp);
+        let resp = await getQueueActivity(newrequest, newrequest.activity_id);        
+        global.logger.write('conLog', resp,{},{});
 
         if(Number(wfCompletionPercentage) !== 0) {
             
@@ -515,34 +515,38 @@ function BotService(objectCollection) {
             newrequest.limit_value = 1;               
             
             //Checking the queuemappingid
-            let queueActivityMappingData = await (activityCommonService.fetchQueueActivityMappingId(newrequest, resp[0].queue_id));
-            console.log('queueActivityMappingData : ', queueActivityMappingData);
+            let queueActivityMappingData = await (activityCommonService.fetchQueueActivityMappingId(newrequest, resp[0].queue_id));            
+            global.logger.write('conLog', 'queueActivityMappingData : ',{},{});
+            global.logger.write('conLog', queueActivityMappingData,{},{});
             
             if(queueActivityMappingData.length > 0){
                 let queueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;  
                 let queueActMapInlineData = JSON.parse(queueActivityMappingData[0].queue_activity_mapping_inline_data);
                 
-                queueActMapInlineData.queue_sort.caf_completion_percentage += wfCompletionPercentage;
-                console.log('Updated Queue JSON : ', queueActMapInlineData);
+                queueActMapInlineData.queue_sort.caf_completion_percentage += wfCompletionPercentage;                
+                global.logger.write('conLog', 'Updated Queue JSON : ',{},{});
+                global.logger.write('conLog', queueActMapInlineData,{},{});
                 
-                let data = await (activityCommonService.queueActivityMappingUpdateInlineData(newrequest, queueActivityMappingId, JSON.stringify(queueActMapInlineData)));
-                console.log('Updating the Queue Json : ', data);
+                let data = await (activityCommonService.queueActivityMappingUpdateInlineData(newrequest, queueActivityMappingId, JSON.stringify(queueActMapInlineData)));                
+                global.logger.write('conLog', 'Updating the Queue Json : ',{},{});
+                global.logger.write('conLog', data,{},{});
+                
                 activityCommonService.queueHistoryInsert(newrequest, 1402, queueActivityMappingId).then(()=>{});                
             }
         }
     }
 
     function sendEmail (request, emailJson) {
-        return new Promise((resolve, reject)=>{
-            console.log("\x1b[35m [Log] Inside SendEmail \x1b[0m");            
+        return new Promise((resolve, reject)=>{            
+            global.logger.write('conLog', "\x1b[35m [Log] Inside SendEmail \x1b[0m",{},{});
             const emailSubject = emailJson.subject;
             const Template = emailJson.body;
 
             request.email_sender = 'OMT.IN1@vodafoneidea.com'; 
             request.email_sender_name = 'Vodafoneidea';
-
-            console.log(emailSubject);
-            console.log(Template);
+            
+            global.logger.write('conLog', emailSubject,{},{});
+            global.logger.write('conLog', Template,{},{});
                     
             util.sendEmailV3(request,
                 request.email_id,
@@ -550,10 +554,12 @@ function BotService(objectCollection) {
                 "IGNORE",
                 Template,
                 (err, data) => {
-                    if (err) {
-                        console.log("[Send Email On Form Submission | Error]: ", data);
-                    } else {
-                        console.log("[Send Email On Form Submission | Response]: ", "Email Sent");
+                    if (err) {                        
+                        global.logger.write('conLog', "[Send Email On Form Submission | Error]: ",{},{});
+                        global.logger.write('conLog', err,{},{});
+                    } else {                        
+                        global.logger.write('conLog', "[Send Email On Form Submission | Response]: " + "Email Sent",{},{});
+                        global.logger.write('conLog', data,{},{});
                     }
 
                     resolve();
@@ -596,7 +602,8 @@ function BotService(objectCollection) {
     }    
 
     async function addParticipantStep(request) {
-        let dataResp;
+        let dataResp,
+            deskAssetData;
         let assetData = {};
 
         if(request.desk_asset_id === 0) {
@@ -613,8 +620,9 @@ function BotService(objectCollection) {
                                                 "asset_id": request.desk_asset_id
                                             });                                       
             deskAssetData = dataResp[0];
-        }
-        console.log('Desk Asset Details : ', deskAssetData);            
+        }        
+        global.logger.write('conLog', 'Desk Asset Details : ',{},{});           
+        global.logger.write('conLog', deskAssetData,{},{});           
             
         assetData.desk_asset_id = deskAssetData.asset_id;
         assetData.first_name = deskAssetData.operating_asset_first_name;
@@ -708,7 +716,7 @@ function BotService(objectCollection) {
         }*/
     }
 
-    function createAssetContactDesk(request, customerData) {
+    /*function createAssetContactDesk(request, customerData) {
         return new Promise((resolve, reject)=>{                     
 
             let customerServiceDeskRequest = {
@@ -802,9 +810,9 @@ function BotService(objectCollection) {
                 }
             });
         });
-    }
+    }*/
 
-    async function addDeskAsParticipant(request, assetData, deskAssetId) {
+    async function addDeskAsParticipant(request, assetData) {
         let addParticipantRequest = {
              organization_id: request.organization_id,
              account_id: request.account_id,
@@ -864,10 +872,10 @@ function BotService(objectCollection) {
         let formParams = {};
         if(request.method === 'GET') {
             url = `${request.protocol}://${request.endpoint}`;            
-            makeRequest(url, function (error, response, body) {
-            console.log('error:', error); // Print the error if one occurred
-            console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
-            console.log('body:', body); // Print the HTML for the Google homepage.
+            makeRequest(url, function (error, response, body) {           
+                global.logger.write('conLog', error,{},{});
+                global.logger.write('conLog', response && response.statusCode,{},{});
+                global.logger.write('conLog', body,{},{});
             });
         } else if(request.method === 'POST') {
 
@@ -875,14 +883,17 @@ function BotService(objectCollection) {
                 formParams[i.parameter_key] =  i.parameter_value;
             }
 
-            console.log('formParams : ', formParams);
+            global.logger.write('conLog', 'formParams : ',{},{});
+            global.logger.write('conLog', formParams,{},{});
             url = `${request.protocol}://${request.endpoint}`;            
             
             return new Promise((resolve, reject)=>{
                 makeRequest.post({url:url, form: formParams}, (err,httpResponse,body)=>{
-                    console.log('error:', err);
-                    //console.log('httpResponse:', httpResponse);
-                    console.log('body:', body);
+                    //global.logger.write('conLog', httpResponse,{},{});                    
+                    global.logger.write('conLog', 'error:',{},{});
+                    global.logger.write('conLog', err,{},{});
+                    global.logger.write('conLog', body,{},{});
+                    
                     (err === null)? resolve(body) : reject(err);
                 });
             });            
@@ -893,26 +904,27 @@ function BotService(objectCollection) {
         var logDatetime = util.getCurrentUTCTime();        
         request['datetime_log'] = logDatetime;
 
-        let oldFieldValue,
-            newFieldValue,
-            data;
+        let //newFieldValue,
+            oldFieldValue,            
+            data,
             inline_data_present = 1;
         
         
         var activityInlineData = request.activity_inline_data;
-        var newData = activityInlineData;
-        console.log('newData from Request: ', newData);
+        var newData = activityInlineData;        
+        global.logger.write('conLog', 'newData from Request: ',{},{});
+        global.logger.write('conLog', newData,{},{});
 
         data = await activityCommonService.getActivityByFormTransaction({   "activity_id" : 1,
                                                                             "form_transaction_id": request.target_form_transaction_id,
                                                                             "organization_id": request.organization_id
                                                                         });
 
-        console.log('Data from activity_list: ', data);
+        global.logger.write('conLog', 'Data from activity_list: ',{},{});
+        global.logger.write('conLog', data,{},{});
         var retrievedInlineData = [];
 
-        if(data.length > 0){
-            console.log('HERE iam');
+        if(data.length > 0){            
             request['activity_id'] = data[0].activity_id;            
             retrievedInlineData = JSON.parse(data[0].activity_inline_data);
             
@@ -925,7 +937,7 @@ function BotService(objectCollection) {
         
         //Iterating through all the target objects
         for(let i of newData) {            
-            newFieldValue = i.field_value;            
+            //newFieldValue = i.field_value;            
                         
             if(inline_data_present === 1) {
                 for(let row of retrievedInlineData) {
@@ -936,9 +948,10 @@ function BotService(objectCollection) {
                     }
                 }
             } else {
-                i.update_sequence_id = 1;
-                console.log('VALUE of i : ', i);
-                console.log('retrievedInlineData : ', retrievedInlineData);
+                i.update_sequence_id = 1;                
+                global.logger.write('conLog', 'VALUE of i : ' + i,{},{});
+                global.logger.write('conLog', 'retrievedInlineData : ',{},{});
+                global.logger.write('conLog', retrievedInlineData,{},{});
                 Array.from(retrievedInlineData).push(i);
                 //retrievedInlineData.push(i);
                 oldFieldValue = i.field_value;
@@ -949,11 +962,14 @@ function BotService(objectCollection) {
                                                         "field_id" : i.field_id,
                                                         "organization_id" : request.organization_id
                                                      });
-            console.log('respData : ', respData);
+            
+            global.logger.write('conLog', 'respData : ',{},{});
+            global.logger.write('conLog', respData,{},{});
             
             if (respData.length > 0) {
-                    let x = respData[0];
-                    console.log('update_sequence_id : ', x.update_sequence_id);
+                    let x = respData[0];                    
+                    global.logger.write('conLog', 'update_sequence_id : ',{},{});
+                    global.logger.write('conLog', x.update_sequence_id,{},{});
                     request.update_sequence_id = ++x.update_sequence_id;
             } else {
                 request.update_sequence_id = 1;
@@ -996,7 +1012,7 @@ function BotService(objectCollection) {
             request.field_id,
             request.organization_id
         );
-        queryString = util.getQueryString('ds_p1_activity_form_transaction_select_field_sequence_id', paramsArr);
+        let queryString = util.getQueryString('ds_p1_activity_form_transaction_select_field_sequence_id', paramsArr);
         if (queryString != '') {
             return await (db.executeQueryPromise(1, queryString, request));           
         }
@@ -1035,8 +1051,8 @@ function BotService(objectCollection) {
                 '',  //IN p_location_datetime DATETIME                          26                    
                 );
 
-                var dataTypeId = Number(row.field_data_type_id);
-                console.log('dataTypeId : ', dataTypeId);
+                var dataTypeId = Number(row.field_data_type_id);                
+                global.logger.write('conLog', 'dataTypeId : '+ dataTypeId,{},{});
                 switch (dataTypeId) {
                     case 1:     // Date
                     case 2:     // future Date
@@ -1114,7 +1130,7 @@ function BotService(objectCollection) {
                         break;
                     case 29:    //Coworker Signature with asset reference
                     case 30:    //Coworker Picnature with asset reference
-                        approvalFields.push(row.field_id);
+                        //approvalFields.push(row.field_id);
                         var signatureData = row.field_value.split('|');
                         params[18] = signatureData[0];  //image path
                         params[13] = signatureData[1];  // asset reference
@@ -1143,7 +1159,7 @@ function BotService(objectCollection) {
                     case 39:    //Flag
                         params[11] = row.field_value;
                 }
-                ;
+                
 
                 params.push('');                                                    //IN p_device_manufacturer_name VARCHAR(50)
                 params.push('');                                                    // IN p_device_model_name VARCHAR(50)
@@ -1163,7 +1179,7 @@ function BotService(objectCollection) {
 
                 global.logger.write('debug', '\x1b[32m addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
                 
-                queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
+                let queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
                 if (queryString != '') {
                     try {
                         await db.executeQueryPromise(0, queryString, request);
@@ -1176,16 +1192,16 @@ function BotService(objectCollection) {
     }
 
     async function getQueueActivity(request, idActivity) {
-    	let paramsArr = new Array(
-	        request.organization_id,
-	        request.account_id,
-	        request.workforce_id,
-	        idActivity	            
-	    );
-	    let queryString = util.getQueryString('ds_v1_queue_activity_mapping_select_activity', paramsArr);
-	    if (queryString != '') {
-	        return await db.executeQueryPromise(1, queryString, request);
-        }
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            idActivity	            
+        );
+        let queryString = util.getQueryString('ds_v1_queue_activity_mapping_select_activity', paramsArr);
+        if (queryString != '') {
+            return await db.executeQueryPromise(1, queryString, request);
+            }
     }
 
     async function getAssetDetailsOfANumber(request) {
@@ -1198,7 +1214,7 @@ function BotService(objectCollection) {
         if (queryString != '') {
             return await db.executeQueryPromise(1, queryString, request);                
         }
-    };
+    }
 
     async function getAssetDetails(request) {
         var paramsArr = new Array(
@@ -1211,7 +1227,7 @@ function BotService(objectCollection) {
         }
     }
 
-};
+}
 
 
 module.exports = BotService;
