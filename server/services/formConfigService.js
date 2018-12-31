@@ -1334,7 +1334,7 @@ function FormConfigService(objCollection) {
             request.account_id,
             request.workforce_id,
             request.activity_type_id || 0,
-            request.access_level_id || 0,
+            0, // request.access_level_id || 0,
             request.log_datetime || '1970-01-01 00:00:00',
             request.start_from,
             util.replaceQueryLimit(request.limit_value)
@@ -1692,7 +1692,7 @@ function FormConfigService(objCollection) {
             copyFormFieldOperation = {};
 
         // Get the corresponding workflow's activity_id
-        const [workflowError, workflowData] = await fetchReferredFormActivityId(request, request.activity_id, request.form_transaction_id, request.form_id);
+        const [workflowError, workflowData] = await fetchReferredFormActivityIdAsync(request, request.activity_id, request.form_transaction_id, request.form_id);
         if (workflowError !== false || workflowData.length === 0) {
             return [workflowError, workflowData];
         }
@@ -1866,7 +1866,7 @@ function FormConfigService(objCollection) {
 
     };
 
-    async function fetchReferredFormActivityId(request, activityId, formTransactionId, formId) {
+    async function fetchReferredFormActivityIdAsync(request, activityId, formTransactionId, formId) {
         // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
         // IN p_activity_id BIGINT(20), IN p_form_id BIGINT(20), 
         // IN p_form_transaction_id BIGINT(20), IN p_start_from SMALLINT(6), 
