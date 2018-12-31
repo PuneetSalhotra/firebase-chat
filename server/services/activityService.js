@@ -70,6 +70,7 @@ function ActivityService(objectCollection) {
                         case 8: //  Mail
                             activityStreamTypeId = 1701;
                             break;
+                        case 48:
                         case 9: //form
                             activityStreamTypeId = 701;
                             break;
@@ -149,7 +150,7 @@ function ActivityService(objectCollection) {
                     };
                     //console.log('streamtype id is: ' + activityStreamTypeId)
                     global.logger.write('debug', 'streamtype id is: ' + activityStreamTypeId, {}, request);
-                    assetActivityListInsertAddActivity(request, function (err, status) {
+                    assetActivityListInsertAddActivity(request, async function (err, status) {
                         if (err === false) {
                             let activityTitle = "Form Submitted";
                             
@@ -282,6 +283,43 @@ function ActivityService(objectCollection) {
                                         console.log("\x1b[35m Queue activity raised for workflow engine. \x1b[0m");
                                     }
                                 });
+                            }
+
+                            // Bot Engine Trigger
+                            if (activityTypeCategroyId === 9) {
+                                try {
+                                    let botEngineRequest = Object.assign({}, request);
+                                    botEngineRequest.form_id = request.activity_form_id;
+
+                                    const [formConfigError, formConfigData] = await activityCommonService.workforceFormMappingSelect(botEngineRequest);
+                                    if (
+                                        (formConfigError === false) &&
+                                        (Number(formConfigData.length) > 0) &&
+                                        (Number(formConfigData[0].form_flag_workflow_enabled) === 1)
+                                    ) {
+                                        // Proceeding because there was no error found, there were records returned
+                                        // and form_flag_workflow_enabled is set to 1
+                                        let botsListData = await activityCommonService.getBotsMappedToActType(botEngineRequest);
+                                        if (botsListData.length > 0) {
+                                            botEngineRequest.bot_id = botsListData[0].bot_id;
+                                        }
+                                        let botEngineEvent = {
+                                            name: "botEngine",
+                                            service: "botService",
+                                            method: "initBotEngine",
+                                            payload: botEngineRequest
+                                        };
+                                        // queueWrapper.raiseActivityEvent(botEngineEvent, request.activity_id, (err, resp) => {
+                                        //     if (err) {
+                                        //         console.log("\x1b[35m [ERROR] Raising queue activity raised for workflow engine. \x1b[0m");
+                                        //     } else {
+                                        //         console.log("\x1b[35m Queue activity raised for workflow engine. \x1b[0m");
+                                        //     }
+                                        // });
+                                    }
+                                } catch (botInitError) {
+                                    global.logger.write('error', botInitError, botInitError, botEngineRequest);
+                                }
                             }
                             
                             activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
@@ -743,14 +781,22 @@ function ActivityService(objectCollection) {
         });
     };
     var activityListInsert = function (request, callback) {
+        // console.log("Request | activityListInsert: ", request);
         var paramsArr = new Array();
-        var activityInlineData = JSON.parse(request.activity_inline_data);
+        var activityInlineData;
+        
+        try {
+            activityInlineData = JSON.parse(request.activity_inline_data);
+        } catch(err) {            
+            console.log(err);
+        }        
+        
         var activityTypeCategoryId = Number(request.activity_type_category_id);
         var activityChannelId = 0;
         var activityChannelCategoryId = 0;
         var activityStatusId = 0;
         var activityFormId = 0;
-        //var expiryDateTime = "";
+        
         if (request.hasOwnProperty('activity_channel_id'))
             activityChannelId = request.activity_channel_id;
         if (request.hasOwnProperty('activity_channel_category_id'))
@@ -971,6 +1017,7 @@ function ActivityService(objectCollection) {
                         activityChannelCategoryId
                     );
                     break;
+                case 48:
                 case 9: // form
                     paramsArr = new Array(
                         request.activity_id,
@@ -1147,7 +1194,7 @@ function ActivityService(objectCollection) {
                         request.asset_id,
                         request.datetime_log, // server log date time   
                         activityFormId,
-                        0,
+                        request.form_transaction_id || 0,
                         activityChannelId,
                         activityChannelCategoryId
                     );
@@ -2050,7 +2097,12 @@ function ActivityService(objectCollection) {
                 // 
                 // 
                 updateProjectStatusCounts(request).then(() => {});
-                activityPushService.sendPush(request, objectCollection, 0, function () {});
+                try {
+                    activityPushService.sendPush(request, objectCollection, 0, function () {});
+                } catch(err) {
+                    console.log(err);
+                }
+                
  /*               if (activityTypeCategoryId === 9 && activityStatusTypeId === 23) { //form and submitted state                    
                     duplicateFormTransactionData(request, function (err, data) {
                         var widgetEngineQueueMessage = {

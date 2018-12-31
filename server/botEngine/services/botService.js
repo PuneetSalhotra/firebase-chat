@@ -2,17 +2,28 @@
  * author: Nani Kalyan V
  */
 
+var ActivityService = require('../../services/activityService.js');
+var ActivityParticipantService = require('../../services/activityParticipantService.js');
+var ActivityUpdateService = require('../../services/activityUpdateService.js');
+var ActivityTimelineService = require('../../services/activityTimelineService.js');
+var ActivityListingService = require('../../services/activityListingService.js');
+
+
 function BotService(objectCollection) {
 
-    const queueWrapper = objectCollection.queueWrapper;
+    const moment = require('moment');
+    const makeRequest = require('request');
+    const cacheWrapper = objectCollection.cacheWrapper;
+    //const queueWrapper = objectCollection.queueWrapper;
+    //const activityPushService = objectCollection.activityPushService;
     const util = objectCollection.util;
     const db = objectCollection.db;    
-    const activityPushService = objectCollection.activityPushService;
-    const activityCommonService = objectCollection.activityCommonService;
-    const cacheWrapper = objectCollection.cacheWrapper;
-    //const fetch = require('node-fetch');
-    //const { URLSearchParams } = require('url');
-    const moment = require('moment');
+    const activityCommonService = objectCollection.activityCommonService;    
+    const activityUpdateService = new ActivityUpdateService(objectCollection);
+    const activityParticipantService = new ActivityParticipantService(objectCollection);
+    const activityService = new ActivityService(objectCollection);
+    //const activityListingService = new ActivityListingService(objectCollection);
+    const activityTimelineService = new ActivityTimelineService(objectCollection);
     
     this.getBotsMappedToActType = async (request) => {            
             let paramsArr = new Array(
@@ -44,40 +55,42 @@ function BotService(objectCollection) {
             }        
     };    
 
-
-    this.initBotEngine = async (request) =>{        
+    this.initBotEngine = async (request) =>{         
         request['datetime_log'] = util.getCurrentUTCTime();
-        let botOperationsJson = JSON.parse(request.inline_data);        
-        let botSteps = Object.keys(botOperationsJson.bot_operations);
-        global.logger.write('conLog', botSteps, {}, {});
+        
+        let wfSteps;
 
-        for(let i of botSteps) {
-            switch(i) {                
-                case 'status_alter': 
-                    global.logger.write('conLog', 'STATUS ALTER', {}, {});                    
-                    try {                    
-                        await changeStatus(request, botOperationsJson.bot_operations.status_alter);
-                    } catch(err) {
-                        global.logger.write('serverError', err, {}, {});
-                        global.logger.write('serverError', 'Error in executing changeStatus Step', {}, {});                        
-                        return Promise.reject(err);
-                    }
-                    global.logger.write('conLog', '****************************************************************', {}, {});
-                    break;
+        /*if(request.hasOwnProperty(bot_operation_id)) {
+            wfSteps = request.inline_data;
+        } else {
+            wfSteps = await this.getBotworkflowSteps({
+                "bot_id": request.bot_id,
+                "page_start": 0,
+                "page_limit": 50
+            });
+        }*/
+        
+        wfSteps = await this.getBotworkflowSteps({
+            "bot_id": request.bot_id,
+            "page_start": 0,
+            "page_limit": 50
+        });
+        
+        //console.log('WFSTEPS : ', wfSteps);
 
-                case 'form_field_copy':                     
-                    global.logger.write('conLog', 'FORM FIELD', {}, {});
-                    try {                        
-                        await copyFields(request, botOperationsJson.bot_operations.form_field_copy);
-                    } catch(err) {
-                        global.logger.write('serverError', 'Error in executing copyFields Step', {}, {});
-                        global.logger.write('serverError', err, {}, {});
-                        return Promise.reject(err);
-                    }
-                    global.logger.write('conLog', '****************************************************************', {}, {});
-                    break;
+        let botOperationsJson,
+            botSteps;
 
-                case 'participant_add':                     
+        for(let i of wfSteps) {
+            console.log(i.bot_operation_type_id);            
+
+            botOperationsJson = JSON.parse(i.bot_operation_inline_data);
+            botSteps = Object.keys(botOperationsJson.bot_operations);
+            global.logger.write('conLog', botSteps, {}, {});
+
+            switch(i.bot_operation_type_id) {
+                //case 'participant_add':
+                case 1:  // Add Participant                 
                     global.logger.write('conLog', 'PARTICIPANT ADD', {}, {}); 
                     try {
                         await addParticipant(request, botOperationsJson.bot_operations.participant_add);
@@ -89,31 +102,47 @@ function BotService(objectCollection) {
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     break;
 
-                case 'fire_email':                 
-                    global.logger.write('conLog', 'FIRE EMAIL', {}, {}); 
-                    try {
-                        await fireEmail(request, botOperationsJson.bot_operations.fire_email);
+                //case 'status_alter': 
+                case 2:  // Alter Status
+                    global.logger.write('conLog', 'STATUS ALTER', {}, {});                    
+                    try {                    
+                        await changeStatus(request, botOperationsJson.bot_operations.status_alter);
                     } catch(err) {
-                        global.logger.write('serverError', 'Error in executing fireEmail Step', {}, {});
+                        global.logger.write('serverError', err, {}, {});
+                        global.logger.write('serverError', 'Error in executing changeStatus Step', {}, {});                        
+                        return Promise.reject(err);
+                    }
+                    global.logger.write('conLog', '****************************************************************', {}, {});
+                    break;
+
+                //case 'form_field_copy':
+                case 3: //Copy Form field
+                    global.logger.write('conLog', 'FORM FIELD', {}, {});
+                    try {                        
+                        await copyFields(request, botOperationsJson.bot_operations.form_field_copy);
+                    } catch(err) {
+                        global.logger.write('serverError', 'Error in executing copyFields Step', {}, {});
+                        global.logger.write('serverError', err, {}, {});
+                        return Promise.reject(err);
+                    }
+                    global.logger.write('conLog', '****************************************************************', {}, {});
+                    break;                
+
+                //case 'workflow_percentage_alter': 
+                case 4: //Update Workflow Percentage
+                    global.logger.write('conLog', 'WF PERCENTAGE ALTER', {}, {}); 
+                    try {
+                        await alterWFCompletionPercentage(request, botOperationsJson.bot_operations.workflow_percentage_alter);
+                    } catch(err) {
+                        global.logger.write('serverError', 'Error in executing alterWFCompletionPercentage Step', {}, {});
                         global.logger.write('serverError', err, {}, {});
                         return Promise.reject(err);
                     }
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     break;
 
-                case 'fire_text': 
-                    global.logger.write('conLog', 'FIRE TEXT', {}, {}); 
-                    try {
-                        await fireTextMsg(request, botOperationsJson.bot_operations.fire_text);
-                    } catch(err) {
-                        global.logger.write('serverError', 'Error in executing fireTextMsg Step', {}, {});
-                        global.logger.write('serverError', err, {}, {});
-                        return Promise.reject(err);
-                    }
-                    global.logger.write('conLog', '****************************************************************', {}, {});
-                    break;
-
-                case 'fire_api': 
+                //case 'fire_api': 
+                case 5: // External System Integration
                     global.logger.write('conLog', 'FIRE API', {}, {}); 
                     try {
                         await fireApi(request, botOperationsJson.bot_operations.fire_api);
@@ -125,34 +154,45 @@ function BotService(objectCollection) {
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     break;
 
-                case 'workflow_percentage_alter': 
-                    global.logger.write('conLog', 'WF PERCENTAGE ALTER', {}, {}); 
+                //case 'fire_text': 
+                case 6: // Send Text Message
+                    global.logger.write('conLog', 'FIRE TEXT', {}, {}); 
                     try {
-                        await alterWFCompletionPercentage(request, botOperationsJson.bot_operations.workflow_percentage_alter);
+                        await fireTextMsg(request, botOperationsJson.bot_operations.fire_text);
                     } catch(err) {
-                        global.logger.write('serverError', 'Error in executing alterWFCompletionPercentage Step', {}, {});
+                        global.logger.write('serverError', 'Error in executing fireTextMsg Step', {}, {});
                         global.logger.write('serverError', err, {}, {});
                         return Promise.reject(err);
                     }
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     break;
-                
-            }
-            
-            //botOperationTxnInsert(request);            
-            
+
+                //case 'fire_email':           
+                case 7: // Send email
+                    global.logger.write('conLog', 'FIRE EMAIL', {}, {}); 
+                    try {
+                        await fireEmail(request, botOperationsJson.bot_operations.fire_email);
+                    } catch(err) {
+                        global.logger.write('serverError', 'Error in executing fireEmail Step', {}, {});
+                        global.logger.write('serverError', err, {}, {});
+                        return Promise.reject(err);
+                    }
+                    global.logger.write('conLog', '****************************************************************', {}, {});
+                    break;
         }
         
-        return {};
-
+        botOperationTxnInsert(request, i);
+    }    
+    
+    return {};
     };    
     
-    async function botOperationTxnInsert(request) {        
+    async function botOperationTxnInsert(request, botData) {        
         let paramsArr = new Array(                
-            request.bot_operation_id, 
-            request.bot_id, 
-            request.inline_data, 
-            request.bot_operation_status_id, 
+            botData.bot_operation_id, 
+            botData.bot_id, 
+            botData.bot_operation_inline_data, 
+            botData.bot_operation_status_id, 
             request.workforce_id, 
             request.account_id, 
             request.organization_id, 
@@ -163,7 +203,7 @@ function BotService(objectCollection) {
         if (queryString != '') {
             return await (db.executeQueryPromise(0, queryString, request));                
         }        
-    };
+    }
 
     //Bot Step to change the status
     async function changeStatus(request, inlineData) {
@@ -173,51 +213,121 @@ function BotService(objectCollection) {
         //newRequest.activity_status_type_id = inlineData.activity_status_id; 
         //newRequest.activity_status_type_category_id = ""; 
         newReq.message_unique_id = util.getMessageUniqueId(request.asset_id);
-
-        var event = {
-            name: "alterActivityStatus",
-            service: "activityService",
-            method: "alterActivityStatus",
-            payload: newReq
-        };
-
-        return await queueWrapper.raiseActivityEventPromise(event, newReq.activity_id);
-    };
+        
+        activityService.alterActivityStatus(newReq, (err, resp)=>{
+            return (err === false) ? {} : Promise.reject(err);
+        });
+    }
 
     //Bot Step Copying the fields
-    async function copyFields(request, inlineData) {
-        let newReq = Object.assign({}, request);        
+    async function copyFields(request, inlineData) {        
+        let newReq = Object.assign({}, request);
         //console.log(inlineData);
-        let resp;
-        let fieldValue;
-        let tempObj;
-        tempObj.organization_id = newReq.organization_id;
-        tempObj.form_transaction_id = newReq.source_form_transaction_id;
-        let finalArr = new Array();
+        let resp,
+            fieldValue,
+            txn_id,
+            targetFormTxnId,
+            targetActId,
+            fieldDataTypeId;
         
-        for(i of inlineData) {         
-            tempObj = i.source_form_id;
-            tempObj = i.source_field_id;
-            resp = await getFieldValue(tempObj);
-            fieldValue = resp[0].data_entity_text_1;
+        let tempObj = {};        
+            tempObj.organization_id = newReq.organization_id;
+            tempObj.form_transaction_id = newReq.form_transaction_id;
+
+        let finalArr = new Array();        
+
+        for(let i of inlineData) {         
+            tempObj.form_id = i.source_form_id;
+            tempObj.field_id = i.source_field_id;
+            //console.log(tempObj);
+            
+            resp = await getFieldValue(tempObj);            
+                fieldDataTypeId = resp[0].data_type_id;
+                fieldValue = resp[0].data_entity_text_1;
+
+            txn_id = await activityCommonService.getActivityTimelineTransactionByFormId713(newReq, newReq.activity_id, i.target_form_id);
+            console.log(txn_id);
+            (txn_id.length > 0) ?
+                targetFormTxnId = txn_id[0].data_form_transaction_id:
+                targetFormTxnId = 0;
+            
+            //If txn id is not there then add activity and get the txn id
+            if(targetFormTxnId === 0 ) {
+                await new Promise(async (resolve, reject)=>{
+                    let newReqForActCreation = Object.assign({}, newReq);
+                    targetActId = await cacheWrapper.getActivityIdPromise();
+                    targetFormTxnId = await cacheWrapper.getFormTransactionIdPromise();                    
+                    
+                    newReqForActCreation.activity_id = targetActId;
+                    newReqForActCreation.activity_title = "Bot created new activity Id";
+                    newReqForActCreation.activity_description = "Bot created new activity Id";
+                    newReqForActCreation.activity_datetime_start = util.getCurrentUTCTime();
+                    newReqForActCreation.activity_datetime_end = util.getCurrentUTCTime();
+                    newReqForActCreation.message_unique_id = util.getMessageUniqueId(request.asset_id);
+                    newReqForActCreation.form_transaction_id = targetFormTxnId;
+                    newReqForActCreation.activity_inline_data = JSON.stringify({
+                                                                    "form_id": i.target_form_id,
+                                                                    "field_id": i.target_field_id,
+                                                                    "field_value": fieldValue,
+                                                                    "form_transaction_id": targetFormTxnId,
+                                                                    "field_data_type_id": fieldDataTypeId        
+                                                                });
+
+                    newReqForActCreation.activity_type_id = request.activity_type_id;
+                    newReqForActCreation.activity_form_id = i.target_form_id;
+
+                    activityService.addActivity(newReqForActCreation, (err, resp)=>{
+                            //return (err === false) ? resolve() : reject();
+
+                            if(err === false) {
+                                let fire713OnNewOrderFileRequest = Object.assign({}, newReqForActCreation);
+                                fire713OnNewOrderFileRequest.activity_id = request.activity_id;
+                                fire713OnNewOrderFileRequest.form_transaction_id = targetFormTxnId;
+                                fire713OnNewOrderFileRequest.activity_timeline_collection = newReqForActCreation.activity_inline_data;
+                                fire713OnNewOrderFileRequest.activity_stream_type_id = 713;
+                                fire713OnNewOrderFileRequest.form_id = i.target_form_id;
+                                fire713OnNewOrderFileRequest.asset_message_counter = 0;
+                                fire713OnNewOrderFileRequest.message_unique_id = util.getMessageUniqueId(request.asset_id);
+                                fire713OnNewOrderFileRequest.activity_timeline_text = '';
+                                fire713OnNewOrderFileRequest.activity_timeline_url = '';
+                                fire713OnNewOrderFileRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+                                fire713OnNewOrderFileRequest.flag_timeline_entry = 1;
+                                fire713OnNewOrderFileRequest.service_version = '1.0';
+                                fire713OnNewOrderFileRequest.app_version = '2.8.16';
+                                fire713OnNewOrderFileRequest.device_os_id = 7;
+                                fire713OnNewOrderFileRequest.data_activity_id = request.activity_id;
+                               
+                                activityTimelineService.addTimelineTransaction(fire713OnNewOrderFileRequest, (err, resp)=>{
+                                    return (err === false)? resolve : reject();
+                                });
+                            } else {
+                                return reject();
+                            }
+                    });                    
+                });
+            }           
 
             //insert in new formId field id with the value retrieved i.e. resp[0].data_entity_text_1
             let rowDataArr = {
                 form_id : i.target_form_id,
                 field_id : i.target_field_id,
                 field_value: fieldValue,
-                form_transaction_id: request.target_form_transaction_id
-            }            
+                form_transaction_id: targetFormTxnId,
+                field_data_type_id: fieldDataTypeId
+            };
             finalArr.push(rowDataArr);
         }
         console.log('Final Json : ', finalArr);
+        newReq.target_form_transaction_id = targetFormTxnId;
+        newReq.target_activity_id = targetActId;
         newReq.activity_inline_data = finalArr;
-        //return await alterFormActivity(request, newReq);
-    };
+        return await alterFormActivity(newReq);
+    }
 
     //Bot Step Adding a participant
     async function addParticipant(request, inlineData) {
         let newReq = Object.assign({}, request);
+        let resp;
         global.logger.write('conLog', inlineData, {}, {});
         newReq.message_unique_id = util.getMessageUniqueId(request.asset_id);
 
@@ -225,26 +335,35 @@ function BotService(objectCollection) {
         console.log(type);
 
         if(type[0] === 'static') {                
-            newReq.flag_asset = inlineData[type[0]].flag_asset;
-            newReq.desk_asset_id = inlineData[type[0]].desk_asset_id;
-            newReq.phone_number = inlineData[type[0]].phone_number;
-        } else if(type[0] === 'dynamic') {            
+            newReq.flag_asset = inlineData[type[0]].flag_asset;      
+
+            if(newReq.flag_asset === 1){
+                //Use Asset Id
+                newReq.desk_asset_id = inlineData[type[0]].desk_asset_id;    
+                newReq.phone_number = 0;
+            } else {
+                //Use Phone Number
+                newReq.desk_asset_id = 0;    
+                newReq.phone_number = inlineData[type[0]].phone_number;
+            }            
+            
+        } else if(type[0] === 'dynamic') {
+            newReq.desk_asset_id = 0;
             newReq.form_id = inlineData[type[0]].form_id;
-            newReq.field_id = inlineData[type[0]].field_id;
+            newReq.field_id = inlineData[type[0]].field_id;            
 
-            let resp = await getFieldValue(newReq);            
-            newReq.phone_number = resp[0].data_entity_text_1
-            //console.log(newReq.email_id);      
-        }
+            resp = await getFieldValue(newReq);
+            newReq.phone_country_code = String(resp[0].data_entity_text_1).split('|')[0];
+            newReq.phone_number = String(resp[0].data_entity_text_1).split('|')[1];
+        }       
         
-        //return await queueWrapper.raiseActivityEventPromise(event, newReq.activity_id);
         return await addParticipantStep(newReq);
-
     }
 
     //Bot Step Firing an eMail
     async function fireEmail(request, inlineData) {
         let newReq = Object.assign({}, request);        
+        let resp;
 
         console.log(inlineData);
         let type = Object.keys(inlineData);
@@ -258,8 +377,8 @@ function BotService(objectCollection) {
             newReq.form_id = inlineData[type[0]].form_id;
             newReq.field_id = inlineData[type[0]].field_id;
 
-            let resp = await getFieldValue(newReq);            
-            newReq.email_id = resp[0].data_entity_text_1            
+            resp = await getFieldValue(newReq);            
+            newReq.email_id = resp[0].data_entity_text_1;       
         }
         
         let dbResp = await getCommTemplates(newReq);
@@ -272,7 +391,8 @@ function BotService(objectCollection) {
     //Bot Step Firing a Text Message
     async function fireTextMsg(request, inlineData) {       
         let newReq = Object.assign({}, request);
-        
+        let resp;
+
         console.log(inlineData);
         let type = Object.keys(inlineData);
         console.log(type);
@@ -287,7 +407,7 @@ function BotService(objectCollection) {
             newReq.field_id = inlineData[type[0]].field_id;
             newReq.country_code = 91;
 
-            let resp = await getFieldValue(newReq);         
+            resp = await getFieldValue(newReq);         
             newReq.phone_number = resp[0].data_entity_text_1;            
         }
 
@@ -311,6 +431,7 @@ function BotService(objectCollection) {
     //Bot Step Firing an API
     async function fireApi(request, inlineData) {
         let newReq = Object.assign({}, request);
+        let resp;
         
         console.log(inlineData);
         let type = Object.keys(inlineData);
@@ -327,23 +448,89 @@ function BotService(objectCollection) {
             newReq.protocol = inlineData[type[0]].protocol;
             newReq.parameters = inlineData[type[0]].parameters;
 
-            let resp = await getFieldValue(newReq);            
-            newReq.phone_number = resp[0].data_entity_text_1;            
+            for(let i of newReq.parameters) {
+                console.log('I : ', i);
+                resp = await getFieldValue({
+                                            "form_transaction_id": newReq.form_transaction_id,
+                                            "form_id": i.parameter_value.form_id,
+                                            "field_id": i.parameter_value.field_id,
+                                            "organization_id": newReq.organization_id
+                                        });
+                console.log('RESP: ', resp);                
+                i.parameter_value = resp[0].data_entity_text_1;
+            }
         }
         
-        //let response =  await makeAPIRequest(newReq, newReq.parameters);
-        //return (response[0] === 'false') ? response : Promise.reject(response);        
-
-        let response =  await activityCommonService.makeRequest(newReq, newReq.endpoint, 1);
-        return (response.status === 200)? response : Promise.reject(response);        
-    };
+        let response = await makeAPIRequest(newReq, newReq.parameters);
+        
+        //Make a timeline entry
+        let activityTimelineCollection = {
+            type: type[0],
+            endpoint: newReq.endpoint,
+            method: newReq.method,
+            protocol: newReq.protocol,
+            parameters: newReq.parameters,
+            response: response           
+        };
+                
+        let fire714OnNewOrderFileRequest = Object.assign({}, newReq);
+            fire714OnNewOrderFileRequest.activity_id = newReq.activity_id;
+            fire714OnNewOrderFileRequest.form_transaction_id = newReq.form_transaction_id;
+            fire714OnNewOrderFileRequest.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
+            fire714OnNewOrderFileRequest.activity_stream_type_id = 714;
+            fire714OnNewOrderFileRequest.form_id = 0;
+            fire714OnNewOrderFileRequest.asset_message_counter = 0;
+            fire714OnNewOrderFileRequest.activity_type_category_id = 48;
+            fire714OnNewOrderFileRequest.message_unique_id = util.getMessageUniqueId(request.asset_id);
+            fire714OnNewOrderFileRequest.activity_timeline_text = '';
+            fire714OnNewOrderFileRequest.activity_timeline_url = '';
+            fire714OnNewOrderFileRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+            fire714OnNewOrderFileRequest.flag_timeline_entry = 1;
+            fire714OnNewOrderFileRequest.service_version = '1.0';
+            fire714OnNewOrderFileRequest.app_version = '2.8.16';
+            fire714OnNewOrderFileRequest.device_os_id = 7;
+            fire714OnNewOrderFileRequest.data_activity_id = request.activity_id;
+        
+        return new Promise((resolve, reject)=>{
+            activityTimelineService.addTimelineTransaction(fire714OnNewOrderFileRequest, (err, resp)=>{
+                (err === false)? resolve() : reject(err);
+            });
+        });
+    }
 
     //Bot Step Altering workflow completion percentage
     async function alterWFCompletionPercentage(request, inlineData) {
+        let newrequest = Object.assign({},request);            
+
         console.log(inlineData.workflow_percentage_contribution);
-        request.workflow_completion_percentage = inlineData.workflow_percentage_contribution;
-        return await workflowPercentageUpdate(request);
-    };
+        newrequest.workflow_completion_percentage = inlineData.workflow_percentage_contribution;
+        let wfCompletionPercentage = newrequest.workflow_completion_percentage;
+        let resp = await getQueueActivity(newrequest, newrequest.activity_id);
+        console.log('RESP : ', resp);
+
+        if(Number(wfCompletionPercentage) !== 0) {
+            
+            //Adding to OMT Queue                
+            newrequest.start_from = 0;
+            newrequest.limit_value = 1;               
+            
+            //Checking the queuemappingid
+            let queueActivityMappingData = await (activityCommonService.fetchQueueActivityMappingId(newrequest, resp[0].queue_id));
+            console.log('queueActivityMappingData : ', queueActivityMappingData);
+            
+            if(queueActivityMappingData.length > 0){
+                let queueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;  
+                let queueActMapInlineData = JSON.parse(queueActivityMappingData[0].queue_activity_mapping_inline_data);
+                
+                queueActMapInlineData.queue_sort.caf_completion_percentage += wfCompletionPercentage;
+                console.log('Updated Queue JSON : ', queueActMapInlineData);
+                
+                let data = await (activityCommonService.queueActivityMappingUpdateInlineData(newrequest, queueActivityMappingId, JSON.stringify(queueActMapInlineData)));
+                console.log('Updating the Queue Json : ', data);
+                activityCommonService.queueHistoryInsert(newrequest, 1402, queueActivityMappingId).then(()=>{});                
+            }
+        }
+    }
 
     function sendEmail (request, emailJson) {
         return new Promise((resolve, reject)=>{
@@ -372,7 +559,7 @@ function BotService(objectCollection) {
                     resolve();
                 });
         });        
-    };
+    }
     
     //Get the email, sms template
     async function getCommTemplates(request) {
@@ -392,12 +579,12 @@ function BotService(objectCollection) {
             if (queryString != '') {                
                 return await (db.executeQueryPromise(1, queryString, request));
             }        
-    };
+    }
 
     //Get the field value based on form id and form_transaction_id
     async function getFieldValue(request) {
         let paramsArr = new Array(
-            request.form_transaction_id, 
+            request.form_transaction_id || 0, 
             request.form_id, 
             request.field_id, 
             request.organization_id            
@@ -406,24 +593,38 @@ function BotService(objectCollection) {
         if (queryString != '') {                
             return await (db.executeQueryPromise(1, queryString, request));
         }
-    };
-
-    function generateReqParams(parametersJson) {
-        return new Promise((resolve, reject)=>{
-            console.log(parametersJson);            
-            for(let i of parametersJson) {
-                console.log(i.parameter_key);
-                finalJson[i.parameter_key] =  i.parameter_value;
-            }            
-            console.log(finalJson);
-            resolve(finalJson);
-        });        
-    }
+    }    
 
     async function addParticipantStep(request) {
-    
-        let dataResp  = await checkServiceDeskBasedOnPhNo(request);
-        if(dataResp.length > 0) { //status is true means service desk exists
+        let dataResp;
+        let assetData = {};
+
+        if(request.desk_asset_id === 0) {
+            dataResp  = await getAssetDetailsOfANumber(request);
+            
+            for(let i of dataResp){
+                if(i.asset_type_category_id === 3) {
+                    deskAssetData = i;
+                }
+            }
+        } else {            
+            dataResp = await getAssetDetails({
+                                                "organization_id": request.organization_id,
+                                                "asset_id": request.desk_asset_id
+                                            });                                       
+            deskAssetData = dataResp[0];
+        }
+        console.log('Desk Asset Details : ', deskAssetData);            
+            
+        assetData.desk_asset_id = deskAssetData.asset_id;
+        assetData.first_name = deskAssetData.operating_asset_first_name;
+        assetData.contact_phone_number = deskAssetData.operating_asset_phone_number;
+        assetData.contact_phone_country_code = deskAssetData.operating_asset_phone_country_code;
+        assetData.asset_type_id = deskAssetData.asset_type_id;
+
+        return await addDeskAsParticipant(request, assetData);
+        
+        /*if(dataResp.length > 0) { //status is true means service desk exists
              
             let sdResp = dataResp[0];
             let deskAssetId = sdResp.asset_id;   
@@ -504,7 +705,7 @@ function BotService(objectCollection) {
             
             //Add Service Desk as Participant to form file
             addDeskAsParticipant(request, customerData, deskAssetId);
-        }
+        }*/
     }
 
     function createAssetContactDesk(request, customerData) {
@@ -581,7 +782,7 @@ function BotService(objectCollection) {
 
             const requestOptions = {
                 form: customerServiceDeskRequest
-            }
+            };
             
             console.log('Before Making Request');
             makeRequest.post(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', requestOptions, function (error, response, body) {
@@ -601,41 +802,38 @@ function BotService(objectCollection) {
                 }
             });
         });
-    };
+    }
 
-   function addDeskAsParticipant(request, customerData, deskAssetId) {
-    return new Promise((resolve, reject)=>{
-         
+    async function addDeskAsParticipant(request, assetData, deskAssetId) {
         let addParticipantRequest = {
              organization_id: request.organization_id,
-             account_id: global.vodafoneConfig[request.organization_id].CUSTOMER.ACCOUNT_ID,
-             workforce_id: global.vodafoneConfig[request.organization_id].CUSTOMER.WORKFORCE_ID,
-             asset_id: global.vodafoneConfig[request.organization_id].BOT.ASSET_ID,
-             asset_token_auth: global.vodafoneConfig[request.organization_id].BOT.ENC_TOKEN,
+             account_id: request.account_id,
+             workforce_id: request.workforce_id,
+             asset_id: request.asset_id,             
              asset_message_counter: 0,
-             activity_id: Number(request.form_order_activity_id),
+             activity_id: Number(request.activity_id),
              activity_access_role_id: 29,
-             activity_type_category_id: 9,
+             activity_type_category_id: 48,
              activity_type_id: 0,
              activity_participant_collection: JSON.stringify([{
                  "access_role_id": 29,
-                 "account_id": global.vodafoneConfig[request.organization_id].CUSTOMER.ACCOUNT_ID,
-                 "activity_id": Number(request.form_order_activity_id),
+                 "account_id": request.account_id,
+                 "activity_id": Number(request.activity_id),
                  "asset_datetime_last_seen": "1970-01-01 00:00:00",
-                 "asset_first_name": customerData.first_name,
-                 "asset_id": Number(deskAssetId),
+                 "asset_first_name": assetData.first_name,
+                 "asset_id": Number(assetData.desk_asset_id),
                  "asset_image_path": "",
                  "asset_last_name": "",
-                 "asset_phone_number": customerData.contact_phone_number,
-                 "asset_phone_number_code": customerData.contact_phone_country_code,
+                 "asset_phone_number": assetData.contact_phone_number,
+                 "asset_phone_number_code": assetData.contact_phone_country_code,
                  "asset_type_category_id": 45,
-                 "asset_type_id": global.vodafoneConfig[request.organization_id].CUSTOMER.DESK_ASSET_TYPE_ID,
+                 "asset_type_id": assetData.asset_type_id,
                  "field_id": 0,
                  "log_asset_id": request.asset_id,
                  "message_unique_id": util.getMessageUniqueId(Number(request.asset_id)),
-                 "operating_asset_first_name": customerData.first_name,
+                 "operating_asset_first_name": assetData.first_name,
                  "organization_id": request.organization_id,
-                 "workforce_id": global.vodafoneConfig[request.organization_id].CUSTOMER.WORKFORCE_ID
+                 "workforce_id": request.workforce_id
              }]),
              flag_pin: 0,
              flag_priority: 0,
@@ -650,86 +848,46 @@ function BotService(objectCollection) {
              track_gps_status: 0,
              service_version: 1.0,
              app_version: "2.5.5",
-             device_os_id: 5
+             device_os_id: 7
              };
-
-             const addParticipantEvent = {
-                 name: "assignParticipnt",
-                 service: "activityParticipantService",
-                 method: "assignCoworker",
-                 payload: addParticipantRequest
-             };
-
-             queueWrapper.raiseActivityEvent(addParticipantEvent, request.activity_id, (err, resp) => {
-                 if (err) {
-                     global.logger.write('debug',"\x1b[35m [ERROR] Raising queue activity raised for adding Service Desk as a participant. \x1b[0m",{},request);
-                     reject('Error while raising queue activity for adding service desk as a participant');
-                 } else {                        
-                     global.logger.write('debug',"\x1b[35m Queue activity raised for adding Service Desk as a participant. \x1b[0m",{},request);
-                     resolve();
-                 }
+             
+             return await new Promise((resolve, reject)=>{
+                activityParticipantService.assignCoworker(addParticipantRequest, (err, resp)=>{
+                    (err === false)? resolve() : reject(err);
+                 });
              });
-            
-         });
-    };
 
-    async function checkServiceDeskBasedOnPhNo(request) {        
-        let paramsArr = new Array(
-            request.asset_type_id || 45, 
-            request.asset_type_category_id, 
-            request.workforce_id, 
-            request.account_id, 
-            request.organization_id, 
-            request.phone_number, 
-            request.country_code
-        );            
-        let queryString = util.getQueryString('ds_p1_1_asset_list_select_customer_unique_id', paramsArr);
-        if (queryString != '') {
-            return await db.executeQueryPromise(1, queryString, request);
-        }
-    };
+    }
 
     async function makeAPIRequest(request, parametersJson){
-        /*const params = new URLSearchParams();
-        
-        params.append('asset_id', request.asset_id);
-        params.append('asset_token_auth', request.asset_token_auth);
+        let url;
+        let formParams = {};
+        if(request.method === 'GET') {
+            url = `${request.protocol}://${request.endpoint}`;            
+            makeRequest(url, function (error, response, body) {
+            console.log('error:', error); // Print the error if one occurred
+            console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
+            console.log('body:', body); // Print the HTML for the Google homepage.
+            });
+        } else if(request.method === 'POST') {
 
-        for(let i of parametersJson) {            
-            params.append(i.parameter_key, i.parameter_value);
-        }        
+            for(let i of parametersJson) {                
+                formParams[i.parameter_key] =  i.parameter_value;
+            }
 
-        console.log('PARAMS : ', params);
-        let res = await fetch('http://localhost:' +  + global.config.servicePort + "/" + global.config.version + "/" + request.endpoint, { method: 'POST', body: params }); 
-        let result = await res.json(); */
-
-        const body = { a: 1 };
-        body['asset_id'] = request.asset_id;
-        body['asset_token_auth'] = request.asset_token_auth
-
-        for(let i of parametersJson) {            
-            body[i.parameter_key] =  i.parameter_value;
-        }        
- 
-        console.log('BODY : ', body);
-        let res = await fetch('http://localhost:' +  + global.config.servicePort + "/" + global.config.version + "/" + request.endpoint, 
-                    {
-                        method: 'post',
-                        body:    body, //JSON.stringify(body),
-                        headers: { 'Content-Type': 'x-www-form-urlencoded' },
-                    });
-        let result = await res.json();
-
-        if(result.status == 200){
-            return Promise.resolve(['false', result]);
-        } else {
-            return Promise.reject(['true', result]);
+            console.log('formParams : ', formParams);
+            url = `${request.protocol}://${request.endpoint}`;            
+            
+            return new Promise((resolve, reject)=>{
+                makeRequest.post({url:url, form: formParams}, (err,httpResponse,body)=>{
+                    console.log('error:', err);
+                    //console.log('httpResponse:', httpResponse);
+                    console.log('body:', body);
+                    (err === null)? resolve(body) : reject(err);
+                });
+            });            
         }
-    };
-
-    this.nanikalyan = async (request)=> {
-        return await alterFormActivity(request);
-    };
+    }
 
     async function alterFormActivity(request) {
         var logDatetime = util.getCurrentUTCTime();        
@@ -740,7 +898,8 @@ function BotService(objectCollection) {
             data;
             inline_data_present = 1;
         
-        var activityInlineData = JSON.parse(request.activity_inline_data);       
+        
+        var activityInlineData = request.activity_inline_data;
         var newData = activityInlineData;
         console.log('newData from Request: ', newData);
 
@@ -750,9 +909,10 @@ function BotService(objectCollection) {
                                                                         });
 
         console.log('Data from activity_list: ', data);
-        var retrievedInlineData = [];        
+        var retrievedInlineData = [];
 
         if(data.length > 0){
+            console.log('HERE iam');
             request['activity_id'] = data[0].activity_id;            
             retrievedInlineData = JSON.parse(data[0].activity_inline_data);
             
@@ -777,7 +937,10 @@ function BotService(objectCollection) {
                 }
             } else {
                 i.update_sequence_id = 1;
-                retrievedInlineData.push(i);
+                console.log('VALUE of i : ', i);
+                console.log('retrievedInlineData : ', retrievedInlineData);
+                Array.from(retrievedInlineData).push(i);
+                //retrievedInlineData.push(i);
                 oldFieldValue = i.field_value;
             }         
             
@@ -794,41 +957,37 @@ function BotService(objectCollection) {
                     request.update_sequence_id = ++x.update_sequence_id;
             } else {
                 request.update_sequence_id = 1;
-                
-                await putLatestUpdateSeqId(request, activityInlineData);
             }
+
+            await putLatestUpdateSeqId(request, activityInlineData);
         }
 
-        /*request.activity_inline_data = JSON.stringify(retrievedInlineData)
+        request.activity_inline_data = JSON.stringify(retrievedInlineData);
         let content = '';
         if (String(oldFieldValue).trim().length === 0) {
-            content = `In the ${i.form_name}, the field ${i.field_name} was updated to ${newFieldValue}`;
+            //content = `In the ${i.form_name}, the field ${i.field_name} was updated to ${newFieldValue}`;
         } else {
-            content = `In the ${i.form_name}, the field ${i.field_name} was updated from ${oldFieldValue} to ${newFieldValue}`
+            //content = `In the ${i.form_name}, the field ${i.field_name} was updated from ${oldFieldValue} to ${newFieldValue}`;
         }
         
         let activityTimelineCollection = {
             form_submitted: retrievedInlineData,
-            subject: `Field Updated for ${i.form_name}`,
+            subject: 'Field Updated', //`Field Updated for ${i.form_name}`,
             content: content,
             mail_body: `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
             attachments: [],
             asset_reference: [],
             activity_reference: [],
             form_approval_field_reference: []
-        }
+        };
         
-        request.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
-        var event = {
-            name: "alterActivityInline",
-            service: "activityUpdateService",
-            method: "alterActivityInline",
-            payload: request
-        }
-        await queueWrapper.raiseActivityEventPromise(event, request.activity_id);*/
+        request.activity_timeline_collection = JSON.stringify(activityTimelineCollection);        
+        activityUpdateService.alterActivityInline(request, (err, resp)=>{
+            return (err === false) ? {} : Promise.reject(err);
+        });
 
-        return {};
-    };
+        //return {};
+    }
     
     async function getLatestUpdateSeqId(request) {
         let paramsArr = new Array(
@@ -841,17 +1000,17 @@ function BotService(objectCollection) {
         if (queryString != '') {
             return await (db.executeQueryPromise(1, queryString, request));           
         }
-    };
+    }
 
     async function putLatestUpdateSeqId(request, activityInlineData){
         
         for(let row of activityInlineData) {
             var params = new Array(
-                request.form_transaction_id, //0
-                request.form_id, //1
+                request.target_form_transaction_id, //0
+                request.form_id || row.form_id, //1
                 request.field_id || row.field_id, //2
                 request.data_type_combo_id || 0, //3
-                request.activity_id, //4
+                request.target_activity_id, //4
                 request.asset_id, //5
                 request.workforce_id, //6
                 request.account_id, //7
@@ -925,7 +1084,7 @@ function BotService(objectCollection) {
                         params[18] = money[1];
                         break;
                     case 19:    //Short Text
-                        params[18] = request.new_field_value;
+                        params[18] = row.field_value;
                         break;
                     case 20:    //Long Text
                         params[19] = row.field_value;
@@ -1014,7 +1173,43 @@ function BotService(objectCollection) {
                 }
         }
         return {};   
+    }
+
+    async function getQueueActivity(request, idActivity) {
+    	let paramsArr = new Array(
+	        request.organization_id,
+	        request.account_id,
+	        request.workforce_id,
+	        idActivity	            
+	    );
+	    let queryString = util.getQueryString('ds_v1_queue_activity_mapping_select_activity', paramsArr);
+	    if (queryString != '') {
+	        return await db.executeQueryPromise(1, queryString, request);
+        }
+    }
+
+    async function getAssetDetailsOfANumber(request) {
+        var paramsArr = new Array(
+            request.organization_id || 0,
+            request.phone_number,
+            request.country_code || 91
+        );
+        var queryString = util.getQueryString('ds_p1_asset_list_select_phone_number_all', paramsArr);
+        if (queryString != '') {
+            return await db.executeQueryPromise(1, queryString, request);                
+        }
     };
+
+    async function getAssetDetails(request) {
+        var paramsArr = new Array(
+            request.organization_id,
+            request.asset_id
+        );
+        var queryString = util.getQueryString('ds_v1_asset_list_select', paramsArr);
+        if (queryString != '') {
+            return await db.executeQueryPromise(1, queryString, request);
+        }
+    }
 
 };
 
