@@ -150,7 +150,7 @@ function ActivityService(objectCollection) {
                     };
                     //console.log('streamtype id is: ' + activityStreamTypeId)
                     global.logger.write('debug', 'streamtype id is: ' + activityStreamTypeId, {}, request);
-                    assetActivityListInsertAddActivity(request, function (err, status) {
+                    assetActivityListInsertAddActivity(request, async function (err, status) {
                         if (err === false) {
                             let activityTitle = "Form Submitted";
                             
@@ -283,6 +283,43 @@ function ActivityService(objectCollection) {
                                         console.log("\x1b[35m Queue activity raised for workflow engine. \x1b[0m");
                                     }
                                 });
+                            }
+
+                            // Bot Engine Trigger
+                            if (activityTypeCategroyId === 9) {
+                                try {
+                                    let botEngineRequest = Object.assign({}, request);
+                                    botEngineRequest.form_id = request.activity_form_id;
+
+                                    const [formConfigError, formConfigData] = await activityCommonService.workforceFormMappingSelect(botEngineRequest);
+                                    if (
+                                        (formConfigError === false) &&
+                                        (Number(formConfigData.length) > 0) &&
+                                        (Number(formConfigData[0].form_flag_workflow_enabled) === 1)
+                                    ) {
+                                        // Proceeding because there was no error found, there were records returned
+                                        // and form_flag_workflow_enabled is set to 1
+                                        let botsListData = await activityCommonService.getBotsMappedToActType(botEngineRequest);
+                                        if (botsListData.length > 0) {
+                                            botEngineRequest.bot_id = botsListData[0].bot_id;
+                                        }
+                                        let botEngineEvent = {
+                                            name: "botEngine",
+                                            service: "botService",
+                                            method: "initBotEngine",
+                                            payload: botEngineRequest
+                                        };
+                                        // queueWrapper.raiseActivityEvent(botEngineEvent, request.activity_id, (err, resp) => {
+                                        //     if (err) {
+                                        //         console.log("\x1b[35m [ERROR] Raising queue activity raised for workflow engine. \x1b[0m");
+                                        //     } else {
+                                        //         console.log("\x1b[35m Queue activity raised for workflow engine. \x1b[0m");
+                                        //     }
+                                        // });
+                                    }
+                                } catch (botInitError) {
+                                    global.logger.write('error', botInitError, botInitError, botEngineRequest);
+                                }
                             }
                             
                             activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
@@ -744,6 +781,7 @@ function ActivityService(objectCollection) {
         });
     };
     var activityListInsert = function (request, callback) {
+        // console.log("Request | activityListInsert: ", request);
         var paramsArr = new Array();
         var activityInlineData;
         
