@@ -1334,7 +1334,7 @@ function FormConfigService(objCollection) {
             request.account_id,
             request.workforce_id,
             request.activity_type_id || 0,
-            request.access_level_id || 0,
+            0, // request.access_level_id || 0,
             request.log_datetime || '1970-01-01 00:00:00',
             request.start_from,
             util.replaceQueryLimit(request.limit_value)
