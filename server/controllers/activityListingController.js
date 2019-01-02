@@ -629,14 +629,18 @@ function ActivityListingController(objCollection) {
     }); 
     
     
-    app.post('/' + global.config.version + '/activity/form/validation/data', function (req, res) {
-    	activityListingService.getActivityFormFieldValidationData(req.body).then((data)=>{   
-    		
-    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
-    	}).catch((err) => { 
-    		data = {};
-    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
-        	});
+    app.post([('/' + global.config.version + '/activity/form/validation/data'),
+        ('/' + global.config.version + '/form/field/validation/collection')
+    ], function (req, res) {
+
+        activityListingService.getActivityFormFieldValidationData(req.body).then((data) => {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+
+        }).catch((err) => {
+            data = {};
+            res.send(responseWrapper.getResponse(err, data, -999, req.body));
+
+        });
     });
     
     app.post('/' + global.config.version + '/activity/my_queue/list', function (req, res) {
@@ -659,6 +663,34 @@ function ActivityListingController(objCollection) {
                 let data = {};
                 res.send(responseWrapper.getResponse(err, data, -9998, req.body));
             });
+    });
+    
+    app.post('/' + global.config.version + '/queue/mapping/activity_type/list', function (req, res) {
+    	activityListingService.getEntityQueueMapping(req.body).then((data)=>{    
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));    	
+    	}).catch((err) => {        	
+        	res.send(responseWrapper.getResponse(err, {}, -999, req.body));
+        });    		
+    });
+    
+    app.post('/' + global.config.version + '/queue/activity/mapping/desk/list', function (req, res) {
+    	activityListingService.getMyQueueActivitiesV2(req.body).then((data)=>{ 
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -9998, req.body));
+        	});
+    });
+    
+    app.post('/' + global.config.version + '/activity/mapping/queue/list', function (req, res) {
+    	activityCommonService.fetchActivitiesMappedToQueue(req.body).then((data)=>{    
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));    	
+    	}).catch((err) => {        	
+        	res.send(responseWrapper.getResponse(err, {}, -999, req.body));
+        });    		
     });
 }
 

@@ -250,6 +250,148 @@ function FormConfigController(objCollection) {
     		res.send(responseWrapper.getResponse(err, data, -999, req.body));
         	});
     });
+
+    // "Service for creating form definition
+    // This should also have provision to map the form at the specified access level
+    // There should be an optional provision to map the form definition to an activity_type"
+    app.post('/' + global.config.version + '/form/add', async function (req, res) {
+
+        const [err, formData] = await formConfigService.formAdd(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, formData, 200, req.body));
+        } else {
+            console.log("Error: ", err)
+            res.send(responseWrapper.getResponse(err, formData, -9999, req.body));
+        }
+
+    });
+
+    app.post('/' + global.config.version + '/form/field/list', async function (req, res) {
+
+        const [err, formFieldList] = await formConfigService.fetchFormFieldList(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, formFieldList, 200, req.body));
+        } else {
+            console.log("Error: ", err)
+            res.send(responseWrapper.getResponse(err, formFieldList, -9999, req.body));
+        }
+
+    });
+
+    // Service for getting the list of forms at the specified access level and optionally 
+    // mapped to an activity type. If mapped to activity type also return the sequnece id, 
+    // origin flag and percentage contribution to the workflow
+    app.post('/' + global.config.version + '/form/access/list', async function (req, res) {
+
+        const [err, formAccessList] = await formConfigService.fetchFormAccessList(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, formAccessList, 200, req.body));
+        } else {
+            console.log("Error: ", err)
+            res.send(responseWrapper.getResponse(err, formAccessList, -9999, req.body));
+        }
+
+    });
+
+    // Service for getting the submitted flag status of all the forms mapped to an activity of category workflow
+    app.post('/' + global.config.version + '/workflow/form/status/submitted/list', async function (req, res) {
+
+        const [err, workflowFormSubmittedStatusList] = await formConfigService.fetchWorkflowFormSubmittedStatusList(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, workflowFormSubmittedStatusList, 200, req.body));
+        } else {
+            console.log("Error: ", err)
+            res.send(responseWrapper.getResponse(err, workflowFormSubmittedStatusList, -9999, req.body));
+        }
+
+    });
+
+    // Service for mapping form definitions to activity type. Forms are mapped mutually exclusively to activity types.
+    // This service should have provision for setting or resetting the origin flag, altering the sequnce id and 
+    // percentage contribution to the workflow. Only one out of all the forms mapped to an activity type can have 
+    // the origin flag enabled
+    app.post('/' + global.config.version + '/form/mapping/activity_type/set', async function (req, res) {
+
+        // flag: 1 => Udpdate both activity_type mapping and config values
+        // flag: 2 => Udpdate activity_type mapping only
+        // flag: 3 => Udpdate config values only
+
+        const [err, updateStatus] = await formConfigService.setActivityTypeAndConfig(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, updateStatus, 200, req.body));
+        } else {
+            console.log("Error: ", err)
+            res.send(responseWrapper.getResponse(err, updateStatus, -9999, req.body));
+        }
+
+    });
+
+    // Services for unmapping form definitions to activity type
+    app.post('/' + global.config.version + '/form/mapping/activity_type/reset', async function (req, res) {
+
+        // flag: 1 => Udpdate both activity_type mapping and config values
+        // flag: 2 => Udpdate activity_type mapping only
+        // flag: 3 => Udpdate config values only
+
+        const [err, updateStatus] = await formConfigService.resetActivityTypeAndConfig(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, updateStatus, 200, req.body));
+        } else {
+            console.log("Error: ", err)
+            res.send(responseWrapper.getResponse(err, updateStatus, -9999, req.body));
+        }
+
+    });
+
+    // THIS IS A DUMMY/TEST ENDPOINT
+    // app.post('/' + global.config.version + '/workflow/test/1', async function (req, res) {
+
+    //     // flag: 1 => Udpdate both activity_type mapping and config values
+    //     // flag: 2 => Udpdate activity_type mapping only
+    //     // flag: 3 => Udpdate config values only
+
+    //     // const [err, workflowStatus] = await formConfigService.workflowEngine(req.body);
+    //     // if (!err) {
+    //     //     res.send(responseWrapper.getResponse({}, workflowStatus, 200, req.body));
+    //     // } else {
+    //     //     console.log("Error: ", err)
+    //     //     res.send(responseWrapper.getResponse(err, workflowStatus, -9999, req.body));
+    //     // }
+    //     let botEngineRequest = Object.assign({}, req.body);
+    //     botEngineRequest.form_id = req.body.activity_form_id;
+    //     let botEngineEvent = {
+    //         name: "botEngine",
+    //         service: "botService",
+    //         method: "initBotEngine",
+    //         payload: botEngineRequest
+    //     };
+    //     queueWrapper.raiseActivityEvent(botEngineEvent, req.body.activity_id, (err, resp) => {
+    //         if (err) {
+    //             console.log("\x1b[35m [ERROR] Raising queue activity raised for workflow engine. \x1b[0m");
+    //         } else {
+    //             console.log("\x1b[35m Queue activity raised for workflow engine. \x1b[0m");
+    //         }
+    //     });
+
+    // });
+
+    // // THIS IS A DUMMY/TEST ENDPOINT
+    // app.post(['/' + global.config.version + '/workflow/test/2', '/' + global.config.version + '/workflow/test/3'], async function (req, res) {
+
+    //     // flag: 1 => Udpdate both activity_type mapping and config values
+    //     // flag: 2 => Udpdate activity_type mapping only
+    //     // flag: 3 => Udpdate config values only
+
+    //     const [err, workflowStatus] = await formConfigService.workflowOnFormEdit(req.body);
+    //     if (!err) {
+    //         res.send(responseWrapper.getResponse({}, workflowStatus, 200, req.body));
+    //     } else {
+    //         console.log("Error: ", err)
+    //         res.send(responseWrapper.getResponse(err, workflowStatus, -9999, req.body));
+    //     }
+
+    // });
+
     
 };
 

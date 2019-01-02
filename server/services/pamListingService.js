@@ -1277,6 +1277,29 @@ function PamListingService(objectCollection) {
    		}
 		});
     };
+    
+    this.getEventCovers = function (request) {
+		return new Promise((resolve, reject)=>{
+        var paramsArr = new Array(
+        		request.organization_id,
+        		request.account_id,
+        		request.event_id
+                );
+
+        var queryString = util.getQueryString('pm_v1_activity_list_select_event_covers', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+            	//console.log("err "+err);
+               if(err === false) {
+               		console.log('data: '+data.length);
+               		resolve(data);        				        			      			  
+                } else {
+                   reject(err);
+               }
+            });
+   		}
+		});
+    };
 };
 
 module.exports = PamListingService;

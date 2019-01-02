@@ -161,6 +161,7 @@ function ActivityParticipantService(objectCollection) {
                     activityStreamTypeId = 1703;
                     break;
                     //////////////////////////////
+                case 48:
                 case 9: //form
                     activityStreamTypeId = 702;
                     break;
@@ -524,7 +525,12 @@ function ActivityParticipantService(objectCollection) {
         if (newRecordStatus) {
             activityAssetMappingInsertParticipantAssign(request, participantData, function (err, data) {
                 if (err === false) {
-                    activityPushService.sendPush(request, objectCollection, participantData.asset_id, function () {});
+                    try {
+                        activityPushService.sendPush(request, objectCollection, participantData.asset_id, function () {});
+                    } catch(err) {
+                        console.log(err);
+                    }
+                    
                     activityCommonService.assetTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
 
                     });

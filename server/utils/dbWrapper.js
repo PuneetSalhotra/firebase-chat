@@ -93,6 +93,39 @@ var executeQuery = function (flag, queryString, request, callback) {
     }
 };
 
+var executeQueryPromise = function (flag, queryString, request) {
+    return new Promise((resolve, reject)=>{
+        let conPool;        
+        
+        (flag === 0) ? conPool = writeCluster : conPool = readCluster;
+        
+        try {
+            conPool.getConnection(function (err, conn) {
+                if (err) {
+                    global.logger.write('serverError', 'ERROR WHILE GETTING CONNECTON - ' + err, err, request);                
+                    reject(err);
+                } else {                    
+                    conn.query(queryString, function (err, rows, fields) {
+                        if (!err) {                        
+                            global.logger.write('dbResponse', queryString, rows, request);
+                            conn.release();                            
+                            resolve(rows[0]);
+                        } else {                        
+                            global.logger.write('dbResponse', 'SOME ERROR IN QUERY | ' + queryString, err, request);                        
+                            global.logger.write('serverError', err, err, request);
+                            conn.release();
+                            reject(err);
+                        }
+                    });
+                }
+            });
+        } catch (exception) {       
+            global.logger.write('serverError', 'Exception Occurred - ' + exception, exception, request);
+            reject(exception);
+        }
+    });
+};
+
 /*function retrieveFromMasterDbPool(conPool, queryString, request){
     return new Promise((resolve, reject)=>{
         try {
@@ -182,5 +215,6 @@ process.on('SIGINT', () => {
 
 module.exports = {
     executeQuery: executeQuery,
+    executeQueryPromise: executeQueryPromise,
     executeRecursiveQuery: executeRecursiveQuery
 };
