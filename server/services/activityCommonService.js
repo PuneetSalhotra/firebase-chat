@@ -669,7 +669,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             });
         }
     };*/
-    
+
     this.assetTimelineTransactionInsert = function (request, participantData, streamTypeId, callback) {
         //console.log('vnk streamTypeId : ', streamTypeId);
         var assetId = request.asset_id;
@@ -855,7 +855,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             request.track_gps_datetime,
             request.datetime_log,
             request.data_activity_id || 0
-        );        
+        );
         let queryString = util.getQueryString("ds_v1_3_asset_timeline_transaction_insert", paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
@@ -863,7 +863,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                     callback(false, true);
                     return;
                 } else {
-                    callback(err, false);                    
+                    callback(err, false);
                     global.logger.write('serverError', JSON.stringify(err), err, request);
                     return;
                 }
@@ -871,7 +871,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
     };
 
-    this.activityTimelineTransactionInsert = function (request, participantData, streamTypeId, callback) {        
+    this.activityTimelineTransactionInsert = function (request, participantData, streamTypeId, callback) {
 
         var assetId = request.asset_id;
         var organizationId = request.organization_id;
@@ -1085,14 +1085,14 @@ function ActivityCommonService(db, util, forEachAsync) {
             request.datetime_log,
             request.data_activity_id || 0 //Added on 10-12-2018
         );
-        let queryString = util.getQueryString("ds_v1_5_activity_timeline_transaction_insert", paramsArr);        
+        let queryString = util.getQueryString("ds_v1_5_activity_timeline_transaction_insert", paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
                     callback(false, true);
                     return;
                 } else {
-                    callback(err, false);                    
+                    callback(err, false);
                     global.logger.write('serverError', JSON.stringify(err), err, request);
                     return;
                 }
@@ -3402,24 +3402,24 @@ function ActivityCommonService(db, util, forEachAsync) {
         return [error, formData];
     }
 
-    this.getBotsMappedToActType = async (request) => {            
+    this.getBotsMappedToActType = async (request) => {
         let paramsArr = new Array(
-            request.flag || 1, 
-            request.organization_id, 
-            request.account_id, 
-            request.workforce_id, 
-            request.activity_type_id, 
-            request.field_id, 
-            request.form_id, 
+            request.flag || 1,
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_id,
+            request.field_id,
+            request.form_id,
             request.page_start,
             util.replaceQueryLimit(request.page_limit)
         );
         let queryString = util.getQueryString('ds_p1_bot_list_select', paramsArr);
-        if (queryString != '') {                
+        if (queryString != '') {
             return await (db.executeQueryPromise(1, queryString, request));
         }
     };
-    
+
 };
 
 

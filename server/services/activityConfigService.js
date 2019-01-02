@@ -194,7 +194,7 @@ function ActivityConfigService(db, util) {
                 });
             }
         });
-    }
+    };
     
    this.workForceActivityTypeUpdate =  function(request) {
         return new Promise((resolve, reject)=>{
@@ -222,7 +222,7 @@ function ActivityConfigService(db, util) {
                 });
             }
         });
-    }
+    };
     
     this.workForceActivityTypeDelete = function (request) {
         return new Promise((resolve, reject)=>{
@@ -247,7 +247,7 @@ function ActivityConfigService(db, util) {
                 });
             }
         });
-    }
+    };
     
     function workForceActivityTypeHistoryInsert(request) {
         return new Promise((resolve, reject)=>{
@@ -304,7 +304,7 @@ function ActivityConfigService(db, util) {
                 request.workforce_id,
                 request.activity_type_category_id,
                 request.activity_type_id,
-                request.flag,
+                request.flag || 1,
         		request.datetime_log,
         		request.page_start,
         		util.replaceQueryLimit(request.page_limit)
@@ -354,5 +354,6 @@ function ActivityConfigService(db, util) {
 	   		}
 		});
     };
-};
+}
+
 module.exports = ActivityConfigService;
