@@ -393,6 +393,17 @@ function FormConfigController(objCollection) {
     // });
 
     
+    app.post('/' + global.config.version + '/form/transaction/data', function (req, res) {
+
+    	formConfigService.getFormTransactionData(req.body).then((data)=>{   
+    		//console.log(data);
+    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
+    	}).catch((err) => { 
+    		data = {};
+    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        	});
+    });
+    
 }
 
 module.exports = FormConfigController;
