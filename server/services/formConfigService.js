@@ -997,6 +997,77 @@ function FormConfigService(objCollection) {
             });
         });
     }
+    
+    this.getFormTransactionData= function(request){
+		return new Promise((resolve, reject)=>{			
+    		var queryString = 'ds_v1_1_activity_form_transaction_select_transaction';
+	        var paramsArr = new Array(
+	        		request.organization_id,
+	        		request.form_transaction_id,
+	        		request.form_id
+	                );	 
+	            db.executeRecursiveQuery(1, 0, 10, queryString, paramsArr, function (err, data) {	
+		            if(err === false) {
+	               	/*	processFormTransactionData(request, data).then((finalData)=>{
+  	               			//console.log("finalData : "+finalData);
+  	               			resolve(finalData);
+  	               		});   */
+	               		resolve(data);
+		            } else {
+		               reject(err);
+		            }
+	            });		        
+	    });
+    };
+    
+    function processFormTransactionData(request, data){
+    	return new Promise((resolve, reject) => {
+    		var formData = [];
+        	var counter = -1;
+        	
+			forEachAsync(data, (next, dataArray)=>{  
+				console.log(dataArray.length);
+				forEachAsync(dataArray, (next1, fieldData)=>{ 
+					console.log("fieldData.field_id "+fieldData.field_id);
+					var formattedFieldData = {};
+					formattedFieldData.field_id=fieldData.field_id;
+					formattedFieldData.field_name=fieldData.field_name;
+					formattedFieldData.form_id=fieldData.form_id;
+					formattedFieldData.form_name=fieldData.form_name;
+					formattedFieldData.form_transaction_datetime=fieldData.form_transaction_datetime;
+					formattedFieldData.form_transaction_id=fieldData.form_transaction_id;
+					formattedFieldData.field_sequence_id=fieldData.field_sequence_id;
+					formattedFieldData.data_type_id=fieldData.data_type_id;
+					formattedFieldData.data_entity_date_1=fieldData.data_entity_date_1;
+					formattedFieldData.data_entity_date_2=fieldData.data_entity_date_2;
+					formattedFieldData.data_entity_datetime_1=fieldData.data_entity_datetime_1;
+					formattedFieldData.data_entity_datetime_2=fieldData.data_entity_datetime_2;
+					formattedFieldData.data_entity_text_1=fieldData.data_entity_text_1;
+					formattedFieldData.data_entity_text_2=fieldData.data_entity_text_2;
+					formattedFieldData.data_entity_text_3=fieldData.data_entity_text_3;
+					formattedFieldData.data_entity_tinyint_1=fieldData.data_entity_tinyint_1;
+					formattedFieldData.data_entity_tinyint_2=fieldData.data_entity_tinyint_2;
+					formattedFieldData.data_entity_bigint_1=fieldData.data_entity_bigint_1;
+					formattedFieldData.data_entity_bigint_2=fieldData.data_entity_bigint_2;
+					formattedFieldData.data_entity_double_1=fieldData.data_entity_double_1;
+					formattedFieldData.data_entity_double_2=fieldData.data_entity_double_2;
+					formattedFieldData.data_entity_decimal_1=fieldData.data_entity_decimal_1;
+					formattedFieldData.data_entity_decimal_2=fieldData.data_entity_decimal_2;
+					formattedFieldData.data_entity_decimal_3=fieldData.data_entity_decimal_3;
+					formattedFieldData.data_entity_cloud_path=fieldData.data_entity_cloud_path;
+					formattedFieldData.log_datetime=fieldData.log_datetime;
+					formData[++counter]=formattedFieldData;
+					next1();
+				}).then(()=>{
+					next();
+				})
+			}).then(()=>{
+				console.log(formData.length);
+				resolve(formData);
+			})
+        		
+    	});
+    };
 
     this.formAdd = async function (request) {
 

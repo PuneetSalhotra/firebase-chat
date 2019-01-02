@@ -194,7 +194,7 @@ function ActivityConfigService(db, util) {
                 });
             }
         });
-    }
+    };
     
    this.workForceActivityTypeUpdate =  function(request) {
         return new Promise((resolve, reject)=>{
@@ -222,7 +222,7 @@ function ActivityConfigService(db, util) {
                 });
             }
         });
-    }
+    };
     
     this.workForceActivityTypeDelete = function (request) {
         return new Promise((resolve, reject)=>{
@@ -247,7 +247,7 @@ function ActivityConfigService(db, util) {
                 });
             }
         });
-    }
+    };
     
     function workForceActivityTypeHistoryInsert(request) {
         return new Promise((resolve, reject)=>{
@@ -354,5 +354,6 @@ function ActivityConfigService(db, util) {
 	   		}
 		});
     };
-};
+}
+
 module.exports = ActivityConfigService;
