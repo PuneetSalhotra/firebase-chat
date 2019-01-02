@@ -290,6 +290,7 @@ function ActivityService(objectCollection) {
                                 try {
                                     let botEngineRequest = Object.assign({}, request);
                                     botEngineRequest.form_id = request.activity_form_id;
+                                    botEngineRequest.field_id = 0;
 
                                     const [formConfigError, formConfigData] = await activityCommonService.workforceFormMappingSelect(botEngineRequest);
                                     if (
@@ -303,19 +304,11 @@ function ActivityService(objectCollection) {
                                         if (botsListData.length > 0) {
                                             botEngineRequest.bot_id = botsListData[0].bot_id;
                                         }
-                                        let botEngineEvent = {
-                                            name: "botEngine",
-                                            service: "botService",
-                                            method: "initBotEngine",
-                                            payload: botEngineRequest
-                                        };
-                                        // queueWrapper.raiseActivityEvent(botEngineEvent, request.activity_id, (err, resp) => {
-                                        //     if (err) {
-                                        //         console.log("\x1b[35m [ERROR] Raising queue activity raised for workflow engine. \x1b[0m");
-                                        //     } else {
-                                        //         console.log("\x1b[35m Queue activity raised for workflow engine. \x1b[0m");
-                                        //     }
-                                        // });
+                                        await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
+                                            .then((resp) => {
+                                                global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
+                                            });
+                                        // -_-
                                     }
                                 } catch (botInitError) {
                                     global.logger.write('error', botInitError, botInitError, botEngineRequest);
