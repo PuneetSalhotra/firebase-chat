@@ -1808,7 +1808,34 @@ function ActivityService(objectCollection) {
                  }else{
                 	 request.status_changed_flag = 1;
                  }
-                 
+
+                try {
+                    let botEngineRequest = Object.assign({}, request);
+                    botEngineRequest.form_id = request.activity_form_id || request.form_id;
+                    botEngineRequest.field_id = 0;
+
+                    const [formConfigError, formConfigData] = await activityCommonService.workforceFormMappingSelect(botEngineRequest);
+                    if (
+                        (formConfigError === false) &&
+                        (Number(formConfigData.length) > 0) &&
+                        (Number(formConfigData[0].form_flag_workflow_enabled) === 1)
+                    ) {
+                        // Proceeding because there was no error found, there were records returned
+                        // and form_flag_workflow_enabled is set to 1
+                        let botsListData = await activityCommonService.getBotsMappedToActType(botEngineRequest);
+                        if (botsListData.length > 0) {
+                            botEngineRequest.bot_id = botsListData[0].bot_id;
+                        }
+                        await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
+                            .then((resp) => {
+                                global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
+                            });
+                        // -_-
+                    }
+                } catch (botInitError) {
+                    global.logger.write('error', botInitError, botInitError, botEngineRequest);
+                }
+
                  global.logger.write('debug', '*****STATUS CHANGE FLAG : '+request.status_changed_flag, {}, request);
                  
                  var timeDuration = util.differenceDatetimes(util.getCurrentUTCTime(), util.replaceDefaultDatetime(data[0].datetimeExistingActivityStatusUpdated))
