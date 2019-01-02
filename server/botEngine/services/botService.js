@@ -416,7 +416,36 @@ function BotService(objectCollection) {
         let retrievedCommInlineData = JSON.parse(dbResp[0].communication_inline_data);        
         global.logger.write('conLog', retrievedCommInlineData.communication_template.email,{},{});
         
-        return await sendEmail(newReq, retrievedCommInlineData.communication_template.email);
+        await sendEmail(newReq, retrievedCommInlineData.communication_template.email);
+
+        //Make a 715 timeline entry - (715 streamtypeid is for email)
+        let activityTimelineCollection = {
+            email: retrievedCommInlineData.communication_template.email            
+        };
+
+        let fire715OnWFOrderFileRequest = Object.assign({}, newReq);
+            fire715OnWFOrderFileRequest.activity_id = newReq.activity_id;
+            fire715OnWFOrderFileRequest.form_transaction_id = newReq.form_transaction_id;
+            fire715OnWFOrderFileRequest.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
+            fire715OnWFOrderFileRequest.activity_stream_type_id = 715;
+            fire715OnWFOrderFileRequest.form_id = 0;
+            fire715OnWFOrderFileRequest.asset_message_counter = 0;
+            fire715OnWFOrderFileRequest.activity_type_category_id = 48;
+            fire715OnWFOrderFileRequest.message_unique_id = util.getMessageUniqueId(request.asset_id);
+            fire715OnWFOrderFileRequest.activity_timeline_text = '';
+            fire715OnWFOrderFileRequest.activity_timeline_url = '';
+            fire715OnWFOrderFileRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+            fire715OnWFOrderFileRequest.flag_timeline_entry = 1;
+            fire715OnWFOrderFileRequest.service_version = '1.0';
+            fire715OnWFOrderFileRequest.app_version = '2.8.16';
+            fire715OnWFOrderFileRequest.device_os_id = 7;
+            fire715OnWFOrderFileRequest.data_activity_id = request.activity_id;
+        
+        return new Promise((resolve, reject)=>{
+            activityTimelineService.addTimelineTransaction(fire715OnWFOrderFileRequest, (err, resp)=>{
+                (err === false)? resolve() : reject(err);
+            });
+        });
     }
 
     //Bot Step Firing a Text Message
@@ -445,17 +474,44 @@ function BotService(objectCollection) {
         let dbResp = await getCommTemplates(newReq);
         let retrievedCommInlineData = JSON.parse(dbResp[0].communication_inline_data);
         newReq.smsText = retrievedCommInlineData.communication_template.text.message;        
-        global.logger.write('conLog', newReq.smsText,{},{});
-
-        //return await activityCommonService.makeRequest(newReq, "send/smshorizon/sms", 1);
+        global.logger.write('conLog', newReq.smsText,{},{});        
 
         util.sendSmsHorizon(newReq.smsText, newReq.country_code, newReq.phone_number, function (err, data) {
             if (err === false) {
                 global.logger.write('debug', 'SMS HORIZON RESPONSE: '+JSON.stringify(data), {}, {});
-                return data.response ;
+                global.logger.write('conLog', data.response, {}, {});                
             } else {                
-                return data.response;
+                global.logger.write('conLog', data.response, {}, {});                
             }
+        });
+
+        //Make a 716 timeline entry - (716 streamtypeid is for email)
+        let activityTimelineCollection = {
+            email: retrievedCommInlineData.communication_template.text            
+        };
+
+        let fire716OnWFOrderFileRequest = Object.assign({}, newReq);
+            fire716OnWFOrderFileRequest.activity_id = newReq.activity_id;
+            fire716OnWFOrderFileRequest.form_transaction_id = newReq.form_transaction_id;
+            fire716OnWFOrderFileRequest.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
+            fire716OnWFOrderFileRequest.activity_stream_type_id = 716;
+            fire716OnWFOrderFileRequest.form_id = 0;
+            fire716OnWFOrderFileRequest.asset_message_counter = 0;
+            fire716OnWFOrderFileRequest.activity_type_category_id = 48;
+            fire716OnWFOrderFileRequest.message_unique_id = util.getMessageUniqueId(request.asset_id);
+            fire716OnWFOrderFileRequest.activity_timeline_text = '';
+            fire716OnWFOrderFileRequest.activity_timeline_url = '';
+            fire716OnWFOrderFileRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+            fire716OnWFOrderFileRequest.flag_timeline_entry = 1;
+            fire716OnWFOrderFileRequest.service_version = '1.0';
+            fire716OnWFOrderFileRequest.app_version = '2.8.16';
+            fire716OnWFOrderFileRequest.device_os_id = 7;
+            fire716OnWFOrderFileRequest.data_activity_id = request.activity_id;
+        
+        return new Promise((resolve, reject)=>{
+            activityTimelineService.addTimelineTransaction(fire716OnWFOrderFileRequest, (err, resp)=>{
+                (err === false)? resolve() : reject(err);
+            });
         });
     }
 
