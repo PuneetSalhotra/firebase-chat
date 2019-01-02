@@ -5,11 +5,11 @@ then
   pm2 reload preProdProcesses.yml
 elif [ "$DEPLOYMENT_GROUP_NAME" == "prodCodeDeploy-Group" ] 
 then
-  cd /production_desker_api/2018-12-18-01/
+  cd /production_desker_api/2019-01-02-01/
   pm2 start prodProcesses.yml
-  #sleep 2
-  #cd /production_portal_api/portal/
-  #mode=prod pm2 start prodPortalProcesses.yml
+  sleep 2
+  cd /production_portal_api/portal/  
+  pm2 start prodPortalProcesses.yml
 else    
   echo "Unknown deployment Group"
 fi
