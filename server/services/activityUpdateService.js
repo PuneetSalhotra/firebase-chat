@@ -643,7 +643,7 @@ function ActivityUpdateService(objectCollection) {
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         var activityTypeCategoryId = Number(request.activity_type_category_id);
-
+        let activityStreamTypeId;
         activityCommonService.updateAssetLocation(request, function (err, data) {});
 
         activityListUpdateInline(request, function (err, data) {

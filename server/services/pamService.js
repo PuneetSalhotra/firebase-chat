@@ -2118,8 +2118,6 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                 request['asset_assigned_status_id'] = 0;
                 request['asset_session_status_id'] = 0;
 
-                global.logger.writeSession(request.body);
-                             
                 /*sns.createPlatformEndPoint(Number(request.device_os_id), request.asset_token_push, 1, function (err, endPointArn) {
                     if (!err) {
                         //console.log('success in creating platform end point : ' + endPointArn);
@@ -2190,8 +2188,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
             request.target_asset_id = 0;
         }
 
-        console.log('assetClockOut : \n', request);
-        global.logger.writeSession(request.body);
+        console.log('assetClockOut : \n', request);        
         
         request.push_notification_id = '';
         request.asset_push_arn = '';

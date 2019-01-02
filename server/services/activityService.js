@@ -1797,7 +1797,7 @@ function ActivityService(objectCollection) {
             request.activity_stream_type_id = activityStreamTypeId;
         }
         activityCommonService.updateAssetLocation(request, function (err, data) {});
-        activityListUpdateStatus(request, function (err, data) {
+        activityListUpdateStatus(request, async function (err, data) {
             if (err === false) {
 
                 if (activityTypeCategroyId === 9) {

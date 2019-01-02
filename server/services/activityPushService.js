@@ -462,7 +462,7 @@ function ActivityPushService(objectCollection) {
                                 } else if (rowData.pushType == 'pub') {
                                     if (pubnubMsg.activity_type_category_id != 0) {
                                         pubnubMsg.organization_id = rowData.organizationId;
-                                        pubnubMsg.desk_asset_id = rowData.assetId
+                                        pubnubMsg.desk_asset_id = rowData.assetId;
                                         //console.log('PubNub Message : ', pubnubMsg);
                                         global.logger.write('debug', 'PubNub Message :' + JSON.stringify(pubnubMsg), {}, request);
                                         pubnubWrapper.push(rowData.organizationId, pubnubMsg);
@@ -520,12 +520,12 @@ function ActivityPushService(objectCollection) {
                         });
                     } else {
                         //console.log('push string is retrived as an empty object');
-                        global.logger.write('debug', 'push string is retrived as an empty object', {}, request)
+                        global.logger.write('debug', 'push string is retrived as an empty object', {}, request);
                         callback(false, true);
                     }
                 }.bind(this));
             }
-        }
+        };
 
         var pushReceivers = new Array();
         objectCollection.activityCommonService.getAllParticipants(request, function (err, participantsList) {
@@ -533,8 +533,8 @@ function ActivityPushService(objectCollection) {
                 var senderName = '';
                 var reqobj = {};
                 
-                global.logger.write('debug', 'request params in the activityPush Service', {}, request);
-                global.logger.write('debug', request, {}, request);
+                //global.logger.write('debug', 'request params in the activityPush Service', {}, request);
+                //global.logger.write('debug', request, {}, request);
 
                 objectCollection.activityCommonService.getAssetActiveAccount(participantsList)
                     .then((newParticipantsList) => {
