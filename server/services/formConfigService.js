@@ -375,7 +375,10 @@ function FormConfigService(objCollection) {
                 "log_datetime": util.replaceDefaultDatetime(rowData['log_datetime']),
                 "log_state": util.replaceDefaultNumber(rowData['log_state']),
                 "log_active": util.replaceDefaultNumber(rowData['log_active']),
-                "update_sequence_id": util.replaceDefaultNumber(rowData['update_sequence_id'])
+                "update_sequence_id": util.replaceDefaultNumber(rowData['update_sequence_id']),
+                "activity_type_id": util.replaceDefaultNumber(rowData['activity_type_id']),
+                "activity_type_name": util.replaceDefaultString(util.decodeSpecialChars(rowData['activity_type_name'])),
+                "form_flag_workflow_origin": util.replaceDefaultNumber(rowData['form_flag_workflow_origin'])
             };
             responseData.push(rowDataArr);
         }, this);
