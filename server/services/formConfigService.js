@@ -880,7 +880,7 @@ function FormConfigService(objCollection) {
                 params.push(request.datetime_log); // IN p_entity_datetime_2 DATETIME            
                 params.push(request.update_sequence_id);
 
-                global.logger.write('debug', '\x1b[32m addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
+                global.logger.write('debug', '\x1b[32m In formConfigService - addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
 
                 queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
                 if (queryString != '') {

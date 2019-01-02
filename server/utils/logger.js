@@ -45,9 +45,16 @@ function Logger(queueWrapper) {
         util.writeLogs(message, isTargeted);
         
         //Logs pushing to Kafka
-        switch(level) {
-            // eslint-disable-next-line no-console
-            case 'conLog': console.log(object);                                                  
+        switch(level) {            
+            case 'conLog': if((typeof object === 'object')) {
+                                if(Object.keys(object).length > 0) {
+                                    // eslint-disable-next-line no-console
+                                    console.log(object);
+                                }                                
+                            } else {
+                                // eslint-disable-next-line no-console
+                                console.log(object);
+                            }                            
                             break;
             default: queueWrapper.raiseLogEvent(loggerCollection).then(()=>{});
         }
@@ -73,19 +80,19 @@ function Logger(queueWrapper) {
         
     };
 
-    /*this.writeSession = function (request) {
+    this.writeSession = function (request) {
         var loggerCollection = {
             message: request,
             request: request,
             environment: global.mode, //'prod'
             log: 'session'
         };
-        var loggerCollectionString = JSON.stringify(loggerCollection);
+        /*var loggerCollectionString = JSON.stringify(loggerCollection);
         sqs.produce(loggerCollectionString, function (err, response) {
             if (err)
                 console.log("error is: " + err);
-        });
-    };*/      
+        });*/
+    };
 }
 
 module.exports = Logger;

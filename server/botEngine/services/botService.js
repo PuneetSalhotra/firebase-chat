@@ -13,6 +13,7 @@ function BotService(objectCollection) {
 
     const moment = require('moment');
     const makeRequest = require('request');
+    const TinyURL = require('tinyurl');
     const cacheWrapper = objectCollection.cacheWrapper;
     //const queueWrapper = objectCollection.queueWrapper;
     //const activityPushService = objectCollection.activityPushService;
@@ -244,8 +245,8 @@ function BotService(objectCollection) {
             //console.log(tempObj);
             
             resp = await getFieldValue(tempObj);            
-                fieldDataTypeId = resp[0].data_type_id;
-                fieldValue = resp[0].data_entity_text_1;
+            fieldDataTypeId = resp[0].data_type_id;
+            fieldValue = resp[0].data_entity_text_1;
 
             txn_id = await activityCommonService.getActivityTimelineTransactionByFormId713(newReq, newReq.activity_id, i.target_form_id);
             global.logger.write('conLog',txn_id,{},{});
@@ -279,31 +280,8 @@ function BotService(objectCollection) {
                     newReqForActCreation.activity_form_id = i.target_form_id;
 
                     activityService.addActivity(newReqForActCreation, (err, resp)=>{
-                            //return (err === false) ? resolve() : reject();
-
                             if(err === false) {
-                                /*let fire713OnNewOrderFileRequest = Object.assign({}, newReqForActCreation);
-                                fire713OnNewOrderFileRequest.activity_id = request.activity_id;
-                                fire713OnNewOrderFileRequest.form_transaction_id = targetFormTxnId;
-                                fire713OnNewOrderFileRequest.activity_timeline_collection = newReqForActCreation.activity_inline_data;
-                                fire713OnNewOrderFileRequest.activity_stream_type_id = 713;
-                                fire713OnNewOrderFileRequest.form_id = i.target_form_id;
-                                fire713OnNewOrderFileRequest.asset_message_counter = 0;
-                                fire713OnNewOrderFileRequest.message_unique_id = util.getMessageUniqueId(request.asset_id);
-                                fire713OnNewOrderFileRequest.activity_timeline_text = '';
-                                fire713OnNewOrderFileRequest.activity_timeline_url = '';
-                                fire713OnNewOrderFileRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
-                                fire713OnNewOrderFileRequest.flag_timeline_entry = 1;
-                                fire713OnNewOrderFileRequest.service_version = '1.0';
-                                fire713OnNewOrderFileRequest.app_version = '2.8.16';
-                                fire713OnNewOrderFileRequest.device_os_id = 7;
-                                fire713OnNewOrderFileRequest.data_activity_id = request.activity_id;
-                               
-                                activityTimelineService.addTimelineTransaction(fire713OnNewOrderFileRequest, (err, resp)=>{
-                                    return (err === false)? resolve() : reject();
-                                });*/
-
-                                timeine713Entry(newReq, i.target_form_id, targetFormTxnId, i.target_field_id, fieldValue, fieldDataTypeId);
+                                timeine713Entry(newReqForActCreation, i.target_form_id, targetFormTxnId, i.target_field_id, fieldValue, fieldDataTypeId);
                             } else {
                                 return reject();
                             }
@@ -314,7 +292,7 @@ function BotService(objectCollection) {
                 targetFormTxnId = request.target_form_transaction_id;
                 targetActId = request.target_activity_id;
 
-                let actDetails = await activityCommonService.getActivityDetailsPromise(newReq, targetActId);
+                /*let actDetails = await activityCommonService.getActivityDetailsPromise(newReq, targetActId);
                 let activityInlineData = JSON.parse(actDetails[0].activity_inline_data);
 
                 if(activityInlineData.length > 0 ){
@@ -332,7 +310,7 @@ function BotService(objectCollection) {
                         "form_transaction_id": targetFormTxnId,
                         "field_data_type_id": fieldDataTypeId        
                     });
-                }
+                }*/
 
                 await timeine713Entry(newReq, i.target_form_id, targetFormTxnId, i.target_field_id, fieldValue, fieldDataTypeId);
             }           
@@ -473,9 +451,15 @@ function BotService(objectCollection) {
 
         let dbResp = await getCommTemplates(newReq);
         let retrievedCommInlineData = JSON.parse(dbResp[0].communication_inline_data);
-        newReq.smsText = retrievedCommInlineData.communication_template.text.message;        
+        newReq.smsText = retrievedCommInlineData.communication_template.text.message;
         global.logger.write('conLog', newReq.smsText,{},{});        
-
+        
+        let shortenedUrl = "";
+        /*TinyURL.shorten('http://google.com', function(res) {
+            global.logger.write(res);
+            shortenedUrl = res;
+        });*/
+        
         util.sendSmsHorizon(newReq.smsText, newReq.country_code, newReq.phone_number, function (err, data) {
             if (err === false) {
                 global.logger.write('debug', 'SMS HORIZON RESPONSE: '+JSON.stringify(data), {}, {});
@@ -1085,11 +1069,12 @@ function BotService(objectCollection) {
             reqForInlineAlter.form_id = newData[0].form_id;
             reqForInlineAlter.form_transaction_id = request.target_form_transaction_id;
         
-        activityUpdateService.alterActivityInline(reqForInlineAlter, (err, resp)=>{
-            return (err === false) ? {} : Promise.reject(err);
+        return new Promise((resolve, reject)=>{
+            activityUpdateService.alterActivityInline(reqForInlineAlter, (err, resp)=>{
+                return (err === false) ? resolve() : reject(err);
+            });
         });
-
-        //return {};
+        
     }
     
     async function getLatestUpdateSeqId(request) {
@@ -1264,7 +1249,7 @@ function BotService(objectCollection) {
                 params.push(request.datetime_log);                                  // IN p_entity_datetime_2 DATETIME            
                 params.push(request.update_sequence_id);            
 
-                global.logger.write('debug', '\x1b[32m addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
+                global.logger.write('debug', '\x1b[32m In BotService - addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
                 
                 let queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
                 if (queryString != '') {
@@ -1361,9 +1346,11 @@ function BotService(objectCollection) {
             fire713OnWFOrderFileRequest.device_os_id = 7;
             fire713OnWFOrderFileRequest.data_activity_id = request.activity_id;
         
-        activityTimelineService.addTimelineTransaction(fire713OnWFOrderFileRequest, (err, resp)=>{
-            return (err === false)? Promise.resolve() : Promise.reject(err);
-        });
+        return new Promise((resolve, reject)=>{
+            activityTimelineService.addTimelineTransaction(fire713OnWFOrderFileRequest, (err, resp)=>{
+                return (err === false)? resolve() : reject(err);
+            });
+        });        
     }
 
 }
