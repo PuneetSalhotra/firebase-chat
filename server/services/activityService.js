@@ -283,6 +283,7 @@ function ActivityService(objectCollection) {
                                     let botEngineRequest = Object.assign({}, request);
                                     botEngineRequest.form_id = request.activity_form_id;
                                     botEngineRequest.field_id = 0;
+                                    botEngineRequest.flag = 2;
 
                                     const [formConfigError, formConfigData] = await activityCommonService.workforceFormMappingSelect(botEngineRequest);
                                     if (
@@ -1805,6 +1806,7 @@ function ActivityService(objectCollection) {
                         let botEngineRequest = Object.assign({}, request);
                         botEngineRequest.form_id = request.activity_form_id || request.form_id;
                         botEngineRequest.field_id = 0;
+                        botEngineRequest.flag = 2;
 
                         const [formConfigError, formConfigData] = await activityCommonService.workforceFormMappingSelect(botEngineRequest);
                         if (
