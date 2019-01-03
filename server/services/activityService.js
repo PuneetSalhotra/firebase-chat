@@ -138,16 +138,13 @@ function ActivityService(objectCollection) {
                             activityStreamTypeId = 1801;
                             var inlineJson = JSON.parse(request.activity_inline_data);
                             util.pamSendSmsMvaayoo('Dear Sir/Madam, Our executive will contact you soon.', inlineJson.country_code, inlineJson.phone_number, function (err, res) {});
-                            break;
-                        case 48: // Workflow
-                            activityStreamTypeId = 701;
-                            break;
+                            break;                        
                         default:
                             activityStreamTypeId = 1; //by default so that we know
                             //console.log('adding streamtype id 1');
                             global.logger.write('debug', 'adding streamtype id 1', {}, request);
                             break;
-                    };
+                    }
                     //console.log('streamtype id is: ' + activityStreamTypeId)
                     global.logger.write('debug', 'streamtype id is: ' + activityStreamTypeId, {}, request);
                     assetActivityListInsertAddActivity(request, async function (err, status) {
@@ -231,13 +228,7 @@ function ActivityService(objectCollection) {
                                     payload: newRequest
                                 };
 
-                                queueWrapper.raiseActivityEvent(displayFileEvent, request.activity_id, (err, resp) => {
-                                    if (err) {
-                                        console.log("\x1b[35m [ERROR] Raising queue activity raised for 705 streamtypeid for Order Activity. \x1b[0m");
-                                    } else {
-                                        console.log("\x1b[35m Queue activity raised for 705 streamtypeid for Order Activity. \x1b[0m");
-                                    }
-                                });
+                                await queueWrapper.raiseActivityEventPromise(displayFileEvent, request.activity_id);
                             }
 
                             if (activityTypeCategroyId === 10 && request.hasOwnProperty('owner_asset_id')) {
@@ -292,6 +283,7 @@ function ActivityService(objectCollection) {
                                     let botEngineRequest = Object.assign({}, request);
                                     botEngineRequest.form_id = request.activity_form_id;
                                     botEngineRequest.field_id = 0;
+                                    botEngineRequest.flag = 2;
 
                                     const [formConfigError, formConfigData] = await activityCommonService.workforceFormMappingSelect(botEngineRequest);
                                     if (
@@ -1814,6 +1806,7 @@ function ActivityService(objectCollection) {
                         let botEngineRequest = Object.assign({}, request);
                         botEngineRequest.form_id = request.activity_form_id || request.form_id;
                         botEngineRequest.field_id = 0;
+                        botEngineRequest.flag = 2;
 
                         const [formConfigError, formConfigData] = await activityCommonService.workforceFormMappingSelect(botEngineRequest);
                         if (
