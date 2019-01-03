@@ -360,14 +360,12 @@ function VodafoneService(objectCollection) {
                                             const formData = request.crm_form_data;
 
                                             formData.forEach(formEntry => {
-                                                switch (Number(formEntry.field_id)) {                   
+                                                switch (Number(formEntry.field_id)) {               
 
                                                     case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Company_Name:
                                                          customerData.first_name = formEntry.field_value;
-                                                         break;                         
-                                                    case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Company_Name:
                                                          customerData.contact_company = formEntry.field_value;
-                                                         break;                    
+                                                         break;                                                    
                                                     case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Number:                        
                                                          if(String(formEntry.field_value).includes('||')) {
                                                             customerData.contact_phone_country_code = String(formEntry.field_value).split('||')[0];

@@ -736,7 +736,7 @@ function ActivityUpdateService(objectCollection) {
 
                     var options = {
                         form: newRequest
-                    }
+                    };
 
                     makeRequest.post(global.config.portalBaseUrl + global.config.version + '/asset/update/details', options, function (error, response, body) {
                         // console.log('body:', body);
@@ -800,13 +800,13 @@ function ActivityUpdateService(objectCollection) {
                         }
                     }) */
                 } //if category_id==4
-
+                callback(false, {}, 200);
             } else {
                 //callback(err, {}, -9999);
                 callback(false, true);
             }
         });
-    }
+    };
 
     this.alterActivityCover = function (request, callback) {
 
