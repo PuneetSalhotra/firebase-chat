@@ -2706,6 +2706,13 @@ function VodafoneService(objectCollection) {
                         ROMS_CAF_FIELDS_DATA[index].field_value = formActivityData[0].activity_datetime_created;
                     }
                     break;
+                
+                case 6044: // Total Amount Payable-One Time(A)
+                    ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.totalAmountPayableTotal_A;
+                break;
+                case 6045: // Total Amount Payable-Annual Recurring(B)
+                    ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.totalAmountPayableTotal_B;
+                break;
             }
         });
 
@@ -2742,7 +2749,9 @@ function VodafoneService(objectCollection) {
             miscellaneousCharges1GrandTotal: 0,
             miscellaneousCharges2GrandTotal: 0,
             registrationChargesGrandTotal: 0,
-            totalAmountPayableGrandTotal: 0
+            totalAmountPayableGrandTotal: 0,
+            totalAmountPayableTotal_A: 0,
+            totalAmountPayableTotal_B: 0
         }
         cafFormData.forEach(formEntry => {
             switch (formEntry.field_id) {
@@ -2877,6 +2886,49 @@ function VodafoneService(objectCollection) {
             }
         });
 
+        // Calculate all Total Amount Payables
+        cafFormData.forEach(formEntry => {
+            switch (formEntry.field_id) {
+                case 5991: // Service Rental-One Time(A) 
+                case 5995: // IP Address Charges-One Time(A)
+                case 5998: // SLA Charges-One Time(A)
+                case 6001: // Self Care Portal Service Charges-One Time(A)
+                case 6004: // Managed Services Charges-One Time(A)
+                case 6007: // Managed CPE Charges-One Time(A)
+                case 6010: // CPE Rentals-One Time(A)
+                case 6014: // CPE 1-One Time(A)
+                case 6018: // CPE 2-One Time(A)
+                case 6022: // CPE 3-One Time(A)
+                case 6026: // CPE 4-One Time(A)
+                case 6030: // CPE 5-One Time(A)
+                case 6034: // Miscellaneous Charges-1-One Time(A)
+                case 6038: // Miscellaneous Charges2-One Time(A)
+                case 6042: // Registration Charges-One Time(A)
+                    sumsKeyValueJson.totalAmountPayableTotal_A += Number(formEntry.field_value);
+                    break;
+
+                case 5992: // Service Rental-Annual Recurring(B)
+                case 5996: // IP Address Charges-Annual Recurring(B)
+                case 5999: // SLA Charges-Annual Recurring(B)
+                case 6002: // Self Care Portal Service Charges-Annual 
+                case 6005: // Managed Services Charges-Annual Recurring(B)
+                case 6008: // Managed CPE Charges-Annual Recurring(B)
+                case 6011: // CPE Rentals-Annual Recurring(B)
+                case 6015: // CPE 1-Annual Recurring(B)
+                case 6019: // CPE 2-Annual Recurring(B)
+                case 6023: // CPE 3-Annual Recurring(B)
+                case 6027: // CPE 4-Annual Recurring(B)
+                case 6031: // CPE 5-Annual Recurring(B)
+                case 6035: // Miscellaneous Charges-1-Annual Recurring(B)
+                case 6039: // Miscellaneous Charges2-Annual Recurring(B)
+                    sumsKeyValueJson.totalAmountPayableTotal_B += Number(formEntry.field_value);
+                    break;
+            }
+        });
+
+        // 6096 | Total Amount Payable-Grand Total(A+B+C)
+        sumsKeyValueJson.totalAmountPayableGrandTotal = sumsKeyValueJson.totalAmountPayableTotal_A + sumsKeyValueJson.totalAmountPayableTotal_B;
+
         return sumsKeyValueJson;
     }
 
@@ -2945,7 +2997,11 @@ function VodafoneService(objectCollection) {
         if (formId === SUPPLEMENTARY_ORDER_FORM_ID) {
             // 
             sourceFormData.forEach(formEntry => {
-                if (Object.keys(SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP).includes(String(formEntry.field_id))) {
+                if (
+                    Object.keys(SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP).includes(String(formEntry.field_id)) &&
+                    Number(formEntry.field_id) !== 6270 &&
+                    Number(formEntry.field_id) !== 6272
+                ) {
                     // Push entries from the Supplementary Order Form, which have a defined CAF mapping
                     cafFormData.push({
                         "form_id": CAF_FORM_ID,
@@ -3782,36 +3838,11 @@ function VodafoneService(objectCollection) {
                         }
                     });
 
-
-                    // [CAF FORM] Insert 705 record with the updated JSON data in activity_timeline_transaction 
-                    // let fire705OnCafFileRequest = Object.assign({}, fire705OnNewOrderFileRequest);
-                    // fire705OnCafFileRequest.activity_id = Number(cafFormActivityId);
-                    // fire705OnCafFileRequest.form_transaction_id = Number(cafFormTransactionId);
-                    // fire705OnCafFileRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
-                    // fire705OnCafFileRequest.device_os_id = 8;
-
-                    // let fire705OnCafFileEvent = {
-                    //     name: "addTimelineTransaction",
-                    //     service: "activityTimelineService",
-                    //     method: "addTimelineTransaction",
-                    //     location: "regenerateAndSubmitCAF",
-                    //     payload: fire705OnCafFileRequest
-                    // };
-
-                    // queueWrapper.raiseActivityEvent(fire705OnCafFileEvent, request.activity_id, (err, resp) => {
-                    //     if (err) {
-                    //         global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                    //         global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
-                    //     } else {
-                    //         global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                    //         global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
-                    //     }
-                    // });
-
                     // Fire the 'alterFormActivity' service | '/form/activity/alter' for the derived ROMS fields in the 
                     // CAF file
                     console.log("[regenerateAndSubmitCAF] updatedRomsFields: ", updatedRomsFields)
                     if (updatedRomsFields.length > 0) {
+                        let waitTime = 0;
                         setTimeout(() => {
                             updatedRomsFields[0].form_name = "Digital CAF";
                             let cafFieldUpdateRequest = Object.assign({}, request);
@@ -3843,6 +3874,8 @@ function VodafoneService(objectCollection) {
                                 }
                             });
                         }, 2000)
+
+                        waitTime += 2;
                     }
 
                 } else {
