@@ -711,7 +711,7 @@ function FormConfigService(objCollection) {
                 request.field_id,
                 request.organization_id
             );
-            queryString = util.getQueryString('ds_p1_activity_form_transaction_select_field_sequence_id', paramsArr);
+            let queryString = util.getQueryString('ds_p1_activity_form_transaction_select_field_sequence_id', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     //console.log('data from getLatestUpdateSeqId : ', data);
@@ -882,7 +882,7 @@ function FormConfigService(objCollection) {
 
                 global.logger.write('debug', '\x1b[32m In formConfigService - addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
 
-                queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
+                let queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
                 if (queryString != '') {
                     db.executeQuery(0, queryString, request, function (err, data) {
                         next();
