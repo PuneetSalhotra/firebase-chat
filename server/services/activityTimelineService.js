@@ -19,7 +19,7 @@ function ActivityTimelineService(objectCollection) {
 
     this.addTimelineTransaction = function (request, callback) {
 
-        const self = this;
+        //const self = this;
         let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         let activityTypeCategoryId = Number(request.activity_type_category_id);
@@ -307,6 +307,7 @@ function ActivityTimelineService(objectCollection) {
             }
             
             timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request)});
+            resolve();
         });
     }
     
@@ -383,7 +384,7 @@ function ActivityTimelineService(objectCollection) {
               resolve();
             }
         });
-    };
+    }
     
     //To update the workflow percentage
     this.workflowPercentageUpdate = async function(request) {

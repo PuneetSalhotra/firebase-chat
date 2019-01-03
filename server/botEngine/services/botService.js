@@ -290,27 +290,7 @@ function BotService(objectCollection) {
             } else {               
 
                 targetFormTxnId = request.target_form_transaction_id;
-                targetActId = request.target_activity_id;
-
-                /*let actDetails = await activityCommonService.getActivityDetailsPromise(newReq, targetActId);
-                let activityInlineData = JSON.parse(actDetails[0].activity_inline_data);
-
-                if(activityInlineData.length > 0 ){
-                    for(let x in activityInlineData) {
-                        if(x.field_id === i.target_field_id) {
-                            x.field_value = fieldValue;
-                        }
-                    }                    
-                    activityInlineData = JSON.stringify(activityInlineData);
-                } else {
-                    activityInlineData = JSON.stringify({
-                        "form_id": i.target_form_id,
-                        "field_id": i.target_field_id,
-                        "field_value": fieldValue,
-                        "form_transaction_id": targetFormTxnId,
-                        "field_data_type_id": fieldDataTypeId        
-                    });
-                }*/
+                targetActId = request.target_activity_id;                
 
                 await timeine713Entry(newReq, i.target_form_id, targetFormTxnId, i.target_field_id, fieldValue, fieldDataTypeId);
             }           
@@ -452,22 +432,59 @@ function BotService(objectCollection) {
         let dbResp = await getCommTemplates(newReq);
         let retrievedCommInlineData = JSON.parse(dbResp[0].communication_inline_data);
         newReq.smsText = retrievedCommInlineData.communication_template.text.message;
-        global.logger.write('conLog', newReq.smsText,{},{});        
-        
-        let shortenedUrl = "";
-        /*TinyURL.shorten('http://google.com', function(res) {
-            global.logger.write(res);
-            shortenedUrl = res;
-        });*/
-        
-        util.sendSmsHorizon(newReq.smsText, newReq.country_code, newReq.phone_number, function (err, data) {
-            if (err === false) {
-                global.logger.write('debug', 'SMS HORIZON RESPONSE: '+JSON.stringify(data), {}, {});
-                global.logger.write('conLog', data.response, {}, {});                
-            } else {                
-                global.logger.write('conLog', data.response, {}, {});                
-            }
-        });
+        newReq.line = retrievedCommInlineData.communication_template.text.link || "";
+        newReq.form = retrievedCommInlineData.communication_template.text.form || 0;
+        global.logger.write('conLog', newReq.smsText,{},{});
+
+        if(newReq.line){
+            newReq.smsText = newReq.smsText + " " +newReq.line;
+        } else if(newReq.form != 0) {
+            //Get the form Transaction Id
+            //Convert into base 64
+            //Convert into Tiny Url
+            //Update the SMS Text
+
+            const jsonString = {
+                organization_id: newReq.organization_id,
+                account_id: newReq.account_id,
+                workforce_id: newReq.workforce_id,
+                asset_id: Number(newReq.asset_id),
+                asset_token_auth: '54188fa0-f904-11e6-b140-abfd0c7973d9',
+                auth_asset_id: 100,
+                activity_id: newReq.activity_id || 0,
+                activity_type_category_id: 9,
+                activity_type_id: newReq.activity_type_id,
+                activity_stream_type_id : 705,    
+                form_id: Number(newReq.form_id)
+            };
+            
+            const encodedString = Buffer.from(JSON.stringify(jsonString)).toString('base64');
+            const baseUrlApprove = global.config.emailbaseUrlApprove + "/#/forms/entry/" + encodedString;            
+
+            let shortenedUrl = "";
+            await new Promise((resolve, reject)=>{
+                TinyURL.shorten(baseUrlApprove, function(res) {
+                    global.logger.write('conLog', res, {}, {});
+                    shortenedUrl = res;
+                    resolve();
+                });
+            });
+
+            newReq.smsText = newReq.smsText + " " + shortenedUrl;
+        }   
+                        
+        await new Promise((resolve, reject)=>{
+            util.sendSmsHorizon(newReq.smsText, newReq.country_code, newReq.phone_number, function (err, data) {
+                if (err === false) {
+                    global.logger.write('debug', 'SMS HORIZON RESPONSE: '+JSON.stringify(data), {}, {});
+                    global.logger.write('conLog', data.response, {}, {});                
+                    resolve();
+                } else {                
+                    global.logger.write('conLog', data.response, {}, {});                
+                    reject(err);
+                }
+            });
+        });        
 
         //Make a 716 timeline entry - (716 streamtypeid is for email)
         let activityTimelineCollection = {
