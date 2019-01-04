@@ -324,6 +324,7 @@ function FormConfigService(objCollection) {
     };
 
     var formatFromsListing = function (data, callback) {
+        console.log(data);
         var responseData = new Array();
         data.forEach(function (rowData, index) {
 
@@ -375,7 +376,10 @@ function FormConfigService(objCollection) {
                 "log_datetime": util.replaceDefaultDatetime(rowData['log_datetime']),
                 "log_state": util.replaceDefaultNumber(rowData['log_state']),
                 "log_active": util.replaceDefaultNumber(rowData['log_active']),
-                "update_sequence_id": util.replaceDefaultNumber(rowData['update_sequence_id'])
+                "update_sequence_id": util.replaceDefaultNumber(rowData['update_sequence_id']),
+                "form_workflow_activity_type_id": util.replaceDefaultNumber(rowData['form_workflow_activity_type_id']),
+                "form_workflow_activity_type_name": util.replaceDefaultString(util.decodeSpecialChars(rowData['form_workflow_activity_type_name'])),
+                "form_flag_workflow_origin": util.replaceDefaultNumber(rowData['form_flag_workflow_origin'])
             };
             responseData.push(rowDataArr);
         }, this);
@@ -1811,7 +1815,7 @@ function FormConfigService(objCollection) {
             }
         }
 
-        if (botId > 0) {
+        /*if (botId > 0) {
             try {
                 let newRequest = Object.assign({}, request);
                 newRequest.bot_id = botId;
@@ -1825,15 +1829,12 @@ function FormConfigService(objCollection) {
                         }
                     });
                 }
-                // return [false, {
-                //     result
-                // }];
             } catch (error) {
                 return [error, {
                     result: []
                 }];
             }
-        }
+        }*/
 
         let targetFormActivityId = 0,
             targetFormTransactionId = 0,
@@ -1847,7 +1848,7 @@ function FormConfigService(objCollection) {
             let formFieldMapping = botOperationInlineData.bot_operations.form_field_copy;
 
             console.log("formFieldMapping: ", formFieldMapping);
-            if (formFieldMapping.length > 0) {
+            //if (formFieldMapping.length > 0) {
 
                 let fieldCopyOperations = [];
                 for (const mapping of formFieldMapping) {
@@ -1912,16 +1913,32 @@ function FormConfigService(objCollection) {
                     }
                 });
                 try {
-                    botService.initBotEngine(newRequest);
+                    setTimeout(()=>{
+                        botService.initBotEngine(newRequest);
+                    }, 2500);
                 } catch (error) {
                     global.logger.write('conLog', 'botService.initBotEngine Error!', error, {}); 
                     console.log("botService.initBotEngine Error!", error);
                 }
-            }
+            //}
 
+        } else {
+            let newRequest = Object.assign({}, request);
+                newRequest.bot_id = botId;                
+                newRequest.activity_type_id = formWorkflowActivityTypeId;
+                newRequest.target_form_transaction_id = targetFormTransactionId;
+                newRequest.target_activity_id = targetFormActivityId;
+                newRequest.workflow_activity_id = workflowActivityId;                
+                try {
+                    setTimeout(()=>{
+                        botService.initBotEngine(newRequest);
+                    }, 3000);
+                } catch (error) {
+                    global.logger.write('conLog', 'botService.initBotEngine Error!', error, {}); 
+                    console.log("botService.initBotEngine Error!", error);
+                }
         }
 
-        console.log();
         console.log();
         console.log();
         console.log("targetFormActivityId: ", targetFormActivityId);
