@@ -2708,9 +2708,11 @@ function VodafoneService(objectCollection) {
                     break;
                 
                 case 6044: // Total Amount Payable-One Time(A)
+                    accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.totalAmountPayableTotal_A);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.totalAmountPayableTotal_A;
                 break;
                 case 6045: // Total Amount Payable-Annual Recurring(B)
+                    accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.totalAmountPayableTotal_B);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.totalAmountPayableTotal_B;
                 break;
             }
@@ -3695,7 +3697,7 @@ function VodafoneService(objectCollection) {
 
                     // Check if mapping exists for the field_id of the form
                     // being edited with a field_id in CAF
-                    console.log("Object.keys(incomingFormToCafFormMapping[request.form_id]): ", Object.keys(incomingFormToCafFormMapping[request.form_id]))
+                    // console.log("Object.keys(incomingFormToCafFormMapping[request.form_id]): ", Object.keys(incomingFormToCafFormMapping[request.form_id]))
                     if (Object.keys(incomingFormToCafFormMapping[request.form_id]).includes(String(incomingFormFieldId))) {
                         return Promise.resolve(true);
                     } else {
@@ -3842,40 +3844,45 @@ function VodafoneService(objectCollection) {
                     // CAF file
                     console.log("[regenerateAndSubmitCAF] updatedRomsFields: ", updatedRomsFields)
                     if (updatedRomsFields.length > 0) {
-                        let waitTime = 0;
-                        setTimeout(() => {
-                            updatedRomsFields[0].form_name = "Digital CAF";
-                            let cafFieldUpdateRequest = Object.assign({}, request);
-                            let cafFieldUpdateEvent = {
-                                name: "alterFormActivity",
-                                service: "formConfigService",
-                                method: "alterFormActivity",
-                                location: "derivedRomsFieldUpdate",
-                                payload: cafFieldUpdateRequest
-                            };
-                            cafFieldUpdateRequest.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
-                            cafFieldUpdateRequest.activity_id = cafFormActivityId;
-                            cafFieldUpdateRequest.form_id = CAF_FORM_ID;
-                            cafFieldUpdateRequest.form_transaction_id = cafFormTransactionId;
-                            cafFieldUpdateRequest.field_id = Number(updatedRomsFields[0].field_id);
-                            cafFieldUpdateRequest.activity_inline_data = JSON.stringify(updatedRomsFields);
-                            cafFieldUpdateRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
-                            cafFieldUpdateRequest.device_os_id = 7;
+                        let waitTime = 1;
+                        for (const derivedField of updatedRomsFields) {
+                            setTimeout(() => {
+                                derivedField.form_name = "Digital CAF";
+                                let activityInlineDataObject = [];
+                                activityInlineDataObject.push(derivedField)
 
-                            console.log("[regenerateAndSubmitCAF] cafFieldUpdateRequest: ", cafFieldUpdateRequest)
+                                let cafFieldUpdateRequest = Object.assign({}, request);
+                                let cafFieldUpdateEvent = {
+                                    name: "alterFormActivity",
+                                    service: "formConfigService",
+                                    method: "alterFormActivity",
+                                    location: "derivedRomsFieldUpdate",
+                                    payload: cafFieldUpdateRequest
+                                };
+                                cafFieldUpdateRequest.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
+                                cafFieldUpdateRequest.activity_id = cafFormActivityId;
+                                cafFieldUpdateRequest.form_id = CAF_FORM_ID;
+                                cafFieldUpdateRequest.form_transaction_id = cafFormTransactionId;
+                                cafFieldUpdateRequest.field_id = Number(derivedField.field_id);
+                                cafFieldUpdateRequest.activity_inline_data = JSON.stringify(activityInlineDataObject);
+                                cafFieldUpdateRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+                                cafFieldUpdateRequest.device_os_id = 7;
 
-                            queueWrapper.raiseActivityEvent(cafFieldUpdateEvent, cafFormActivityId, (err, resp) => {
-                                if (err) {
-                                    global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                                    global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
-                                } else {
-                                    global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                                    global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
-                                }
-                            });
-                        }, 2000)
+                                console.log("[regenerateAndSubmitCAF] cafFieldUpdateRequest: ", cafFieldUpdateRequest)
 
-                        waitTime += 2;
+                                queueWrapper.raiseActivityEvent(cafFieldUpdateEvent, cafFormActivityId, (err, resp) => {
+                                    if (err) {
+                                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                                    } else {
+                                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                                    }
+                                });
+                            }, waitTime * 2000)
+
+                            waitTime += 2;
+                        }
                     }
 
                 } else {
