@@ -15,6 +15,9 @@ function ActivityService(objectCollection) {
     const suzukiPdfEngine = require('../utils/suzukiPdfGenerationEngine');
     const moment = require('moment');
 
+    const ActivityListingService = require("../services/activityListingService");
+    const activityListingService = new ActivityListingService(objectCollection);
+
     this.addActivity = function (request, callback) {
 
         var logDatetime = util.getCurrentUTCTime();
@@ -3280,6 +3283,94 @@ function ActivityService(objectCollection) {
 
         });
     }
+
+    this.updateWorkflowQueueMapping = async function name(request) {
+        request.flag = 0;
+        try {
+            const queueMap = await activityListingService.getEntityQueueMapping(request);
+            if (queueMap.length > 0) {
+                // Iterate through each queue mapped to the activity type
+                for (const queue of queueMap) {
+                    let queueId = Number(queue.queue_id);
+                    let queueInlineData = JSON.parse(queue.queue_inline_data);
+                    let isStatusMapped = false;
+                    console.log("queueId: ", queueId)
+                    console.log("queueInlineData: ", queueInlineData)
+                    // Loop through each object of the queue's inline data and check
+                    // whether the incoming activity status ID exists
+                    for (const activityStatus of queueInlineData) {
+                        if (Number(activityStatus.activity_status_id) === Number(request.activity_status_id)) {
+                            isStatusMapped = true;
+                        }
+                    }
+                    console.log("isStatusMapped: ", isStatusMapped)
+                    if (isStatusMapped) {
+                        // console.log("isStatusMapped: ", isStatusMapped)
+                        await activityCommonService
+                            .fetchQueueActivityMappingId(request, queueId)
+                            .then(async (queueActivityMappingData) => {
+                                console.log('queueActivityMappingData : ', queueActivityMappingData);
+
+                                // If the mapping exists, set log state to 3, thereby archiving the mapping
+                                if (queueActivityMappingData.length > 0) {
+                                    let newRequest = Object.assign(request);
+                                    // Set log state to 2, to re-enable an existing (archived) mapping.
+                                    newRequest.set_log_state = 2;
+                                    let queueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;
+                                    await activityCommonService
+                                        .unmapFileFromQueue(request, queueActivityMappingId)
+                                        .then((queueActivityMappingData) => {
+                                            console.log("updateWorkflowQueueMapping | mapFileToQueue | queueActivityMapping: ", queueActivityMappingData)
+                                        })
+                                        .catch((error) => {
+                                            console.log("updateWorkflowQueueMapping | Re-Enable | Error: ", error);
+                                        })
+                                } else {
+                                    // Insert activity to the queue in the queue_activity_mapping table
+                                    await activityCommonService
+                                        .mapFileToQueue(request, queueId, '{}')
+                                        .then((queueActivityMappingData) => {
+                                            console.log("updateWorkflowQueueMapping | mapFileToQueue | queueActivityMapping: ", queueActivityMappingData)
+                                        })
+                                        .catch((error) => {
+                                            
+                                            console.log("updateWorkflowQueueMapping | mapFileToQueue | Error: ", error);
+                                            console.log("Object.keys(error): ", Object.keys(error));
+                                        })
+                                }
+                            })
+
+                    } else {
+                        // Check if there is an existing mapping
+                        await activityCommonService
+                            .fetchQueueActivityMappingId(request, queueId)
+                            .then(async (queueActivityMappingData) => {
+                                console.log('queueActivityMappingData : ', queueActivityMappingData);
+
+                                // If the mapping exists, set log state to 3, thereby archiving the mapping
+                                if (queueActivityMappingData.length > 0) {
+                                    let queueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;
+                                    await activityCommonService
+                                        .unmapFileFromQueue(request, queueActivityMappingId)
+                                        .then((queueActivityMappingData) => {
+                                            console.log("updateWorkflowQueueMapping | unmapFileToQueue | queueActivityMapping: ", queueActivityMappingData)
+                                        })
+                                        .catch((error) => {
+                                            console.log("updateWorkflowQueueMapping | unmapFileToQueue | Error: ", error);
+                                        })
+                                }
+                            })
+                    }
+                }
+                return queueMap;
+            } else {
+                return [];
+            }
+        } catch (error) {
+            console.log("updateWorkflowQueueMapping | queueMap | Error: ", error);
+            return [];
+        }
+    };
 
 };
 module.exports = ActivityService;
