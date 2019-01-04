@@ -141,7 +141,7 @@ function ActivityService(objectCollection) {
                             activityStreamTypeId = 1801;
                             var inlineJson = JSON.parse(request.activity_inline_data);
                             util.pamSendSmsMvaayoo('Dear Sir/Madam, Our executive will contact you soon.', inlineJson.country_code, inlineJson.phone_number, function (err, res) {});
-                            break;                        
+                            break;
                         default:
                             activityStreamTypeId = 1; //by default so that we know
                             //console.log('adding streamtype id 1');
@@ -309,10 +309,10 @@ function ActivityService(objectCollection) {
                                             botEngineRequest.bot_id = botsListData[0].bot_id;
 
                                             await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
-                                            .then((resp) => {
-                                                global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
-                                            });
-                                        }                                        
+                                                .then((resp) => {
+                                                    global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
+                                                });
+                                        }
                                     }
                                 } catch (botInitError) {
                                     global.logger.write('error', botInitError, botInitError, botEngineRequest);
@@ -467,10 +467,10 @@ function ActivityService(objectCollection) {
                                 submitLeaveForms(request).then(() => {});
                             }*/
 
-                            setTimeout(()=>{
+                            setTimeout(() => {
                                 callback(false, responseactivityData, 200);
                             }, 10000);
-                            
+
 
                             cacheWrapper.setMessageUniqueIdLookup(request.message_unique_id, request.activity_id, function (err, status) {
                                 if (err) {
@@ -485,7 +485,7 @@ function ActivityService(objectCollection) {
                             // console.log("not inserted to asset activity list");
                             global.logger.write('debug', "not inserted to asset activity list", {}, request);
 
-                            setTimeout(()=>{
+                            setTimeout(() => {
                                 callback(false, responseactivityData, 200);
                             }, 10000);
                         }
@@ -587,12 +587,12 @@ function ActivityService(objectCollection) {
                     }*/
                     // 
                     // 
-                    
+
                     //callback(false, responseactivityData, 200);                    
                 } else {
-                    setTimeout(()=>{
+                    setTimeout(() => {
                         callback(err, responseactivityData, -9999);
-                    }, 5000);                    
+                    }, 5000);
                     //return;
                 }
             });
@@ -1842,9 +1842,9 @@ function ActivityService(objectCollection) {
                             if (botsListData.length > 0) {
                                 botEngineRequest.bot_id = botsListData[0].bot_id;
                                 await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
-                                .then((resp) => {
-                                    global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
-                                });
+                                    .then((resp) => {
+                                        global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
+                                    });
                             }
                         }
                     } catch (botInitError) {
@@ -3351,7 +3351,7 @@ function ActivityService(objectCollection) {
                                             console.log("updateWorkflowQueueMapping | mapFileToQueue | queueActivityMapping: ", queueActivityMappingData)
                                         })
                                         .catch((error) => {
-                                            
+
                                             console.log("updateWorkflowQueueMapping | mapFileToQueue | Error: ", error);
                                             console.log("Object.keys(error): ", Object.keys(error));
                                         })
