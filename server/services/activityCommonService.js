@@ -622,7 +622,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             request.entity_datetime_2 || '1970-01-01 00:00:00', // entity type id
             entityText1, // entity text 1
             entityText2, // entity text 2
-            entityText3, //Beta
+            entityText3, //BetafetchQueueActivityMappingId
             activityTimelineCollection, //BETA
             newUserAssetId, //New User Signed Up Asset ID
             request.track_longitude,
@@ -2805,6 +2805,26 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
     };
 
+    // Fetching the Asset Type ID for a given organisation/workforce and asset type category ID
+    this.workforceAssetTypeMappingSelectCategoryPromise = function (request, assetTypeCategoryId) {        
+        return new Promise((resolve, reject)=>{
+            let paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                assetTypeCategoryId,
+                0,
+                1
+            );
+            let queryString = util.getQueryString('ds_p1_workforce_asset_type_mapping_select_category', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data): reject(err);
+                });
+            }
+        });        
+    };
+
     this.getWorkflowForAGivenUrl = function (request) {
         return new Promise((resolve, reject) => {
             var paramsArr = new Array(
@@ -3416,6 +3436,19 @@ function ActivityCommonService(db, util, forEachAsync) {
         );
         let queryString = util.getQueryString('ds_p1_bot_list_select', paramsArr);
         if (queryString != '') {
+            return await (db.executeQueryPromise(1, queryString, request));
+        }
+    };
+
+    this.getFormDataByFormTransaction = async (request) => {        
+        var paramsArr = new Array(            
+            request.organization_id,
+            request.form_transaction_id
+        );
+
+        let queryString = util.getQueryString('ds_p1_activity_list_select_form_transaction', paramsArr);
+       
+        if (queryString != '') {                
             return await (db.executeQueryPromise(1, queryString, request));
         }
     };
