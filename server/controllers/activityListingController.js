@@ -692,6 +692,15 @@ function ActivityListingController(objCollection) {
         	res.send(responseWrapper.getResponse(err, {}, -999, req.body));
         });    		
     });
+
+    app.post('/' + global.config.version + '/activity/form/transaction/data', async (req, res) => {        
+        try {
+            let result = await activityCommonService.getFormDataByFormTransaction(req.body);
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch(err) {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        } 
+    });
 }
 
 module.exports = ActivityListingController;

@@ -11,7 +11,7 @@ function ActivityService(objectCollection) {
     var forEachAsync = objectCollection.forEachAsync;
     var queueWrapper = objectCollection.queueWrapper;
     var activityPushService = objectCollection.activityPushService;
-    var responseactivityData = {}
+    var responseactivityData = {};
     const suzukiPdfEngine = require('../utils/suzukiPdfGenerationEngine');
     const moment = require('moment');
 
@@ -149,6 +149,14 @@ function ActivityService(objectCollection) {
                     global.logger.write('debug', 'streamtype id is: ' + activityStreamTypeId, {}, request);
                     assetActivityListInsertAddActivity(request, async function (err, status) {
                         if (err === false) {
+
+                            activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
+
+                            });
+                            activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
+
+                            });
+
                             let activityTitle = "Form Submitted";
 
                             if (activityTypeCategroyId === 9) {
@@ -258,8 +266,8 @@ function ActivityService(objectCollection) {
                             }
 
                             // Workflow Trigger
-                            if (activityTypeCategroyId === 9) {
-                                let workflowEngineRequest = Object.assign({}, request)
+                            if (activityTypeCategroyId === 9 && request.device_os_id !== 9) {
+                                let workflowEngineRequest = Object.assign({}, request);
 
                                 let workflowEngineEvent = {
                                     name: "workflowEngine",
@@ -278,11 +286,12 @@ function ActivityService(objectCollection) {
                             }
 
                             // Bot Engine Trigger
-                            if (activityTypeCategroyId === 9) {
+                            if (activityTypeCategroyId === 9 && request.device_os_id !== 9) {
                                 try {
                                     let botEngineRequest = Object.assign({}, request);
                                     botEngineRequest.form_id = request.activity_form_id;
                                     botEngineRequest.field_id = 0;
+                                    botEngineRequest.flag = 3;
 
                                     const [formConfigError, formConfigData] = await activityCommonService.workforceFormMappingSelect(botEngineRequest);
                                     if (
@@ -295,24 +304,24 @@ function ActivityService(objectCollection) {
                                         let botsListData = await activityCommonService.getBotsMappedToActType(botEngineRequest);
                                         if (botsListData.length > 0) {
                                             botEngineRequest.bot_id = botsListData[0].bot_id;
-                                        }
-                                        await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
+
+                                            await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
                                             .then((resp) => {
                                                 global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
                                             });
-                                        // -_-
+                                        }                                        
                                     }
                                 } catch (botInitError) {
                                     global.logger.write('error', botInitError, botInitError, botEngineRequest);
                                 }
                             }
 
-                            activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
+                            /*activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
 
                             });
                             activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
 
-                            });
+                            });*/
                             activityCommonService.activityListHistoryInsert(request, updateTypeId, function (err, restult) {
 
                             });
@@ -438,7 +447,7 @@ function ActivityService(objectCollection) {
                             } // end parent activity id condition
 
                             // console.log('request - ', request);
-                            global.logger.write('debug', 'request - ' + JSON.stringify(request, null, 2), {}, request);
+                            //global.logger.write('debug', 'request - ' + JSON.stringify(request, null, 2), {}, request);
 
                             if (request.activity_parent_id == 95670) { //For Marketing Manager reference //PROD - 95670 ; Staging - 93256
                                 //Create a timeline entry on this task
@@ -455,7 +464,11 @@ function ActivityService(objectCollection) {
                                 submitLeaveForms(request).then(() => {});
                             }*/
 
-                            callback(false, responseactivityData, 200);
+                            setTimeout(()=>{
+                                callback(false, responseactivityData, 200);
+                            }, 10000);
+                            
+
                             cacheWrapper.setMessageUniqueIdLookup(request.message_unique_id, request.activity_id, function (err, status) {
                                 if (err) {
                                     //console.log("error in setting in message unique id look up");
@@ -469,7 +482,9 @@ function ActivityService(objectCollection) {
                             // console.log("not inserted to asset activity list");
                             global.logger.write('debug', "not inserted to asset activity list", {}, request);
 
-                            callback(false, responseactivityData, 200);
+                            setTimeout(()=>{
+                                callback(false, responseactivityData, 200);
+                            }, 10000);
                         }
 
                     });
@@ -533,8 +548,8 @@ function ActivityService(objectCollection) {
 
                                         queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
                                             if (err) {
-                                                console.log('Error in queueWrapper raiseActivityEvent : ', err)
-                                                console.log('Response from queueWrapper raiseActivityEvent : ', resp)
+                                                console.log('Error in queueWrapper raiseActivityEvent : ', err);
+                                                console.log('Response from queueWrapper raiseActivityEvent : ', resp);
 
                                                 throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                                             }
@@ -543,6 +558,7 @@ function ActivityService(objectCollection) {
                                 });
                             }
                         });
+                        callback(false, responseactivityData, 200);
                     }
 
                     // Tirggering BOT 1
@@ -568,9 +584,13 @@ function ActivityService(objectCollection) {
                     }*/
                     // 
                     // 
+                    
+                    //callback(false, responseactivityData, 200);                    
                 } else {
-                    callback(err, responseactivityData, -9999);
-                    return;
+                    setTimeout(()=>{
+                        callback(err, responseactivityData, -9999);
+                    }, 5000);                    
+                    //return;
                 }
             });
         }).catch((err) => {
@@ -827,7 +847,7 @@ function ActivityService(objectCollection) {
                                 } else {
                                     return resolve();
                                 }
-                            })
+                            });
                         } else {
                             generateUniqueCode();
                         }
@@ -1184,7 +1204,7 @@ function ActivityService(objectCollection) {
                         activityChannelCategoryId
                     );
                     break;
-            };
+            }
             paramsArr.push(request.track_latitude);
             paramsArr.push(request.track_longitude);
             paramsArr.push(activitySubTypeId);
@@ -1404,7 +1424,7 @@ function ActivityService(objectCollection) {
                 });
             }
         });
-    };
+    }
 
 
     function sendPushPam(request) {
@@ -1439,12 +1459,12 @@ function ActivityService(objectCollection) {
                             }
 
                             resolve();
-                        })
+                        });
                     }
                 });
             }
-        })
-    };
+        });
+    }
     var assetActivityListInsertAddActivity = function (request, callback) {
 
         var activityInlineData = JSON.parse(request.activity_inline_data);
@@ -1552,7 +1572,7 @@ function ActivityService(objectCollection) {
                 } else {
                     callback(err, data);
                     //console.log(err);
-                    global.logger.write('serverError', err, err, request)
+                    global.logger.write('serverError', err, err, request);
                     return;
                 }
             });
@@ -1679,7 +1699,7 @@ function ActivityService(objectCollection) {
                     });
                 } else {
                     //console.log('error while fetching from transaction data');
-                    global.logger.write('serverError', 'error while fetching from transaction data', {}, request)
+                    global.logger.write('serverError', 'error while fetching from transaction data', {}, request);
                 }
             });
         });
@@ -1782,16 +1802,16 @@ function ActivityService(objectCollection) {
                 default:
                     activityStreamTypeId = 11; //by default so that we know
                     //console.log('adding streamtype id 11');
-                    global.logger.write('debug', 'adding streamtype id 11', {}, request)
+                    global.logger.write('debug', 'adding streamtype id 11', {}, request);
                     break;
-            };
+            }
             request.activity_stream_type_id = activityStreamTypeId;
         }
         activityCommonService.updateAssetLocation(request, function (err, data) {});
         activityListUpdateStatus(request, async function (err, data) {
             if (err === false) {
 
-                if (activityTypeCategroyId === 9) {
+                if (activityTypeCategroyId === 9 && Number(request.device_os_id) !== 9) {
 
                     global.logger.write('debug', '*****ALTER STATUS : STATUS CHANGE TXN INSERT*******', {}, request);
 
@@ -1803,8 +1823,9 @@ function ActivityService(objectCollection) {
 
                     try {
                         let botEngineRequest = Object.assign({}, request);
-                        botEngineRequest.form_id = request.activity_form_id || request.form_id;
+                        botEngineRequest.form_id = request.activity_status_id;
                         botEngineRequest.field_id = 0;
+                        botEngineRequest.flag = 4;
 
                         const [formConfigError, formConfigData] = await activityCommonService.workforceFormMappingSelect(botEngineRequest);
                         if (
@@ -1817,12 +1838,11 @@ function ActivityService(objectCollection) {
                             let botsListData = await activityCommonService.getBotsMappedToActType(botEngineRequest);
                             if (botsListData.length > 0) {
                                 botEngineRequest.bot_id = botsListData[0].bot_id;
-                            }
-                            await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
+                                await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
                                 .then((resp) => {
                                     global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
                                 });
-                            // -_-
+                            }
                         }
                     } catch (botInitError) {
                         global.logger.write('error', botInitError, botInitError, botEngineRequest);
@@ -1830,7 +1850,7 @@ function ActivityService(objectCollection) {
 
                     global.logger.write('debug', '*****STATUS CHANGE FLAG : ' + request.status_changed_flag, {}, request);
 
-                    var timeDuration = util.differenceDatetimes(util.getCurrentUTCTime(), util.replaceDefaultDatetime(data[0].datetimeExistingActivityStatusUpdated))
+                    var timeDuration = util.differenceDatetimes(util.getCurrentUTCTime(), util.replaceDefaultDatetime(data[0].datetimeExistingActivityStatusUpdated));
                     if (Number(data[0].idExistingActivityStatus) > 0 && Number(request.activity_status_id) > 0) {
 
                         activityCommonService.activityStatusChangeTxnInsertV2(request, Number(timeDuration) / 1000, {
@@ -1959,7 +1979,7 @@ function ActivityService(objectCollection) {
                             }, function () {});
                         });
                         break;*/
-
+                        break;
                     case 130: // flag value is 1 //accepted
                         activityCommonService.updateLeadStatus(request, 1, function (err, result) {
                             if (err === false) {
@@ -2249,7 +2269,7 @@ function ActivityService(objectCollection) {
                 }
             }); // getActivityDetails
         }); // updateInmailPS Promise
-    };
+    }
 
     function createTimelineEntry(request) {
         return new Promise((resolve, reject) => {
@@ -2301,7 +2321,7 @@ function ActivityService(objectCollection) {
                 resolve();
             });
         });
-    };
+    }
 
     function updateProjectStatusCounts(request) {
         return new Promise((resolve, reject) => {
@@ -2356,7 +2376,7 @@ function ActivityService(objectCollection) {
                 }
             });
         });
-    };
+    }
 
     function respReqinMail(request) {
         return new Promise((resolve, reject) => {
@@ -2401,7 +2421,7 @@ function ActivityService(objectCollection) {
                 }
             });
         });
-    };
+    }
     //For inMails
     function inMailMonthlySummaryTransInsert(request) {
         return new Promise((resolve, reject) => {
@@ -2462,7 +2482,7 @@ function ActivityService(objectCollection) {
                             if (err === false) {
                                 //Inserting the Response Rate
                                 avgTotRespTimeSummaryInsert(request).then(() => {});
-                                resolve(data)
+                                resolve(data);
                             } else {
                                 reject(err);
                             }
@@ -2471,7 +2491,7 @@ function ActivityService(objectCollection) {
                 }
             });
         });
-    };
+    }
 
     function updateFlagOntime(request) {
         return new Promise((resolve, reject) => {
@@ -2520,9 +2540,9 @@ function ActivityService(objectCollection) {
                     }
 
                 } else {
-                    reject(err)
+                    reject(err);
                 }
-            })
+            });
 
         });
     }
@@ -2574,14 +2594,14 @@ function ActivityService(objectCollection) {
 
                         avgTotRespTimeSummaryInsert(request).then(() => {
                             resolve();
-                        })
-                    })
+                        });
+                    });
                 } else {
-                    reject(err)
+                    reject(err);
                 }
             });
         });
-    };
+    }
     //get the current total number of hours to respond and current number of post its / inmails
     function assetWeeklySummaryTrans(request, creationDatetime) {
         return new Promise((resolve, reject) => {
@@ -2756,8 +2776,8 @@ function ActivityService(objectCollection) {
                                                 });
                                             });
 
-                                        })
-                                    })
+                                        });
+                                    });
                                 }
                                 return;
                             } else {
@@ -2838,7 +2858,7 @@ function ActivityService(objectCollection) {
                                         collection.datetime_start = util.getStartDateTimeOfMonth();
                                         collection.datetime_end = util.getEndDateTimeOfMonth(); // getting monthly data
                                         activityCommonService.getAssetAverageRating(request, collection).then((assetAverageRating) => {
-                                            console.log(assetAverageRating)
+                                            console.log(assetAverageRating);
                                             global.logger.write('debug', 'assetAverageRating' + assetAverageRating, {}, request);
 
                                             var monthlySummaryCollection = {};
@@ -2859,7 +2879,7 @@ function ActivityService(objectCollection) {
                                             });
 
                                         });
-                                    })
+                                    });
                                 }
                                 return;
                             } else {
@@ -2909,7 +2929,7 @@ function ActivityService(objectCollection) {
                         var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_task_acceptance_stats', paramsArr);
                         db.executeQuery(1, queryString, request, function (err, monthlyAcceptanceStats) { //monthly stats
                             if (err === false) {
-                                response.monthly_acceptance_stats = monthlyAcceptanceStats
+                                response.monthly_acceptance_stats = monthlyAcceptanceStats;
                                 resolve(response);
                             } else {
                                 reject(err);
@@ -2979,7 +2999,7 @@ function ActivityService(objectCollection) {
                 }
             });
         });
-    };
+    }
 
     function updateTaskCreatedCntFn(request, assetId) {
         return new Promise((resolve, reject) => {
@@ -2998,7 +3018,7 @@ function ActivityService(objectCollection) {
                 });
             }
         });
-    };
+    }
 
     function addIngredients(request) {
 
@@ -3071,7 +3091,7 @@ function ActivityService(objectCollection) {
 
         // });
         //}
-    };
+    }
 
 
 
@@ -3178,20 +3198,20 @@ function ActivityService(objectCollection) {
                                 activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) {});
                                 activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {});
 
-                            })
+                            });
                             resolve();
-                        })
-                    })
+                        });
+                    });
 
                 } else {
                     resolve();
                 }
 
-            })
+            });
 
 
         });
-    }
+    };
 
     function processFormInlineData(request, data) {
         return new Promise((resolve, reject) => {
@@ -3216,7 +3236,7 @@ function ActivityService(objectCollection) {
                 resolve(array);
             });
         });
-    };
+    }
 
     this.activityListUpdateFieldValidated = function (request, inlineData) {
         return new Promise((resolve, reject) => {
@@ -3242,7 +3262,7 @@ function ActivityService(objectCollection) {
                 });
             }
         });
-    }
+    };
 
     this.activityMappingListUpdateFieldValidated = function (request) {
         return new Promise((resolve, reject) => {
@@ -3272,12 +3292,12 @@ function ActivityService(objectCollection) {
                         }
                     }).then(() => {
                         resolve();
-                    })
+                    });
                 }
-            })
+            });
 
         });
-    }
+    };
 
-};
+}
 module.exports = ActivityService;
