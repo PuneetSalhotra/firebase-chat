@@ -2060,30 +2060,37 @@ function ActivityListingService(objCollection) {
     };
     
     this.getEntityQueueMapping = function (request) {
-		return new Promise((resolve, reject)=>{
-	        var paramsArr = new Array(
-	        		request.organization_id,
-	        		request.account_id,
-	        		request.workforce_id,
-	        		request.activity_type_id,
-	        		2,
-	        		request.page_start,
-	        		util.replaceQueryLimit(request.page_limit)
-	                );
-	
-	        var queryString = util.getQueryString('ds_p1_1_queue_list_select', paramsArr);
-	        if (queryString != '') {
-	            db.executeQuery(1, queryString, request, function (err, data) {
-	            	//console.log("err "+err);
-	               if(err === false) {
-	               		console.log('data: '+data.length);
-	               		resolve(data);        				        			      			  
-	                } else {
-	                   reject(err);
-	               }
-	            });
-	   		}
-		});
+        let flag = 2;
+        if (request.hasOwnProperty("flag")) {
+            flag = request.flag;
+        }
+        return new Promise((resolve, reject) => {
+            // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
+            // IN p_workforce_id BIGINT(20), IN p_activity_type_id BIGINT(20), 
+            // IN p_flag SMALLINT(6), IN p_start_from BIGINT(20), IN p_limit_value SMALLINT(6)
+            var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.activity_type_id,
+                flag,
+                request.page_start || 0,
+                util.replaceQueryLimit(request.page_limit)
+            );
+
+            var queryString = util.getQueryString('ds_p1_1_queue_list_select', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    //console.log("err "+err);
+                    if (err === false) {
+                        console.log('data: ', data.length);
+                        resolve(data);
+                    } else {
+                        reject(err);
+                    }
+                });
+            }
+        });
     };
     
 };
