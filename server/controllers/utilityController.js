@@ -165,7 +165,7 @@ function UtilityController(objCollection) {
         //console.log("sms Text : " + text);
         global.logger.write('debug', 'sms Text : ' + text, {}, request);
 
-        if (request.country_code == 91) {
+        /*if (request.country_code == 91) {
             //console.log('Sending Domestic SMS');
             global.logger.write('debug', 'Sending Domestic SMS', {}, request);
             fs.readFile(`${__dirname}/../utils/domesticSmsMode.txt`, function (err, data) {
@@ -221,7 +221,7 @@ function UtilityController(objCollection) {
                         break;
                 }
             });
-        }
+        }*/
 
         res.send(responseWrapper.getResponse(false, {}, 200, req.body));
     });
