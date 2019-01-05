@@ -3325,7 +3325,7 @@ function ActivityService(objectCollection) {
                     if (isStatusMapped) {
                         // console.log("isStatusMapped: ", isStatusMapped)
                         await activityCommonService
-                            .fetchQueueActivityMappingId(request, queueId)
+                            .fetchQueueActivityMappingIdV1(request, queueId)
                             .then(async (queueActivityMappingData) => {
                                 console.log('queueActivityMappingData : ', queueActivityMappingData);
 
@@ -3361,7 +3361,7 @@ function ActivityService(objectCollection) {
                     } else {
                         // Check if there is an existing mapping
                         await activityCommonService
-                            .fetchQueueActivityMappingId(request, queueId)
+                            .fetchQueueActivityMappingIdV1(request, queueId)
                             .then(async (queueActivityMappingData) => {
                                 console.log('queueActivityMappingData : ', queueActivityMappingData);
 
