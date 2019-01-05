@@ -245,9 +245,20 @@ function BotService(objectCollection) {
         newReq.message_unique_id = util.getMessageUniqueId(request.asset_id);
         newReq.device_os_id = 9;
         
-        activityService.alterActivityStatus(newReq, (err, resp)=>{
-            return (err === false) ? {} : Promise.reject(err);
-        });
+        try {
+            await new Promise((resolve, reject)=>{
+                activityService.alterActivityStatus(newReq, (err, resp)=>{
+                    (err === false) ? resolve() : reject(err);
+                });
+            });
+
+            await activityService.updateWorkflowQueueMapping(newReq);
+        } catch(err) {
+            return err;
+        }
+        
+        return {};
+        
     }
 
     //Bot Step Copying the fields
