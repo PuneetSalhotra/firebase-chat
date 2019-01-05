@@ -3366,7 +3366,13 @@ function ActivityService(objectCollection) {
                                 console.log('queueActivityMappingData : ', queueActivityMappingData);
 
                                 // If the mapping exists, set log state to 3, thereby archiving the mapping
-                                if (queueActivityMappingData.length > 0) {
+                                if (
+                                    queueActivityMappingData.length > 0 &&
+                                    (
+                                        queueActivityMappingData[0].log_state === 1 ||
+                                        queueActivityMappingData[0].log_state === 2
+                                    )
+                                ) {
                                     let queueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;
                                     await activityCommonService
                                         .unmapFileFromQueue(request, queueActivityMappingId)
