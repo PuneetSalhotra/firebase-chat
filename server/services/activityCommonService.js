@@ -1487,6 +1487,21 @@ function ActivityCommonService(db, util, forEachAsync) {
 
     };
 
+    this.getAssetDetailsPromise = function (request, callback) {
+        return new Promise((resolve, reject) => {
+            const paramsArr = new Array(
+                request.organization_id,
+                request.asset_id
+            );
+            const queryString = util.getQueryString('ds_v1_asset_list_select', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data): reject(err);
+                });
+            }
+        });
+    };
+
     //PAM
     this.inventoryCheck = function (request, activityId, callback) {
         var paramsArr = new Array();
