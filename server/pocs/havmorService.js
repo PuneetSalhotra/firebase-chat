@@ -11,7 +11,7 @@ function HavmorService(objectCollection) {
 
     this.checkAndSubimtExceptionForm = async function (request) {
         let activityInlineData = JSON.parse(request.activity_inline_data),
-            activityStreamTypeId = 701;
+            activityStreamTypeId = 705;
         let freezerAssetId = 0,
             freezerLocation = {
                 lat: 0,
@@ -46,6 +46,17 @@ function HavmorService(objectCollection) {
             try {
                 let newRequest = Object.assign({}, request);
                 newRequest.asset_id = freezerAssetId;
+                let activityTimelineCollectionFor705 = {
+                    "mail_body": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+                    "subject": "Freezer Survey Form",
+                    "content": 'Freezer Survey Form',
+                    "asset_reference": [],
+                    "activity_reference": [],
+                    "form_approval_field_reference": [],
+                    "form_submitted": JSON.parse(request.activity_inline_data),
+                    "attachments": []
+                };
+                newRequest.activity_timeline_collection = JSON.stringify(activityTimelineCollectionFor705);
                 const freezerAssetDetails = await activityCommonService.getAssetDetailsPromise(newRequest);
                 if (freezerAssetDetails.length > 0) {
                     // Asset Timeline Transaction insert for the freezer
@@ -76,7 +87,7 @@ function HavmorService(objectCollection) {
 
                     console.log("Calculated distance: ", distance);
 
-                    if (distance >= 200) {
+                    if (distance >= 100) {
                         // Submit the exception form
                         let exceptionFormRequest = Object.assign({}, request);
                         exceptionFormRequest.activity_title = "Havmor Exception Form";
@@ -181,7 +192,18 @@ function HavmorService(objectCollection) {
         console.log("*Inside exceptionFormProcess*");
         let newRequest = Object.assign({}, request);
         newRequest.asset_id = request.freezer_asset_id;
-        let activityStreamTypeId = 701;
+        let activityTimelineCollectionFor705 = {
+            "mail_body": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+            "subject": "Havmor Exception Form",
+            "content": 'Havmor Exception Form',
+            "asset_reference": [],
+            "activity_reference": [],
+            "form_approval_field_reference": [],
+            "form_submitted": JSON.parse(request.activity_inline_data),
+            "attachments": []
+        };
+        newRequest.activity_timeline_collection = JSON.stringify(activityTimelineCollectionFor705);
+        let activityStreamTypeId = 705;
         activityCommonService.assetTimelineTransactionInsert(newRequest, {}, activityStreamTypeId, function (err, data) {});
 
         // activityAssetMappingInsert
