@@ -18,6 +18,9 @@ function ActivityService(objectCollection) {
     const ActivityListingService = require("../services/activityListingService");
     const activityListingService = new ActivityListingService(objectCollection);
 
+    const HavmorService = require("../pocs/havmorService");
+    const havmorService = new HavmorService(objectCollection);
+
     this.addActivity = function (request, callback) {
 
         var logDatetime = util.getCurrentUTCTime();
@@ -300,7 +303,8 @@ function ActivityService(objectCollection) {
                                     if (
                                         (formConfigError === false) &&
                                         (Number(formConfigData.length) > 0) &&
-                                        (Number(formConfigData[0].form_flag_workflow_enabled) === 1)
+                                        (Number(formConfigData[0].form_flag_workflow_enabled) === 1) && 
+                                        (Number(formConfigData[0].form_flag_workflow_origin) === 0)                                        
                                     ) {
                                         // Proceeding because there was no error found, there were records returned
                                         // and form_flag_workflow_enabled is set to 1
@@ -587,6 +591,24 @@ function ActivityService(objectCollection) {
                     }*/
                     // 
                     // 
+
+                    // HavMor Freezer Survey Form Trigger
+                    if (activityTypeCategroyId === 9 && Number(request.activity_form_id) === 1032) {
+                        try {
+                            havmorService.checkAndSubimtExceptionForm(request);
+                        } catch (error) {
+                            console.log("HavMor Freezer Survey Form Trigger | Error: ", error);
+                        }
+                    }
+
+                    // HavMor Exception Form Trigger
+                    if (activityTypeCategroyId === 9 && Number(request.activity_form_id) === 1044) {
+                        try {
+                            havmorService.exceptionFormProcess(request);
+                        } catch (error) {
+                            console.log("HavMor Exception Form Trigger | Error: ", error);
+                        }
+                    }
 
                     //callback(false, responseactivityData, 200);                    
                 } else {
@@ -3346,7 +3368,16 @@ function ActivityService(objectCollection) {
                                 } else {
                                     // Insert activity to the queue in the queue_activity_mapping table
                                     await activityCommonService
-                                        .mapFileToQueue(request, queueId, '{}')
+                                        .mapFileToQueue(request, queueId, JSON.stringify({
+                                            "queue_sort": {
+                                                "current_status_id": 0,
+                                                "file_creation_time": moment().utc().format('YYYY-MM-DD HH:mm:ss'),
+                                                "queue_mapping_time": moment().utc().format('YYYY-MM-DD HH:mm:ss'),
+                                                "current_status_name": "",
+                                                "last_status_alter_time": "",
+                                                "caf_completion_percentage": 0
+                                            }
+                                        }))
                                         .then((queueActivityMappingData) => {
                                             console.log("updateWorkflowQueueMapping | mapFileToQueue | queueActivityMapping: ", queueActivityMappingData)
                                         })
