@@ -300,7 +300,8 @@ function ActivityService(objectCollection) {
                                     if (
                                         (formConfigError === false) &&
                                         (Number(formConfigData.length) > 0) &&
-                                        (Number(formConfigData[0].form_flag_workflow_enabled) === 1)
+                                        (Number(formConfigData[0].form_flag_workflow_enabled) === 1) && 
+                                        (Number(formConfigData[0].form_flag_workflow_origin) === 0)                                        
                                     ) {
                                         // Proceeding because there was no error found, there were records returned
                                         // and form_flag_workflow_enabled is set to 1
@@ -3346,7 +3347,16 @@ function ActivityService(objectCollection) {
                                 } else {
                                     // Insert activity to the queue in the queue_activity_mapping table
                                     await activityCommonService
-                                        .mapFileToQueue(request, queueId, '{}')
+                                        .mapFileToQueue(request, queueId, JSON.stringify({
+                                            "queue_sort": {
+                                                "current_status_id": 0,
+                                                "file_creation_time": moment().utc().format('YYYY-MM-DD HH:mm:ss'),
+                                                "queue_mapping_time": moment().utc().format('YYYY-MM-DD HH:mm:ss'),
+                                                "current_status_name": "",
+                                                "last_status_alter_time": "",
+                                                "caf_completion_percentage": 0
+                                            }
+                                        }))
                                         .then((queueActivityMappingData) => {
                                             console.log("updateWorkflowQueueMapping | mapFileToQueue | queueActivityMapping: ", queueActivityMappingData);                                            
                                         })
