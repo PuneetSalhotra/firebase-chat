@@ -116,9 +116,15 @@ function BotService(objectCollection) {
 
                 //case 'status_alter': 
                 case 2:  // Alter Status
-                    global.logger.write('conLog', 'STATUS ALTER', {}, {});                    
+                    global.logger.write('conLog', 'STATUS ALTER', {}, {});
+                    global.logger.write('conLog', 'Request Params received from Request', {}, {});
+                    global.logger.write('conLog', request, {}, {});
                     try {                    
-                        await changeStatus(request, botOperationsJson.bot_operations.status_alter);
+                        let result = await changeStatus(request, botOperationsJson.bot_operations.status_alter);
+                        if(result[0]) {
+                            i.bot_operation_status_id = 2;   
+                            i.bot_operation_inline_data = JSON.stringify({"err": result[1]});
+                        }
                     } catch(err) {
                         global.logger.write('serverError', err, {}, {});
                         global.logger.write('serverError', 'Error in executing changeStatus Step', {}, {}); 
@@ -147,7 +153,9 @@ function BotService(objectCollection) {
 
                 //case 'workflow_percentage_alter': 
                 case 4: //Update Workflow Percentage
-                    global.logger.write('conLog', 'WF PERCENTAGE ALTER', {}, {}); 
+                    global.logger.write('conLog', 'WF PERCENTAGE ALTER', {}, {});
+                    global.logger.write('conLog', 'Request Params received from Request', {}, {});
+                    global.logger.write('conLog', request, {}, {});
                     try {
                         let result = await alterWFCompletionPercentage(request, botOperationsJson.bot_operations.workflow_percentage_alter);
                         if(result[0]) {
@@ -211,6 +219,11 @@ function BotService(objectCollection) {
         }
         
         botOperationTxnInsert(request, i);
+        await new Promise((resolve, reject)=>{
+            setTimeout(()=>{
+                resolve();
+            }, 1000);
+        });
     }    
     
     return {};
@@ -254,10 +267,43 @@ function BotService(objectCollection) {
 
             await activityService.updateWorkflowQueueMapping(newReq);
         } catch(err) {
-            return err;
+            return [true, "unknown Error"];
         }
-        
-        return {};
+
+        let resp = await getQueueActivity(newReq, request.workflow_activity_id);        
+        global.logger.write('conLog', resp,{},{});
+
+        if(resp.length > 0) {
+            
+            //Checking the queuemappingid
+            let queueActivityMappingData = await (activityCommonService.fetchQueueActivityMappingId({activity_id: request.workflow_activity_id,
+                                                                                                     organization_id: newReq.organization_id}, 
+                                                                                                     resp[0].queue_id));            
+            global.logger.write('conLog', 'Status Alter BOT Step - queueActivityMappingData : ',queueActivityMappingData,{});            
+            
+            if(queueActivityMappingData.length > 0){
+
+                let statusName = await getStatusName(newReq, inlineData.activity_status_id);
+                global.logger.write('conLog', 'Status Alter BOT Step - status Name : ',statusName,{});
+
+                let queueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;  
+                let queueActMapInlineData = JSON.parse(queueActivityMappingData[0].queue_activity_mapping_inline_data);
+                
+                queueActMapInlineData.queue_sort.current_status_id = inlineData.activity_status_id;
+                queueActMapInlineData.queue_sort.current_status_name = statusName[0].activity_status_name || "";
+                queueActMapInlineData.queue_sort.last_status_alter_time = util.getCurrentUTCTime();
+                
+                global.logger.write('conLog', 'Status Alter BOT Step - Updated Queue JSON : ',queueActMapInlineData,{});
+                
+                let data = await (activityCommonService.queueActivityMappingUpdateInlineData(newReq, queueActivityMappingId, JSON.stringify(queueActMapInlineData)));                
+                global.logger.write('conLog', 'Status Alter BOT Step - Updating the Queue Json : ',data,{});
+                
+                activityCommonService.queueHistoryInsert(newReq, 1402, queueActivityMappingId).then(()=>{});                
+                return [false, {}];
+            }
+        } else {
+            return [true, "Queue Not Available"];
+        }
         
     }
 
@@ -659,21 +705,29 @@ function BotService(objectCollection) {
             newrequest.limit_value = 1;               
             
             //Checking the queuemappingid
-            let queueActivityMappingData = await (activityCommonService.fetchQueueActivityMappingId(newrequest, resp[0].queue_id));            
+            let queueActivityMappingData = await (activityCommonService.fetchQueueActivityMappingId({activity_id: newrequest.workflow_activity_id,
+                                                                                                     organization_id: newrequest.organization_id}, 
+                                                                                                     resp[0].queue_id));            
             global.logger.write('conLog', 'queueActivityMappingData : ',{},{});
             global.logger.write('conLog', queueActivityMappingData,{},{});
             
             if(queueActivityMappingData.length > 0){
                 let queueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;  
                 let queueActMapInlineData = JSON.parse(queueActivityMappingData[0].queue_activity_mapping_inline_data);
+                let obj = {};
                 
-                queueActMapInlineData.queue_sort.caf_completion_percentage += wfCompletionPercentage;                
-                global.logger.write('conLog', 'Updated Queue JSON : ',{},{});
-                global.logger.write('conLog', queueActMapInlineData,{},{});
+                global.logger.write('conLog', 'queueActMapInlineData.length',Object.keys(queueActMapInlineData).length,{});
+                if(Object.keys(queueActMapInlineData).length === 0) {                    
+                    obj.queue_sort = {};                    
+                    obj.queue_sort.caf_completion_percentage = wfCompletionPercentage;
+                    queueActMapInlineData = obj;
+                } else {                    
+                    queueActMapInlineData.queue_sort.caf_completion_percentage += wfCompletionPercentage;                
+                }                
+                global.logger.write('conLog', 'Updated Queue JSON : ',queueActMapInlineData,{});
                 
                 let data = await (activityCommonService.queueActivityMappingUpdateInlineData(newrequest, queueActivityMappingId, JSON.stringify(queueActMapInlineData)));                
-                global.logger.write('conLog', 'Updating the Queue Json : ',{},{});
-                global.logger.write('conLog', data,{},{});
+                global.logger.write('conLog', 'Updating the Queue Json : ',data,{});                
                 
                 activityCommonService.queueHistoryInsert(newrequest, 1402, queueActivityMappingId).then(()=>{});                
                 return [false, {}];
@@ -1367,7 +1421,7 @@ function BotService(objectCollection) {
         );
         let queryString = util.getQueryString('ds_v1_queue_activity_mapping_select_activity', paramsArr);
         if (queryString != '') {
-            return await db.executeQueryPromise(1, queryString, request);
+            return await db.executeQueryPromise(0, queryString, request);
             }
     }
 
@@ -1449,6 +1503,19 @@ function BotService(objectCollection) {
             });
         });        
     }
+
+    async function getStatusName(request, activityStatusId) {
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            activityStatusId
+        );
+        let queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_select_id', paramsArr);
+        if (queryString != '') {
+            return await db.executeQueryPromise(1, queryString, request);
+        }
+    }    
 
 }
 
