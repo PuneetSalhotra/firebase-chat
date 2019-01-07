@@ -7,6 +7,7 @@ function HavmorService(objectCollection) {
     const moment = require('moment');
     const geolib = require("geolib");
     const makeRequest = require('request');
+    const uuid = require('uuid');
 
     this.checkAndSubimtExceptionForm = async function (request) {
         let activityInlineData = JSON.parse(request.activity_inline_data)
@@ -63,30 +64,51 @@ function HavmorService(objectCollection) {
 
                     console.log("Calculated distance: ", distance);
 
-                    if (distance >= 500) {
+                    if (distance >= 200) {
                         // Submit the exception form
                         let exceptionFormRequest = Object.assign({}, request);
                         exceptionFormRequest.activity_title = "Havmor Exception Form";
+                        exceptionFormRequest.activity_description = "Havmor Exception Form";
                         exceptionFormRequest.activity_inline_data = JSON.stringify([{
-                            "form_id": 1032,
-                            "field_id": 6874,
-                            "field_name": "Dealer Name",
-                            "field_value": "Test Dealer",
+                            "form_id": 1044,
+                            "field_id": 6908,
+                            "field_name": "Freezer Serial Number",
+                            "field_value": uuid.v1(),
                             "message_unique_id": "319181546790573177885",
                             "data_type_combo_id": 0,
                             "field_data_type_id": 19,
                             "data_type_combo_value": "",
                             "field_data_type_category_id": 7
                         }, {
-                            "form_id": 1032,
-                            "field_id": 6874,
-                            "field_name": "Dealer Name",
-                            "field_value": "Test Dealer",
+                            "form_id": 1044,
+                            "field_id": 6909,
+                            "field_name": "Base Location",
+                            "field_value": `${latFromDB},${longFromDB}`,
                             "message_unique_id": "319181546790573177885",
                             "data_type_combo_id": 0,
-                            "field_data_type_id": 19,
+                            "field_data_type_id": 17,
                             "data_type_combo_value": "",
-                            "field_data_type_category_id": 7
+                            "field_data_type_category_id": 5
+                        }, {
+                            "form_id": 1044,
+                            "field_id": 6910,
+                            "field_name": "Latest Location",
+                            "field_value": `${freezerLocation.lat},${freezerLocation.long}`,
+                            "message_unique_id": "319181546790573177885",
+                            "data_type_combo_id": 0,
+                            "field_data_type_id": 17,
+                            "data_type_combo_value": "",
+                            "field_data_type_category_id": 5
+                        }, {
+                            "form_id": 1044,
+                            "field_id": 6911,
+                            "field_name": "Distance",
+                            "field_value": Number(distance),
+                            "message_unique_id": "319181546790573177885",
+                            "data_type_combo_id": 0,
+                            "field_data_type_id": 5,
+                            "data_type_combo_value": "",
+                            "field_data_type_category_id": 2
                         }]);
                         const requestOptions = {
                             form: exceptionFormRequest
@@ -95,22 +117,36 @@ function HavmorService(objectCollection) {
                             body = JSON.parse(body);
 
                             if (Number(body.status) === 200) {
+                                const exceptionFormActivityId = body.response.activity_id;
+                                const exceptionFormTransactionId = body.response.form_transaction_id;
                                 // 
                                 // If the success, map the file to queue
                                 // 
                                 // 
-                                exceptionFormRequest.activity_id = 0000000;
-                                let queueId = 000000;
-                                await activityCommonService
-                                    .mapFileToQueue(request, queueId, '{}')
-                                    .then((queueActivityMappingData) => {
-                                        console.log("updateWorkflowQueueMapping | mapFileToQueue | queueActivityMapping: ", queueActivityMappingData)
-                                    })
-                                    .catch((error) => {
+                                exceptionFormRequest.activity_id = exceptionFormActivityId;
+                                exceptionFormRequest.form_transaction_id = exceptionFormTransactionId;
+                                let queueId = 23;
+                                setTimeout(async () => {
+                                    await activityCommonService
+                                        .mapFileToQueue(exceptionFormRequest, queueId, JSON.stringify({
+                                            "queue_sort": {
+                                                "current_status_id": 281873,
+                                                "file_creation_time": moment().utc().format('YYYY-MM-DD HH:mm:ss'),
+                                                "queue_mapping_time": moment().utc().format('YYYY-MM-DD HH:mm:ss'),
+                                                "current_status_name": "Location Exception",
+                                                "last_status_alter_time": "",
+                                                "caf_completion_percentage": 0
+                                            }
+                                        }))
+                                        .then((queueActivityMappingData) => {
+                                            console.log("updateWorkflowQueueMapping | mapFileToQueue | queueActivityMapping: ", queueActivityMappingData)
+                                        })
+                                        .catch((error) => {
 
-                                        console.log("updateWorkflowQueueMapping | mapFileToQueue | Error: ", error);
-                                        console.log("Object.keys(error): ", Object.keys(error));
-                                    })
+                                            console.log("updateWorkflowQueueMapping | mapFileToQueue | Error: ", error);
+                                            console.log("Object.keys(error): ", Object.keys(error));
+                                        })
+                                }, 2000);
                             } else {
                                 // 
                             }
