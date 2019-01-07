@@ -3402,6 +3402,21 @@ function AssetService(objectCollection) {
             	callback(false, {}, -3101);
             }
     };
+
+    this.getAssetTimelineData = async (request) => {
+        let paramsArr = new Array(
+            request.organization_id,
+            request.workforce_id,
+            request.asset_id,
+            request.stream_type_id || 0,
+            request.page_start,
+            util.replaceQueryLimit(request.page_limit)
+        );
+        let queryString = util.getQueryString('ds_p1_asset_timeline_transaction_select_asset_stream_type', paramsArr);
+        if (queryString != '') {
+            return await (db.executeQueryPromise(1, queryString, request));
+        }
+    };
    
 
 }

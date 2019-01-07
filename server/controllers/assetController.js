@@ -532,5 +532,16 @@ function AssetController(objCollection) {
 		});
 
     });
+
+    // Retrieve the asset Timeline Data
+    app.post('/' + global.config.version + '/asset/access/timeline/list', async (req, res) => {
+        try {
+            global.logger.write('conLog', req.body, {}, {});
+            let result = await assetService.getAssetTimelineData(req.body);
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch (err) {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
 }
 module.exports = AssetController;
