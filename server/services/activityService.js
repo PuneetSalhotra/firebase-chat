@@ -18,6 +18,9 @@ function ActivityService(objectCollection) {
     const ActivityListingService = require("../services/activityListingService");
     const activityListingService = new ActivityListingService(objectCollection);
 
+    const HavmorService = require("../pocs/havmorService");
+    const havmorService = new HavmorService(objectCollection);
+
     this.addActivity = function (request, callback) {
 
         var logDatetime = util.getCurrentUTCTime();
@@ -588,6 +591,24 @@ function ActivityService(objectCollection) {
                     }*/
                     // 
                     // 
+
+                    // HavMor Freezer Survey Form Trigger
+                    if (activityTypeCategroyId === 9 && Number(request.activity_form_id) === 1032) {
+                        try {
+                            havmorService.checkAndSubimtExceptionForm(request);
+                        } catch (error) {
+                            console.log("HavMor Freezer Survey Form Trigger | Error: ", error);
+                        }
+                    }
+
+                    // HavMor Exception Form Trigger
+                    if (activityTypeCategroyId === 9 && Number(request.activity_form_id) === 1044) {
+                        try {
+                            havmorService.exceptionFormProcess(request);
+                        } catch (error) {
+                            console.log("HavMor Exception Form Trigger | Error: ", error);
+                        }
+                    }
 
                     //callback(false, responseactivityData, 200);                    
                 } else {

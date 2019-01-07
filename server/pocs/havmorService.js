@@ -10,7 +10,8 @@ function HavmorService(objectCollection) {
     const uuid = require('uuid');
 
     this.checkAndSubimtExceptionForm = async function (request) {
-        let activityInlineData = JSON.parse(request.activity_inline_data)
+        let activityInlineData = JSON.parse(request.activity_inline_data),
+            activityStreamTypeId = 701;
         let freezerAssetId = 0,
             freezerLocation = {
                 lat: 0,
@@ -47,6 +48,17 @@ function HavmorService(objectCollection) {
                 newRequest.asset_id = freezerAssetId;
                 const freezerAssetDetails = await activityCommonService.getAssetDetailsPromise(newRequest);
                 if (freezerAssetDetails.length > 0) {
+                    // Asset Timeline Transaction insert for the freezer
+                    activityCommonService.assetTimelineTransactionInsert(newRequest, {}, activityStreamTypeId, function (err, data) {});
+                    // Activity Asset Mapping insert for the freezer
+                    try {
+                        await activityAssetMappingInsert(newRequest);
+                        activityCommonService.assetActivityListHistoryInsert(newRequest, newRequest.asset_id, 0, function (err, restult) {});
+                    } catch (error) {
+                        console.log("Freezer Survey Form | activityAssetMappingInsert | Error ", error)
+                    }
+
+                    // Distance Threshold Trigger
                     let latFromDB = parseFloat(freezerAssetDetails[0].asset_last_location_latitude),
                         longFromDB = parseFloat(freezerAssetDetails[0].asset_last_location_longitude);
 
@@ -69,6 +81,8 @@ function HavmorService(objectCollection) {
                         let exceptionFormRequest = Object.assign({}, request);
                         exceptionFormRequest.activity_title = "Havmor Exception Form";
                         exceptionFormRequest.activity_description = "Havmor Exception Form";
+                        exceptionFormRequest.activity_form_id = 1044;
+                        exceptionFormRequest.freezer_asset_id = freezerAssetId;
                         exceptionFormRequest.activity_inline_data = JSON.stringify([{
                             "form_id": 1044,
                             "field_id": 6908,
@@ -162,6 +176,50 @@ function HavmorService(objectCollection) {
             data: "data"
         }, 200]
     }
+
+    this.exceptionFormProcess = async function (request) {
+        console.log("*Inside exceptionFormProcess*");
+        let newRequest = Object.assign({}, request);
+        newRequest.asset_id = request.freezer_asset_id;
+        let activityStreamTypeId = 701;
+        activityCommonService.assetTimelineTransactionInsert(newRequest, {}, activityStreamTypeId, function (err, data) {});
+
+        // activityAssetMappingInsert
+        try {
+            await activityAssetMappingInsert(newRequest);
+            activityCommonService.assetActivityListHistoryInsert(newRequest, newRequest.asset_id, 0, function (err, restult) {});
+        } catch (error) {
+            console.log("Exception Form | activityAssetMappingInsert | Error ", error)
+        }
+    }
+
+
+    const activityAssetMappingInsert = function (request) {
+        return new Promise((resolve, reject) => {
+            const activityInlineData = JSON.parse(request.activity_inline_data);
+            const activityTypeCategoryId = Number(request.activity_type_category_id);
+            const paramsArr = new Array(
+                request.activity_id,
+                request.asset_id,
+                request.workforce_id,
+                request.account_id,
+                request.organization_id,
+                26, // request.participant_access_id,
+                request.message_unique_id,
+                request.flag_retry,
+                request.flag_offline,
+                request.asset_id,
+                util.getCurrentUTCTime(),
+                0 // Field ID
+            );
+            const queryString = util.getQueryString('ds_v1_activity_asset_mapping_insert_asset_assign_appr', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data): reject(err);
+                });
+            }
+        });
+    };
 }
 
 module.exports = HavmorService;
