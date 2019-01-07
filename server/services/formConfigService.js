@@ -1683,6 +1683,37 @@ function FormConfigService(objCollection) {
 
                 workflowActivityId = Number(activityId);
 
+                // Trigger Bot Engine
+                // Bot Engine Trigger
+                try {
+                    let botEngineRequest = Object.assign({}, request);
+                    botEngineRequest.form_id = request.activity_form_id;
+                    botEngineRequest.field_id = 0;
+                    botEngineRequest.flag = 3;
+                    botEngineRequest.workflow_activity_id = workflowActivityId;
+
+                    const [formConfigError, formConfigData] = await activityCommonService.workforceFormMappingSelect(botEngineRequest);
+                    if (
+                        (formConfigError === false) &&
+                        (Number(formConfigData.length) > 0) &&
+                        (Number(formConfigData[0].form_flag_workflow_enabled) === 1)
+                    ) {
+                        // Proceeding because there was no error found, there were records returned
+                        // and form_flag_workflow_enabled is set to 1
+                        let botsListData = await activityCommonService.getBotsMappedToActType(botEngineRequest);
+                        if (botsListData.length > 0) {
+                            botEngineRequest.bot_id = botsListData[0].bot_id;
+
+                            await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
+                                .then((resp) => {
+                                    global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
+                                });
+                        }
+                    }
+                } catch (botInitError) {
+                    global.logger.write('error', botInitError, botInitError, botEngineRequest);
+                }
+
             }
 
             if (isWorkflowEnabled) {
