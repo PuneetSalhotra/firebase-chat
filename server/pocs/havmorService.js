@@ -21,8 +21,7 @@ function HavmorService(objectCollection) {
         for (const field of activityInlineData) {
             // Extract the freezer asset_id
             if (Number(field.field_id) === 6873) {
-                let fieldValue = JSON.parse(field.field_value);
-                freezerAssetId = Number(fieldValue.activity_internal_id);
+                freezerAssetId = Number(field.field_value);
             }
 
             // Extract the freezer's new asset_id
