@@ -3338,25 +3338,25 @@ function ActivityService(objectCollection) {
                                     await activityCommonService
                                         .unmapFileFromQueue(request, queueActivityMappingId)
                                         .then((queueActivityMappingData) => {
-                                            console.log("updateWorkflowQueueMapping | mapFileToQueue | queueActivityMapping: ", queueActivityMappingData)
+                                            console.log("updateWorkflowQueueMapping | mapFileToQueue | queueActivityMapping: ", queueActivityMappingData);
                                         })
                                         .catch((error) => {
                                             console.log("updateWorkflowQueueMapping | Re-Enable | Error: ", error);
-                                        })
+                                        });
                                 } else {
                                     // Insert activity to the queue in the queue_activity_mapping table
                                     await activityCommonService
                                         .mapFileToQueue(request, queueId, '{}')
                                         .then((queueActivityMappingData) => {
-                                            console.log("updateWorkflowQueueMapping | mapFileToQueue | queueActivityMapping: ", queueActivityMappingData)
+                                            console.log("updateWorkflowQueueMapping | mapFileToQueue | queueActivityMapping: ", queueActivityMappingData);                                            
                                         })
                                         .catch((error) => {
 
                                             console.log("updateWorkflowQueueMapping | mapFileToQueue | Error: ", error);
                                             console.log("Object.keys(error): ", Object.keys(error));
-                                        })
+                                        });
                                 }
-                            })
+                            });
 
                     } else {
                         // Check if there is an existing mapping
@@ -3381,12 +3381,14 @@ function ActivityService(objectCollection) {
                                         })
                                         .catch((error) => {
                                             console.log("updateWorkflowQueueMapping | unmapFileToQueue | Error: ", error);
-                                        })
+                                        });
                                 }
-                            })
+                            });
                     }
                 }
-                return queueMap;
+                setTimeout(()=>{
+                    return queueMap;
+                }, 3000);                
             } else {
                 return [];
             }
@@ -3396,5 +3398,5 @@ function ActivityService(objectCollection) {
         }
     };
 
-};
+}
 module.exports = ActivityService;

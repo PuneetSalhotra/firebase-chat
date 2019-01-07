@@ -3471,7 +3471,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
     };
 
-};
+}
 
 
 module.exports = ActivityCommonService;
