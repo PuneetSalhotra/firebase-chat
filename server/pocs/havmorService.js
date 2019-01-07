@@ -159,7 +159,7 @@ function HavmorService(objectCollection) {
                                                 "file_creation_time": moment().utc().format('YYYY-MM-DD HH:mm:ss'),
                                                 "queue_mapping_time": moment().utc().format('YYYY-MM-DD HH:mm:ss'),
                                                 "current_status_name": "Location Exception",
-                                                "last_status_alter_time": "",
+                                                "last_status_alter_time": moment().utc().format('YYYY-MM-DD HH:mm:ss'),
                                                 "caf_completion_percentage": 0
                                             }
                                         }))
