@@ -1,5 +1,5 @@
 #Pass arguments from command line
-if [ "$DEPLOYMENT_GROUP_NAME" == "Development_DeskerMobileApiApp-Group" ]
+if [ "$DEPLOYMENT_GROUP_NAME" == "tempdeploy-Group" ]
 then
   cd /staging_desker_api/
   pm2 stop all

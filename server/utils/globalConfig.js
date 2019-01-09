@@ -164,8 +164,8 @@ if (mode === 'dev') {
     config.PRODUCER_PARTITONER_TYPE = 3;
 
     config.TOPIC_ID = 1;
-    config.TOPIC_NAME = "dev-desker-activities";
-    config.CONSUMER_GROUP_ID = "dev-desker-activities-consumer-group";     
+    config.TOPIC_NAME = "dev-desker-activities-v1";
+    config.CONSUMER_GROUP_ID = "dev-desker-activities-consumer-group-v1";     
     
     //Widget
     config.WIDGET_TOPIC_NAME = 'dev-desker-form-widgets';    

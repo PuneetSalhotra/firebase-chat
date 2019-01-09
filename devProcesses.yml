@@ -11,50 +11,8 @@ apps:
     script   : ./consumer.js
     out_file: '/dev/null'
     instances: 1
-    exec_mode: fork
-    
-  - name : "Dev_ConsumerOne"
-    env: {mode: dev, partition:1}
-    script   : ./consumer.js    
-    out_file: '/dev/null'
-    instances: 1
-    exec_mode: fork
-    
-  - name : "Dev_ConsumerTwo"
-    env: {mode: dev, partition:2}
-    script   : ./consumer.js    
-    out_file: '/dev/null'
-    instances: 1
-    exec_mode: fork
-    
-  - name : "Dev_ConsumerThree"
-    env: {mode: dev, partition:3}
-    script   : ./consumer.js    
-    out_file: '/dev/null'
-    instances: 1
-    exec_mode: fork
-    
-  - name : "Dev_ConsumerFour"
-    env: {mode: dev, partition:4}
-    script   : ./consumer.js    
-    out_file: '/dev/null'
-    instances: 1
-    exec_mode: fork
-    
-  - name : "Dev_ConsumerFive"
-    env: {mode: dev, partition:5}
-    script   : ./consumer.js    
-    out_file: '/dev/null'
-    instances: 1
-    exec_mode: fork
-    
-  #- name : "Dev_SQSConsumer"
-  #  env: {mode: dev}
-  #  script   : ./server/queue/sqsConsumer.js    
-  #  out_file: '/dev/null'
-  #  instances: 1
-  #  exec_mode: fork
-    
+    exec_mode: fork   
+  
   - name : "Dev_LogConsumerZero"
     env: {mode: dev, partition:0}
     script   : ./logConsumer.js
