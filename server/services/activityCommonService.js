@@ -3336,7 +3336,7 @@ function ActivityCommonService(db, util, forEachAsync) {
     this.getActivityByFormTransaction = function (request) {
         return new Promise((resolve, reject) => {
             var paramsArr = new Array(
-                request.activity_id,
+                request.activity_id || 0,
                 request.form_transaction_id,
                 request.organization_id
             );

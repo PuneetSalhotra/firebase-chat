@@ -275,13 +275,39 @@ function BotService(objectCollection) {
 
         if(resp.length > 0) {
             
+            let statusName = await getStatusName(newReq, inlineData.activity_status_id);
+            global.logger.write('conLog', 'Status Alter BOT Step - status Name : ',statusName,{});
+            
+            let queuesData = await getAllQueuesBasedOnActId(newReq, request.workflow_activity_id);            
+
+            global.logger.write('conLog', 'queues Data : ', queuesData,{});            
+
+            
+            
+            let queueActMapInlineData;
+            let data;
+            for(let i of queuesData) {                
+                queueActMapInlineData = JSON.parse(i.queue_activity_mapping_inline_data);
+                                
+                queueActMapInlineData.queue_sort.current_status_id = inlineData.activity_status_id;
+                queueActMapInlineData.queue_sort.current_status_name = statusName[0].activity_status_name || "";
+                queueActMapInlineData.queue_sort.last_status_alter_time = util.getCurrentUTCTime();
+
+                data = await (activityCommonService.queueActivityMappingUpdateInlineData(newReq, i.queue_activity_mapping_id, JSON.stringify(queueActMapInlineData)));                
+                global.logger.write('conLog', 'Status Alter BOT Step - Updating the Queue Json : ',data,{});
+                
+                activityCommonService.queueHistoryInsert(newReq, 1402, i.queue_activity_mapping_id).then(()=>{});
+            }
+            
+            
+            
             //Checking the queuemappingid
-            let queueActivityMappingData = await (activityCommonService.fetchQueueActivityMappingId({activity_id: request.workflow_activity_id,
+            /*let queueActivityMappingData = await (activityCommonService.fetchQueueActivityMappingId({activity_id: request.workflow_activity_id,
                                                                                                      organization_id: newReq.organization_id}, 
                                                                                                      resp[0].queue_id));            
-            global.logger.write('conLog', 'Status Alter BOT Step - queueActivityMappingData : ',queueActivityMappingData,{});            
+            global.logger.write('conLog', 'Status Alter BOT Step - queueActivityMappingData : ',queueActivityMappingData,{});
             
-            if(queueActivityMappingData.length > 0){
+            /*if(queueActivityMappingData.length > 0){
 
                 let statusName = await getStatusName(newReq, inlineData.activity_status_id);
                 global.logger.write('conLog', 'Status Alter BOT Step - status Name : ',statusName,{});
@@ -303,9 +329,12 @@ function BotService(objectCollection) {
             }
         } else {
             return [true, "Queue Not Available"];
-        }
-        
+        }*/
+        return [false, {}];
+    } else {
+        return [true, "Resp is Empty"];
     }
+}
 
     //Bot Step Copying the fields
     async function copyFields(request, inlineData) {        
@@ -1515,7 +1544,18 @@ function BotService(objectCollection) {
         if (queryString != '') {
             return await db.executeQueryPromise(1, queryString, request);
         }
-    }    
+    }
+    
+    async function getAllQueuesBasedOnActId(request, activityId) {
+        let paramsArr = new Array(
+            request.organization_id,            
+            activityId
+        );
+        let queryString = util.getQueryString('ds_p1_1_queue_activity_mapping_select_activity', paramsArr);
+        if (queryString != '') {
+            return await db.executeQueryPromise(1, queryString, request);
+        }
+    }
 
 }
 
