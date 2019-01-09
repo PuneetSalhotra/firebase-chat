@@ -1201,6 +1201,9 @@ function ActivityTimelineService(objectCollection) {
             rowDataArr.activity_timeline_collection = {};
             rowDataArr.activity_timeline_url_title = '';
             rowDataArr.data_entity_inline = rowData['data_entity_inline'] || {};
+            rowDataArr.data_form_transaction_id = util.replaceDefaultNumber(rowData['data_form_transaction_id']);
+            rowDataArr.data_form_name = util.replaceDefaultString(rowData['data_form_name']);
+            rowDataArr.activity_title = util.replaceDefaultString(rowData['activity_title']);
 
             //Added for Beta
             rowDataArr.activity_timeline_url_title = util.replaceDefaultString(rowData['data_entity_text_3']);
