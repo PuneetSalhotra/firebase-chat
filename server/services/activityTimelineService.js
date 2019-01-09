@@ -1309,7 +1309,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_url_preview = util.replaceDefaultString(rowData['data_entity_text_2']);
                             break;
                     }
-                    
+                 break;   
                 case 10: // document
                     switch (rowData['timeline_stream_type_id']) {
                         case 301:
