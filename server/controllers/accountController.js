@@ -255,11 +255,11 @@ function AccountController(objCollection) {
         /*var text = "Hey "+ request.receiver_name +" , "+ request.sender_name+" has requested your participation in "+request.task_title+" using the Desker App, ";
             text += "it's due by " + request.due_date + ". Download the App from http://desker.co/download.";*/
 
-        util.sendSmsSinfini(request.message, request.country_code, request.phone_number, function (err, res) {
+        /*util.sendSmsSinfini(request.message, request.country_code, request.phone_number, function (err, res) {
             // console.log(err,'\n',res);
             global.logger.write('debug', 'Sinfini Error: ' + JSON.stringify(err, null, 2), {}, request);
             global.logger.write('debug', 'Sinfini Response: ' + JSON.stringify(res, null, 2), {}, request);
-        });
+        });*/
 
         res.send(responseWrapper.getResponse(false, {}, 200, req.body));
     });

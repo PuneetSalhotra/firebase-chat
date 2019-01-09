@@ -1249,6 +1249,86 @@ function PamListingService(objectCollection) {
 	   		}
         });
     };
+    
+    this.getReservationListSearch = function (request) {
+		return new Promise((resolve, reject)=>{
+        var paramsArr = new Array(
+        		request.organization_id,
+        		request.parent_activity_id,
+        		request.activity_type_category_id,
+				request.member_asset_id,
+				request.is_search,
+				request.search_string,
+				request.start_limit,
+				request.end_limit
+                );
+
+        var queryString = util.getQueryString('pm_v1_activity_asset_mapping_select_reservations_search', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+            	//console.log("err "+err);
+               if(err === false) {
+               		console.log('data: '+data.length);
+               		resolve(data);        				        			      			  
+                } else {
+                   reject(err);
+               }
+            });
+   		}
+		});
+    };
+    
+    this.getEventCovers = function (request) {
+		return new Promise((resolve, reject)=>{
+        var paramsArr = new Array(
+        		request.organization_id,
+        		request.account_id,
+        		request.event_id
+                );
+
+        var queryString = util.getQueryString('pm_v1_activity_list_select_event_covers', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+            	//console.log("err "+err);
+               if(err === false) {
+               		console.log('data: '+data.length);
+               		resolve(data);        				        			      			  
+                } else {
+                   reject(err);
+               }
+            });
+   		}
+		});
+    };
+    
+    this.pamOrderListSelectActivityType = async function (request) {
+
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.member_asset_id,
+            request.activity_type_id,
+            request.tag_asset_id,
+            request.page_start,
+            request.page_limit
+        );
+        const queryString = util.getQueryString('pm_v1_pam_order_list_select_activity_type', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                	responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, responseData];
+    }
 };
 
 module.exports = PamListingService;

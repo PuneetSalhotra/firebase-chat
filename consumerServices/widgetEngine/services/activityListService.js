@@ -31,7 +31,33 @@ getStatusCounts(data) {
     });
 }
 
+wait(milliseconds) {
+	return new Promise(resolve => setTimeout(resolve, milliseconds));
+}
 
+getFileCount(data) {
+    return new Promise((resolve, reject) => {
+        var paramsArr = new Array(
+                data.organization_id,
+                data.account_id,
+                data.workforce_id,
+                data.asset_id,
+                data.activity_id,
+                data.form_id,
+                data.widget_access_level_id,
+                data.start,
+                data.end
+                );
+        var queryString = this.objCollection.util.getQueryString('ds_p1_activity_list_select_file_count_datetime', paramsArr);
+        if (queryString === '')
+            return reject();
+        this.objCollection.db.executeQuery(1, queryString, {}, function (err, data) {
+            if (err)
+                return reject(err);
+            return resolve(data);
+        });
+    });
+}
 }
 
 module.exports = ActivityListService;

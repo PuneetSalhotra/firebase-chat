@@ -35,8 +35,8 @@ if (mode === 'local') {
     config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';       
     
     config.dbUser = 'apiuser';
-    config.database = 'desker';// desker_staging
-    //config.database = 'desker_staging';
+    //config.database = 'desker';// desker_staging
+    config.database = 'desker_staging';
     config.dbPassword = 'apidbuser';
     config.conLimit = 5;
     
@@ -45,8 +45,11 @@ if (mode === 'local') {
     config.logDatabase = 'worlddesk_log_staging';    
 
     //Redis Config
-    config.redisIp = '127.0.0.1';
-    config.redisPort = 6379;        
+    //config.redisIp = '127.0.0.1';
+    //config.redisPort = 6379;  
+    
+    config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';
+    config.redisPort = 6379;
     
     //IOS Push
     config.iosPushMode = 'dev';
@@ -244,9 +247,9 @@ if (mode === 'staging') {
     config.PRODUCER_ACKS_TIMEOUT = 100;
     config.PRODUCER_PARTITONER_TYPE = 3;
 
-    config.TOPIC_ID = 2;
-    config.TOPIC_NAME = 'staging-desker-activities';
-    config.CONSUMER_GROUP_ID = 'staging-desker-activities-consumer-group';
+    config.TOPIC_ID = 10;
+    config.TOPIC_NAME = 'staging-desker-activities_v1'; //v1 is only one partition
+    config.CONSUMER_GROUP_ID = 'staging-desker-activities-consumer-v1';
     config.WIDGET_TOPIC_NAME = 'staging-desker-form-widgets';    
     config.WIDGET_CONSUMER_GROUP_ID = 'staging-desker-activities-widget-cg';
     
@@ -263,9 +266,9 @@ if (mode === 'staging') {
     config.CONSUMER_KEY_ENCODING = "utf8";
     ///////////////////////////////
     
-    config.emailbaseUrlApprove = "https://stagingmydesk.desker.co"; 
-    config.emailbaseUrlUpload = "https://stagingmydesk.desker.co";    
-    
+    config.emailbaseUrlApprove = "https://staging.officedesk.app"; 
+    config.emailbaseUrlUpload = "https://staging.officedesk.app";
+    //config.emailbaseUrlUpload = "https://stagingmydesk.desker.co";
 }
 
 if (mode === 'preprod') {
@@ -322,10 +325,10 @@ if (mode === 'preprod') {
     config.PRODUCER_ACKS_TIMEOUT = 100;
     config.PRODUCER_PARTITONER_TYPE = 3;
 
-    config.TOPIC_ID = 3;
-    config.TOPIC_NAME = 'preprod-desker-activities';
+    config.TOPIC_ID = 11;
+    config.TOPIC_NAME = 'preprod-desker-activities-v1'; //Only one partition
     config.WIDGET_TOPIC_NAME = 'preprod-desker-form-widgets';
-    config.CONSUMER_GROUP_ID = 'preprod-desker-activities-consumer-group';
+    config.CONSUMER_GROUP_ID = 'preprod-desker-activities-consumer-group-v1';
     config.CONSUMER_AUTO_COMMIT = true;
     config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
     config.CONSUMER_FETCH_MAX_WAIT = 10;
@@ -385,10 +388,10 @@ if (mode === 'prod') {
     config.PRODUCER_ACKS_TIMEOUT = 100;
     config.PRODUCER_PARTITONER_TYPE = 3;
 
-    config.TOPIC_ID = 3;
-    config.TOPIC_NAME = 'prod-desker-activities';
+    config.TOPIC_ID = 12;
+    config.TOPIC_NAME = 'prod-desker-activities-v1'; //Only one partition
     config.WIDGET_TOPIC_NAME = 'prod-desker-form-widgets';
-    config.CONSUMER_GROUP_ID = 'prod-desker-activities-consumer-group';
+    config.CONSUMER_GROUP_ID = 'prod-desker-activities-consumer-group-v1';
     
     //LOGS
     config.LOGS_TOPIC_NAME = 'prod-desker-logs';
@@ -424,6 +427,10 @@ if (mode === 'prod') {
 
 //Android
 config.platformApplicationAndroid = "arn:aws:sns:ap-south-1:430506864995:app/GCM/worldDeskAndroidPush";
+
+//World Desk IOS normal Push platform endpoints
+config.platformApplicationIosWorldDeskDevGR = 'arn:aws:sns:ap-south-1:430506864995:app/APNS_SANDBOX/worldDeskIOSDevPush';
+config.platformApplicationIosWorldDeskProdGR = 'arn:aws:sns:ap-south-1:430506864995:app/APNS/worldDeskIOSProdPush';
 
 //Service Desk IOS normal Push platform endpoints
 config.platformApplicationIosSDPushDev = 'arn:aws:sns:ap-south-1:430506864995:app/APNS_SANDBOX/serviceDeskIOSDevPush';

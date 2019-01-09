@@ -2,12 +2,12 @@
  * author: Sri Sai Venkatesh
  */
 
-var SQS = require("../queue/sqsProducer");
+//var SQS = require("../queue/sqsProducer");
 var Util = require('./util');
 
 function Logger(queueWrapper) {
     
-    let sqs = new SQS();
+    //let sqs = new SQS();
     let util = new Util();    
     
     let logLevel = {
@@ -20,8 +20,9 @@ function Logger(queueWrapper) {
             serverError: 7,
             fatal: 8,
             dbResponse: 9,
-            cacheResponse: 10
-        };
+            cacheResponse: 10,
+            conLog: 11
+        };    
     
     this.write = function (level, message, object, request) {
         var isTargeted = false;    
@@ -41,10 +42,23 @@ function Logger(queueWrapper) {
         }
 
         //Textual Logs
-        util.writeLogs(message, isTargeted);        
+        util.writeLogs(message, isTargeted);
         
         //Logs pushing to Kafka
-        queueWrapper.raiseLogEvent(loggerCollection).then(()=>{});            
+        switch(level) {            
+            case 'conLog': if((typeof object === 'object')) {
+                                if(Object.keys(object).length > 0) {
+                                    // eslint-disable-next-line no-console
+                                    console.log(object);
+                                }                                
+                            } else {
+                                // eslint-disable-next-line no-console
+                                console.log(object);
+                            }                            
+                            break;
+            default: queueWrapper.raiseLogEvent(loggerCollection).then(()=>{});
+        }
+        
         
         /*try {
             let loggerCollectionString = JSON.stringify(loggerCollection);
@@ -73,11 +87,12 @@ function Logger(queueWrapper) {
             environment: global.mode, //'prod'
             log: 'session'
         };
-        var loggerCollectionString = JSON.stringify(loggerCollection);
+        /*var loggerCollectionString = JSON.stringify(loggerCollection);
         sqs.produce(loggerCollectionString, function (err, response) {
             if (err)
                 console.log("error is: " + err);
-        });
-    };      
-};
+        });*/
+    };
+}
+
 module.exports = Logger;

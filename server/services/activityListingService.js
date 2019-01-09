@@ -2005,11 +2005,13 @@ function ActivityListingService(objCollection) {
     		var array = [];
 			forEachAsync(data, function (next, newOrderData) {	
 				getQueueActivity(request, newOrderData.activity_id).then((queueData)=>{
-					if(queueData.length > 0)
-					array.push(queueData[0]);
+                                    if(queueData.length > 0) {
+                                        queueData[0].asset_unread_updates_count = newOrderData.asset_unread_updates_count;
+                                        array.push(queueData[0]);
+                                    }                                    
 				}).then(()=>{
 					next();
-				})				    
+                            })				    
 					
             }).then(()=>{
             	//console.log(array);
@@ -2040,6 +2042,57 @@ function ActivityListingService(objCollection) {
 	        }
     	});
     };
+    
+    
+    this.fetchActivityDetails = function (request) {
+        return new Promise((resolve, reject)=>{
+            let paramsArr = new Array(                
+                request.organization_id,                
+                request.activity_id
+            );
+            const queryString = util.getQueryString('ds_p1_queue_activity_mapping_select_activity', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+               });
+           }
+        });        
+    };
+    
+    this.getEntityQueueMapping = function (request) {
+        let flag = 2;
+        if (request.hasOwnProperty("flag")) {
+            flag = request.flag;
+        }
+        return new Promise((resolve, reject) => {
+            // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
+            // IN p_workforce_id BIGINT(20), IN p_activity_type_id BIGINT(20), 
+            // IN p_flag SMALLINT(6), IN p_start_from BIGINT(20), IN p_limit_value SMALLINT(6)
+            var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.activity_type_id,
+                flag,
+                request.page_start || 0,
+                util.replaceQueryLimit(request.page_limit)
+            );
+
+            var queryString = util.getQueryString('ds_p1_1_queue_list_select', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    //console.log("err "+err);
+                    if (err === false) {
+                        console.log('data: ', data.length);
+                        resolve(data);
+                    } else {
+                        reject(err);
+                    }
+                });
+            }
+        });
+    };
+    
 };
 
 module.exports = ActivityListingService;

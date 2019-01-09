@@ -8,6 +8,7 @@ const MultiValueVisualization = require('./multiValueVisualization');
 const FormFileStatusDistribution = require('./formFileStatusDistribution');
 const FormFileStatusDuration = require('./formFileStatusDuration');
 const FormFileStatusTransition = require('./formFileStatusTransition');
+const FormFileDistribution = require('./formFileDistribution');
 
 const CONST = require('../../constants');
 
@@ -32,8 +33,11 @@ exports.get = function (id, args) {
     case CONST.WIDGET_TYPE_IDS.FORM_FILE_STATUS_DURATION:
         widgetInstance = new FormFileStatusDuration(args);
         break;
-    case CONST.WIDGET_TYPE_IDS.FROM_FILE_STATUS_TRANSITION:
+    case CONST.WIDGET_TYPE_IDS.FORM_FILE_STATUS_TRANSITION:
         widgetInstance = new FormFileStatusTransition(args);
+        break;
+    case CONST.WIDGET_TYPE_IDS.FORM_FILE_DISTRIBUTION:
+        widgetInstance = new FormFileDistribution(args);
         break;
     default:
         break;
