@@ -671,7 +671,7 @@ function ActivityCommonService(db, util, forEachAsync) {
     };*/
 
     this.assetTimelineTransactionInsert = function (request, participantData, streamTypeId, callback) {
-        //console.log('vnk streamTypeId : ', streamTypeId);
+        
         var assetId = request.asset_id;
         var organizationId = request.organization_id;
         var accountId = request.account_id;
@@ -754,7 +754,10 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityText2 = request.activity_timeline_collection;
                 break;
             case 705: // form
-            case 713: // 
+            case 713:
+            case 714:
+            case 715:
+            case 716:
                 entityTypeId = 0;
                 entityText1 = request.form_transaction_id;
                 // entityText2 = request.activity_timeline_collection;
@@ -810,7 +813,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityText1 = "";
                 entityText2 = "";
                 break;
-        };
+        }
 
         var paramsArr = new Array(
             request.activity_id || 0,
@@ -848,7 +851,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             "",
             request.app_version,
             request.service_version,
-            request.asset_id,
+            request.log_asset_id || request.asset_id,
             messageUniqueId,
             retryFlag,
             request.flag_offline,
@@ -873,6 +876,7 @@ function ActivityCommonService(db, util, forEachAsync) {
 
     this.activityTimelineTransactionInsert = function (request, participantData, streamTypeId, callback) {
 
+        //global.logger.write('conLog', 'Request Params in activityCommonService timeline : ',request,{});
         var assetId = request.asset_id;
         var organizationId = request.organization_id;
         var accountId = request.account_id;
@@ -919,7 +923,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
 
         global.logger.write('debug', 'streamTypeId: ' + streamTypeId, {}, request);
-        global.logger.write('debug', 'typeof streamTypeId: ' + typeof streamTypeId, {}, request);
+        global.logger.write('debug', 'typeof streamTypeId: ' + typeof streamTypeId, {}, request);        
 
         switch (streamTypeId) {
             case 4: // activity updated
@@ -963,9 +967,11 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityText2 = request.activity_timeline_collection;
                 activityTimelineCollection = request.activity_timeline_collection || '{}';
                 break;
-            case 714: //Bot Firing External API
             case 705: // form
             case 713: // form field alter
+            case 714: //Bot Firing External API
+            case 715:
+            case 716:            
                 entityTypeId = 0;
                 entityText1 = request.form_transaction_id;
                 entityText2 = '';
@@ -1031,15 +1037,15 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityText1 = "";
                 entityText2 = JSON.stringify(request.activity_timeline_text);
                 break;
-            default:
+            default:                
                 entityTypeId = 0;
                 entityText1 = "";
                 entityText2 = "";
                 break;
-        };
+        }
 
         global.logger.write('debug', 'activityTimelineCollection : ', {}, request);
-        global.logger.write('debug', activityTimelineCollection, {}, request);
+        global.logger.write('debug', activityTimelineCollection, {}, request);        
 
         var paramsArr = new Array(
             request.activity_id,
@@ -1077,7 +1083,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             "",
             request.app_version,
             request.service_version,
-            request.asset_id,
+            request.log_asset_id || request.asset_id,
             messageUniqueId,
             retryFlag,
             request.flag_offline,

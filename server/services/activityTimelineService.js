@@ -45,7 +45,8 @@ function ActivityTimelineService(objectCollection) {
                         request.non_dedicated_file = 1;
                         //retrievingFormIdandProcess(request, data).then(()=>{});                   
 
-                        if(Number(request.organization_id) === 860 || Number(request.organization_id) === 858) { 
+                        if(Number(request.organization_id) === 860 || Number(request.organization_id) === 858 ||
+                            Number(request.organization_id) === 868) { 
                             retrievingFormIdandProcess(request, data).then(()=>{});
                         } else {
                             timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
@@ -59,7 +60,8 @@ function ActivityTimelineService(objectCollection) {
                         if(Number(request.device_os_id) === 7) {
                             //retrievingFormIdandProcess(request, data).then(()=>{});
                             
-                            if(Number(request.organization_id) === 860 || Number(request.organization_id) === 858) { 
+                            if(Number(request.organization_id) === 860 || Number(request.organization_id) === 858 ||
+                                Number(request.organization_id) === 868) { 
                                 retrievingFormIdandProcess(request, data).then(()=>{});
                             } else {
                                 timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
@@ -80,7 +82,7 @@ function ActivityTimelineService(objectCollection) {
                     if(Number(request.device_os_id) === 7) { //7 means calling internal from services
                         //retrievingFormIdandProcess(request, data).then(()=>{});
                         
-                        if(Number(request.organization_id) === 860 || Number(request.organization_id) === 858) { 
+                        if(Number(request.organization_id) === 860 || Number(request.organization_id) === 858 || Number(request.organization_id) === 868) { 
                             retrievingFormIdandProcess(request, data).then(()=>{});
                         } else {
                             timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
@@ -101,7 +103,8 @@ function ActivityTimelineService(objectCollection) {
             
             timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
 
-        } else if (activityTypeCategoryId === 48 && (activityStreamTypeId === 713 || activityStreamTypeId === 705)) {
+        } else if (activityTypeCategoryId === 48 && (activityStreamTypeId === 713 || activityStreamTypeId === 705 || 
+            activityStreamTypeId === 715 || activityStreamTypeId === 716)) {
 
             request.non_dedicated_file = 1;
             timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
@@ -112,7 +115,12 @@ function ActivityTimelineService(objectCollection) {
             timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
         }
         
-        callback(false, {}, 200);
+        new Promise(()=>{
+            setTimeout(()=>{
+                callback(false, {}, 200);
+            }, 1500);
+        });
+        //callback(false, {}, 200);
     };
     
     function retrievingFormIdandProcess(request, data) {
@@ -403,7 +411,7 @@ function ActivityTimelineService(objectCollection) {
             
             let newrequest = Object.assign({},request);
             
-            (Number(request.organization_id) === 860 || Number(request.organization_id) === 858) ?
+            (Number(request.organization_id) === 860 || Number(request.organization_id) === 858 || Number(request.organization_id) === 868) ?
                 newrequest.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID :
                 newrequest.asset_id = request.asset_id;
             
@@ -1709,9 +1717,20 @@ function ActivityTimelineService(objectCollection) {
                     params[18] = row.field_value;
                     break;
                 case 23:    //Phone Number with Country Code
-                    var phone = row.field_value.split('|');
+                    /*var phone = row.field_value.split('|');
                     params[13] = phone[0];  //country code
                     params[18] = phone[1];  //phone number
+                    break;*/
+                    var phone;
+                    if((row.field_value).includes('||')) {
+                        phone = row.field_value.split('||');
+                        params[13] = phone[0];  //country code
+                        params[18] = phone[1];  //phone number
+                    } else {
+                        phone = row.field_value.split('|');
+                        params[13] = phone[0];  //country code
+                        params[18] = phone[1];  //phone number
+                    }                        
                     break;
                 case 24:    //Gallery Image
                 case 25:    //Camera Front Image

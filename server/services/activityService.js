@@ -164,23 +164,27 @@ function ActivityService(objectCollection) {
 
                             if (activityTypeCategroyId === 9) {
 
-                                if (Number(request.organization_id) === 860 || Number(request.organization_id) === 858) {
+                                if (Number(request.organization_id) === 860 || Number(request.organization_id) === 858 ||
+                                Number(request.organization_id) === 868) {
 
                                     switch (Number(request.activity_form_id)) {
                                         case global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER:
                                             activityTitle = "New Order";
-
                                             break;
                                         case global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY:
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.OPTIONAL_ORDER_DETAILS:
                                             activityTitle = "Order Supplementary";
                                             break;
                                         case global.vodafoneConfig[request.organization_id].FORM_ID.FR:
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.FEASIBILITY_REPORT:
                                             activityTitle = "Feasibility Report";
                                             break;
                                         case global.vodafoneConfig[request.organization_id].FORM_ID.CRM:
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_DETAILS:
                                             activityTitle = "Customer Details";
                                             break;
                                         case global.vodafoneConfig[request.organization_id].FORM_ID.HLD:
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.SOLUTION_DETAILS:
                                             activityTitle = "HLD Form";
                                             break;
                                         case global.vodafoneConfig[request.organization_id].FORM_ID.BC_HLD:
@@ -270,22 +274,24 @@ function ActivityService(objectCollection) {
 
                             // Workflow Trigger
                             if (activityTypeCategroyId === 9 && request.device_os_id !== 9) {
-                                let workflowEngineRequest = Object.assign({}, request);
+                                
+                                if(request.device_os_id === 5) {
+                                    let workflowEngineRequest = Object.assign({}, request);
 
-                                let workflowEngineEvent = {
-                                    name: "workflowEngine",
-                                    service: "formConfigService",
-                                    method: "workflowEngine",
-                                    payload: workflowEngineRequest
-                                };
+                                    let workflowEngineEvent = {
+                                        name: "workflowEngine",
+                                        service: "formConfigService",
+                                        method: "workflowEngine",
+                                        payload: workflowEngineRequest
+                                    };
 
-                                queueWrapper.raiseActivityEvent(workflowEngineEvent, request.activity_id, (err, resp) => {
-                                    if (err) {
-                                        console.log("\x1b[35m [ERROR] Raising queue activity raised for workflow engine. \x1b[0m");
-                                    } else {
-                                        console.log("\x1b[35m Queue activity raised for workflow engine. \x1b[0m");
-                                    }
-                                });
+                                    queueWrapper.raiseActivityEvent(workflowEngineEvent, request.activity_id, (err, resp) => {
+                                        (err) ?
+                                            global.logger.write('conLog', '\x1b[35m [ERROR] Raising queue activity raised for workflow engine. \x1b[0m', {}, {}):                                           
+                                            global.logger.write('conLog', '\x1b[35m Queue activity raised for workflow engine. \x1b[0m', {}, {});
+                                        
+                                    });
+                                }                                
                             }
 
                             // Bot Engine Trigger
@@ -481,7 +487,7 @@ function ActivityService(objectCollection) {
                                     //console.log("message unique id look up is set successfully")
                                     global.logger.write('debug', 'message unique id look up is set successfully', {}, request);
                             });
-                            return;
+                            //return;
                         } else {
                             // console.log("not inserted to asset activity list");
                             global.logger.write('debug', "not inserted to asset activity list", {}, request);
@@ -491,7 +497,7 @@ function ActivityService(objectCollection) {
                             }, 10000);
                         }
 
-                    });
+                    }); //End of Asset List Insert Add
 
                     // Suzuki Form Submissions PDF Generation Logic
                     // 
@@ -590,7 +596,7 @@ function ActivityService(objectCollection) {
                     // 
 
                     //callback(false, responseactivityData, 200);                    
-                } else {
+                } else { //This is activityList Insert if(err === false) else part
                     setTimeout(() => {
                         callback(err, responseactivityData, -9999);
                     }, 5000);
@@ -3396,9 +3402,13 @@ function ActivityService(objectCollection) {
                             });
                     }
                 }
-                setTimeout(()=>{
-                    return queueMap;
-                }, 3000);                
+                
+                await new Promise((resolve, reject)=>{
+                    setTimeout(()=>{ resolve(); }, 3000);
+                });
+
+                return queueMap;
+                
             } else {
                 return [];
             }
