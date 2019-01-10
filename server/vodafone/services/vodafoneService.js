@@ -307,7 +307,7 @@ function VodafoneService(objectCollection) {
                 });
               });
         });
-    };  
+    }
     
     this.newOrderFormSubmission = function (request, callback) {
       
@@ -693,7 +693,7 @@ function VodafoneService(objectCollection) {
                     });
         });       
              
-    };
+    }
      
   
     function changeStatusToHLDPending(request) {
@@ -923,7 +923,7 @@ function VodafoneService(objectCollection) {
                 }
             });
     });
-   }
+    }
    
    function addDeskAsParticipant(request, customerData, deskAssetId) {
        return new Promise((resolve, reject)=>{
@@ -993,7 +993,7 @@ function VodafoneService(objectCollection) {
                 });
                
         });
-    };
+    }
     
     /*function createContactFile(newRequest, operatingAssetId) {
         return new Promise((resolve, reject)=>{
@@ -1098,7 +1098,7 @@ function VodafoneService(objectCollection) {
                 });
                
         });
-    };
+    }
     
     
     this.sendEmailVodafone = function(request, callback) {
@@ -1317,78 +1317,6 @@ function VodafoneService(objectCollection) {
                 });
         });        
     }    
-    
-    /*this.addFeasibilityChecker = function(request, callback) {
-        
-        request.flag = 1;
-        request.asset_type_id = 122965;
-
-        this.leastLoadedDesk(request).then((data) => {
-            var lowestCnt = 99999;
-            var deskToBeAssigned;
-
-            global.logger.write('debug', 'data.length : ' + data.length, {}, request);
-            if (Number(data.length) > 0) {
-                forEachAsync(data, (next, rowData) => {
-                    global.logger.write('debug', 'rowData.count : ' + rowData.count, {}, request);
-                    global.logger.write('debug', 'lowestCnt : ' + lowestCnt, {}, request);
-
-                    if (rowData.count < lowestCnt) {
-                        lowestCnt = rowData.count;
-                        deskToBeAssigned = rowData;
-                    }
-                    next();
-                }).then(() => {
-                    //callback(false, {data: deskToBeAssigned}, 200);
-                    var activityParticipantCollection = [{
-                        "access_role_id": 22,
-                        "account_id": 971,
-                        "activity_id": request.activity_id,
-                        "asset_datetime_last_seen": "1970-01-01 00:00:00",
-                        "asset_first_name": deskToBeAssigned.asset_first_name, //"Feasibility Checker",
-                        "asset_id": deskToBeAssigned.asset_id, //30998
-                        "asset_image_path": "",
-                        "asset_last_name": "",
-                        "asset_phone_number": deskToBeAssigned.operating_asset_phone_number,
-                        "asset_phone_number_code": deskToBeAssigned.operating_asset_phone_country_code,
-                        "asset_type_category_id": 3,
-                        "asset_type_id": 122940,
-                        "field_id": 0,
-                        "log_asset_id": request.asset_id,
-                        "operating_asset_first_name": deskToBeAssigned.operating_asset_first_name,
-                        "organization_id": 856,
-                        "workforce_id": 5336,
-                    }];
-
-                    request.message_unique_id = util.getMessageUniqueId(request.asset_id);
-                    request.activity_access_role_id = 22;
-                    request.activity_participant_collection = JSON.stringify(activityParticipantCollection);
-
-                    const event = {
-                        name: "assignParticipnt",
-                        service: "activityParticipantService",
-                        method: "assignCoworker",
-                        payload: request
-                    };
-
-                    if (Number(request.activity_status_id) === 278416) {
-                        // Feasibility Check 
-                        queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
-                            if (err) {
-                                console.log("\x1b[35m [ERROR] Raising queue activity raised for adding Feasibility Checker as a participant. \x1b[0m")
-                            } else {
-                                console.log("\x1b[35m Queue activity raised for adding Feasibility Checker as a participant. \x1b[0m")
-                            }
-                        });
-                    }
-
-                });
-            }
-        });
-
-        callback();
-    };*/
-    
     
     this.addTimelineTransactionExternal = function (request, callback) {       
                         
@@ -1647,7 +1575,7 @@ function VodafoneService(objectCollection) {
                     }
                 });
         });
-    };
+    }
     
     
     //Document Validator = 122964; 
@@ -1677,34 +1605,7 @@ function VodafoneService(objectCollection) {
                 });
             }
         });
-    };
-    
-    /*function leastLoadedDesk1(request) {
-        return new Promise((resolve, reject)=>{
-            var paramsArr = new Array(
-                request.flag,
-                request.form_id,
-                request.asset_type_id,
-                request.workforce_id,
-                request.account_id,
-                request.organization_id,
-                request.page_start || 0,
-                request.page_limit || 50
-            );
-            var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_least_loaded_asset', paramsArr);
-            if (queryString != '') {
-                db.executeQuery(1, queryString, request, function (err, data) {
-                    if (err === false) {
-                        console.log('Dataa from DB: ', data);
-                        resolve(data)
-                    } else {
-                        reject(err);
-                    }
-                });
-            }
-        });        
-    };*/
-    
+    };    
     
     this.fetchVodafoneFRPull = function(request) {
         return new Promise((resolve, reject)=>{
@@ -1825,7 +1726,7 @@ function VodafoneService(objectCollection) {
             }
         });   
         });
-    };
+    }
     
     var assetListInsertAddAsset = function (request, callback) {
         var activityInlineData = JSON.parse(request.activity_inline_data);      
@@ -1875,32 +1776,6 @@ function VodafoneService(objectCollection) {
                 (err === false) ? callback(false, true): callback(err, false);                
             });
         }
-    };        
-
-    function leastLoadedDesk1(request) {
-        return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
-                request.flag,
-                request.form_id,
-                request.asset_type_id,
-                request.workforce_id,
-                request.account_id,
-                request.organization_id,
-                request.page_start || 0,
-                request.page_limit || 50
-            );
-            var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_least_loaded_asset', paramsArr);
-            if (queryString != '') {
-                db.executeQuery(1, queryString, request, function (err, data) {
-                    if (err === false) {
-                        console.log('Dataa from DB: ', data);
-                        resolve(data)
-                    } else {
-                        reject(err);
-                    }
-                });
-            }
-        });
     };
 
     this.buildAndSubmitCafForm = function (request, callback) {
@@ -1913,7 +1788,7 @@ function VodafoneService(objectCollection) {
             CAF_BOT_ASSET_ID,
             CAF_BOT_ENC_TOKEN;
 
-        if (Number(request.organization_id) === 860) {
+        /*if (Number(request.organization_id) === 860) {
             // CAF
             CAF_ORGANIZATION_ID = 860; // Vodafone Idea Beta
             CAF_ACCOUNT_ID = 975; // Central OMT Beta
@@ -1932,17 +1807,49 @@ function VodafoneService(objectCollection) {
             // CAF BOT
             CAF_BOT_ASSET_ID = 31298;
             CAF_BOT_ENC_TOKEN = "3dc16b80-e338-11e8-a779-5b17182fa0f6";
+        } */
 
+        switch(Number(request.organization_id) === 858) {
+            case 860: // CAF
+                    CAF_ORGANIZATION_ID = 860; // Vodafone Idea Beta
+                    CAF_ACCOUNT_ID = 975; // Central OMT Beta
+                    CAF_WORKFORCE_ID = 5355; // Lobby
+                    CAF_ACTIVITY_TYPE_ID = 133250;
+                    // CAF BOT
+                    CAF_BOT_ASSET_ID = 31347;
+                    CAF_BOT_ENC_TOKEN = "05986bb0-e364-11e8-a1c0-0b6831833754";
+                        break;
+            
+            case 858: // CAF
+                    CAF_ORGANIZATION_ID = 858; // Vodafone Idea Beta
+                    CAF_ACCOUNT_ID = 973; // Central OMT Beta
+                    CAF_WORKFORCE_ID = 5345; // Lobby
+                    CAF_ACTIVITY_TYPE_ID = 133000;
+                    // CAF BOT
+                    CAF_BOT_ASSET_ID = 31298;
+                    CAF_BOT_ENC_TOKEN = "3dc16b80-e338-11e8-a779-5b17182fa0f6"; 
+                    break;
+
+            case 868: 
+                    CAF_ORGANIZATION_ID = Number(request.organization_id);
+                    CAF_ACCOUNT_ID = global.vodafoneConfig[request.organization_id].BOT.ACCOUNT_ID;
+                    CAF_WORKFORCE_ID = global.vodafoneConfig[request.organization_id].BOT.WORKFORCE_ID;
+                    CAF_ACTIVITY_TYPE_ID = global.vodafoneConfig[request.organization_id].ACTIVITY_TYPE_IDS[CAF_WORKFORCE_ID];
+                    // CAF 
+                    CAF_BOT_ASSET_ID = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
+                    CAF_BOT_ENC_TOKEN = global.vodafoneConfig[request.organization_id].BOT.ENC_TOKEN; 
+                    break;
         }
-        const NEW_ORDER_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER,
-            SUPPLEMENTARY_ORDER_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY,
-            FR_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.FR,
-            CRM_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CRM,
-            HLD_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.HLD,
-            CAF_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CAF,
-            CUSTOMER_APPROVAL_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_APPROVAL;
 
-        const ACTIVITY_STATUS_ID_VALIDATION_PENDING = global.vodafoneConfig[request.organization_id].STATUS.VALIDATION_PENDING;
+        const NEW_ORDER_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER,
+            SUPPLEMENTARY_ORDER_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.OPTIONAL_ORDER_DETAILS,
+            FR_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.FEASIBILITY_REPORT,
+            CRM_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_DETAILS,
+            HLD_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.SOLUTION_DETAILS,
+            CAF_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.DIGITAL_CAF,
+            CUSTOMER_APPROVAL_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_AUTHORISED_SIGNATORY_APPROVAL;
+
+        const ACTIVITY_STATUS_ID_VALIDATION_PENDING = global.vodafoneConfig[request.organization_id].STATUS.ORDER_VALIDATION;
 
         var cafFormJson = [];
         var formId = NEW_ORDER_FORM_ID;
@@ -1961,7 +1868,7 @@ function VodafoneService(objectCollection) {
                     } else {
                         formDataArrayOfObjects = JSON.parse(formDataCollection.form_submitted);
                     }
-                    console.log();
+                    global.logger.write('conLog', ' ', {}, {});
                     
                     // Append it to cafFormJson
                     cafFormJson = applyTransform(request, cafFormJson, formDataArrayOfObjects, formId);
@@ -1984,7 +1891,7 @@ function VodafoneService(objectCollection) {
                     } else {
                         formDataArrayOfObjects = JSON.parse(formDataCollection.form_submitted);
                     }
-                    console.log();
+                    global.logger.write('conLog', ' ', {}, {});
 
                     // Append it to cafFormJson
                     cafFormJson = applyTransform(request, cafFormJson, formDataArrayOfObjects, formId);
@@ -2005,7 +1912,7 @@ function VodafoneService(objectCollection) {
                     } else {
                         formDataArrayOfObjects = JSON.parse(formDataCollection.form_submitted);
                     }
-                    console.log();
+                    global.logger.write('conLog', ' ', {}, {});
                     // Append it to cafFormJson
                     cafFormJson = applyTransform(request, cafFormJson, formDataArrayOfObjects, formId);
                     // Pull the required data from the CRM FORM of the form file
@@ -2027,7 +1934,7 @@ function VodafoneService(objectCollection) {
                     } else {
                         formDataArrayOfObjects = JSON.parse(formDataCollection.form_submitted);
                     }
-                    console.log();
+                    global.logger.write('conLog', ' ', {}, {});
                     // Append it to cafFormJson
                     cafFormJson = applyTransform(request, cafFormJson, formDataArrayOfObjects, formId);
                     // Pull the required data from the HLD FORM of the form file
@@ -2049,7 +1956,7 @@ function VodafoneService(objectCollection) {
                     } else {
                         formDataArrayOfObjects = JSON.parse(formDataCollection.form_submitted);
                     }
-                    console.log();
+                    global.logger.write('conLog', ' ', {}, {});
                     // Append it to cafFormJson
                     cafFormJson = applyTransform(request, cafFormJson, formDataArrayOfObjects, formId);
                     // Pull the required data from the HLD FORM of the form file
@@ -2071,7 +1978,7 @@ function VodafoneService(objectCollection) {
                     } else {
                         formDataArrayOfObjects = JSON.parse(formDataCollection.form_submitted);
                     }
-                    console.log();
+                    global.logger.write('conLog', ' ', {}, {});
                     // Append it to cafFormJson
                     cafFormJson = applyTransform(request, cafFormJson, formDataArrayOfObjects, formId);
                 } else {
@@ -2094,7 +2001,7 @@ function VodafoneService(objectCollection) {
                         if (participantData.length > 0) {
                             formParticipantsData = participantData;
                         }
-                    })
+                    });
 
                 // Fetch activityListData
                 await activityCommonService
@@ -2103,15 +2010,24 @@ function VodafoneService(objectCollection) {
                         if (activityListData.length > 0) {
                             formActivityData = activityListData;
                         }
-                    })
+                    });
 
                 // ROMS CAF Fields Data | Process, Update & Append
                 let ROMS_CAF_FIELDS_DATA = {};
-                if (Number(request.organization_id) === 860) {
+                /*if (Number(request.organization_id) === 860) {
                     ROMS_CAF_FIELDS_DATA = romsCafFieldsData.BETA;
 
                 } else if (Number(request.organization_id) === 858) {
                     ROMS_CAF_FIELDS_DATA = romsCafFieldsData.LIVE;
+                }*/
+
+                switch(Number(request.organization_id)) {
+                    case 860: ROMS_CAF_FIELDS_DATA = romsCafFieldsData.BETA;
+                              break;
+                    case 858: ROMS_CAF_FIELDS_DATA = romsCafFieldsData.LIVE;
+                              break;
+                    case 868: ROMS_CAF_FIELDS_DATA = romsCafFieldsData.PLATFORM;
+                              break;
                 }
 
                 // The 1st (0th) element in the array which populateRomsCafFieldValues() returns is 
@@ -2147,7 +2063,7 @@ function VodafoneService(objectCollection) {
                                 cafFieldIdToFieldSequenceIdMap[formMappingEntry.field_id] = Number(formMappingEntry.field_sequence_id);
                             });
                         }
-                    })
+                    });
 
                 // console.log("cafFieldIdToFieldSequenceIdMap: ", cafFieldIdToFieldSequenceIdMap);
 
@@ -2159,7 +2075,7 @@ function VodafoneService(objectCollection) {
                     if (keyA < keyB) return -1;
                     if (keyA > keyB) return 1;
                     return 0;
-                })
+                });
 
                 // console.log("cafFormJson: ", cafFormJson)
 
@@ -2208,15 +2124,15 @@ function VodafoneService(objectCollection) {
 
                 const cafRequestOptions = {
                     form: cafFormSubmissionRequest
-                }
+                };
 
                 // global.config.mobileBaseUrl + global.config.version
                 // 'https://api.worlddesk.cloud/r1'
-                makeRequest.post(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', cafRequestOptions, function (error, response, body) {
-                    console.log("[cafFormSubmissionRequest] Body: ", body);
-                    console.log("[cafFormSubmissionRequest] Error: ", error);
-                    body = JSON.parse(body);
-                    console.log('\x1b[36m body \x1b[0m', body);
+                makeRequest.post(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', cafRequestOptions, function (error, response, body) {                    
+                    global.logger.write('conLog', '[cafFormSubmissionRequest] Body: ', body, {});
+                    global.logger.write('conLog', '[cafFormSubmissionRequest] Error: ', error, {});
+                    body = JSON.parse(body);                    
+                    global.logger.write('conLog', '\x1b[36m body \x1b[0m', {}, {});
 
                     if (Number(body.status) === 200) {
                         const cafFormActivityId = body.response.activity_id;
@@ -2224,7 +2140,7 @@ function VodafoneService(objectCollection) {
 
                         // Add the CAF form submitted as a timeline entry to the form file
                         // cafFormSubmissionRequest.asset_id = request.asset_id;
-                        nonDedicatedCafFormTimelineEntryRequest = Object.assign({}, cafFormSubmissionRequest);
+                        let nonDedicatedCafFormTimelineEntryRequest = Object.assign({}, cafFormSubmissionRequest);
                         nonDedicatedCafFormTimelineEntryRequest.activity_id = request.activity_id;
                         nonDedicatedCafFormTimelineEntryRequest.form_transaction_id = cafFormTransactionId;
                         nonDedicatedCafFormTimelineEntryRequest.form_id = CAF_FORM_ID;
@@ -2266,12 +2182,12 @@ function VodafoneService(objectCollection) {
 
                                 activityCommonService
                                     .fetchQueueByQueueName(request, 'HLD')
-                                    .then((queueListData) => {
-                                        console.log('data[0].queue_id: ', queueListData[0].queue_id);
+                                    .then((queueListData) => {                                        
+                                        global.logger.write('conLog', 'data[0].queue_id: ', queueListData[0].queue_id, {});
                                         return activityCommonService.fetchQueueActivityMappingId(request, queueListData[0].queue_id);
                                     })
-                                    .then((queueActivityMappingData) => {
-                                        console.log('queueActivityMappingData[0].queue_activity_mapping_id: ', queueActivityMappingData[0].queue_activity_mapping_id);
+                                    .then((queueActivityMappingData) => {                                        
+                                        global.logger.write('conLog', 'queueActivityMappingData[0].queue_activity_mapping_id: ', queueActivityMappingData[0].queue_activity_mapping_id, {});
                                         hldQueueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;
                                         let queueActivityUnmapRequest = Object.assign({}, request);
                                         queueActivityUnmapRequest.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
@@ -2282,8 +2198,8 @@ function VodafoneService(objectCollection) {
                                         queueHistoryInsertRequest.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
                                         activityCommonService.queueHistoryInsert(queueHistoryInsertRequest, 1403, hldQueueActivityMappingId).then(()=>{});
                                     })
-                                    .catch((error) => {
-                                        console.log("Error Unmapping the form file from HLD queue: ", error)
+                                    .catch((error) => {                                        
+                                        global.logger.write('conLog', 'Error Unmapping the form file from HLD queue: ', error, {});
                                     });
 
                                 // Alter the status of the form file to Validation Pending
@@ -2335,7 +2251,7 @@ function VodafoneService(objectCollection) {
                                                     request,
                                                     queueActivityMappingData[0].queue_activity_mapping_id,
                                                     JSON.stringify(queueActivityMappingInlineData)
-                                                )
+                                                );
                                             })
                                             .then((data) => {
                                                 
@@ -2345,7 +2261,7 @@ function VodafoneService(objectCollection) {
                                             })
                                             .catch((error) => {
                                                 console.log("Error modifying the form file activity entry in the OMT queue: ", error)
-                                            })
+                                            });
 
                                         return callback(false, true);
                                     }
@@ -2380,19 +2296,19 @@ function VodafoneService(objectCollection) {
 
 
                     } else {
-                        // If the CAF Form submission wasn't successful
-                        console.log("CAF Form submission wasn't successful: ", );
+                        // If the CAF Form submission wasn't successful                        
+                        global.logger.write('conLog', 'CAF Form submission wasnt successful: ', {}, {});
                         return callback(true, false);
                     }
 
                 });
             })
-            .catch((error) => {
-                console.log("[buildAndSubmitCafForm] Promise Chain Error: ", error)
+            .catch((error) => {                
+                global.logger.write('conLog', '[buildAndSubmitCafForm] Promise Chain Error: ', error, {});
                 callback(true, false);
                 return;
             });
-    }
+    };
 
     this.customerManagementApprovalWorkflow = async function (request, callback) {
         const CAF_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CAF,
@@ -2571,7 +2487,7 @@ function VodafoneService(objectCollection) {
             cafFormActivityId,
             incrementalCafFormData
         })
-    }
+    };
 
     function getActivityIdBasedOnTransactionId(request, formTransactionId) {
         return new Promise((resolve, reject) => {
@@ -2952,7 +2868,7 @@ function VodafoneService(objectCollection) {
             HLD_TO_CAF_FIELD_ID_MAP,
             CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
         
-        if (Number(request.organization_id) === 860) {
+        /*if (Number(request.organization_id) === 860) {
             // BETA
             NEW_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.NEW_ORDER_TO_CAF_FIELD_ID_MAP;
             SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP;
@@ -2969,6 +2885,33 @@ function VodafoneService(objectCollection) {
             CRM_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.CRM_TO_CAF_FIELD_ID_MAP;
             HLD_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.HLD_TO_CAF_FIELD_ID_MAP;
             CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
+        } */
+
+        switch(Number(request.organization_id) === 858) {
+            case 860: // BETA
+                    NEW_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.NEW_ORDER_TO_CAF_FIELD_ID_MAP;
+                    SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP;
+                    FR_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.FR_TO_CAF_FIELD_ID_MAP;
+                    CRM_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.CRM_TO_CAF_FIELD_ID_MAP;
+                    HLD_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.HLD_TO_CAF_FIELD_ID_MAP;
+                    CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
+                    break;
+            case 858: // LIVE
+                    NEW_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.NEW_ORDER_TO_CAF_FIELD_ID_MAP;
+                    SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP;
+                    FR_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.FR_TO_CAF_FIELD_ID_MAP;
+                    CRM_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.CRM_TO_CAF_FIELD_ID_MAP;
+                    HLD_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.HLD_TO_CAF_FIELD_ID_MAP;
+                    CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
+                    break;
+            case 868: 
+                    NEW_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.PLATFORM.NEW_ORDER_TO_CAF_FIELD_ID_MAP;
+                    SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.PLATFORM.SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP;
+                    FR_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.PLATFORM.FR_TO_CAF_FIELD_ID_MAP;
+                    CRM_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.PLATFORM.CRM_TO_CAF_FIELD_ID_MAP;
+                    HLD_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.PLATFORM.HLD_TO_CAF_FIELD_ID_MAP;
+                    CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.PLATFORM.CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
+                    break;
         }
         // New Order Form
         if (formId === NEW_ORDER_FORM_ID) {
@@ -3040,7 +2983,7 @@ function VodafoneService(objectCollection) {
                         "data_type_combo_value": formEntry.data_type_combo_value,
                         "field_value": formEntry.field_value,
                         "message_unique_id": formEntry.message_unique_id
-                    })
+                    });
                 } else {
                     // Ignore the other entries
                 }
@@ -3135,13 +3078,22 @@ function VodafoneService(objectCollection) {
     function appendLabels(request, cafFormData) {
         
         let ROMS_CAF_FORM_LABELS = {};
-        if (Number(request.organization_id) === 860) {
+        /*if (Number(request.organization_id) === 860) {
             // BETA
             ROMS_CAF_FORM_LABELS = formFieldIdMapping.BETA.ROMS_LABELS;
 
         } else if (Number(request.organization_id) === 858) {
             // LIVE
             ROMS_CAF_FORM_LABELS = formFieldIdMapping.LIVE.ROMS_LABELS;
+        } */
+
+        switch(Number(request.organization_id)) {
+            case 860: ROMS_CAF_FORM_LABELS = formFieldIdMapping.BETA.ROMS_LABELS;
+                        break;
+            case 858: ROMS_CAF_FORM_LABELS = formFieldIdMapping.LIVE.ROMS_LABELS;
+                        break;
+            case 868: ROMS_CAF_FORM_LABELS = formFieldIdMapping.PLATFORM.ROMS_LABELS;
+                        break;
         }
         
         Object.keys(ROMS_CAF_FORM_LABELS).forEach(formEntry => {
@@ -3604,7 +3556,7 @@ function VodafoneService(objectCollection) {
             HLD_TO_CAF_FIELD_ID_MAP,
             CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
 
-        if (Number(request.organization_id) === 860) {
+        /*if (Number(request.organization_id) === 860) {
             // BETA
             NEW_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.NEW_ORDER_TO_CAF_FIELD_ID_MAP;
             SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP;
@@ -3621,6 +3573,32 @@ function VodafoneService(objectCollection) {
             CRM_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.CRM_TO_CAF_FIELD_ID_MAP;
             HLD_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.HLD_TO_CAF_FIELD_ID_MAP;
             CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
+        }*/
+
+        switch(Number(request.organization_id)) {
+            case 860:   NEW_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.NEW_ORDER_TO_CAF_FIELD_ID_MAP;
+                        SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP;
+                        FR_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.FR_TO_CAF_FIELD_ID_MAP;
+                        CRM_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.CRM_TO_CAF_FIELD_ID_MAP;
+                        HLD_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.HLD_TO_CAF_FIELD_ID_MAP;
+                        CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
+                        break;
+
+            case 858:   NEW_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.NEW_ORDER_TO_CAF_FIELD_ID_MAP;
+                        SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP;
+                        FR_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.FR_TO_CAF_FIELD_ID_MAP;
+                        CRM_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.CRM_TO_CAF_FIELD_ID_MAP;
+                        HLD_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.HLD_TO_CAF_FIELD_ID_MAP;
+                        CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
+                        break;
+            
+            case 868:   NEW_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.PLATFORM.NEW_ORDER_TO_CAF_FIELD_ID_MAP;
+                        SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.PLATFORM.SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP;
+                        FR_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.PLATFORM.FR_TO_CAF_FIELD_ID_MAP;
+                        CRM_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.PLATFORM.CRM_TO_CAF_FIELD_ID_MAP;
+                        HLD_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.PLATFORM.HLD_TO_CAF_FIELD_ID_MAP;
+                        CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.PLATFORM.CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
+                        break;
         }
 
         let incomingFormToCafFormMapping = {};
