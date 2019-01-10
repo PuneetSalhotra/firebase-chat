@@ -923,7 +923,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
 
         global.logger.write('debug', 'streamTypeId: ' + streamTypeId, {}, request);
-        global.logger.write('debug', 'typeof streamTypeId: ' + typeof streamTypeId, {}, request);
+        global.logger.write('debug', 'typeof streamTypeId: ' + typeof streamTypeId, {}, request);        
 
         switch (streamTypeId) {
             case 4: // activity updated
@@ -1037,7 +1037,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityText1 = "";
                 entityText2 = JSON.stringify(request.activity_timeline_text);
                 break;
-            default:
+            default:                
                 entityTypeId = 0;
                 entityText1 = "";
                 entityText2 = "";
@@ -1045,7 +1045,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
 
         global.logger.write('debug', 'activityTimelineCollection : ', {}, request);
-        global.logger.write('debug', activityTimelineCollection, {}, request);
+        global.logger.write('debug', activityTimelineCollection, {}, request);        
 
         var paramsArr = new Array(
             request.activity_id,
