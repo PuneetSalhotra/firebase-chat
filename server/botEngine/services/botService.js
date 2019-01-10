@@ -614,10 +614,17 @@ function BotService(objectCollection) {
         if(type[0] === 'static') {            
             newReq.communication_id = inlineData[type[0]].template_id;
             newReq.email_id = inlineData[type[0]].email;
+            newReq.email_sender = inlineData[type[0]].sender_email;
+            newReq.email_sender_name = inlineData[type[0]].sender_name;
         } else if(type[0] === 'dynamic') {
             newReq.communication_id = inlineData[type[0]].template_id;
             newReq.form_id = inlineData[type[0]].form_id;
             newReq.field_id = inlineData[type[0]].field_id;
+            newReq.email_sender = inlineData[type[0]].sender_email;
+            newReq.email_sender_name = inlineData[type[0]].sender_name;
+
+            //request.email_sender = 'OMT.IN1@vodafoneidea.com'; 
+            //request.email_sender_name = 'Vodafoneidea';
 
             resp = await getFieldValue(newReq);            
             newReq.email_id = resp[0].data_entity_text_1;       
@@ -631,7 +638,9 @@ function BotService(objectCollection) {
 
         //Make a 715 timeline entry - (715 streamtypeid is for email)
         let activityTimelineCollection = {
-            email: retrievedCommInlineData.communication_template.email            
+            email: retrievedCommInlineData.communication_template.email,
+            email_sender: newReq.email_sender,
+            email_sender_name: newReq.email_sender_name
         };
 
         let fire715OnWFOrderFileRequest = Object.assign({}, newReq);
@@ -747,7 +756,7 @@ function BotService(objectCollection) {
 
         //Make a 716 timeline entry - (716 streamtypeid is for email)
         let activityTimelineCollection = {
-            email: retrievedCommInlineData.communication_template.text            
+            text: retrievedCommInlineData.communication_template.text
         };
 
         let fire716OnWFOrderFileRequest = Object.assign({}, newReq);
@@ -881,7 +890,8 @@ function BotService(objectCollection) {
                     obj.queue_sort.caf_completion_percentage = wfCompletionPercentage;
                     queueActMapInlineData = obj;
                 } else {                    
-                    queueActMapInlineData.queue_sort.caf_completion_percentage += wfCompletionPercentage;                
+                    //queueActMapInlineData.queue_sort.caf_completion_percentage += wfCompletionPercentage;
+                    queueActMapInlineData.queue_sort.caf_completion_percentage = wfCompletionPercentage;
                 }                
                 global.logger.write('conLog', 'Updated Queue JSON : ',queueActMapInlineData,{});
                 
@@ -902,8 +912,8 @@ function BotService(objectCollection) {
             const emailSubject = emailJson.subject;
             const Template = emailJson.body;
 
-            request.email_sender = 'OMT.IN1@vodafoneidea.com'; 
-            request.email_sender_name = 'Vodafoneidea';
+            //request.email_sender = 'OMT.IN1@vodafoneidea.com'; 
+            //request.email_sender_name = 'Vodafoneidea';
             
             global.logger.write('conLog', emailSubject,{},{});
             global.logger.write('conLog', Template,{},{});
