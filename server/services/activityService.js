@@ -484,7 +484,7 @@ function ActivityService(objectCollection) {
                                     //console.log("message unique id look up is set successfully")
                                     global.logger.write('debug', 'message unique id look up is set successfully', {}, request);
                             });
-                            return;
+                            //return;
                         } else {
                             // console.log("not inserted to asset activity list");
                             global.logger.write('debug', "not inserted to asset activity list", {}, request);
@@ -494,7 +494,7 @@ function ActivityService(objectCollection) {
                             }, 10000);
                         }
 
-                    });
+                    }); //End of Asset List Insert Add
 
                     // Suzuki Form Submissions PDF Generation Logic
                     // 
@@ -611,7 +611,7 @@ function ActivityService(objectCollection) {
                     }
 
                     //callback(false, responseactivityData, 200);                    
-                } else {
+                } else { //This is activityList Insert if(err === false) else part
                     setTimeout(() => {
                         callback(err, responseactivityData, -9999);
                     }, 5000);
@@ -3360,11 +3360,11 @@ function ActivityService(objectCollection) {
                                     await activityCommonService
                                         .unmapFileFromQueue(request, queueActivityMappingId)
                                         .then((queueActivityMappingData) => {
-                                            console.log("updateWorkflowQueueMapping | mapFileToQueue | queueActivityMapping: ", queueActivityMappingData)
+                                            console.log("updateWorkflowQueueMapping | mapFileToQueue | queueActivityMapping: ", queueActivityMappingData);
                                         })
                                         .catch((error) => {
                                             console.log("updateWorkflowQueueMapping | Re-Enable | Error: ", error);
-                                        })
+                                        });
                                 } else {
                                     // Insert activity to the queue in the queue_activity_mapping table
                                     await activityCommonService
@@ -3379,15 +3379,15 @@ function ActivityService(objectCollection) {
                                             }
                                         }))
                                         .then((queueActivityMappingData) => {
-                                            console.log("updateWorkflowQueueMapping | mapFileToQueue | queueActivityMapping: ", queueActivityMappingData)
+                                            console.log("updateWorkflowQueueMapping | mapFileToQueue | queueActivityMapping: ", queueActivityMappingData);                                            
                                         })
                                         .catch((error) => {
 
                                             console.log("updateWorkflowQueueMapping | mapFileToQueue | Error: ", error);
                                             console.log("Object.keys(error): ", Object.keys(error));
-                                        })
+                                        });
                                 }
-                            })
+                            });
 
                     } else {
                         // Check if there is an existing mapping
@@ -3412,12 +3412,18 @@ function ActivityService(objectCollection) {
                                         })
                                         .catch((error) => {
                                             console.log("updateWorkflowQueueMapping | unmapFileToQueue | Error: ", error);
-                                        })
+                                        });
                                 }
-                            })
+                            });
                     }
                 }
+                
+                await new Promise((resolve, reject)=>{
+                    setTimeout(()=>{ resolve(); }, 3000);
+                });
+
                 return queueMap;
+                
             } else {
                 return [];
             }
@@ -3427,5 +3433,5 @@ function ActivityService(objectCollection) {
         }
     };
 
-};
+}
 module.exports = ActivityService;

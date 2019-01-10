@@ -101,7 +101,8 @@ function ActivityTimelineService(objectCollection) {
             
             timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
 
-        } else if (activityTypeCategoryId === 48 && (activityStreamTypeId === 713 || activityStreamTypeId === 705)) {
+        } else if (activityTypeCategoryId === 48 && (activityStreamTypeId === 713 || activityStreamTypeId === 705 || 
+            activityStreamTypeId === 715 || activityStreamTypeId === 716)) {
 
             request.non_dedicated_file = 1;
             timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
@@ -112,7 +113,12 @@ function ActivityTimelineService(objectCollection) {
             timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
         }
         
-        callback(false, {}, 200);
+        new Promise(()=>{
+            setTimeout(()=>{
+                callback(false, {}, 200);
+            }, 1500);
+        });
+        //callback(false, {}, 200);
     };
     
     function retrievingFormIdandProcess(request, data) {
@@ -1201,6 +1207,9 @@ function ActivityTimelineService(objectCollection) {
             rowDataArr.activity_timeline_collection = {};
             rowDataArr.activity_timeline_url_title = '';
             rowDataArr.data_entity_inline = rowData['data_entity_inline'] || {};
+            rowDataArr.data_form_transaction_id = util.replaceDefaultNumber(rowData['data_form_transaction_id']);
+            rowDataArr.data_form_name = util.replaceDefaultString(rowData['data_form_name']);
+            rowDataArr.activity_title = util.replaceDefaultString(rowData['activity_title']);
 
             //Added for Beta
             rowDataArr.activity_timeline_url_title = util.replaceDefaultString(rowData['data_entity_text_3']);
@@ -1309,7 +1318,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_url_preview = util.replaceDefaultString(rowData['data_entity_text_2']);
                             break;
                     }
-                    
+                 break;   
                 case 10: // document
                     switch (rowData['timeline_stream_type_id']) {
                         case 301:
@@ -1706,9 +1715,20 @@ function ActivityTimelineService(objectCollection) {
                     params[18] = row.field_value;
                     break;
                 case 23:    //Phone Number with Country Code
-                    var phone = row.field_value.split('|');
+                    /*var phone = row.field_value.split('|');
                     params[13] = phone[0];  //country code
                     params[18] = phone[1];  //phone number
+                    break;*/
+                    var phone;
+                    if((row.field_value).includes('||')) {
+                        phone = row.field_value.split('||');
+                        params[13] = phone[0];  //country code
+                        params[18] = phone[1];  //phone number
+                    } else {
+                        phone = row.field_value.split('|');
+                        params[13] = phone[0];  //country code
+                        params[18] = phone[1];  //phone number
+                    }                        
                     break;
                 case 24:    //Gallery Image
                 case 25:    //Camera Front Image

@@ -4,7 +4,7 @@
 
 var ActivityService = require('../../services/activityService.js');
 var ActivityParticipantService = require('../../services/activityParticipantService.js');
-var ActivityUpdateService = require('../../services/activityUpdateService.js');
+//var ActivityUpdateService = require('../../services/activityUpdateService.js');
 var ActivityTimelineService = require('../../services/activityTimelineService.js');
 //var ActivityListingService = require('../../services/activityListingService.js');
 
@@ -20,7 +20,7 @@ function BotService(objectCollection) {
     const util = objectCollection.util;
     const db = objectCollection.db;    
     const activityCommonService = objectCollection.activityCommonService;    
-    const activityUpdateService = new ActivityUpdateService(objectCollection);
+    //const activityUpdateService = new ActivityUpdateService(objectCollection);
     const activityParticipantService = new ActivityParticipantService(objectCollection);
     const activityService = new ActivityService(objectCollection);
     //const activityListingService = new ActivityListingService(objectCollection);
@@ -101,6 +101,7 @@ function BotService(objectCollection) {
             switch(i.bot_operation_type_id) {
                 //case 'participant_add':
                 case 1:  // Add Participant                 
+                global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'PARTICIPANT ADD', {}, {}); 
                     try {
                         await addParticipant(request, botOperationsJson.bot_operations.participant_add);
@@ -116,9 +117,16 @@ function BotService(objectCollection) {
 
                 //case 'status_alter': 
                 case 2:  // Alter Status
-                    global.logger.write('conLog', 'STATUS ALTER', {}, {});                    
+                    global.logger.write('conLog', '****************************************************************', {}, {});
+                    global.logger.write('conLog', 'STATUS ALTER', {}, {});
+                    global.logger.write('conLog', 'Request Params received from Request', {}, {});
+                    global.logger.write('conLog', request, {}, {});
                     try {                    
-                        await changeStatus(request, botOperationsJson.bot_operations.status_alter);
+                        let result = await changeStatus(request, botOperationsJson.bot_operations.status_alter);
+                        if(result[0]) {
+                            i.bot_operation_status_id = 2;   
+                            i.bot_operation_inline_data = JSON.stringify({"err": result[1]});
+                        }
                     } catch(err) {
                         global.logger.write('serverError', err, {}, {});
                         global.logger.write('serverError', 'Error in executing changeStatus Step', {}, {}); 
@@ -131,6 +139,7 @@ function BotService(objectCollection) {
 
                 //case 'form_field_copy':
                 case 3: //Copy Form field
+                global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'FORM FIELD', {}, {});
                     try {                        
                         global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
@@ -147,7 +156,10 @@ function BotService(objectCollection) {
 
                 //case 'workflow_percentage_alter': 
                 case 4: //Update Workflow Percentage
-                    global.logger.write('conLog', 'WF PERCENTAGE ALTER', {}, {}); 
+                    global.logger.write('conLog', '****************************************************************', {}, {});
+                    global.logger.write('conLog', 'WF PERCENTAGE ALTER', {}, {});
+                    global.logger.write('conLog', 'Request Params received from Request', {}, {});
+                    global.logger.write('conLog', request, {}, {});
                     try {
                         let result = await alterWFCompletionPercentage(request, botOperationsJson.bot_operations.workflow_percentage_alter);
                         if(result[0]) {
@@ -166,6 +178,7 @@ function BotService(objectCollection) {
 
                 //case 'fire_api': 
                 case 5: // External System Integration
+                    global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'FIRE API', {}, {}); 
                     try {
                         await fireApi(request, botOperationsJson.bot_operations.fire_api);
@@ -181,6 +194,7 @@ function BotService(objectCollection) {
 
                 //case 'fire_text': 
                 case 6: // Send Text Message
+                global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'FIRE TEXT', {}, {}); 
                     try {
                         await fireTextMsg(request, botOperationsJson.bot_operations.fire_text);                        
@@ -196,6 +210,7 @@ function BotService(objectCollection) {
 
                 //case 'fire_email':           
                 case 7: // Send email
+                    global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'FIRE EMAIL', {}, {}); 
                     try {
                         await fireEmail(request, botOperationsJson.bot_operations.fire_email);
@@ -207,10 +222,15 @@ function BotService(objectCollection) {
                         //return Promise.reject(err);
                     }
                     global.logger.write('conLog', '****************************************************************', {}, {});
-                    break;
+                    break;                
         }
         
         botOperationTxnInsert(request, i);
+        await new Promise((resolve, reject)=>{
+            setTimeout(()=>{
+                resolve();
+            }, 1000);
+        });
     }    
     
     return {};
@@ -254,12 +274,72 @@ function BotService(objectCollection) {
 
             await activityService.updateWorkflowQueueMapping(newReq);
         } catch(err) {
-            return err;
+            return [true, "unknown Error"];
         }
-        
-        return {};
-        
+
+        let resp = await getQueueActivity(newReq, request.workflow_activity_id);        
+        global.logger.write('conLog', resp,{},{});
+
+        if(resp.length > 0) {
+            
+            let statusName = await getStatusName(newReq, inlineData.activity_status_id);
+            global.logger.write('conLog', 'Status Alter BOT Step - status Name : ',statusName,{});
+            
+            let queuesData = await getAllQueuesBasedOnActId(newReq, request.workflow_activity_id);            
+
+            global.logger.write('conLog', 'queues Data : ', queuesData,{});            
+           
+            let queueActMapInlineData;
+            let data;
+            for(let i of queuesData) {                
+                queueActMapInlineData = JSON.parse(i.queue_activity_mapping_inline_data);
+                                
+                queueActMapInlineData.queue_sort.current_status_id = inlineData.activity_status_id;
+                queueActMapInlineData.queue_sort.current_status_name = statusName[0].activity_status_name || "";
+                queueActMapInlineData.queue_sort.last_status_alter_time = util.getCurrentUTCTime();
+
+                data = await (activityCommonService.queueActivityMappingUpdateInlineData(newReq, i.queue_activity_mapping_id, JSON.stringify(queueActMapInlineData)));                
+                global.logger.write('conLog', 'Status Alter BOT Step - Updating the Queue Json : ',data,{});
+                
+                activityCommonService.queueHistoryInsert(newReq, 1402, i.queue_activity_mapping_id).then(()=>{});
+            }
+            
+            
+            
+            //Checking the queuemappingid
+            /*let queueActivityMappingData = await (activityCommonService.fetchQueueActivityMappingId({activity_id: request.workflow_activity_id,
+                                                                                                     organization_id: newReq.organization_id}, 
+                                                                                                     resp[0].queue_id));            
+            global.logger.write('conLog', 'Status Alter BOT Step - queueActivityMappingData : ',queueActivityMappingData,{});
+            
+            /*if(queueActivityMappingData.length > 0){
+
+                let statusName = await getStatusName(newReq, inlineData.activity_status_id);
+                global.logger.write('conLog', 'Status Alter BOT Step - status Name : ',statusName,{});
+
+                let queueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;  
+                let queueActMapInlineData = JSON.parse(queueActivityMappingData[0].queue_activity_mapping_inline_data);
+                
+                queueActMapInlineData.queue_sort.current_status_id = inlineData.activity_status_id;
+                queueActMapInlineData.queue_sort.current_status_name = statusName[0].activity_status_name || "";
+                queueActMapInlineData.queue_sort.last_status_alter_time = util.getCurrentUTCTime();
+                
+                global.logger.write('conLog', 'Status Alter BOT Step - Updated Queue JSON : ',queueActMapInlineData,{});
+                
+                let data = await (activityCommonService.queueActivityMappingUpdateInlineData(newReq, queueActivityMappingId, JSON.stringify(queueActMapInlineData)));                
+                global.logger.write('conLog', 'Status Alter BOT Step - Updating the Queue Json : ',data,{});
+                
+                activityCommonService.queueHistoryInsert(newReq, 1402, queueActivityMappingId).then(()=>{});                
+                return [false, {}];
+            }
+        } else {
+            return [true, "Queue Not Available"];
+        }*/
+        return [false, {}];
+    } else {
+        return [true, "Resp is Empty"];
     }
+}
 
     //Bot Step Copying the fields
     async function copyFields(request, inlineData) {        
@@ -288,11 +368,126 @@ function BotService(objectCollection) {
             fieldDataTypeId = resp[0].data_type_id;
             fieldValue = resp[0].data_entity_text_1;
 
+            /*switch (fieldDataTypeId) {
+                case 1:     // Date
+                case 2:     // future Date
+                case 3:     // past Date
+                    params[9] = row.field_value;
+                    break;
+                case 4:     // Date and time
+                    params[10] = row.field_value;
+                    break;
+                case 5:     //Number
+                    //params[12] = row.field_value;
+                    params[13] = row.field_value;
+                    break;
+                case 6:     //Decimal
+                    //params[13] = row.field_value;
+                    params[14] = row.field_value;
+                    break;
+                case 7:     //Scale (0 to 100)
+                case 8:     //Scale (0 to 5)
+                    params[11] = row.field_value;
+                    break;
+                case 9:     // Reference - Organization
+                case 10:    // Reference - Building
+                case 11:    // Reference - Floor
+                case 12:    // Reference - Person
+                case 13:    // Reference - Vehicle
+                case 14:    // Reference - Room
+                case 15:    // Reference - Desk
+                case 16:    // Reference - Assistant
+                    //params[12] = row.field_value;
+                    params[13] = row.field_value;
+                    break;
+                case 50:    // Reference - File
+                    params[13] = Number(JSON.parse(row.field_value).activity_id); // p_entity_bigint_1
+                    params[18] = row.field_value; // p_entity_text_1
+                    break;
+                case 17:    //Location
+                    var location = row.field_value.split('|');
+                    params[16] = location[0];
+                    params[17] = location[1];
+                    break;
+                case 18:    //Money with currency name
+                    var money = row.field_value.split('|');
+                    params[15] = money[0];
+                    params[18] = money[1];
+                    break;
+                case 19:    //Short Text
+                    params[18] = row.field_value;
+                    break;
+                case 20:    //Long Text
+                    params[19] = row.field_value;
+                    break;
+                case 21:    //Label
+                    params[18] = row.field_value;
+                    break;
+                case 22:    //Email ID
+                    params[18] = row.field_value;
+                    break;
+                case 23:    //Phone Number with Country Code
+                    var phone;
+                    ((row.field_value).includes('||')) ?
+                        phone = row.field_value.split('||'):                        
+                        phone = row.field_value.split('|');
+                    params[13] = phone[0];  //country code
+                    params[18] = phone[1];  //phone number                     
+                    break;
+                case 24:    //Gallery Image
+                case 25:    //Camera Front Image
+                case 26:    //Video Attachment
+                    params[18] = row.field_value;
+                    break;
+                case 27:    //General Signature with asset reference
+                case 28:    //General Picnature with asset reference
+                    var signatureData = row.field_value.split('|');
+                    params[18] = signatureData[0];  //image path
+                    params[13] = signatureData[1];  // asset reference
+                    params[11] = signatureData[1];  // accepted /rejected flag
+                    break;
+                case 29:    //Coworker Signature with asset reference
+                case 30:    //Coworker Picnature with asset reference
+                    //approvalFields.push(row.field_id);
+                    var signatureData = row.field_value.split('|');
+                    params[18] = signatureData[0];  //image path
+                    params[13] = signatureData[1];  // asset reference
+                    params[11] = signatureData[1];  // accepted /rejected flag
+                    break;
+                case 31:    //Cloud Document Link
+                    params[18] = row.field_value;
+                    break;
+                case 32:    // PDF Document
+                case 51:    // PDF Scan
+                    params[18] = row.field_value;
+                    break;
+                case 33:    //Single Selection List
+                    params[18] = row.field_value;
+                    break;
+                case 34:    //Multi Selection List
+                    params[18] = row.field_value;
+                    break;
+                case 35:    //QR Code
+                case 36:    //Barcode
+                    params[18] = row.field_value;
+                    break;
+                case 38:    //Audio Attachment
+                    params[18] = row.field_value;
+                    break;
+                case 39:    //Flag
+                    params[11] = row.field_value;
+            }*/
+
             txn_id = await activityCommonService.getActivityTimelineTransactionByFormId713(newReq, newReq.activity_id, i.target_form_id);
             global.logger.write('conLog',txn_id,{},{});
-            (txn_id.length > 0) ?
-                targetFormTxnId = txn_id[0].data_form_transaction_id:
+            
+            if(txn_id.length > 0) {
+                targetFormTxnId = txn_id[0].data_form_transaction_id;
+                targetActId = request.target_activity_id || txn_id[0].data_activity_id;
+            } else {
                 targetFormTxnId = 0;
+            }          
+                
             
             //If txn id is not there then add activity and get the txn id
             if(targetFormTxnId === 0 ) {
@@ -336,8 +531,8 @@ function BotService(objectCollection) {
                 });
             } else {               
 
-                targetFormTxnId = request.target_form_transaction_id;
-                targetActId = request.target_activity_id;                
+                //targetFormTxnId = request.target_form_transaction_id;
+                //targetActId = request.target_activity_id;
 
                 await timeine713Entry(newReq, i.target_form_id, targetFormTxnId, i.target_field_id, fieldValue, fieldDataTypeId);
             }           
@@ -379,7 +574,14 @@ function BotService(objectCollection) {
             } else {
                 //Use Phone Number
                 newReq.desk_asset_id = 0;    
-                newReq.phone_number = inlineData[type[0]].phone_number;
+                let phoneNumber = inlineData[type[0]].phone_number;               
+                let phone;
+                (phoneNumber.includes('||')) ?
+                            phone = phoneNumber.split('||'):                                                   
+                            phone = phoneNumber.split('|');
+                            
+                newReq.country_code = phone[0];  //country code
+                newReq.phone_number = phone[1];  //phone number                      
             }            
             
         } else if(type[0] === 'dynamic') {
@@ -387,9 +589,9 @@ function BotService(objectCollection) {
             newReq.form_id = inlineData[type[0]].form_id;
             newReq.field_id = inlineData[type[0]].field_id;            
 
-            resp = await getFieldValue(newReq);            
-            newReq.phone_country_code = String(resp[0].data_entity_text_1).split('|')[0];
-            newReq.phone_number = String(resp[0].data_entity_text_1).split('|')[1] || -1;
+            resp = await getFieldValue(newReq);
+            newReq.phone_country_code = String(resp[0].data_entity_bigint_1);
+            newReq.phone_number = String(resp[0].data_entity_text_1);
         }       
         
         if(newReq.phone_number !== -1) {
@@ -433,11 +635,11 @@ function BotService(objectCollection) {
         };
 
         let fire715OnWFOrderFileRequest = Object.assign({}, newReq);
-            fire715OnWFOrderFileRequest.activity_id = newReq.activity_id;
+            fire715OnWFOrderFileRequest.activity_id = newReq.workflow_activity_id;
             fire715OnWFOrderFileRequest.form_transaction_id = newReq.form_transaction_id;
             fire715OnWFOrderFileRequest.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
             fire715OnWFOrderFileRequest.activity_stream_type_id = 715;
-            fire715OnWFOrderFileRequest.form_id = 0;
+            fire715OnWFOrderFileRequest.form_id = newReq.form_id || 0;
             fire715OnWFOrderFileRequest.asset_message_counter = 0;
             fire715OnWFOrderFileRequest.activity_type_category_id = 48;
             fire715OnWFOrderFileRequest.message_unique_id = util.getMessageUniqueId(request.asset_id);
@@ -449,7 +651,9 @@ function BotService(objectCollection) {
             fire715OnWFOrderFileRequest.app_version = '2.8.16';
             fire715OnWFOrderFileRequest.device_os_id = 9;
             fire715OnWFOrderFileRequest.data_activity_id = request.activity_id;
+            fire715OnWFOrderFileRequest.log_asset_id = 100;
         
+        global.logger.write('conLog', 'fire715OnWFOrderFileRequest : ',fire715OnWFOrderFileRequest,{});
         return new Promise((resolve, reject)=>{
             activityTimelineService.addTimelineTransaction(fire715OnWFOrderFileRequest, (err, resp)=>{
                 (err === false)? resolve() : reject(err);
@@ -473,10 +677,10 @@ function BotService(objectCollection) {
         } else if(type[0] === 'dynamic') {
             newReq.communication_id = inlineData[type[0]].template_id;
             newReq.form_id = inlineData[type[0]].form_id;
-            newReq.field_id = inlineData[type[0]].field_id;
-            newReq.country_code = 91;
+            newReq.field_id = inlineData[type[0]].field_id;            
 
             resp = await getFieldValue(newReq);         
+            newReq.country_code = resp[0].data_entity_bigint_1;
             newReq.phone_number = resp[0].data_entity_text_1;            
         }
 
@@ -524,22 +728,21 @@ function BotService(objectCollection) {
             newReq.smsText = newReq.smsText + " " + shortenedUrl;
         }   
                         
-        await new Promise((resolve, reject)=>{
-            /*util.sendSmsHorizon(newReq.smsText, newReq.country_code, newReq.phone_number, function (err, data) {
-                if (err === false) {
-                    global.logger.write('debug', 'SMS HORIZON RESPONSE: '+JSON.stringify(data), {}, {});
-                    global.logger.write('conLog', data.response, {}, {});                
+        await new Promise((resolve, reject)=>{            
+            if (Number(newReq.country_code) === 91) {
+                util.sendSmsSinfini(newReq.smsText, newReq.country_code, newReq.phone_number, function (err, res) {                
+                    global.logger.write('debug', 'Sinfini Error: ' + JSON.stringify(err, null, 2), {}, request);
+                    global.logger.write('debug', 'Sinfini Response: ' + JSON.stringify(res, null, 2), {}, request);
                     resolve();
-                } else {                
-                    global.logger.write('conLog', data.response, {}, {});                
-                    reject(err);
-                }
-            });*/
-            util.sendSmsSinfini(newReq.smsText, newReq.country_code, newReq.phone_number, function (err, res) {                
-                global.logger.write('debug', 'Sinfini Error: ' + JSON.stringify(err, null, 2), {}, request);
-                global.logger.write('debug', 'Sinfini Response: ' + JSON.stringify(res, null, 2), {}, request);
-                resolve();
-            });
+                });
+            } else {
+                util.sendInternationalTwilioSMS(newReq.smsText, newReq.country_code, newReq.phone_number, function (err, res) {                
+                    global.logger.write('debug', 'Twilio Error: ' + JSON.stringify(err, null, 2), {}, request);
+                    global.logger.write('debug', 'Twilio Response: ' + JSON.stringify(res, null, 2), {}, request);
+                    resolve();
+                });
+            }
+            
         });        
 
         //Make a 716 timeline entry - (716 streamtypeid is for email)
@@ -548,7 +751,7 @@ function BotService(objectCollection) {
         };
 
         let fire716OnWFOrderFileRequest = Object.assign({}, newReq);
-            fire716OnWFOrderFileRequest.activity_id = newReq.activity_id;
+            fire716OnWFOrderFileRequest.activity_id = newReq.workflow_activity_id;
             fire716OnWFOrderFileRequest.form_transaction_id = newReq.form_transaction_id;
             fire716OnWFOrderFileRequest.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
             fire716OnWFOrderFileRequest.activity_stream_type_id = 716;
@@ -564,7 +767,9 @@ function BotService(objectCollection) {
             fire716OnWFOrderFileRequest.app_version = '2.8.16';
             fire716OnWFOrderFileRequest.device_os_id = 9;
             fire716OnWFOrderFileRequest.data_activity_id = request.activity_id;
+            fire716OnWFOrderFileRequest.log_asset_id = 100;
         
+        global.logger.write('conLog', 'fire716OnWFOrderFileRequest :',fire716OnWFOrderFileRequest,{});
         return new Promise((resolve, reject)=>{
             activityTimelineService.addTimelineTransaction(fire716OnWFOrderFileRequest, (err, resp)=>{
                 (err === false)? resolve() : reject(err);
@@ -659,21 +864,29 @@ function BotService(objectCollection) {
             newrequest.limit_value = 1;               
             
             //Checking the queuemappingid
-            let queueActivityMappingData = await (activityCommonService.fetchQueueActivityMappingId(newrequest, resp[0].queue_id));            
+            let queueActivityMappingData = await (activityCommonService.fetchQueueActivityMappingId({activity_id: newrequest.workflow_activity_id,
+                                                                                                     organization_id: newrequest.organization_id}, 
+                                                                                                     resp[0].queue_id));            
             global.logger.write('conLog', 'queueActivityMappingData : ',{},{});
             global.logger.write('conLog', queueActivityMappingData,{},{});
             
             if(queueActivityMappingData.length > 0){
                 let queueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;  
                 let queueActMapInlineData = JSON.parse(queueActivityMappingData[0].queue_activity_mapping_inline_data);
+                let obj = {};
                 
-                queueActMapInlineData.queue_sort.caf_completion_percentage += wfCompletionPercentage;                
-                global.logger.write('conLog', 'Updated Queue JSON : ',{},{});
-                global.logger.write('conLog', queueActMapInlineData,{},{});
+                global.logger.write('conLog', 'queueActMapInlineData.length',Object.keys(queueActMapInlineData).length,{});
+                if(Object.keys(queueActMapInlineData).length === 0) {                    
+                    obj.queue_sort = {};                    
+                    obj.queue_sort.caf_completion_percentage = wfCompletionPercentage;
+                    queueActMapInlineData = obj;
+                } else {                    
+                    queueActMapInlineData.queue_sort.caf_completion_percentage += wfCompletionPercentage;                
+                }                
+                global.logger.write('conLog', 'Updated Queue JSON : ',queueActMapInlineData,{});
                 
                 let data = await (activityCommonService.queueActivityMappingUpdateInlineData(newrequest, queueActivityMappingId, JSON.stringify(queueActMapInlineData)));                
-                global.logger.write('conLog', 'Updating the Queue Json : ',{},{});
-                global.logger.write('conLog', data,{},{});
+                global.logger.write('conLog', 'Updating the Queue Json : ',data,{});                
                 
                 activityCommonService.queueHistoryInsert(newrequest, 1402, queueActivityMappingId).then(()=>{});                
                 return [false, {}];
@@ -717,7 +930,7 @@ function BotService(objectCollection) {
     //Get the email, sms template
     async function getCommTemplates(request) {
             let paramsArr = new Array(
-                request.flag || 2,
+                2,
                 request.communication_id, 
                 request.communication_type_id || 0, 
                 request.communication_type_category_id || 0, 
@@ -888,9 +1101,10 @@ function BotService(objectCollection) {
                     organization_id: request.organization_id,
                     account_id: request.account_id,
                     workforce_id: request.workforce_id,
-                    asset_id: request.asset_id,
+                    //asset_id: request.asset_id,
+                    asset_id: 100,
                     asset_token_auth: '54188fa0-f904-11e6-b140-abfd0c7973d9',
-                    auth_asset_id: 100,
+                    //auth_asset_id: 100,
                     activity_title: customerData.first_name,
                     activity_description: customerData.first_name,
                     activity_inline_data: JSON.stringify({
@@ -983,7 +1197,8 @@ function BotService(objectCollection) {
              organization_id: request.organization_id,
              account_id: request.account_id,
              workforce_id: request.workforce_id,
-             asset_id: request.desk_asset_id,
+             //asset_id: request.desk_asset_id,
+             asset_id: 100,
              asset_message_counter: 0,
              activity_id: Number(request.workflow_activity_id),
              activity_access_role_id: 29,
@@ -1279,9 +1494,12 @@ function BotService(objectCollection) {
                         params[18] = row.field_value;
                         break;
                     case 23:    //Phone Number with Country Code
-                        var phone = row.field_value.split('|');
+                        var phone;
+                        ((row.field_value).includes('||')) ?
+                            phone = row.field_value.split('||'):                        
+                            phone = row.field_value.split('|');
                         params[13] = phone[0];  //country code
-                        params[18] = phone[1];  //phone number
+                        params[18] = phone[1];  //phone number                     
                         break;
                     case 24:    //Gallery Image
                     case 25:    //Camera Front Image
@@ -1441,6 +1659,7 @@ function BotService(objectCollection) {
             fire713OnWFOrderFileRequest.app_version = '2.8.16';
             fire713OnWFOrderFileRequest.device_os_id = 9;
             fire713OnWFOrderFileRequest.data_activity_id = request.activity_id;
+            fire713OnWFOrderFileRequest.log_asset_id = 100;
         
         return new Promise((resolve, reject)=>{
             activityTimelineService.addTimelineTransaction(fire713OnWFOrderFileRequest, (err, resp)=>{
@@ -1448,6 +1667,30 @@ function BotService(objectCollection) {
                 return (err === false)? resolve() : reject(err);
             });
         });        
+    }
+
+    async function getStatusName(request, activityStatusId) {
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            activityStatusId
+        );
+        let queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_select_id', paramsArr);
+        if (queryString != '') {
+            return await db.executeQueryPromise(1, queryString, request);
+        }
+    }
+    
+    async function getAllQueuesBasedOnActId(request, activityId) {
+        let paramsArr = new Array(
+            request.organization_id,            
+            activityId
+        );
+        let queryString = util.getQueryString('ds_p1_1_queue_activity_mapping_select_activity', paramsArr);
+        if (queryString != '') {
+            return await db.executeQueryPromise(1, queryString, request);
+        }
     }
 
 }

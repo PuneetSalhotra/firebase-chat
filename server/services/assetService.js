@@ -3402,22 +3402,49 @@ function AssetService(objectCollection) {
             	callback(false, {}, -3101);
             }
     };
+    
 
-    this.getAssetTimelineData = async (request) => {
-        let paramsArr = new Array(
-            request.organization_id,
-            request.workforce_id,
-            request.asset_id,
+    this.getAssetTimelineData = async (request) => {        
+        let paramsArr = new Array(                
+            request.organization_id, 
+            request.workforce_id, 
+            request.asset_id, 
             request.stream_type_id || 0,
             request.page_start,
             util.replaceQueryLimit(request.page_limit)
         );
         let queryString = util.getQueryString('ds_p1_asset_timeline_transaction_select_asset_stream_type', paramsArr);
         if (queryString != '') {
-            return await (db.executeQueryPromise(1, queryString, request));
+            return await (db.executeQueryPromise(1, queryString, request));                
+        }        
+    };    
+
+    this.geAssetGeoFenceCounts = async function (request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.flag,
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.page_start,
+            request.page_limit
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_select_geofence_count', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
         }
+
+        return [error, responseData];
     };
-   
 
 }
 
