@@ -481,7 +481,7 @@ function ActivityService(objectCollection) {
                                     //console.log("message unique id look up is set successfully")
                                     global.logger.write('debug', 'message unique id look up is set successfully', {}, request);
                             });
-                            return;
+                            //return;
                         } else {
                             // console.log("not inserted to asset activity list");
                             global.logger.write('debug', "not inserted to asset activity list", {}, request);
@@ -491,7 +491,7 @@ function ActivityService(objectCollection) {
                             }, 10000);
                         }
 
-                    });
+                    }); //End of Asset List Insert Add
 
                     // Suzuki Form Submissions PDF Generation Logic
                     // 
@@ -590,7 +590,7 @@ function ActivityService(objectCollection) {
                     // 
 
                     //callback(false, responseactivityData, 200);                    
-                } else {
+                } else { //This is activityList Insert if(err === false) else part
                     setTimeout(() => {
                         callback(err, responseactivityData, -9999);
                     }, 5000);
@@ -3396,9 +3396,13 @@ function ActivityService(objectCollection) {
                             });
                     }
                 }
-                setTimeout(()=>{
-                    return queueMap;
-                }, 3000);                
+                
+                await new Promise((resolve, reject)=>{
+                    setTimeout(()=>{ resolve(); }, 3000);
+                });
+
+                return queueMap;
+                
             } else {
                 return [];
             }
