@@ -228,7 +228,7 @@ function ActivityParticipantService(objectCollection) {
                     global.logger.write('debug', 'adding streamtype id 2', {}, request)
                     break;
 
-            };
+            }
         }
 
         var logDatetime = util.getCurrentUTCTime();
@@ -253,9 +253,10 @@ function ActivityParticipantService(objectCollection) {
                     updateParticipantCount(request.activity_id, request.organization_id, request, function (err, data) {});
                     activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) {});
                 }
-            } else {
+            } else {                
                 //console.log("something is not wright in adding a participant");
-                global.logger.write('serverError', 'something is not right in adding a participant', {}, request)
+                global.logger.write('serverError', 'something is not right in adding a participant', {}, request);
+                callback(false, {}, 200);
             }
         });
     };

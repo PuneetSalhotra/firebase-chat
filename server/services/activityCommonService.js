@@ -622,7 +622,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             request.entity_datetime_2 || '1970-01-01 00:00:00', // entity type id
             entityText1, // entity text 1
             entityText2, // entity text 2
-            entityText3, //Beta
+            entityText3, //BetafetchQueueActivityMappingId
             activityTimelineCollection, //BETA
             newUserAssetId, //New User Signed Up Asset ID
             request.track_longitude,
@@ -669,9 +669,9 @@ function ActivityCommonService(db, util, forEachAsync) {
             });
         }
     };*/
-    
+
     this.assetTimelineTransactionInsert = function (request, participantData, streamTypeId, callback) {
-        //console.log('vnk streamTypeId : ', streamTypeId);
+        
         var assetId = request.asset_id;
         var organizationId = request.organization_id;
         var accountId = request.account_id;
@@ -754,7 +754,10 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityText2 = request.activity_timeline_collection;
                 break;
             case 705: // form
-            case 713: // 
+            case 713:
+            case 714:
+            case 715:
+            case 716:
                 entityTypeId = 0;
                 entityText1 = request.form_transaction_id;
                 // entityText2 = request.activity_timeline_collection;
@@ -810,7 +813,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityText1 = "";
                 entityText2 = "";
                 break;
-        };
+        }
 
         var paramsArr = new Array(
             request.activity_id || 0,
@@ -848,14 +851,14 @@ function ActivityCommonService(db, util, forEachAsync) {
             "",
             request.app_version,
             request.service_version,
-            request.asset_id,
+            request.log_asset_id || request.asset_id,
             messageUniqueId,
             retryFlag,
             request.flag_offline,
             request.track_gps_datetime,
             request.datetime_log,
             request.data_activity_id || 0
-        );        
+        );
         let queryString = util.getQueryString("ds_v1_3_asset_timeline_transaction_insert", paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
@@ -863,7 +866,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                     callback(false, true);
                     return;
                 } else {
-                    callback(err, false);                    
+                    callback(err, false);
                     global.logger.write('serverError', JSON.stringify(err), err, request);
                     return;
                 }
@@ -871,8 +874,9 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
     };
 
-    this.activityTimelineTransactionInsert = function (request, participantData, streamTypeId, callback) {        
+    this.activityTimelineTransactionInsert = function (request, participantData, streamTypeId, callback) {
 
+        //global.logger.write('conLog', 'Request Params in activityCommonService timeline : ',request,{});
         var assetId = request.asset_id;
         var organizationId = request.organization_id;
         var accountId = request.account_id;
@@ -963,9 +967,11 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityText2 = request.activity_timeline_collection;
                 activityTimelineCollection = request.activity_timeline_collection || '{}';
                 break;
-            case 714: //Bot Firing External API
             case 705: // form
             case 713: // form field alter
+            case 714: //Bot Firing External API
+            case 715:
+            case 716:            
                 entityTypeId = 0;
                 entityText1 = request.form_transaction_id;
                 entityText2 = '';
@@ -1036,7 +1042,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityText1 = "";
                 entityText2 = "";
                 break;
-        };
+        }
 
         global.logger.write('debug', 'activityTimelineCollection : ', {}, request);
         global.logger.write('debug', activityTimelineCollection, {}, request);
@@ -1077,7 +1083,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             "",
             request.app_version,
             request.service_version,
-            request.asset_id,
+            request.log_asset_id || request.asset_id,
             messageUniqueId,
             retryFlag,
             request.flag_offline,
@@ -1085,14 +1091,14 @@ function ActivityCommonService(db, util, forEachAsync) {
             request.datetime_log,
             request.data_activity_id || 0 //Added on 10-12-2018
         );
-        let queryString = util.getQueryString("ds_v1_5_activity_timeline_transaction_insert", paramsArr);        
+        let queryString = util.getQueryString("ds_v1_5_activity_timeline_transaction_insert", paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
                     callback(false, true);
                     return;
                 } else {
-                    callback(err, false);                    
+                    callback(err, false);
                     global.logger.write('serverError', JSON.stringify(err), err, request);
                     return;
                 }
@@ -1485,6 +1491,21 @@ function ActivityCommonService(db, util, forEachAsync) {
             });
         }
 
+    };
+
+    this.getAssetDetailsPromise = function (request, callback) {
+        return new Promise((resolve, reject) => {
+            const paramsArr = new Array(
+                request.organization_id,
+                request.asset_id
+            );
+            const queryString = util.getQueryString('ds_v1_asset_list_select', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data): reject(err);
+                });
+            }
+        });
     };
 
     //PAM
@@ -2805,6 +2826,26 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
     };
 
+    // Fetching the Asset Type ID for a given organisation/workforce and asset type category ID
+    this.workforceAssetTypeMappingSelectCategoryPromise = function (request, assetTypeCategoryId) {        
+        return new Promise((resolve, reject)=>{
+            let paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                assetTypeCategoryId,
+                0,
+                1
+            );
+            let queryString = util.getQueryString('ds_p1_workforce_asset_type_mapping_select_category', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data): reject(err);
+                });
+            }
+        });        
+    };
+
     this.getWorkflowForAGivenUrl = function (request) {
         return new Promise((resolve, reject) => {
             var paramsArr = new Array(
@@ -2961,6 +3002,24 @@ function ActivityCommonService(db, util, forEachAsync) {
                 request.organization_id
             );
             const queryString = util.getQueryString('ds_p1_queue_activity_mapping_select', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                });
+            }
+        });
+    };
+
+    this.fetchQueueActivityMappingIdV1 = function (request, queueId) {
+        return new Promise((resolve, reject) => {
+            // IN p_queue_id BIGINT(20), IN p_activity_id BIGINT(20), 
+            // IN p_organization_id BIGINT(20)
+            let paramsArr = new Array(
+                queueId,
+                request.activity_id,
+                request.organization_id
+            );
+            const queryString = util.getQueryString('ds_p1_1_queue_activity_mapping_select', paramsArr);
             if (queryString !== '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (err) ? reject(err): resolve(data);
@@ -3298,7 +3357,7 @@ function ActivityCommonService(db, util, forEachAsync) {
     this.getActivityByFormTransaction = function (request) {
         return new Promise((resolve, reject) => {
             var paramsArr = new Array(
-                request.activity_id,
+                request.activity_id || 0,
                 request.form_transaction_id,
                 request.organization_id
             );
@@ -3402,25 +3461,38 @@ function ActivityCommonService(db, util, forEachAsync) {
         return [error, formData];
     }
 
-    this.getBotsMappedToActType = async (request) => {            
+    this.getBotsMappedToActType = async (request) => {
         let paramsArr = new Array(
-            request.flag || 1, 
-            request.organization_id, 
-            request.account_id, 
-            request.workforce_id, 
-            request.activity_type_id, 
-            request.field_id, 
-            request.form_id, 
+            request.flag || 1,
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_id,
+            request.field_id,
+            request.form_id,
             request.page_start,
             util.replaceQueryLimit(request.page_limit)
         );
         let queryString = util.getQueryString('ds_p1_bot_list_select', paramsArr);
+        if (queryString != '') {
+            return await (db.executeQueryPromise(1, queryString, request));
+        }
+    };
+
+    this.getFormDataByFormTransaction = async (request) => {        
+        var paramsArr = new Array(            
+            request.organization_id,
+            request.form_transaction_id
+        );
+
+        let queryString = util.getQueryString('ds_p1_activity_list_select_form_transaction', paramsArr);
+       
         if (queryString != '') {                
             return await (db.executeQueryPromise(1, queryString, request));
         }
     };
-    
-};
+
+}
 
 
 module.exports = ActivityCommonService;

@@ -365,6 +365,17 @@ function PamListingController(objCollection) {
     		res.send(responseWrapper.getResponse(err, data, -999, req.body));
         });    		
     });
+    
+    app.post('/' + global.config.version + '/pam/activity_type/order/list', async function (req, res) {
+        const [err, data] = await pamListingService.pamOrderListSelectActivityType(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("Error: ", err)
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+
+    });
 }
 ;
 module.exports = PamListingController;

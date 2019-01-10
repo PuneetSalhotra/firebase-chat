@@ -9,7 +9,7 @@ function BotController(objCollection) {
 
     var responseWrapper = objCollection.responseWrapper;
     var app = objCollection.app;
-    const util = objCollection.util;
+    //const util = objCollection.util;
     //const cacheWrapper = objCollection.cacheWrapper;
     //const queueWrapper = objCollection.queueWrapper;
     //const activityCommonService = objCollection.activityCommonService;
@@ -28,8 +28,8 @@ function BotController(objCollection) {
     
     //Retrieve the workflow steps of a specific bot
     app.post('/' + global.config.version + '/bot/mapping/workflow_step/list', async (req, res) => {
-        try {
-            console.log(req.body);
+        try {            
+            global.logger.write('conLog', req.body,{},{});
             let result = await botService.getBotworkflowSteps(req.body);
             res.send(responseWrapper.getResponse(false, result, 200, req.body));
         } catch(err) {
@@ -43,8 +43,8 @@ function BotController(objCollection) {
         try {
             let result = await botService.initBotEngine(req.body);
             res.send(responseWrapper.getResponse(false, result, 200, req.body));
-        } catch(err) {
-            console.log(err);
+        } catch(err) {            
+            global.logger.write('conLog', err,{},{});
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
@@ -58,6 +58,6 @@ function BotController(objCollection) {
         }
     });
     
-};
+}
 
 module.exports = BotController;

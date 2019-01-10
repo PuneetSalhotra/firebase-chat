@@ -415,6 +415,10 @@ if (mode === 'prod') {
 //Android
 config.platformApplicationAndroid = "arn:aws:sns:ap-south-1:430506864995:app/GCM/worldDeskAndroidPush";
 
+//World Desk IOS normal Push platform endpoints
+config.platformApplicationIosWorldDeskDevGR = 'arn:aws:sns:ap-south-1:430506864995:app/APNS_SANDBOX/worldDeskIOSDevPush';
+config.platformApplicationIosWorldDeskProdGR = 'arn:aws:sns:ap-south-1:430506864995:app/APNS/worldDeskIOSProdPush';
+
 //Service Desk IOS normal Push platform endpoints
 config.platformApplicationIosSDPushDev = 'arn:aws:sns:ap-south-1:430506864995:app/APNS_SANDBOX/serviceDeskIOSDevPush';
 config.platformApplicationIosSDPushProd = 'arn:aws:sns:ap-south-1:430506864995:app/APNS/serviceDeskIOSProdPush';

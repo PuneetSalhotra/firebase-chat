@@ -19,7 +19,7 @@ function ActivityTimelineService(objectCollection) {
 
     this.addTimelineTransaction = function (request, callback) {
 
-        const self = this;
+        //const self = this;
         let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         let activityTypeCategoryId = Number(request.activity_type_category_id);
@@ -43,7 +43,14 @@ function ActivityTimelineService(objectCollection) {
                         global.logger.write('debug', "\x1b[35m [Log] Non Dedicated File \x1b[0m",{}, request);
                         request.data_activity_id = Number(data[0].activity_id); //Dedicated file activity id
                         request.non_dedicated_file = 1;
-                        retrievingFormIdandProcess(request, data).then(()=>{});                   
+                        //retrievingFormIdandProcess(request, data).then(()=>{});                   
+
+                        if(Number(request.organization_id) === 860 || Number(request.organization_id) === 858) { 
+                            retrievingFormIdandProcess(request, data).then(()=>{});
+                        } else {
+                            timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
+                        }
+                        
                     } else {
                         global.logger.write('debug', "\x1b[35m [Log] Activity_ID from request is same as retrived Activity_id hence checking for device os id 7 \x1b[0m",{}, request);
                         global.logger.write('debug', "\x1b[35m [Log] Dedicated File \x1b[0m",{}, request);
@@ -55,7 +62,7 @@ function ActivityTimelineService(objectCollection) {
                             if(Number(request.organization_id) === 860 || Number(request.organization_id) === 858) { 
                                 retrievingFormIdandProcess(request, data).then(()=>{});
                             } else {
-                                timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request)});
+                                timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
                             }
                             
                             //Form Transaction Insertion should happen only for dedicated files
@@ -76,7 +83,7 @@ function ActivityTimelineService(objectCollection) {
                         if(Number(request.organization_id) === 860 || Number(request.organization_id) === 858) { 
                             retrievingFormIdandProcess(request, data).then(()=>{});
                         } else {
-                            timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request)});
+                            timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
                         }
                         
                         //Form Transaction Insertion should happen only for dedicated files
@@ -92,20 +99,26 @@ function ActivityTimelineService(objectCollection) {
             }, 2000);
         } else if (activityTypeCategoryId === 9 && activityStreamTypeId === 713) {
             
-            timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request)});
+            timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
 
-        } else if (activityTypeCategoryId === 48 && (activityStreamTypeId === 713 || activityStreamTypeId === 705)) {
+        } else if (activityTypeCategoryId === 48 && (activityStreamTypeId === 713 || activityStreamTypeId === 705 || 
+            activityStreamTypeId === 715 || activityStreamTypeId === 716)) {
 
             request.non_dedicated_file = 1;
-            timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request)});
+            timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
 
         } else {
             
             request.form_id = 0;            
-            timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request)});
+            timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
         }
         
-        callback(false, {}, 200);
+        new Promise(()=>{
+            setTimeout(()=>{
+                callback(false, {}, 200);
+            }, 1500);
+        });
+        //callback(false, {}, 200);
     };
     
     function retrievingFormIdandProcess(request, data) {
@@ -166,10 +179,8 @@ function ActivityTimelineService(objectCollection) {
 
                         case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Company_Name:
                              newRequest.first_name = formEntry.field_value;
-                             break;                         
-                        case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Company_Name:
                              newRequest.contact_company = formEntry.field_value;
-                             break;                    
+                             break;                        
                         case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Number:                        
                              if(String(formEntry.field_value).includes('||')) {
                                 newRequest.contact_phone_country_code = String(formEntry.field_value).split('||')[0];
@@ -202,7 +213,7 @@ function ActivityTimelineService(objectCollection) {
             const CRM_ACKNOWLEDGEMENT_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CRM_ACKNOWLEDGEMENT;
             
             if (activityStreamTypeId === 705 && (Number(request.form_id) === Number(CRM_ACKNOWLEDGEMENT_FORM_ID))) {
-                console.log('CALLING approvalFormsSubmissionCheck')
+                console.log('CALLING approvalFormsSubmissionCheck');
                 const approvalCheckRequestEvent = {
                     name: "vodafoneService",
                     service: "vodafoneService",
@@ -308,7 +319,8 @@ function ActivityTimelineService(objectCollection) {
                 });
             }
             
-            timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request)});
+            timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
+            resolve();
         });
     }
     
@@ -385,7 +397,7 @@ function ActivityTimelineService(objectCollection) {
               resolve();
             }
         });
-    };
+    }
     
     //To update the workflow percentage
     this.workflowPercentageUpdate = async function(request) {
@@ -509,7 +521,7 @@ function ActivityTimelineService(objectCollection) {
             resolve();
         });
         
-    };
+    }
     
     //This is to support the feature - Not to increase unread count during timeline entry
     this.addTimelineTransactionV1 = function (request, callback) {
@@ -525,7 +537,7 @@ function ActivityTimelineService(objectCollection) {
             request.form_id = formDataJson[0]['form_id'];
             //console.log('form id extracted from json is: ' + formDataJson[0]['form_id']);
             global.logger.write('debug', 'form id extracted from json is: ' + formDataJson[0]['form_id'], {}, request);
-            var lastObject = formDataJson[formDataJson.length - 1]
+            var lastObject = formDataJson[formDataJson.length - 1];
             //console.log('Last object : ', lastObject)
             global.logger.write('debug', 'Last object : ' + JSON.stringify(lastObject, null, 2), {}, request);
             if (lastObject.hasOwnProperty('field_value')) {
@@ -822,8 +834,8 @@ function ActivityTimelineService(objectCollection) {
                         });
                     }
                 });
-            })
-        })
+            });
+        });
     }
 
 
@@ -936,7 +948,7 @@ function ActivityTimelineService(objectCollection) {
                         if (err === false) {
                             callback(false, {data: responseData}, 200);
                         } else {
-                            callback(false, {}, -9999)
+                            callback(false, {}, -9999);
                         }
                     });
                     return;
@@ -970,8 +982,8 @@ function ActivityTimelineService(objectCollection) {
                             callback(false, {data: responseData}, 200);
                             return;
                         } else {
-                            callback(false, {}, -9999)
-                            return
+                            callback(false, {}, -9999);
+                            return;
                         }
                     });
                     return;
@@ -1034,7 +1046,7 @@ function ActivityTimelineService(objectCollection) {
                             if (err === false) {
                                 callback(false, {data: responseData}, 200);
                             } else {
-                                callback(false, {}, -9999)
+                                callback(false, {}, -9999);
                             }
                         });
                         return;
@@ -1073,7 +1085,7 @@ function ActivityTimelineService(objectCollection) {
                         if (err === false) {
                             callback(false, {data: responseData}, 200);
                         } else {
-                            callback(false, {}, -9999)
+                            callback(false, {}, -9999);
                         }
                     });
                     return;
@@ -1195,6 +1207,9 @@ function ActivityTimelineService(objectCollection) {
             rowDataArr.activity_timeline_collection = {};
             rowDataArr.activity_timeline_url_title = '';
             rowDataArr.data_entity_inline = rowData['data_entity_inline'] || {};
+            rowDataArr.data_form_transaction_id = util.replaceDefaultNumber(rowData['data_form_transaction_id']);
+            rowDataArr.data_form_name = util.replaceDefaultString(rowData['data_form_name']);
+            rowDataArr.activity_title = util.replaceDefaultString(rowData['activity_title']);
 
             //Added for Beta
             rowDataArr.activity_timeline_url_title = util.replaceDefaultString(rowData['data_entity_text_3']);
@@ -1212,7 +1227,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_collection = {};
                             break;
                     }
-                    ;
+                    
                     break;
                 case 2: //  notepad
                     switch (rowData['timeline_stream_type_id']) {
@@ -1225,7 +1240,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_collection = {};
                             break;
                     }
-                    ;
+                    
                     break;
 
                 case 3: //plant // not yet defined
@@ -1240,7 +1255,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_text = '';
                             break;
                     }
-                    ;
+                    
                     break;
 
                 case 4: // employee id card
@@ -1261,7 +1276,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_text = '';
                             break;
                     }
-                    ;
+                    
                     break;
 
                 case 6: // external contact card
@@ -1276,7 +1291,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_text = '';
                             break;
                     }
-                    ;
+                    
                     break;
                 case 9: // form
                     switch (rowData['timeline_stream_type_id']) {
@@ -1303,7 +1318,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_url_preview = util.replaceDefaultString(rowData['data_entity_text_2']);
                             break;
                     }
-                    ;
+                 break;   
                 case 10: // document
                     switch (rowData['timeline_stream_type_id']) {
                         case 301:
@@ -1357,7 +1372,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_collection = rowData['data_entity_text_1'];
                             break;
                     }
-                    ;
+                    
                     break;
 
                 case 11: // Project
@@ -1381,7 +1396,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_url_preview = util.replaceDefaultString(rowData['data_entity_text_2']);
                             break;
                     }
-                    ;
+                    
                     break;
 
                 case 14: // Voice Call
@@ -1410,7 +1425,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_collection = {};
                             break;
                     }
-                    ;
+                    
                     break;
 
                 case 15: // Video Conference
@@ -1433,7 +1448,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_url_preview = util.replaceDefaultString(rowData['data_entity_text_2']);
                             break;
                     }
-                    ;
+                    
                     break;
 
                 case 32: // Customer Request
@@ -1467,7 +1482,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_collection = {};
                             break;
                     }
-                    ;
+                    
                     break;
 
                 case 33: // Visitor Request
@@ -1501,7 +1516,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_collection = {};
                             break;
                     }
-                    ;
+                    
                     break;
 
                 case 34: // Timecard
@@ -1535,13 +1550,13 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_collection = {};
                             break;
                     }
-                    ;
+                    
                     break;
                 default:
                     break;
 
             }
-            ;
+            
 
             responseData.push(rowDataArr);
             next();
@@ -1553,7 +1568,7 @@ function ActivityTimelineService(objectCollection) {
 
     var addFormEntries = function (request, callback) {
 
-        global.logger.write('debug', '\x1b[32m Inside the addFormEntries() function. \x1b[0m', {}, request);
+        global.logger.write('debug', '\x1b[32m In ActivtiyTimelineService - Inside the addFormEntries() function. \x1b[0m', {}, request);        
         
         let formDataJson;
         
@@ -1594,11 +1609,13 @@ function ActivityTimelineService(objectCollection) {
                 formDataJson = JSON.parse(request.incremental_form_data);
             }
             
-            console.log("[Incremental Form Data Submission] formDataJson: ", formDataJson)
+            console.log("[Incremental Form Data Submission] formDataJson: ", formDataJson);
         }
         
+        console.log('formDataJson : ', formDataJson);
+
         var approvalFields = new Array();
-        forEachAsync(formDataJson, function (next, row) {
+        forEachAsync(formDataJson, function (next, row) {            
             if (row.hasOwnProperty('data_type_combo_id')) {
                 var datatypeComboId = row.data_type_combo_id;
             } else
@@ -1698,9 +1715,20 @@ function ActivityTimelineService(objectCollection) {
                     params[18] = row.field_value;
                     break;
                 case 23:    //Phone Number with Country Code
-                    var phone = row.field_value.split('|');
+                    /*var phone = row.field_value.split('|');
                     params[13] = phone[0];  //country code
                     params[18] = phone[1];  //phone number
+                    break;*/
+                    var phone;
+                    if((row.field_value).includes('||')) {
+                        phone = row.field_value.split('||');
+                        params[13] = phone[0];  //country code
+                        params[18] = phone[1];  //phone number
+                    } else {
+                        phone = row.field_value.split('|');
+                        params[13] = phone[0];  //country code
+                        params[18] = phone[1];  //phone number
+                    }                        
                     break;
                 case 24:    //Gallery Image
                 case 25:    //Camera Front Image
@@ -1745,7 +1773,7 @@ function ActivityTimelineService(objectCollection) {
                 case 39:    //Flag
                     params[11] = row.field_value;
             }
-            ;
+            
 
             params.push('');                                                    //IN p_device_manufacturer_name VARCHAR(50)
             params.push('');                                                    // IN p_device_model_name VARCHAR(50)
@@ -1854,19 +1882,20 @@ function ActivityTimelineService(objectCollection) {
     
     function getActivityIdBasedOnTransId(request) {
         return new Promise((resolve, reject)=>{            
-            var paramsArr = new Array(
-	            request.organization_id,
-	            request.form_transaction_id            
-	        );
-	        var queryString = util.getQueryString('ds_p1_activity_list_select_form_transaction', paramsArr);
-	        if (queryString != '') {
-	            db.executeQuery(1, queryString, request, function (err, data) {
-	            	console.log('Data from getActivityIdBasedOnTransId : ', data);
-	                (err === false) ? resolve(data) : reject(err);	                
-	            });
-	        }
+            let paramsArr = new Array(
+                request.organization_id,
+                request.form_transaction_id            
+            );
+            let queryString = util.getQueryString('ds_p1_activity_list_select_form_transaction', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    console.log('Data from getActivityIdBasedOnTransId : ', data);
+                    (err === false) ? resolve(data) : reject(err);	                
+                });
+            }
         });
     }
+
 }
-;
+
 module.exports = ActivityTimelineService;

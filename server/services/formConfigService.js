@@ -24,7 +24,7 @@ function FormConfigService(objCollection) {
     const nodeUtil = require('util');
     const self = this;
 
-    console.log("[FormConfigService] Object.keys(objCollection): ", Object.keys(objCollection))
+    console.log("[FormConfigService] Object.keys(objCollection): ", Object.keys(objCollection));
 
     this.getOrganizationalLevelForms = function (request, callback) {
         var paramsArr = new Array();
@@ -236,10 +236,10 @@ function FormConfigService(objCollection) {
             if (queryString !== '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err) ? reject(err): resolve(data);
-                })
+                });
             }
         });
-    }
+    };
 
     //Added by V Nani Kalyan for BETA
     this.getRegisterForms = function (request, callback) {
@@ -324,6 +324,7 @@ function FormConfigService(objCollection) {
     };
 
     var formatFromsListing = function (data, callback) {
+        console.log(data);
         var responseData = new Array();
         data.forEach(function (rowData, index) {
 
@@ -375,7 +376,10 @@ function FormConfigService(objCollection) {
                 "log_datetime": util.replaceDefaultDatetime(rowData['log_datetime']),
                 "log_state": util.replaceDefaultNumber(rowData['log_state']),
                 "log_active": util.replaceDefaultNumber(rowData['log_active']),
-                "update_sequence_id": util.replaceDefaultNumber(rowData['update_sequence_id'])
+                "update_sequence_id": util.replaceDefaultNumber(rowData['update_sequence_id']),
+                "form_workflow_activity_type_id": util.replaceDefaultNumber(rowData['form_workflow_activity_type_id']),
+                "form_workflow_activity_type_name": util.replaceDefaultString(util.decodeSpecialChars(rowData['form_workflow_activity_type_name'])),
+                "form_flag_workflow_origin": util.replaceDefaultNumber(rowData['form_flag_workflow_origin'])
             };
             responseData.push(rowDataArr);
         }, this);
@@ -407,7 +411,7 @@ function FormConfigService(objCollection) {
                         callback(false, {}, 200);
                     }
                 } else {
-                    callback(err, data, -9999)
+                    callback(err, data, -9999);
                 }
             });
         }
@@ -499,7 +503,7 @@ function FormConfigService(objCollection) {
                     if (String(oldFieldValue).trim().length === 0) {
                         content = `In the ${newData.form_name}, the field ${newData.field_name} was updated to ${newFieldValue}`;
                     } else {
-                        content = `In the ${newData.form_name}, the field ${newData.field_name} was updated from ${oldFieldValue} to ${newFieldValue}`
+                        content = `In the ${newData.form_name}, the field ${newData.field_name} was updated from ${oldFieldValue} to ${newFieldValue}`;
                     }
 
                     let activityTimelineCollection = {
@@ -512,7 +516,7 @@ function FormConfigService(objCollection) {
                         activity_reference: [],
                         form_approval_field_reference: []
 
-                    }
+                    };
                     request.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
 
                     getLatestUpdateSeqId(request).then(async (data) => {
@@ -552,14 +556,14 @@ function FormConfigService(objCollection) {
                         const [formConfigError, formConfigData] = await workforceFormMappingSelect(request);
                         if (formConfigError !== false) {
                             // return [formConfigError, formConfigData];
-                            console.log("Error: ", formConfigError)
+                            console.log("Error: ", formConfigError);
                         
                         } else if (Number(formConfigData.length) > 0 && Number(formConfigData[0].form_flag_workflow_enabled) === 1) {
                             let workflowRequest = Object.assign({}, request);
                             try {
-                                self.workflowOnFormEdit(workflowRequest)
+                                self.workflowOnFormEdit(workflowRequest);
                             } catch (error) {
-                                console.log("[alterFormActivity] Workflow trigger on form edit: ", error)
+                                console.log("[alterFormActivity] Workflow trigger on form edit: ", error);
                             }
                         }
 
@@ -711,7 +715,7 @@ function FormConfigService(objCollection) {
                 request.field_id,
                 request.organization_id
             );
-            queryString = util.getQueryString('ds_p1_activity_form_transaction_select_field_sequence_id', paramsArr);
+            let queryString = util.getQueryString('ds_p1_activity_form_transaction_select_field_sequence_id', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     //console.log('data from getLatestUpdateSeqId : ', data);
@@ -719,7 +723,7 @@ function FormConfigService(objCollection) {
                 });
             }
         });
-    };
+    }
 
     function putLatestUpdateSeqId(request, activityInlineData) {
         return new Promise((resolve, reject) => {
@@ -862,7 +866,7 @@ function FormConfigService(objCollection) {
                         break;
                     case 39: //Flag
                         params[11] = row.field_value;
-                };
+                }
 
                 params.push(''); //IN p_device_manufacturer_name VARCHAR(50)
                 params.push(''); // IN p_device_model_name VARCHAR(50)
@@ -880,9 +884,9 @@ function FormConfigService(objCollection) {
                 params.push(request.datetime_log); // IN p_entity_datetime_2 DATETIME            
                 params.push(request.update_sequence_id);
 
-                global.logger.write('debug', '\x1b[32m addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
+                global.logger.write('debug', '\x1b[32m In formConfigService - addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
 
-                queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
+                let queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
                 if (queryString != '') {
                     db.executeQuery(0, queryString, request, function (err, data) {
                         next();
@@ -893,7 +897,7 @@ function FormConfigService(objCollection) {
                 resolve();
             });
         });
-    };
+    }
 
 
     this.getFormFieldComboValues = function (request) {
@@ -920,7 +924,7 @@ function FormConfigService(objCollection) {
                 });
             }
 
-        })
+        });
     };
 
     function fetchReferredFormActivityId(request, activityId, formTransactionId, formId) {
@@ -939,10 +943,10 @@ function FormConfigService(objCollection) {
             if (queryString !== '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (err) ? reject(err): resolve(data);
-                })
+                });
             }
-        })
-    };
+        });
+    }
 
     function fire713OnNewOrderFileForDedicatedFile(request) {
         return new Promise((resolve, reject) => {
@@ -998,6 +1002,77 @@ function FormConfigService(objCollection) {
         });
     }
 
+    this.getFormTransactionData = function (request) {
+        return new Promise((resolve, reject) => {
+            var queryString = 'ds_v1_1_activity_form_transaction_select_transaction';
+            var paramsArr = new Array(
+                request.organization_id,
+                request.form_transaction_id,
+                request.form_id
+            );
+            db.executeRecursiveQuery(1, 0, 10, queryString, paramsArr, function (err, data) {
+                if (err === false) {
+                    /*	processFormTransactionData(request, data).then((finalData)=>{
+  	               			//console.log("finalData : "+finalData);
+  	               			resolve(finalData);
+  	               		});   */
+                    resolve(data);
+                } else {
+                    reject(err);
+                }
+            });
+        });
+    };
+
+    function processFormTransactionData(request, data) {
+        return new Promise((resolve, reject) => {
+            var formData = [];
+            var counter = -1;
+
+            forEachAsync(data, (next, dataArray) => {
+                console.log(dataArray.length);
+                forEachAsync(dataArray, (next1, fieldData) => {
+                    console.log("fieldData.field_id " + fieldData.field_id);
+                    var formattedFieldData = {};
+                    formattedFieldData.field_id = fieldData.field_id;
+                    formattedFieldData.field_name = fieldData.field_name;
+                    formattedFieldData.form_id = fieldData.form_id;
+                    formattedFieldData.form_name = fieldData.form_name;
+                    formattedFieldData.form_transaction_datetime = fieldData.form_transaction_datetime;
+                    formattedFieldData.form_transaction_id = fieldData.form_transaction_id;
+                    formattedFieldData.field_sequence_id = fieldData.field_sequence_id;
+                    formattedFieldData.data_type_id = fieldData.data_type_id;
+                    formattedFieldData.data_entity_date_1 = fieldData.data_entity_date_1;
+                    formattedFieldData.data_entity_date_2 = fieldData.data_entity_date_2;
+                    formattedFieldData.data_entity_datetime_1 = fieldData.data_entity_datetime_1;
+                    formattedFieldData.data_entity_datetime_2 = fieldData.data_entity_datetime_2;
+                    formattedFieldData.data_entity_text_1 = fieldData.data_entity_text_1;
+                    formattedFieldData.data_entity_text_2 = fieldData.data_entity_text_2;
+                    formattedFieldData.data_entity_text_3 = fieldData.data_entity_text_3;
+                    formattedFieldData.data_entity_tinyint_1 = fieldData.data_entity_tinyint_1;
+                    formattedFieldData.data_entity_tinyint_2 = fieldData.data_entity_tinyint_2;
+                    formattedFieldData.data_entity_bigint_1 = fieldData.data_entity_bigint_1;
+                    formattedFieldData.data_entity_bigint_2 = fieldData.data_entity_bigint_2;
+                    formattedFieldData.data_entity_double_1 = fieldData.data_entity_double_1;
+                    formattedFieldData.data_entity_double_2 = fieldData.data_entity_double_2;
+                    formattedFieldData.data_entity_decimal_1 = fieldData.data_entity_decimal_1;
+                    formattedFieldData.data_entity_decimal_2 = fieldData.data_entity_decimal_2;
+                    formattedFieldData.data_entity_decimal_3 = fieldData.data_entity_decimal_3;
+                    formattedFieldData.data_entity_cloud_path = fieldData.data_entity_cloud_path;
+                    formattedFieldData.log_datetime = fieldData.log_datetime;
+                    formData[++counter] = formattedFieldData;
+                    next1();
+                }).then(() => {
+                    next();
+                })
+            }).then(() => {
+                console.log(formData.length);
+                resolve(formData);
+            })
+
+        });
+    };
+
     this.formAdd = async function (request) {
 
         let formId = 0,
@@ -1023,13 +1098,13 @@ function FormConfigService(objCollection) {
                     request.datetime_log = util.getCurrentUTCTime();
                     activityCommonService.updateAssetLocation(request, () => {});
 
-                    formFields = JSON.parse(request.form_fields)
+                    formFields = JSON.parse(request.form_fields);
 
                     formFields.unshift({
                         label: request.form_name,
                         description: 'Form Name',
                         datatypeid: 19
-                    })
+                    });
 
                     for (const formField of formFields) {
                         let fieldName = (typeof formField.label == 'undefined') ? formField.title : formField.label;
@@ -1077,7 +1152,7 @@ function FormConfigService(objCollection) {
                                 await workforceFormFieldMappingHistoryInsert(request, {
                                     field_id: fieldId,
                                     data_type_combo_id: index + 1
-                                })
+                                });
                             }
 
                             // Reset fieldId to 0, so it can be re-used by other fields
@@ -1104,7 +1179,7 @@ function FormConfigService(objCollection) {
                                     await workforceFormFieldMappingHistoryInsert(request, {
                                         field_id: Number(fieldData[0].p_field_id),
                                         data_type_combo_id: 0
-                                    })
+                                    });
                                 });
                         }
 
@@ -1116,13 +1191,13 @@ function FormConfigService(objCollection) {
                 formData = newFormData;
             })
             .catch((err) => {
-                console.log("Error: ", err)
+                console.log("Error: ", err);
                 error = err;
                 formData = [];
-            })
+            });
 
         return [error, formData];
-    }
+    };
 
     function workforceFormMappingInsert(request) {
         return new Promise((resolve, reject) => {
@@ -1154,7 +1229,7 @@ function FormConfigService(objCollection) {
             if (queryString !== '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err) ? reject(err): resolve(data);
-                })
+                });
             }
         });
     }
@@ -1188,7 +1263,7 @@ function FormConfigService(objCollection) {
             if (queryString !== '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err) ? reject(err): resolve(data);
-                })
+                });
             }
         });
     }
@@ -1207,7 +1282,7 @@ function FormConfigService(objCollection) {
             if (queryString !== '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err) ? reject(err): resolve(data);
-                })
+                });
             }
         });
     }
@@ -1228,7 +1303,7 @@ function FormConfigService(objCollection) {
             if (queryString !== '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err) ? reject(err): resolve(data);
-                })
+                });
                 // await sleep(500);
                 // console.log("workforceFormFieldMappingHistoryInsert | ", queryString)
                 // resolve([{field_id: 7777}])
@@ -1251,7 +1326,7 @@ function FormConfigService(objCollection) {
         // ...
         // 
         return [error, formFieldMappingData];
-    }
+    };
 
     async function workforceFormFieldMappingSelect(request) {
         // IN p_organization_id BIGINT(20), IN p_account_id bigint(20), 
@@ -1279,7 +1354,7 @@ function FormConfigService(objCollection) {
                 })
                 .catch((err) => {
                     error = err;
-                })
+                });
         }
 
         return [error, formFieldMappingData];
@@ -1298,7 +1373,7 @@ function FormConfigService(objCollection) {
         // 
         return [error, workflowFormsData];
 
-    }
+    };
 
     async function workforceFormMappingSelectWorkflowForms(request) {
         // IN p_flag SMALLINT(6), IN p_organization_id BIGINT(20), IN p_account_id bigint(20), 
@@ -1349,7 +1424,7 @@ function FormConfigService(objCollection) {
                 })
                 .catch((err) => {
                     error = err;
-                })
+                });
         }
 
         return [error, workflowFormsData];
@@ -1371,7 +1446,7 @@ function FormConfigService(objCollection) {
         // 
         return [error, workflowFormSubmittedStatusList];
 
-    }
+    };
 
     async function activityTimelineTransactionSelectActivityForm(request, activityId, formId) {
         // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_activity_id BIGINT(20), 
@@ -1398,7 +1473,7 @@ function FormConfigService(objCollection) {
                 })
                 .catch((err) => {
                     error = err;
-                })
+                });
         }
 
         return [error, workflowFormsTimelineTransactionData];
@@ -1442,7 +1517,7 @@ function FormConfigService(objCollection) {
             formUpdateStatus,
             formFieldUpdateStatus
         }];
-    }
+    };
 
     // RESET
     this.resetActivityTypeAndConfig = async function (request) {
@@ -1482,7 +1557,7 @@ function FormConfigService(objCollection) {
             formUpdateStatus,
             formFieldUpdateStatus
         }];
-    }
+    };
 
     async function workforceFormMappingUpdateWorkflow(request) {
         // IN p_flag TINYINT(4), IN p_activity_type_id BIGINT(20), IN p_is_workflow TINYINT(4), 
@@ -1514,7 +1589,7 @@ function FormConfigService(objCollection) {
                 })
                 .catch((err) => {
                     error = err;
-                })
+                });
         }
 
         return [error, updateStatus];
@@ -1550,7 +1625,7 @@ function FormConfigService(objCollection) {
                 })
                 .catch((err) => {
                     error = err;
-                })
+                });
         }
 
         return [error, updateStatus];
@@ -1582,14 +1657,14 @@ function FormConfigService(objCollection) {
                     .getActivityIdPromise()
                     .then((id) => {
                         if (Number(id) === 0) {
-                            throw new Error("ErrorGettingActivityId")
+                            throw new Error("ErrorGettingActivityId");
                         }
                         activityId = id;
                     })
                     .catch((err) => {
-                        console.log("Error 2: ", err)
+                        console.log("Error 2: ", err);
                         return [err, formConfigData];
-                    })
+                    });
 
                 global.logger.write('debug', "New activityId is :" + activityId, {}, request);
 
@@ -1607,6 +1682,37 @@ function FormConfigService(objCollection) {
                 await addActivityAsync(createWorkflowRequest);
 
                 workflowActivityId = Number(activityId);
+
+                // Trigger Bot Engine
+                // Bot Engine Trigger
+                try {
+                    let botEngineRequest = Object.assign({}, request);
+                    botEngineRequest.form_id = request.activity_form_id;
+                    botEngineRequest.field_id = 0;
+                    botEngineRequest.flag = 3;
+                    botEngineRequest.workflow_activity_id = workflowActivityId;
+
+                    const [formConfigError, formConfigData] = await activityCommonService.workforceFormMappingSelect(botEngineRequest);
+                    if (
+                        (formConfigError === false) &&
+                        (Number(formConfigData.length) > 0) &&
+                        (Number(formConfigData[0].form_flag_workflow_enabled) === 1)
+                    ) {
+                        // Proceeding because there was no error found, there were records returned
+                        // and form_flag_workflow_enabled is set to 1
+                        let botsListData = await activityCommonService.getBotsMappedToActType(botEngineRequest);
+                        if (botsListData.length > 0) {
+                            botEngineRequest.bot_id = botsListData[0].bot_id;
+
+                            await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
+                                .then((resp) => {
+                                    global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
+                                });
+                        }
+                    }
+                } catch (botInitError) {
+                    global.logger.write('error', botInitError, botInitError, botEngineRequest);
+                }
 
             }
 
@@ -1642,7 +1748,7 @@ function FormConfigService(objCollection) {
         return [formConfigError, {
             formConfigData
         }];
-    }
+    };
 
     async function workforceFormMappingSelect(request, activityId, formId) {
         // IN p_organization_id BIGINT(20), IN p_account_id bigint(20), 
@@ -1667,7 +1773,7 @@ function FormConfigService(objCollection) {
                 })
                 .catch((err) => {
                     error = err;
-                })
+                });
         }
 
         return [error, formData];
@@ -1698,7 +1804,7 @@ function FormConfigService(objCollection) {
         }
         workflowActivityId = Number(workflowData[0].activity_id);
         console.log("workflowActivityId: ", workflowActivityId);
-        
+
         // Make a 713 timeline transaction entry in the workflow file
         let workflowFile713Request = Object.assign({}, request);
         workflowFile713Request.activity_id = workflowActivityId;
@@ -1740,7 +1846,7 @@ function FormConfigService(objCollection) {
             }
         }
 
-        if (botId > 0) {
+        /*if (botId > 0) {
             try {
                 let newRequest = Object.assign({}, request);
                 newRequest.bot_id = botId;
@@ -1748,21 +1854,18 @@ function FormConfigService(objCollection) {
                 result = await botService.getBotworkflowSteps(newRequest);
                 if (result.length > 0) {
                     result.forEach(botOperation => {
-                        console.log("botOperation.bot_operation_type_id: ", Number(botOperation.bot_operation_type_id))
+                        console.log("botOperation.bot_operation_type_id: ", Number(botOperation.bot_operation_type_id));
                         if (Number(botOperation.bot_operation_type_id) === 3) {
                             copyFormFieldOperation = botOperation;
                         }
                     });
                 }
-                // return [false, {
-                //     result
-                // }];
             } catch (error) {
                 return [error, {
                     result: []
                 }];
             }
-        }
+        }*/
 
         let targetFormActivityId = 0,
             targetFormTransactionId = 0,
@@ -1775,9 +1878,9 @@ function FormConfigService(objCollection) {
             let botOperationInlineData = JSON.parse(copyFormFieldOperation.bot_operation_inline_data);
             let formFieldMapping = botOperationInlineData.bot_operations.form_field_copy;
 
-            console.log("formFieldMapping: ", formFieldMapping)
-            if (formFieldMapping.length > 0) {
-                
+            console.log("formFieldMapping: ", formFieldMapping);
+            //if (formFieldMapping.length > 0) {
+
                 let fieldCopyOperations = [];
                 for (const mapping of formFieldMapping) {
                     // console.log("[formFieldMapping] mapping: ", mapping)
@@ -1789,17 +1892,17 @@ function FormConfigService(objCollection) {
                     ) {
                         console.log("Match Found: ", mapping);
                         fieldCopyOperations.push(mapping);
-                        // await activityCommonService
-                        //     .getActivityTimelineTransactionByFormId713(request, workflowActivityId, mapping.target_form_id)
-                        //     .then((targetFormData) => {
-                        //         if (targetFormData.length > 0) {
-                        //             targetFormActivityId = Number(targetFormData[0].data_activity_id);
-                        //             // targetFormActivityId = 152002;
-                        //             targetFormTransactionId = Number(targetFormData[0].data_form_transaction_id);
-                        //             targetFormInlineData = JSON.parse(targetFormData[0].data_entity_inline);
-                        //             targetFormName = targetFormData[0].data_form_name;
-                        //         }
-                        //     })
+                         await activityCommonService
+                             .getActivityTimelineTransactionByFormId713(request, workflowActivityId, mapping.target_form_id)
+                             .then((targetFormData) => {
+                                 if (targetFormData.length > 0) {
+                                     targetFormActivityId = Number(targetFormData[0].data_activity_id);
+                                     // targetFormActivityId = 152002;
+                                     targetFormTransactionId = Number(targetFormData[0].data_form_transaction_id);
+                                     targetFormInlineData = JSON.parse(targetFormData[0].data_entity_inline);
+                                     targetFormName = targetFormData[0].data_form_name;
+                                 }
+                             });
 
                         // 
                         // if (Array.isArray(targetFormInlineData.form_submitted) === true || typeof targetFormInlineData.form_submitted === 'object') {
@@ -1832,36 +1935,55 @@ function FormConfigService(objCollection) {
                 newRequest.bot_id = botId;
                 newRequest.bot_operation_id = botOperationId;
                 newRequest.activity_type_id = formWorkflowActivityTypeId;
+                newRequest.target_form_transaction_id = targetFormTransactionId;
+                newRequest.target_activity_id = targetFormActivityId;
+                newRequest.workflow_activity_id = workflowActivityId;
                 newRequest.inline_data = JSON.stringify({
                     "bot_operations": {
                         "form_field_copy": fieldCopyOperations
                     }
                 });
                 try {
-                    botService.initBotEngine(newRequest);
+                    setTimeout(()=>{
+                        botService.initBotEngine(newRequest);
+                    }, 2500);
                 } catch (error) {
                     global.logger.write('conLog', 'botService.initBotEngine Error!', error, {}); 
-                    console.log("botService.initBotEngine Error!", error)
+                    console.log("botService.initBotEngine Error!", error);
                 }
-            }
+            //}
 
+        } else {
+            let newRequest = Object.assign({}, request);
+                newRequest.bot_id = botId;                
+                newRequest.activity_type_id = formWorkflowActivityTypeId;
+                newRequest.target_form_transaction_id = targetFormTransactionId;
+                newRequest.target_activity_id = targetFormActivityId;
+                newRequest.workflow_activity_id = workflowActivityId;                
+                try {
+                    setTimeout(()=>{
+                        botService.initBotEngine(newRequest);
+                    }, 3000);
+                } catch (error) {
+                    global.logger.write('conLog', 'botService.initBotEngine Error!', error, {}); 
+                    console.log("botService.initBotEngine Error!", error);
+                }
         }
 
-        console.log()
-        console.log()
-        console.log()
-        console.log("targetFormActivityId: ", targetFormActivityId)
-        console.log("targetFormTransactionId: ", targetFormTransactionId)
+        console.log();
+        console.log();
+        console.log("targetFormActivityId: ", targetFormActivityId);
+        console.log("targetFormTransactionId: ", targetFormTransactionId);
         // console.log("targetFormInlineData: ", targetFormInlineData)
-        console.log("targetFormSubmittedData: ", targetFormSubmittedData)
-        console.log("targetFormName: ", targetFormName)
+        console.log("targetFormSubmittedData: ", targetFormSubmittedData);
+        console.log("targetFormName: ", targetFormName);
 
         return [formConfigError, {
             formConfigData
         }];
 
 
-    }
+    };
 
     async function fetchReferredFormActivityIdAsync(request, activityId, formTransactionId, formId) {
         // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
@@ -1891,12 +2013,12 @@ function FormConfigService(objCollection) {
                 })
                 .catch((err) => {
                     error = err;
-                })
+                });
         }
 
         return [error, formData];
     }
 
-};
+}
 
 module.exports = FormConfigService;
