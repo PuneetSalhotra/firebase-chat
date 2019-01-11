@@ -148,14 +148,17 @@ function ActivityTimelineService(objectCollection) {
             
             // Triggering BOT 1
             if ((Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER))) {
-                        global.logger.write('debug', "\x1b[35m [Log] Triggering the BOT 1 \x1b[0m", {}, request);
                         
-                        //makeRequest to /vodafone/neworder_form/queue/add
-                        let newRequest = Object.assign({}, request);
-                        newRequest.activity_inline_data = {};
-                        activityCommonService.makeRequest(newRequest, "vodafone/neworder_form/queue/add", 1).then((resp)=>{
-                               global.logger.write('debug', resp, {}, request);
-                        });
+                        if(Number(request.organization_id) !== 868) {
+                            global.logger.write('debug', "\x1b[35m [Log] Triggering the BOT 1 \x1b[0m", {}, request);
+                        
+                            //makeRequest to /vodafone/neworder_form/queue/add
+                            let newRequest = Object.assign({}, request);
+                            newRequest.activity_inline_data = {};
+                            activityCommonService.makeRequest(newRequest, "vodafone/neworder_form/queue/add", 1).then((resp)=>{
+                                global.logger.write('debug', resp, {}, request);
+                            });
+                        }                        
             }
             
             //Triggering BOT 2

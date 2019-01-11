@@ -652,7 +652,7 @@ function FormConfigService(objCollection) {
                                 global.logger.write('debug', data, {}, request);
 
                                 if (data.length > 0) {
-                                    newOrderFormActivityId = Number(data[0].activity_id);
+                                    let newOrderFormActivityId = Number(data[0].activity_id);
 
                                     let fire713OnNewOrderFileRequest = Object.assign({}, request);
                                     fire713OnNewOrderFileRequest.activity_id = Number(newOrderFormActivityId);
@@ -1716,15 +1716,68 @@ function FormConfigService(objCollection) {
 
             }
 
-            if (isWorkflowEnabled) {
+            if (isWorkflowEnabled  && originFlagSet) {
+                let activityTitle = "Form Submitted";
+                if (Number(request.organization_id) === 868) {
+                    switch (Number(request.activity_form_id)) {
+                        case global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER:
+                            activityTitle = "New Order";
+                            break;
+                        case global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY:                                        
+                            activityTitle = "Order Supplementary";
+                            break;
+                        case global.vodafoneConfig[request.organization_id].FORM_ID.FR:                                        
+                            activityTitle = "Feasibility Report";
+                            break;
+                        case global.vodafoneConfig[request.organization_id].FORM_ID.CRM:                            
+                            activityTitle = "Customer Details";
+                            break;
+                        case global.vodafoneConfig[request.organization_id].FORM_ID.HLD:                                        
+                            activityTitle = "HLD Form";
+                            break;
+                        case global.vodafoneConfig[request.organization_id].FORM_ID.BC_HLD:
+                            activityTitle = "BC_HLD Form";
+                            break;
+                        case global.vodafoneConfig[request.organization_id].FORM_ID.NEW_CUSTOMER:
+                            activityTitle = "New Customer Form";
+                            break;
+                        case global.vodafoneConfig[request.organization_id].FORM_ID.EXISTING_CUSTOMER:
+                            activityTitle = "Existing Customer Form";
+                            break;
+                        case global.vodafoneConfig[request.organization_id].FORM_ID.OMT_APPROVAL:
+                            activityTitle = "OMT Approval Form";
+                            break;
+                        case global.vodafoneConfig[request.organization_id].FORM_ID.ACCOUNT_MANAGER_APPROVAL:
+                            activityTitle = "Account Manager Approval Form";
+                            break;
+                        case global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_APPROVAL:
+                            activityTitle = "Customer Approval Form";
+                            break;
+                        case global.vodafoneConfig[request.organization_id].FORM_ID.CAF:
+                            activityTitle = "CAF Form";
+                            break;
+                        default:
+                            activityTitle = "Form Submitted";
+                    }
+                }
+
                 let workflowFile713Request = Object.assign({}, request);
                 workflowFile713Request.activity_id = workflowActivityId;
                 workflowFile713Request.data_activity_id = Number(request.activity_id);
                 workflowFile713Request.form_transaction_id = Number(request.form_transaction_id);
                 workflowFile713Request.activity_timeline_collection = JSON.stringify({
-                    "mail_body": `Form Updated at ${moment().utcOffset('+05:30').format('LLLL')}`,
+                    /*"mail_body": `Form Updated at ${moment().utcOffset('+05:30').format('LLLL')}`,
                     "subject": "Form Name",
                     "content": `Form Name`,
+                    "asset_reference": [],
+                    "activity_reference": [],
+                    "form_approval_field_reference": [],
+                    "form_submitted": JSON.parse(request.activity_inline_data),
+                    "attachments": []*/
+
+                    "mail_body": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+                    "subject": activityTitle,                    
+                    "content": 'Form Submitted',
                     "asset_reference": [],
                     "activity_reference": [],
                     "form_approval_field_reference": [],
@@ -1794,6 +1847,7 @@ function FormConfigService(objCollection) {
         let workflowActivityId = 0,
             formWorkflowActivityTypeId = 0,
             botId = 0,
+            botTriggerId = 0,
             botOperationId = 0,
             copyFormFieldOperation = {};
 
@@ -1817,8 +1871,8 @@ function FormConfigService(objCollection) {
         workflowFile713Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
         workflowFile713Request.device_os_id = 8;
 
-        const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
-        await addTimelineTransactionAsync(workflowFile713Request);
+        //const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
+        //await addTimelineTransactionAsync(workflowFile713Request);
 
 
         if (Number(formConfigData.length) > 0) {
@@ -1835,6 +1889,7 @@ function FormConfigService(objCollection) {
                 let result = await botService.getBotsMappedToActType(newRequest);
                 if (result.length > 0) {
                     botId = result[0].bot_id;
+                    botTriggerId = result[0].bot_trigger_id;
                 }
                 // return [false, {
                 //     result
@@ -1931,43 +1986,48 @@ function FormConfigService(objCollection) {
                     }
                 }
 
-                let newRequest = Object.assign({}, request);
-                newRequest.bot_id = botId;
-                newRequest.bot_operation_id = botOperationId;
-                newRequest.activity_type_id = formWorkflowActivityTypeId;
-                newRequest.target_form_transaction_id = targetFormTransactionId;
-                newRequest.target_activity_id = targetFormActivityId;
-                newRequest.workflow_activity_id = workflowActivityId;
-                newRequest.inline_data = JSON.stringify({
-                    "bot_operations": {
-                        "form_field_copy": fieldCopyOperations
+                if(botTriggerId === 2) {
+                    let newRequest = Object.assign({}, request);
+                        newRequest.bot_id = botId;
+                        newRequest.bot_operation_id = botOperationId;
+                        newRequest.activity_type_id = formWorkflowActivityTypeId;
+                        newRequest.target_form_transaction_id = targetFormTransactionId;
+                        newRequest.target_activity_id = targetFormActivityId;
+                        newRequest.workflow_activity_id = workflowActivityId;
+                        newRequest.inline_data = JSON.stringify({
+                            "bot_operations": {
+                                "form_field_copy": fieldCopyOperations
+                            }
+                        });
+                    try {
+                        setTimeout(()=>{
+                            botService.initBotEngine(newRequest);
+                        }, 2500);
+                    } catch (error) {
+                        global.logger.write('conLog', 'botService.initBotEngine Error!', error, {}); 
+                        console.log("botService.initBotEngine Error!", error);
                     }
-                });
-                try {
-                    setTimeout(()=>{
-                        botService.initBotEngine(newRequest);
-                    }, 2500);
-                } catch (error) {
-                    global.logger.write('conLog', 'botService.initBotEngine Error!', error, {}); 
-                    console.log("botService.initBotEngine Error!", error);
                 }
+                
             //}
 
         } else {
-            let newRequest = Object.assign({}, request);
-                newRequest.bot_id = botId;                
-                newRequest.activity_type_id = formWorkflowActivityTypeId;
-                newRequest.target_form_transaction_id = targetFormTransactionId;
-                newRequest.target_activity_id = targetFormActivityId;
-                newRequest.workflow_activity_id = workflowActivityId;                
-                try {
-                    setTimeout(()=>{
-                        botService.initBotEngine(newRequest);
-                    }, 3000);
-                } catch (error) {
-                    global.logger.write('conLog', 'botService.initBotEngine Error!', error, {}); 
-                    console.log("botService.initBotEngine Error!", error);
-                }
+            if(botTriggerId === 2) {
+                let newRequest = Object.assign({}, request);
+                    newRequest.bot_id = botId;                
+                    newRequest.activity_type_id = formWorkflowActivityTypeId;
+                    newRequest.target_form_transaction_id = targetFormTransactionId;
+                    newRequest.target_activity_id = targetFormActivityId;
+                    newRequest.workflow_activity_id = workflowActivityId;                
+                    try {
+                        setTimeout(()=>{
+                            botService.initBotEngine(newRequest);
+                        }, 3000);
+                    } catch (error) {
+                        global.logger.write('conLog', 'botService.initBotEngine Error!', error, {}); 
+                        console.log("botService.initBotEngine Error!", error);
+                    }
+            }
         }
 
         console.log();
