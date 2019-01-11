@@ -863,7 +863,8 @@ function BotService(objectCollection) {
         global.logger.write('conLog', inlineData.workflow_percentage_contribution,{},{});
         newrequest.workflow_completion_percentage = inlineData.workflow_percentage_contribution;
         let wfCompletionPercentage = newrequest.workflow_completion_percentage;
-        let resp = await getQueueActivity(newrequest, newrequest.workflow_activity_id);        
+        //let resp = await getQueueActivity(newrequest, newrequest.workflow_activity_id);        
+        let resp = await getAllQueuesBasedOnActId(newrequest, newrequest.workflow_activity_id);
         global.logger.write('conLog', resp,{},{});
 
         if(Number(wfCompletionPercentage) !== 0 && resp.length > 0) {
@@ -872,35 +873,44 @@ function BotService(objectCollection) {
             newrequest.start_from = 0;
             newrequest.limit_value = 1;               
             
-            //Checking the queuemappingid
-            let queueActivityMappingData = await (activityCommonService.fetchQueueActivityMappingId({activity_id: newrequest.workflow_activity_id,
-                                                                                                     organization_id: newrequest.organization_id}, 
-                                                                                                     resp[0].queue_id));            
-            global.logger.write('conLog', 'queueActivityMappingData : ',{},{});
-            global.logger.write('conLog', queueActivityMappingData,{},{});
+            let queueActivityMappingData;
+            let data;
+            let queueActivityMappingId;
+            let queueActMapInlineData;
+
+            for(let i of resp){
             
-            if(queueActivityMappingData.length > 0){
-                let queueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;  
-                let queueActMapInlineData = JSON.parse(queueActivityMappingData[0].queue_activity_mapping_inline_data);
-                let obj = {};
-                
-                global.logger.write('conLog', 'queueActMapInlineData.length',Object.keys(queueActMapInlineData).length,{});
-                if(Object.keys(queueActMapInlineData).length === 0) {                    
-                    obj.queue_sort = {};                    
-                    obj.queue_sort.caf_completion_percentage = wfCompletionPercentage;
-                    queueActMapInlineData = obj;
+                //Checking the queuemappingid
+                queueActivityMappingData = await (activityCommonService.fetchQueueActivityMappingId({activity_id: newrequest.workflow_activity_id,
+                                                                                                        organization_id: newrequest.organization_id}, 
+                                                                                                        i.queue_id));            
+                global.logger.write('conLog', 'queueActivityMappingData : ',{},{});
+                global.logger.write('conLog', queueActivityMappingData,{},{});
+
+                if(queueActivityMappingData.length > 0){
+                    queueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;  
+                    queueActMapInlineData = JSON.parse(queueActivityMappingData[0].queue_activity_mapping_inline_data);
+                    let obj = {};
+
+                    global.logger.write('conLog', 'queueActMapInlineData.length',Object.keys(queueActMapInlineData).length,{});
+                    if(Object.keys(queueActMapInlineData).length === 0) {                    
+                        obj.queue_sort = {};                    
+                        obj.queue_sort.caf_completion_percentage = wfCompletionPercentage;
+                        queueActMapInlineData = obj;
                 } else {                    
                     //queueActMapInlineData.queue_sort.caf_completion_percentage += wfCompletionPercentage;
                     queueActMapInlineData.queue_sort.caf_completion_percentage = wfCompletionPercentage;
                 }                
                 global.logger.write('conLog', 'Updated Queue JSON : ',queueActMapInlineData,{});
-                
-                let data = await (activityCommonService.queueActivityMappingUpdateInlineData(newrequest, queueActivityMappingId, JSON.stringify(queueActMapInlineData)));                
+
+                data = await (activityCommonService.queueActivityMappingUpdateInlineData(newrequest, queueActivityMappingId, JSON.stringify(queueActMapInlineData)));                
                 global.logger.write('conLog', 'Updating the Queue Json : ',data,{});                
-                
-                activityCommonService.queueHistoryInsert(newrequest, 1402, queueActivityMappingId).then(()=>{});                
-                return [false, {}];
+
+                activityCommonService.queueHistoryInsert(newrequest, 1402, queueActivityMappingId).then(()=>{});
+                //return [false, {}];
+                }
             }
+            return [false, {}];
         } else {
             return [true, "Queue Not Available"];
         }

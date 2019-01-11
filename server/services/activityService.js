@@ -171,20 +171,16 @@ function ActivityService(objectCollection) {
                                         case global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER:
                                             activityTitle = "New Order";
                                             break;
-                                        case global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY:
-                                        case global.vodafoneConfig[request.organization_id].FORM_ID.OPTIONAL_ORDER_DETAILS:
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY:                                        
                                             activityTitle = "Order Supplementary";
                                             break;
-                                        case global.vodafoneConfig[request.organization_id].FORM_ID.FR:
-                                        case global.vodafoneConfig[request.organization_id].FORM_ID.FEASIBILITY_REPORT:
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.FR:                                        
                                             activityTitle = "Feasibility Report";
                                             break;
-                                        case global.vodafoneConfig[request.organization_id].FORM_ID.CRM:
-                                        case global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_DETAILS:
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.CRM:                            
                                             activityTitle = "Customer Details";
                                             break;
-                                        case global.vodafoneConfig[request.organization_id].FORM_ID.HLD:
-                                        case global.vodafoneConfig[request.organization_id].FORM_ID.SOLUTION_DETAILS:
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.HLD:                                        
                                             activityTitle = "HLD Form";
                                             break;
                                         case global.vodafoneConfig[request.organization_id].FORM_ID.BC_HLD:
@@ -3319,8 +3315,8 @@ function ActivityService(objectCollection) {
                     let queueId = Number(queue.queue_id);
                     let queueInlineData = JSON.parse(queue.queue_inline_data);
                     let isStatusMapped = false;
-                    console.log("queueId: ", queueId)
-                    console.log("queueInlineData: ", queueInlineData)
+                    console.log("queueId: ", queueId);
+                    console.log("queueInlineData: ", queueInlineData);
                     // Loop through each object of the queue's inline data and check
                     // whether the incoming activity status ID exists
                     for (const activityStatus of queueInlineData) {
@@ -3328,7 +3324,7 @@ function ActivityService(objectCollection) {
                             isStatusMapped = true;
                         }
                     }
-                    console.log("isStatusMapped: ", isStatusMapped)
+                    console.log("isStatusMapped: ", isStatusMapped);
                     if (isStatusMapped) {
                         // console.log("isStatusMapped: ", isStatusMapped)
                         await activityCommonService
@@ -3364,7 +3360,8 @@ function ActivityService(objectCollection) {
                                             }
                                         }))
                                         .then((queueActivityMappingData) => {
-                                            console.log("updateWorkflowQueueMapping | mapFileToQueue | queueActivityMapping: ", queueActivityMappingData);                                            
+                                            console.log("updateWorkflowQueueMapping | mapFileToQueue | queueActivityMapping: ", queueActivityMappingData);
+                                            activityCommonService.queueHistoryInsert(request, 1401, queueActivityMappingData[0].queue_activity_mapping_id).then(()=>{});
                                         })
                                         .catch((error) => {
 
