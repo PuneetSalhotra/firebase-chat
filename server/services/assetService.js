@@ -1384,7 +1384,7 @@ function AssetService(objectCollection) {
                     callback(false, true);
                 } else {
                     // some thing is wrong and have to be dealt
-                    callback(err, false);
+                    callback(false, false);
                 }
             });
         }
@@ -3285,7 +3285,166 @@ function AssetService(objectCollection) {
             });
         }
     };
+    
+    this.checkPamAssetPasscode = function (request, callback) {
+    	
+        var phoneNumber = util.cleanPhoneNumber(request.asset_phone_number);
+        var phoneCountryCode = util.cleanPhoneNumber(request.asset_phone_country_code);
+        var verificationCode = util.cleanPhoneNumber(request.verification_passcode);
+        var verificationType = Number(request.verification_method);
 
+		var paramsArr = new Array();
+		var queryString = "";
+		
+        if(request.hasOwnProperty('member_code')){
+        	
+        	var paramsArr = new Array(
+        			request.organization_id,
+	                request.account_id,
+	                request.member_code
+	            );
+        	queryString = util.getQueryString('ds_v1_asset_list_passcode_check_member', paramsArr);
+        	
+        }else{
+        	var paramsArr = new Array(
+        			request.organization_id,
+        			request.asset_phone_number,
+        			request.asset_phone_country_code
+        	    );
+        		
+        	queryString = util.getQueryString('pm_v1_asset_list_select_member_phone_number', paramsArr);
+        }
+
+		if (queryString != '') {
+		    db.executeQuery(1, queryString, request, function (err, data) {
+		    	 if (err === false) {
+		    		 if(data.length > 0){
+		    			 if(verificationCode == data[0].asset_email_password){
+		    				 callback(false, data, 200);
+		    			 }else{			    				 
+		    				 callback(false, {"Error":"OTP Mismatch"}, -3107);
+		    			 }
+		    		 }else{
+		    			 callback(false, {"Error":"Member Code or Phone Number Not Valid"}, -3202);
+		    		 }
+		    	 }else{
+		    		 callback(false, {"Error":"DB Error"}, -9998);
+		    	 }
+		    });
+		}
+
+    };
+
+    
+    this.getPamMemberPhoneNumberAsset = function (request, callback) {
+
+        var phoneNumber = util.cleanPhoneNumber(request.asset_phone_number);
+        var countryCode = util.cleanPhoneNumber(request.asset_phone_country_code);
+        var emailId = request.asset_email_id;
+        var verificationMethod = Number(request.verification_method);
+        var organizationId = request.organization_id;
+
+        var queryString = '';
+        
+        if(request.hasOwnProperty('member_code')){
+        	
+        	var paramsArr = new Array(
+	                organizationId,
+	                request.account_id,
+	                request.member_code
+	            );
+        	queryString = util.getQueryString('ds_v1_asset_list_passcode_check_member', paramsArr);
+        	
+        }else{
+        	console.log('phoneNumber: '+phoneNumber);
+        	console.log('countryCode: '+countryCode);
+	        var paramsArr = new Array(
+		                organizationId,
+		                phoneNumber,
+		                countryCode
+		            );
+			 queryString = util.getQueryString('pm_v1_asset_list_select_member_phone_number', paramsArr);
+        }
+		 
+
+		 if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, selectData) {
+                    if (err === false) {
+                        var verificationCode;
+                        verificationCode = util.getVerificationCode();
+                       if (selectData.length > 0) {
+                                 paramsArr = new Array(
+                                	selectData[0].organization_id,
+                                	selectData[0].account_id,
+                                	selectData[0].asset_id,                                    
+                                    verificationCode,
+                                    11031,
+                                    util.getCurrentUTCTime()
+                                );
+                                var updateQueryString = util.getQueryString('ds_v1_asset_list_update_pam_member_otp', paramsArr);
+                                db.executeQuery(0, updateQueryString, request, function (err, data) {
+                                    assetListHistoryInsert(request, selectData[0].asset_id, selectData[0].organization_id, 208, util.getCurrentUTCTime(), function (err, data) {
+
+                                    });                                  
+                                });
+                            
+                                sendCallOrSms(verificationMethod, selectData[0].asset_phone_country_code, selectData[0].asset_phone_number, verificationCode, request);
+                            callback(err, true, 200);
+                        }else{
+                        	callback(err, false, -9997);
+                        }
+                    } else {
+                        // some thing is wrong and have to be dealt                        
+                        callback(err, false, -9999);
+                    }
+                });
+            }else {
+            	callback(false, {}, -3101);
+            }
+    };
+    
+
+    this.getAssetTimelineData = async (request) => {        
+        let paramsArr = new Array(                
+            request.organization_id, 
+            request.workforce_id, 
+            request.asset_id, 
+            request.stream_type_id || 0,
+            request.page_start,
+            util.replaceQueryLimit(request.page_limit)
+        );
+        let queryString = util.getQueryString('ds_p1_asset_timeline_transaction_select_asset_stream_type', paramsArr);
+        if (queryString != '') {
+            return await (db.executeQueryPromise(1, queryString, request));                
+        }        
+    };    
+
+    this.geAssetGeoFenceCounts = async function (request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.flag,
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.page_start,
+            request.page_limit
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_select_geofence_count', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
 
 }
 

@@ -643,7 +643,7 @@ function ActivityUpdateService(objectCollection) {
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         var activityTypeCategoryId = Number(request.activity_type_category_id);
-
+        let activityStreamTypeId;
         activityCommonService.updateAssetLocation(request, function (err, data) {});
 
         activityListUpdateInline(request, function (err, data) {
@@ -669,8 +669,11 @@ function ActivityUpdateService(objectCollection) {
                             case 8: // Mail
                                 activityStreamTypeId = 1705;
                                 break;
+                            case 48:
                             case 9: //Form edit
-                                activityStreamTypeId = 710;
+                                // activityStreamTypeId = 710;
+                                activityStreamTypeId = 713;
+                                request.data_activity_id = Number(request.activity_id);
                                 break;
                             case 15: //Video Conference
                                 activityStreamTypeId = 1607;
@@ -733,7 +736,7 @@ function ActivityUpdateService(objectCollection) {
 
                     var options = {
                         form: newRequest
-                    }
+                    };
 
                     makeRequest.post(global.config.portalBaseUrl + global.config.version + '/asset/update/details', options, function (error, response, body) {
                         // console.log('body:', body);
@@ -797,13 +800,13 @@ function ActivityUpdateService(objectCollection) {
                         }
                     }) */
                 } //if category_id==4
-
+                callback(false, {}, 200);
             } else {
                 //callback(err, {}, -9999);
                 callback(false, true);
             }
         });
-    }
+    };
 
     this.alterActivityCover = function (request, callback) {
 

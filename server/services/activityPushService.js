@@ -84,7 +84,29 @@ function ActivityPushService(objectCollection) {
                             case '/' + global.config.version + '/activity/timeline/entry/add':
 
                                 pushString.title = senderName;
-                                pushString.description = 'Has added an update to the form: ' + activityTitle;
+                                pushString.description = 'Has added an update to the form: ' + activityTitle;                                
+                                
+                                const newOrderFormId = global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER;
+                                
+                                if(Number(activityData[0].form_id) === Number(newOrderFormId)) {
+                                    switch(Number(request.form_id)) {
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.FR:
+                                             pushString.description = 'Has added FR to ' + activityTitle;
+                                             break;
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.CRM:
+                                             pushString.description = 'Has added CRM to ' + activityTitle;
+                                             break;
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.HLD:
+                                             pushString.description = 'Has added HLD to ' + activityTitle;
+                                             break;
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.BC_HLD:
+                                             pushString.description = 'Has added BC/HLD to ' + activityTitle;
+                                             break;
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.CAF:
+                                             pushString.description = 'Has added CAF to ' + activityTitle;
+                                             break;
+                                    }
+                                }
 
                                 msg.activity_type_category_id = 9
                                 msg.type = 'activity_unread'
@@ -440,7 +462,7 @@ function ActivityPushService(objectCollection) {
                                 } else if (rowData.pushType == 'pub') {
                                     if (pubnubMsg.activity_type_category_id != 0) {
                                         pubnubMsg.organization_id = rowData.organizationId;
-                                        pubnubMsg.desk_asset_id = rowData.assetId
+                                        pubnubMsg.desk_asset_id = rowData.assetId;
                                         //console.log('PubNub Message : ', pubnubMsg);
                                         global.logger.write('debug', 'PubNub Message :' + JSON.stringify(pubnubMsg), {}, request);
                                         pubnubWrapper.push(rowData.organizationId, pubnubMsg);
@@ -498,12 +520,12 @@ function ActivityPushService(objectCollection) {
                         });
                     } else {
                         //console.log('push string is retrived as an empty object');
-                        global.logger.write('debug', 'push string is retrived as an empty object', {}, request)
+                        global.logger.write('debug', 'push string is retrived as an empty object', {}, request);
                         callback(false, true);
                     }
                 }.bind(this));
             }
-        }
+        };
 
         var pushReceivers = new Array();
         objectCollection.activityCommonService.getAllParticipants(request, function (err, participantsList) {
@@ -511,8 +533,8 @@ function ActivityPushService(objectCollection) {
                 var senderName = '';
                 var reqobj = {};
                 
-                global.logger.write('debug', 'request params in the activityPush Service', {}, request);
-                global.logger.write('debug', request, {}, request);
+                //global.logger.write('debug', 'request params in the activityPush Service', {}, request);
+                //global.logger.write('debug', request, {}, request);
 
                 objectCollection.activityCommonService.getAssetActiveAccount(participantsList)
                     .then((newParticipantsList) => {

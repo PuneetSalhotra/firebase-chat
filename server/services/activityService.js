@@ -11,8 +11,12 @@ function ActivityService(objectCollection) {
     var forEachAsync = objectCollection.forEachAsync;
     var queueWrapper = objectCollection.queueWrapper;
     var activityPushService = objectCollection.activityPushService;
-    var responseactivityData = {}
-    const suzukiPdfEngine = require('../utils/suzukiPdfGenerationEngine');     
+    var responseactivityData = {};
+    const suzukiPdfEngine = require('../utils/suzukiPdfGenerationEngine');
+    const moment = require('moment');
+
+    const ActivityListingService = require("../services/activityListingService");
+    const activityListingService = new ActivityListingService(objectCollection);
 
     this.addActivity = function (request, callback) {
 
@@ -69,6 +73,7 @@ function ActivityService(objectCollection) {
                         case 8: //  Mail
                             activityStreamTypeId = 1701;
                             break;
+                        case 48:
                         case 9: //form
                             activityStreamTypeId = 701;
                             break;
@@ -142,11 +147,101 @@ function ActivityService(objectCollection) {
                             //console.log('adding streamtype id 1');
                             global.logger.write('debug', 'adding streamtype id 1', {}, request);
                             break;
-                    };
+                    }
                     //console.log('streamtype id is: ' + activityStreamTypeId)
                     global.logger.write('debug', 'streamtype id is: ' + activityStreamTypeId, {}, request);
-                    assetActivityListInsertAddActivity(request, function (err, status) {
+                    assetActivityListInsertAddActivity(request, async function (err, status) {
                         if (err === false) {
+
+                            activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
+
+                            });
+                            activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
+
+                            });
+
+                            let activityTitle = "Form Submitted";
+
+                            if (activityTypeCategroyId === 9) {
+
+                                if (Number(request.organization_id) === 860 || Number(request.organization_id) === 858 ||
+                                Number(request.organization_id) === 868) {
+
+                                    switch (Number(request.activity_form_id)) {
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER:
+                                            activityTitle = "New Order";
+                                            break;
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY:                                        
+                                            activityTitle = "Order Supplementary";
+                                            break;
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.FR:                                        
+                                            activityTitle = "Feasibility Report";
+                                            break;
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.CRM:                            
+                                            activityTitle = "Customer Details";
+                                            break;
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.HLD:                                        
+                                            activityTitle = "HLD Form";
+                                            break;
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.BC_HLD:
+                                            activityTitle = "BC_HLD Form";
+                                            break;
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.NEW_CUSTOMER:
+                                            activityTitle = "New Customer Form";
+                                            break;
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.EXISTING_CUSTOMER:
+                                            activityTitle = "Existing Customer Form";
+                                            break;
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.OMT_APPROVAL:
+                                            activityTitle = "OMT Approval Form";
+                                            break;
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.ACCOUNT_MANAGER_APPROVAL:
+                                            activityTitle = "Account Manager Approval Form";
+                                            break;
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_APPROVAL:
+                                            activityTitle = "Customer Approval Form";
+                                            break;
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.CAF:
+                                            activityTitle = "CAF Form";
+                                            break;
+                                        default:
+                                            activityTitle = "Form Submitted";
+                                    }
+
+                                }
+
+                                let newRequest = Object.assign({}, request);
+
+                                // Fire a 705 request for this activity
+                                let activityTimelineCollectionFor705 = {
+                                    "mail_body": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+                                    "subject": activityTitle,
+                                    //"content": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+                                    "content": 'Form Submitted',
+                                    "asset_reference": [],
+                                    "activity_reference": [],
+                                    "form_approval_field_reference": [],
+                                    "form_submitted": JSON.parse(request.activity_inline_data),
+                                    "attachments": []
+                                };
+
+                                newRequest.data_activity_id = Number(request.activity_id);
+                                newRequest.activity_timeline_collection = JSON.stringify(activityTimelineCollectionFor705);
+                                newRequest.activity_stream_type_id = 705;
+                                newRequest.flag_timeline_entry = 1;
+                                newRequest.device_os_id = 7;
+                                newRequest.form_id = request.activity_form_id;
+
+                                let displayFileEvent = {
+                                    name: "addTimelineTransaction",
+                                    service: "activityTimelineService",
+                                    method: "addTimelineTransaction",
+                                    payload: newRequest
+                                };
+
+                                await queueWrapper.raiseActivityEventPromise(displayFileEvent, request.activity_id);
+                            }
+
                             if (activityTypeCategroyId === 10 && request.hasOwnProperty('owner_asset_id')) {
                                 if (request.owner_asset_id !== request.asset_id) {
                                     activityPushService.sendPush(request, objectCollection, 0, function () {});
@@ -164,21 +259,75 @@ function ActivityService(objectCollection) {
                             }
 
                             if (activityTypeCategroyId === 40) {
-                            	//if(request.hasOwnProperty('is_room_posting'))
-                            	activityCommonService.processReservationBilling(request, request.activity_parent_id).then(()=>{});
+                                //if(request.hasOwnProperty('is_room_posting'))
+                                activityCommonService.processReservationBilling(request, request.activity_parent_id).then(() => {});
                             }
-                            
-                            if (activityTypeCategroyId === 9) {                                
+
+                            if (activityTypeCategroyId === 9) {
                                 global.logger.write('debug', '*****ADD ACTIVITY :HITTING WIDGET ENGINE*******', {}, request);
                                 sendRequesttoWidgetEngine(request);
+                            }
+
+                            // Workflow Trigger
+                            if (activityTypeCategroyId === 9 && request.device_os_id !== 9) {
+                                
+                                if(request.device_os_id === 5) {
+                                    let workflowEngineRequest = Object.assign({}, request);
+
+                                    let workflowEngineEvent = {
+                                        name: "workflowEngine",
+                                        service: "formConfigService",
+                                        method: "workflowEngine",
+                                        payload: workflowEngineRequest
+                                    };
+
+                                    queueWrapper.raiseActivityEvent(workflowEngineEvent, request.activity_id, (err, resp) => {
+                                        (err) ?
+                                            global.logger.write('conLog', '\x1b[35m [ERROR] Raising queue activity raised for workflow engine. \x1b[0m', {}, {}):                                           
+                                            global.logger.write('conLog', '\x1b[35m Queue activity raised for workflow engine. \x1b[0m', {}, {});
+                                        
+                                    });
+                                }                                
+                            }
+
+                            // Bot Engine Trigger
+                            if (activityTypeCategroyId === 9 && request.device_os_id !== 9) {
+                                try {
+                                    let botEngineRequest = Object.assign({}, request);
+                                    botEngineRequest.form_id = request.activity_form_id;
+                                    botEngineRequest.field_id = 0;
+                                    botEngineRequest.flag = 3;
+
+                                    const [formConfigError, formConfigData] = await activityCommonService.workforceFormMappingSelect(botEngineRequest);
+                                    if (
+                                        (formConfigError === false) &&
+                                        (Number(formConfigData.length) > 0) &&
+                                        (Number(formConfigData[0].form_flag_workflow_enabled) === 1) && 
+                                        (Number(formConfigData[0].form_flag_workflow_origin) === 0)                                        
+                                    ) {
+                                        // Proceeding because there was no error found, there were records returned
+                                        // and form_flag_workflow_enabled is set to 1
+                                        let botsListData = await activityCommonService.getBotsMappedToActType(botEngineRequest);
+                                        if (botsListData.length > 0) {
+                                            botEngineRequest.bot_id = botsListData[0].bot_id;
+
+                                            await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
+                                                .then((resp) => {
+                                                    global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
+                                                });
+                                        }
+                                    }
+                                } catch (botInitError) {
+                                    global.logger.write('error', botInitError, botInitError, botEngineRequest);
                                 }
-                            
-                            activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
+                            }
+
+                            /*activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
 
                             });
                             activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
 
-                            });
+                            });*/
                             activityCommonService.activityListHistoryInsert(request, updateTypeId, function (err, restult) {
 
                             });
@@ -304,7 +453,7 @@ function ActivityService(objectCollection) {
                             } // end parent activity id condition
 
                             // console.log('request - ', request);
-                            global.logger.write('debug', 'request - ' + JSON.stringify(request, null, 2), {}, request);
+                            //global.logger.write('debug', 'request - ' + JSON.stringify(request, null, 2), {}, request);
 
                             if (request.activity_parent_id == 95670) { //For Marketing Manager reference //PROD - 95670 ; Staging - 93256
                                 //Create a timeline entry on this task
@@ -321,7 +470,11 @@ function ActivityService(objectCollection) {
                                 submitLeaveForms(request).then(() => {});
                             }*/
 
-                            callback(false, responseactivityData, 200);
+                            setTimeout(() => {
+                                callback(false, responseactivityData, 200);
+                            }, 10000);
+
+
                             cacheWrapper.setMessageUniqueIdLookup(request.message_unique_id, request.activity_id, function (err, status) {
                                 if (err) {
                                     //console.log("error in setting in message unique id look up");
@@ -330,14 +483,17 @@ function ActivityService(objectCollection) {
                                     //console.log("message unique id look up is set successfully")
                                     global.logger.write('debug', 'message unique id look up is set successfully', {}, request);
                             });
-                            return;
+                            //return;
                         } else {
                             // console.log("not inserted to asset activity list");
                             global.logger.write('debug', "not inserted to asset activity list", {}, request);
 
-                            callback(false, responseactivityData, 200);
+                            setTimeout(() => {
+                                callback(false, responseactivityData, 200);
+                            }, 10000);
                         }
-                    });
+
+                    }); //End of Asset List Insert Add
 
                     // Suzuki Form Submissions PDF Generation Logic
                     // 
@@ -398,8 +554,8 @@ function ActivityService(objectCollection) {
 
                                         queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
                                             if (err) {
-                                                console.log('Error in queueWrapper raiseActivityEvent : ', err)
-                                                console.log('Response from queueWrapper raiseActivityEvent : ', resp)
+                                                console.log('Error in queueWrapper raiseActivityEvent : ', err);
+                                                console.log('Response from queueWrapper raiseActivityEvent : ', resp);
 
                                                 throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                                             }
@@ -408,8 +564,9 @@ function ActivityService(objectCollection) {
                                 });
                             }
                         });
+                        callback(false, responseactivityData, 200);
                     }
-                    
+
                     // Tirggering BOT 1
                     /*if (activityTypeCategroyId === 9 && (Number(request.activity_form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER))) {
                         global.logger.write('debug', "\x1b[35m [Log] Triggering the BOT 1 \x1b[0m", {}, request);
@@ -433,9 +590,13 @@ function ActivityService(objectCollection) {
                     }*/
                     // 
                     // 
-                } else {
-                    callback(err, responseactivityData, -9999);
-                    return;
+
+                    //callback(false, responseactivityData, 200);                    
+                } else { //This is activityList Insert if(err === false) else part
+                    setTimeout(() => {
+                        callback(err, responseactivityData, -9999);
+                    }, 5000);
+                    //return;
                 }
             });
         }).catch((err) => {
@@ -631,14 +792,22 @@ function ActivityService(objectCollection) {
         });
     };
     var activityListInsert = function (request, callback) {
+        // console.log("Request | activityListInsert: ", request);
         var paramsArr = new Array();
-        var activityInlineData = JSON.parse(request.activity_inline_data);
+        var activityInlineData;
+
+        try {
+            activityInlineData = JSON.parse(request.activity_inline_data);
+        } catch (err) {
+            console.log(err);
+        }
+
         var activityTypeCategoryId = Number(request.activity_type_category_id);
         var activityChannelId = 0;
         var activityChannelCategoryId = 0;
         var activityStatusId = 0;
         var activityFormId = 0;
-        //var expiryDateTime = "";
+
         if (request.hasOwnProperty('activity_channel_id'))
             activityChannelId = request.activity_channel_id;
         if (request.hasOwnProperty('activity_channel_category_id'))
@@ -684,7 +853,7 @@ function ActivityService(objectCollection) {
                                 } else {
                                     return resolve();
                                 }
-                            })
+                            });
                         } else {
                             generateUniqueCode();
                         }
@@ -859,6 +1028,7 @@ function ActivityService(objectCollection) {
                         activityChannelCategoryId
                     );
                     break;
+                case 48:
                 case 9: // form
                     paramsArr = new Array(
                         request.activity_id,
@@ -953,7 +1123,7 @@ function ActivityService(objectCollection) {
                     break;
                 case 16: // Chat
                     var ownerAssetID = request.owner_asset_id;
-                    
+
                     paramsArr = new Array(
                         request.activity_id,
                         request.activity_title,
@@ -981,7 +1151,7 @@ function ActivityService(objectCollection) {
                         activityChannelCategoryId
                     );
                     break;
-                    
+
                     //PAM
                 case 37:
                     activitySubTypeId = 0;
@@ -1035,12 +1205,12 @@ function ActivityService(objectCollection) {
                         request.asset_id,
                         request.datetime_log, // server log date time   
                         activityFormId,
-                        0,
+                        request.form_transaction_id || 0,
                         activityChannelId,
                         activityChannelCategoryId
                     );
                     break;
-            };
+            }
             paramsArr.push(request.track_latitude);
             paramsArr.push(request.track_longitude);
             paramsArr.push(activitySubTypeId);
@@ -1126,7 +1296,7 @@ function ActivityService(objectCollection) {
                             }
 
                         } else {
-                            
+
                             // TimeCard Form Submission for Swipe In
                             var isTimeCardFormSubmission = (Number(request.activity_form_id) === 800) || (Number(request.activity_form_id) === 801) || (Number(request.activity_form_id) === 325);
                             if (activityTypeCategoryId === 9 && Number(request.swipe_flag) === 0 && isTimeCardFormSubmission) {
@@ -1231,7 +1401,7 @@ function ActivityService(objectCollection) {
                 // console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
                 global.logger.write('debug', err, err, request);
                 global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent : ' + JSON.stringify(resp, null, 2), err, request);
-                
+
                 throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
             } else {
                 // console.log('\x1b[36m%s\x1b[0m', 'Successfullly raised SWIPE IN activity event.');
@@ -1260,7 +1430,7 @@ function ActivityService(objectCollection) {
                 });
             }
         });
-    };
+    }
 
 
     function sendPushPam(request) {
@@ -1295,12 +1465,12 @@ function ActivityService(objectCollection) {
                             }
 
                             resolve();
-                        })
+                        });
                     }
                 });
             }
-        })
-    };
+        });
+    }
     var assetActivityListInsertAddActivity = function (request, callback) {
 
         var activityInlineData = JSON.parse(request.activity_inline_data);
@@ -1408,7 +1578,7 @@ function ActivityService(objectCollection) {
                 } else {
                     callback(err, data);
                     //console.log(err);
-                    global.logger.write('serverError', err, err, request)
+                    global.logger.write('serverError', err, err, request);
                     return;
                 }
             });
@@ -1535,7 +1705,7 @@ function ActivityService(objectCollection) {
                     });
                 } else {
                     //console.log('error while fetching from transaction data');
-                    global.logger.write('serverError', 'error while fetching from transaction data', {}, request)
+                    global.logger.write('serverError', 'error while fetching from transaction data', {}, request);
                 }
             });
         });
@@ -1638,39 +1808,68 @@ function ActivityService(objectCollection) {
                 default:
                     activityStreamTypeId = 11; //by default so that we know
                     //console.log('adding streamtype id 11');
-                    global.logger.write('debug', 'adding streamtype id 11', {}, request)
+                    global.logger.write('debug', 'adding streamtype id 11', {}, request);
                     break;
-            };
+            }
             request.activity_stream_type_id = activityStreamTypeId;
         }
         activityCommonService.updateAssetLocation(request, function (err, data) {});
-        activityListUpdateStatus(request, function (err, data) {
+        activityListUpdateStatus(request, async function (err, data) {
             if (err === false) {
-            	
-           	 if (activityTypeCategroyId === 9) {
-                 
-                 global.logger.write('debug', '*****ALTER STATUS : STATUS CHANGE TXN INSERT*******', {}, request);
-                 
-                 if(Number(request.activity_status_id) === Number(data[0].idExistingActivityStatus)){
-                	 request.status_changed_flag = 0;
-                 }else{
-                	 request.status_changed_flag = 1;
-                 }
-                 
-                 global.logger.write('debug', '*****STATUS CHANGE FLAG : '+request.status_changed_flag, {}, request);
-                 
-                 var timeDuration = util.differenceDatetimes(util.getCurrentUTCTime(), util.replaceDefaultDatetime(data[0].datetimeExistingActivityStatusUpdated))
-                 
-                 activityCommonService.activityStatusChangeTxnInsertV2(request, Number(timeDuration)/1000, {
-                     from_status_id: Number(data[0].idExistingActivityStatus),
-                     to_status_id: Number(request.activity_status_id),
-                     from_status_datetime: util.replaceDefaultDatetime(data[0].datetimeExistingActivityStatusUpdated),
-                     to_status_datetime: util.replaceDefaultDatetime(data[0].updatedDatetime)
-                 }).then(()=>{
-                	 global.logger.write('debug', '*****ALTER STATUS : HITTING WIDGET ENGINE*******', {}, request);
-                	 sendRequesttoWidgetEngine(request);
-                 });
-             }
+
+                if (activityTypeCategroyId === 9 && Number(request.device_os_id) !== 9) {
+
+                    global.logger.write('debug', '*****ALTER STATUS : STATUS CHANGE TXN INSERT*******', {}, request);
+
+                    if (Number(request.activity_status_id) === Number(data[0].idExistingActivityStatus)) {
+                        request.status_changed_flag = 0;
+                    } else {
+                        request.status_changed_flag = 1;
+                    }
+
+                    try {
+                        let botEngineRequest = Object.assign({}, request);
+                        botEngineRequest.form_id = request.activity_status_id;
+                        botEngineRequest.field_id = 0;
+                        botEngineRequest.flag = 4;
+
+                        const [formConfigError, formConfigData] = await activityCommonService.workforceFormMappingSelect(botEngineRequest);
+                        if (
+                            (formConfigError === false) &&
+                            (Number(formConfigData.length) > 0) &&
+                            (Number(formConfigData[0].form_flag_workflow_enabled) === 1)
+                        ) {
+                            // Proceeding because there was no error found, there were records returned
+                            // and form_flag_workflow_enabled is set to 1
+                            let botsListData = await activityCommonService.getBotsMappedToActType(botEngineRequest);
+                            if (botsListData.length > 0) {
+                                botEngineRequest.bot_id = botsListData[0].bot_id;
+                                await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
+                                    .then((resp) => {
+                                        global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
+                                    });
+                            }
+                        }
+                    } catch (botInitError) {
+                        global.logger.write('error', botInitError, botInitError, botEngineRequest);
+                    }
+
+                    global.logger.write('debug', '*****STATUS CHANGE FLAG : ' + request.status_changed_flag, {}, request);
+
+                    var timeDuration = util.differenceDatetimes(util.getCurrentUTCTime(), util.replaceDefaultDatetime(data[0].datetimeExistingActivityStatusUpdated));
+                    if (Number(data[0].idExistingActivityStatus) > 0 && Number(request.activity_status_id) > 0) {
+
+                        activityCommonService.activityStatusChangeTxnInsertV2(request, Number(timeDuration) / 1000, {
+                            from_status_id: Number(data[0].idExistingActivityStatus),
+                            to_status_id: Number(request.activity_status_id),
+                            from_status_datetime: util.replaceDefaultDatetime(data[0].datetimeExistingActivityStatusUpdated),
+                            to_status_datetime: util.replaceDefaultDatetime(data[0].updatedDatetime)
+                        }).then(() => {
+                            global.logger.write('debug', '*****ALTER STATUS : HITTING WIDGET ENGINE*******', {}, request);
+                            sendRequesttoWidgetEngine(request);
+                        });
+                    }
+                }
 
                 //Remote Analytics
                 if (activityTypeCategroyId == 28 || activityTypeCategroyId == 8) {
@@ -1684,7 +1883,7 @@ function ActivityService(objectCollection) {
                     switch (Number(request.activity_status_type_id)) {
                         case 26: //Closed 
                             updateFlagOntime(request).then(() => {
-                                
+
                                 activityCommonService.getActivityDetails(request, 0, function (err, resultData) {
                                     if (err === false) {
                                         var newRequest = Object.assign({}, request);
@@ -1705,7 +1904,7 @@ function ActivityService(objectCollection) {
                                         monthly: 12
                                     }, function () {});
                                 });
-                        
+
                             });
 
                             if (request.hasOwnProperty('activity_parent_id')) {
@@ -1749,9 +1948,10 @@ function ActivityService(objectCollection) {
                         case 135: //Not Certified
                             //updateFlagOntime(request).then(()=>{});
                             break;
-                        default : request.set_flag = 0; //
-                                  updateFlagOntime(request).then(() => {});
-                                  break;
+                        default:
+                            request.set_flag = 0; //
+                            updateFlagOntime(request).then(() => {});
+                            break;
                     }
                 }
 
@@ -1785,7 +1985,7 @@ function ActivityService(objectCollection) {
                             }, function () {});
                         });
                         break;*/
-
+                        break;
                     case 130: // flag value is 1 //accepted
                         activityCommonService.updateLeadStatus(request, 1, function (err, result) {
                             if (err === false) {
@@ -1869,8 +2069,7 @@ function ActivityService(objectCollection) {
                 activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
 
                 });
-                activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
-                });
+                activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {});
                 activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) {
 
                 });
@@ -1918,53 +2117,58 @@ function ActivityService(objectCollection) {
                     // });
                     global.logger.write('debug', 'Calling vodafoneStatusUpdate...', {}, request);
                     //vodafoneStatusUpdate(request, activityCommonService, objectCollection);
-                    
+
                     //makeRequest to /vodafone/feasibility_checker/update BOT4
                     request.worflow_trigger_url = util.getWorkFlowUrl(request.url);
                     global.logger.write('debug', 'worflow_trigger_url: ' + request.worflow_trigger_url, {}, request);
-                    
-                    activityCommonService.getWorkflowForAGivenUrl(request).then((data)=>{
+
+                    activityCommonService.getWorkflowForAGivenUrl(request).then((data) => {
                         global.logger.write('debug', 'workflow_execution_url: ' + data[0].workflow_execution_url, {}, request);
-                        activityCommonService.makeRequest(request, data[0].workflow_execution_url, 1).then((resp)=>{
-                           global.logger.write('debug', resp, {}, request);
+                        activityCommonService.makeRequest(request, data[0].workflow_execution_url, 1).then((resp) => {
+                            global.logger.write('debug', resp, {}, request);
                         });
                     });
                 }
-                    
+
 
                 // }
                 // 
                 // 
                 updateProjectStatusCounts(request).then(() => {});
-                activityPushService.sendPush(request, objectCollection, 0, function () {});
- /*               if (activityTypeCategoryId === 9 && activityStatusTypeId === 23) { //form and submitted state                    
-                    duplicateFormTransactionData(request, function (err, data) {
-                        var widgetEngineQueueMessage = {
-                            form_id: data.formId,
-                            form_transaction_id: data.formTransactionId,
-                            organization_id: request.organization_id,
-                            account_id: request.account_id,
-                            workforce_id: request.workforce_id,
-                            asset_id: request.asset_id,
-                            activity_id: request.activity_id,
-                            activity_type_category_id: request.activity_type_category_id,
-                            activity_stream_type_id: request.activity_stream_type_id,
-                            track_gps_location: request.track_gps_location,
-                            track_gps_datetime: request.track_gps_datetime,
-                            track_gps_accuracy: request.track_gps_accuracy,
-                            track_gps_status: request.track_gps_status,
-                            device_os_id: request.device_os_id,
-                            service_version: request.service_version,
-                            app_version: request.app_version,
-                            api_version: request.api_version
-                        };
-                        var event = {
-                            name: "Form Based Widget Engine",
-                            payload: widgetEngineQueueMessage
-                        };
-                        queueWrapper.raiseFormWidgetEvent(event, request.activity_id);
-                    });
-                } */
+                try {
+                    activityPushService.sendPush(request, objectCollection, 0, function () {});
+                } catch (err) {
+                    console.log(err);
+                }
+
+                /*               if (activityTypeCategoryId === 9 && activityStatusTypeId === 23) { //form and submitted state                    
+                                   duplicateFormTransactionData(request, function (err, data) {
+                                       var widgetEngineQueueMessage = {
+                                           form_id: data.formId,
+                                           form_transaction_id: data.formTransactionId,
+                                           organization_id: request.organization_id,
+                                           account_id: request.account_id,
+                                           workforce_id: request.workforce_id,
+                                           asset_id: request.asset_id,
+                                           activity_id: request.activity_id,
+                                           activity_type_category_id: request.activity_type_category_id,
+                                           activity_stream_type_id: request.activity_stream_type_id,
+                                           track_gps_location: request.track_gps_location,
+                                           track_gps_datetime: request.track_gps_datetime,
+                                           track_gps_accuracy: request.track_gps_accuracy,
+                                           track_gps_status: request.track_gps_status,
+                                           device_os_id: request.device_os_id,
+                                           service_version: request.service_version,
+                                           app_version: request.app_version,
+                                           api_version: request.api_version
+                                       };
+                                       var event = {
+                                           name: "Form Based Widget Engine",
+                                           payload: widgetEngineQueueMessage
+                                       };
+                                       queueWrapper.raiseFormWidgetEvent(event, request.activity_id);
+                                   });
+                               } */
 
                 callback(false, {}, 200);
                 return;
@@ -2071,7 +2275,7 @@ function ActivityService(objectCollection) {
                 }
             }); // getActivityDetails
         }); // updateInmailPS Promise
-    };
+    }
 
     function createTimelineEntry(request) {
         return new Promise((resolve, reject) => {
@@ -2123,7 +2327,7 @@ function ActivityService(objectCollection) {
                 resolve();
             });
         });
-    };
+    }
 
     function updateProjectStatusCounts(request) {
         return new Promise((resolve, reject) => {
@@ -2178,7 +2382,7 @@ function ActivityService(objectCollection) {
                 }
             });
         });
-    };
+    }
 
     function respReqinMail(request) {
         return new Promise((resolve, reject) => {
@@ -2223,7 +2427,7 @@ function ActivityService(objectCollection) {
                 }
             });
         });
-    };
+    }
     //For inMails
     function inMailMonthlySummaryTransInsert(request) {
         return new Promise((resolve, reject) => {
@@ -2284,7 +2488,7 @@ function ActivityService(objectCollection) {
                             if (err === false) {
                                 //Inserting the Response Rate
                                 avgTotRespTimeSummaryInsert(request).then(() => {});
-                                resolve(data)
+                                resolve(data);
                             } else {
                                 reject(err);
                             }
@@ -2293,29 +2497,29 @@ function ActivityService(objectCollection) {
                 }
             });
         });
-    };
+    }
 
     function updateFlagOntime(request) {
         return new Promise((resolve, reject) => {
             activityCommonService.getActivityDetails(request, 0, function (err, data) {
                 if (err === false) {
                     var dueDate = util.replaceDefaultDatetime(data[0].activity_datetime_end_deferred);
-                    
+
                     // console.log('util.getCurrentUTCTime() : ', util.getCurrentUTCTime());
                     // console.log('dueDate : ', dueDate);
 
                     global.logger.write('debug', 'util.getCurrentUTCTime(): ' + util.getCurrentUTCTime(), {}, request);
                     global.logger.write('debug', 'dueDate: ' + dueDate, {}, request);
-                    
-                    if(request.hasOwnProperty('set_flag')) {
-                        if(request.set_flag == 0) {
+
+                    if (request.hasOwnProperty('set_flag')) {
+                        if (request.set_flag == 0) {
                             var paramsArr = new Array(
                                 request.activity_id,
                                 request.organization_id,
                                 0, //activity_flag_delivery_ontime,
                                 request.asset_id,
                                 request.datetime_log
-                                );
+                            );
                             var queryString = util.getQueryString('ds_v1_activity_list_update_flag_ontime', paramsArr);
                             if (queryString != '') {
                                 db.executeQuery(0, queryString, request, function (err, data) {
@@ -2339,12 +2543,12 @@ function ActivityService(objectCollection) {
                                 });
                             }
                         }
-                    }                    
-                    
+                    }
+
                 } else {
-                    reject(err)
+                    reject(err);
                 }
-            })
+            });
 
         });
     }
@@ -2396,14 +2600,14 @@ function ActivityService(objectCollection) {
 
                         avgTotRespTimeSummaryInsert(request).then(() => {
                             resolve();
-                        })
-                    })
+                        });
+                    });
                 } else {
-                    reject(err)
+                    reject(err);
                 }
             });
         });
-    };
+    }
     //get the current total number of hours to respond and current number of post its / inmails
     function assetWeeklySummaryTrans(request, creationDatetime) {
         return new Promise((resolve, reject) => {
@@ -2578,8 +2782,8 @@ function ActivityService(objectCollection) {
                                                 });
                                             });
 
-                                        })
-                                    })
+                                        });
+                                    });
                                 }
                                 return;
                             } else {
@@ -2660,7 +2864,7 @@ function ActivityService(objectCollection) {
                                         collection.datetime_start = util.getStartDateTimeOfMonth();
                                         collection.datetime_end = util.getEndDateTimeOfMonth(); // getting monthly data
                                         activityCommonService.getAssetAverageRating(request, collection).then((assetAverageRating) => {
-                                            console.log(assetAverageRating)
+                                            console.log(assetAverageRating);
                                             global.logger.write('debug', 'assetAverageRating' + assetAverageRating, {}, request);
 
                                             var monthlySummaryCollection = {};
@@ -2681,7 +2885,7 @@ function ActivityService(objectCollection) {
                                             });
 
                                         });
-                                    })
+                                    });
                                 }
                                 return;
                             } else {
@@ -2731,7 +2935,7 @@ function ActivityService(objectCollection) {
                         var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_task_acceptance_stats', paramsArr);
                         db.executeQuery(1, queryString, request, function (err, monthlyAcceptanceStats) { //monthly stats
                             if (err === false) {
-                                response.monthly_acceptance_stats = monthlyAcceptanceStats
+                                response.monthly_acceptance_stats = monthlyAcceptanceStats;
                                 resolve(response);
                             } else {
                                 reject(err);
@@ -2750,7 +2954,7 @@ function ActivityService(objectCollection) {
         var totalCount = Number(acceptanceStats.weekly_acceptance_stats[0].total_count);
         var count = Number(acceptanceStats.weekly_acceptance_stats[0].count);
         var percentage = (totalCount > 0) ? (count / totalCount) * 100 : 0;
-        
+
         // console.log('weekly Count : ', count);
         // console.log('weekly Total Count : ', totalCount);
         // console.log('weekly Percentage : ', percentage);
@@ -2758,7 +2962,7 @@ function ActivityService(objectCollection) {
         global.logger.write('debug', 'weekly Count: ' + count, {}, request);
         global.logger.write('debug', 'weekly Total Count: ' + totalCount, {}, request);
         global.logger.write('debug', 'weekly Percentage: ' + percentage, {}, request);
-        
+
         collection.summary_id = summaryIds.weekly;
         collection.asset_id = request.asset_id;
         collection.entity_bigint_1 = totalCount;
@@ -2771,7 +2975,7 @@ function ActivityService(objectCollection) {
             totalCount = Number(acceptanceStats.monthly_acceptance_stats[0].total_count);
             count = Number(acceptanceStats.monthly_acceptance_stats[0].count);
             percentage = (totalCount > 0) ? (count / totalCount) * 100 : 0;
-            
+
             // console.log('monthly Count : ', count);
             // console.log('monthly Total Count : ', totalCount);
             // console.log('monthly Percentage : ', percentage);
@@ -2779,7 +2983,7 @@ function ActivityService(objectCollection) {
             global.logger.write('debug', 'monthly Count: ' + count, {}, request);
             global.logger.write('debug', 'monthly Total Count: ' + totalCount, {}, request);
             global.logger.write('debug', 'monthly Percentage: ' + percentage, {}, request);
-            
+
             collection.summary_id = summaryIds.monthly;
             collection.entity_bigint_1 = totalCount;
             collection.entity_decimal_2 = count;
@@ -2801,7 +3005,7 @@ function ActivityService(objectCollection) {
                 }
             });
         });
-    };
+    }
 
     function updateTaskCreatedCntFn(request, assetId) {
         return new Promise((resolve, reject) => {
@@ -2820,7 +3024,7 @@ function ActivityService(objectCollection) {
                 });
             }
         });
-    };
+    }
 
     function addIngredients(request) {
 
@@ -2865,7 +3069,7 @@ function ActivityService(objectCollection) {
                                 x2.access_role_id = 123;
                                 x2.field_id = choice_option;
                                 x2.option_id = x1.quantity; //
-                                
+
                                 // console.log('parent_activity_title ' + x2.parent_activity_title);
                                 // console.log('choice quantity: ' + x2.option_id);
 
@@ -2893,7 +3097,7 @@ function ActivityService(objectCollection) {
 
         // });
         //}
-    };
+    }
 
 
 
@@ -2936,15 +3140,15 @@ function ActivityService(objectCollection) {
         }
 
     };
-    
-    
-    function sendRequesttoWidgetEngine(request){
-    	
+
+
+    function sendRequesttoWidgetEngine(request) {
+
         global.logger.write('debug', '********IN HITTING WIDGET *********************************************: ', {}, request);
         if (request.activity_type_category_id == 9) { //form and submitted state                    
-        	activityCommonService.getActivityCollection(request).then((activityData)=> { // get activity form_id and form_transaction id
-        		console.log('activityData:'+activityData[0]);
-                 var widgetEngineQueueMessage = {
+            activityCommonService.getActivityCollection(request).then((activityData) => { // get activity form_id and form_transaction id
+                console.log('activityData:' + activityData[0]);
+                var widgetEngineQueueMessage = {
                     form_id: activityData[0].form_id,
                     form_transaction_id: activityData[0].form_transaction_id,
                     organization_id: request.organization_id,
@@ -2952,6 +3156,7 @@ function ActivityService(objectCollection) {
                     workforce_id: request.workforce_id,
                     asset_id: request.asset_id,
                     activity_id: request.activity_id,
+                    req_activity_status_id: request.activity_status_id,
                     activity_type_category_id: request.activity_type_category_id,
                     activity_stream_type_id: request.activity_stream_type_id,
                     track_gps_location: request.track_gps_location,
@@ -2962,115 +3167,115 @@ function ActivityService(objectCollection) {
                     service_version: request.service_version,
                     app_version: request.app_version,
                     api_version: request.api_version,
-                    widget_type_category_id:2
+                    widget_type_category_id: 2
                 };
                 var event = {
                     name: "File Based Widget Engine",
                     payload: widgetEngineQueueMessage
                 };
                 global.logger.write('debug', 'Hitting Widget Engine with request:' + event, {}, request);
-                
+
                 queueWrapper.raiseFormWidgetEvent(event, request.activity_id);
             });
         }
     }
-    
-    
-    
-    this.updateActivityFormFieldValidation = function(request){
-    	return new Promise((resolve, reject)=>{
-    		console.log("IN PROMISE");
-    		activityCommonService.getActivityByFormTransaction(request).then((activityData)=>{
-    			if(activityData.length > 0){
-    				
-	    			request['activity_id']=activityData[0].activity_id;
-	    			//console.log("IN ACTIVITY COLLECTION: "+request.activity_id);
-	    			resolve();
-	    			processFormInlineData(request, activityData).then((finalData)=>{
-    				console.log("IN PROCESS INLINE DATA "+finalData);
-    	    		this.activityListUpdateFieldValidated(request, JSON.stringify(finalData)).then(()=>{
-    	    			console.log("IN ACTIVITY LIST UPDATE ");
-    	    			this.activityMappingListUpdateFieldValidated(request).then(()=>{
-    	    				console.log("IN ACTIVITY ASSET MAPPING UPDATE ");
-    	    				request['datetime_log'] = util.getCurrentUTCTime();
-	    	                activityCommonService.activityListHistoryInsert(request, 417, function (err, result) { });
-	    	                activityCommonService.assetTimelineTransactionInsert(request, {}, 712, function (err, data) {});
-	    	                activityCommonService.activityTimelineTransactionInsert(request, {}, 712, function (err, data) {});
-	    	                activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) {});
-	    	                activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {});
-    	    			
-    	    				})
-    	    				resolve();
-    	    			})
-    				})
-    				
-    			}else{
-    				resolve();
-    			}
-    			
-    		})
-    		
-    		
-    	});
-    }
-    
-    function processFormInlineData(request, data){
-    	return new Promise((resolve, reject) => {
-    		var array = [];
-			forEachAsync(JSON.parse(data[0].activity_inline_data), function (next, fieldData) {
-				//console.log('fieldData : '+JSON.stringify(fieldData));
-				if(parseInt(Number(fieldData.field_id)) === parseInt(Number(request.field_id))){
-					console.log("HAS FIELD VALIDATED : "+fieldData.field_id+' '+request.field_id);
-					fieldData.field_validated = 1;
-					array.push(fieldData);	
-	    				next();
-    			}else{	    				
-    				console.log("FIELD NOT VALIDATED : "+fieldData.field_id+' '+request.field_id);
-    				array.push(fieldData);		    				
-    				next();
-    				
-    			}              
-	
-            }).then(()=>{
-            	//console.log("DATA : "+JSON.stringify(data));
-            	//data.activity_inline_data = array;
-            	resolve(array);
-            });	    		
-    	});
-    };
-    
-    this.activityListUpdateFieldValidated = function(request, inlineData){
-    	return new Promise((resolve, reject)=>{
-            var paramsArr = new Array(
-                    request.organization_id,
-                    request.account_id,
-                    request.workforce_id,
-                    request.activity_id,
-                    request.activity_type_category_id,
-                    request.is_field_validated,
-                    inlineData,
-                    request.asset_id,
-                    util.getCurrentUTCTime()
-                    );
-                var queryString = util.getQueryString("ds_v1_activity_list_update_form_field_validated", paramsArr);
-                if (queryString != '') {
-                    db.executeQuery(0, queryString, request, function (err, data) {                  
-                       if(err === false){                	   
-                    	   resolve();
-                       }else{
-                    	   reject(err);
-                       }
+
+
+
+    this.updateActivityFormFieldValidation = function (request) {
+        return new Promise((resolve, reject) => {
+            console.log("IN PROMISE");
+            activityCommonService.getActivityByFormTransaction(request).then((activityData) => {
+                if (activityData.length > 0) {
+
+                    request['activity_id'] = activityData[0].activity_id;
+                    //console.log("IN ACTIVITY COLLECTION: "+request.activity_id);
+                    //resolve();
+                    processFormInlineData(request, activityData).then((finalData) => {
+                        console.log("IN PROCESS INLINE DATA " + finalData);
+                        this.activityListUpdateFieldValidated(request, JSON.stringify(finalData)).then(() => {
+                            console.log("IN ACTIVITY LIST UPDATE ");
+                            this.activityMappingListUpdateFieldValidated(request).then(() => {
+                                console.log("IN ACTIVITY ASSET MAPPING UPDATE ");
+                                request['datetime_log'] = util.getCurrentUTCTime();
+                                activityCommonService.activityListHistoryInsert(request, 417, function (err, result) {});
+                                activityCommonService.assetTimelineTransactionInsert(request, {}, 712, function (err, data) {});
+                                activityCommonService.activityTimelineTransactionInsert(request, {}, 712, function (err, data) {});
+                                activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) {});
+                                activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {});
+
+                            });
+                            resolve();
+                        });
                     });
+
+                } else {
+                    resolve();
                 }
-    	});
+
+            });
+
+
+        });
+    };
+
+    function processFormInlineData(request, data) {
+        return new Promise((resolve, reject) => {
+            var array = [];
+            forEachAsync(JSON.parse(data[0].activity_inline_data), function (next, fieldData) {
+                //console.log('fieldData : '+JSON.stringify(fieldData));
+                if (parseInt(Number(fieldData.field_id)) === parseInt(Number(request.field_id))) {
+                    console.log("HAS FIELD VALIDATED : " + fieldData.field_id + ' ' + request.field_id);
+                    fieldData.field_validated = 1;
+                    array.push(fieldData);
+                    next();
+                } else {
+                    console.log("FIELD NOT VALIDATED : " + fieldData.field_id + ' ' + request.field_id);
+                    array.push(fieldData);
+                    next();
+
+                }
+
+            }).then(() => {
+                //console.log("DATA : "+JSON.stringify(data));
+                //data.activity_inline_data = array;
+                resolve(array);
+            });
+        });
     }
-    
-    this.activityMappingListUpdateFieldValidated = function(request){
-    	return new Promise((resolve, reject)=>{
-        activityCommonService.getAllParticipants(request, function (err, participantsData) {
-            if (err === false) {
-            	forEachAsync(participantsData, function (next, rowData) {
-                    var paramsArr = new Array(
+
+    this.activityListUpdateFieldValidated = function (request, inlineData) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.activity_id,
+                request.activity_type_category_id,
+                request.is_field_validated,
+                inlineData,
+                request.asset_id,
+                util.getCurrentUTCTime()
+            );
+            var queryString = util.getQueryString("ds_v1_activity_list_update_form_field_validated", paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    if (err === false) {
+                        resolve();
+                    } else {
+                        reject(err);
+                    }
+                });
+            }
+        });
+    };
+
+    this.activityMappingListUpdateFieldValidated = function (request) {
+        return new Promise((resolve, reject) => {
+            activityCommonService.getAllParticipants(request, function (err, participantsData) {
+                if (err === false) {
+                    forEachAsync(participantsData, function (next, rowData) {
+                        var paramsArr = new Array(
                             request.organization_id,
                             request.account_id,
                             request.workforce_id,
@@ -3080,25 +3285,135 @@ function ActivityService(objectCollection) {
                             request.is_field_validated,
                             request.asset_id,
                             util.getCurrentUTCTime()
-                            );
+                        );
                         var queryString = util.getQueryString("ds_v1_activity_asset_mapping_update_form_field_validated", paramsArr);
                         if (queryString != '') {
-                            db.executeQuery(0, queryString, request, function (err, data) {                  
-                               if(err === false){                	   
-                            	   next();
-                               }else{
-                            	   reject(err);
-                               }
+                            db.executeQuery(0, queryString, request, function (err, data) {
+                                if (err === false) {
+                                    next();
+                                } else {
+                                    reject(err);
+                                }
                             });
                         }
-            	}).then(()=>{
-            		resolve();
-            	})
+                    }).then(() => {
+                        resolve();
+                    });
+                }
+            });
+
+        });
+    };
+
+    this.updateWorkflowQueueMapping = async function name(request) {
+        request.flag = 0;
+        try {
+            const queueMap = await activityListingService.getEntityQueueMapping(request);
+            if (queueMap.length > 0) {
+                // Iterate through each queue mapped to the activity type
+                for (const queue of queueMap) {
+                    let queueId = Number(queue.queue_id);
+                    let queueInlineData = JSON.parse(queue.queue_inline_data);
+                    let isStatusMapped = false;
+                    console.log("queueId: ", queueId);
+                    console.log("queueInlineData: ", queueInlineData);
+                    // Loop through each object of the queue's inline data and check
+                    // whether the incoming activity status ID exists
+                    for (const activityStatus of queueInlineData) {
+                        if (Number(activityStatus.activity_status_id) === Number(request.activity_status_id)) {
+                            isStatusMapped = true;
+                        }
+                    }
+                    console.log("isStatusMapped: ", isStatusMapped);
+                    if (isStatusMapped) {
+                        // console.log("isStatusMapped: ", isStatusMapped)
+                        await activityCommonService
+                            .fetchQueueActivityMappingIdV1(request, queueId)
+                            .then(async (queueActivityMappingData) => {
+                                console.log('queueActivityMappingData : ', queueActivityMappingData);
+
+                                // If the mapping exists, set log state to 3, thereby archiving the mapping
+                                if (queueActivityMappingData.length > 0) {
+                                    let newRequest = Object.assign(request);
+                                    // Set log state to 2, to re-enable an existing (archived) mapping.
+                                    newRequest.set_log_state = 2;
+                                    let queueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;
+                                    await activityCommonService
+                                        .unmapFileFromQueue(request, queueActivityMappingId)
+                                        .then((queueActivityMappingData) => {
+                                            console.log("updateWorkflowQueueMapping | mapFileToQueue | queueActivityMapping: ", queueActivityMappingData);
+                                        })
+                                        .catch((error) => {
+                                            console.log("updateWorkflowQueueMapping | Re-Enable | Error: ", error);
+                                        });
+                                } else {
+                                    // Insert activity to the queue in the queue_activity_mapping table
+                                    await activityCommonService
+                                        .mapFileToQueue(request, queueId, JSON.stringify({
+                                            "queue_sort": {
+                                                "current_status_id": 0,
+                                                "file_creation_time": moment().utc().format('YYYY-MM-DD HH:mm:ss'),
+                                                "queue_mapping_time": moment().utc().format('YYYY-MM-DD HH:mm:ss'),
+                                                "current_status_name": "",
+                                                "last_status_alter_time": "",
+                                                "caf_completion_percentage": 0
+                                            }
+                                        }))
+                                        .then((queueActivityMappingData) => {
+                                            console.log("updateWorkflowQueueMapping | mapFileToQueue | queueActivityMapping: ", queueActivityMappingData);
+                                            activityCommonService.queueHistoryInsert(request, 1401, queueActivityMappingData[0].queue_activity_mapping_id).then(()=>{});
+                                        })
+                                        .catch((error) => {
+
+                                            console.log("updateWorkflowQueueMapping | mapFileToQueue | Error: ", error);
+                                            console.log("Object.keys(error): ", Object.keys(error));
+                                        });
+                                }
+                            });
+
+                    } else {
+                        // Check if there is an existing mapping
+                        await activityCommonService
+                            .fetchQueueActivityMappingIdV1(request, queueId)
+                            .then(async (queueActivityMappingData) => {
+                                console.log('queueActivityMappingData : ', queueActivityMappingData);
+
+                                // If the mapping exists, set log state to 3, thereby archiving the mapping
+                                if (
+                                    queueActivityMappingData.length > 0 &&
+                                    (
+                                        queueActivityMappingData[0].log_state === 1 ||
+                                        queueActivityMappingData[0].log_state === 2
+                                    )
+                                ) {
+                                    let queueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;
+                                    await activityCommonService
+                                        .unmapFileFromQueue(request, queueActivityMappingId)
+                                        .then((queueActivityMappingData) => {
+                                            console.log("updateWorkflowQueueMapping | unmapFileToQueue | queueActivityMapping: ", queueActivityMappingData)
+                                        })
+                                        .catch((error) => {
+                                            console.log("updateWorkflowQueueMapping | unmapFileToQueue | Error: ", error);
+                                        });
+                                }
+                            });
+                    }
+                }
+                
+                await new Promise((resolve, reject)=>{
+                    setTimeout(()=>{ resolve(); }, 3000);
+                });
+
+                return queueMap;
+                
+            } else {
+                return [];
             }
-        })
+        } catch (error) {
+            console.log("updateWorkflowQueueMapping | queueMap | Error: ", error);
+            return [];
+        }
+    };
 
-    	});
-    }
-
-};
+}
 module.exports = ActivityService;

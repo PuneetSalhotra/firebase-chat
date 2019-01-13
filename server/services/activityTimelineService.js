@@ -3,40 +3,140 @@
  */
 const pubnubWrapper = new (require('../utils/pubnubWrapper'))(); //BETA
 //var PDFDocument = require('pdfkit');
-var fs = require('fs');
 //var AwsSss = require('../utils/s3Wrapper');
 
 function ActivityTimelineService(objectCollection) {
 
-    var db = objectCollection.db;
-    var cacheWrapper = objectCollection.cacheWrapper;
+    var db = objectCollection.db;    
     var activityCommonService = objectCollection.activityCommonService;
     var util = objectCollection.util;
     var forEachAsync = objectCollection.forEachAsync;
-    var activityPushService = objectCollection.activityPushService;
+    // var activityPushService = objectCollection.activityPushService;
     var queueWrapper = objectCollection.queueWrapper;
-    //const vodafoneFormSubmissionFlow = require('../utils/vodafoneFormSubmissionFlow');
+
+    const ActivityPushService = require('../services/activityPushService');
+    const activityPushService = new ActivityPushService(objectCollection);
 
     this.addTimelineTransaction = function (request, callback) {
 
-        const self = this;
-        var logDatetime = util.getCurrentUTCTime();
+        //const self = this;
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
-        var activityTypeCategoryId = Number(request.activity_type_category_id);
-        var activityStreamTypeId = Number(request.activity_stream_type_id);
+        let activityTypeCategoryId = Number(request.activity_type_category_id);
+        let activityStreamTypeId = Number(request.activity_stream_type_id);
+        
         activityCommonService.updateAssetLocation(request, function (err, data) {});
+        
         if (activityTypeCategoryId === 9 && activityStreamTypeId === 705) {   // add form case
             
+            setTimeout(()=>{
+                getActivityIdBasedOnTransId(request).then((data)=>{
+                if(data.length > 0) {
+                    
+                    //act id in request is different from retrieved one
+                    // Adding 705 entires onto a diff file not a dedicated file
+                    //Should not do Form Transaction Insertion as it is not a dedicated file
+                    global.logger.write('debug', "\x1b[35m [Log] request.activity_id \x1b[0m" + Number(request.activity_id) ,{}, request);
+                    global.logger.write('debug', "\x1b[35m [Log] data[0].activity_id \x1b[0m" + Number(data[0].activity_id) ,{}, request);
+                    if(Number(request.activity_id) !== Number(data[0].activity_id)) { 
+                        global.logger.write('debug', "\x1b[35m [Log] Activity_ID from request is different from retrived Activity_id hence proceeding \x1b[0m",{}, request);
+                        global.logger.write('debug', "\x1b[35m [Log] Non Dedicated File \x1b[0m",{}, request);
+                        request.data_activity_id = Number(data[0].activity_id); //Dedicated file activity id
+                        request.non_dedicated_file = 1;
+                        //retrievingFormIdandProcess(request, data).then(()=>{});                   
+
+                        if(Number(request.organization_id) === 860 || Number(request.organization_id) === 858 ||
+                            Number(request.organization_id) === 868) { 
+                            retrievingFormIdandProcess(request, data).then(()=>{});
+                        } else {
+                            timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
+                        }
+                        
+                    } else {
+                        global.logger.write('debug', "\x1b[35m [Log] Activity_ID from request is same as retrived Activity_id hence checking for device os id 7 \x1b[0m",{}, request);
+                        global.logger.write('debug', "\x1b[35m [Log] Dedicated File \x1b[0m",{}, request);
+                        
+                        //705 for Dedicated file
+                        if(Number(request.device_os_id) === 7) {
+                            //retrievingFormIdandProcess(request, data).then(()=>{});
+                            
+                            if(Number(request.organization_id) === 860 || Number(request.organization_id) === 858 ||
+                                Number(request.organization_id) === 868) { 
+                                retrievingFormIdandProcess(request, data).then(()=>{});
+                            } else {
+                                timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
+                            }
+                            
+                            //Form Transaction Insertion should happen only for dedicated files
+                            addFormEntries(request, function (err, approvalFieldsArr) {});
+                        }
+
+                        if(Number(request.device_os_id) === 8) {
+                            global.logger.write('debug', "\x1b[35m [Log] Activity_ID from request is same as retrived Activity_id and device_os_id 8 \x1b[0m", {}, request);
+                            // If request for dedicated file, and if there should not be any form entries for this
+                            // timeline transaction request
+                            retrievingFormIdandProcess(request, data).then(()=>{});                
+                        }
+                    }
+                } else {
+                    if(Number(request.device_os_id) === 7) { //7 means calling internal from services
+                        //retrievingFormIdandProcess(request, data).then(()=>{});
+                        
+                        if(Number(request.organization_id) === 860 || Number(request.organization_id) === 858 || Number(request.organization_id) === 868) { 
+                            retrievingFormIdandProcess(request, data).then(()=>{});
+                        } else {
+                            timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
+                        }
+                        
+                        //Form Transaction Insertion should happen only for dedicated files
+                        addFormEntries(request, function (err, approvalFieldsArr) {});
+                    }
+                    
+                    if(Number(request.device_os_id) === 8  || Number(request.device_os_id) === 5) {
+                        request.non_dedicated_file = 1;
+                        retrievingFormIdandProcess(request, data).then(()=>{});                
+                    }
+                }
+            }).catch(()=>{});
+            }, 2000);
+        } else if (activityTypeCategoryId === 9 && activityStreamTypeId === 713) {
+            
+            timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
+
+        } else if (activityTypeCategoryId === 48 && (activityStreamTypeId === 713 || activityStreamTypeId === 705 || 
+            activityStreamTypeId === 715 || activityStreamTypeId === 716)) {
+
+            request.non_dedicated_file = 1;
+            timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
+
+        } else {
+            
+            request.form_id = 0;            
+            timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
+        }
+        
+        new Promise(()=>{
+            setTimeout(()=>{
+                callback(false, {}, 200);
+            }, 1500);
+        });
+        //callback(false, {}, 200);
+    };
+    
+    function retrievingFormIdandProcess(request, data) {
+        return new Promise((resolve, reject)=>{
+            
+            let activityStreamTypeId = Number(request.activity_stream_type_id);
+            
             if(!request.hasOwnProperty('form_id')) {
-                var formDataJson = JSON.parse(request.activity_timeline_collection);
+                let formDataJson = JSON.parse(request.activity_timeline_collection);
                 request.form_id = formDataJson[0]['form_id'];
-                //console.log('form id extracted from json is: ' + formDataJson[0]['form_id']);
+                
                 global.logger.write('debug', 'form id extracted from json is: ' + formDataJson[0]['form_id'], {}, request);
-                var lastObject = formDataJson[formDataJson.length - 1];
-                //console.log('Last object : ', lastObject)
+                let lastObject = formDataJson[formDataJson.length - 1];
+                
                 global.logger.write('debug', 'Last object : ' + JSON.stringify(lastObject, null, 2), {}, request);
-                if (lastObject.hasOwnProperty('field_value')) {
-                    //console.log('Has the field value in the last object')
+                if (lastObject.hasOwnProperty('field_value')) {                
                     global.logger.write('debug', 'Has the field value in the last object', {}, request);
                     //remote Analytics
                     if (request.form_id == 325) {
@@ -46,19 +146,22 @@ function ActivityTimelineService(objectCollection) {
                 }
             }
             
-            // Tirggering BOT 1
+            // Triggering BOT 1
             if ((Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER))) {
-                        global.logger.write('debug', "\x1b[35m [Log] Triggering the BOT 1 \x1b[0m", {}, request);
                         
-                        //makeRequest to /vodafone/neworder_form/queue/add
-                        let newRequest = Object.assign(request);
-                        newRequest.activity_inline_data = {};
-                        activityCommonService.makeRequest(newRequest, "vodafone/neworder_form/queue/add", 1).then((resp)=>{
-                               global.logger.write('debug', resp, {}, request);
-                        });
+                        if(Number(request.organization_id) !== 868) {
+                            global.logger.write('debug', "\x1b[35m [Log] Triggering the BOT 1 \x1b[0m", {}, request);
+                        
+                            //makeRequest to /vodafone/neworder_form/queue/add
+                            let newRequest = Object.assign({}, request);
+                            newRequest.activity_inline_data = {};
+                            activityCommonService.makeRequest(newRequest, "vodafone/neworder_form/queue/add", 1).then((resp)=>{
+                                global.logger.write('debug', resp, {}, request);
+                            });
+                        }                        
             }
             
-            //makeRequest to /vodafone/customer_form/add for FR Form or CRM Form
+            //Triggering BOT 2
             if ((Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.FR) || 
                     Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.CRM))) {
                 global.logger.write('debug', "\x1b[35m [Log] Triggering the BOT 2 \x1b[0m", {}, request);
@@ -68,39 +171,54 @@ function ActivityTimelineService(objectCollection) {
                 });
             }
             
-            //Generic Function to updated the CAF percentage
-            updateCAFPercentage(request).then(()=>{});
+            //BOT to send email on CRM form submission
+            //if (Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.CRM) && Number(request.device_os_id) === 7) {
+            if (Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.CRM) && Number(request.non_dedicated_file) === 1) {
+                global.logger.write('debug', "\x1b[35m [Log] Triggering BOT to send email on CRM form submission \x1b[0m", {}, request);
+                
+                let newRequest = Object.assign({}, request);
+                const crmFormData = JSON.parse(request.activity_inline_data);
 
-            // Trigger Email For Vodafone CAF Form Submission
-            if (Number(request.form_id) === 844) {
-                console.log("\x1b[35m [Log] Calling vodafoneFormSubmissionFlow \x1b[0m")
-                request.activity_inline_data = request.activity_timeline_collection;
-                request.activity_form_id = 844;
-                //vodafoneFormSubmissionFlow(request, activityCommonService, objectCollection, () => {});
-                                
-                //MakeRequest to /vodafone/caf_form/add                               
-                request.worflow_trigger_url = util.getWorkFlowUrl(request.url);
-                global.logger.write('debug', 'worflow_trigger_url: ' + request.worflow_trigger_url, {}, request);
-                    
-                activityCommonService.getWorkflowForAGivenUrl(request).then((data)=>{
-                    global.logger.write('debug', 'workflow_execution_url: ' + data[0].workflow_execution_url, {}, request);
-                    activityCommonService.makeRequest(request, data[0].workflow_execution_url, 1).then((resp)=>{
-                        global.logger.write('debug', resp, {}, request);
-                    });
+                crmFormData.forEach(formEntry => {
+                    switch (Number(formEntry.field_id)) {                   
+
+                        case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Company_Name:
+                             newRequest.first_name = formEntry.field_value;
+                             newRequest.contact_company = formEntry.field_value;
+                             break;                        
+                        case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Number:                        
+                             if(String(formEntry.field_value).includes('||')) {
+                                newRequest.contact_phone_country_code = String(formEntry.field_value).split('||')[0];
+                                newRequest.contact_phone_number = String(formEntry.field_value).split('||')[1];
+                             } else {
+                                newRequest.contact_phone_country_code = 91;
+                                newRequest.contact_phone_number = formEntry.field_value;
+                             }                                                     
+                             break;                         
+                        case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Email:
+                             newRequest.contact_email_id = formEntry.field_value;
+                             break;                         
+                        case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Designation:
+                             newRequest.contact_designation = formEntry.field_value;
+                             break;
+                         }
+                    });                 
+                
+                activityCommonService.makeRequest(newRequest, "vodafone/send/email", 1).then((resp)=>{
+                    global.logger.write('debug', resp, {}, request);
                 });
             }
-
-            // 
+            
+            //Generic Function to updated the CAF percentage
+            updateCAFPercentage(request).then(()=>{});
+            
             // [VODAFONE] Listen for Account Manager Approval or Customer (Service Desk) Approval Form
             // [VODAFONE] The above no longer applies. New trigger on CRM Acknowledgement Form submission.
-            if (
-                activityStreamTypeId === 705 &&
-                (
-                    Number(request.form_id) === 868 ||
-                    Number(request.form_id) === 863
-                )
-            ) {
-                console.log('CALLING approvalFormsSubmissionCheck')
+            
+            const CRM_ACKNOWLEDGEMENT_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CRM_ACKNOWLEDGEMENT;
+            
+            if (activityStreamTypeId === 705 && (Number(request.form_id) === Number(CRM_ACKNOWLEDGEMENT_FORM_ID))) {
+                console.log('CALLING approvalFormsSubmissionCheck');
                 const approvalCheckRequestEvent = {
                     name: "vodafoneService",
                     service: "vodafoneService",
@@ -116,23 +234,23 @@ function ActivityTimelineService(objectCollection) {
                         global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
                     }
                 });
-
             }
             //
             // 
             // [VODAFONE] Provided the form file has submissions for New Order, FR, CRM and HLD, 
             // only then proceed with CAF Form building
+            const NEW_ORDER_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER,
+                FR_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.FR,
+                CRM_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CRM,
+                HLD_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.HLD;
+
             if (
                 activityStreamTypeId === 705 &&
                 (
-                    Number(request.form_id) === 873 || // BETA | New Order
-                    Number(request.form_id) === 871 || // BETA | FR
-                    Number(request.form_id) === 870 || // BETA | CRM
-                    Number(request.form_id) === 869 || // BETA | HLD
-                    Number(request.form_id) === 856 || // LIVE | New Order
-                    Number(request.form_id) === 866 || // LIVE | FR
-                    Number(request.form_id) === 865 || // LIVE | CRM
-                    Number(request.form_id) === 864 // LIVE | HLD
+                    Number(request.form_id) === NEW_ORDER_FORM_ID || // New Order
+                    Number(request.form_id) === FR_FORM_ID || // FR
+                    Number(request.form_id) === CRM_FORM_ID || // CRM
+                    Number(request.form_id) === HLD_FORM_ID // HLD
                 )
             ) {
                 console.log('CALLING buildAndSubmitCafForm');
@@ -157,11 +275,13 @@ function ActivityTimelineService(objectCollection) {
             // 
             // [VODAFONE] Alter the status of the form file to Approval Pending. Also modify the 
             // last status alter time and current status for all the queue activity mappings.
+            const OMT_APPROVAL_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.OMT_APPROVAL;
+            const CUSTOMER_APPROVAL_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_APPROVAL;
+
             if (
                 activityStreamTypeId === 705 &&
                 (
-                    Number(request.form_id) === 883 || // BETA | OMT Approval
-                    Number(request.form_id) === 879 // LIVE | OMT Approval
+                    Number(request.form_id) === CUSTOMER_APPROVAL_FORM_ID
                 )
             ) {
                 console.log('CALLING setStatusApprovalPendingAndFireEmail');
@@ -180,93 +300,124 @@ function ActivityTimelineService(objectCollection) {
                         global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
                     }
                 });
-
             }
             //
-
-        } else {
-            request.form_id = 0;
-        }
-        try {
-            var formDataJson = JSON.parse(request.activity_timeline_collection);
-        } catch (exception) {
-            //console.log(exception);
-            global.logger.write('debug', exception, {}, request);
-        }
-
-        var isAddToTimeline = true;
-        if (request.hasOwnProperty('flag_timeline_entry'))
-            isAddToTimeline = (Number(request.flag_timeline_entry)) > 0 ? true : false;
-        if (isAddToTimeline) {
-            activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
-                if (err) {
-
-                } else {
-
-                    activityPushService.sendPush(request, objectCollection, 0, function () {});
-                    activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) { });
-
-                    //updating log differential datetime for only this asset
-                    activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) { });
-                    
-                    (request.hasOwnProperty('signedup_asset_id')) ? 
-                        activityCommonService.updateActivityLogLastUpdatedDatetime(request, 0, function (err, data) { }): //To increase unread cnt for marketing manager
-                        activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) { });
-                    
-                    // Telephone module
-                    // 23003 => Added an update to the chat
-                    if (activityTypeCategoryId === 16 && activityStreamTypeId === 23003) {
-                        
-                        // Update last updated and last differential datetime for the sender
-                        activityCommonService.activityAssetMappingUpdateLastUpdateDateTimeOnly(request, function (err, data) {
-                            activityCommonService.getActivityDetails(request, request.activity_id, function(err, data) {
-                                
-                                // Replace/append the new chat message to the existing inline data
-                                var updatedActivityInlineData = JSON.parse(data[0].activity_inline_data);
-                                updatedActivityInlineData.message = JSON.parse(request.activity_timeline_collection);
-                                
-                                // Update the activity's inline data with the last send chat message
-                                activityCommonService.activityAssetMappingUpdateInlineDataOnly(request, JSON.stringify(updatedActivityInlineData), () => {});
-                            });
-                            
-                        });
+            // 
+            // [VODAFONE] Customer Management Approval Workflow
+            if (activityStreamTypeId === 705 &&
+                (Number(request.form_id) === global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_APPROVAL)) {
+                console.log('CALLING customerManagementApprovalWorkflow');
+                const omtApprovalRequestEvent = {
+                    name: "vodafoneService",
+                    service: "vodafoneService",
+                    method: "customerManagementApprovalWorkflow",
+                    payload: request
+                };
+                queueWrapper.raiseActivityEvent(omtApprovalRequestEvent, request.activity_id, (err, resp) => {
+                    if (err) {
+                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                    } else {
+                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
                     }
+                });
+            }
+            
+            timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
+            resolve();
+        });
+    }
+    
+    function timelineStandardCalls(request) {
+        return new Promise((resolve, reject)=>{
+            
+            try {
+                var formDataJson = JSON.parse(request.activity_timeline_collection);
+            } catch (exception) {
+                global.logger.write('debug', exception, {}, request);
+            }
+            
+            let activityStreamTypeId = Number(request.activity_stream_type_id);
+            let activityTypeCategoryId = Number(request.activity_type_category_id);
+            let isAddToTimeline = true;
+            
+            if (request.hasOwnProperty('flag_timeline_entry'))
+                isAddToTimeline = (Number(request.flag_timeline_entry)) > 0 ? true : false;
+            
+            if (isAddToTimeline) {
+                activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
+                    if (err) {
 
-                    if (formDataJson.hasOwnProperty('asset_reference')) {
-                        if (formDataJson.asset_reference.length > 0) {
-                            forEachAsync(formDataJson.asset_reference, function (next, rowData) {                                
-                                switch (Number(request.activity_type_category_id)) {
-                                    case 10:
-                                    case 11: 
-                                        activityPushService.sendSMSNotification(request, objectCollection, rowData.asset_id, function () {});
-                                        break;
-                                }
-                                next();
-                            }).then(function () {
+                    } else {
+
+                        activityPushService.sendPush(request, objectCollection, 0, function () {});
+                        activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) { });
+
+                        //updating log differential datetime for only this asset
+                        activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) { });
+
+                        (request.hasOwnProperty('signedup_asset_id')) ? 
+                            activityCommonService.updateActivityLogLastUpdatedDatetime(request, 0, function (err, data) { }): //To increase unread cnt for marketing manager
+                            activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) { });
+
+                        // Telephone module
+                        // 23003 => Added an update to the chat
+                        if (activityTypeCategoryId === 16 && activityStreamTypeId === 23003) {
+
+                            // Update last updated and last differential datetime for the sender
+                            activityCommonService.activityAssetMappingUpdateLastUpdateDateTimeOnly(request, function (err, data) {
+                                activityCommonService.getActivityDetails(request, request.activity_id, function(err, data) {
+
+                                    // Replace/append the new chat message to the existing inline data
+                                    var updatedActivityInlineData = JSON.parse(data[0].activity_inline_data);
+                                    updatedActivityInlineData.message = JSON.parse(request.activity_timeline_collection);
+
+                                    // Update the activity's inline data with the last send chat message
+                                    activityCommonService.activityAssetMappingUpdateInlineDataOnly(request, JSON.stringify(updatedActivityInlineData), () => {});
+                                });
 
                             });
                         }
-                    } else {
-                        //console.log('asset_reference is not availale');
-                        global.logger.write('debug', 'asset_reference is not available', {}, request);
+
+                        if (formDataJson.hasOwnProperty('asset_reference')) {
+                            if (formDataJson.asset_reference.length > 0) {
+                                forEachAsync(formDataJson.asset_reference, function (next, rowData) {                                
+                                    switch (Number(request.activity_type_category_id)) {
+                                        case 10:
+                                        case 11: 
+                                            activityPushService.sendSMSNotification(request, objectCollection, rowData.asset_id, function () {});
+                                            break;
+                                    }
+                                    next();
+                                }).then(function () {
+
+                                });
+                            }
+                        } else {                            
+                            global.logger.write('debug', 'asset_reference is not available', {}, request);
+                        }
                     }
-
-
-                }
-            });
-        }
-        callback(false, {}, 200);
-    };
+                });
+              resolve();
+            }
+        });
+    }
     
-    /*this.nanikalyan = function(request, callback) {
-        updateCAFPercentage(request).then(()=>{});
-    };*/
+    //To update the workflow percentage
+    this.workflowPercentageUpdate = async function(request) {
+        return await updateCAFPercentage(request);
+    };
     
     function updateCAFPercentage(request) {
         return new Promise((resolve, reject)=>{
             
             let newrequest = Object.assign({},request);
-            newrequest.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
+            
+            (Number(request.organization_id) === 860 || Number(request.organization_id) === 858 || Number(request.organization_id) === 868) ?
+                newrequest.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID :
+                newrequest.asset_id = request.asset_id;
+            
             let cafCompletionPercentage;
             
             switch(Number(newrequest.form_id)) {
@@ -299,10 +450,10 @@ function ActivityTimelineService(objectCollection) {
                 case global.vodafoneConfig[newrequest.organization_id].FORM_ID.CUSTOMER_APPROVAL:
                     cafCompletionPercentage = 1;
                     break;      
-                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.CAF:
-                    cafCompletionPercentage = 45;
-                    break;
-                default: cafCompletionPercentage = 0;
+                // case global.vodafoneConfig[newrequest.organization_id].FORM_ID.CAF:
+                //     cafCompletionPercentage = 45;
+                //     break;
+                default: cafCompletionPercentage = newrequest.workflow_completion_percentage || 0;
             }
             
             console.log('cafCompletionPercentage : ', cafCompletionPercentage);
@@ -375,7 +526,7 @@ function ActivityTimelineService(objectCollection) {
             resolve();
         });
         
-    };
+    }
     
     //This is to support the feature - Not to increase unread count during timeline entry
     this.addTimelineTransactionV1 = function (request, callback) {
@@ -391,7 +542,7 @@ function ActivityTimelineService(objectCollection) {
             request.form_id = formDataJson[0]['form_id'];
             //console.log('form id extracted from json is: ' + formDataJson[0]['form_id']);
             global.logger.write('debug', 'form id extracted from json is: ' + formDataJson[0]['form_id'], {}, request);
-            var lastObject = formDataJson[formDataJson.length - 1]
+            var lastObject = formDataJson[formDataJson.length - 1];
             //console.log('Last object : ', lastObject)
             global.logger.write('debug', 'Last object : ' + JSON.stringify(lastObject, null, 2), {}, request);
             if (lastObject.hasOwnProperty('field_value')) {
@@ -688,8 +839,8 @@ function ActivityTimelineService(objectCollection) {
                         });
                     }
                 });
-            })
-        })
+            });
+        });
     }
 
 
@@ -802,7 +953,7 @@ function ActivityTimelineService(objectCollection) {
                         if (err === false) {
                             callback(false, {data: responseData}, 200);
                         } else {
-                            callback(false, {}, -9999)
+                            callback(false, {}, -9999);
                         }
                     });
                     return;
@@ -836,8 +987,8 @@ function ActivityTimelineService(objectCollection) {
                             callback(false, {data: responseData}, 200);
                             return;
                         } else {
-                            callback(false, {}, -9999)
-                            return
+                            callback(false, {}, -9999);
+                            return;
                         }
                     });
                     return;
@@ -900,7 +1051,7 @@ function ActivityTimelineService(objectCollection) {
                             if (err === false) {
                                 callback(false, {data: responseData}, 200);
                             } else {
-                                callback(false, {}, -9999)
+                                callback(false, {}, -9999);
                             }
                         });
                         return;
@@ -939,7 +1090,7 @@ function ActivityTimelineService(objectCollection) {
                         if (err === false) {
                             callback(false, {data: responseData}, 200);
                         } else {
-                            callback(false, {}, -9999)
+                            callback(false, {}, -9999);
                         }
                     });
                     return;
@@ -1061,6 +1212,9 @@ function ActivityTimelineService(objectCollection) {
             rowDataArr.activity_timeline_collection = {};
             rowDataArr.activity_timeline_url_title = '';
             rowDataArr.data_entity_inline = rowData['data_entity_inline'] || {};
+            rowDataArr.data_form_transaction_id = util.replaceDefaultNumber(rowData['data_form_transaction_id']);
+            rowDataArr.data_form_name = util.replaceDefaultString(rowData['data_form_name']);
+            rowDataArr.activity_title = util.replaceDefaultString(rowData['activity_title']);
 
             //Added for Beta
             rowDataArr.activity_timeline_url_title = util.replaceDefaultString(rowData['data_entity_text_3']);
@@ -1078,7 +1232,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_collection = {};
                             break;
                     }
-                    ;
+                    
                     break;
                 case 2: //  notepad
                     switch (rowData['timeline_stream_type_id']) {
@@ -1091,7 +1245,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_collection = {};
                             break;
                     }
-                    ;
+                    
                     break;
 
                 case 3: //plant // not yet defined
@@ -1106,7 +1260,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_text = '';
                             break;
                     }
-                    ;
+                    
                     break;
 
                 case 4: // employee id card
@@ -1127,7 +1281,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_text = '';
                             break;
                     }
-                    ;
+                    
                     break;
 
                 case 6: // external contact card
@@ -1142,7 +1296,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_text = '';
                             break;
                     }
-                    ;
+                    
                     break;
                 case 9: // form
                     switch (rowData['timeline_stream_type_id']) {
@@ -1169,7 +1323,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_url_preview = util.replaceDefaultString(rowData['data_entity_text_2']);
                             break;
                     }
-                    ;
+                 break;   
                 case 10: // document
                     switch (rowData['timeline_stream_type_id']) {
                         case 301:
@@ -1223,7 +1377,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_collection = rowData['data_entity_text_1'];
                             break;
                     }
-                    ;
+                    
                     break;
 
                 case 11: // Project
@@ -1247,7 +1401,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_url_preview = util.replaceDefaultString(rowData['data_entity_text_2']);
                             break;
                     }
-                    ;
+                    
                     break;
 
                 case 14: // Voice Call
@@ -1276,7 +1430,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_collection = {};
                             break;
                     }
-                    ;
+                    
                     break;
 
                 case 15: // Video Conference
@@ -1299,7 +1453,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_url_preview = util.replaceDefaultString(rowData['data_entity_text_2']);
                             break;
                     }
-                    ;
+                    
                     break;
 
                 case 32: // Customer Request
@@ -1333,7 +1487,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_collection = {};
                             break;
                     }
-                    ;
+                    
                     break;
 
                 case 33: // Visitor Request
@@ -1367,7 +1521,7 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_collection = {};
                             break;
                     }
-                    ;
+                    
                     break;
 
                 case 34: // Timecard
@@ -1401,13 +1555,13 @@ function ActivityTimelineService(objectCollection) {
                             rowDataArr.activity_timeline_collection = {};
                             break;
                     }
-                    ;
+                    
                     break;
                 default:
                     break;
 
             }
-            ;
+            
 
             responseData.push(rowDataArr);
             next();
@@ -1419,12 +1573,54 @@ function ActivityTimelineService(objectCollection) {
 
     var addFormEntries = function (request, callback) {
 
-        //console.log('\x1b[32m%s\x1b[0m', 'Inside the addFormEntries() function.');
-        global.logger.write('debug', '\x1b[32m Inside the addFormEntries() function. \x1b[0m', {}, request);
+        global.logger.write('debug', '\x1b[32m In ActivtiyTimelineService - Inside the addFormEntries() function. \x1b[0m', {}, request);        
+        
+        let formDataJson;
+        
+        if(request.hasOwnProperty('form_id')) {
+            
+            let formDataCollection;            
+            
+            try {
+                formDataCollection = JSON.parse(request.activity_timeline_collection);
+            } catch(err) {
+                global.logger.write('debug', '\x1b[32m Error in addFormEntries() function - ONE. JSON Error \x1b[0m', {}, request);
+                global.logger.write('debug', err, {}, request);
+            }         
+        
+            if (Array.isArray(formDataCollection.form_submitted) === true || typeof formDataCollection.form_submitted === 'object') {
+                formDataJson = formDataCollection.form_submitted;
+            } else {
+                
+                try {
+                    formDataJson = JSON.parse(formDataCollection.form_submitted);
+                } catch(err) {
+                    global.logger.write('debug', '\x1b[32m Error in addFormEntries() function - TWO. JSON Error \x1b[0m', {}, request);
+                    global.logger.write('debug', err, {}, request);
+                }           
+                
+            }
+        } else {
+            formDataJson = JSON.parse(request.activity_timeline_collection);
+        }
 
-        var formDataJson = JSON.parse(request.activity_timeline_collection);
+        // 
+        // If this is an incremental form data submission
+        if(request.hasOwnProperty('form_id') && request.hasOwnProperty('incremental_form_data')) {
+
+            if (Array.isArray(request.incremental_form_data) === true || typeof request.incremental_form_data === 'object') {
+                formDataJson = request.incremental_form_data;
+            } else {
+                formDataJson = JSON.parse(request.incremental_form_data);
+            }
+            
+            console.log("[Incremental Form Data Submission] formDataJson: ", formDataJson);
+        }
+        
+        console.log('formDataJson : ', formDataJson);
+
         var approvalFields = new Array();
-        forEachAsync(formDataJson, function (next, row) {
+        forEachAsync(formDataJson, function (next, row) {            
             if (row.hasOwnProperty('data_type_combo_id')) {
                 var datatypeComboId = row.data_type_combo_id;
             } else
@@ -1459,8 +1655,7 @@ function ActivityTimelineService(objectCollection) {
                     ''  //IN p_location_datetime DATETIME                            26
                     );
 
-            //console.log('\x1b[32m addFormEntries params - \x1b[0m', params);
-            global.logger.write('debug', '\x1b[32m addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
+            //global.logger.write('debug', '\x1b[32m addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
             
             var dataTypeId = Number(row.field_data_type_id);
             switch (dataTypeId) {
@@ -1496,8 +1691,11 @@ function ActivityTimelineService(objectCollection) {
                     params[13] = row.field_value;
                     break;
                 case 50:    // Reference - File
-                    params[13] = Number(JSON.parse(row.field_value).activity_id); // p_entity_bigint_1
-                    params[18] = row.field_value; // p_entity_text_1
+                    try {
+                        params[13] = Number(JSON.parse(row.field_value).activity_id); // p_entity_bigint_1
+                        params[18] = row.field_value; // p_entity_text_1
+                    } catch(err) {                        
+                    }                  
                     break;
                 case 17:    //Location
                     var location = row.field_value.split('|');
@@ -1522,9 +1720,20 @@ function ActivityTimelineService(objectCollection) {
                     params[18] = row.field_value;
                     break;
                 case 23:    //Phone Number with Country Code
-                    var phone = row.field_value.split('|');
+                    /*var phone = row.field_value.split('|');
                     params[13] = phone[0];  //country code
                     params[18] = phone[1];  //phone number
+                    break;*/
+                    var phone;
+                    if((row.field_value).includes('||')) {
+                        phone = row.field_value.split('||');
+                        params[13] = phone[0];  //country code
+                        params[18] = phone[1];  //phone number
+                    } else {
+                        phone = row.field_value.split('|');
+                        params[13] = phone[0];  //country code
+                        params[18] = phone[1];  //phone number
+                    }                        
                     break;
                 case 24:    //Gallery Image
                 case 25:    //Camera Front Image
@@ -1569,7 +1778,7 @@ function ActivityTimelineService(objectCollection) {
                 case 39:    //Flag
                     params[11] = row.field_value;
             }
-            ;
+            
 
             params.push('');                                                    //IN p_device_manufacturer_name VARCHAR(50)
             params.push('');                                                    // IN p_device_model_name VARCHAR(50)
@@ -1585,6 +1794,8 @@ function ActivityTimelineService(objectCollection) {
             params.push(util.getCurrentUTCTime());                              // IN p_transaction_datetime DATETIME
             params.push(request.datetime_log);                                  // IN p_log_datetime DATETIME
             params.push(request.entity_datetime_2);                             // IN p_entity_datetime_2 DATETIME
+            
+            global.logger.write('debug', '\x1b[32m addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
 
             //var queryString = util.getQueryString('ds_v1_activity_form_transaction_insert', params);
             // var queryString = util.getQueryString('ds_v1_1_activity_form_transaction_insert', params); //BETA
@@ -1673,6 +1884,23 @@ function ActivityTimelineService(objectCollection) {
             });
         }
     }
+    
+    function getActivityIdBasedOnTransId(request) {
+        return new Promise((resolve, reject)=>{            
+            let paramsArr = new Array(
+                request.organization_id,
+                request.form_transaction_id            
+            );
+            let queryString = util.getQueryString('ds_p1_activity_list_select_form_transaction', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    console.log('Data from getActivityIdBasedOnTransId : ', data);
+                    (err === false) ? resolve(data) : reject(err);	                
+                });
+            }
+        });
+    }
+
 }
-;
+
 module.exports = ActivityTimelineService;

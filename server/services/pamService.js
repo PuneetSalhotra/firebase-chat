@@ -746,36 +746,80 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
         });
     };
     
-    this.updateOperatingAssetDetails = function (request, callback) {
+    /*this.updateOperatingAssetDetails = function (request, callback) {
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         
-        pamGetEmpStations(request).then((data)=>{
-            if(data.length > 0) {                
-                forEachAsync(data, function (next, row) {                    
+        pamGetEmpStations(request).then((data)=>{        	
+            if(data.length > 0) { 
+            	
+                forEachAsync(data, function (next, row) {                	
                     pamAssetListUpdateOperatingAsset(request, row.asset_id, 0).then(()=>{
+                    	next();
                         pamAssetListHistoryInsert(request, 40, row.asset_id).then(()=>{ 
-                            next();
                             });
                         });                        
-                }).then(()=>{
-                    pamAssetListUpdateOperatingAssetUnoccupied(request).then(()=>{
-                       getAssetDetails(request).then((resp)=>{
-                           callback(false, {"asset_id" : resp[0].asset_id, "operating_asset_id" : resp[0].operating_asset_id}, 200);
-                        });                       
+                }).then(()=>{                	
+                    pamAssetListUpdateOperatingAssetUnoccupied(request).then((data)=>{
+                       //getAssetDetails(request).then((resp)=>{
+                    	  
+                    	   console.log("2 :: "+data[0].asset_id+" :: 13 :: "+data[0].operating_asset_id);
+                           callback(false, {"asset_id" : data[0].asset_id, "operating_asset_id" : data[0].operating_asset_id}, 200);
+                        //});   
+                      
                         pamAssetListHistoryInsert(request, 7, request.work_station_asset_id).then(()=>{ });
                     }).catch((err)=>{ callback(true, err, -9999);});
                 });                
             } else {
-                pamAssetListUpdateOperatingAssetUnoccupied(request).then(()=>{
-                        getAssetDetails(request).then((resp)=>{
-                           callback(false, {"asset_id" : resp[0].asset_id, "operating_asset_id" : resp[0].operating_asset_id}, 200);
-                        });                        
+            	//console.log("11");
+                pamAssetListUpdateOperatingAssetUnoccupied(request).then((data)=>{
+                	//console.log("12");
+                       // getAssetDetails(request).then((resp)=>{
+                        	console.log("3 :: "+data[0].asset_id+" :: 13 :: "+data[0].operating_asset_id);
+                           callback(false, {"asset_id" : data[0].asset_id, "operating_asset_id" : data[0].operating_asset_id}, 200);
+                       // });                        
                         pamAssetListHistoryInsert(request, 7, request.work_station_asset_id).then(()=>{ });                        
                     }).catch((err)=>{ callback(true, err, -9999); });                                
             }
-        });
+        });        
+               
+    };*/
+    
+    
+    this.updateOperatingAssetDetails = function (request, callback) {
+        var logDatetime = util.getCurrentUTCTime();
+        request['datetime_log'] = logDatetime;
         
+        pamGetEmpStations(request).then((data)=>{        	
+            if(data.length > 0) { 
+            	
+                forEachAsync(data, function (next, row) {                	
+                    pamAssetListUpdateOperatingAsset(request, row.asset_id, 0).then(()=>{
+                    	next();
+                        pamAssetListHistoryInsert(request, 40, row.asset_id).then(()=>{ 
+                            });
+                        });                        
+                }).then(()=>{                	
+                    pamAssetListUpdateOperatingAssetUnoccupied(request).then((data)=>{
+                       //getAssetDetails(request).then((resp)=>{
+                    	  
+                    	   console.log("2 :: "+data[0].asset_id+" :: 13 :: "+data[0].operating_asset_id);
+                           callback(false, {"asset_id" : data[0].asset_id, "operating_asset_id" : data[0].operating_asset_id}, 200);
+                        //});   
+                      
+                        pamAssetListHistoryInsert(request, 7, request.work_station_asset_id).then(()=>{ });
+                    }).catch((err)=>{ callback(true, err, -9999);});
+                });                
+            } else {            	
+                pamAssetListUpdateOperatingAssetUnoccupied(request).then((data)=>{                	
+                       // getAssetDetails(request).then((resp)=>{
+                    console.log("3 :: "+data[0].asset_id+" :: 13 :: "+data[0].operating_asset_id);
+                           callback(false, {"asset_id" : data[0].asset_id, "operating_asset_id" : data[0].operating_asset_id}, 200);
+                       // });                        
+                        pamAssetListHistoryInsert(request, 7, request.work_station_asset_id).then(()=>{ });                        
+                    }).catch((err)=>{ callback(true, err, -9999); });                                
+            }
+        });        
                
     };
     
@@ -834,7 +878,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
         var queryString = util.getQueryString('ds_v1_asset_list_update_operating_asset_unoccupied', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
-                (err === false) ? resolve() : reject(err);
+                (err === false) ? resolve(data) : reject(err);
             });
             }
          })
@@ -2074,8 +2118,6 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                 request['asset_assigned_status_id'] = 0;
                 request['asset_session_status_id'] = 0;
 
-                global.logger.writeSession(request.body);
-                             
                 /*sns.createPlatformEndPoint(Number(request.device_os_id), request.asset_token_push, 1, function (err, endPointArn) {
                     if (!err) {
                         //console.log('success in creating platform end point : ' + endPointArn);
@@ -2146,8 +2188,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
             request.target_asset_id = 0;
         }
 
-        console.log('assetClockOut : \n', request);
-        global.logger.writeSession(request.body);
+        console.log('assetClockOut : \n', request);        
         
         request.push_notification_id = '';
         request.asset_push_arn = '';
@@ -2247,7 +2288,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                 	activityCommonService.activityListHistoryInsert(request, 413, function (err, result) {});
                     if (err === false) {
                       	//activityCommonService.activityListHistoryInsert(request, 413, function (err, result) {});
-                        activityCommonService.getActivityDetails(request, 0, function(err, data){
+                        getActivityDetailsMaster(request, 0, function(err, data){
                             if(err === false){
                                 activityStatusId = data[0].activity_status_id;
                                 activityStatusTypeId = data[0].activity_status_type_id;
@@ -2332,7 +2373,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
             	activityCommonService.activityListHistoryInsert(request, 414, function (err, result) {});
                     if (err === false) {
                        	//activityCommonService.activityListHistoryInsert(request, 414, function (err, result) {});
-                        activityCommonService.getActivityDetails(request, 0, function(err, data){
+                        getActivityDetailsMaster(request, 0, function(err, data){
                             if(err === false){                     
                                 
                                 response.activity_status_id = util.replaceDefaultNumber(data[0].activity_status_id);
@@ -2354,7 +2395,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                                     
                                     ////////////////////
                                     activityAssetMappingInsertParticipantAssign(request, x, function(err, resp){
-                                        if(err === false){
+                                       // if(err === false){
                                             updateStatusDateTimes(request).then(()=>{});
                                             ///////////////////////
                                             activityCommonService.getAllParticipants(request, function(err, participantData){
@@ -2376,10 +2417,10 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                                                 }  
                                             });
                                             ///////////////////
-                                        } else {
+                                       /* } else {
                                             callback(true, err, -9999);
                                             return;
-                                        }
+                                        }*/
                                     });
                                     ///////////////////                                 
                                     
@@ -3603,6 +3644,32 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
         });
         
     }
+    
+    function getActivityDetailsMaster(request, activityId, callback) {
+        var paramsArr;
+        if (Number(activityId > 0)) {
+            paramsArr = new Array(
+                activityId,
+                request.organization_id
+            );
+        } else {
+            paramsArr = new Array(
+                request.activity_id,
+                request.organization_id
+            );
+        }
+        var queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
+        if (queryString != '') {
+            db.executeQuery(0, queryString, request, function (err, data) {
+                if (err === false) {                    
+                    callback(false, data);
+                } else {
+                    // some thing is wrong and have to be dealt
+                    callback(err, false);
+                }
+            });
+        }
+    };
 
 }
 ;

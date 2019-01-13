@@ -161,6 +161,7 @@ function ActivityParticipantService(objectCollection) {
                     activityStreamTypeId = 1703;
                     break;
                     //////////////////////////////
+                case 48:
                 case 9: //form
                     activityStreamTypeId = 702;
                     break;
@@ -227,7 +228,7 @@ function ActivityParticipantService(objectCollection) {
                     global.logger.write('debug', 'adding streamtype id 2', {}, request)
                     break;
 
-            };
+            }
         }
 
         var logDatetime = util.getCurrentUTCTime();
@@ -252,9 +253,10 @@ function ActivityParticipantService(objectCollection) {
                     updateParticipantCount(request.activity_id, request.organization_id, request, function (err, data) {});
                     activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) {});
                 }
-            } else {
+            } else {                
                 //console.log("something is not wright in adding a participant");
-                global.logger.write('serverError', 'something is not right in adding a participant', {}, request)
+                global.logger.write('serverError', 'something is not right in adding a participant', {}, request);
+                callback(false, {}, 200);
             }
         });
     };
@@ -524,7 +526,12 @@ function ActivityParticipantService(objectCollection) {
         if (newRecordStatus) {
             activityAssetMappingInsertParticipantAssign(request, participantData, function (err, data) {
                 if (err === false) {
-                    activityPushService.sendPush(request, objectCollection, participantData.asset_id, function () {});
+                    try {
+                        activityPushService.sendPush(request, objectCollection, participantData.asset_id, function () {});
+                    } catch(err) {
+                        console.log(err);
+                    }
+                    
                     activityCommonService.assetTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
 
                     });

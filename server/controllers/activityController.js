@@ -663,6 +663,8 @@ function ActivityController(objCollection) {
             activity_id: req.body.activity_id,
             message_unique_id: req.body.message_unique_id
         }; //BETA
+        
+        //global.logger.write('DEBUG', 'Request Parameters: ' + JSON.stringify(req.body, null, 2), {}, req.body);
         if (req.body.hasOwnProperty('asset_message_counter'))
             assetMessageCounter = Number(req.body.asset_message_counter);
         if (req.body.hasOwnProperty('device_os_id'))
@@ -782,6 +784,20 @@ function ActivityController(objCollection) {
    	 
    	 	res.send(responseWrapper.getResponse({}, {}, 200, req.body));
    });
+    
+    app.put('/' + global.config.version + '/test/workflow/queue/mapping/set', function (req, res) {
+        activityService.updateWorkflowQueueMapping(req.body)
+            .then((data) => {
+                // console.log("Data: ", data)
+                res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            })
+            .catch((err) => {
+                let data = {};
+                res.send(responseWrapper.getResponse(err, data, -999, req.body));
+            });
+
+        // res.send(responseWrapper.getResponse({}, {}, 200, req.body));
+    });
 
 
 };

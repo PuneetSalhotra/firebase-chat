@@ -165,7 +165,7 @@ function UtilityController(objCollection) {
         //console.log("sms Text : " + text);
         global.logger.write('debug', 'sms Text : ' + text, {}, request);
 
-        if (request.country_code == 91) {
+        /*if (request.country_code == 91) {
             //console.log('Sending Domestic SMS');
             global.logger.write('debug', 'Sending Domestic SMS', {}, request);
             fs.readFile(`${__dirname}/../utils/domesticSmsMode.txt`, function (err, data) {
@@ -221,10 +221,38 @@ function UtilityController(objCollection) {
                         break;
                 }
             });
-        }
+        }*/
 
         res.send(responseWrapper.getResponse(false, {}, 200, req.body));
     });
+    
+    app.post('/' + global.config.version + '/send/smshorizon/sms', function (req, res) {
+       var smapleSMS = "Hi This is a sample Test";
+       smapleSMS = smapleSMS + req.body.counter;
+       
+        util.sendSmsHorizon(smapleSMS, req.body.country_code, req.body.phone_number, function (err, data) {
+            if (err === false) {
+            	global.logger.write('debug', 'SMS HORIZON RESPONSE: '+JSON.stringify(data), {}, req);
+                res.send(responseWrapper.getResponse(err, data.response, 200, req.body));
+            } else {
+                res.send(responseWrapper.getResponse(err, data.code, 200, req.body));
+            }
+        });
+    });
+    
+    app.post('/' + global.config.version + '/send/smshorizon/sms', function (req, res) {
+        var smapleSMS = "Hi This is a sample Test";
+        smapleSMS = smapleSMS + req.body.counter;
+        
+         util.sendSmsHorizon(smapleSMS, req.body.country_code, req.body.phone_number, function (err, data) {
+             if (err === false) {
+             	global.logger.write('debug', 'SMS HORIZON RESPONSE: '+JSON.stringify(data), {}, req);
+                 res.send(responseWrapper.getResponse(err, data.response, 200, req.body));
+             } else {
+                 res.send(responseWrapper.getResponse(err, data.code, 200, req.body));
+             }
+         });
+     });
 
 }
 module.exports = UtilityController;

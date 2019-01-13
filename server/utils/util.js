@@ -155,6 +155,27 @@ function Util() {
             callback(false, res);
         });
     };
+    
+    this.sendSmsHorizon = function (messageString, countryCode, phoneNumber, callback) {
+        //        console.log("inside sendSmsMvaayoo");
+        messageString = encodeURI(messageString);
+        var url = "http://smshorizon.co.in/api/sendsms.php?user=GreneRobotics&apikey=oLm0MhRHBt2KPXFRrk8k&mobile="+countryCode+""+phoneNumber+"&message="+messageString+"&senderid=WDDESK&type=txt";
+        global.logger.write('debug', 'URL: '+url, {}, {});
+        request(url, function (error, response, body) {
+        	global.logger.write('debug', 'SMS HORIZON RESP:: '+body, {}, {});
+            var res = {};            
+            if (typeof body == 'string' && Number(body) > 0) {
+                res['status'] = 1;
+                res['message'] = "Message sent";
+            } else {
+                res['status'] = 0;
+                res['message'] = "Message not sent";
+            }
+            if (error)
+                callback(error, false);
+            callback(false, res);
+        });
+    };
 
     this.sendInternationalTwilioSMS = function (messageString, countryCode, phoneNumber, callback) {
         var accountSid = global.config.twilioAccountSid; // Your Account SID from www.twilio.com/console
@@ -883,6 +904,10 @@ function Util() {
 
     // SendInBlue
     this.sendEmailV3 = function (request, email, subject, text, htmlTemplate, callback) {
+        console.log('email : ', email);
+        console.log('subject : ', subject);
+        console.log('text : ', text);
+        
         // SendSmtpEmail | Values to send a transactional email
         var sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
         sendSmtpEmail.to = [{
@@ -1005,11 +1030,33 @@ function Util() {
     // [VODAFONE]
     this.getVodafoneFormFieldIdMapping = function () {
         return vodafoneFormFieldIdMapping;
-    }
+    };
+
     // [VODAFONE]
     this.getVodafoneRomsCafFieldsData = function () {
         return vodafoneRomsCafFieldsData;
-    }
+    };
+    
+    this.sendSmsHorizon = function (messageString, countryCode, phoneNumber, callback) {
+ 
+        messageString = encodeURI(messageString);
+        var url = "http://smshorizon.co.in/api/sendsms.php?user=GreneRobotics&apikey=oLm0MhRHBt2KPXFRrk8k&mobile="+countryCode+""+phoneNumber+"&message="+messageString+"&senderid=WDDESK&type=txt";
+        global.logger.write('debug', 'URL: '+url, {}, {});
+        request(url, function (error, response, body) {
+        	global.logger.write('debug', 'SMS HORIZON RESP:: '+body, {}, {});
+            var res = {};            
+            if (typeof body == 'string' && Number(body) > 0) {
+                res['status'] = 1;
+                res['message'] = "Message sent";
+            } else {
+                res['status'] = 0;
+                res['message'] = "Message not sent";
+            }
+            if (error)
+                callback(error, false);
+            callback(false, res);
+        });
+    };
 
 };
 

@@ -502,5 +502,54 @@ function AssetController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, -9998, req.body));
             });
     });
+    
+   app.put('/' + global.config.version + '/pam/asset/passcode/alter/v1', function (req, res) {
+
+        assetService.getPamMemberPhoneNumberAsset(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // Positive response
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                // Error
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+
+    app.post('/' + global.config.version + '/pam/asset/passcode/check', function (req, res) {
+
+		assetService.checkPamAssetPasscode(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response    
+
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                //console.log('did not get proper rseponse');
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+		});
+
+    });
+
+    //Retrieve the asset Timeline Data
+    app.post('/' + global.config.version + '/asset/access/timeline/list', async (req, res) => {
+        try {            
+            global.logger.write('conLog', req.body,{},{});
+            let result = await assetService.getAssetTimelineData(req.body);
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch(err) {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+
+    
+    app.post('/' + global.config.version + '/asset/geofence/count', async function (req, res) {
+        const [err, data] = await assetService.geAssetGeoFenceCounts(req.body);
+        (!err) ?
+            res.send(responseWrapper.getResponse({}, data, 200, req.body)):                    
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+    });
 }
 module.exports = AssetController;

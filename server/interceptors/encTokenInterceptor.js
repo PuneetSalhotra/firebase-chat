@@ -1,7 +1,7 @@
 /*
  * author: A Sri Sai Venkatesh
  */
-var uuid = require('uuid');
+//var uuid = require('uuid');
 const TimeUuid = require('cassandra-driver').types.TimeUuid;
 
 function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
@@ -13,9 +13,8 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                 //console.log('Unable to get the service Id')
                 global.logger.write('debug', 'Unable to get the service Id', {}, req.body);
                 req.body.service_id = 0;
-            } else {
-                console.log('Service Id: ' + result)
-                // global.logger.write('debug', 'Service Id : ' + JSON.stringify(result), {}, req.body);
+            } else {                
+                global.logger.write('conLog', 'Service Id : ', JSON.stringify(result), {});
                 req.body.service_id = result;
                 var bundleTransactionId = TimeUuid.now();
                 req.body.bundle_transaction_id = bundleTransactionId;
@@ -31,8 +30,7 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                     next();
                 } else {
 
-                    switch (req.url) {
-
+                    switch (req.url) {                        
                         case '/' + global.config.version + '/asset/passcode/alter':
                         case '/' + global.config.version + '/asset/passcode/alter/v1':
                             //case '/' + global.config.version + '/sms-dlvry/sinfini':
@@ -67,6 +65,16 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                             global.logger.write('request', JSON.stringify(req.body, null, 2), req.body, req.body);
                             next();
                             break;
+                        case '/' + global.config.version + '/pam/asset/passcode/check':
+                            req.body['module'] = 'device';
+                            global.logger.write('request', JSON.stringify(req.body, null, 2), req.body, req.body);
+                            next();
+                            break;    
+                        case '/' + global.config.version + '/pam/asset/passcode/alter/v1':
+                            req.body['module'] = 'device';
+                            global.logger.write('request', JSON.stringify(req.body, null, 2), req.body, req.body);
+                            next();
+                            break;                                                
                         case '/' + global.config.version + '/send/email':
                         case '/' + global.config.version + '/wf/send/email':
                         case '/' + global.config.version + '/wf/send/sms':
@@ -134,8 +142,8 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                     } //switch
                 } //else
             } //else
-        }) //getServiceId
-    }) //app.use
-}; // main function
+        }); //getServiceId
+    }); //app.use
+} // main function
 
 module.exports = EncTokenInterceptor;

@@ -2,14 +2,14 @@
 if [ "$DEPLOYMENT_GROUP_NAME" == "preProdCodeDeploy-Group" ]
 then
   cd /preprod_desker_api/
-  mode=preprod pm2 reload startPreProdProcesses.yml
+  pm2 reload preProdProcesses.yml
 elif [ "$DEPLOYMENT_GROUP_NAME" == "prodCodeDeploy-Group" ] 
 then
-  cd /production_desker_api/2018-11-20-02/
-  mode=prod pm2 reload startProdProcesses.yml
+  cd /production_desker_api/2018-11-28-02/
+  pm2 start prodProcesses.yml
   #sleep 2
-  #cd /api-final-efs/node/production_portal_api
-  #mode=prod pm2 reload startAllProdPortalProcesses.yml
+  #cd /production_portal_api/portal/
+  #mode=prod pm2 start prodPortalProcesses.yml
 else    
   echo "Unknown deployment Group"
 fi
