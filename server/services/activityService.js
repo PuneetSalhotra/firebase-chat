@@ -322,6 +322,39 @@ function ActivityService(objectCollection) {
                                 }
                             }
 
+                            // Trigger Bot Engine
+                         if (activityTypeCategroyId === 48 && request.device_os_id !== 9) {
+                            try {
+                                let botEngineRequest = Object.assign({}, request);
+                                botEngineRequest.form_id = request.activity_form_id;
+                                botEngineRequest.field_id = 0;
+                                botEngineRequest.flag = 3;
+                                botEngineRequest.workflow_activity_id = request.activity_id;
+
+                                const [formConfigError, formConfigData] = await activityCommonService.workforceFormMappingSelect(botEngineRequest);
+                                if (
+                                    (formConfigError === false) &&
+                                    (Number(formConfigData.length) > 0) &&
+                                    (Number(formConfigData[0].form_flag_workflow_enabled) === 1) &&
+                                    (Number(formConfigData[0].form_flag_workflow_origin) === 1)
+                                ) {
+                                    // Proceeding because there was no error found, there were records returned
+                                    // and form_flag_workflow_enabled is set to 1
+                                    let botsListData = await activityCommonService.getBotsMappedToActType(botEngineRequest);
+                                    if (botsListData.length > 0) {
+                                        botEngineRequest.bot_id = botsListData[0].bot_id;
+
+                                        await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
+                                            .then((resp) => {
+                                                global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
+                                            });
+                                    }
+                                }
+                            } catch (botInitError) {
+                                global.logger.write('error', botInitError, botInitError, botEngineRequest);
+                            }
+                        }
+
                             /*activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
 
                             });
@@ -1746,6 +1779,7 @@ function ActivityService(objectCollection) {
                     activityStreamTypeId = 1702;
                     break;
                     ////////////////////////////////
+                case 48:
                 case 9: //form
                     activityStreamTypeId = 704;
                     break;
@@ -2333,7 +2367,14 @@ function ActivityService(objectCollection) {
         return new Promise((resolve, reject) => {
             activityCommonService.getActivityDetails(request, 0, function (err, resp) { //If parent Id > 0 then only he is calling these calls
                 if (err === false) {
-                    var parentActivityId = (Number(resp[0].parent_activity_id) > 0) ? resp[0].parent_activity_id : 0;
+                    var parentActivityId;
+
+                    if(resp.length > 0) {
+                        parentActivityId = (Number(resp[0].parent_activity_id) > 0) ? resp[0].parent_activity_id : 0;
+                    } else {
+                        parentActivityId = 0;
+                    }
+                    
                     if (parentActivityId > 0) {
                         var paramsArr = new Array(
                             request.organization_id,
