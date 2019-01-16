@@ -14,7 +14,7 @@ config.phone_call = 1; // both Domestic and International 1: Nexmo | 2: Twilio
 
 config.whitelist = ['http://mydesk.desker.co', 'https://mydesk.desker.co', 'http://127.0.0.1', 'http://localhost'];
 
-if (mode === 'bharat') {
+if (mode === 'masimukku') {
 
     //Ports Config
     config.version = 'r0';
@@ -37,7 +37,6 @@ if (mode === 'bharat') {
     config.dbUser = 'apiuser';
     config.database = 'desker_staging';
     config.dbPassword = 'apidbuser';
-
     config.conLimit = 2;
 
     //Redis Config    
@@ -68,10 +67,19 @@ if (mode === 'bharat') {
     config.PRODUCER_ACKS_TIMEOUT = 100;
     config.PRODUCER_PARTITONER_TYPE = 3;
 
-    config.TOPIC_ID = 2;
-    config.TOPIC_NAME = 'bharat-desker-activities';
-    config.WIDGET_TOPIC_NAME = 'bharat-desker-form-widgets';
-    config.CONSUMER_GROUP_ID = 'bharat-desker-activities-consumer-group';
+    //Desker
+    config.TOPIC_ID = 14; //Take from Sai
+    config.TOPIC_NAME = 'masimukku-desker-activities';
+    config.CONSUMER_GROUP_ID = 'masimukku-desker-activities-cg';    
+    
+    //Widget
+    config.WIDGET_TOPIC_NAME = 'masimukku-desker-widgets';    
+    config.WIDGET_CONSUMER_GROUP_ID = 'masimukku-desker-widgets-cg';
+    
+    //LOGS
+    config.LOGS_TOPIC_NAME = 'masimukku-desker-logs';
+    config.WIDGET_CONSUMER_GROUP_ID = 'masimukku-desker-logs-cg';
+
     config.CONSUMER_AUTO_COMMIT = true;
     config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
     config.CONSUMER_FETCH_MAX_WAIT = 10;
