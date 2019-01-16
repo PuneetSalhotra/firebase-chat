@@ -3458,22 +3458,31 @@ function ActivityService(objectCollection) {
 
     this.getWorkflowPercentage = async function (request) {
         let queuesData = await getAllQueuesBasedOnActId(request, request.activity_id);
-        let queueActivityMappingInlineData = JSON.parse(queuesData[0].queue_activity_mapping_inline_data);
-        let workflowCompletionPercentage = queueActivityMappingInlineData.queue_sort.caf_completion_percentage;
-        // console.log("queueActivityMappingInlineData.queue_sort: ", queueActivityMappingInlineData.queue_sort);
-        // console.log("workflowCompletionPercentage: ", workflowCompletionPercentage);
-        
-        queuesData[0].workflow_completion_percentage = workflowCompletionPercentage;
-        // console.log("queuesData: ", queuesData)
         let responseObject = [];
-        for (const queueData of queuesData) {
-            responseObject.push({
-                queue_activity_mapping_id: queueData.queue_activity_mapping_id,
-                queue_activity_mapping_inline_data: queueData.queue_activity_mapping_inline_data,
-                queue_id: queueData.queue_id,
-                queue_name: queueData.queue_name,
-                workflow_completion_percentage: workflowCompletionPercentage,
-            });
+
+        if (queuesData.length > 0) {
+            let queueActivityMappingInlineData = JSON.parse(queuesData[0].queue_activity_mapping_inline_data);
+            let workflowCompletionPercentage = queueActivityMappingInlineData.queue_sort.caf_completion_percentage;
+            // console.log("queueActivityMappingInlineData.queue_sort: ", queueActivityMappingInlineData.queue_sort);
+            // console.log("workflowCompletionPercentage: ", workflowCompletionPercentage);
+
+            queuesData[0].workflow_completion_percentage = workflowCompletionPercentage;
+            // console.log("queuesData: ", queuesData)
+
+            for (const queueData of queuesData) {
+                responseObject.push({
+                    queue_activity_mapping_id: queueData.queue_activity_mapping_id,
+                    queue_activity_mapping_inline_data: queueData.queue_activity_mapping_inline_data,
+                    queue_id: queueData.queue_id,
+                    queue_name: queueData.queue_name,
+                    workflow_completion_percentage: workflowCompletionPercentage,
+                });
+            }
+
+        } else {
+            responseObject = [{
+                workflow_completion_percentage: 0
+            }]
         }
 
         return responseObject;
