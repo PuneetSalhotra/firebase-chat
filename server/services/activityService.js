@@ -3456,5 +3456,38 @@ function ActivityService(objectCollection) {
         }
     };
 
+    this.getWorkflowPercentage = async function (request) {
+        let queuesData = await getAllQueuesBasedOnActId(request, request.activity_id);
+        let queueActivityMappingInlineData = JSON.parse(queuesData[0].queue_activity_mapping_inline_data);
+        let workflowCompletionPercentage = queueActivityMappingInlineData.queue_sort.caf_completion_percentage;
+        // console.log("queueActivityMappingInlineData.queue_sort: ", queueActivityMappingInlineData.queue_sort);
+        // console.log("workflowCompletionPercentage: ", workflowCompletionPercentage);
+        
+        queuesData[0].workflow_completion_percentage = workflowCompletionPercentage;
+        // console.log("queuesData: ", queuesData)
+        let responseObject = [];
+        for (const queueData of queuesData) {
+            responseObject.push({
+                queue_activity_mapping_id: queueData.queue_activity_mapping_id,
+                queue_activity_mapping_inline_data: queueData.queue_activity_mapping_inline_data,
+                queue_id: queueData.queue_id,
+                queue_name: queueData.queue_name,
+                workflow_completion_percentage: workflowCompletionPercentage,
+            });
+        }
+
+        return responseObject;
+    }
+    async function getAllQueuesBasedOnActId(request, activityId) {
+        let paramsArr = new Array(
+            request.organization_id,
+            activityId
+        );
+        let queryString = util.getQueryString('ds_p1_1_queue_activity_mapping_select_activity', paramsArr);
+        if (queryString != '') {
+            return await db.executeQueryPromise(1, queryString, request);
+        }
+    }
+
 }
 module.exports = ActivityService;

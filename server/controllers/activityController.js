@@ -799,6 +799,20 @@ function ActivityController(objCollection) {
         // res.send(responseWrapper.getResponse({}, {}, 200, req.body));
     });
 
+    app.post('/' + global.config.version + '/activity/workflow/get_percentage', function (req, res) {
+        activityService.getWorkflowPercentage(req.body)
+            .then((data) => {
+                // console.log("Data: ", data)
+                res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            })
+            .catch((err) => {
+                let data = {};
+                res.send(responseWrapper.getResponse(err, data, -999, req.body));
+            });
+
+        // res.send(responseWrapper.getResponse({}, {}, 200, req.body));
+    });
+
 
 };
 
