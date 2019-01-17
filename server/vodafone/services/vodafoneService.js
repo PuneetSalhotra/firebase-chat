@@ -16,36 +16,36 @@ function VodafoneService(objectCollection) {
     const moment = require('moment');
     const formFieldIdMapping = util.getVodafoneFormFieldIdMapping();
     const romsCafFieldsData = util.getVodafoneRomsCafFieldsData();
-    
+
     // Form Config Service
     // const FormConfigService = require("../../services/formConfigService");
     // const formConfigService = new FormConfigService(objectCollection);
-    
-    this.newOrderFormAddToQueues = function(request, callback) {
-        
-        var logDatetime = util.getCurrentUTCTime();        
-        request['datetime_log'] = logDatetime;              
+
+    this.newOrderFormAddToQueues = function (request, callback) {
+
+        var logDatetime = util.getCurrentUTCTime();
+        request['datetime_log'] = logDatetime;
         request.form_status_id = global.vodafoneConfig[request.organization_id].STATUS.HLD_PENDING;
         request.form_activity_id = request.activity_id;
-        
+
         //Step 2 :- Set the status of the form file to "HLD Pending"
-        changeStatusToHLDPending(request).then(()=>{});        
-        
-        activityCommonService.getActivityDetails(request, request.activity_id, (err, data)=>{
-            if(err === false) {
-                                            
+        changeStatusToHLDPending(request).then(() => {});
+
+        activityCommonService.getActivityDetails(request, request.activity_id, (err, data) => {
+            if (err === false) {
+
                 //Step 1 :- Fill the order Supplementary form, add a dedicated file for it
                 request.activity_type_id = data[0].activity_type_id;
-                addOrderSuppForm(request).then(()=>{});
-                
+                addOrderSuppForm(request).then(() => {});
+
                 //let fileCreationDateTime = util.replaceDefaultDatetime(data[0].activity_datetime_start_expected);
                 let fileCreationDateTime = util.replaceDefaultDatetime(data[0].activity_datetime_created);
-                
+
                 //Adding to OMT Queue                
                 request.start_from = 0;
                 request.limit_value = 1;
                 request.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
-                
+
                 //Update the JSON
                 let queueMappingJson = {};
                 let queueSort = {};
@@ -57,116 +57,128 @@ function VodafoneService(objectCollection) {
                 // queueSort.current_status_name = "HLD Pending";
                 queueSort.current_status_name = "CAF Updation";
                 queueMappingJson.queue_sort = queueSort;
-                
+
                 console.log('queueMappingJson : ', JSON.parse(JSON.stringify(queueMappingJson)));
 
                 //Get the Queue ID
-                activityCommonService.fetchQueueByQueueName(request, "OMT").then((resp)=>{
+                activityCommonService.fetchQueueByQueueName(request, "OMT").then((resp) => {
                     console.log('Queue Data : ', resp);
-                    
+
                     //Checking the queuemappingid
                     activityCommonService.fetchQueueActivityMappingId(request, resp[0].queue_id).then((queueActivityMappingData) => {
-                        console.log('queueActivityMappingData : ', queueActivityMappingData);
-                        
-                        request.activity_status_id = request.form_status_id;
-                        
-                        if(queueActivityMappingData.length > 0){ 
-                            //Check the status
-                            //If status is same then do nothing
-                            let queueInlineData = JSON.parse(queueActivityMappingData[0].queue_inline_data);
-                            if(Number(queueInlineData.activity_status_id) !== Number(request.form_status_id)) {
-                                //If different unmap the activitymapping and insert the new status id                            
-                                queueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;                                
-                                
-                                activityCommonService.queueActivityMappingUpdateInlineStatus(request, queueActivityMappingId, JSON.stringify(queueMappingJson)).then((data)=>{
-                                    console.log('Updating the Queue Json : ', data);
-                                    activityCommonService.queueHistoryInsert(request, 1402, queueActivityMappingId).then(()=>{});
-                                }).catch((err)=>{
-                                    global.logger.write('debug', err, {}, request);
-                                });                                
-                            }
-                        } else {                            
-                            activityCommonService.mapFileToQueue(request, resp[0].queue_id, JSON.stringify(queueMappingJson)).then((data) => {
-                                console.log("Form assigned to OMT queue: ", data);
-                                activityCommonService.queueHistoryInsert(request, 1401, data[0].queue_activity_mapping_id).then(()=>{});
-                            }).catch((error) => {
-                                console.log("Error assigning form to the queue: ", error)
-                            });
-                        }                                               
-                            
-                    }).then((data) => { console.log("Form unassigned from queue: ", data); })
-                      .catch((error) => { console.log("Error unassigning form from queue: ", error); });                    
-                    
-                }).catch((err)=>{ global.logger.write('debug', err, {}, request); });
+                            console.log('queueActivityMappingData : ', queueActivityMappingData);
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////                
+                            request.activity_status_id = request.form_status_id;
+
+                            if (queueActivityMappingData.length > 0) {
+                                //Check the status
+                                //If status is same then do nothing
+                                let queueInlineData = JSON.parse(queueActivityMappingData[0].queue_inline_data);
+                                if (Number(queueInlineData.activity_status_id) !== Number(request.form_status_id)) {
+                                    //If different unmap the activitymapping and insert the new status id                            
+                                    queueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;
+
+                                    activityCommonService.queueActivityMappingUpdateInlineStatus(request, queueActivityMappingId, JSON.stringify(queueMappingJson)).then((data) => {
+                                        console.log('Updating the Queue Json : ', data);
+                                        activityCommonService.queueHistoryInsert(request, 1402, queueActivityMappingId).then(() => {});
+                                    }).catch((err) => {
+                                        global.logger.write('debug', err, {}, request);
+                                    });
+                                }
+                            } else {
+                                activityCommonService.mapFileToQueue(request, resp[0].queue_id, JSON.stringify(queueMappingJson)).then((data) => {
+                                    console.log("Form assigned to OMT queue: ", data);
+                                    activityCommonService.queueHistoryInsert(request, 1401, data[0].queue_activity_mapping_id).then(() => {});
+                                }).catch((error) => {
+                                    console.log("Error assigning form to the queue: ", error)
+                                });
+                            }
+
+                        }).then((data) => {
+                            console.log("Form unassigned from queue: ", data);
+                        })
+                        .catch((error) => {
+                            console.log("Error unassigning form from queue: ", error);
+                        });
+
+                }).catch((err) => {
+                    global.logger.write('debug', err, {}, request);
+                });
+
+                /////////////////////////////////////////////////////////////////////////////////////////////////////                
                 //Adding to HLD Queue
                 //Get the Queue ID
-                activityCommonService.fetchQueueByQueueName(request, "HLD").then((resp)=>{
+                activityCommonService.fetchQueueByQueueName(request, "HLD").then((resp) => {
                     console.log('Queue Data : ', resp);
-                    
+
                     //Checking the queuemappingid
                     activityCommonService.fetchQueueActivityMappingId(request, resp[0].queue_id).then((queueActivityMappingData) => {
-                        console.log('queueActivityMappingData : ', queueActivityMappingData);
-                        
-                        if(queueActivityMappingData.length > 0){ 
-                            //Check the status
-                            //If status is same then do nothing
-                            let queueInlineData = JSON.parse(queueActivityMappingData[0].queue_inline_data);
-                            if(Number(queueInlineData.activity_status_id) !== Number(request.form_status_id)) {
-                                //If different unmap the activitymapping and insert the new status id                            
-                                let queueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;                                
-                                
-                                activityCommonService.queueActivityMappingUpdateInlineStatus(request, queueActivityMappingId, JSON.stringify(queueMappingJson)).then((data)=>{
-                                    console.log('Updating the Queue Json : ', data);                                    
-                                    activityCommonService.queueHistoryInsert(request, 1402, queueActivityMappingId).then(()=>{});
-                                }).catch((err)=>{
-                                    global.logger.write('debug', err, {}, request);
-                                });                                
-                            }
-                        } else {                            
-                            activityCommonService.mapFileToQueue(request, resp[0].queue_id, JSON.stringify(queueMappingJson)).then((data) => {
-                                console.log("Form assigned to OMT queue: ", data);
-                                activityCommonService.queueHistoryInsert(request, 1401, data[0].queue_activity_mapping_id).then(()=>{});
-                            }).catch((error) => {
-                                console.log("Error assigning form to the queue: ", error)
-                            });
-                        }                                               
-                            
-                    }).then((data) => { console.log("Form unassigned from queue: ", data); })
-                      .catch((error) => { console.log("Error unassigning form from queue: ", error); });                    
-                    
-                }).catch((err)=>{ global.logger.write('debug', err, {}, request); });
+                            console.log('queueActivityMappingData : ', queueActivityMappingData);
 
-                
+                            if (queueActivityMappingData.length > 0) {
+                                //Check the status
+                                //If status is same then do nothing
+                                let queueInlineData = JSON.parse(queueActivityMappingData[0].queue_inline_data);
+                                if (Number(queueInlineData.activity_status_id) !== Number(request.form_status_id)) {
+                                    //If different unmap the activitymapping and insert the new status id                            
+                                    let queueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;
+
+                                    activityCommonService.queueActivityMappingUpdateInlineStatus(request, queueActivityMappingId, JSON.stringify(queueMappingJson)).then((data) => {
+                                        console.log('Updating the Queue Json : ', data);
+                                        activityCommonService.queueHistoryInsert(request, 1402, queueActivityMappingId).then(() => {});
+                                    }).catch((err) => {
+                                        global.logger.write('debug', err, {}, request);
+                                    });
+                                }
+                            } else {
+                                activityCommonService.mapFileToQueue(request, resp[0].queue_id, JSON.stringify(queueMappingJson)).then((data) => {
+                                    console.log("Form assigned to OMT queue: ", data);
+                                    activityCommonService.queueHistoryInsert(request, 1401, data[0].queue_activity_mapping_id).then(() => {});
+                                }).catch((error) => {
+                                    console.log("Error assigning form to the queue: ", error)
+                                });
+                            }
+
+                        }).then((data) => {
+                            console.log("Form unassigned from queue: ", data);
+                        })
+                        .catch((error) => {
+                            console.log("Error unassigning form from queue: ", error);
+                        });
+
+                }).catch((err) => {
+                    global.logger.write('debug', err, {}, request);
+                });
+
+
             } else {
                 callback(true, {}, -9998);
             }
         });
-        
+
         callback(false, {}, 200);
     };
-    
+
     function addOrderSuppForm(request) {
-        return new Promise((resolve, reject)=>{
-            
+        return new Promise((resolve, reject) => {
+
             //Get the orderSuppForm and add it to the activityinlinedata
-            getSpecifiedForm(request, global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY).then((data)=>{
-                
+            getSpecifiedForm(request, global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY).then((data) => {
+
                 console.log("\x1b[35m Retrived Data Type . \x1b[0m", typeof data);
                 console.log("\x1b[35m Got the empty Order supplementary form data . \x1b[0m");
-                
-                forEachAsync(data, (next, row)=>{
+
+                forEachAsync(data, (next, row) => {
                     row.field_value = "";
                     next();
-                }).then(()=>{
-                    
+                }).then(() => {
+
                     let newRequest = {
                         organization_id: request.organization_id,
                         account_id: global.vodafoneConfig[request.organization_id].CUSTOMER.ACCOUNT_ID,
                         workforce_id: global.vodafoneConfig[request.organization_id].CUSTOMER.WORKFORCE_ID,
                         asset_id: global.vodafoneConfig[request.organization_id].BOT.ASSET_ID,
-                        asset_token_auth: global.vodafoneConfig[request.organization_id].BOT.ENC_TOKEN,               
+                        asset_token_auth: global.vodafoneConfig[request.organization_id].BOT.ENC_TOKEN,
                         asset_message_counter: 0,
                         activity_title: "Adding the Order Supplementary Form",
                         activity_description: "Adding the Order Supplementary Form",
@@ -198,159 +210,159 @@ function VodafoneService(objectCollection) {
                         service_version: 1.0,
                         app_version: "2.5.5",
                         device_os_id: 7
-                };
+                    };
 
-                cacheWrapper.getFormTransactionId(function (err, formTransactionId) {
+                    cacheWrapper.getFormTransactionId(function (err, formTransactionId) {
+                        if (err) {
+                            // console.log(err);
+                            global.logger.write('serverError', err, err, newRequest);
+                            global.logger.write('debug', err, err, newRequest);
+                            reject(err);
+                        } else {
+                            newRequest['form_transaction_id'] = formTransactionId;
+
+                            cacheWrapper.getActivityId(function (err, activityId) {
                                 if (err) {
-                                    // console.log(err);
-                                    global.logger.write('serverError', err, err, newRequest);
+                                    console.log(err);
                                     global.logger.write('debug', err, err, newRequest);
-                                    reject(err);                                    
+                                    reject(err);
                                 } else {
-                                    newRequest['form_transaction_id'] = formTransactionId;
-                                
-                cacheWrapper.getActivityId(function (err, activityId) {
-                    if (err) {
-                        console.log(err);
-                        global.logger.write('debug', err, err, newRequest);
-                        reject(err);
-                    } else {
-                        newRequest['activity_id'] = activityId;
-                        let event = {
-                            name: "addActivity",
-                            service: "activityService",
-                            method: "addActivity",
-                            payload: newRequest
-                        };
-                                                           
-                        //Adding new activity - Order Supplementary Form
-                        queueWrapper.raiseActivityEvent(event, newRequest.activity_id, (err, resp) => { //newRequest.activity_id Ord Suppl Form Act Id
-                            if (err) {
-                                console.log("\x1b[35m [ERROR] Raising queue activity raised for creating empty Order Supplementary Form. \x1b[0m",err);
-                            } else {
-                                console.log("\x1b[35m Queue activity raised for creating empty Order Supplementary Form. \x1b[0m");
-                                
-                                /*// 325 for Order Supplementary Form - Modified to 705
-                                /////////////////////////////////////////////////////
-                                let ordSupplactivityTimelineCollectionFor325 = {
-                                    "mail_body": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
-                                    "subject": "Submitted - Order Supplementary Form",
-                                    "content": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
-                                    "asset_reference": [],
-                                    "activity_reference": [],
-                                    "form_approval_field_reference": [],                                    
-                                    "form_submitted": data,
-                                    "attachments": []
-                                 };
+                                    newRequest['activity_id'] = activityId;
+                                    let event = {
+                                        name: "addActivity",
+                                        service: "activityService",
+                                        method: "addActivity",
+                                        payload: newRequest
+                                    };
 
-                                newRequest.activity_timeline_collection = JSON.stringify(ordSupplactivityTimelineCollectionFor325);                                
-                                newRequest.activity_stream_type_id = 705;
+                                    //Adding new activity - Order Supplementary Form
+                                    queueWrapper.raiseActivityEvent(event, newRequest.activity_id, (err, resp) => { //newRequest.activity_id Ord Suppl Form Act Id
+                                        if (err) {
+                                            console.log("\x1b[35m [ERROR] Raising queue activity raised for creating empty Order Supplementary Form. \x1b[0m", err);
+                                        } else {
+                                            console.log("\x1b[35m Queue activity raised for creating empty Order Supplementary Form. \x1b[0m");
+
+                                            /*// 325 for Order Supplementary Form - Modified to 705
+                                            /////////////////////////////////////////////////////
+                                            let ordSupplactivityTimelineCollectionFor325 = {
+                                                "mail_body": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+                                                "subject": "Submitted - Order Supplementary Form",
+                                                "content": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+                                                "asset_reference": [],
+                                                "activity_reference": [],
+                                                "form_approval_field_reference": [],                                    
+                                                "form_submitted": data,
+                                                "attachments": []
+                                             };
+
+                                            newRequest.activity_timeline_collection = JSON.stringify(ordSupplactivityTimelineCollectionFor325);                                
+                                            newRequest.activity_stream_type_id = 705;
                                 
 
-                                let displayOrdSupFormOnFileEvent = {
-                                    name: "addTimelineTransaction",
-                                    service: "activityTimelineService",
-                                    method: "addTimelineTransaction",
-                                    payload: newRequest
-                                };
+                                            let displayOrdSupFormOnFileEvent = {
+                                                name: "addTimelineTransaction",
+                                                service: "activityTimelineService",
+                                                method: "addTimelineTransaction",
+                                                payload: newRequest
+                                            };
 
-                                queueWrapper.raiseActivityEvent(displayOrdSupFormOnFileEvent, newRequest.activity_id, (err, resp) => { //newRequest.activity_id Ord Suppl Form Act Id
-                                    if (err) {
-                                        console.log("\x1b[35m [ERROR] Raising queue activity raised for 705 streamtypeid for Order Supplementary file. \x1b[0m", err);
-                                    } else {
-                                        console.log("\x1b[35m Raising queue activity raised for 705 streamtypeid for Order Supplementary file. \x1b[0m");
-                                    }
-                                });*/
-                                ///////////////////////////////////////////////////////////
-                                
-                                // 325 for New Order Form regarding the order suppl form - Modified to 705
-                                ///////////////////////////////////////////////////////////////////////////
-                                let newRequest1 = Object.assign({}, newRequest);
-                                        
-                                // Fire a 325 request to the new order form too! - Modified to 705
-                                let activityTimelineCollectionFor325 = {
-                                    "mail_body": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
-                                    "subject": "Order Supplementary Form",
-                                    "content": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
-                                    "asset_reference": [],
-                                    "activity_reference": [],
-                                    "form_approval_field_reference": [],                                 
-                                    "form_submitted": data,
-                                    "attachments": []
-                                };
-                                
-                                newRequest1.activity_timeline_collection = JSON.stringify(activityTimelineCollectionFor325);                                
-                                newRequest1.activity_stream_type_id = 705;
-                                newRequest1.flag_timeline_entry = 1;
-                                newRequest1.activity_id = request.form_activity_id;
+                                            queueWrapper.raiseActivityEvent(displayOrdSupFormOnFileEvent, newRequest.activity_id, (err, resp) => { //newRequest.activity_id Ord Suppl Form Act Id
+                                                if (err) {
+                                                    console.log("\x1b[35m [ERROR] Raising queue activity raised for 705 streamtypeid for Order Supplementary file. \x1b[0m", err);
+                                                } else {
+                                                    console.log("\x1b[35m Raising queue activity raised for 705 streamtypeid for Order Supplementary file. \x1b[0m");
+                                                }
+                                            });*/
+                                            ///////////////////////////////////////////////////////////
 
-                                let displayOrdSupFormOnFileEventOne = {
-                                    name: "addTimelineTransaction",
-                                    service: "activityTimelineService",
-                                    method: "addTimelineTransaction",
-                                    payload: newRequest1
-                                };
+                                            // 325 for New Order Form regarding the order suppl form - Modified to 705
+                                            ///////////////////////////////////////////////////////////////////////////
+                                            let newRequest1 = Object.assign({}, newRequest);
 
-                                queueWrapper.raiseActivityEvent(displayOrdSupFormOnFileEventOne, request.form_activity_id, (err, resp) => {
-                                    if (err) {
-                                        console.log("\x1b[35m [ERROR] Raising queue activity raised for 705 streamtypeid for Order Activity. \x1b[0m");
-                                    } else {
-                                        console.log("\x1b[35m Queue activity raised for 705 streamtypeid for Order Activity. \x1b[0m");                                           
-                                            }
-                                        });                                        
-                                   }
-                                });
-                           }
-                        });
-                    }
-              });
+                                            // Fire a 325 request to the new order form too! - Modified to 705
+                                            let activityTimelineCollectionFor325 = {
+                                                "mail_body": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+                                                "subject": "Order Supplementary Form",
+                                                "content": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+                                                "asset_reference": [],
+                                                "activity_reference": [],
+                                                "form_approval_field_reference": [],
+                                                "form_submitted": data,
+                                                "attachments": []
+                                            };
+
+                                            newRequest1.activity_timeline_collection = JSON.stringify(activityTimelineCollectionFor325);
+                                            newRequest1.activity_stream_type_id = 705;
+                                            newRequest1.flag_timeline_entry = 1;
+                                            newRequest1.activity_id = request.form_activity_id;
+
+                                            let displayOrdSupFormOnFileEventOne = {
+                                                name: "addTimelineTransaction",
+                                                service: "activityTimelineService",
+                                                method: "addTimelineTransaction",
+                                                payload: newRequest1
+                                            };
+
+                                            queueWrapper.raiseActivityEvent(displayOrdSupFormOnFileEventOne, request.form_activity_id, (err, resp) => {
+                                                if (err) {
+                                                    console.log("\x1b[35m [ERROR] Raising queue activity raised for 705 streamtypeid for Order Activity. \x1b[0m");
+                                                } else {
+                                                    console.log("\x1b[35m Queue activity raised for 705 streamtypeid for Order Activity. \x1b[0m");
+                                                }
+                                            });
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    });
                 });
-              });
+            });
         });
     }
-    
+
     this.newOrderFormSubmission = function (request, callback) {
-      
-        if (Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.FR) || 
-                Number(global.vodafoneConfig[request.organization_id].FORM_ID.CRM)) {
-            
+
+        if (Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.FR) ||
+            Number(global.vodafoneConfig[request.organization_id].FORM_ID.CRM)) {
+
             //check whether FR form is submitted 
             activityCommonService.getActivityTimelineTransactionByFormId(request, request.activity_id, global.vodafoneConfig[request.organization_id].FORM_ID.FR)
                 .then((frFormData) => {
                     console.log("FRFormData: ", frFormData);
                     console.log("customerApprovalFormData.length: ", frFormData.length);
-         
-                    if (frFormData.length > 0) {                        
-                        
+
+                    if (frFormData.length > 0) {
+
                         //check whether CRM form is submitted
                         activityCommonService.getActivityTimelineTransactionByFormId(request, request.activity_id, global.vodafoneConfig[request.organization_id].FORM_ID.CRM)
                             .then((crmFormData) => {
                                 console.log("CRMFormData: ", crmFormData);
-                                console.log("CRMFormData.length: ", crmFormData.length);                            
+                                console.log("CRMFormData.length: ", crmFormData.length);
 
-                                if (crmFormData.length > 0) {                        
-                                    
+                                if (crmFormData.length > 0) {
+
                                     let formDataCollection = JSON.parse(crmFormData[0].data_entity_inline);
                                     //request.crm_form_data = JSON.parse(crmFormData[0].data_entity_inline);                                    
-                                    
+
                                     if (Array.isArray(formDataCollection.form_submitted) === true || typeof formDataCollection.form_submitted === 'object') {
                                         request.crm_form_data = formDataCollection.form_submitted;
                                     } else {
                                         request.crm_form_data = JSON.parse(formDataCollection.form_submitted);
                                     }
-         
-                                    activityCommonService.getActivityDetails(request, request.activity_id, (err, data)=>{
-                                        if(err === false) {
-                                            console.log('data[0].activity_inline_data : ', data[0].activity_inline_data);
-                                            const newOrderFormData = JSON.parse(data[0].activity_inline_data);                   
 
-                                            newOrderFormData.forEach(formEntry => {                        
+                                    activityCommonService.getActivityDetails(request, request.activity_id, (err, data) => {
+                                        if (err === false) {
+                                            console.log('data[0].activity_inline_data : ', data[0].activity_inline_data);
+                                            const newOrderFormData = JSON.parse(data[0].activity_inline_data);
+
+                                            newOrderFormData.forEach(formEntry => {
                                                 switch (Number(formEntry.field_id)) {
                                                     case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Account_Code:
-                                                         request.account_code = formEntry.field_value;
-                                                         break;                    
+                                                        request.account_code = formEntry.field_value;
+                                                        break;
                                                 }
-                                            });  
+                                            });
 
                                             console.log('Account Code from New Order : ', request.account_code);
 
@@ -360,63 +372,63 @@ function VodafoneService(objectCollection) {
                                             const formData = request.crm_form_data;
 
                                             formData.forEach(formEntry => {
-                                                switch (Number(formEntry.field_id)) {               
+                                                switch (Number(formEntry.field_id)) {
 
                                                     case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Company_Name:
-                                                         customerData.first_name = formEntry.field_value;
-                                                         customerData.contact_company = formEntry.field_value;
-                                                         break;                                                    
-                                                    case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Number:                        
-                                                         if(String(formEntry.field_value).includes('||')) {
+                                                        customerData.first_name = formEntry.field_value;
+                                                        customerData.contact_company = formEntry.field_value;
+                                                        break;
+                                                    case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Number:
+                                                        if (String(formEntry.field_value).includes('||')) {
                                                             customerData.contact_phone_country_code = String(formEntry.field_value).split('||')[0];
                                                             customerData.contact_phone_number = String(formEntry.field_value).split('||')[1];
-                                                         } else {
+                                                        } else {
                                                             customerData.contact_phone_country_code = 91;
                                                             customerData.contact_phone_number = formEntry.field_value;
-                                                         }                                                     
-                                                         break;                         
+                                                        }
+                                                        break;
                                                     case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Email:
-                                                         customerData.contact_email_id = formEntry.field_value;
-                                                         break;                         
+                                                        customerData.contact_email_id = formEntry.field_value;
+                                                        break;
                                                     case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Designation:
-                                                         customerData.contact_designation = formEntry.field_value;
-                                                         break;
+                                                        customerData.contact_designation = formEntry.field_value;
+                                                        break;
                                                 }
-                                            });  
+                                            });
 
                                             console.log('customerData after processing : ', customerData);
-                                            
-                                            if(Object.keys(customerData).length > 0) {
-                                                customerFormSubmission(request, customerData).then(()=>{
 
-                                                }).catch((err)=>{
+                                            if (Object.keys(customerData).length > 0) {
+                                                customerFormSubmission(request, customerData).then(() => {
+
+                                                }).catch((err) => {
                                                     global.logger.write('debug', err, {}, request);
-                                                });                                              
+                                                });
                                             } else {
                                                 console.log("\x1b[35m As Customer Data is empty we are not proceeding to further steps. \x1b[0m");
-                                            }                                            
+                                            }
 
                                         } else {
 
                                         }
-                                    });                              
+                                    });
                                 }
-                        });
+                            });
                     }
-            });            
-            
+                });
+
         }
-        
+
         callback(false, {}, 200);
-    };    
-    
-    
+    };
+
+
     //Manual
     function customerFormSubmission(request, customerData) {
-       return new Promise((resolve, reject)=>{
-            var logDatetime = util.getCurrentUTCTime();        
+        return new Promise((resolve, reject) => {
+            var logDatetime = util.getCurrentUTCTime();
             request['datetime_log'] = logDatetime;
-        
+
             /*let customerData = {};
             customerData.first_name = request.first_name;
             customerData.contact_company = request.contact_company;
@@ -428,285 +440,285 @@ function VodafoneService(objectCollection) {
             //let solutionsRepName = global.vodafoneConfig[request.organization_id].SOLUTIONS_REP.NAME;
             //let solutionsRepEMail = global.vodafoneConfig[request.organization_id].SOLUTIONS_REP.EMAIL;*/
 
-            request.form_order_activity_id = request.activity_id;       
-             
-        //Step 1 :- Custom Based on the Custom Code check whether the service desk is existing or not
-        checkServiceDeskExistence(request).then((dataResp)=>{
-            if(dataResp.length > 0) { //status is true means service desk exists
-                 
-                let sdResp = dataResp[0];
-                let deskAssetId = sdResp.asset_id;   
-                
-                console.log('deskAssetId : ', deskAssetId);
-                
-                if(Number(sdResp.operating_asset_phone_number) !== Number(customerData.contact_phone_number)) {
-                    
-                    console.log('operating asset phone number is different from authorised_signatory_contact_number');
-                                          
-                    //Unmap the operating Asset from service desk
-                    activityCommonService.assetListUpdateOperatingAsset(request, deskAssetId, 0, (err, data)=>{});
-                               
-                               var newRequest = Object.assign({}, request);
-                               newRequest.activity_title = 'Adding Co-Worker Contact Card';
-                               newRequest.activity_description = 'Adding Co-Worker Contact Card';
-                               newRequest.activity_type_id = global.vodafoneConfig[request.organization_id].ACTIVITY_TYPE_IDS.CONTACT_CARD_ACTIVITY_TYPE_ID;
-                               newRequest.activity_inline_data = JSON.stringify({
-                                    "activity_id": 0,
-                                    "activity_ineternal_id": -1,
-                                    "activity_type_category_id": 6,
-                                    "contact_account_id": global.vodafoneConfig[request.organization_id].CUSTOMER.ACCOUNT_ID,
-                                    "contact_asset_id": 0,
-                                    "contact_asset_type_id": global.vodafoneConfig[request.organization_id].CUSTOMER.ASSET_TYPE_ID,
-                                    "contact_department": "",
-                                    "contact_designation": customerData.contact_designation,
-                                    "contact_email_id": customerData.contact_email_id,
-                                    "contact_first_name": customerData.first_name,
-                                    "contact_last_name": "",
-                                    "contact_location": "Hyderabad",
-                                    "contact_operating_asset_name": customerData.first_name,
-                                    "contact_organization": "",
-                                    "contact_organization_id": request.organization_id,
-                                    "contact_phone_country_code": customerData.contact_phone_country_code,
-                                    "contact_phone_number": customerData.contact_phone_number,
-                                    "contact_profile_picture": "",
-                                    "contact_workforce_id": global.vodafoneConfig[request.organization_id].CUSTOMER.WORKFORCE_ID,
-                                    "contact_asset_type_name": "Customer",
-                                    "contact_company": customerData.contact_company,
-                                    "contact_lat": 0.0,
-                                    "contact_lon": 0.0,
-                                    "contact_notes": "",
-                                    "field_id": 0,
-                                    "log_asset_id": request.asset_id,
-                                    "web_url": ""
-                                });
-                                
-                               //Create Customer Operating Asset 
-                               createAsset(newRequest).then((operatingAssetId)=>{
-                                   
-                                   //Create a contact file
-                                   //createContactFile(newRequest, operatingAssetId).then((contactfileActId)=>{
-                                       
-                                        //Map the operating Asset to the contact file
-                                        //addCustomerAsParticipantToContFile(newRequest, contactfileActId, customerData, operatingAssetId).then(()=>{});
+            request.form_order_activity_id = request.activity_id;
+
+            //Step 1 :- Custom Based on the Custom Code check whether the service desk is existing or not
+            checkServiceDeskExistence(request).then((dataResp) => {
+                if (dataResp.length > 0) { //status is true means service desk exists
+
+                    let sdResp = dataResp[0];
+                    let deskAssetId = sdResp.asset_id;
+
+                    console.log('deskAssetId : ', deskAssetId);
+
+                    if (Number(sdResp.operating_asset_phone_number) !== Number(customerData.contact_phone_number)) {
+
+                        console.log('operating asset phone number is different from authorised_signatory_contact_number');
+
+                        //Unmap the operating Asset from service desk
+                        activityCommonService.assetListUpdateOperatingAsset(request, deskAssetId, 0, (err, data) => {});
+
+                        var newRequest = Object.assign({}, request);
+                        newRequest.activity_title = 'Adding Co-Worker Contact Card';
+                        newRequest.activity_description = 'Adding Co-Worker Contact Card';
+                        newRequest.activity_type_id = global.vodafoneConfig[request.organization_id].ACTIVITY_TYPE_IDS.CONTACT_CARD_ACTIVITY_TYPE_ID;
+                        newRequest.activity_inline_data = JSON.stringify({
+                            "activity_id": 0,
+                            "activity_ineternal_id": -1,
+                            "activity_type_category_id": 6,
+                            "contact_account_id": global.vodafoneConfig[request.organization_id].CUSTOMER.ACCOUNT_ID,
+                            "contact_asset_id": 0,
+                            "contact_asset_type_id": global.vodafoneConfig[request.organization_id].CUSTOMER.ASSET_TYPE_ID,
+                            "contact_department": "",
+                            "contact_designation": customerData.contact_designation,
+                            "contact_email_id": customerData.contact_email_id,
+                            "contact_first_name": customerData.first_name,
+                            "contact_last_name": "",
+                            "contact_location": "Hyderabad",
+                            "contact_operating_asset_name": customerData.first_name,
+                            "contact_organization": "",
+                            "contact_organization_id": request.organization_id,
+                            "contact_phone_country_code": customerData.contact_phone_country_code,
+                            "contact_phone_number": customerData.contact_phone_number,
+                            "contact_profile_picture": "",
+                            "contact_workforce_id": global.vodafoneConfig[request.organization_id].CUSTOMER.WORKFORCE_ID,
+                            "contact_asset_type_name": "Customer",
+                            "contact_company": customerData.contact_company,
+                            "contact_lat": 0.0,
+                            "contact_lon": 0.0,
+                            "contact_notes": "",
+                            "field_id": 0,
+                            "log_asset_id": request.asset_id,
+                            "web_url": ""
+                        });
+
+                        //Create Customer Operating Asset 
+                        createAsset(newRequest).then((operatingAssetId) => {
+
+                            //Create a contact file
+                            //createContactFile(newRequest, operatingAssetId).then((contactfileActId)=>{
+
+                            //Map the operating Asset to the contact file
+                            //addCustomerAsParticipantToContFile(newRequest, contactfileActId, customerData, operatingAssetId).then(()=>{});
+
+                            //Map the newly created operating asset with service desk asset
+                            activityCommonService.assetListUpdateOperatingAsset(request, deskAssetId, operatingAssetId, (err, data) => {});
+
+                            //Add Service Desk as Participant to form file
+                            addDeskAsParticipant(request, customerData, deskAssetId).then(() => {
+
+                                var customerCollection = {};
+                                customerCollection.firstName = customerData.first_name;
+                                customerCollection.contactPhoneCountryCode = customerData.contact_phone_country_code;
+                                customerCollection.contactPhoneNumber = customerData.contact_phone_number;
+                                customerCollection.contactEmailId = customerData.contact_email_id;
+                                customerCollection.customerServiceDeskAssetID = deskAssetId;
+                                customerCollection.activity_form_id = global.vodafoneConfig[request.organization_id].FORM_ID.EXISTING_CUSTOMER;
+
+                                /*activityCommonService.getActivityDetails(request, request.form_order_activity_id, (err, data)=>{
+                                    if(err === false) {
+                                        console.log('data[0].activity_inline_data : ', data[0].activity_inline_data);
+                                        request.activity_inline_data = data[0].activity_inline_data;
                                         
-                                        //Map the newly created operating asset with service desk asset
-                                        activityCommonService.assetListUpdateOperatingAsset(request, deskAssetId, operatingAssetId, (err, data)=>{});
-                                       
-                                        //Add Service Desk as Participant to form file
-                                        addDeskAsParticipant(request, customerData, deskAssetId).then(()=>{
-
-                                            var customerCollection = {};
-                                            customerCollection.firstName = customerData.first_name;
-                                            customerCollection.contactPhoneCountryCode = customerData.contact_phone_country_code;
-                                            customerCollection.contactPhoneNumber = customerData.contact_phone_number;
-                                            customerCollection.contactEmailId = customerData.contact_email_id;
-                                            customerCollection.customerServiceDeskAssetID = deskAssetId;
-                                            customerCollection.activity_form_id = global.vodafoneConfig[request.organization_id].FORM_ID.EXISTING_CUSTOMER;
-                                            
-                                            /*activityCommonService.getActivityDetails(request, request.form_order_activity_id, (err, data)=>{
-                                                if(err === false) {
-                                                    console.log('data[0].activity_inline_data : ', data[0].activity_inline_data);
-                                                    request.activity_inline_data = data[0].activity_inline_data;
-                                                    
-                                                    let response = {};
-                                                    response.asset_id = operatingAssetId;
-                                                    response.desk_asset_id = deskAssetId;                                                    
-                                                    
-                                                    //Fire Email to Customer
-                                                    vodafoneSendEmail(request, customerCollection).then(()=>{
-                                                        resolve(response);
-                                                    }).catch((err)=>{
-                                                        console.log('err : ' , err);
-                                                        global.logger.write('debug', err, {}, request);
-                                                        reject(err);
-                                                    });
-                                                    
-                                                    /*var solutionsRepCollection = {};
-                                                    solutionsRepCollection.firstName = solutionsRepName;
-                                                    //solutionsRepCollection.contactPhoneCountryCode = customerData.contact_phone_country_code;
-                                                    //solutionsRepCollection.contactPhoneNumber = customerData.contact_phone_number;
-                                                    solutionsRepCollection.contactEmailId = solutionsRepEMail;                                            
-                                                    solutionsRepCollection.customerServiceDeskAssetID = deskAssetId;
-                                                    solutionsRepCollection.activity_form_id = HLD_FORM_ID;
-
-                                                    //Fire Email to Solutions Representation to submit HLD Form
-                                                    vodafoneSendEmail(request, solutionsRepCollection).then(()=>{
-                                                        resolve(response);
-                                                    }).catch((err)=>{
-                                                        console.log('err : ' , err);
-                                                        global.logger.write('debug', err, {}, request);
-                                                        reject(err);
-                                                    });
-                                                    
-                                                } else {
-                                                    global.logger.write('debug', err, {}, request);
-                                                }
-                                            });*/                                        
-
+                                        let response = {};
+                                        response.asset_id = operatingAssetId;
+                                        response.desk_asset_id = deskAssetId;                                                    
+                                        
+                                        //Fire Email to Customer
+                                        vodafoneSendEmail(request, customerCollection).then(()=>{
+                                            resolve(response);
                                         }).catch((err)=>{
+                                            console.log('err : ' , err);
                                             global.logger.write('debug', err, {}, request);
-                                        }); 
-                                   /*}).catch((err)=>{
-                                       global.logger.write('debug', err, {}, request);
-                                   });*/
-                                   
-                               }).catch((err)=>{                                   
-                                   global.logger.write('debug', err, {}, request);                                        
-                               });                              
-                               
-                            } else { //When authorized_signatory_phone_number is equal to the retrieved operating asset
-                                    console.log('operating asset phone number is same as authorised_signatory_contact_number');
-                                        //Add Service Desk as Participant to form file
-                                        addDeskAsParticipant(request, customerData, deskAssetId).then(()=>{
-
-                                            var customerCollection = {};
-                                            customerCollection.firstName = customerData.first_name;
-                                            customerCollection.contactPhoneCountryCode = customerData.contact_phone_country_code;
-                                            customerCollection.contactPhoneNumber = customerData.contact_phone_number;
-                                            customerCollection.contactEmailId = customerData.contact_email_id;
-                                            customerCollection.customerServiceDeskAssetID = deskAssetId;
-                                            customerCollection.activity_form_id = global.vodafoneConfig[request.organization_id].FORM_ID.EXISTING_CUSTOMER;
-            
-                                            /*activityCommonService.getActivityDetails(request, request.activity_id, (err, data)=>{
-                                                if(err === false) {
-                                                    request.activity_inline_data = data[0].activity_inline_data;
-                                                    
-                                                    let response = {};                                                    
-                                                    response.desk_asset_id = deskAssetId;     
-                                                    
-                                                    //Fire Email to customer
-                                                    vodafoneSendEmail(request, customerCollection).then(()=>{
-                                                        resolve(response);
-                                                    }).catch((err)=>{
-                                                        console.log('vnk err : ' , err);
-                                                        global.logger.write('debug', err, {}, request);
-                                                        reject(err);
-                                                    });
-                                                    
-                                                    /*var solutionsRepCollection = {};
-                                                    solutionsRepCollection.firstName = solutionsRepName;
-                                                    //solutionsRepCollection.contactPhoneCountryCode = customerData.contact_phone_country_code;
-                                                    //solutionsRepCollection.contactPhoneNumber = customerData.contact_phone_number;
-                                                    solutionsRepCollection.contactEmailId = solutionsRepEMail;                                            
-                                                    solutionsRepCollection.customerServiceDeskAssetID = deskAssetId;
-                                                    solutionsRepCollection.activity_form_id = HLD_FORM_ID;
-
-                                                    //Fire Email to Solutions Representation to submit HLD Form
-                                                    vodafoneSendEmail(request, solutionsRepCollection).then(()=>{
-                                                        resolve(response);
-                                                    }).catch((err)=>{
-                                                        console.log('err : ' , err);
-                                                        global.logger.write('debug', err, {}, request);
-                                                        reject(err);
-                                                    });
-                                                    
-                                                } else {
-                                                    global.logger.write('debug', err, {}, request);
-                                                }
-                                            });*/
-
-                                        }).catch((err)=>{
-                                            global.logger.write('debug', err, {}, request);
+                                            reject(err);
                                         });
-                                
-                            }
-                            
-//When Service desk not exists
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                        } else {
-                            console.log('In else part');
-                            //Create Customer Operating Asset
-                            //Create Customer Contact file
-                            //Create Customer Desk Asset                            
-                            createAssetContactDesk(request, customerData).then((resp)=>{                                
-                                                             
-                                let assetId = resp.response.asset_id;
-                                let deskAssetId = resp.response.desk_asset_id;
-                                let contactfileActId = resp.response.activity_id;
-                                
-                                //Map the operating Asset to the contact file
-                                addCustomerAsParticipantToContFile(newRequest, contactfileActId, customerData, assetId).then(()=>{});
-                                
-                                //Add Service Desk as Participant to form file
-                                addDeskAsParticipant(request, customerData, deskAssetId).then(()=>{
-                                    
-                                    let customerCollection = {};
-                                    customerCollection.firstName = customerData.first_name;
-                                    customerCollection.contactPhoneCountryCode = customerData.contact_phone_country_code;
-                                    customerCollection.contactPhoneNumber = customerData.contact_phone_number;
-                                    customerCollection.contactEmailId = customerData.contact_email_id;
-                                    customerCollection.customerServiceDeskAssetID = deskAssetId;
-                                    customerCollection.activity_form_id = global.vodafoneConfig[request.organization_id].FORM_ID.NEW_CUSTOMER;
-                                    
-                                    /*activityCommonService.getActivityDetails(request, request.activity_id, (err, data)=>{
-                                        if(err === false) {
-                                            request.activity_inline_data = data[0].activity_inline_data;
-                                             
-                                            let response = {};
-                                            response.asset_id = assetId;
-                                            response.desk_asset_id = deskAssetId;
-                                            response.contact_card_activity_id = contactfileActId;
-                                            
-                                            //Fire Email to Customer
-                                            vodafoneSendEmail(request, customerCollection).then(()=>{
-                                                resolve(response);
-                                            }).catch((err)=>{
-                                                console.log('err : ' , err);
-                                                global.logger.write('debug', err, {}, request);
-                                                reject(err);
-                                            });
-                                            
-                                            /*var solutionsRepCollection = {};
-                                            solutionsRepCollection.firstName = solutionsRepName;
-                                            //solutionsRepCollection.contactPhoneCountryCode = customerData.contact_phone_country_code;
-                                            //solutionsRepCollection.contactPhoneNumber = customerData.contact_phone_number;
-                                            solutionsRepCollection.contactEmailId = solutionsRepEMail;                                            
-                                            solutionsRepCollection.customerServiceDeskAssetID = deskAssetId;
-                                            solutionsRepCollection.activity_form_id = HLD_FORM_ID;
-                                            
-                                            //Fire Email to Solutions Representation to submit HLD Form
-                                            vodafoneSendEmail(request, solutionsRepCollection).then(()=>{
-                                                resolve(response);
-                                            }).catch((err)=>{
-                                                console.log('err : ' , err);
-                                                global.logger.write('debug', err, {}, request);
-                                                reject(err);
-                                            });
-                                                    
-                                        } else {
+                                        
+                                        /*var solutionsRepCollection = {};
+                                        solutionsRepCollection.firstName = solutionsRepName;
+                                        //solutionsRepCollection.contactPhoneCountryCode = customerData.contact_phone_country_code;
+                                        //solutionsRepCollection.contactPhoneNumber = customerData.contact_phone_number;
+                                        solutionsRepCollection.contactEmailId = solutionsRepEMail;                                            
+                                        solutionsRepCollection.customerServiceDeskAssetID = deskAssetId;
+                                        solutionsRepCollection.activity_form_id = HLD_FORM_ID;
+
+                                        //Fire Email to Solutions Representation to submit HLD Form
+                                        vodafoneSendEmail(request, solutionsRepCollection).then(()=>{
+                                            resolve(response);
+                                        }).catch((err)=>{
+                                            console.log('err : ' , err);
                                             global.logger.write('debug', err, {}, request);
-                                        }
-                                    });*/
-                                    
-                                }).catch((err)=>{
-                                    global.logger.write('debug', err, {}, request);
-                                });
-                                
-                                
-                            }).catch((err)=>{
+                                            reject(err);
+                                        });
+                                        
+                                    } else {
+                                        global.logger.write('debug', err, {}, request);
+                                    }
+                                });*/
+
+                            }).catch((err) => {
                                 global.logger.write('debug', err, {}, request);
-                            });                 
-                            
-                        }
-                    }).catch((err)=>{
+                            });
+                            /*}).catch((err)=>{
+                                global.logger.write('debug', err, {}, request);
+                            });*/
+
+                        }).catch((err) => {
+                            global.logger.write('debug', err, {}, request);
+                        });
+
+                    } else { //When authorized_signatory_phone_number is equal to the retrieved operating asset
+                        console.log('operating asset phone number is same as authorised_signatory_contact_number');
+                        //Add Service Desk as Participant to form file
+                        addDeskAsParticipant(request, customerData, deskAssetId).then(() => {
+
+                            var customerCollection = {};
+                            customerCollection.firstName = customerData.first_name;
+                            customerCollection.contactPhoneCountryCode = customerData.contact_phone_country_code;
+                            customerCollection.contactPhoneNumber = customerData.contact_phone_number;
+                            customerCollection.contactEmailId = customerData.contact_email_id;
+                            customerCollection.customerServiceDeskAssetID = deskAssetId;
+                            customerCollection.activity_form_id = global.vodafoneConfig[request.organization_id].FORM_ID.EXISTING_CUSTOMER;
+
+                            /*activityCommonService.getActivityDetails(request, request.activity_id, (err, data)=>{
+                                if(err === false) {
+                                    request.activity_inline_data = data[0].activity_inline_data;
+                                    
+                                    let response = {};                                                    
+                                    response.desk_asset_id = deskAssetId;     
+                                    
+                                    //Fire Email to customer
+                                    vodafoneSendEmail(request, customerCollection).then(()=>{
+                                        resolve(response);
+                                    }).catch((err)=>{
+                                        console.log('vnk err : ' , err);
+                                        global.logger.write('debug', err, {}, request);
+                                        reject(err);
+                                    });
+                                    
+                                    /*var solutionsRepCollection = {};
+                                    solutionsRepCollection.firstName = solutionsRepName;
+                                    //solutionsRepCollection.contactPhoneCountryCode = customerData.contact_phone_country_code;
+                                    //solutionsRepCollection.contactPhoneNumber = customerData.contact_phone_number;
+                                    solutionsRepCollection.contactEmailId = solutionsRepEMail;                                            
+                                    solutionsRepCollection.customerServiceDeskAssetID = deskAssetId;
+                                    solutionsRepCollection.activity_form_id = HLD_FORM_ID;
+
+                                    //Fire Email to Solutions Representation to submit HLD Form
+                                    vodafoneSendEmail(request, solutionsRepCollection).then(()=>{
+                                        resolve(response);
+                                    }).catch((err)=>{
+                                        console.log('err : ' , err);
+                                        global.logger.write('debug', err, {}, request);
+                                        reject(err);
+                                    });
+                                    
+                                } else {
+                                    global.logger.write('debug', err, {}, request);
+                                }
+                            });*/
+
+                        }).catch((err) => {
+                            global.logger.write('debug', err, {}, request);
+                        });
+
+                    }
+
+                    //When Service desk not exists
+                    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                } else {
+                    console.log('In else part');
+                    //Create Customer Operating Asset
+                    //Create Customer Contact file
+                    //Create Customer Desk Asset                            
+                    createAssetContactDesk(request, customerData).then((resp) => {
+
+                        let assetId = resp.response.asset_id;
+                        let deskAssetId = resp.response.desk_asset_id;
+                        let contactfileActId = resp.response.activity_id;
+
+                        //Map the operating Asset to the contact file
+                        addCustomerAsParticipantToContFile(newRequest, contactfileActId, customerData, assetId).then(() => {});
+
+                        //Add Service Desk as Participant to form file
+                        addDeskAsParticipant(request, customerData, deskAssetId).then(() => {
+
+                            let customerCollection = {};
+                            customerCollection.firstName = customerData.first_name;
+                            customerCollection.contactPhoneCountryCode = customerData.contact_phone_country_code;
+                            customerCollection.contactPhoneNumber = customerData.contact_phone_number;
+                            customerCollection.contactEmailId = customerData.contact_email_id;
+                            customerCollection.customerServiceDeskAssetID = deskAssetId;
+                            customerCollection.activity_form_id = global.vodafoneConfig[request.organization_id].FORM_ID.NEW_CUSTOMER;
+
+                            /*activityCommonService.getActivityDetails(request, request.activity_id, (err, data)=>{
+                                if(err === false) {
+                                    request.activity_inline_data = data[0].activity_inline_data;
+                                     
+                                    let response = {};
+                                    response.asset_id = assetId;
+                                    response.desk_asset_id = deskAssetId;
+                                    response.contact_card_activity_id = contactfileActId;
+                                    
+                                    //Fire Email to Customer
+                                    vodafoneSendEmail(request, customerCollection).then(()=>{
+                                        resolve(response);
+                                    }).catch((err)=>{
+                                        console.log('err : ' , err);
+                                        global.logger.write('debug', err, {}, request);
+                                        reject(err);
+                                    });
+                                    
+                                    /*var solutionsRepCollection = {};
+                                    solutionsRepCollection.firstName = solutionsRepName;
+                                    //solutionsRepCollection.contactPhoneCountryCode = customerData.contact_phone_country_code;
+                                    //solutionsRepCollection.contactPhoneNumber = customerData.contact_phone_number;
+                                    solutionsRepCollection.contactEmailId = solutionsRepEMail;                                            
+                                    solutionsRepCollection.customerServiceDeskAssetID = deskAssetId;
+                                    solutionsRepCollection.activity_form_id = HLD_FORM_ID;
+                                    
+                                    //Fire Email to Solutions Representation to submit HLD Form
+                                    vodafoneSendEmail(request, solutionsRepCollection).then(()=>{
+                                        resolve(response);
+                                    }).catch((err)=>{
+                                        console.log('err : ' , err);
+                                        global.logger.write('debug', err, {}, request);
+                                        reject(err);
+                                    });
+                                            
+                                } else {
+                                    global.logger.write('debug', err, {}, request);
+                                }
+                            });*/
+
+                        }).catch((err) => {
+                            global.logger.write('debug', err, {}, request);
+                        });
+
+
+                    }).catch((err) => {
                         global.logger.write('debug', err, {}, request);
                     });
-        });       
-             
+
+                }
+            }).catch((err) => {
+                global.logger.write('debug', err, {}, request);
+            });
+        });
+
     }
-     
-  
+
+
     function changeStatusToHLDPending(request) {
-        return new Promise((resolve, reject)=>{
-           
-           var newRequest = Object.assign({},request);
-           newRequest.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
-           newRequest.activity_status_id = global.vodafoneConfig[request.organization_id].STATUS.HLD_PENDING;
-           newRequest.activity_status_type_id = 0; 
-           //newRequest.activity_status_type_category_id = ""; 
-           newRequest.message_unique_id = util.getMessageUniqueId(request.asset_id);
-           
-           var event = {
+        return new Promise((resolve, reject) => {
+
+            var newRequest = Object.assign({}, request);
+            newRequest.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
+            newRequest.activity_status_id = global.vodafoneConfig[request.organization_id].STATUS.HLD_PENDING;
+            newRequest.activity_status_type_id = 0;
+            //newRequest.activity_status_type_category_id = ""; 
+            newRequest.message_unique_id = util.getMessageUniqueId(request.asset_id);
+
+            var event = {
                 name: "alterActivityStatus",
                 service: "activityService",
                 method: "alterActivityStatus",
@@ -724,7 +736,7 @@ function VodafoneService(objectCollection) {
             resolve();
         });
     }
-    
+
     /*function frFormApiIntegration(request) {
         return new Promise((resolve, reject)=>{
             var requestOptionsForFrPull = Object.assign(request);
@@ -828,9 +840,9 @@ function VodafoneService(objectCollection) {
         });
       });
     };*/
-    
-    function createAssetContactDesk(request, customerData){
-        return new Promise((resolve, reject)=>{                     
+
+    function createAssetContactDesk(request, customerData) {
+        return new Promise((resolve, reject) => {
 
             let customerServiceDeskRequest = {
                 organization_id: request.organization_id,
@@ -904,31 +916,31 @@ function VodafoneService(objectCollection) {
             const requestOptions = {
                 form: customerServiceDeskRequest
             }
-            
+
             console.log('Before Making Request');
             makeRequest.post(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', requestOptions, function (error, response, body) {
                 console.log("[customerServiceDeskRequest] Body: ", body);
                 console.log("[customerServiceDeskRequest] Error: ", error);
                 // console.log("[customerServiceDeskRequest] Response: ", response);
 
-                body = JSON.parse(body);                
+                body = JSON.parse(body);
 
-                if (Number(body.status) === 200) {                    
+                if (Number(body.status) === 200) {
                     const assetID = body.response.asset_id;
                     const DeskAssetID = body.response.desk_asset_id;
-                    
+
                     resolve(body);
                 } else {
-                    reject('Status is ' + Number(body.status) +' while creating Service Desk');
+                    reject('Status is ' + Number(body.status) + ' while creating Service Desk');
                 }
             });
-    });
+        });
     }
-   
-   function addDeskAsParticipant(request, customerData, deskAssetId) {
-       return new Promise((resolve, reject)=>{
-            
-           let addParticipantRequest = {
+
+    function addDeskAsParticipant(request, customerData, deskAssetId) {
+        return new Promise((resolve, reject) => {
+
+            let addParticipantRequest = {
                 organization_id: request.organization_id,
                 account_id: global.vodafoneConfig[request.organization_id].CUSTOMER.ACCOUNT_ID,
                 workforce_id: global.vodafoneConfig[request.organization_id].CUSTOMER.WORKFORCE_ID,
@@ -973,28 +985,28 @@ function VodafoneService(objectCollection) {
                 service_version: 1.0,
                 app_version: "2.5.5",
                 device_os_id: 5
-                };
+            };
 
-                const addParticipantEvent = {
-                    name: "assignParticipnt",
-                    service: "activityParticipantService",
-                    method: "assignCoworker",
-                    payload: addParticipantRequest
-                };
+            const addParticipantEvent = {
+                name: "assignParticipnt",
+                service: "activityParticipantService",
+                method: "assignCoworker",
+                payload: addParticipantRequest
+            };
 
-                queueWrapper.raiseActivityEvent(addParticipantEvent, request.activity_id, (err, resp) => {
-                    if (err) {
-                        global.logger.write('debug',"\x1b[35m [ERROR] Raising queue activity raised for adding Service Desk as a participant. \x1b[0m",{},request);
-                        reject('Error while raising queue activity for adding service desk as a participant');
-                    } else {                        
-                        global.logger.write('debug',"\x1b[35m Queue activity raised for adding Service Desk as a participant. \x1b[0m",{},request);
-                        resolve();
-                    }
-                });
-               
+            queueWrapper.raiseActivityEvent(addParticipantEvent, request.activity_id, (err, resp) => {
+                if (err) {
+                    global.logger.write('debug', "\x1b[35m [ERROR] Raising queue activity raised for adding Service Desk as a participant. \x1b[0m", {}, request);
+                    reject('Error while raising queue activity for adding service desk as a participant');
+                } else {
+                    global.logger.write('debug', "\x1b[35m Queue activity raised for adding Service Desk as a participant. \x1b[0m", {}, request);
+                    resolve();
+                }
+            });
+
         });
     }
-    
+
     /*function createContactFile(newRequest, operatingAssetId) {
         return new Promise((resolve, reject)=>{
            var contactJson = eval('(' + newRequest.activity_inline_data + ')');
@@ -1028,12 +1040,12 @@ function VodafoneService(objectCollection) {
           });       
         });
     };*/
-    
-    
+
+
     function addCustomerAsParticipantToContFile(request, contactFileActId, customerData, operatingAssetId) {
-       return new Promise((resolve, reject)=>{
-            
-           let addParticipantRequest = {
+        return new Promise((resolve, reject) => {
+
+            let addParticipantRequest = {
                 organization_id: request.organization_id,
                 account_id: global.vodafoneConfig[request.organization_id].CUSTOMER.ACCOUNT_ID,
                 workforce_id: global.vodafoneConfig[request.organization_id].CUSTOMER.WORKFORCE_ID,
@@ -1078,51 +1090,51 @@ function VodafoneService(objectCollection) {
                 service_version: 1.0,
                 app_version: "2.5.5",
                 device_os_id: 5
-                };
+            };
 
-                const addParticipantEvent = {
-                    name: "assignParticipnt",
-                    service: "activityParticipantService",
-                    method: "assignCoworker",
-                    payload: addParticipantRequest
-                };
+            const addParticipantEvent = {
+                name: "assignParticipnt",
+                service: "activityParticipantService",
+                method: "assignCoworker",
+                payload: addParticipantRequest
+            };
 
-                queueWrapper.raiseActivityEvent(addParticipantEvent, request.activity_id, (err, resp) => {
-                    if (err) {
-                        global.logger.write('debug',"\x1b[35m [ERROR] Raising queue activity raised for mapping customer operating asset to Contact file. \x1b[0m",{},request);
-                        reject('Error while raising queue activity for mapping customer operating asset to Contact file.');
-                    } else {                        
-                        global.logger.write('debug',"\x1b[35m Queue activity raised for mapping customer operating asset to Contact file. \x1b[0m",{},request);
-                        resolve();
-                    }
-                });
-               
+            queueWrapper.raiseActivityEvent(addParticipantEvent, request.activity_id, (err, resp) => {
+                if (err) {
+                    global.logger.write('debug', "\x1b[35m [ERROR] Raising queue activity raised for mapping customer operating asset to Contact file. \x1b[0m", {}, request);
+                    reject('Error while raising queue activity for mapping customer operating asset to Contact file.');
+                } else {
+                    global.logger.write('debug', "\x1b[35m Queue activity raised for mapping customer operating asset to Contact file. \x1b[0m", {}, request);
+                    resolve();
+                }
+            });
+
         });
     }
-    
-    
-    this.sendEmailVodafone = function(request, callback) {
-        
+
+
+    this.sendEmailVodafone = function (request, callback) {
+
         let firstName = request.first_name;
         let contactPhoneCountryCode = request.contact_phone_country_code;
         let contactPhoneNumber = request.contact_phone_number;
         let contactEmailId = request.contact_email_id;
         let deskAssetId = Number(request.desk_asset_id) || 0;
-        
-        
+
+
         vodafoneSendEmail(request, {
-                    firstName,
-                    contactPhoneCountryCode,
-                    contactPhoneNumber,
-                    contactEmailId,
-                    customerServiceDeskAssetID: deskAssetId
-                    }).then(()=>{
-                        callback(false,{},200);
-                    }).catch((err)=>{
-                        console.log('err : ' , err);
-                        global.logger.write('debug', err, {}, request);
-                        callback(true,{},-9998);
-                    });
+            firstName,
+            contactPhoneCountryCode,
+            contactPhoneNumber,
+            contactEmailId,
+            customerServiceDeskAssetID: deskAssetId
+        }).then(() => {
+            callback(false, {}, 200);
+        }).catch((err) => {
+            console.log('err : ', err);
+            global.logger.write('debug', err, {}, request);
+            callback(true, {}, -9998);
+        });
         /*fetchReferredFormActivityId(request, request.activity_id, request.form_transaction_id, request.form_id).then((data)=>{               
                global.logger.write('debug', data,{}, request);
                                     
@@ -1144,14 +1156,14 @@ function VodafoneService(objectCollection) {
                         callback(true,{},-9998);
                     });
         });*/
-        
+
     };
-    
-    function vodafoneSendEmail (request, customerCollection) {
-        return new Promise((resolve, reject)=>{
+
+    function vodafoneSendEmail(request, customerCollection) {
+        return new Promise((resolve, reject) => {
             console.log("\x1b[35m [Log] Inside vodafoneSendEmail \x1b[0m");
             let date = util.getFormatedSlashDate();
-            
+
             let fieldHTML = '',
                 nameStr = unescape(customerCollection.firstName),
                 emailSubject = 'Vodafone Idea Fixed Line Order Application Status',
@@ -1168,8 +1180,8 @@ function VodafoneService(objectCollection) {
                 activity_id: request.activity_id || 0,
                 activity_type_category_id: 9,
                 activity_type_id: global.vodafoneConfig[request.organization_id].ACTIVITY_TYPE_IDS[request.workforce_id],
-                activity_stream_type_id : 705,                
-                form_id: Number(customerCollection.activity_form_id),                
+                activity_stream_type_id: 705,
+                form_id: Number(customerCollection.activity_form_id),
                 type: 'approval'
             };
 
@@ -1183,38 +1195,38 @@ function VodafoneService(objectCollection) {
             const baseUrlUpload = global.config.emailbaseUrlUpload + "/#/forms/entry/" + encodedString;
             const baseUrlOrderStatus = global.config.emailbaseUrlApprove + "/#/orderstatus/" + encodedString;
 
-            switch(Number(customerCollection.activity_form_id)) {
+            switch (Number(customerCollection.activity_form_id)) {
                 case 856: //emailSubject = 'Upload Documents for Order';
-                          openingMessage = "Please verify the order details and upload the required documentation.";
-                          callToction = "<a style='background: #ED212C; display: inline-block; color: #FFFFFF; border-top: 10px solid #ED212C; border-bottom: 10px solid #ED212C; border-left: 20px solid #ED212C; border-right: 20px solid #ED212C; text-decoration: none; font-size: 12px; margin-top: 1.0em; border-radius: 3px 3px 3px 3px; background-clip: padding-box;' target='_blank' class='blue-btn' href='" + baseUrlUpload + "'>UPLOAD DOCUMENTS</a>"
-                          break;
+                    openingMessage = "Please verify the order details and upload the required documentation.";
+                    callToction = "<a style='background: #ED212C; display: inline-block; color: #FFFFFF; border-top: 10px solid #ED212C; border-bottom: 10px solid #ED212C; border-left: 20px solid #ED212C; border-right: 20px solid #ED212C; text-decoration: none; font-size: 12px; margin-top: 1.0em; border-radius: 3px 3px 3px 3px; background-clip: padding-box;' target='_blank' class='blue-btn' href='" + baseUrlUpload + "'>UPLOAD DOCUMENTS</a>"
+                    break;
                 case 844: //emailSubject = "Approve Order Data";
-                          openingMessage = "Please verify the customer application form and approve by providing a digital signature.";
-                          callToction = "<a style='background: #ED212C; display: inline-block; color: #FFFFFF; border-top: 10px solid #ED212C; border-bottom: 10px solid #ED212C; border-left: 20px solid #ED212C; border-right: 20px solid #ED212C; text-decoration: none; font-size: 12px; margin-top: 1.0em; border-radius: 3px 3px 3px 3px; background-clip: padding-box;' target='_blank' class='blue-btn' href='" + baseUrlApprove + "'>APPROVE</a>"
-                          break;
+                    openingMessage = "Please verify the customer application form and approve by providing a digital signature.";
+                    callToction = "<a style='background: #ED212C; display: inline-block; color: #FFFFFF; border-top: 10px solid #ED212C; border-bottom: 10px solid #ED212C; border-left: 20px solid #ED212C; border-right: 20px solid #ED212C; text-decoration: none; font-size: 12px; margin-top: 1.0em; border-radius: 3px 3px 3px 3px; background-clip: padding-box;' target='_blank' class='blue-btn' href='" + baseUrlApprove + "'>APPROVE</a>"
+                    break;
                 case global.vodafoneConfig[request.organization_id].FORM_ID.HLD:
-                          //emailSubject = "Upload HLD Documents for Order";
-                          openingMessage = "Please verify the order details and upload the required documentation.";
-                          callToction = "<a style='background: #ED212C; display: inline-block; color: #FFFFFF; border-top: 10px solid #ED212C; border-bottom: 10px solid #ED212C; border-left: 20px solid #ED212C; border-right: 20px solid #ED212C; text-decoration: none; font-size: 12px; margin-top: 1.0em; border-radius: 3px 3px 3px 3px; background-clip: padding-box;' target='_blank' class='blue-btn' href='" + baseUrlUpload + "'>UPLOAD DOCUMENTS</a>"
-                          break;                
+                    //emailSubject = "Upload HLD Documents for Order";
+                    openingMessage = "Please verify the order details and upload the required documentation.";
+                    callToction = "<a style='background: #ED212C; display: inline-block; color: #FFFFFF; border-top: 10px solid #ED212C; border-bottom: 10px solid #ED212C; border-left: 20px solid #ED212C; border-right: 20px solid #ED212C; text-decoration: none; font-size: 12px; margin-top: 1.0em; border-radius: 3px 3px 3px 3px; background-clip: padding-box;' target='_blank' class='blue-btn' href='" + baseUrlUpload + "'>UPLOAD DOCUMENTS</a>"
+                    break;
                 case global.vodafoneConfig[request.organization_id].FORM_ID.NEW_CUSTOMER:
-                          //emailSubject = 'Upload Documents for Order';
-                          openingMessage = "Please verify the order details and upload the required documentation.";
-                          callToction = "<a style='background: #ED212C; display: inline-block; color: #FFFFFF; border-top: 10px solid #ED212C; border-bottom: 10px solid #ED212C; border-left: 20px solid #ED212C; border-right: 20px solid #ED212C; text-decoration: none; font-size: 12px; margin-top: 1.0em; border-radius: 3px 3px 3px 3px; background-clip: padding-box;' target='_blank' class='blue-btn' href='" + baseUrlUpload + "'>UPLOAD DOCUMENTS</a>"
-                          break;
-                //Existing Customer
+                    //emailSubject = 'Upload Documents for Order';
+                    openingMessage = "Please verify the order details and upload the required documentation.";
+                    callToction = "<a style='background: #ED212C; display: inline-block; color: #FFFFFF; border-top: 10px solid #ED212C; border-bottom: 10px solid #ED212C; border-left: 20px solid #ED212C; border-right: 20px solid #ED212C; text-decoration: none; font-size: 12px; margin-top: 1.0em; border-radius: 3px 3px 3px 3px; background-clip: padding-box;' target='_blank' class='blue-btn' href='" + baseUrlUpload + "'>UPLOAD DOCUMENTS</a>"
+                    break;
+                    //Existing Customer
                 case global.vodafoneConfig[request.organization_id].FORM_ID.EXISTING_CUSTOMER:
-                          //emailSubject = 'Upload Documents for Order';
-                          openingMessage = "Please verify the order details and upload the required documentation.";
-                          callToction = "<a style='background: #ED212C; display: inline-block; color: #FFFFFF; border-top: 10px solid #ED212C; border-bottom: 10px solid #ED212C; border-left: 20px solid #ED212C; border-right: 20px solid #ED212C; text-decoration: none; font-size: 12px; margin-top: 1.0em; border-radius: 3px 3px 3px 3px; background-clip: padding-box;' target='_blank' class='blue-btn' href='" + baseUrlUpload + "'>UPLOAD DOCUMENTS</a>"
-                          break;
+                    //emailSubject = 'Upload Documents for Order';
+                    openingMessage = "Please verify the order details and upload the required documentation.";
+                    callToction = "<a style='background: #ED212C; display: inline-block; color: #FFFFFF; border-top: 10px solid #ED212C; border-bottom: 10px solid #ED212C; border-left: 20px solid #ED212C; border-right: 20px solid #ED212C; text-decoration: none; font-size: 12px; margin-top: 1.0em; border-radius: 3px 3px 3px 3px; background-clip: padding-box;' target='_blank' class='blue-btn' href='" + baseUrlUpload + "'>UPLOAD DOCUMENTS</a>"
+                    break;
             }
-            
+
 
             try {
                 const formData = JSON.parse(request.activity_inline_data);
                 //console.log('formData: ', formData);
-               
+
                 formData.forEach(formEntry => {
 
                     switch (Number(formEntry.field_data_type_category_id)) {
@@ -1234,15 +1246,15 @@ function VodafoneService(objectCollection) {
                             break;
                     }
                 });
-            } catch(e) {
+            } catch (e) {
                 console.log('In Catch Block : ', e);
-            }       
+            }
 
             //console.log("\x1b[35m [vodafoneSendEmail] fieldHTML: \x1b[0m", fieldHTML)
             const allFields = fieldHTML;
 
             //const templateDesign = "<table style='border-collapse: collapse !important;' width='100%' bgcolor='#ffffff' border='0' cellpadding='10' cellspacing='0'><tbody><tr> <td> <table bgcolor='#ffffff' style='width: 100%;max-width: 600px;' class='content' align='center' cellpadding='0' cellspacing='0' border='0'> <tbody><tr><td align='center' valign='top'><table style='border: 1px solid #e2e2e2; border-radius: 4px; background-clip: padding-box; border-spacing: 0;' border='0' cellpadding='0' cellspacing='0' width='100%' id='templateContainer'><tbody> <tr> <td align='left' style='float: right;padding: 20px;' valign='top'> <img style='width: 100px' src ='https://office.desker.co/Vodafone_logo.png'/> <img style='height: 44px;margin-left: 10px;' src ='https://office.desker.co/Idea_logo.png'/> </td> </tr> <tr><td valign='top' style=' color: #505050; font-family: Helvetica; font-size: 14px; line-height: 150%; padding-top: 3.143em; padding-right: 3.5em; padding-left: 3.5em; padding-bottom: 3.143em; text-align: left;' class='bodyContent' mc:edit='body_content'> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>Hey " + nameStr + ",</p> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>" + openingMessage + "</p> <p style=' color: #808080; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: bold; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 10px; margin-left: 0; text-align: left;'>Order Management Form</p> " + allFields + "<table style='width: 100%;margin-top: 5px'></table> " + callToction + " <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 40px; margin-right: 0; margin-bottom: 0px; margin-left: 0; text-align: left;'> Parmeshwar Reddy </p> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; text-align: left;'> Vice President </p> <p style=' color: #ED212C; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; text-align: left;'> Customer Care </p></td></tr> <tr> <td style='height: 35px;background: #cbcbcb;'></td> </tr></tbody></table><!-- // END BODY --></td></tr> </tbody></table> </td> </tr></tbody></table>";
-            
+
             const Template = `
  <table style='border-collapse: collapse !important;' width='100%' bgcolor='#ffffff' border='0' cellpadding='10' cellspacing='0'>
     <tbody><tr> <td> 
@@ -1298,9 +1310,9 @@ function VodafoneService(objectCollection) {
 
             //request.email_sender = 'vodafone_idea@grenerobotics.com';
             //request.email_sender_name = 'vodafone_idea grenerobotics.com';
-            request.email_sender = 'OMT.IN1@vodafoneidea.com'; 
-            request.email_sender_name = 'Vodafoneidea';            
-                    
+            request.email_sender = 'OMT.IN1@vodafoneidea.com';
+            request.email_sender_name = 'Vodafoneidea';
+
             util.sendEmailV3(request,
                 customerCollection.contactEmailId,
                 emailSubject,
@@ -1315,17 +1327,17 @@ function VodafoneService(objectCollection) {
 
                     resolve();
                 });
-        });        
-    }    
-    
-    this.addTimelineTransactionExternal = function (request, callback) {       
-                        
+        });
+    }
+
+    this.addTimelineTransactionExternal = function (request, callback) {
+
         /*From request you have to get the (means you have to send the same in base64 in firing email service)
             1) order form activity Id
             2) form id
             3) Form Data in activity_timeline_collection
          */
-        
+
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         var activityTypeCategoryId = Number(request.activity_type_category_id) || 9;
@@ -1336,68 +1348,74 @@ function VodafoneService(objectCollection) {
             HLD_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.HLD;
 
         activityCommonService.updateAssetLocation(request, function (err, data) {});
-        
-        switch(Number(request.form_id)) {
-                case 866: //FR Form Definition
-                case 871: request.activity_inline_data = request.activity_timeline_collection;
-                          request.activity_form_id = FR_FORM_ID;                          
-                          request.form_name = "FR Form";
-                          break;                      
-                case 865: //CRM Form Definition
-                case 870: request.activity_inline_data = request.activity_timeline_collection;
-                          request.activity_form_id = CRM_FORM_ID;
-                          request.form_name = "CRM Form";
-                          break;
-                case 864: //HLD Form
-                case 869: request.activity_inline_data = request.activity_timeline_collection;
-                          request.activity_form_id = HLD_FORM_ID;                          
-                          request.form_name = "HLD Form";
-                          break;
-                case 867: //CAF Form
-                case 872: request.activity_inline_data = request.activity_timeline_collection;
-                          request.activity_form_id = CAF_FORM_ID;                          
-                          request.form_name = "CAF Form";
-                          break;                
-                case 876: //New Customer
-                case 880: request.activity_inline_data = request.activity_timeline_collection;
-                          request.activity_form_id = newCustomer;                          
-                          break;            
-                case 877: //Existing Customer
-                case 881: request.activity_inline_data = request.activity_timeline_collection;
-                          request.activity_form_id = existingCustomer;
-                          break;
-            }
-        
-        
-        var activityTimelineCollection = {};
-            activityTimelineCollection.content = "Form Submitted";
-            activityTimelineCollection.subject = request.form_name;
-            activityTimelineCollection.mail_body = request.form_name;
-            activityTimelineCollection.form_submitted = JSON.parse(request.activity_timeline_collection);
-            activityTimelineCollection.attachments = [];
-            activityTimelineCollection.asset_reference = [];
-            activityTimelineCollection.activity_reference = [];
-            activityTimelineCollection.form_approval_field_reference = [];
-        
-        if(!(request.hasOwnProperty('from_internal'))) {
-            //Create a new file activity for the customer submitted form data with file status -1
-            addActivityChangeFileStatus(request).then(()=>{
 
-            }).catch((err)=>{
+        switch (Number(request.form_id)) {
+            case 866: //FR Form Definition
+            case 871:
+                request.activity_inline_data = request.activity_timeline_collection;
+                request.activity_form_id = FR_FORM_ID;
+                request.form_name = "FR Form";
+                break;
+            case 865: //CRM Form Definition
+            case 870:
+                request.activity_inline_data = request.activity_timeline_collection;
+                request.activity_form_id = CRM_FORM_ID;
+                request.form_name = "CRM Form";
+                break;
+            case 864: //HLD Form
+            case 869:
+                request.activity_inline_data = request.activity_timeline_collection;
+                request.activity_form_id = HLD_FORM_ID;
+                request.form_name = "HLD Form";
+                break;
+            case 867: //CAF Form
+            case 872:
+                request.activity_inline_data = request.activity_timeline_collection;
+                request.activity_form_id = CAF_FORM_ID;
+                request.form_name = "CAF Form";
+                break;
+            case 876: //New Customer
+            case 880:
+                request.activity_inline_data = request.activity_timeline_collection;
+                request.activity_form_id = newCustomer;
+                break;
+            case 877: //Existing Customer
+            case 881:
+                request.activity_inline_data = request.activity_timeline_collection;
+                request.activity_form_id = existingCustomer;
+                break;
+        }
+
+
+        var activityTimelineCollection = {};
+        activityTimelineCollection.content = "Form Submitted";
+        activityTimelineCollection.subject = request.form_name;
+        activityTimelineCollection.mail_body = request.form_name;
+        activityTimelineCollection.form_submitted = JSON.parse(request.activity_timeline_collection);
+        activityTimelineCollection.attachments = [];
+        activityTimelineCollection.asset_reference = [];
+        activityTimelineCollection.activity_reference = [];
+        activityTimelineCollection.form_approval_field_reference = [];
+
+        if (!(request.hasOwnProperty('from_internal'))) {
+            //Create a new file activity for the customer submitted form data with file status -1
+            addActivityChangeFileStatus(request).then(() => {
+
+            }).catch((err) => {
                 console.log(err);
                 global.logger.write('debug', err, {}, request);
             });
         }
-        
+
         //var formDataJson = JSON.parse(request.activity_timeline_collection);
         //request.form_id = formDataJson[0]['form_id'];
-                        
+
         // add form entries
         //addFormEntries(request, function (err, approvalFieldsArr) {});
-            
-            
+
+
         request.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
-        
+
         try {
             var formDataJson = JSON.parse(request.activity_timeline_collection);
         } catch (exception) {
@@ -1408,21 +1426,21 @@ function VodafoneService(objectCollection) {
         var isAddToTimeline = true;
         if (request.hasOwnProperty('flag_timeline_entry'))
             isAddToTimeline = (Number(request.flag_timeline_entry)) > 0 ? true : false;
-        
+
         if (isAddToTimeline) {
             activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
                 if (err) {
-                   
+
                 } else {
 
                     activityPushService.sendPush(request, objectCollection, 0, function () {});
                     activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {});
 
                     //updating log differential datetime for only this asset
-                    activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) { });
-                    
-                    activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) { });
-                    
+                    activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, function (err, data) {});
+
+                    activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {});
+
                     /*if(request.auth_asset_id == global.config.botAssetId && request.flag_status_alter == 1) {
                         
                         request.asset_type_id = global.config.contactDeskAssetTypeId;
@@ -1508,21 +1526,21 @@ function VodafoneService(objectCollection) {
         }
         callback(false, {}, 200);
     };
-    
-    
+
+
     function addActivityChangeFileStatus(request) {
-        return new Promise((resolve, reject)=>{
-            
+        return new Promise((resolve, reject) => {
+
             let addFileActivityReq = {
                 organization_id: request.organization_id,
                 account_id: global.vodafoneConfig[request.organization_id].CUSTOMER.ACCOUNT_ID,
                 workforce_id: global.vodafoneConfig[request.organization_id].CUSTOMER.WORKFORCE_ID,
                 asset_id: global.vodafoneConfig[request.organization_id].BOT.ASSET_ID,
                 asset_token_auth: global.vodafoneConfig[request.organization_id].BOT.ENC_TOKEN,
-                asset_message_counter: 0,                
+                asset_message_counter: 0,
                 activity_type_category_id: 10,
                 activity_title: "Customer Form Data Submitted",
-                activity_description:"Customer Form Data Submitted",
+                activity_description: "Customer Form Data Submitted",
                 activity_inline_data: request.activity_timeline_collection,
                 activity_type_id: global.vodafoneConfig[request.organization_id].ACTIVITY_TYPE_IDS.FORM_ACTIVITY_TYPE_ID,
                 activity_sub_type_id: 1,
@@ -1540,44 +1558,44 @@ function VodafoneService(objectCollection) {
                 service_version: 1.0,
                 app_version: "2.5.5",
                 device_os_id: 5
-                };             
-                
-                activityCommonService.makeRequest(addFileActivityReq, 'activity/add/v1', 1).then((resp)=>{
-                    let response = JSON.parse(resp);
-                    
-                    let flagAlterReq = {};
-                    flagAlterReq.activity_id = response.response.activity_id;                    
-                    flagAlterReq.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
-                    flagAlterReq.organization_id = request.organization_id;
-                    flagAlterReq.activity_flag_file_enabled = -1;
+            };
 
-                    if (Number(response.status) === 200) {                        
-                                              
-                        var event = {
-                            name: "alterActivityFlagFileEnabled",
-                            service: "activityUpdateService",
-                            method: "alterActivityFlagFileEnabled",
-                            payload: flagAlterReq
-                        };
-                        
-                        queueWrapper.raiseActivityEvent(event, flagAlterReq.activity_id, (err, resp) => {
-                            if (err) {
-                                global.logger.write('debug',"\x1b[35m [ERROR] Raising queue activity raised for adding Service Desk as a participant. \x1b[0m",{},request);
-                                reject('Error while raising queue activity for adding service desk as a participant');
-                            } else {                        
-                                global.logger.write('debug',"\x1b[35m Queue activity raised for adding Service Desk as a participant. \x1b[0m",{},request);
-                                resolve();
-                            }
-                        });
-                        resolve();
-                    } else {
-                        reject(response);
-                    }
-                });
+            activityCommonService.makeRequest(addFileActivityReq, 'activity/add/v1', 1).then((resp) => {
+                let response = JSON.parse(resp);
+
+                let flagAlterReq = {};
+                flagAlterReq.activity_id = response.response.activity_id;
+                flagAlterReq.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
+                flagAlterReq.organization_id = request.organization_id;
+                flagAlterReq.activity_flag_file_enabled = -1;
+
+                if (Number(response.status) === 200) {
+
+                    var event = {
+                        name: "alterActivityFlagFileEnabled",
+                        service: "activityUpdateService",
+                        method: "alterActivityFlagFileEnabled",
+                        payload: flagAlterReq
+                    };
+
+                    queueWrapper.raiseActivityEvent(event, flagAlterReq.activity_id, (err, resp) => {
+                        if (err) {
+                            global.logger.write('debug', "\x1b[35m [ERROR] Raising queue activity raised for adding Service Desk as a participant. \x1b[0m", {}, request);
+                            reject('Error while raising queue activity for adding service desk as a participant');
+                        } else {
+                            global.logger.write('debug', "\x1b[35m Queue activity raised for adding Service Desk as a participant. \x1b[0m", {}, request);
+                            resolve();
+                        }
+                    });
+                    resolve();
+                } else {
+                    reject(response);
+                }
+            });
         });
     }
-    
-    
+
+
     //Document Validator = 122964; 
     //Feasibility Checker = 122965; 
     //Administrator (Account Manager) = 122992
@@ -1606,36 +1624,36 @@ function VodafoneService(objectCollection) {
             }
         });
     };
-        
+
     function checkServiceDeskExistence(request) {
-        return new Promise((resolve, reject)=>{
+        return new Promise((resolve, reject) => {
             var paramsArr = new Array(
                 request.organization_id,
                 0,
                 0,
                 request.account_code,
                 45 // employee 2 ; Customer 13; service desk 45
-            );            
+            );
             var queryString = util.getQueryString('ds_p1_1_asset_list_select_customer_unique_id', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
-                    if(err === false) {
-                     console.log('checkServiceDeskExistence data : ', data);                     
-                     resolve(data);
-                     } else {
-                     reject(err);
+                    if (err === false) {
+                        console.log('checkServiceDeskExistence data : ', data);
+                        resolve(data);
+                    } else {
+                        reject(err);
                     }
                 });
             }
         });
     }
-    
-    
+
+
     function createAsset(request) {
-        return new Promise((resolve, reject)=>{
+        return new Promise((resolve, reject) => {
             let newRequest = Object.assign({}, request);
             newRequest.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
-            
+
             var dateTimeLog = util.getCurrentUTCTime();
             newRequest['datetime_log'] = dateTimeLog;
 
@@ -1650,22 +1668,22 @@ function VodafoneService(objectCollection) {
                                 asset_id: newAssetId,
                                 message_unique_id: newRequest.message_unique_id
                             };
-                            activityCommonService.assetTimelineTransactionInsert(newRequest, newAssetCollection, 7, function (err, data) {});                        
-                    } else {
-                        reject(err);
-                    }
-                });
-                resolve(newAssetId);
-            } else {                
-                reject(err);
-            }
-        });   
+                            activityCommonService.assetTimelineTransactionInsert(newRequest, newAssetCollection, 7, function (err, data) {});
+                        } else {
+                            reject(err);
+                        }
+                    });
+                    resolve(newAssetId);
+                } else {
+                    reject(err);
+                }
+            });
         });
     }
-    
+
     var assetListInsertAddAsset = function (request, callback) {
-        var activityInlineData = JSON.parse(request.activity_inline_data);      
-          
+        var activityInlineData = JSON.parse(request.activity_inline_data);
+
         var paramsArr = new Array(
             activityInlineData.contact_first_name,
             activityInlineData.contact_last_name,
@@ -1695,7 +1713,7 @@ function VodafoneService(objectCollection) {
             });
         }
     };
-    
+
     var assetListHistoryInsert = function (request, assetId, organizationId, updateTypeId, datetimeLog, callback) {
         var paramsArr = new Array(
             assetId,
@@ -1708,7 +1726,7 @@ function VodafoneService(objectCollection) {
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 //global.logger.write(queryString, request, 'asset', 'trace');
-                (err === false) ? callback(false, true): callback(err, false);                
+                (err === false) ? callback(false, true): callback(err, false);
             });
         }
     };
@@ -1744,36 +1762,36 @@ function VodafoneService(objectCollection) {
             CAF_BOT_ENC_TOKEN = "3dc16b80-e338-11e8-a779-5b17182fa0f6";
         } */
 
-        switch(Number(request.organization_id)) {
+        switch (Number(request.organization_id)) {
             case 860: // CAF
-                    CAF_ORGANIZATION_ID = 860; // Vodafone Idea Beta
-                    CAF_ACCOUNT_ID = 975; // Central OMT Beta
-                    CAF_WORKFORCE_ID = 5355; // Lobby
-                    CAF_ACTIVITY_TYPE_ID = 133250;
-                    // CAF BOT
-                    CAF_BOT_ASSET_ID = 31347;
-                    CAF_BOT_ENC_TOKEN = "05986bb0-e364-11e8-a1c0-0b6831833754";
-                        break;
-            
-            case 858: // CAF
-                    CAF_ORGANIZATION_ID = 858; // Vodafone Idea Beta
-                    CAF_ACCOUNT_ID = 973; // Central OMT Beta
-                    CAF_WORKFORCE_ID = 5345; // Lobby
-                    CAF_ACTIVITY_TYPE_ID = 133000;
-                    // CAF BOT
-                    CAF_BOT_ASSET_ID = 31298;
-                    CAF_BOT_ENC_TOKEN = "3dc16b80-e338-11e8-a779-5b17182fa0f6"; 
-                    break;
+                CAF_ORGANIZATION_ID = 860; // Vodafone Idea Beta
+                CAF_ACCOUNT_ID = 975; // Central OMT Beta
+                CAF_WORKFORCE_ID = 5355; // Lobby
+                CAF_ACTIVITY_TYPE_ID = 133250;
+                // CAF BOT
+                CAF_BOT_ASSET_ID = 31347;
+                CAF_BOT_ENC_TOKEN = "05986bb0-e364-11e8-a1c0-0b6831833754";
+                break;
 
-            case 868: 
-                    CAF_ORGANIZATION_ID = Number(request.organization_id);
-                    CAF_ACCOUNT_ID = global.vodafoneConfig[request.organization_id].BOT.ACCOUNT_ID;
-                    CAF_WORKFORCE_ID = global.vodafoneConfig[request.organization_id].BOT.WORKFORCE_ID;
-                    CAF_ACTIVITY_TYPE_ID = global.vodafoneConfig[request.organization_id].ACTIVITY_TYPE_IDS[CAF_WORKFORCE_ID];
-                    // CAF 
-                    CAF_BOT_ASSET_ID = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
-                    CAF_BOT_ENC_TOKEN = global.vodafoneConfig[request.organization_id].BOT.ENC_TOKEN; 
-                    break;
+            case 858: // CAF
+                CAF_ORGANIZATION_ID = 858; // Vodafone Idea Beta
+                CAF_ACCOUNT_ID = 973; // Central OMT Beta
+                CAF_WORKFORCE_ID = 5345; // Lobby
+                CAF_ACTIVITY_TYPE_ID = 133000;
+                // CAF BOT
+                CAF_BOT_ASSET_ID = 31298;
+                CAF_BOT_ENC_TOKEN = "3dc16b80-e338-11e8-a779-5b17182fa0f6";
+                break;
+
+            case 868:
+                CAF_ORGANIZATION_ID = Number(request.organization_id);
+                CAF_ACCOUNT_ID = global.vodafoneConfig[request.organization_id].BOT.ACCOUNT_ID;
+                CAF_WORKFORCE_ID = global.vodafoneConfig[request.organization_id].BOT.WORKFORCE_ID;
+                CAF_ACTIVITY_TYPE_ID = global.vodafoneConfig[request.organization_id].ACTIVITY_TYPE_IDS[CAF_WORKFORCE_ID];
+                // CAF 
+                CAF_BOT_ASSET_ID = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
+                CAF_BOT_ENC_TOKEN = global.vodafoneConfig[request.organization_id].BOT.ENC_TOKEN;
+                break;
         }
 
         const NEW_ORDER_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER,
@@ -1797,14 +1815,14 @@ function VodafoneService(objectCollection) {
                     // 
                     let formDataCollection = JSON.parse(newOrderFormData[0].data_entity_inline);
                     let formDataArrayOfObjects = [];
-                    
+
                     if (Array.isArray(formDataCollection.form_submitted) === true || typeof formDataCollection.form_submitted === 'object') {
                         formDataArrayOfObjects = formDataCollection.form_submitted;
                     } else {
                         formDataArrayOfObjects = JSON.parse(formDataCollection.form_submitted);
                     }
                     global.logger.write('conLog', ' ', {}, {});
-                    
+
                     // Append it to cafFormJson
                     cafFormJson = applyTransform(request, cafFormJson, formDataArrayOfObjects, formId);
                     // Pull the required data from the SUPPLEMENTARY ORDER FORM of the form file
@@ -1837,7 +1855,7 @@ function VodafoneService(objectCollection) {
                 return activityCommonService.getActivityTimelineTransactionByFormId713(request, request.activity_id, formId)
             })
             .then((frFormData) => {
-                
+
                 if (frFormData.length > 0) {
                     let formDataCollection = JSON.parse(frFormData[0].data_entity_inline);
                     let formDataArrayOfObjects = [];
@@ -1956,13 +1974,16 @@ function VodafoneService(objectCollection) {
                     ROMS_CAF_FIELDS_DATA = romsCafFieldsData.LIVE;
                 }*/
 
-                switch(Number(request.organization_id)) {
-                    case 860: ROMS_CAF_FIELDS_DATA = romsCafFieldsData.BETA;
-                              break;
-                    case 858: ROMS_CAF_FIELDS_DATA = romsCafFieldsData.LIVE;
-                              break;
-                    case 868: ROMS_CAF_FIELDS_DATA = romsCafFieldsData.PLATFORM;
-                              break;
+                switch (Number(request.organization_id)) {
+                    case 860:
+                        ROMS_CAF_FIELDS_DATA = romsCafFieldsData.BETA;
+                        break;
+                    case 858:
+                        ROMS_CAF_FIELDS_DATA = romsCafFieldsData.LIVE;
+                        break;
+                    case 868:
+                        ROMS_CAF_FIELDS_DATA = romsCafFieldsData.PLATFORM;
+                        break;
                 }
 
                 // The 1st (0th) element in the array which populateRomsCafFieldValues() returns is 
@@ -2063,10 +2084,10 @@ function VodafoneService(objectCollection) {
 
                 // global.config.mobileBaseUrl + global.config.version
                 // 'https://api.worlddesk.cloud/r1'
-                makeRequest.post(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', cafRequestOptions, function (error, response, body) {                    
+                makeRequest.post(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', cafRequestOptions, function (error, response, body) {
                     global.logger.write('conLog', '[cafFormSubmissionRequest] Body: ', body, {});
-                   // global.logger.write('conLog', '[cafFormSubmissionRequest] Error: ', error, {});
-                    body = JSON.parse(body);                    
+                    // global.logger.write('conLog', '[cafFormSubmissionRequest] Error: ', error, {});
+                    body = JSON.parse(body);
                     global.logger.write('conLog', '\x1b[36m body \x1b[0m', {}, {});
 
                     if (Number(body.status) === 200) {
@@ -2110,8 +2131,8 @@ function VodafoneService(objectCollection) {
                                 // Calculate the percentage completion of CAF Form and store it in the inline data of the file form
                                 // NEEDS WORK | NEEDS WORK | NEEDS WORK | NEEDS WORK | NEEDS WORK | NEEDS WORK | NEEDS WORK
 
-                                if(Number(request.organization_id) !== 868) {
-                                
+                                if (Number(request.organization_id) !== 868) {
+
                                     // Unmap the form file from HLD queue by archiving the mapping of queue and activity
                                     request.start_from = 0;
                                     request.limit_value = 50;
@@ -2119,11 +2140,11 @@ function VodafoneService(objectCollection) {
 
                                     activityCommonService
                                         .fetchQueueByQueueName(request, 'HLD')
-                                        .then((queueListData) => {                                        
+                                        .then((queueListData) => {
                                             global.logger.write('conLog', 'data[0].queue_id: ', queueListData[0].queue_id, {});
                                             return activityCommonService.fetchQueueActivityMappingId(request, queueListData[0].queue_id);
                                         })
-                                        .then((queueActivityMappingData) => {                                        
+                                        .then((queueActivityMappingData) => {
                                             global.logger.write('conLog', 'queueActivityMappingData[0].queue_activity_mapping_id: ', queueActivityMappingData[0].queue_activity_mapping_id, {});
                                             hldQueueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;
                                             let queueActivityUnmapRequest = Object.assign({}, request);
@@ -2133,9 +2154,9 @@ function VodafoneService(objectCollection) {
                                         .then((data) => {
                                             let queueHistoryInsertRequest = Object.assign({}, request);
                                             queueHistoryInsertRequest.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
-                                            activityCommonService.queueHistoryInsert(queueHistoryInsertRequest, 1403, hldQueueActivityMappingId).then(()=>{});
+                                            activityCommonService.queueHistoryInsert(queueHistoryInsertRequest, 1403, hldQueueActivityMappingId).then(() => {});
                                         })
-                                        .catch((error) => {                                        
+                                        .catch((error) => {
                                             global.logger.write('conLog', 'Error Unmapping the form file from HLD queue: ', error, {});
                                         });
 
@@ -2191,10 +2212,10 @@ function VodafoneService(objectCollection) {
                                                     );
                                                 })
                                                 .then((data) => {
-                                                    
+
                                                     let queueHistoryInsertRequest = Object.assign({}, request);
                                                     queueHistoryInsertRequest.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
-                                                    activityCommonService.queueHistoryInsert(queueHistoryInsertRequest, 1402, omtQueueActivityMappingId).then(()=>{});
+                                                    activityCommonService.queueHistoryInsert(queueHistoryInsertRequest, 1402, omtQueueActivityMappingId).then(() => {});
                                                 })
                                                 .catch((error) => {
                                                     console.log("Error modifying the form file activity entry in the OMT queue: ", error)
@@ -2216,7 +2237,7 @@ function VodafoneService(objectCollection) {
 
                 });
             })
-            .catch((error) => {                
+            .catch((error) => {
                 global.logger.write('conLog', '[buildAndSubmitCafForm] Promise Chain Error: ', error, {});
                 callback(true, false);
                 return;
@@ -2235,7 +2256,7 @@ function VodafoneService(objectCollection) {
             customerManagementApprovalFormData = [];
 
         const customerManagementApprovalInlineData = JSON.parse(request.activity_timeline_collection);
-        
+
         if (Array.isArray(customerManagementApprovalInlineData.form_submitted) === true || typeof customerManagementApprovalInlineData.form_submitted === 'object') {
             customerManagementApprovalFormData = customerManagementApprovalInlineData.form_submitted;
         } else {
@@ -2267,7 +2288,7 @@ function VodafoneService(objectCollection) {
                 callback(true, false);
                 return;
             });
-        
+
         // Apply Transform
         let originalCafFormDataLength = cafActivityInlineData.length;
         cafActivityInlineData = applyTransform(request, cafActivityInlineData, customerManagementApprovalFormData, CUSTOMER_APPROVAL_FORM_ID);
@@ -2326,7 +2347,7 @@ function VodafoneService(objectCollection) {
             waitTime += 2;
 
         });
-        
+
 
         // Sort the CAF Data
         // Fetch all form field mappings for the CAF Form
@@ -2540,7 +2561,7 @@ function VodafoneService(objectCollection) {
                                     ROMS_CAF_FIELDS_DATA[index].field_value = `${participant.operating_asset_first_name} ${participant.operating_asset_last_name}`;
                                     break;
                             }
-                        });   
+                        });
                     }
                     break;
                 case 5706: // LIVE | Account Manager Circle Office
@@ -2555,17 +2576,17 @@ function VodafoneService(objectCollection) {
                         ROMS_CAF_FIELDS_DATA[index].field_value = formActivityData[0].activity_datetime_created;
                     }
                     break;
-                
+
                 case 6044: // Total Amount Payable-One Time(A)
                 case 7196: // Platform | Total Amount Payable-One Time(A)
                     accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.totalAmountPayableTotal_A);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.totalAmountPayableTotal_A;
-                break;
+                    break;
                 case 6045: // Total Amount Payable-Annual Recurring(B)
                 case 7197: // Platform | Total Amount Payable-Annual Recurring(B)
                     accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.totalAmountPayableTotal_B);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.totalAmountPayableTotal_B;
-                break;
+                    break;
             }
         });
 
@@ -2758,7 +2779,7 @@ function VodafoneService(objectCollection) {
                 case 5772: // Miscellaneous Charges2-Security Deposit(C)
                 case 7190: // Platform | Miscellaneous Charges2-One Time(A)
                 case 7191: // Platform | Miscellaneous Charges2-Annual Recurring(B)
-                // case 7192: // Platform | Miscellaneous Charges2-Security Deposit(C)
+                    // case 7192: // Platform | Miscellaneous Charges2-Security Deposit(C)
                     sumsKeyValueJson.miscellaneousCharges2GrandTotal += Number(formEntry.field_value);
                     break;
                     // Registration Charges-Grand Total(A+B+C)
@@ -2857,22 +2878,22 @@ function VodafoneService(objectCollection) {
 
     function applyTransform(request, cafFormData, sourceFormData, formId) {
 
-        const NEW_ORDER_FORM_ID =  global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER,
-              SUPPLEMENTARY_ORDER_FORM_ID =  global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY,
-              FR_FORM_ID =  global.vodafoneConfig[request.organization_id].FORM_ID.FR,
-              CRM_FORM_ID =  global.vodafoneConfig[request.organization_id].FORM_ID.CRM,
-              HLD_FORM_ID =  global.vodafoneConfig[request.organization_id].FORM_ID.HLD,
-              CAF_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CAF,
-              CUSTOMER_APPROVAL_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_APPROVAL;
+        const NEW_ORDER_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER,
+            SUPPLEMENTARY_ORDER_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY,
+            FR_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.FR,
+            CRM_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CRM,
+            HLD_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.HLD,
+            CAF_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CAF,
+            CUSTOMER_APPROVAL_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_APPROVAL;
 
 
-        let NEW_ORDER_TO_CAF_FIELD_ID_MAP, 
-            SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP, 
-            FR_TO_CAF_FIELD_ID_MAP, 
-            CRM_TO_CAF_FIELD_ID_MAP, 
+        let NEW_ORDER_TO_CAF_FIELD_ID_MAP,
+            SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP,
+            FR_TO_CAF_FIELD_ID_MAP,
+            CRM_TO_CAF_FIELD_ID_MAP,
             HLD_TO_CAF_FIELD_ID_MAP,
             CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
-        
+
         /*if (Number(request.organization_id) === 860) {
             // BETA
             NEW_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.NEW_ORDER_TO_CAF_FIELD_ID_MAP;
@@ -2892,31 +2913,31 @@ function VodafoneService(objectCollection) {
             CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
         } */
 
-        switch(Number(request.organization_id) === 858) {
+        switch (Number(request.organization_id) === 858) {
             case 860: // BETA
-                    NEW_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.NEW_ORDER_TO_CAF_FIELD_ID_MAP;
-                    SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP;
-                    FR_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.FR_TO_CAF_FIELD_ID_MAP;
-                    CRM_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.CRM_TO_CAF_FIELD_ID_MAP;
-                    HLD_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.HLD_TO_CAF_FIELD_ID_MAP;
-                    CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
-                    break;
+                NEW_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.NEW_ORDER_TO_CAF_FIELD_ID_MAP;
+                SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP;
+                FR_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.FR_TO_CAF_FIELD_ID_MAP;
+                CRM_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.CRM_TO_CAF_FIELD_ID_MAP;
+                HLD_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.HLD_TO_CAF_FIELD_ID_MAP;
+                CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
+                break;
             case 858: // LIVE
-                    NEW_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.NEW_ORDER_TO_CAF_FIELD_ID_MAP;
-                    SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP;
-                    FR_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.FR_TO_CAF_FIELD_ID_MAP;
-                    CRM_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.CRM_TO_CAF_FIELD_ID_MAP;
-                    HLD_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.HLD_TO_CAF_FIELD_ID_MAP;
-                    CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
-                    break;
-            case 868: 
-                    NEW_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.PLATFORM.NEW_ORDER_TO_CAF_FIELD_ID_MAP;
-                    SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.PLATFORM.SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP;
-                    FR_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.PLATFORM.FR_TO_CAF_FIELD_ID_MAP;
-                    CRM_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.PLATFORM.CRM_TO_CAF_FIELD_ID_MAP;
-                    HLD_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.PLATFORM.HLD_TO_CAF_FIELD_ID_MAP;
-                    CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.PLATFORM.CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
-                    break;
+                NEW_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.NEW_ORDER_TO_CAF_FIELD_ID_MAP;
+                SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP;
+                FR_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.FR_TO_CAF_FIELD_ID_MAP;
+                CRM_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.CRM_TO_CAF_FIELD_ID_MAP;
+                HLD_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.HLD_TO_CAF_FIELD_ID_MAP;
+                CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
+                break;
+            case 868:
+                NEW_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.PLATFORM.NEW_ORDER_TO_CAF_FIELD_ID_MAP;
+                SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.PLATFORM.SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP;
+                FR_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.PLATFORM.FR_TO_CAF_FIELD_ID_MAP;
+                CRM_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.PLATFORM.CRM_TO_CAF_FIELD_ID_MAP;
+                HLD_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.PLATFORM.HLD_TO_CAF_FIELD_ID_MAP;
+                CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.PLATFORM.CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
+                break;
         }
         // New Order Form
         if (formId === NEW_ORDER_FORM_ID) {
@@ -3081,7 +3102,7 @@ function VodafoneService(objectCollection) {
     }
 
     function appendLabels(request, cafFormData) {
-        
+
         let ROMS_CAF_FORM_LABELS = {};
         /*if (Number(request.organization_id) === 860) {
             // BETA
@@ -3092,15 +3113,18 @@ function VodafoneService(objectCollection) {
             ROMS_CAF_FORM_LABELS = formFieldIdMapping.LIVE.ROMS_LABELS;
         } */
 
-        switch(Number(request.organization_id)) {
-            case 860: ROMS_CAF_FORM_LABELS = formFieldIdMapping.BETA.ROMS_LABELS;
-                        break;
-            case 858: ROMS_CAF_FORM_LABELS = formFieldIdMapping.LIVE.ROMS_LABELS;
-                        break;
-            case 868: ROMS_CAF_FORM_LABELS = formFieldIdMapping.PLATFORM.ROMS_LABELS;
-                        break;
+        switch (Number(request.organization_id)) {
+            case 860:
+                ROMS_CAF_FORM_LABELS = formFieldIdMapping.BETA.ROMS_LABELS;
+                break;
+            case 858:
+                ROMS_CAF_FORM_LABELS = formFieldIdMapping.LIVE.ROMS_LABELS;
+                break;
+            case 868:
+                ROMS_CAF_FORM_LABELS = formFieldIdMapping.PLATFORM.ROMS_LABELS;
+                break;
         }
-        
+
         Object.keys(ROMS_CAF_FORM_LABELS).forEach(formEntry => {
             cafFormData.push({
                 "form_id": global.vodafoneConfig[request.organization_id].FORM_ID.CAF,
@@ -3118,13 +3142,13 @@ function VodafoneService(objectCollection) {
     }
 
     this.setStatusApprovalPendingAndFireEmail = async function (request, callback) {
-        
+
         const NEW_ORDER_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER,
-              ACCOUNT_MANAGER_APPROVAL_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.ACCOUNT_MANAGER_APPROVAL,
-              CUSTOMER_APPROVAL_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_APPROVAL,
-              CAF_BOT_ASSET_ID  = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID,
-              CAF_BOT_ENC_TOKEN  = global.vodafoneConfig[request.organization_id].BOT.ENC_TOKEN,
-              ACTIVITY_STATUS_ID_APPROVAL_PENDING = global.vodafoneConfig[request.organization_id].STATUS.APPROVAL_PENDING;
+            ACCOUNT_MANAGER_APPROVAL_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.ACCOUNT_MANAGER_APPROVAL,
+            CUSTOMER_APPROVAL_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_APPROVAL,
+            CAF_BOT_ASSET_ID = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID,
+            CAF_BOT_ENC_TOKEN = global.vodafoneConfig[request.organization_id].BOT.ENC_TOKEN,
+            ACTIVITY_STATUS_ID_APPROVAL_PENDING = global.vodafoneConfig[request.organization_id].STATUS.APPROVAL_PENDING;
 
         var formExists = false;
         var jsonString = {},
@@ -3152,7 +3176,7 @@ function VodafoneService(objectCollection) {
                 callback(true, false);
                 return;
             })
-        
+
         console.log("formExists: ", formExists);
         // callback(true, false);
         // return;
@@ -3204,7 +3228,7 @@ function VodafoneService(objectCollection) {
                         )
                     })
                     .then((data) => {
-                        activityCommonService.queueHistoryInsert(request, 1402, omtQueueActivityMappingId).then(()=>{});
+                        activityCommonService.queueHistoryInsert(request, 1402, omtQueueActivityMappingId).then(() => {});
                     })
                     .catch((error) => {
                         console.log("Error modifying the form file activity entry in the OMT queue: ", error)
@@ -3338,14 +3362,14 @@ function VodafoneService(objectCollection) {
         // BETA => 875 - Account Manager Approval | 882 - Customer Approval
         var isApprovalDone = false,
             queueActivityMappingId;
-        
+
         const CUSTOMER_APPROVAL_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_APPROVAL;
         const ACCOUNT_MANAGER_APPROVAL_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.ACCOUNT_MANAGER_APPROVAL;
         const CRM_ACKNOWLEDGEMENT_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CRM_ACKNOWLEDGEMENT;
         const NEW_ORDER_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER;
         const ACTIVITY_STATUS_ID_ORDER_CLOSED = global.vodafoneConfig[request.organization_id].STATUS.ORDER_CLOSED;
-        const CAF_BOT_ASSET_ID  = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
-        const CAF_BOT_ENC_TOKEN  = global.vodafoneConfig[request.organization_id].BOT.ENC_TOKEN;
+        const CAF_BOT_ASSET_ID = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID;
+        const CAF_BOT_ENC_TOKEN = global.vodafoneConfig[request.organization_id].BOT.ENC_TOKEN;
         // 
         // If the incoming form submission request is for the AM APPROVAL FORM
         // if (Number(request.form_id) === 858 || Number(request.form_id) === 875) {
@@ -3378,7 +3402,7 @@ function VodafoneService(objectCollection) {
         console.log("Number(request.form_id): ", Number(request.form_id));
         console.log("Number(CRM_ACKNOWLEDGEMENT_FORM_ID): ", Number(CRM_ACKNOWLEDGEMENT_FORM_ID));
         if (Number(request.form_id) === Number(CRM_ACKNOWLEDGEMENT_FORM_ID)) {
-            
+
             await activityCommonService
                 .getActivityTimelineTransactionByFormId(request, request.activity_id, NEW_ORDER_FORM_ID)
                 .then((customerApprovalFormData) => {
@@ -3412,7 +3436,7 @@ function VodafoneService(objectCollection) {
                 .then((data) => {
                     console.log("Form unassigned from queue: ", data);
                     request.asset_id = CAF_BOT_ASSET_ID;
-                    activityCommonService.queueHistoryInsert(request, 1403, queueActivityMappingId).then(()=>{});
+                    activityCommonService.queueHistoryInsert(request, 1403, queueActivityMappingId).then(() => {});
                 })
                 .catch((error) => {
                     console.log("Error unassigning form from queue: ", error)
@@ -3460,10 +3484,10 @@ function VodafoneService(objectCollection) {
                 }
             });
         });
-    } 
-    
+    }
+
     function getSpecifiedForm(request, formId) {
-        return new Promise((resolve, reject)=>{
+        return new Promise((resolve, reject) => {
             var paramsArr = new Array();
             var queryString = '';
 
@@ -3489,16 +3513,16 @@ function VodafoneService(objectCollection) {
                             });
                         } else {
                             resolve();
-                        }                        
-                    } else {                        
-                        reject(err);                        
+                        }
+                    } else {
+                        reject(err);
                     }
                 });
             }
-    
+
         });
     }
-    
+
     var formatFormsListing = function (data, callback) {
         var responseData = new Array();
         let prevFieldId = 0;
@@ -3516,7 +3540,7 @@ function VodafoneService(objectCollection) {
                 "data_type_combo_id": util.replaceDefaultNumber(rowData['data_type_combo_id']),
                 "data_type_combo_value": util.replaceDefaultString(rowData['data_type_combo_value'])
             };
-            
+
             if (Number(prevFieldId) !== Number(rowData['field_id'])) {
                 responseData.push(rowDataArr);
             }
@@ -3948,7 +3972,7 @@ function VodafoneService(objectCollection) {
             }
         })
     }
-    
+
 }
 
 
