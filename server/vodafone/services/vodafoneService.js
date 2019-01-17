@@ -2430,81 +2430,97 @@ function VodafoneService(objectCollection) {
                     break;
                 case 5726: // LIVE | Service Rental-Grand Total(A+B+C) 
                 case 5994: // BETA | Service Rental-Grand Total(A+B+C)
+                case 7146: // Platform | Service Rental-Grand Total(A+B+C)
                     accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.serviceRentalGrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.serviceRentalGrandTotal;
                     break;
                 case 5729: // LIVE | IP Address Charges-Grand Total(A+B+C)
                 case 5997: // BETA | IP Address Charges-Grand Total(A+B+C)
+                case 7149: // Platform | IP Address Charges-Grand Total(A+B+C)
                     accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.ipAddressChargesGrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.ipAddressChargesGrandTotal;
                     break;
                 case 5732: // LIVE | SLA Charges-Grand Total(A+B+C)
                 case 6000: // BETA | SLA Charges-Grand Total(A+B+C)
+                case 7152: // Platform | SLA Charges-Grand Total(A+B+C)
                     accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.slaChargesGrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.slaChargesGrandTotal;
                     break;
                 case 5735: // LIVE | Self Care Portal Service Charges-Grand Total(A+B+C)
                 case 6003: // BETA | Self Care Portal Service Charges-Grand Total(A+B+C)
+                case 7155: // Platform | Self Care Portal Service Charges-Grand Total(A+B+C)
                     accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.selfCarePortalServiceChargesGrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.selfCarePortalServiceChargesGrandTotal;
                     break;
                 case 5738: // LIVE | Managed Services Charges-Grand Total(A+B+C)
                 case 6006: // BETA | Managed Services Charges-Grand Total(A+B+C)
+                case 7158: // Platform | Managed Services Charges-Grand Total(A+B+C)
                     accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.managedServicesChargesGrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.managedServicesChargesGrandTotal;
                     break;
                 case 5741: // LIVE | Managed CPE Charges-Grand Total(A+B+C)
                 case 6009: // BETA | Managed CPE Charges-Grand Total(A+B+C)
+                case 7161: // Platform | Managed CPE Charges-Grand Total(A+B+C)
                     accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.managedCPEChargesGrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.managedCPEChargesGrandTotal;
                     break;
                 case 5745: // LIVE | CPE Rentals-Grand Total(A+B+C)
                 case 6013: // BETA | CPE Rentals-Grand Total(A+B+C)
+                case 7165: // Platform | CPE Rentals-Grand Total(A+B+C)
                     accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.cpeRentalsGrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.cpeRentalsGrandTotal;
                     break;
                 case 5749: // LIVE | CPE 1-Grand Total(A+B+C)
                 case 6017: // BETA | CPE 1-Grand Total(A+B+C)
+                case 7169: // Platform | CPE 1-Grand Total(A+B+C)
                     accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.cpe1GrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.cpe1GrandTotal;
                     break;
                 case 5753: // LIVE | CPE 2-Grand Total(A+B+C)
                 case 6021: // BETA | CPE 2-Grand Total(A+B+C)
+                case 7173: // Platform | CPE 2-Grand Total(A+B+C)
                     accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.cpe2GrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.cpe2GrandTotal;
                     break;
                 case 5757: // LIVE | CPE 3-Grand Total(A+B+C)
                 case 6025: // BETA | CPE 3-Grand Total(A+B+C)
+                case 7177: // Platform | CPE 3-Grand Total(A+B+C)
                     accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.cpe3GrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.cpe3GrandTotal;
                     break;
                 case 5761: // LIVE | CPE 4-Grand Total(A+B+C)
                 case 6029: // BETA | CPE 4-Grand Total(A+B+C)
+                case 7181: // Platform | CPE 4-Grand Total(A+B+C)
                     accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.cpe4GrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.cpe4GrandTotal;
                     break;
                 case 5765: // LIVE | CPE 5-Grand Total(A+B+C)
                 case 6033: // BETA | CPE 5-Grand Total(A+B+C)
+                case 7185: // Platform | CPE 5-Grand Total(A+B+C)
                     accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.cpe5GrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.cpe5GrandTotal;
                     break;
                 case 5769: // LIVE | Miscellaneous Charges-1-Grand Total(A+B+C)
                 case 6037: // BETA | Miscellaneous Charges-1-Grand Total(A+B+C)
+                case 7189: // Platform | Miscellaneous Charges-1-Grand Total(A+B+C)
                     accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.miscellaneousCharges1GrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.miscellaneousCharges1GrandTotal;
                     break;
                 case 5773: // LIVE | Miscellaneous Charges2-Grand Total(A+B+C)
                 case 6041: // BETA | Miscellaneous Charges2-Grand Total(A+B+C)
+                case 7193: // Platform | Miscellaneous Charges2-Grand Total(A+B+C)
                     accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.miscellaneousCharges2GrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.miscellaneousCharges2GrandTotal;
                     break;
                 case 5775: // LIVE | Registration Charges-Grand Total(A+B+C)
                 case 6043: // BETA | Registration Charges-Grand Total(A+B+C)
+                case 7195: // Platform | Registration Charges-Grand Total(A+B+C)
                     accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.registrationChargesGrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.registrationChargesGrandTotal;
                     break;
                 case 5828: // LIVE | Total Amount Payable-Grand Total(A+B+C)
                 case 6096: // BETA | Total Amount Payable-Grand Total(A+B+C)
+                case 7248: // Platform | Total Amount Payable-Grand Total(A+B+C)
                     accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.totalAmountPayableGrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.totalAmountPayableGrandTotal;
                     break;
@@ -2514,11 +2530,13 @@ function VodafoneService(objectCollection) {
                     //     break;
                 case 5705: // LIVE | Account Manager Name
                 case 5973: // BETA | Account Manager Name
+                case 7125: // Platform | Account Manager Name
                     if (formParticipantsData.length > 0) {
                         formParticipantsData.forEach(participant => {
                             switch (participant.asset_type_id) {
                                 case 126035: // LIVE | Account Managers - Mumbai Circle
                                 case 126305: // BETA | Account Managers - Mumbai Circle
+                                case 127254: // Platform | Account Managers - Mumbai Circle
                                     ROMS_CAF_FIELDS_DATA[index].field_value = `${participant.operating_asset_first_name} ${participant.operating_asset_last_name}`;
                                     break;
                             }
@@ -2527,20 +2545,24 @@ function VodafoneService(objectCollection) {
                     break;
                 case 5706: // LIVE | Account Manager Circle Office
                 case 5974: // BETA | Account Manager Circle Office
+                case 7126: // Platform | Account Manager Circle Office
                     ROMS_CAF_FIELDS_DATA[index].field_value = "Mumbai Circle - Account Managers";
                     break;
                 case 5703: // LIVE | Date
                 case 5971: // BETA | Date
+                case 7123: // Platform | Date
                     if (formActivityData.length > 0) {
                         ROMS_CAF_FIELDS_DATA[index].field_value = formActivityData[0].activity_datetime_created;
                     }
                     break;
                 
                 case 6044: // Total Amount Payable-One Time(A)
+                case 7196: // Platform | Total Amount Payable-One Time(A)
                     accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.totalAmountPayableTotal_A);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.totalAmountPayableTotal_A;
                 break;
                 case 6045: // Total Amount Payable-Annual Recurring(B)
+                case 7197: // Platform | Total Amount Payable-Annual Recurring(B)
                     accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.totalAmountPayableTotal_B);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.totalAmountPayableTotal_B;
                 break;
@@ -2593,6 +2615,9 @@ function VodafoneService(objectCollection) {
                 case 5723: // LIVE | Service Rental-One Time(A)
                 case 5724: // LIVE | Service Rental-Annual Recurring(B)
                 case 5725: // LIVE | Service Rental-Security Deposit(C)
+                case 7143: // Platform | Service Rental-One Time(A)
+                case 7144: // Platform | Service Rental-Annual Recurring(B)
+                case 7145: // Platform | Service Rental-Security Deposit(C)
                     sumsKeyValueJson.serviceRentalGrandTotal += Number(formEntry.field_value);
                     break;
                     // IP Address Charges-Grand Total(A+B+C)
@@ -2600,6 +2625,8 @@ function VodafoneService(objectCollection) {
                 case 5995: // BETA | IP Address Charges-One Time(A)
                 case 5727: // LIVE | IP Address Charges-One Time(A)
                 case 5728: // LIVE | IP Address Charges-Annual Recurring(B)
+                case 7147: // Platform | IP Address Charges-One Time(A)
+                case 7148: // Platform | IP Address Charges-Annual Recurring(B)
                     sumsKeyValueJson.ipAddressChargesGrandTotal += Number(formEntry.field_value);
                     break;
                     // SLA Charges-Grand Total(A+B+C)
@@ -2607,6 +2634,8 @@ function VodafoneService(objectCollection) {
                 case 5998: // BETA | SLA Charges-One Time(A)
                 case 5730: // LIVE | SLA Charges-One Time(A)
                 case 5731: // LIVE | SLA Charges-Annual Recurring(B)
+                case 7150: // Platform | SLA Charges-One Time(A)
+                case 7151: // Platform | SLA Charges-Annual Recurring(B)
                     sumsKeyValueJson.slaChargesGrandTotal += Number(formEntry.field_value);
                     break;
                     // Self Care Portal Service Charges-Grand Total(A+B+C)
@@ -2614,6 +2643,8 @@ function VodafoneService(objectCollection) {
                 case 6001: // BETA | Self Care Portal Service Charges-One Time(A)
                 case 5733: // LIVE | Self Care Portal Service Charges-One Time(A)
                 case 5734: // LIVE | Self Care Portal Service Charges-Annual Recurring(B)
+                case 7153: // Platform | Self Care Portal Service Charges-One Time(A)
+                case 7154: // Platform | Self Care Portal Service Charges-Annual Recurring(B)
                     sumsKeyValueJson.selfCarePortalServiceChargesGrandTotal += Number(formEntry.field_value);
                     break;
                     // Managed Services Charges-Grand Total(A+B+C)
@@ -2621,6 +2652,8 @@ function VodafoneService(objectCollection) {
                 case 6004: // BETA | Managed Services Charges-One Time(A)
                 case 5736: // LIVE | Managed Services Charges-One Time(A)
                 case 5737: // LIVE | Managed Services Charges-Annual Recurring(B)
+                case 7156: // Platform | Managed Services Charges-One Time(A)
+                case 7157: // Platform | Managed Services Charges-Annual Recurring(B)
                     sumsKeyValueJson.managedServicesChargesGrandTotal += Number(formEntry.field_value);
                     break;
                     // Managed CPE Charges-Grand Total(A+B+C)
@@ -2628,6 +2661,8 @@ function VodafoneService(objectCollection) {
                 case 6007: // BETA | Managed CPE Charges-One Time(A)
                 case 5739: // LIVE | Managed CPE Charges-One Time(A)
                 case 5740: // LIVE | Managed CPE Charges-Annual Recurring(B)
+                case 7159: // Platform | Managed CPE Charges-One Time(A)
+                case 7160: // Platform | Managed CPE Charges-Annual Recurring(B)
                     sumsKeyValueJson.managedCPEChargesGrandTotal += Number(formEntry.field_value);
                     break;
                     // CPE Rentals-Grand Total(A+B+C)
@@ -2637,6 +2672,9 @@ function VodafoneService(objectCollection) {
                 case 5742: // LIVE | CPE Rentals-One Time(A)
                 case 5743: // LIVE | CPE Rentals-Annual Recurring(B)
                 case 5744: // LIVE | CPE Rentals-Security Deposit(C)
+                case 7162: // Platform | CPE Rentals-One Time(A)
+                case 7163: // Platform | CPE Rentals-Annual Recurring(B)
+                case 7164: // Platform | CPE Rentals-Security Deposit(C)
                     sumsKeyValueJson.cpeRentalsGrandTotal += Number(formEntry.field_value);
                     break;
                     // CPE 1-Grand Total(A+B+C)
@@ -2646,6 +2684,9 @@ function VodafoneService(objectCollection) {
                 case 5746: // CPE 1-One Time(A)
                 case 5747: // CPE 1-Annual Recurring(B)
                 case 5748: // CPE 1-Security Deposit(C)
+                case 7166: // Platform | CPE 1-One Time(A)
+                case 7167: // Platform | CPE 1-Annual Recurring(B)
+                case 7168: // Platform | CPE 1-Security Deposit(C)
                     sumsKeyValueJson.cpe1GrandTotal += Number(formEntry.field_value);
                     break;
                     // CPE 2-Grand Total(A+B+C)
@@ -2655,6 +2696,9 @@ function VodafoneService(objectCollection) {
                 case 5750: // CPE 2-One Time(A)
                 case 5751: // CPE 2-Annual Recurring(B)
                 case 5752: // CPE 2-Security Deposit(C)
+                case 7170: // Platform | CPE 2-One Time(A)
+                case 7171: // Platform | CPE 2-Annual Recurring(B)
+                case 7172: // Platform | CPE 2-Security Deposit(C)
                     sumsKeyValueJson.cpe2GrandTotal += Number(formEntry.field_value);
                     break;
                     // CPE 3-Grand Total(A+B+C)
@@ -2664,6 +2708,9 @@ function VodafoneService(objectCollection) {
                 case 5754: // CPE 3-One Time(A)
                 case 5755: // CPE 3-Annual Recurring(B)
                 case 5756: // CPE 3-Security Deposit(C)
+                case 7174: // Platform | CPE 3-One Time(A)
+                case 7175: // Platform | CPE 3-Annual Recurring(B)
+                case 7176: // Platform | CPE 3-Security Deposit(C)
                     sumsKeyValueJson.cpe3GrandTotal += Number(formEntry.field_value);
                     break;
                     // CPE 4-Grand Total(A+B+C)
@@ -2673,6 +2720,9 @@ function VodafoneService(objectCollection) {
                 case 5758: // CPE 4-One Time(A)
                 case 5759: // CPE 4-Annual Recurring(B)
                 case 5760: // CPE 4-Security Deposit(C)
+                case 7178: // Platform | CPE 4-One Time(A)
+                case 7179: // Platform | CPE 4-Annual Recurring(B)
+                case 7180: // Platform | CPE 4-Security Deposit(C)
                     sumsKeyValueJson.cpe4GrandTotal += Number(formEntry.field_value);
                     break;
                     // CPE 5-Grand Total(A+B+C)
@@ -2682,6 +2732,9 @@ function VodafoneService(objectCollection) {
                 case 5762: // CPE 5-One Time(A)
                 case 5763: // CPE 5-Annual Recurring(B)
                 case 5764: // CPE 5-Security Deposit(C)
+                case 7182: // Platform | CPE 5-One Time(A)
+                case 7183: // Platform | CPE 5-Annual Recurring(B)
+                case 7184: // Platform | CPE 5-Security Deposit(C)
                     sumsKeyValueJson.cpe5GrandTotal += Number(formEntry.field_value);
                     break;
                     // Miscellaneous Charges-1-Grand Total(A+B+C)
@@ -2691,6 +2744,9 @@ function VodafoneService(objectCollection) {
                 case 5766: // Miscellaneous Charges-1-One Time(A)
                 case 5767: // Miscellaneous Charges-1-Annual Recurring(B)
                 case 5768: // Miscellaneous Charges-1-Security Deposit(C)
+                case 7186: // Platform | Miscellaneous Charges-1-One Time(A)
+                case 7187: // Platform | Miscellaneous Charges-1-Annual Recurring(B)
+                case 7188: // Platform | Miscellaneous Charges-1-Security Deposit(C)
                     sumsKeyValueJson.miscellaneousCharges1GrandTotal += Number(formEntry.field_value);
                     break;
                     // Miscellaneous Charges-2-Grand Total(A+B+C)
@@ -2700,11 +2756,15 @@ function VodafoneService(objectCollection) {
                 case 5770: // Miscellaneous Charges2-One Time(A)
                 case 5771: // Miscellaneous Charges2-Annual Recurring(B)
                 case 5772: // Miscellaneous Charges2-Security Deposit(C)
+                case 7190: // Platform | Miscellaneous Charges2-One Time(A)
+                case 7191: // Platform | Miscellaneous Charges2-Annual Recurring(B)
+                // case 7192: // Platform | Miscellaneous Charges2-Security Deposit(C)
                     sumsKeyValueJson.miscellaneousCharges2GrandTotal += Number(formEntry.field_value);
                     break;
                     // Registration Charges-Grand Total(A+B+C)
                 case 6042: // Registration Charges-One Time(A)
                 case 5774: // Registration Charges-One Time(A)
+                case 7194: // Platform | Registration Charges-One Time(A)
                     sumsKeyValueJson.registrationChargesGrandTotal += Number(formEntry.field_value);
                     break;
                     // Total Amount Payable-Grand Total(A+B+C)
@@ -2712,6 +2772,8 @@ function VodafoneService(objectCollection) {
                 case 6044: // Total Amount Payable-One Time(A)
                 case 5776: // Total Amount Payable-One Time(A)
                 case 5777: // Total Amount Payable-Annual Recurring(B)
+                case 7196: // Platform | Total Amount Payable-One Time(A)
+                case 7197: // Platform | Total Amount Payable-Annual Recurring(B)
                     sumsKeyValueJson.totalAmountPayableGrandTotal += Number(formEntry.field_value);
                     break;
             }
@@ -2735,6 +2797,21 @@ function VodafoneService(objectCollection) {
                 case 6034: // Miscellaneous Charges-1-One Time(A)
                 case 6038: // Miscellaneous Charges2-One Time(A)
                 case 6042: // Registration Charges-One Time(A)
+                case 7143: // Platform | Service Rental-One Time(A)
+                case 7147: // Platform | IP Address Charges-One Time(A)
+                case 7150: // Platform | SLA Charges-One Time(A)
+                case 7153: // Platform | Self Care Portal Service Charges-One Time(A)
+                case 7156: // Platform | Managed Services Charges-One Time(A)
+                case 7159: // Platform | Managed CPE Charges-One Time(A)
+                case 7162: // Platform | CPE Rentals-One Time(A)
+                case 7166: // Platform | CPE 1-One Time(A)
+                case 7170: // Platform | CPE 2-One Time(A)
+                case 7174: // Platform | CPE 3-One Time(A)
+                case 7178: // Platform | CPE 4-One Time(A)
+                case 7182: // Platform | CPE 5-One Time(A)
+                case 7186: // Platform | Miscellaneous Charges-1-One Time(A)
+                case 7190: // Platform | Miscellaneous Charges2-One Time(A)
+                case 7194: // Platform | Registration Charges-One Time(A)
                     sumsKeyValueJson.totalAmountPayableTotal_A += Number(formEntry.field_value);
                     break;
 
@@ -2752,12 +2829,27 @@ function VodafoneService(objectCollection) {
                 case 6031: // CPE 5-Annual Recurring(B)
                 case 6035: // Miscellaneous Charges-1-Annual Recurring(B)
                 case 6039: // Miscellaneous Charges2-Annual Recurring(B)
+                case 7144: // Platform | Service Rental-Annual Recurring(B)
+                case 7148: // Platform | IP Address Charges-Annual Recurring(B)
+                case 7151: // Platform | SLA Charges-Annual Recurring(B)
+                case 7154: // Platform | Self Care Portal Service Charges-Annual Recurring(B)
+                case 7157: // Platform | Managed Services Charges-Annual Recurring(B)
+                case 7160: // Platform | Managed CPE Charges-Annual Recurring(B)
+                case 7163: // Platform | CPE Rentals-Annual Recurring(B)
+                case 7167: // Platform | CPE 1-Annual Recurring(B)
+                case 7171: // Platform | CPE 2-Annual Recurring(B)
+                case 7175: // Platform | CPE 3-Annual Recurring(B)
+                case 7179: // Platform | CPE 4-Annual Recurring(B)
+                case 7183: // Platform | CPE 5-Annual Recurring(B)
+                case 7187: // Platform | Miscellaneous Charges-1-Annual Recurring(B)
+                case 7191: // Platform | Miscellaneous Charges2-Annual Recurring(B)
                     sumsKeyValueJson.totalAmountPayableTotal_B += Number(formEntry.field_value);
                     break;
             }
         });
 
         // 6096 | Total Amount Payable-Grand Total(A+B+C)
+        // Platform | 7248 | Total Amount Payable-Grand Total(A+B+C)
         sumsKeyValueJson.totalAmountPayableGrandTotal = sumsKeyValueJson.totalAmountPayableTotal_A + sumsKeyValueJson.totalAmountPayableTotal_B;
 
         return sumsKeyValueJson;
@@ -3477,30 +3569,33 @@ function VodafoneService(objectCollection) {
             CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
         }*/
 
-        switch(Number(request.organization_id)) {
-            case 860:   NEW_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.NEW_ORDER_TO_CAF_FIELD_ID_MAP;
-                        SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP;
-                        FR_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.FR_TO_CAF_FIELD_ID_MAP;
-                        CRM_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.CRM_TO_CAF_FIELD_ID_MAP;
-                        HLD_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.HLD_TO_CAF_FIELD_ID_MAP;
-                        CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
-                        break;
+        switch (Number(request.organization_id)) {
+            case 860:
+                NEW_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.NEW_ORDER_TO_CAF_FIELD_ID_MAP;
+                SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP;
+                FR_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.FR_TO_CAF_FIELD_ID_MAP;
+                CRM_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.CRM_TO_CAF_FIELD_ID_MAP;
+                HLD_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.HLD_TO_CAF_FIELD_ID_MAP;
+                CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
+                break;
 
-            case 858:   NEW_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.NEW_ORDER_TO_CAF_FIELD_ID_MAP;
-                        SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP;
-                        FR_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.FR_TO_CAF_FIELD_ID_MAP;
-                        CRM_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.CRM_TO_CAF_FIELD_ID_MAP;
-                        HLD_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.HLD_TO_CAF_FIELD_ID_MAP;
-                        CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
-                        break;
-            
-            case 868:   NEW_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.PLATFORM.NEW_ORDER_TO_CAF_FIELD_ID_MAP;
-                        SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.PLATFORM.SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP;
-                        FR_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.PLATFORM.FR_TO_CAF_FIELD_ID_MAP;
-                        CRM_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.PLATFORM.CRM_TO_CAF_FIELD_ID_MAP;
-                        HLD_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.PLATFORM.HLD_TO_CAF_FIELD_ID_MAP;
-                        CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.PLATFORM.CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
-                        break;
+            case 858:
+                NEW_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.NEW_ORDER_TO_CAF_FIELD_ID_MAP;
+                SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP;
+                FR_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.FR_TO_CAF_FIELD_ID_MAP;
+                CRM_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.CRM_TO_CAF_FIELD_ID_MAP;
+                HLD_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.HLD_TO_CAF_FIELD_ID_MAP;
+                CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
+                break;
+
+            case 868:
+                NEW_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.PLATFORM.NEW_ORDER_TO_CAF_FIELD_ID_MAP;
+                SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.PLATFORM.SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP;
+                FR_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.PLATFORM.FR_TO_CAF_FIELD_ID_MAP;
+                CRM_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.PLATFORM.CRM_TO_CAF_FIELD_ID_MAP;
+                HLD_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.PLATFORM.HLD_TO_CAF_FIELD_ID_MAP;
+                CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.PLATFORM.CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
+                break;
         }
 
         let incomingFormToCafFormMapping = {};
@@ -3527,13 +3622,15 @@ function VodafoneService(objectCollection) {
             .then((data) => {
                 if (data.length > 0 || Number(request.form_id) === Number(NEW_ORDER_FORM_ID)) {
 
-                    if (Number(request.form_id) === Number(NEW_ORDER_FORM_ID)) {
-                        newOrderFormActivityId = Number(request.activity_id);
-                        
-                    } else {
-                        newOrderFormActivityId = Number(data[0].activity_id);
-                        
-                    }
+                    // if (Number(request.form_id) === Number(NEW_ORDER_FORM_ID)) {
+                    //     newOrderFormActivityId = Number(request.activity_id);
+
+                    // } else {
+                    //     newOrderFormActivityId = Number(data[0].activity_id);
+
+                    // }
+                    // Even if it reads new order 
+                    newOrderFormActivityId = Number(data[0].activity_id);
 
                     // Fetch form_transaction_id of the new order form
                     return activityCommonService
@@ -3592,14 +3689,14 @@ function VodafoneService(objectCollection) {
 
                 if (mappingExists) {
                     console.log("mappingExists: ", mappingExists)
-                    
+
                     cafFormTargetFieldId = incomingFormToCafFormMapping[request.form_id][incomingFormFieldId];
 
                     newActivityInlineData = JSON.parse(request.activity_inline_data);
                     newActivityInlineData[0].form_name = "Digital CAF";
                     newActivityInlineData[0].field_id = cafFormTargetFieldId;
                     newActivityInlineData[0].form_transaction_id = cafFormTransactionId;
-                    
+
                     // Fire the 'alterFormActivity' service | '/form/activity/alter' for CAF file
                     let cafFieldUpdateRequest = Object.assign({}, request);
                     let cafFieldUpdateEvent = {
@@ -3628,7 +3725,7 @@ function VodafoneService(objectCollection) {
                     });
 
                     return Promise.resolve(true);
-                    
+
                 } else {
                     throw new Error("noCafMappingExistsForIncomingFormFieldId");
                 }
@@ -3657,7 +3754,7 @@ function VodafoneService(objectCollection) {
                     // Sum all relevant fields and store them
                     const calculatedValuesJSON = calculateAllSums(cafFormData);
                     console.log("[regenerateAndSubmitCAF] calculatedValuesJSON: ", calculatedValuesJSON);
-                    
+
                     // Get the updated the CAF form Json and the specific derived ROMS field which was updated 
                     [cafFormData, updatedRomsFields] = populateRomsCafFieldValues(cafFormData, calculatedValuesJSON);
 
@@ -3668,7 +3765,7 @@ function VodafoneService(objectCollection) {
                     cafActivityTimelineCollectionData.form_submitted = cafFormData;
                     cafActivityTimelineCollectionData.subject = "Field Updated for Digital CAF";
                     cafActivityTimelineCollectionData.content = `In the Digital CAF, the field ${newActivityInlineData[0].field_name} was updated from ${oldCafFieldValue} to ${newCafFieldValue}`;
-                    
+
                     console.log("[regenerateAndSubmitCAF] oldCafFieldValue  : ", oldCafFieldValue);
                     if (String(oldCafFieldValue).trim().length === 0) {
                         cafActivityTimelineCollectionData.content = `In the Digital CAF, the field ${newActivityInlineData[0].field_name} was updated to ${newCafFieldValue}`;
@@ -3676,7 +3773,7 @@ function VodafoneService(objectCollection) {
 
                     // console.log("[regenerateAndSubmitCAF] cafActivityTimelineCollectionData.form_submitted: ", cafActivityTimelineCollectionData.form_submitted[155]);
 
-                    // [NEW ORDER FORM] Insert 713 record with the updated JSON data in activity_timeline_transaction 
+                    // [WORKFLOW FILE] Insert 713 record with the updated JSON data in activity_timeline_transaction 
                     // and asset_timeline_transaction
                     let fire705OnNewOrderFileRequest = Object.assign({}, request);
                     fire705OnNewOrderFileRequest.activity_id = Number(newOrderFormActivityId);
@@ -3686,7 +3783,7 @@ function VodafoneService(objectCollection) {
                     fire705OnNewOrderFileRequest.activity_timeline_collection = JSON.stringify(cafActivityTimelineCollectionData);
                     // Append the incremental form data as well
                     // fire705OnNewOrderFileRequest.incremental_form_data = incrementalCafFormData;
-                    fire705OnNewOrderFileRequest.activity_type_category_id = 9;
+                    fire705OnNewOrderFileRequest.activity_type_category_id = 48;
                     fire705OnNewOrderFileRequest.activity_stream_type_id = 713;
                     fire705OnNewOrderFileRequest.form_id = Number(CAF_FORM_ID);
                     fire705OnNewOrderFileRequest.asset_message_counter = 0;
