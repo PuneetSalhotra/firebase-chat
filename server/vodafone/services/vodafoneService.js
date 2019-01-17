@@ -3799,6 +3799,8 @@ function VodafoneService(objectCollection) {
 
                     // [WORKFLOW FILE] Insert 713 record with the updated JSON data in activity_timeline_transaction 
                     // and asset_timeline_transaction
+                    let activityTypeCategoryId = (Number(request.organization_id) === 860) ? 9 : 48;
+                    // console.log("[regenerateAndSubmitCAF] activityTypeCategoryId: ", activityTypeCategoryId)
                     let fire705OnNewOrderFileRequest = Object.assign({}, request);
                     fire705OnNewOrderFileRequest.activity_id = Number(newOrderFormActivityId);
                     // The 'form_transaction_id' parameter is intentionally being set to an incorrect value
