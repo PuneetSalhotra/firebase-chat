@@ -107,11 +107,19 @@ function ActivityTimelineService(objectCollection) {
             
             timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
 
-        } else if (activityTypeCategoryId === 48 && (activityStreamTypeId === 713 || activityStreamTypeId === 705 || 
-            activityStreamTypeId === 715 || activityStreamTypeId === 716)) {
+        } else if (activityTypeCategoryId === 48 && (activityStreamTypeId === 713 || activityStreamTypeId === 705 ||
+                activityStreamTypeId === 715 || activityStreamTypeId === 716)) {
 
             request.non_dedicated_file = 1;
-            timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
+            getActivityIdBasedOnTransId(request).then((data) => {
+                if (data.length > 0) {
+                    request.data_activity_id = Number(data[0].activity_id);
+                }
+                timelineStandardCalls(request).then(() => {}).catch((err) => {
+                    global.logger.write('debug', 'Error in timelineStandardCalls' + err, {}, request);
+                });
+            });
+            // timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
 
         } else {
             
