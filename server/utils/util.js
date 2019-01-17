@@ -1030,11 +1030,12 @@ function Util() {
     // [VODAFONE]
     this.getVodafoneFormFieldIdMapping = function () {
         return vodafoneFormFieldIdMapping;
-    }
+    };
+
     // [VODAFONE]
     this.getVodafoneRomsCafFieldsData = function () {
         return vodafoneRomsCafFieldsData;
-    }
+    };
     
     this.sendSmsHorizon = function (messageString, countryCode, phoneNumber, callback) {
  

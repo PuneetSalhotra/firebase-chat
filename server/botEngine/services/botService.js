@@ -614,10 +614,17 @@ function BotService(objectCollection) {
         if(type[0] === 'static') {            
             newReq.communication_id = inlineData[type[0]].template_id;
             newReq.email_id = inlineData[type[0]].email;
+            newReq.email_sender = inlineData[type[0]].sender_email;
+            newReq.email_sender_name = inlineData[type[0]].sender_name;
         } else if(type[0] === 'dynamic') {
             newReq.communication_id = inlineData[type[0]].template_id;
             newReq.form_id = inlineData[type[0]].form_id;
             newReq.field_id = inlineData[type[0]].field_id;
+            newReq.email_sender = inlineData[type[0]].sender_email;
+            newReq.email_sender_name = inlineData[type[0]].sender_name;
+
+            //request.email_sender = 'OMT.IN1@vodafoneidea.com'; 
+            //request.email_sender_name = 'Vodafoneidea';
 
             resp = await getFieldValue(newReq);            
             newReq.email_id = resp[0].data_entity_text_1;       
@@ -631,7 +638,9 @@ function BotService(objectCollection) {
 
         //Make a 715 timeline entry - (715 streamtypeid is for email)
         let activityTimelineCollection = {
-            email: retrievedCommInlineData.communication_template.email            
+            email: retrievedCommInlineData.communication_template.email,
+            email_sender: newReq.email_sender,
+            email_sender_name: newReq.email_sender_name
         };
 
         let fire715OnWFOrderFileRequest = Object.assign({}, newReq);
@@ -747,7 +756,7 @@ function BotService(objectCollection) {
 
         //Make a 716 timeline entry - (716 streamtypeid is for email)
         let activityTimelineCollection = {
-            email: retrievedCommInlineData.communication_template.text            
+            text: retrievedCommInlineData.communication_template.text
         };
 
         let fire716OnWFOrderFileRequest = Object.assign({}, newReq);
@@ -854,7 +863,8 @@ function BotService(objectCollection) {
         global.logger.write('conLog', inlineData.workflow_percentage_contribution,{},{});
         newrequest.workflow_completion_percentage = inlineData.workflow_percentage_contribution;
         let wfCompletionPercentage = newrequest.workflow_completion_percentage;
-        let resp = await getQueueActivity(newrequest, newrequest.workflow_activity_id);        
+        //let resp = await getQueueActivity(newrequest, newrequest.workflow_activity_id);        
+        let resp = await getAllQueuesBasedOnActId(newrequest, newrequest.workflow_activity_id);
         global.logger.write('conLog', resp,{},{});
 
         if(Number(wfCompletionPercentage) !== 0 && resp.length > 0) {
@@ -863,34 +873,44 @@ function BotService(objectCollection) {
             newrequest.start_from = 0;
             newrequest.limit_value = 1;               
             
-            //Checking the queuemappingid
-            let queueActivityMappingData = await (activityCommonService.fetchQueueActivityMappingId({activity_id: newrequest.workflow_activity_id,
-                                                                                                     organization_id: newrequest.organization_id}, 
-                                                                                                     resp[0].queue_id));            
-            global.logger.write('conLog', 'queueActivityMappingData : ',{},{});
-            global.logger.write('conLog', queueActivityMappingData,{},{});
+            let queueActivityMappingData;
+            let data;
+            let queueActivityMappingId;
+            let queueActMapInlineData;
+
+            for(let i of resp){
             
-            if(queueActivityMappingData.length > 0){
-                let queueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;  
-                let queueActMapInlineData = JSON.parse(queueActivityMappingData[0].queue_activity_mapping_inline_data);
-                let obj = {};
-                
-                global.logger.write('conLog', 'queueActMapInlineData.length',Object.keys(queueActMapInlineData).length,{});
-                if(Object.keys(queueActMapInlineData).length === 0) {                    
-                    obj.queue_sort = {};                    
-                    obj.queue_sort.caf_completion_percentage = wfCompletionPercentage;
-                    queueActMapInlineData = obj;
+                //Checking the queuemappingid
+                queueActivityMappingData = await (activityCommonService.fetchQueueActivityMappingId({activity_id: newrequest.workflow_activity_id,
+                                                                                                        organization_id: newrequest.organization_id}, 
+                                                                                                        i.queue_id));            
+                global.logger.write('conLog', 'queueActivityMappingData : ',{},{});
+                global.logger.write('conLog', queueActivityMappingData,{},{});
+
+                if(queueActivityMappingData.length > 0){
+                    queueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;  
+                    queueActMapInlineData = JSON.parse(queueActivityMappingData[0].queue_activity_mapping_inline_data);
+                    let obj = {};
+
+                    global.logger.write('conLog', 'queueActMapInlineData.length',Object.keys(queueActMapInlineData).length,{});
+                    if(Object.keys(queueActMapInlineData).length === 0) {                    
+                        obj.queue_sort = {};                    
+                        obj.queue_sort.caf_completion_percentage = wfCompletionPercentage;
+                        queueActMapInlineData = obj;
                 } else {                    
-                    queueActMapInlineData.queue_sort.caf_completion_percentage += wfCompletionPercentage;                
+                    //queueActMapInlineData.queue_sort.caf_completion_percentage += wfCompletionPercentage;
+                    queueActMapInlineData.queue_sort.caf_completion_percentage = wfCompletionPercentage;
                 }                
                 global.logger.write('conLog', 'Updated Queue JSON : ',queueActMapInlineData,{});
-                
-                let data = await (activityCommonService.queueActivityMappingUpdateInlineData(newrequest, queueActivityMappingId, JSON.stringify(queueActMapInlineData)));                
+
+                data = await (activityCommonService.queueActivityMappingUpdateInlineData(newrequest, queueActivityMappingId, JSON.stringify(queueActMapInlineData)));                
                 global.logger.write('conLog', 'Updating the Queue Json : ',data,{});                
-                
-                activityCommonService.queueHistoryInsert(newrequest, 1402, queueActivityMappingId).then(()=>{});                
-                return [false, {}];
+
+                activityCommonService.queueHistoryInsert(newrequest, 1402, queueActivityMappingId).then(()=>{});
+                //return [false, {}];
+                }
             }
+            return [false, {}];
         } else {
             return [true, "Queue Not Available"];
         }
@@ -902,8 +922,8 @@ function BotService(objectCollection) {
             const emailSubject = emailJson.subject;
             const Template = emailJson.body;
 
-            request.email_sender = 'OMT.IN1@vodafoneidea.com'; 
-            request.email_sender_name = 'Vodafoneidea';
+            //request.email_sender = 'OMT.IN1@vodafoneidea.com'; 
+            //request.email_sender_name = 'Vodafoneidea';
             
             global.logger.write('conLog', emailSubject,{},{});
             global.logger.write('conLog', Template,{},{});

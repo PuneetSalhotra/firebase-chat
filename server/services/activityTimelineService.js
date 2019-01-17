@@ -38,14 +38,16 @@ function ActivityTimelineService(objectCollection) {
                     //Should not do Form Transaction Insertion as it is not a dedicated file
                     global.logger.write('debug', "\x1b[35m [Log] request.activity_id \x1b[0m" + Number(request.activity_id) ,{}, request);
                     global.logger.write('debug', "\x1b[35m [Log] data[0].activity_id \x1b[0m" + Number(data[0].activity_id) ,{}, request);
+                    
                     if(Number(request.activity_id) !== Number(data[0].activity_id)) { 
                         global.logger.write('debug', "\x1b[35m [Log] Activity_ID from request is different from retrived Activity_id hence proceeding \x1b[0m",{}, request);
                         global.logger.write('debug', "\x1b[35m [Log] Non Dedicated File \x1b[0m",{}, request);
                         request.data_activity_id = Number(data[0].activity_id); //Dedicated file activity id
                         request.non_dedicated_file = 1;
-                        //retrievingFormIdandProcess(request, data).then(()=>{});                   
 
-                        if(Number(request.organization_id) === 860 || Number(request.organization_id) === 858) { 
+                        //retrievingFormIdandProcess(request, data).then(()=>{});                   
+                        if(Number(request.organization_id) === 860 || Number(request.organization_id) === 858 ||
+                            Number(request.organization_id) === 868) { 
                             retrievingFormIdandProcess(request, data).then(()=>{});
                         } else {
                             timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
@@ -53,13 +55,15 @@ function ActivityTimelineService(objectCollection) {
                         
                     } else {
                         global.logger.write('debug', "\x1b[35m [Log] Activity_ID from request is same as retrived Activity_id hence checking for device os id 7 \x1b[0m",{}, request);
+                        global.logger.write('conLog', "\x1b[35m [Log] Number(request.device_os_id) : ",Number(request.device_os_id), {});
                         global.logger.write('debug', "\x1b[35m [Log] Dedicated File \x1b[0m",{}, request);
                         
                         //705 for Dedicated file
                         if(Number(request.device_os_id) === 7) {
                             //retrievingFormIdandProcess(request, data).then(()=>{});
                             
-                            if(Number(request.organization_id) === 860 || Number(request.organization_id) === 858) { 
+                            if(Number(request.organization_id) === 860 || Number(request.organization_id) === 858 ||
+                                Number(request.organization_id) === 868) { 
                                 retrievingFormIdandProcess(request, data).then(()=>{});
                             } else {
                                 timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
@@ -77,10 +81,12 @@ function ActivityTimelineService(objectCollection) {
                         }
                     }
                 } else {
+                    global.logger.write('conLog', "\x1b[35m [Log] There is no data hence checking for device os id \x1b[0m",{}, request);
+                    global.logger.write('conLog', "\x1b[35m [Log] Number(request.device_os_id) : ",Number(request.device_os_id), {});
+                    
                     if(Number(request.device_os_id) === 7) { //7 means calling internal from services
-                        //retrievingFormIdandProcess(request, data).then(()=>{});
-                        
-                        if(Number(request.organization_id) === 860 || Number(request.organization_id) === 858) { 
+                        //retrievingFormIdandProcess(request, data).then(()=>{});  
+                        if(Number(request.organization_id) === 860 || Number(request.organization_id) === 858 || Number(request.organization_id) === 868) { 
                             retrievingFormIdandProcess(request, data).then(()=>{});
                         } else {
                             timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
@@ -101,12 +107,17 @@ function ActivityTimelineService(objectCollection) {
             
             timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
 
-        } else if (activityTypeCategoryId === 48 && (activityStreamTypeId === 713 || activityStreamTypeId === 705 || 
-            activityStreamTypeId === 715 || activityStreamTypeId === 716)) {
+        } else if (activityTypeCategoryId === 48 && (activityStreamTypeId === 713 || activityStreamTypeId === 705 ||
+                activityStreamTypeId === 715 || activityStreamTypeId === 716)) {
 
             request.non_dedicated_file = 1;
-            timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
-
+            
+            getActivityIdBasedOnTransId(request).then((data)=>{
+                if(data.length > 0) {
+                    request.data_activity_id = Number(data[0].activity_id);
+                }
+                timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
+            });
         } else {
             
             request.form_id = 0;            
@@ -146,14 +157,17 @@ function ActivityTimelineService(objectCollection) {
             
             // Triggering BOT 1
             if ((Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER))) {
-                        global.logger.write('debug', "\x1b[35m [Log] Triggering the BOT 1 \x1b[0m", {}, request);
                         
-                        //makeRequest to /vodafone/neworder_form/queue/add
-                        let newRequest = Object.assign({}, request);
-                        newRequest.activity_inline_data = {};
-                        activityCommonService.makeRequest(newRequest, "vodafone/neworder_form/queue/add", 1).then((resp)=>{
-                               global.logger.write('debug', resp, {}, request);
-                        });
+                        if(Number(request.organization_id) !== 868) {
+                            global.logger.write('debug', "\x1b[35m [Log] Triggering the BOT 1 \x1b[0m", {}, request);
+                        
+                            //makeRequest to /vodafone/neworder_form/queue/add
+                            let newRequest = Object.assign({}, request);
+                            newRequest.activity_inline_data = {};
+                            activityCommonService.makeRequest(newRequest, "vodafone/neworder_form/queue/add", 1).then((resp)=>{
+                                global.logger.write('debug', resp, {}, request);
+                            });
+                        }                        
             }
             
             //Triggering BOT 2
@@ -409,7 +423,7 @@ function ActivityTimelineService(objectCollection) {
             
             let newrequest = Object.assign({},request);
             
-            (Number(request.organization_id) === 860 || Number(request.organization_id) === 858) ?
+            (Number(request.organization_id) === 860 || Number(request.organization_id) === 858 || Number(request.organization_id) === 868) ?
                 newrequest.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID :
                 newrequest.asset_id = request.asset_id;
             
