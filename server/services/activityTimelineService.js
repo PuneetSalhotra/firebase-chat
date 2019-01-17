@@ -111,15 +111,7 @@ function ActivityTimelineService(objectCollection) {
                 activityStreamTypeId === 715 || activityStreamTypeId === 716)) {
 
             request.non_dedicated_file = 1;
-            getActivityIdBasedOnTransId(request).then((data) => {
-                if (data.length > 0) {
-                    request.data_activity_id = Number(data[0].activity_id);
-                }
-                timelineStandardCalls(request).then(() => {}).catch((err) => {
-                    global.logger.write('debug', 'Error in timelineStandardCalls' + err, {}, request);
-                });
-            });
-            // timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
+            timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
 
         } else {
             
