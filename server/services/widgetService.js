@@ -313,8 +313,55 @@ function WidgetService(objCollection) {
         });
     };	
 
+
+    this.widgetListInsert = async function (request) {
+    	
+        let responseData = [],
+        error = true;
+
+        let paramsArr = new Array(
+            request.widget_name,
+            request.widget_description,
+            request.widget_type_id,
+            request.widget_aggregate_id,
+            request.widget_chart_id,
+            request.widget_timeline_id,
+            request.entity1_id,
+            request.entity2_id,
+            request.entity3_id,
+            request.entity4_id,
+            request.entity5_id,
+            request.timezone_id,
+            request.access_level_id,
+            request.widget_owner_asset_id,
+            request.activity_id,
+            request.activity_type_id,
+            request.asset_id,
+            request.asset_type_id,
+            request.workforce_id,
+            request.account_id,
+            request.organization_id,
+            request.log_asset_id,
+            request.log_workforce_id,
+            request.log_datetime
+        );
+
+        var queryString = util.getQueryString('ds_p1_widget_list_insert', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                	responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
+
 }
-;
+
 
 module.exports = WidgetService;
 
