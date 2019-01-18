@@ -3428,8 +3428,10 @@ function ActivityService(objectCollection) {
                                     )
                                 ) {
                                     let queueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;
+                                    let newRequest = Object.assign({}, request);
+                                    newRequest.set_log_state = 3;
                                     await activityCommonService
-                                        .unmapFileFromQueue(request, queueActivityMappingId)
+                                        .unmapFileFromQueue(newRequest, queueActivityMappingId)
                                         .then((queueActivityMappingData) => {
                                             console.log("updateWorkflowQueueMapping | unmapFileToQueue | queueActivityMapping: ", queueActivityMappingData)
                                         })
