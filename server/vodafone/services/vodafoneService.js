@@ -2238,6 +2238,7 @@ function VodafoneService(objectCollection) {
                 });
             })
             .catch((error) => {
+                console.log("[buildAndSubmitCafForm] Promise Chain Error: ", error);
                 global.logger.write('conLog', '[buildAndSubmitCafForm] Promise Chain Error: ', error, {});
                 callback(true, false);
                 return;
@@ -2913,7 +2914,7 @@ function VodafoneService(objectCollection) {
             CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.LIVE.CUSTOMER_APPROVAL_TO_CAF_FIELD_ID_MAP;
         } */
 
-        switch (Number(request.organization_id) === 858) {
+        switch (Number(request.organization_id)) {
             case 860: // BETA
                 NEW_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.NEW_ORDER_TO_CAF_FIELD_ID_MAP;
                 SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP = formFieldIdMapping.BETA.SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP;
@@ -2966,12 +2967,17 @@ function VodafoneService(objectCollection) {
 
         // Supplementary Order Form
         if (formId === SUPPLEMENTARY_ORDER_FORM_ID) {
-            // 
+            // Exclude the following two fields from the Optional order forms:
+            // 7422: Total Amount Payable-One Time(A) | 868 Org
+            // 7424: Total Amount Payable-Annual Recurring(B) | 868 Org
+            // To avoid duplicate entries in the generated CAF while populating ROMS.
             sourceFormData.forEach(formEntry => {
                 if (
                     Object.keys(SUPPLEMENTARY_ORDER_TO_CAF_FIELD_ID_MAP).includes(String(formEntry.field_id)) &&
                     Number(formEntry.field_id) !== 6270 &&
-                    Number(formEntry.field_id) !== 6272
+                    Number(formEntry.field_id) !== 6272 &&
+                    Number(formEntry.field_id) !== 7422 &&
+                    Number(formEntry.field_id) !== 7424
                 ) {
                     // Push entries from the Supplementary Order Form, which have a defined CAF mapping
                     cafFormData.push({
