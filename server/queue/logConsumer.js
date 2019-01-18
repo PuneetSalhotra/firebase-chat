@@ -132,9 +132,9 @@ let Consumer = function () {
 
         let logMessage = messageJson.message || '{}';
         try {
-            JSON.parse(logMessage)
+            JSON.parse(logMessage);
         } catch (error) {
-            console.log("[insertIntoDB | logMessage] Error: ", error)
+            console.log("[insertIntoDB | logMessage] Error: ", error);
             logMessage = JSON.stringify(messageJson.message) || '{}';
         }
 
@@ -169,7 +169,7 @@ let Consumer = function () {
         if (queryString != '') {
             db.logExecuteQuery(0, queryString, request, function (err, data) {});
         }
-    };
+    }
 
 };
 module.exports = Consumer;
