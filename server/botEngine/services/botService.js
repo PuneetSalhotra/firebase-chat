@@ -1124,10 +1124,30 @@ function BotService(objectCollection) {
             newReq.desk_asset_id = 0;
             newReq.form_id = inlineData[type[0]].form_id;
             newReq.field_id = inlineData[type[0]].field_id;            
+            let activityInlineData;
 
             resp = await getFieldValue(newReq);
-            newReq.phone_country_code = String(resp[0].data_entity_bigint_1);
-            newReq.phone_number = String(resp[0].data_entity_text_1);
+            if(resp.length > 0) {
+                newReq.phone_country_code = String(resp[0].data_entity_bigint_1);
+                newReq.phone_number = String(resp[0].data_entity_text_1);
+            } else {
+                resp = await getActivityIdBasedOnTransId(newReq);
+                activityInlineData = JSON.parse(resp[0].activity_inline_data);
+                for(let i of activityInlineData) {
+                    if(i.form_id === newReq.form_id && i.field_id === newReq.field_id) {
+                        
+                        let phoneNumber = i.field_value;               
+                        let phone;
+
+                        (phoneNumber.includes('||')) ?
+                                    phone = phoneNumber.split('||'):                                                   
+                                    phone = phoneNumber.split('|');
+                                    
+                        newReq.country_code = phone[0];  //country code
+                        newReq.phone_number = phone[1];  //phone number                      
+                    }
+                }
+            }
         }       
         
         if(newReq.phone_number !== -1) {
@@ -2246,6 +2266,17 @@ function BotService(objectCollection) {
         let queryString = util.getQueryString('ds_p1_1_queue_activity_mapping_select_activity', paramsArr);
         if (queryString != '') {
             return await db.executeQueryPromise(1, queryString, request);
+        }
+    }
+
+    async function getActivityIdBasedOnTransId(request) {
+        let paramsArr = new Array(
+             request.organization_id,
+             request.form_transaction_id || 0            
+         );
+         let queryString = util.getQueryString('ds_p1_activity_list_select_form_transaction', paramsArr);         
+         if (queryString != '') {                
+            return await (db.executeQueryPromise(1, queryString, request));
         }
     }
 
