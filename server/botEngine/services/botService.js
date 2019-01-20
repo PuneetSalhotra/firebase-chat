@@ -363,16 +363,7 @@ function BotService(objectCollection) {
 
                             results[2] = await this.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
                         }
-                    }
-                );
 
-                results[0]
-                .forEach
-                (
-                    async (value) =>
-                    {
-                        //console.log(value.bot_operation_sequence_id);
-                        
                         if (Number(value.bot_operation_sequence_id) === Number(sequenceCurrent))
                         {
                             paramsArray = 
@@ -400,18 +391,6 @@ function BotService(objectCollection) {
                             );
 
                             results[2] = await this.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
-
-                            paramsArray = 
-                            new Array
-                            (
-                                request.bot_id,
-                                0,
-                                1000,
-                            );
-
-                            results[3] = await this.callDBProcedure(request, 'ds_p1_bot_operation_mapping_select', paramsArray, 0);
-
-                            return results[3];
                         }
                     }
                 );
@@ -453,15 +432,6 @@ function BotService(objectCollection) {
 
                             results[2] = await this.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
                         }
-                    }
-                );
-
-                results[0]
-                .forEach
-                (
-                    async (value) =>
-                    {
-                        //console.log(value.bot_operation_sequence_id);
 
                         if (Number(value.bot_operation_sequence_id) === Number(sequenceCurrent))
                         {
@@ -490,18 +460,6 @@ function BotService(objectCollection) {
                             );
 
                             results[2] = await this.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
-
-                            paramsArray = 
-                            new Array
-                            (
-                                request.bot_id,
-                                0,
-                                1000,
-                            );
-
-                            results[3] = await this.callDBProcedure(request, 'ds_p1_bot_operation_mapping_select', paramsArray, 0);
-
-                            return results[3];
                         }
                     }
                 );
@@ -510,6 +468,21 @@ function BotService(objectCollection) {
             {
                 return Promise.reject("Invalid new sequence id for the bot operation");
             }
+
+            /*
+            paramsArray = 
+            new Array
+            (
+                request.bot_id,
+                0,
+                1000,
+            );
+
+            results[3] = await this.callDBProcedure(request, 'ds_p1_bot_operation_mapping_select', paramsArray, 0);
+            return results[3];
+            */
+
+            return 0;
         }
         catch(error)
         {
