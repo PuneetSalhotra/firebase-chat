@@ -7,5 +7,5 @@ botConfig.botArchived = 1602;
 
 //Bot Operation Mappings
 botConfig.botOperationAdded = 0;
-botConfig.botOperationAltered = 1603;
-botConfig.botOperationArchived = 1604;
+botConfig.botOperationAltered = 1701;
+botConfig.botOperationArchived = 1702;

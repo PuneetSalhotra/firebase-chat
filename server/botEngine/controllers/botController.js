@@ -67,7 +67,6 @@ function BotController(objCollection) {
             try 
             {
                 let result = await botService.addBot(req.body);
-                console.log(result);
                 res.send(responseWrapper.getResponse(false, result, 200, req.body));
             } 
             catch(err) 
@@ -193,7 +192,6 @@ function BotController(objCollection) {
         } 
     });
     
-    
     //Retrieve the workflow steps of a specific bot
     app.post('/' + global.config.version + '/bot/mapping/workflow_step/list', async (req, res) => {
         try {            
@@ -204,7 +202,6 @@ function BotController(objCollection) {
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
-
 
     //Initiate the Bot Engine
     app.post('/' + global.config.version + '/engine/bot/init', async (req, res) => {

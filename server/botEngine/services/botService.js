@@ -849,7 +849,7 @@ function BotService(objectCollection) {
     } else {
         return [true, "Resp is Empty"];
     }
-}
+    }
 
     //Bot Step Copying the fields
     async function copyFields(request, inlineData) {        
@@ -2253,8 +2253,6 @@ function BotService(objectCollection) {
             return await (db.executeQueryPromise(1, queryString, request));
         }
     }
-
 }
-
 
 module.exports = BotService;
