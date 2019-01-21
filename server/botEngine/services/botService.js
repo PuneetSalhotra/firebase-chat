@@ -8,18 +8,20 @@ var ActivityParticipantService = require('../../services/activityParticipantServ
 var ActivityTimelineService = require('../../services/activityTimelineService.js');
 //var ActivityListingService = require('../../services/activityListingService.js');
 
-const botConfig = require('../utils/botConfig.js');
-
 function BotService(objectCollection) {
 
     const moment = require('moment');
     const makeRequest = require('request');
     const TinyURL = require('tinyurl');
+
     const cacheWrapper = objectCollection.cacheWrapper;
     //const queueWrapper = objectCollection.queueWrapper;
     //const activityPushService = objectCollection.activityPushService;
+
     const util = objectCollection.util;
-    const db = objectCollection.db;    
+    const db = objectCollection.db;
+    const botConfig = require('../utils/botConfig.js');
+
     const activityCommonService = objectCollection.activityCommonService;    
     //const activityUpdateService = new ActivityUpdateService(objectCollection);
     const activityParticipantService = new ActivityParticipantService(objectCollection);
