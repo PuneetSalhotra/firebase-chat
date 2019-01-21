@@ -23,42 +23,6 @@ function WorkflowQueueService(objectCollection)
     //const activityListingService = new ActivityListingService(objectCollection);
     //const activityTimelineService = new ActivityTimelineService(objectCollection);
 
-    //Generic function for firing stored procedures
-    //Bharat Masimukku
-    //2019-01-20
-    this.callDBProcedure = 
-    async (request, procName, paramsArray, flagReadOperation) =>
-    {
-        try
-        {
-            let queryString = util.getQueryString(procName, paramsArray);
-
-            if (queryString != '') 
-            {                
-                let result = await (db.executeQueryPromise(flagReadOperation, queryString, request));
-                console.log(`DB SP Result:\n${JSON.stringify(result, null, 4)}`);
-                console.log(`Query Status:\n${JSON.stringify(result[0].query_status, null, 4)}`);
-
-                if (result[0].query_status === 0)
-                {
-                    return result;
-                }
-                else
-                {
-                    return Promise.reject(result);
-                }            
-            }
-            else
-            {
-                return Promise.reject(`Invalid Query String`);
-            }
-        }
-        catch(error)
-        {
-            return Promise.reject(error);
-        }
-    };
-
     //Add Workflow Queue definition
     //Bharat Masimukku
     //2019-01-21
@@ -84,7 +48,7 @@ function WorkflowQueueService(objectCollection)
                 request.log_datetime,
             );
 
-            results[0] = await this.callDBProcedure(request, 'ds_p1_queue_list_insert', paramsArray, 0);
+            results[0] = await db.callDBProcedure(request, 'ds_p1_queue_list_insert', paramsArray, 0);
 
             paramsArray = 
             new Array
@@ -95,7 +59,7 @@ function WorkflowQueueService(objectCollection)
                 request.log_datetime,
             );
 
-            results[1] = await this.callDBProcedure(request, 'ds_p1_queue_list_history_insert', paramsArray, 0);
+            results[1] = await db.callDBProcedure(request, 'ds_p1_queue_list_history_insert', paramsArray, 0);
 
             return results[0];
         }
@@ -126,7 +90,7 @@ function WorkflowQueueService(objectCollection)
                 request.log_datetime,
             );
 
-            results[0] = await this.callDBProcedure(request, 'ds_p1_queue_list_update_inline_data', paramsArray, 0);
+            results[0] = await db.callDBProcedure(request, 'ds_p1_queue_list_update_inline_data', paramsArray, 0);
 
             paramsArray = 
             new Array
@@ -137,7 +101,7 @@ function WorkflowQueueService(objectCollection)
                 request.log_datetime,
             );
 
-            results[1] = await this.callDBProcedure(request, 'ds_p1_queue_list_history_insert', paramsArray, 0);
+            results[1] = await db.callDBProcedure(request, 'ds_p1_queue_list_history_insert', paramsArray, 0);
 
             return results[0];
         }
@@ -168,7 +132,7 @@ function WorkflowQueueService(objectCollection)
                 request.log_datetime,
             );
 
-            results[0] = await this.callDBProcedure(request, 'ds_p1_queue_list_update_log_state', paramsArray, 0);
+            results[0] = await db.callDBProcedure(request, 'ds_p1_queue_list_update_log_state', paramsArray, 0);
 
             paramsArray = 
             new Array
@@ -179,7 +143,7 @@ function WorkflowQueueService(objectCollection)
                 request.log_datetime,
             );
 
-            results[1] = await this.callDBProcedure(request, 'ds_p1_queue_list_history_insert', paramsArray, 0);
+            results[1] = await db.callDBProcedure(request, 'ds_p1_queue_list_history_insert', paramsArray, 0);
 
             return results[0];
         }
@@ -213,7 +177,7 @@ function WorkflowQueueService(objectCollection)
                 request.log_datetime,
             );
 
-            results[0] = await this.callDBProcedure(request, 'ds_p1_queue_access_mapping_insert', paramsArray, 0);
+            results[0] = await db.callDBProcedure(request, 'ds_p1_queue_access_mapping_insert', paramsArray, 0);
 
             paramsArray = 
             new Array
@@ -225,7 +189,7 @@ function WorkflowQueueService(objectCollection)
                 request.log_datetime,
             );
 
-            results[1] = await this.callDBProcedure(request, 'ds_p1_queue_access_mapping_history_insert', paramsArray, 0);
+            results[1] = await db.callDBProcedure(request, 'ds_p1_queue_access_mapping_history_insert', paramsArray, 0);
 
             return results[0];
         }
@@ -256,7 +220,7 @@ function WorkflowQueueService(objectCollection)
                 request.log_datetime,
             );
 
-            results[0] = await this.callDBProcedure(request, 'ds_p1_queue_access_mapping_update_log_state', paramsArray, 0);
+            results[0] = await db.callDBProcedure(request, 'ds_p1_queue_access_mapping_update_log_state', paramsArray, 0);
 
             paramsArray = 
             new Array
@@ -268,7 +232,7 @@ function WorkflowQueueService(objectCollection)
                 request.log_datetime,
             );
 
-            results[1] = await this.callDBProcedure(request, 'ds_p1_queue_access_mapping_history_insert', paramsArray, 0);
+            results[1] = await db.callDBProcedure(request, 'ds_p1_queue_access_mapping_history_insert', paramsArray, 0);
 
             return results[0];
         }
