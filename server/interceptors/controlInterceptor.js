@@ -29,6 +29,7 @@ var PamUpdateController = require('../controllers/pamUpdateController');
 //Vodafone
 var VodafoneController = require('../vodafone/controllers/vodafoneController');
 var BotController = require('../botEngine/controllers/botController');
+const WorkflowQueueController = require('../workflowQueue/controllers/workflowQueueController.js');
 ///////////////////////////////////////////////////////////////////////
 
 // Stats
@@ -66,6 +67,7 @@ function ControlInterceptor(objCollection) {
     //Vodafone
     new VodafoneController(objCollection);
     new BotController(objCollection);
+    new WorkflowQueueController(objCollection);
     ////////////////////////////////
 
 }

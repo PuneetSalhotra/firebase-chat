@@ -8,23 +8,535 @@ var ActivityParticipantService = require('../../services/activityParticipantServ
 var ActivityTimelineService = require('../../services/activityTimelineService.js');
 //var ActivityListingService = require('../../services/activityListingService.js');
 
-
 function BotService(objectCollection) {
 
     const moment = require('moment');
     const makeRequest = require('request');
     const TinyURL = require('tinyurl');
+
     const cacheWrapper = objectCollection.cacheWrapper;
     //const queueWrapper = objectCollection.queueWrapper;
     //const activityPushService = objectCollection.activityPushService;
+
     const util = objectCollection.util;
-    const db = objectCollection.db;    
+    const db = objectCollection.db;
+    const botConfig = require('../utils/botConfig.js');
+
     const activityCommonService = objectCollection.activityCommonService;    
     //const activityUpdateService = new ActivityUpdateService(objectCollection);
     const activityParticipantService = new ActivityParticipantService(objectCollection);
     const activityService = new ActivityService(objectCollection);
     //const activityListingService = new ActivityListingService(objectCollection);
     const activityTimelineService = new ActivityTimelineService(objectCollection);
+
+    //Generic function for firing stored procedures
+    //Bharat Masimukku
+    //2019-01-20
+    this.callDBProcedure = 
+    async (request, procName, paramsArray, flagReadOperation) =>
+    {
+        try
+        {
+            let queryString = util.getQueryString(procName, paramsArray);
+
+            if (queryString != '') 
+            {                
+                let result = await (db.executeQueryPromise(flagReadOperation, queryString, request));
+                console.log(`DB SP Result:\n${JSON.stringify(result, null, 4)}`);
+                console.log(`Query Status:\n${JSON.stringify(result[0].query_status, null, 4)}`);
+
+                if (result[0].query_status === 0)
+                {
+                    return result;
+                }
+                else
+                {
+                    return Promise.reject(result);
+                }            
+            }
+            else
+            {
+                return Promise.reject(`Invalid Query String`);
+            }
+        }
+        catch(error)
+        {
+            return Promise.reject(error);
+        }
+    };
+
+    //Retrieve the supported trigger types for defining a new bot
+    //Bharat Masimukku
+    //2019-01-17
+    this.getBotTriggerTypes = 
+    async (request) => 
+    {
+        try
+        {
+            let results = new Array();
+            let paramsArray;
+
+            paramsArray = 
+            new Array
+            (
+                request.page_start,
+                util.replaceQueryLimit(request.page_limit)
+            );
+
+            results[0] = this.callDBProcedure(request, 'ds_p1_bot_trigger_master_select', paramsArray, 1);
+            
+            return results[0];
+        }
+        catch(error)
+        {
+            return Promise.reject(error);
+        }
+    };
+
+    //Retrieve the supported operation types for defining a new bot
+    //Bharat Masimukku
+    //2019-01-17
+    this.getBotOperationTypes = 
+    async (request) => 
+    {
+        try
+        {
+            let results = new Array();
+            let paramsArray;
+
+            paramsArray = 
+            new Array
+            (
+                request.page_start,
+                util.replaceQueryLimit(request.page_limit)
+            );
+
+            results[0] = this.callDBProcedure(request, 'ds_p1_bot_operation_type_master_select', paramsArray, 1);
+            
+            return results[0];
+        }
+        catch(error)
+        {
+            return Promise.reject(error);
+        }
+    };
+
+    //Insert a new bot definition which includes the type of trigger and the supporting info for the trigger
+    //Bharat Masimukku
+    //2019-01-17
+    this.addBot = 
+    async (request) =>
+    {
+        try
+        {
+            let results = new Array();
+            let paramsArray;
+            
+            paramsArray = 
+            new Array
+            (
+                request.bot_name,
+                request.bot_inline_data,
+                request.bot_level_id,
+                request.bot_trigger_id,
+                request.field_id,
+                request.form_id,
+                request.activity_status_id,
+                request.activity_type_id,
+                request.workforce_id,
+                request.account_id,
+                request.organization_id,
+                request.log_asset_id,
+                request.log_datetime,
+            );
+
+            results[0] = await this.callDBProcedure(request, 'ds_p1_bot_list_insert', paramsArray, 0);
+
+            paramsArray = 
+            new Array
+            (
+                results[0][0].bot_id,
+                request.organization_id,
+                global.botConfig.botAdded,
+                request.log_asset_id,
+                request.log_datetime,
+            );
+
+            results[1] = await this.callDBProcedure(request, 'ds_p1_bot_list_history_insert', paramsArray, 0);
+
+            return results[0];
+        }
+        catch(error)
+        {
+            return Promise.reject(error);
+        }
+    };
+
+    //Alter bot definition
+    //Bharat Masimukku
+    //2019-01-18
+    this.alterBot = 
+    async (request) =>
+    {
+        try
+        {
+            let results = new Array();
+            let paramsArray;
+            
+            paramsArray = 
+            new Array
+            (
+                request.bot_id,
+                request.bot_level_id,
+                request.bot_trigger_id,
+                request.organization_id,
+                request.log_asset_id,
+                request.log_datetime,
+            );
+
+            results[0] = await this.callDBProcedure(request, 'ds_p1_bot_list_update', paramsArray, 0);
+
+            paramsArray = 
+            new Array
+            (
+                request.bot_id,
+                request.organization_id,
+                global.botConfig.botAltered,
+                request.log_asset_id,
+                request.log_datetime,
+            );
+
+            results[1] = await this.callDBProcedure(request, 'ds_p1_bot_list_history_insert', paramsArray, 0);
+
+            return results[0];
+        }
+        catch(error)
+        {
+            return Promise.reject(error);
+        }
+    };
+
+    //Archive bot definition
+    //Bharat Masimukku
+    //2019-01-18
+    this.archiveBot = 
+    async (request) =>
+    {
+        try
+        {
+            let results = new Array();
+            let paramsArray;
+            
+            paramsArray = 
+            new Array
+            (
+                request.bot_id,
+                request.organization_id,
+                request.log_state,
+                request.log_asset_id,
+                request.log_datetime,
+            );
+
+            results[0] = await this.callDBProcedure(request, 'ds_p1_bot_list_update_log_state', paramsArray, 0);
+
+            paramsArray = 
+            new Array
+            (
+                request.bot_id,
+                request.organization_id,
+                global.botConfig.botArchived,
+                request.log_asset_id,
+                request.log_datetime,
+            );
+
+            results[1] = await this.callDBProcedure(request, 'ds_p1_bot_list_history_insert', paramsArray, 0);
+
+            return results[0];
+        }
+        catch(error)
+        {
+            return Promise.reject(error);
+        }
+    };
+
+    //Insert a new bot operation mapping
+    //Bharat Masimukku
+    //2019-01-18
+    this.addBotWorkflowStep = 
+    async (request) =>
+    {
+        try
+        {
+            let results = new Array();
+            let paramsArray;
+            
+            paramsArray = 
+            new Array
+            (
+                request.bot_id,
+                request.bot_operation_type_id,
+                request.bot_operation_sequence_id,
+                request.bot_operation_inline_data,
+                request.organization_id,
+                request.log_asset_id,
+                request.log_datetime,
+            );
+
+            results[0] = await this.callDBProcedure(request, 'ds_p1_bot_operation_mapping_insert', paramsArray, 0);
+
+            paramsArray = 
+            new Array
+            (
+                request.bot_id,
+                results[0][0].bot_operation_id,
+                request.organization_id,
+                global.botConfig.botOperationAdded,
+                request.log_asset_id,
+                request.log_datetime,
+            );
+
+            results[1] = await this.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
+
+            return results[0];
+        }
+        catch(error)
+        {
+            return Promise.reject(error);
+        }
+    };
+
+    //Alter bot operation mapping
+    //Bharat Masimukku
+    //2019-01-18
+    this.alterBotWorkflowStep = 
+    async (request) =>
+    {
+        try
+        {
+            let results = new Array();
+            let paramsArray;
+
+            let sequenceCurrent = request.bot_operation_sequence_current;
+            let sequenceNew = request.bot_operation_sequence_new;
+
+            paramsArray = 
+            new Array
+            (
+                request.bot_id,
+                0,
+                1000,
+            );
+
+            results[0] = await this.callDBProcedure(request, 'ds_p1_bot_operation_mapping_select', paramsArray, 0);
+            
+            if (sequenceCurrent < sequenceNew)
+            {
+                results[0]
+                .forEach
+                (
+                    async (value) =>
+                    {
+                        //console.log(value.bot_operation_sequence_id);
+                        
+                        if (Number(value.bot_operation_sequence_id) > Number(sequenceCurrent) && Number(value.bot_operation_sequence_id) <= Number(sequenceNew))
+                        {
+                            paramsArray = 
+                            new Array
+                            (
+                                value.bot_operation_id,
+                                value.bot_id,
+                                (value.bot_operation_sequence_id - 1),
+                                value.organization_id,
+                                request.log_asset_id,
+                                request.log_datetime,
+                            );
+
+                            results[1] = await this.callDBProcedure(request, 'ds_p1_bot_operation_mapping_update_sequence', paramsArray, 0);
+
+                            paramsArray = 
+                            new Array
+                            (
+                                value.bot_id,
+                                value.bot_operation_id,
+                                value.organization_id,
+                                global.botConfig.botOperationAltered,
+                                request.log_asset_id,
+                                request.log_datetime,
+                            );
+
+                            results[2] = await this.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
+                        }
+
+                        if (Number(value.bot_operation_sequence_id) === Number(sequenceCurrent))
+                        {
+                            paramsArray = 
+                            new Array
+                            (
+                                value.bot_operation_id,
+                                value.bot_id,
+                                sequenceNew,
+                                value.organization_id,
+                                request.log_asset_id,
+                                request.log_datetime,
+                            );
+
+                            results[1] = await this.callDBProcedure(request, 'ds_p1_bot_operation_mapping_update_sequence', paramsArray, 0);
+
+                            paramsArray = 
+                            new Array
+                            (
+                                value.bot_id,
+                                value.bot_operation_id,
+                                value.organization_id,
+                                global.botConfig.botOperationAltered,
+                                request.log_asset_id,
+                                request.log_datetime,
+                            );
+
+                            results[2] = await this.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
+                        }
+                    }
+                );
+            }
+            else if (sequenceCurrent > sequenceNew)
+            {
+                results[0]
+                .forEach
+                (
+                    async (value) =>
+                    {
+                        //console.log(value.bot_operation_sequence_id);
+
+                        if (Number(value.bot_operation_sequence_id) >= Number(sequenceNew) && Number(value.bot_operation_sequence_id) < Number(sequenceCurrent))
+                        {
+                            paramsArray = 
+                            new Array
+                            (
+                                value.bot_operation_id,
+                                value.bot_id,
+                                (value.bot_operation_sequence_id + 1),
+                                value.organization_id,
+                                request.log_asset_id,
+                                request.log_datetime,
+                            );
+
+                            results[1] = await this.callDBProcedure(request, 'ds_p1_bot_operation_mapping_update_sequence', paramsArray, 0);
+
+                            paramsArray = 
+                            new Array
+                            (
+                                value.bot_id,
+                                value.bot_operation_id,
+                                value.organization_id,
+                                global.botConfig.botOperationAltered,
+                                request.log_asset_id,
+                                request.log_datetime,
+                            );
+
+                            results[2] = await this.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
+                        }
+
+                        if (Number(value.bot_operation_sequence_id) === Number(sequenceCurrent))
+                        {
+                            paramsArray = 
+                            new Array
+                            (
+                                value.bot_operation_id,
+                                value.bot_id,
+                                sequenceNew,
+                                value.organization_id,
+                                request.log_asset_id,
+                                request.log_datetime,
+                            );
+
+                            results[1] = await this.callDBProcedure(request, 'ds_p1_bot_operation_mapping_update_sequence', paramsArray, 0);
+
+                            paramsArray = 
+                            new Array
+                            (
+                                value.bot_id,
+                                value.bot_operation_id,
+                                value.organization_id,
+                                global.botConfig.botOperationAltered,
+                                request.log_asset_id,
+                                request.log_datetime,
+                            );
+
+                            results[2] = await this.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
+                        }
+                    }
+                );
+            }
+            else
+            {
+                return Promise.reject("Invalid new sequence id for the bot operation");
+            }
+
+            /*
+            paramsArray = 
+            new Array
+            (
+                request.bot_id,
+                0,
+                1000,
+            );
+
+            results[3] = await this.callDBProcedure(request, 'ds_p1_bot_operation_mapping_select', paramsArray, 0);
+            return results[3];
+            */
+
+            return 0;
+        }
+        catch(error)
+        {
+            return Promise.reject(error);
+        }  
+    };
+
+    //Archive bot operation mapping
+    //Bharat Masimukku
+    //2019-01-18
+    this.archiveBotWorkflowStep = 
+    async (request) =>
+    {
+        try
+        {
+            let results = new Array();
+            let paramsArray;
+
+            paramsArray = 
+            new Array
+            (
+                request.bot_id,
+                request.bot_operation_id,
+                request.organization_id,
+                request.log_state,
+                request.log_asset_id,
+                request.log_datetime,
+            );
+
+            results[0] = await this.callDBProcedure(request, 'ds_p1_bot_operation_mapping_update_log_state', paramsArray, 0);
+
+            paramsArray = 
+            new Array
+            (
+                request.bot_id,
+                request.bot_operation_id,
+                request.organization_id,
+                global.botConfig.botOperationArchived,
+                request.log_asset_id,
+                request.log_datetime,
+            );
+
+            results[1] = await this.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
+
+            return results[0];
+        }
+        catch(error)
+        {
+            return Promise.reject(error);
+        }
+    };
     
     this.getBotsMappedToActType = async (request) => {            
             let paramsArr = new Array(
@@ -339,7 +851,7 @@ function BotService(objectCollection) {
     } else {
         return [true, "Resp is Empty"];
     }
-}
+    }
 
     //Bot Step Copying the fields
     async function copyFields(request, inlineData) {        
@@ -1743,8 +2255,6 @@ function BotService(objectCollection) {
             return await (db.executeQueryPromise(1, queryString, request));
         }
     }
-
 }
-
 
 module.exports = BotService;
