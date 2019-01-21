@@ -8,6 +8,7 @@ var ActivityParticipantService = require('../../services/activityParticipantServ
 var ActivityTimelineService = require('../../services/activityTimelineService.js');
 //var ActivityListingService = require('../../services/activityListingService.js');
 
+const botConfig = require('../utils/botConfig.js');
 
 function BotService(objectCollection) {
 
@@ -154,7 +155,7 @@ function BotService(objectCollection) {
             (
                 results[0][0].bot_id,
                 request.organization_id,
-                0,
+                global.botConfig.botAdded,
                 request.log_asset_id,
                 request.log_datetime,
             );
@@ -198,7 +199,7 @@ function BotService(objectCollection) {
             (
                 request.bot_id,
                 request.organization_id,
-                1601,
+                global.botConfig.botAltered,
                 request.log_asset_id,
                 request.log_datetime,
             );
@@ -241,7 +242,7 @@ function BotService(objectCollection) {
             (
                 request.bot_id,
                 request.organization_id,
-                1602,
+                global.botConfig.botArchived,
                 request.log_asset_id,
                 request.log_datetime,
             );
@@ -287,7 +288,7 @@ function BotService(objectCollection) {
                 request.bot_id,
                 results[0][0].bot_operation_id,
                 request.organization_id,
-                0,
+                global.botConfig.botOperationAdded,
                 request.log_asset_id,
                 request.log_datetime,
             );
@@ -356,7 +357,7 @@ function BotService(objectCollection) {
                                 value.bot_id,
                                 value.bot_operation_id,
                                 value.organization_id,
-                                1603,
+                                global.botConfig.botOperationAltered,
                                 request.log_asset_id,
                                 request.log_datetime,
                             );
@@ -385,7 +386,7 @@ function BotService(objectCollection) {
                                 value.bot_id,
                                 value.bot_operation_id,
                                 value.organization_id,
-                                1603,
+                                global.botConfig.botOperationAltered,
                                 request.log_asset_id,
                                 request.log_datetime,
                             );
@@ -425,7 +426,7 @@ function BotService(objectCollection) {
                                 value.bot_id,
                                 value.bot_operation_id,
                                 value.organization_id,
-                                1603,
+                                global.botConfig.botOperationAltered,
                                 request.log_asset_id,
                                 request.log_datetime,
                             );
@@ -454,7 +455,7 @@ function BotService(objectCollection) {
                                 value.bot_id,
                                 value.bot_operation_id,
                                 value.organization_id,
-                                1603,
+                                global.botConfig.botOperationAltered,
                                 request.log_asset_id,
                                 request.log_datetime,
                             );
@@ -520,7 +521,7 @@ function BotService(objectCollection) {
                 request.bot_id,
                 request.bot_operation_id,
                 request.organization_id,
-                1604,
+                global.botConfig.botOperationArchived,
                 request.log_asset_id,
                 request.log_datetime,
             );
