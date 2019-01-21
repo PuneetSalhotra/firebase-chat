@@ -29,6 +29,7 @@ function BotService(objectCollection) {
     //const activityListingService = new ActivityListingService(objectCollection);
     const activityTimelineService = new ActivityTimelineService(objectCollection);
 
+    /*
     //Generic function for firing stored procedures
     //Bharat Masimukku
     //2019-01-20
@@ -64,6 +65,7 @@ function BotService(objectCollection) {
             return Promise.reject(error);
         }
     };
+    */
 
     //Retrieve the supported trigger types for defining a new bot
     //Bharat Masimukku
@@ -83,7 +85,7 @@ function BotService(objectCollection) {
                 util.replaceQueryLimit(request.page_limit)
             );
 
-            results[0] = this.callDBProcedure(request, 'ds_p1_bot_trigger_master_select', paramsArray, 1);
+            results[0] = db.callDBProcedure(request, 'ds_p1_bot_trigger_master_select', paramsArray, 1);
             
             return results[0];
         }
@@ -111,7 +113,7 @@ function BotService(objectCollection) {
                 util.replaceQueryLimit(request.page_limit)
             );
 
-            results[0] = this.callDBProcedure(request, 'ds_p1_bot_operation_type_master_select', paramsArray, 1);
+            results[0] = db.callDBProcedure(request, 'ds_p1_bot_operation_type_master_select', paramsArray, 1);
             
             return results[0];
         }
@@ -150,7 +152,7 @@ function BotService(objectCollection) {
                 request.log_datetime,
             );
 
-            results[0] = await this.callDBProcedure(request, 'ds_p1_bot_list_insert', paramsArray, 0);
+            results[0] = await db.callDBProcedure(request, 'ds_p1_bot_list_insert', paramsArray, 0);
 
             paramsArray = 
             new Array
@@ -162,7 +164,7 @@ function BotService(objectCollection) {
                 request.log_datetime,
             );
 
-            results[1] = await this.callDBProcedure(request, 'ds_p1_bot_list_history_insert', paramsArray, 0);
+            results[1] = await db.callDBProcedure(request, 'ds_p1_bot_list_history_insert', paramsArray, 0);
 
             return results[0];
         }
@@ -194,7 +196,7 @@ function BotService(objectCollection) {
                 request.log_datetime,
             );
 
-            results[0] = await this.callDBProcedure(request, 'ds_p1_bot_list_update', paramsArray, 0);
+            results[0] = await db.callDBProcedure(request, 'ds_p1_bot_list_update', paramsArray, 0);
 
             paramsArray = 
             new Array
@@ -206,7 +208,7 @@ function BotService(objectCollection) {
                 request.log_datetime,
             );
 
-            results[1] = await this.callDBProcedure(request, 'ds_p1_bot_list_history_insert', paramsArray, 0);
+            results[1] = await db.callDBProcedure(request, 'ds_p1_bot_list_history_insert', paramsArray, 0);
 
             return results[0];
         }
@@ -237,7 +239,7 @@ function BotService(objectCollection) {
                 request.log_datetime,
             );
 
-            results[0] = await this.callDBProcedure(request, 'ds_p1_bot_list_update_log_state', paramsArray, 0);
+            results[0] = await db.callDBProcedure(request, 'ds_p1_bot_list_update_log_state', paramsArray, 0);
 
             paramsArray = 
             new Array
@@ -249,7 +251,7 @@ function BotService(objectCollection) {
                 request.log_datetime,
             );
 
-            results[1] = await this.callDBProcedure(request, 'ds_p1_bot_list_history_insert', paramsArray, 0);
+            results[1] = await db.callDBProcedure(request, 'ds_p1_bot_list_history_insert', paramsArray, 0);
 
             return results[0];
         }
@@ -282,7 +284,7 @@ function BotService(objectCollection) {
                 request.log_datetime,
             );
 
-            results[0] = await this.callDBProcedure(request, 'ds_p1_bot_operation_mapping_insert', paramsArray, 0);
+            results[0] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_insert', paramsArray, 0);
 
             paramsArray = 
             new Array
@@ -295,7 +297,7 @@ function BotService(objectCollection) {
                 request.log_datetime,
             );
 
-            results[1] = await this.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
+            results[1] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
 
             return results[0];
         }
@@ -327,152 +329,143 @@ function BotService(objectCollection) {
                 1000,
             );
 
-            results[0] = await this.callDBProcedure(request, 'ds_p1_bot_operation_mapping_select', paramsArray, 0);
+            results[0] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_select', paramsArray, 0);
             
             if (sequenceCurrent < sequenceNew)
             {
-                results[0]
-                .forEach
-                (
-                    async (value) =>
+                for(let value of results[0]) 
+                {
+                    //console.log(value.bot_operation_sequence_id);
+
+                    if (Number(value.bot_operation_sequence_id) > Number(sequenceCurrent) && Number(value.bot_operation_sequence_id) <= Number(sequenceNew))
                     {
-                        //console.log(value.bot_operation_sequence_id);
-                        
-                        if (Number(value.bot_operation_sequence_id) > Number(sequenceCurrent) && Number(value.bot_operation_sequence_id) <= Number(sequenceNew))
-                        {
-                            paramsArray = 
-                            new Array
-                            (
-                                value.bot_operation_id,
-                                value.bot_id,
-                                (value.bot_operation_sequence_id - 1),
-                                value.organization_id,
-                                request.log_asset_id,
-                                request.log_datetime,
-                            );
+                        paramsArray = 
+                        new Array
+                        (
+                            value.bot_operation_id,
+                            value.bot_id,
+                            (value.bot_operation_sequence_id - 1),
+                            value.organization_id,
+                            request.log_asset_id,
+                            request.log_datetime,
+                        );
 
-                            results[1] = await this.callDBProcedure(request, 'ds_p1_bot_operation_mapping_update_sequence', paramsArray, 0);
+                        results[1] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_update_sequence', paramsArray, 0);
 
-                            paramsArray = 
-                            new Array
-                            (
-                                value.bot_id,
-                                value.bot_operation_id,
-                                value.organization_id,
-                                global.botConfig.botOperationAltered,
-                                request.log_asset_id,
-                                request.log_datetime,
-                            );
+                        paramsArray = 
+                        new Array
+                        (
+                            value.bot_id,
+                            value.bot_operation_id,
+                            value.organization_id,
+                            global.botConfig.botOperationAltered,
+                            request.log_asset_id,
+                            request.log_datetime,
+                        );
 
-                            results[2] = await this.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
-                        }
-
-                        if (Number(value.bot_operation_sequence_id) === Number(sequenceCurrent))
-                        {
-                            paramsArray = 
-                            new Array
-                            (
-                                value.bot_operation_id,
-                                value.bot_id,
-                                sequenceNew,
-                                value.organization_id,
-                                request.log_asset_id,
-                                request.log_datetime,
-                            );
-
-                            results[1] = await this.callDBProcedure(request, 'ds_p1_bot_operation_mapping_update_sequence', paramsArray, 0);
-
-                            paramsArray = 
-                            new Array
-                            (
-                                value.bot_id,
-                                value.bot_operation_id,
-                                value.organization_id,
-                                global.botConfig.botOperationAltered,
-                                request.log_asset_id,
-                                request.log_datetime,
-                            );
-
-                            results[2] = await this.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
-                        }
+                        results[2] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
                     }
-                );
+
+                    if (Number(value.bot_operation_sequence_id) === Number(sequenceCurrent))
+                    {
+                        paramsArray = 
+                        new Array
+                        (
+                            value.bot_operation_id,
+                            value.bot_id,
+                            sequenceNew,
+                            value.organization_id,
+                            request.log_asset_id,
+                            request.log_datetime,
+                        );
+
+                        results[1] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_update_sequence', paramsArray, 0);
+
+                        paramsArray = 
+                        new Array
+                        (
+                            value.bot_id,
+                            value.bot_operation_id,
+                            value.organization_id,
+                            global.botConfig.botOperationAltered,
+                            request.log_asset_id,
+                            request.log_datetime,
+                        );
+
+                        results[2] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
+                    }
+                }
             }
             else if (sequenceCurrent > sequenceNew)
             {
-                results[0]
-                .forEach
-                (
-                    async (value) =>
+                for(let value of results[0]) 
+                {
+                    //console.log(value.bot_operation_sequence_id);
+
+                    if (Number(value.bot_operation_sequence_id) >= Number(sequenceNew) && Number(value.bot_operation_sequence_id) < Number(sequenceCurrent))
                     {
-                        //console.log(value.bot_operation_sequence_id);
+                        paramsArray = 
+                        new Array
+                        (
+                            value.bot_operation_id,
+                            value.bot_id,
+                            (value.bot_operation_sequence_id + 1),
+                            value.organization_id,
+                            request.log_asset_id,
+                            request.log_datetime,
+                        );
 
-                        if (Number(value.bot_operation_sequence_id) >= Number(sequenceNew) && Number(value.bot_operation_sequence_id) < Number(sequenceCurrent))
-                        {
-                            paramsArray = 
-                            new Array
-                            (
-                                value.bot_operation_id,
-                                value.bot_id,
-                                (value.bot_operation_sequence_id + 1),
-                                value.organization_id,
-                                request.log_asset_id,
-                                request.log_datetime,
-                            );
+                        results[1] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_update_sequence', paramsArray, 0);
 
-                            results[1] = await this.callDBProcedure(request, 'ds_p1_bot_operation_mapping_update_sequence', paramsArray, 0);
+                        paramsArray = 
+                        new Array
+                        (
+                            value.bot_id,
+                            value.bot_operation_id,
+                            value.organization_id,
+                            global.botConfig.botOperationAltered,
+                            request.log_asset_id,
+                            request.log_datetime,
+                        );
 
-                            paramsArray = 
-                            new Array
-                            (
-                                value.bot_id,
-                                value.bot_operation_id,
-                                value.organization_id,
-                                global.botConfig.botOperationAltered,
-                                request.log_asset_id,
-                                request.log_datetime,
-                            );
-
-                            results[2] = await this.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
-                        }
-
-                        if (Number(value.bot_operation_sequence_id) === Number(sequenceCurrent))
-                        {
-                            paramsArray = 
-                            new Array
-                            (
-                                value.bot_operation_id,
-                                value.bot_id,
-                                sequenceNew,
-                                value.organization_id,
-                                request.log_asset_id,
-                                request.log_datetime,
-                            );
-
-                            results[1] = await this.callDBProcedure(request, 'ds_p1_bot_operation_mapping_update_sequence', paramsArray, 0);
-
-                            paramsArray = 
-                            new Array
-                            (
-                                value.bot_id,
-                                value.bot_operation_id,
-                                value.organization_id,
-                                global.botConfig.botOperationAltered,
-                                request.log_asset_id,
-                                request.log_datetime,
-                            );
-
-                            results[2] = await this.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
-                        }
+                        results[2] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
                     }
-                );
+
+                    if (Number(value.bot_operation_sequence_id) === Number(sequenceCurrent))
+                    {
+                        paramsArray = 
+                        new Array
+                        (
+                            value.bot_operation_id,
+                            value.bot_id,
+                            sequenceNew,
+                            value.organization_id,
+                            request.log_asset_id,
+                            request.log_datetime,
+                        );
+
+                        results[1] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_update_sequence', paramsArray, 0);
+
+                        paramsArray = 
+                        new Array
+                        (
+                            value.bot_id,
+                            value.bot_operation_id,
+                            value.organization_id,
+                            global.botConfig.botOperationAltered,
+                            request.log_asset_id,
+                            request.log_datetime,
+                        );
+
+                        results[2] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
+                    }
+                }
             }
             else
             {
                 return Promise.reject("Invalid new sequence id for the bot operation");
             }
 
-            /*
             paramsArray = 
             new Array
             (
@@ -481,11 +474,8 @@ function BotService(objectCollection) {
                 1000,
             );
 
-            results[3] = await this.callDBProcedure(request, 'ds_p1_bot_operation_mapping_select', paramsArray, 0);
+            results[3] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_select', paramsArray, 0);
             return results[3];
-            */
-
-            return 0;
         }
         catch(error)
         {
@@ -515,7 +505,7 @@ function BotService(objectCollection) {
                 request.log_datetime,
             );
 
-            results[0] = await this.callDBProcedure(request, 'ds_p1_bot_operation_mapping_update_log_state', paramsArray, 0);
+            results[0] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_update_log_state', paramsArray, 0);
 
             paramsArray = 
             new Array
@@ -528,7 +518,7 @@ function BotService(objectCollection) {
                 request.log_datetime,
             );
 
-            results[1] = await this.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
+            results[1] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
 
             return results[0];
         }
