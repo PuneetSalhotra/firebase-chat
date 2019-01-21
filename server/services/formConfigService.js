@@ -2079,6 +2079,167 @@ function FormConfigService(objCollection) {
         return [error, formData];
     }
 
+    this.formFieldDefinitionUpdate = async function (request) {
+        let fieldDefinitions = [];
+        // Update asset's GPS data
+        request.datetime_log = util.getCurrentUTCTime();
+        request.update_type_id = 28;
+        // activityCommonService.updateAssetLocation(request, () => {});
+
+        try {
+            fieldDefinitions = JSON.parse(request.fields_data);
+        } catch (error) {
+            return [true, {
+                message: "fields_data has invalid JSON."
+            }];
+        }
+        // console.log("fieldDefinitions: ", fieldDefinitions)
+        console.log("fieldDefinitions.length: ", fieldDefinitions.length)
+
+        // Process each field
+        for (const field of fieldDefinitions) {
+            // console.log("Object.keys(field): ", Object.keys(field));
+            console.log("dataTypeCategoryId: ", field.dataTypeCategoryId)
+            let dataTypeCategoryId = Number(field.dataTypeCategoryId)
+            // let fieldName = (typeof field.update_option === 'undefined') ? field.label : field.update_option;
+            let fieldName = field.label;
+            let fieldMandatoryEnabled = 0;
+            if (field.hasOwnProperty("validate") && field.validate.hasOwnProperty("required")) {
+                if (field.validate.required === true) {
+                    fieldMandatoryEnabled = 1;
+                    console.log("fieldMandatoryEnabled: ", fieldMandatoryEnabled)
+                }
+            }
+
+            console.log('\x1b[36m\n%s\x1b[0m', 'field_id: ', field.field_id);
+
+            if (dataTypeCategoryId === 14 || dataTypeCategoryId === 15) {
+                // Iterate through each form field options
+                let fieldOptions = field.data.values;
+                for (const option of fieldOptions) {
+
+                    let dataTypeComboValue = option.label;
+
+                    const [updateError, updateStatus] = await workforceFormFieldMappingUpdate(request, {
+                        field_id: field.field_id,
+                        data_type_combo_id: option.dataTypeComboId,
+                        field_name: fieldName,
+                        field_description: '',
+                        data_type_combo_value: dataTypeComboValue,
+                        field_sequence_id: option.sequence_id,
+                        field_mandatory_enabled: fieldMandatoryEnabled,
+                        field_preview_enabled: '0'
+                    });
+                    if (updateError !== false) {
+
+                    }
+                    await workforceFormFieldMappingHistoryInsert(request, {
+                        field_id: field.field_id,
+                        data_type_combo_id: option.dataTypeComboId
+                    });
+                }
+            } else {
+
+                let dataTypeComboValue = (typeof field.update_option === 'undefined') ? '0' : field.label;
+
+                const [updateError, updateStatus] = await workforceFormFieldMappingUpdate(request, {
+                    field_id: field.field_id,
+                    data_type_combo_id: field.dataTypeComboId,
+                    field_name: fieldName,
+                    field_description: '',
+                    data_type_combo_value: dataTypeComboValue,
+                    field_sequence_id: field.sequence_id,
+                    field_mandatory_enabled: fieldMandatoryEnabled,
+                    field_preview_enabled: '0'
+                });
+                if (updateError !== false) {
+
+                }
+
+                await workforceFormFieldMappingHistoryInsert(request, {
+                    field_id: field.field_id,
+                    data_type_combo_id: field.dataTypeComboId
+                });
+
+            }
+
+        }
+
+        return [false, []];
+    };
+
+    async function workforceFormFieldMappingUpdate(request, fieldOptions) {
+        // IN p_field_id BIGINT(20), IN p_data_type_combo_id SMALLINT(6), 
+        // IN p_form_id BIGINT(20), IN p_field_name VARCHAR(1200), 
+        // IN p_field_description VARCHAR(300), IN p_data_type_combo_value VARCHAR(1200), 
+        // IN p_field_sequence_id BIGINT(20), IN p_field_mandatory_enabled TINYINT(4), 
+        // IN p_field_preview_enabled TINYINT(4), IN p_organization_id BIGINT(20), 
+        // IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+
+        let fieldUpdateStatus = [],
+            error = false; // true;
+
+        let paramsArr = new Array(
+            fieldOptions.field_id,
+            fieldOptions.data_type_combo_id,
+            request.form_id,
+            fieldOptions.field_name,
+            fieldOptions.field_description,
+            fieldOptions.data_type_combo_value,
+            fieldOptions.field_sequence_id,
+            fieldOptions.field_mandatory_enabled,
+            fieldOptions.field_preview_enabled,
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime(),
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_form_field_mapping_update', paramsArr);
+        if (queryString !== '') {
+            // console.log(queryString)
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    fieldUpdateStatus = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, fieldUpdateStatus];
+    }
+
+    async function workforceFormFieldMappingHistoryInsert(request, fieldOptions) {
+        // IN p_field_id BIGINT(20), IN p_data_type_combo_id SMALLINT(6), IN p_form_id BIGINT(20), 
+        // IN p_organization_id BIGINT(20), IN p_update_type_id SMALLINT(6), IN p_update_datetime DATETIME
+
+        let fieldUpdateStatus = [],
+            error = false; // true;
+
+        let paramsArr = new Array(
+            fieldOptions.field_id,
+            fieldOptions.data_type_combo_id,
+            request.form_id,
+            request.organization_id,
+            request.update_type_id,
+            util.getCurrentUTCTime(),
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_form_field_mapping_history_insert', paramsArr);
+        if (queryString !== '') {
+            // console.log(queryString)
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    fieldUpdateStatus = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, fieldUpdateStatus];
+    }
+
 }
 
 module.exports = FormConfigService;
