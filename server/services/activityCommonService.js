@@ -238,7 +238,7 @@ function ActivityCommonService(db, util, forEachAsync) {
     };
 
     this.assetTimelineTransactionInsert = function (request, participantData, streamTypeId, callback) {
-        
+
         var assetId = request.asset_id;
         var organizationId = request.organization_id;
         var accountId = request.account_id;
@@ -490,7 +490,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
 
         global.logger.write('debug', 'streamTypeId: ' + streamTypeId, {}, request);
-        global.logger.write('debug', 'typeof streamTypeId: ' + typeof streamTypeId, {}, request);        
+        global.logger.write('debug', 'typeof streamTypeId: ' + typeof streamTypeId, {}, request);
 
         switch (streamTypeId) {
             case 4: // activity updated
@@ -538,7 +538,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             case 713: // form field alter
             case 714: //Bot Firing External API
             case 715:
-            case 716:            
+            case 716:
                 entityTypeId = 0;
                 entityText1 = request.form_transaction_id;
                 entityText2 = '';
@@ -604,7 +604,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityText1 = "";
                 entityText2 = JSON.stringify(request.activity_timeline_text);
                 break;
-            default:                
+            default:
                 entityTypeId = 0;
                 entityText1 = "";
                 entityText2 = "";
@@ -2394,8 +2394,8 @@ function ActivityCommonService(db, util, forEachAsync) {
     };
 
     // Fetching the Asset Type ID for a given organisation/workforce and asset type category ID
-    this.workforceAssetTypeMappingSelectCategoryPromise = function (request, assetTypeCategoryId) {        
-        return new Promise((resolve, reject)=>{
+    this.workforceAssetTypeMappingSelectCategoryPromise = function (request, assetTypeCategoryId) {
+        return new Promise((resolve, reject) => {
             let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
@@ -2410,7 +2410,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                     (err === false) ? resolve(data): reject(err);
                 });
             }
-        });        
+        });
     };
 
     this.getWorkflowForAGivenUrl = function (request) {
@@ -3046,15 +3046,32 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
     };
 
-    this.getFormDataByFormTransaction = async (request) => {        
-        var paramsArr = new Array(            
+    this.widgetListSelectFieldAll = async (request) => {
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.asset_id,
+            request.form_id,
+            request.field_id,
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+        let queryString = util.getQueryString('ds_p1_widget_list_select_field_all', paramsArr);
+        if (queryString != '') {
+            return await (db.executeQueryPromise(1, queryString, request));
+        }
+    };
+
+    this.getFormDataByFormTransaction = async (request) => {
+        var paramsArr = new Array(
             request.organization_id,
             request.form_transaction_id
         );
 
         let queryString = util.getQueryString('ds_p1_activity_list_select_form_transaction', paramsArr);
-       
-        if (queryString != '') {                
+
+        if (queryString != '') {
             return await (db.executeQueryPromise(1, queryString, request));
         }
     };
