@@ -448,6 +448,41 @@ function WidgetService(objCollection) {
         return [error, responseData];
     };
 
+    this.widgetAccessLevelEntityList = async function (request) {
+
+        let responseData = [],
+            error = true;
+
+        var paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.user_asset_id,
+            request.activity_id,
+            request.activity_type_id,
+            request.form_id,
+            request.entity_level_id,
+            request.is_search,
+            request.search_string,
+            request.sort_flag,
+            request.page_start,
+            util.replaceQueryLimit(request.page_limit)
+        );
+
+        var queryString = util.getQueryString('ds_v1_widget_entity_mapping_select_level_all', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
+
 }
 
 
