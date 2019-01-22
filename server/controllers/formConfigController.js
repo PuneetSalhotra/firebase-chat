@@ -391,7 +391,7 @@ function FormConfigController(objCollection) {
     });
 
     // Service for updating the form name
-    app.post('/' + global.config.version + '/form/field/name/update', async function (req, res) {
+    app.post('/' + global.config.version + '/form/field/form_name/update', async function (req, res) {
 
         const [err, updateStatus] = await formConfigService.formFieldNameUpdate(req.body);
         if (!err) {
