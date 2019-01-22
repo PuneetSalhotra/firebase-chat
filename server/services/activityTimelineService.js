@@ -427,43 +427,46 @@ function ActivityTimelineService(objectCollection) {
                 newrequest.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID :
                 newrequest.asset_id = request.asset_id;
             
-            let cafCompletionPercentage;
-            
-            switch(Number(newrequest.form_id)) {
-                //case global.vodafoneConfig[newrequest.organization_id].FORM_ID.NEW_ORDER:
-                    //cafCompletionPercentage = 3;
-                    //break;
-                //case global.vodafoneConfig[newrequest.organization_id].FORM_ID.ORDER_SUPPLEMENTARY:
-                    //cafCompletionPercentage = 20;
-                  //  cafCompletionPercentage = 23;
-                    //break;
-                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.FR:
-                    cafCompletionPercentage = 5;
-                    break;
-                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.CRM:
-                    cafCompletionPercentage = 7;
-                    break;
-                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.HLD:
-                    cafCompletionPercentage = 12;
-                    break;
-                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.NEW_CUSTOMER:
-                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.EXISTING_CUSTOMER:
-                    cafCompletionPercentage = 5;
-                    break;
-                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.OMT_APPROVAL:
-                    cafCompletionPercentage = 1;
-                    break;
-                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.ACCOUNT_MANAGER_APPROVAL:
-                    cafCompletionPercentage = 1;
-                    break;
-                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.CUSTOMER_APPROVAL:
-                    cafCompletionPercentage = 1;
-                    break;      
-                // case global.vodafoneConfig[newrequest.organization_id].FORM_ID.CAF:
-                //     cafCompletionPercentage = 45;
-                //     break;
-                default: cafCompletionPercentage = newrequest.workflow_completion_percentage || 0;
+            let cafCompletionPercentage = 0;
+
+            if (Number(newrequest.organization_id) === 858 || Number(newrequest.organization_id) === 860) {
+                switch(Number(newrequest.form_id)) {
+                    //case global.vodafoneConfig[newrequest.organization_id].FORM_ID.NEW_ORDER:
+                        //cafCompletionPercentage = 3;
+                        //break;
+                    //case global.vodafoneConfig[newrequest.organization_id].FORM_ID.ORDER_SUPPLEMENTARY:
+                        //cafCompletionPercentage = 20;
+                      //  cafCompletionPercentage = 23;
+                        //break;
+                    case global.vodafoneConfig[newrequest.organization_id].FORM_ID.FR:
+                        cafCompletionPercentage = 5;
+                        break;
+                    case global.vodafoneConfig[newrequest.organization_id].FORM_ID.CRM:
+                        cafCompletionPercentage = 7;
+                        break;
+                    case global.vodafoneConfig[newrequest.organization_id].FORM_ID.HLD:
+                        cafCompletionPercentage = 12;
+                        break;
+                    case global.vodafoneConfig[newrequest.organization_id].FORM_ID.NEW_CUSTOMER:
+                    case global.vodafoneConfig[newrequest.organization_id].FORM_ID.EXISTING_CUSTOMER:
+                        cafCompletionPercentage = 5;
+                        break;
+                    case global.vodafoneConfig[newrequest.organization_id].FORM_ID.OMT_APPROVAL:
+                        cafCompletionPercentage = 1;
+                        break;
+                    case global.vodafoneConfig[newrequest.organization_id].FORM_ID.ACCOUNT_MANAGER_APPROVAL:
+                        cafCompletionPercentage = 1;
+                        break;
+                    case global.vodafoneConfig[newrequest.organization_id].FORM_ID.CUSTOMER_APPROVAL:
+                        cafCompletionPercentage = 1;
+                        break;      
+                    // case global.vodafoneConfig[newrequest.organization_id].FORM_ID.CAF:
+                    //     cafCompletionPercentage = 45;
+                    //     break;
+                    default: cafCompletionPercentage = newrequest.workflow_completion_percentage || 0;
+                }
             }
+            
             
             console.log('cafCompletionPercentage : ', cafCompletionPercentage);
             

@@ -2240,6 +2240,301 @@ function FormConfigService(objCollection) {
         return [error, fieldUpdateStatus];
     }
 
+    this.formFieldNameUpdate = async function (request) {
+        request.update_type_id = 28;
+        const [updateError, updateStatus] = await workforceFormFieldMappingUpdateFormName(request);
+        // console.log("updateError: ", updateError)
+        // console.log("updateStatus: ", updateStatus)
+        // console.log()
+        const [formFieldUpdateError, formFieldUpdateStatus] = await workforceFormFieldMappingUpdate(request, {
+            field_id: request.field_id,
+            data_type_combo_id: 0,
+            field_name: request.form_name,
+            field_description: '',
+            data_type_combo_value: '',
+            field_sequence_id: 0,
+            field_mandatory_enabled: 0,
+            field_preview_enabled: '0'
+        });
+        try {
+            workforceFormFieldMappingHistoryInsert(request, {
+                field_id: request.field_id,
+                data_type_combo_id: 0
+            });
+            workforceFormMappingUpdate(request);
+        } catch (error) {
+
+        }
+        // console.log("formFieldUpdateError: ", updateError)
+        // console.log("formFieldUpdateStatus: ", updateStatus)
+        // console.log()
+        // console.log()
+        return [updateError, updateStatus];
+    }
+
+    async function workforceFormFieldMappingUpdateFormName(request) {
+        // IN p_field_id BIGINT(20), IN p_data_type_combo_id SMALLINT(6), 
+        // IN p_form_id BIGINT(20), IN p_field_name VARCHAR(1200), 
+        // IN p_field_description VARCHAR(300), IN p_data_type_combo_value VARCHAR(1200), 
+        // IN p_field_sequence_id BIGINT(20), IN p_field_mandatory_enabled TINYINT(4), 
+        // IN p_field_preview_enabled TINYINT(4), IN p_organization_id BIGINT(20), 
+        // IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+
+        let updateStatus = [],
+            error = true; // true;
+
+        let procName = 'ds_p1_workforce_form_field_mapping_update_form_name';
+        let paramsArr = new Array(
+            0, // request.field_id,
+            0, // request.data_type_combo_id,
+            request.form_id,
+            request.form_name,
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+
+        await db.callDBProcedure(request, procName, paramsArr, 0)
+            .then((data) => {
+                updateStatus = data;
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            });
+        return [error, updateStatus];
+    }
+
+    async function workforceFormMappingUpdate(request) {
+        // IN p_form_name VARCHAR(100), IN p_form_description VARCHAR(150), 
+        // IN p_form_id BIGINT(20), IN p_organization_id BIGINT(20), 
+        // IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+
+        let updateStatus = [],
+            error = true; // true;
+
+        let procName = 'ds_p1_workforce_form_mapping_update';
+        let paramsArr = new Array(
+            request.form_name,
+            '',
+            request.form_id,
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+
+        await db.callDBProcedure(request, procName, paramsArr, 0)
+            .then((data) => {
+                updateStatus = data;
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            });
+        return [error, updateStatus];
+    }
+
+    this.formFieldDefinitionDelete = async function (request) {
+        let fieldDefinitions = [];
+        request.update_type_id = 30;
+
+        try {
+            fieldDefinitions = JSON.parse(request.fields_data);
+        } catch (error) {
+            return [true, {
+                message: "fields_data has invalid JSON."
+            }];
+        }
+        for (const field of fieldDefinitions) {
+            let dataTypeCategoryId = Number(field.dataTypeCategoryId)
+            console.log('\x1b[36m\n%s\x1b[0m', 'field_id: ', field.field_id);
+            // console.log("field: ", field);
+            if (dataTypeCategoryId === 14 || dataTypeCategoryId === 15) {
+                let fieldOptions = field.data.values;
+                for (const option of fieldOptions) {
+
+                    const [updateError, updateStatus] = await workforceFormFieldMappingDelete(request, {
+                        field_id: field.field_id,
+                        data_type_combo_id: option.dataTypeComboId,
+                    });
+                    if (updateError !== false) {
+
+                    }
+                    try {
+                        await workforceFormFieldMappingHistoryInsert(request, {
+                            field_id: field.field_id,
+                            data_type_combo_id: option.dataTypeComboId
+                        });
+                    } catch (error) {
+                        // Do nothing if the history insert fails
+                    }
+                }
+            } else {
+                const [updateError, updateStatus] = await workforceFormFieldMappingDelete(request, {
+                    field_id: field.field_id,
+                    data_type_combo_id: field.dataTypeComboId,
+                });
+                if (updateError !== false) {
+
+                }
+                try {
+                    await workforceFormFieldMappingHistoryInsert(request, {
+                        field_id: field.field_id,
+                        data_type_combo_id: field.dataTypeComboId
+                    });
+                } catch (error) {
+                    // Do nothing if the history insert fails
+                }
+            }
+        }
+        return [false, []]
+    }
+    
+    async function workforceFormFieldMappingDelete(request, fieldOptions) {
+        // IN p_field_id BIGINT(20), IN p_data_type_combo_id SMALLINT(6), 
+        // IN p_form_id BIGINT(20), IN p_organization_id BIGINT(20), 
+        // IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+
+        let updateStatus = [],
+            error = true; // true;
+
+        let procName = 'ds_p1_workforce_form_field_mapping_delete';
+        let paramsArr = new Array(
+            fieldOptions.field_id,
+            fieldOptions.data_type_combo_id,
+            request.form_id,
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime(),
+        );
+        // const queryString = util.getQueryString('ds_p1_workforce_form_field_mapping_delete', paramsArr);
+        // console.log(queryString);
+        await db.callDBProcedure(request, procName, paramsArr, 0)
+            .then((data) => {
+                updateStatus = data;
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            });
+        return [error, updateStatus];
+    }
+
+    this.formFieldDefinitionInsert = async function (request) {
+        let formId = 0,
+            fieldDefinitions = [],
+            formData = [],
+            error;
+
+        request.update_type_id = 28;
+
+        try {
+            fieldDefinitions = JSON.parse(request.fields_data);
+        } catch (error) {
+            return [true, {
+                message: "fields_data has invalid JSON."
+            }];
+        }
+        for (const formField of fieldDefinitions) {
+            let fieldName = (typeof formField.label == 'undefined') ? formField.title : formField.label;
+            let fieldDescription = (typeof formField.description == 'undefined') ? '' : formField.description;
+            let fieldMandatoryEnabled = (typeof formField.validate == 'undefined') ? 0 : (formField.validate.required == true ? 1 : 0);
+            let nextFieldId = (typeof formField.next_field_id == 'undefined') ? 0 : Number(formField.next_field_id);
+            let fieldSequenceId = Number(formField.sequence_id);
+
+            let dataTypeCategoryId = Number(formField.dataTypeCategoryId);
+
+            console.log('\x1b[36m\n\n%s\x1b[0m', 'fieldSequenceId: ', fieldSequenceId);
+            console.log('\x1b[36m\n\n%s\x1b[0m', 'dataTypeCategoryId: ', dataTypeCategoryId);
+
+            if (dataTypeCategoryId === 14 || dataTypeCategoryId === 15) {
+                // For Single Select Component and 
+                let fieldId = formField.field_id || 0,
+                    comboEntries = formField.data.values;
+
+                // if (dataTypeCategoryId === 14 || dataTypeCategoryId === 15) {
+                //     fieldId = request.field_id || 0;
+                //     comboEntries = formField.data.values;
+                // }
+                console.log("comboEntries: ", comboEntries);
+                console.log("fieldId: ", fieldId);
+
+                for (const [index, comboEntry] of Array.from(comboEntries).entries()) {
+                    console.log("comboEntry: ", comboEntry);
+                    await workforceFormFieldMappingInsert(request, {
+                            field_id: fieldId,
+                            field_name: fieldName,
+                            field_description: fieldDescription,
+                            field_sequence_id: fieldSequenceId,
+                            field_mandatory_enabled: fieldMandatoryEnabled,
+                            field_preview_enabled: 0, // THIS NEEDS WORK
+                            data_type_combo_id: comboEntry.dataTypeComboId,
+                            data_type_combo_value: comboEntry.label,
+                            data_type_id: Number(formField.dataTypeId),
+                            next_field_id: nextFieldId
+                        })
+                        .then((fieldData) => {
+                            // console.log("someData: ", someData)
+                            if (fieldId === 0) {
+                                fieldId = Number(fieldData[0].p_field_id);
+                            }
+                        })
+                        .catch((error) => {
+                            // Do nothing
+                            console.log("comboEntry | Error: ", Object.keys(error));
+                        });
+
+                    // History insert in the workforce_form_field_mapping_history_insert table
+                    await workforceFormFieldMappingHistoryInsert(request, {
+                            field_id: fieldId,
+                            data_type_combo_id: comboEntry.dataTypeComboId
+                        })
+                        .catch((error) => {
+                            // Do nothing
+                            // console.log(Object.keys(error));
+                        });
+                }
+
+                // Reset fieldId to 0, so it can be re-used by other fields
+                // in the subsequent iterations
+                fieldId = 0;
+
+            } else {
+
+                await workforceFormFieldMappingInsert(request, {
+                        field_id: 0,
+                        field_name: fieldName,
+                        field_description: fieldDescription,
+                        field_sequence_id: fieldSequenceId,
+                        field_mandatory_enabled: fieldMandatoryEnabled,
+                        field_preview_enabled: 0, // THIS NEEDS WORK
+                        data_type_combo_id: 0,
+                        data_type_combo_value: '',
+                        data_type_id: Number(formField.dataTypeId),
+                        next_field_id: nextFieldId
+                    })
+                    .then(async (fieldData) => {
+                        // console.log("someData: ", someData)
+                        // History insert in the workforce_form_field_mapping_history_insert table
+                        await workforceFormFieldMappingHistoryInsert(request, {
+                            field_id: Number(fieldData[0].p_field_id),
+                            data_type_combo_id: 0
+                        })
+                        .catch((error) => {
+                            // Do nothing
+                        });
+                    })
+                    .catch((error) => {
+                        // Do nothing
+                    });
+            }
+
+            fieldSequenceId++;
+        }
+
+        return [false, []]
+    }
+
 }
 
 module.exports = FormConfigService;

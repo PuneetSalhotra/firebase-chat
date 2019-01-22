@@ -407,10 +407,6 @@ function FormConfigController(objCollection) {
     // Service for modifying form definition
     app.post('/' + global.config.version + '/form/field/definition/update', async function (req, res) {
 
-        // flag: 1 => Udpdate both activity_type mapping and config values
-        // flag: 2 => Udpdate activity_type mapping only
-        // flag: 3 => Udpdate config values only
-
         const [err, updateStatus] = await formConfigService.formFieldDefinitionUpdate(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse({}, updateStatus, 200, req.body));
@@ -420,6 +416,43 @@ function FormConfigController(objCollection) {
         }
 
     });
+
+    // Service for updating the form name
+    app.post('/' + global.config.version + '/form/field/name/update', async function (req, res) {
+
+        const [err, updateStatus] = await formConfigService.formFieldNameUpdate(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, updateStatus, 200, req.body));
+        } else {
+            console.log("Error: ", err);
+            res.send(responseWrapper.getResponse(err, updateStatus, -9999, req.body));
+        }
+    });
+
+    // Service for deleting form field definitions
+    app.post('/' + global.config.version + '/form/field/definition/delete', async function (req, res) {
+
+        const [err, updateStatus] = await formConfigService.formFieldDefinitionDelete(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, updateStatus, 200, req.body));
+        } else {
+            console.log("Error: ", err);
+            res.send(responseWrapper.getResponse(err, updateStatus, -9999, req.body));
+        }
+    });
+
+    // Service for inserting form field definitions
+    app.post('/' + global.config.version + '/form/field/definition/insert', async function (req, res) {
+
+        const [err, updateStatus] = await formConfigService.formFieldDefinitionInsert(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, updateStatus, 200, req.body));
+        } else {
+            console.log("Error: ", err);
+            res.send(responseWrapper.getResponse(err, updateStatus, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = FormConfigController;
