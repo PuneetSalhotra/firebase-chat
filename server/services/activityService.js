@@ -165,22 +165,22 @@ function ActivityService(objectCollection) {
                             if (activityTypeCategroyId === 9) {
 
                                 if (Number(request.organization_id) === 860 || Number(request.organization_id) === 858 ||
-                                Number(request.organization_id) === 868) {
+                                    Number(request.organization_id) === 868) {
 
                                     switch (Number(request.activity_form_id)) {
                                         case global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER:
                                             activityTitle = "New Order";
                                             break;
-                                        case global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY:                                        
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY:
                                             activityTitle = "Order Supplementary";
                                             break;
-                                        case global.vodafoneConfig[request.organization_id].FORM_ID.FR:                                        
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.FR:
                                             activityTitle = "Feasibility Report";
                                             break;
-                                        case global.vodafoneConfig[request.organization_id].FORM_ID.CRM:                            
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.CRM:
                                             activityTitle = "Customer Details";
                                             break;
-                                        case global.vodafoneConfig[request.organization_id].FORM_ID.HLD:                                        
+                                        case global.vodafoneConfig[request.organization_id].FORM_ID.HLD:
                                             activityTitle = "HLD Form";
                                             break;
                                         case global.vodafoneConfig[request.organization_id].FORM_ID.BC_HLD:
@@ -270,8 +270,8 @@ function ActivityService(objectCollection) {
 
                             // Workflow Trigger
                             if (activityTypeCategroyId === 9 && request.device_os_id !== 9) {
-                                
-                                if(request.device_os_id === 5) {
+
+                                if (request.device_os_id === 5) {
                                     let workflowEngineRequest = Object.assign({}, request);
 
                                     let workflowEngineEvent = {
@@ -283,11 +283,11 @@ function ActivityService(objectCollection) {
 
                                     queueWrapper.raiseActivityEvent(workflowEngineEvent, request.activity_id, (err, resp) => {
                                         (err) ?
-                                            global.logger.write('conLog', '\x1b[35m [ERROR] Raising queue activity raised for workflow engine. \x1b[0m', {}, {}):                                           
+                                        global.logger.write('conLog', '\x1b[35m [ERROR] Raising queue activity raised for workflow engine. \x1b[0m', {}, {}):
                                             global.logger.write('conLog', '\x1b[35m Queue activity raised for workflow engine. \x1b[0m', {}, {});
-                                        
+
                                     });
-                                }                                
+                                }
                             }
 
                             // Bot Engine Trigger
@@ -302,8 +302,8 @@ function ActivityService(objectCollection) {
                                     if (
                                         (formConfigError === false) &&
                                         (Number(formConfigData.length) > 0) &&
-                                        (Number(formConfigData[0].form_flag_workflow_enabled) === 1) && 
-                                        (Number(formConfigData[0].form_flag_workflow_origin) === 0)                                        
+                                        (Number(formConfigData[0].form_flag_workflow_enabled) === 1) &&
+                                        (Number(formConfigData[0].form_flag_workflow_origin) === 0)
                                     ) {
                                         // Proceeding because there was no error found, there were records returned
                                         // and form_flag_workflow_enabled is set to 1
@@ -323,37 +323,37 @@ function ActivityService(objectCollection) {
                             }
 
                             // Trigger Bot Engine
-                         if (activityTypeCategroyId === 48 && request.device_os_id !== 9) {
-                            try {
-                                let botEngineRequest = Object.assign({}, request);
-                                botEngineRequest.form_id = request.activity_form_id;
-                                botEngineRequest.field_id = 0;
-                                botEngineRequest.flag = 3;
-                                botEngineRequest.workflow_activity_id = request.activity_id;
+                            if (activityTypeCategroyId === 48 && request.device_os_id !== 9) {
+                                try {
+                                    let botEngineRequest = Object.assign({}, request);
+                                    botEngineRequest.form_id = request.activity_form_id;
+                                    botEngineRequest.field_id = 0;
+                                    botEngineRequest.flag = 3;
+                                    botEngineRequest.workflow_activity_id = request.activity_id;
 
-                                const [formConfigError, formConfigData] = await activityCommonService.workforceFormMappingSelect(botEngineRequest);
-                                if (
-                                    (formConfigError === false) &&
-                                    (Number(formConfigData.length) > 0) &&
-                                    (Number(formConfigData[0].form_flag_workflow_enabled) === 1) &&
-                                    (Number(formConfigData[0].form_flag_workflow_origin) === 1)
-                                ) {
-                                    // Proceeding because there was no error found, there were records returned
-                                    // and form_flag_workflow_enabled is set to 1
-                                    let botsListData = await activityCommonService.getBotsMappedToActType(botEngineRequest);
-                                    if (botsListData.length > 0) {
-                                        botEngineRequest.bot_id = botsListData[0].bot_id;
+                                    const [formConfigError, formConfigData] = await activityCommonService.workforceFormMappingSelect(botEngineRequest);
+                                    if (
+                                        (formConfigError === false) &&
+                                        (Number(formConfigData.length) > 0) &&
+                                        (Number(formConfigData[0].form_flag_workflow_enabled) === 1) &&
+                                        (Number(formConfigData[0].form_flag_workflow_origin) === 1)
+                                    ) {
+                                        // Proceeding because there was no error found, there were records returned
+                                        // and form_flag_workflow_enabled is set to 1
+                                        let botsListData = await activityCommonService.getBotsMappedToActType(botEngineRequest);
+                                        if (botsListData.length > 0) {
+                                            botEngineRequest.bot_id = botsListData[0].bot_id;
 
-                                        await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
-                                            .then((resp) => {
-                                                global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
-                                            });
+                                            await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
+                                                .then((resp) => {
+                                                    global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
+                                                });
+                                        }
                                     }
+                                } catch (botInitError) {
+                                    global.logger.write('error', botInitError, botInitError, botEngineRequest);
                                 }
-                            } catch (botInitError) {
-                                global.logger.write('error', botInitError, botInitError, botEngineRequest);
                             }
-                        }
 
                             /*activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
 
@@ -2369,12 +2369,12 @@ function ActivityService(objectCollection) {
                 if (err === false) {
                     var parentActivityId;
 
-                    if(resp.length > 0) {
+                    if (resp.length > 0) {
                         parentActivityId = (Number(resp[0].parent_activity_id) > 0) ? resp[0].parent_activity_id : 0;
                     } else {
                         parentActivityId = 0;
                     }
-                    
+
                     if (parentActivityId > 0) {
                         var paramsArr = new Array(
                             request.organization_id,
@@ -3402,7 +3402,7 @@ function ActivityService(objectCollection) {
                                         }))
                                         .then((queueActivityMappingData) => {
                                             console.log("updateWorkflowQueueMapping | mapFileToQueue | queueActivityMapping: ", queueActivityMappingData);
-                                            activityCommonService.queueHistoryInsert(request, 1401, queueActivityMappingData[0].queue_activity_mapping_id).then(()=>{});
+                                            activityCommonService.queueHistoryInsert(request, 1401, queueActivityMappingData[0].queue_activity_mapping_id).then(() => {});
                                         })
                                         .catch((error) => {
 
@@ -3442,13 +3442,15 @@ function ActivityService(objectCollection) {
                             });
                     }
                 }
-                
-                await new Promise((resolve, reject)=>{
-                    setTimeout(()=>{ resolve(); }, 3000);
+
+                await new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        resolve();
+                    }, 3000);
                 });
 
                 return queueMap;
-                
+
             } else {
                 return [];
             }
