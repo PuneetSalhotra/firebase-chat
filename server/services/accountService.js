@@ -512,10 +512,11 @@ function AccountService(objectCollection) {
             request.account_id,
             request.workforce_id,
             request.default_module_id,
+            request.default_module_lock_enable,
             util.getCurrentUTCTime(),
             request.asset_id
         );
-        const queryString = util.getQueryString('ds_p1_workforce_list_update_default_module', paramsArr);
+        const queryString = util.getQueryString('ds_p1_1_workforce_list_update_default_module', paramsArr);
         if (queryString !== '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 (err) ? callback(true, err, -9999): callback(false, data, 200);
@@ -533,10 +534,11 @@ function AccountService(objectCollection) {
             request.organization_id,
             request.account_id,
             request.default_module_id,
+            request.default_module_lock_enable,
             util.getCurrentUTCTime(),
             request.asset_id
         );
-        const queryString = util.getQueryString('ds_p1_account_list_update_default_module', paramsArr);
+        const queryString = util.getQueryString('ds_p1_1_account_list_update_default_module', paramsArr);
         if (queryString !== '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 (err) ? callback(true, err, -9999): callback(false, data, 200);
