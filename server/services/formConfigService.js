@@ -2240,6 +2240,57 @@ function FormConfigService(objCollection) {
         return [error, fieldUpdateStatus];
     }
 
+    this.getDataTypeList = function (request) {
+        return new Promise((resolve, reject) => {
+            var queryString = '';
+
+            var paramsArr = new Array(
+                request.page_start,
+                util.replaceQueryLimit(request.page_limit)
+            );
+            queryString = util.getQueryString('ds_v1_common_data_type_master_select', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    if (err === false) {
+                        resolve(data);
+                    } else {
+                        reject(err);
+                    }
+                });
+            }
+
+        })
+    }
+
+    this.workforceFormFieldMappingSelectNumericFields = async function (request) {
+
+        let fieldData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.form_id,
+            request.page_start,
+            util.replaceQueryLimit(request.page_limit)
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_form_field_mapping_select_numeric', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    fieldData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, fieldData];
+    }
+
 }
 
 module.exports = FormConfigService;
