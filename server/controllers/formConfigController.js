@@ -476,6 +476,28 @@ function FormConfigController(objCollection) {
             res.send(responseWrapper.getResponse(err, widgetListData, -9999, req.body));
         }
     });
+    
+    app.post('/' + global.config.version + '/data_type/list', function (req, res) {
+
+        formConfigService.getDataTypeList(req.body).then((data) => {
+            //console.log(data);
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        }).catch((err) => {
+            data = {};
+            res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        });
+    });
+
+    app.post('/' + global.config.version + '/form/field/numeric', function (req, res) {
+
+        formConfigService.workforceFormFieldMappingSelectNumericFields(req.body).then((data) => {
+            //console.log(data);
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        }).catch((err) => {
+            data = {};
+            res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        });
+    });
 
 }
 
