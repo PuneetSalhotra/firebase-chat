@@ -557,7 +557,7 @@ function FormConfigService(objCollection) {
                         if (formConfigError !== false) {
                             // return [formConfigError, formConfigData];
                             console.log("Error: ", formConfigError);
-                        
+
                         } else if (Number(formConfigData.length) > 0 && Number(formConfigData[0].form_flag_workflow_enabled) === 1) {
                             let workflowRequest = Object.assign({}, request);
                             try {
@@ -1716,23 +1716,23 @@ function FormConfigService(objCollection) {
 
             }
 
-            if (isWorkflowEnabled  && originFlagSet) {
+            if (isWorkflowEnabled && originFlagSet) {
                 let activityTitle = "Form Submitted";
                 if (Number(request.organization_id) === 868) {
                     switch (Number(request.activity_form_id)) {
                         case global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER:
                             activityTitle = "New Order";
                             break;
-                        case global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY:                                        
+                        case global.vodafoneConfig[request.organization_id].FORM_ID.ORDER_SUPPLEMENTARY:
                             activityTitle = "Order Supplementary";
                             break;
-                        case global.vodafoneConfig[request.organization_id].FORM_ID.FR:                                        
+                        case global.vodafoneConfig[request.organization_id].FORM_ID.FR:
                             activityTitle = "Feasibility Report";
                             break;
-                        case global.vodafoneConfig[request.organization_id].FORM_ID.CRM:                            
+                        case global.vodafoneConfig[request.organization_id].FORM_ID.CRM:
                             activityTitle = "Customer Details";
                             break;
-                        case global.vodafoneConfig[request.organization_id].FORM_ID.HLD:                                        
+                        case global.vodafoneConfig[request.organization_id].FORM_ID.HLD:
                             activityTitle = "HLD Form";
                             break;
                         case global.vodafoneConfig[request.organization_id].FORM_ID.BC_HLD:
@@ -1776,7 +1776,7 @@ function FormConfigService(objCollection) {
                     "attachments": []*/
 
                     "mail_body": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
-                    "subject": activityTitle,                    
+                    "subject": activityTitle,
                     "content": 'Form Submitted',
                     "asset_reference": [],
                     "activity_reference": [],
@@ -1936,97 +1936,97 @@ function FormConfigService(objCollection) {
             console.log("formFieldMapping: ", formFieldMapping);
             //if (formFieldMapping.length > 0) {
 
-                let fieldCopyOperations = [];
-                for (const mapping of formFieldMapping) {
-                    // console.log("[formFieldMapping] mapping: ", mapping)
-                    // console.log(`mapping.source_form_id: ${mapping.source_form_id} | request.form_id: ${request.form_id} | ${Number(mapping.source_form_id) === Number(request.form_id)}`);
-                    // console.log(`mapping.source_field_id: ${mapping.source_field_id} | request.field_id: ${request.field_id} | ${Number(mapping.source_field_id) === Number(request.field_id)}`);
-                    if (
-                        Number(mapping.source_form_id) === Number(request.form_id) &&
-                        Number(mapping.source_field_id) === Number(request.field_id)
-                    ) {
-                        console.log("Match Found: ", mapping);
-                        fieldCopyOperations.push(mapping);
-                         await activityCommonService
-                             .getActivityTimelineTransactionByFormId713(request, workflowActivityId, mapping.target_form_id)
-                             .then((targetFormData) => {
-                                 if (targetFormData.length > 0) {
-                                     targetFormActivityId = Number(targetFormData[0].data_activity_id);
-                                     // targetFormActivityId = 152002;
-                                     targetFormTransactionId = Number(targetFormData[0].data_form_transaction_id);
-                                     targetFormInlineData = JSON.parse(targetFormData[0].data_entity_inline);
-                                     targetFormName = targetFormData[0].data_form_name;
-                                 }
-                             });
-
-                        // 
-                        // if (Array.isArray(targetFormInlineData.form_submitted) === true || typeof targetFormInlineData.form_submitted === 'object') {
-                        //     targetFormSubmittedData = targetFormInlineData.form_submitted;
-                        // } else {
-                        //     targetFormSubmittedData = JSON.parse(targetFormInlineData.form_submitted);
-                        // }
-
-                        // let newActivityInlineData = JSON.parse(request.activity_inline_data);
-                        // newActivityInlineData[0].form_id = Number(mapping.target_form_id);
-                        // newActivityInlineData[0].form_name = targetFormName;
-                        // newActivityInlineData[0].field_id = Number(mapping.target_field_id);
-                        // newActivityInlineData[0].form_transaction_id = targetFormTransactionId;
-
-                        // let fieldAlterRequest = Object.assign({}, request);
-                        // fieldAlterRequest.activity_id = targetFormActivityId;
-                        // fieldAlterRequest.form_id = Number(mapping.target_form_id);
-                        // fieldAlterRequest.form_transaction_id = targetFormTransactionId;
-                        // fieldAlterRequest.field_id = Number(mapping.target_field_id);
-                        // fieldAlterRequest.activity_inline_data = JSON.stringify(newActivityInlineData);
-                        // fieldAlterRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
-                        // fieldAlterRequest.device_os_id = 7;
-
-                        // const alterFormActivityAsync = nodeUtil.promisify(self.alterFormActivity);
-                        // await alterFormActivityAsync(fieldAlterRequest);
-                    }
-                }
-
-                if(botTriggerId === 2) {
-                    let newRequest = Object.assign({}, request);
-                        newRequest.bot_id = botId;
-                        newRequest.bot_operation_id = botOperationId;
-                        newRequest.activity_type_id = formWorkflowActivityTypeId;
-                        newRequest.target_form_transaction_id = targetFormTransactionId;
-                        newRequest.target_activity_id = targetFormActivityId;
-                        newRequest.workflow_activity_id = workflowActivityId;
-                        newRequest.inline_data = JSON.stringify({
-                            "bot_operations": {
-                                "form_field_copy": fieldCopyOperations
+            let fieldCopyOperations = [];
+            for (const mapping of formFieldMapping) {
+                // console.log("[formFieldMapping] mapping: ", mapping)
+                // console.log(`mapping.source_form_id: ${mapping.source_form_id} | request.form_id: ${request.form_id} | ${Number(mapping.source_form_id) === Number(request.form_id)}`);
+                // console.log(`mapping.source_field_id: ${mapping.source_field_id} | request.field_id: ${request.field_id} | ${Number(mapping.source_field_id) === Number(request.field_id)}`);
+                if (
+                    Number(mapping.source_form_id) === Number(request.form_id) &&
+                    Number(mapping.source_field_id) === Number(request.field_id)
+                ) {
+                    console.log("Match Found: ", mapping);
+                    fieldCopyOperations.push(mapping);
+                    await activityCommonService
+                        .getActivityTimelineTransactionByFormId713(request, workflowActivityId, mapping.target_form_id)
+                        .then((targetFormData) => {
+                            if (targetFormData.length > 0) {
+                                targetFormActivityId = Number(targetFormData[0].data_activity_id);
+                                // targetFormActivityId = 152002;
+                                targetFormTransactionId = Number(targetFormData[0].data_form_transaction_id);
+                                targetFormInlineData = JSON.parse(targetFormData[0].data_entity_inline);
+                                targetFormName = targetFormData[0].data_form_name;
                             }
                         });
-                    try {
-                        setTimeout(()=>{
-                            botService.initBotEngine(newRequest);
-                        }, 2500);
-                    } catch (error) {
-                        global.logger.write('conLog', 'botService.initBotEngine Error!', error, {}); 
-                        console.log("botService.initBotEngine Error!", error);
-                    }
+
+                    // 
+                    // if (Array.isArray(targetFormInlineData.form_submitted) === true || typeof targetFormInlineData.form_submitted === 'object') {
+                    //     targetFormSubmittedData = targetFormInlineData.form_submitted;
+                    // } else {
+                    //     targetFormSubmittedData = JSON.parse(targetFormInlineData.form_submitted);
+                    // }
+
+                    // let newActivityInlineData = JSON.parse(request.activity_inline_data);
+                    // newActivityInlineData[0].form_id = Number(mapping.target_form_id);
+                    // newActivityInlineData[0].form_name = targetFormName;
+                    // newActivityInlineData[0].field_id = Number(mapping.target_field_id);
+                    // newActivityInlineData[0].form_transaction_id = targetFormTransactionId;
+
+                    // let fieldAlterRequest = Object.assign({}, request);
+                    // fieldAlterRequest.activity_id = targetFormActivityId;
+                    // fieldAlterRequest.form_id = Number(mapping.target_form_id);
+                    // fieldAlterRequest.form_transaction_id = targetFormTransactionId;
+                    // fieldAlterRequest.field_id = Number(mapping.target_field_id);
+                    // fieldAlterRequest.activity_inline_data = JSON.stringify(newActivityInlineData);
+                    // fieldAlterRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+                    // fieldAlterRequest.device_os_id = 7;
+
+                    // const alterFormActivityAsync = nodeUtil.promisify(self.alterFormActivity);
+                    // await alterFormActivityAsync(fieldAlterRequest);
                 }
-                
+            }
+
+            if (botTriggerId === 2) {
+                let newRequest = Object.assign({}, request);
+                newRequest.bot_id = botId;
+                newRequest.bot_operation_id = botOperationId;
+                newRequest.activity_type_id = formWorkflowActivityTypeId;
+                newRequest.target_form_transaction_id = targetFormTransactionId;
+                newRequest.target_activity_id = targetFormActivityId;
+                newRequest.workflow_activity_id = workflowActivityId;
+                newRequest.inline_data = JSON.stringify({
+                    "bot_operations": {
+                        "form_field_copy": fieldCopyOperations
+                    }
+                });
+                try {
+                    setTimeout(() => {
+                        botService.initBotEngine(newRequest);
+                    }, 2500);
+                } catch (error) {
+                    global.logger.write('conLog', 'botService.initBotEngine Error!', error, {});
+                    console.log("botService.initBotEngine Error!", error);
+                }
+            }
+
             //}
 
         } else {
-            if(botTriggerId === 2) {
+            if (botTriggerId === 2) {
                 let newRequest = Object.assign({}, request);
-                    newRequest.bot_id = botId;                
-                    newRequest.activity_type_id = formWorkflowActivityTypeId;
-                    newRequest.target_form_transaction_id = targetFormTransactionId;
-                    newRequest.target_activity_id = targetFormActivityId;
-                    newRequest.workflow_activity_id = workflowActivityId;                
-                    try {
-                        setTimeout(()=>{
-                            botService.initBotEngine(newRequest);
-                        }, 3000);
-                    } catch (error) {
-                        global.logger.write('conLog', 'botService.initBotEngine Error!', error, {}); 
-                        console.log("botService.initBotEngine Error!", error);
-                    }
+                newRequest.bot_id = botId;
+                newRequest.activity_type_id = formWorkflowActivityTypeId;
+                newRequest.target_form_transaction_id = targetFormTransactionId;
+                newRequest.target_activity_id = targetFormActivityId;
+                newRequest.workflow_activity_id = workflowActivityId;
+                try {
+                    setTimeout(() => {
+                        botService.initBotEngine(newRequest);
+                    }, 3000);
+                } catch (error) {
+                    global.logger.write('conLog', 'botService.initBotEngine Error!', error, {});
+                    console.log("botService.initBotEngine Error!", error);
+                }
             }
         }
 
@@ -2389,7 +2389,7 @@ function FormConfigService(objCollection) {
         }
         return [false, []]
     }
-    
+
     async function workforceFormFieldMappingDelete(request, fieldOptions) {
         // IN p_field_id BIGINT(20), IN p_data_type_combo_id SMALLINT(6), 
         // IN p_form_id BIGINT(20), IN p_organization_id BIGINT(20), 
@@ -2460,7 +2460,7 @@ function FormConfigService(objCollection) {
                 console.log("fieldId: ", fieldId);
 
                 for (const [index, comboEntry] of Array.from(comboEntries).entries()) {
-                    
+
                     let isDuplicateEntry = false;
                     await workforceFormFieldMappingInsert(request, {
                             field_id: fieldId,
@@ -2484,7 +2484,7 @@ function FormConfigService(objCollection) {
                             // Do nothing
                             console.log("comboEntry | Error: ", Object.keys(error));
                             if (error.code === "ER_DUP_ENTRY") {
-                                
+
                             }
                             isDuplicateEntry = true;
                         });
@@ -2537,12 +2537,12 @@ function FormConfigService(objCollection) {
                         // console.log("someData: ", someData)
                         // History insert in the workforce_form_field_mapping_history_insert table
                         await workforceFormFieldMappingHistoryInsert(request, {
-                            field_id: Number(fieldData[0].p_field_id),
-                            data_type_combo_id: 0
-                        })
-                        .catch((error) => {
-                            // Do nothing
-                        });
+                                field_id: Number(fieldData[0].p_field_id),
+                                data_type_combo_id: 0
+                            })
+                            .catch((error) => {
+                                // Do nothing
+                            });
                     })
                     .catch((error) => {
                         // Do nothing
