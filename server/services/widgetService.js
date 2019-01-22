@@ -360,6 +360,95 @@ function WidgetService(objCollection) {
         return [error, responseData];
     };
 
+    this.widgetMappingDelete = async function (request) {
+
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.widget_mapping_id,
+            request.organization_id,
+            3,
+            request.asset_id,
+            request.log_datetime
+        );
+
+        var queryString = util.getQueryString('ds_p1_widget_entity_mapping_update_log_state', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
+
+    this.widgetUpdate = async function (request) {
+
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.widget_id,
+            request.widget_name,
+            request.asset_id,
+            request.log_datetime
+        );
+
+        var queryString = util.getQueryString('ds_p1_1_widget_list_update_name', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
+
+    this.widgetEntityShareInsert = async function (request) {
+
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.widget_id,
+            request.access_level_id,
+            request.activity_id,
+            // request.activity_type_id||0,
+            request.user_asset_id,
+            request.asset_type_id,
+            request.workforce_id,
+            request.account_id,
+            request.organization_id,
+            request.asset_id,
+            request.log_datetime
+        );
+
+        var queryString = util.getQueryString('ds_p1_widget_entity_mapping_insert', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
+
 }
 
 
