@@ -453,6 +453,30 @@ function FormConfigController(objCollection) {
         }
     });
 
+    // Service for lists bots dependant on a form field
+    app.post('/' + global.config.version + '/form/field/bot/list', async function (req, res) {
+
+        const [err, botsListData] = await formConfigService.formFieldBotList(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, botsListData, 200, req.body));
+        } else {
+            console.log("Error: ", err);
+            res.send(responseWrapper.getResponse(err, botsListData, -9999, req.body));
+        }
+    });
+
+    // Service for inserting form field definitions
+    app.post('/' + global.config.version + '/form/field/widget/list', async function (req, res) {
+
+        const [err, widgetListData] = await formConfigService.formFieldWidgetList(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, widgetListData, 200, req.body));
+        } else {
+            console.log("Error: ", err);
+            res.send(responseWrapper.getResponse(err, widgetListData, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = FormConfigController;

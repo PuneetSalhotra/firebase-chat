@@ -3031,6 +3031,23 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
     };
 
+    this.widgetListSelectFieldAll = async (request) => {
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.asset_id,
+            request.form_id,
+            request.field_id,
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+        let queryString = util.getQueryString('ds_p1_widget_list_select_field_all', paramsArr);
+        if (queryString != '') {
+            return await (db.executeQueryPromise(1, queryString, request));
+        }
+    };
+
     this.getFormDataByFormTransaction = async (request) => {        
         var paramsArr = new Array(            
             request.organization_id,

@@ -2460,7 +2460,8 @@ function FormConfigService(objCollection) {
                 console.log("fieldId: ", fieldId);
 
                 for (const [index, comboEntry] of Array.from(comboEntries).entries()) {
-                    console.log("comboEntry: ", comboEntry);
+                    
+                    let isDuplicateEntry = false;
                     await workforceFormFieldMappingInsert(request, {
                             field_id: fieldId,
                             field_name: fieldName,
@@ -2482,8 +2483,27 @@ function FormConfigService(objCollection) {
                         .catch((error) => {
                             // Do nothing
                             console.log("comboEntry | Error: ", Object.keys(error));
+                            if (error.code === "ER_DUP_ENTRY") {
+                                
+                            }
+                            isDuplicateEntry = true;
                         });
 
+                    if (isDuplicateEntry) {
+                        await workforceFormFieldMappingUpdateCombo(request, {
+                            field_id: fieldId,
+                            field_name: fieldName,
+                            field_description: fieldDescription,
+                            field_sequence_id: fieldSequenceId,
+                            field_mandatory_enabled: fieldMandatoryEnabled,
+                            field_preview_enabled: 0, // THIS NEEDS WORK
+                            data_type_combo_id: comboEntry.dataTypeComboId,
+                            data_type_combo_value: comboEntry.label,
+                            data_type_id: Number(formField.dataTypeId),
+                            next_field_id: nextFieldId,
+                            log_state: 2
+                        });
+                    }
                     // History insert in the workforce_form_field_mapping_history_insert table
                     await workforceFormFieldMappingHistoryInsert(request, {
                             field_id: fieldId,
@@ -2535,6 +2555,109 @@ function FormConfigService(objCollection) {
         return [false, []]
     }
 
+    async function workforceFormFieldMappingUpdateCombo(request, fieldOptions) {
+        // IN p_field_id BIGINT(20), IN p_data_type_combo_id SMALLINT(6), 
+        // IN p_form_id BIGINT(20), IN p_field_name VARCHAR(1200), 
+        // IN p_field_description VARCHAR(300), IN p_data_type_combo_value VARCHAR(1200), 
+        // IN p_field_sequence_id BIGINT(20), IN p_field_mandatory_enabled TINYINT(4), 
+        // IN p_field_preview_enabled TINYINT(4), IN p_log_state TINYINT(4), 
+        // IN p_organization_id BIGINT(20), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+
+        let updateStatus = [],
+            error = true; // true;
+
+        let procName = 'ds_p1_workforce_form_field_mapping_update_combo';
+        let paramsArr = new Array(
+            fieldOptions.field_id,
+            fieldOptions.data_type_combo_id,
+            request.form_id,
+            fieldOptions.field_name,
+            fieldOptions.field_description,
+            fieldOptions.data_type_combo_value,
+            fieldOptions.field_sequence_id,
+            fieldOptions.field_mandatory_enabled,
+            fieldOptions.field_preview_enabled,
+            fieldOptions.log_state,
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime(),
+        );
+        // const queryString = util.getQueryString('ds_p1_workforce_form_field_mapping_update_combo', paramsArr);
+        // console.log(queryString);
+        await db.callDBProcedure(request, procName, paramsArr, 0)
+            .then((data) => {
+                updateStatus = data;
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            });
+        return [error, updateStatus];
+    }
+
+    this.formFieldBotList = async function (request) {
+
+        let botsListData = [],
+            error = true; // true;
+
+        request.flag = 5;
+        request.page_start = request.page_start || 0;
+        try {
+            botsListData = await activityCommonService.getBotsMappedToActType(request);
+            error = false;
+        } catch (err) {
+            error = err;
+        }
+
+        return [error, botsListData];
+    }
+
+    this.formFieldWidgetList = async function (request) {
+
+        let widgetListData = [],
+            error = true; // true;
+
+        try {
+            widgetListData = await activityCommonService.widgetListSelectFieldAll(request);
+            error = false;
+        } catch (err) {
+            console.log("formFieldWidgetList | Error: ", err);
+            error = err;
+        }
+
+        return [error, widgetListData];
+    }
+
+    async function widgetListSelectFieldAll(request) {
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
+        // IN p_workforce_id BIGINT(20), IN p_asset_id BIGINT(20), 
+        // IN p_form_id BIGINT(20), IN p_field_id BIGINT(20), 
+        // IN p_start_from INT(11), IN p_limit_value TINYINT(4)
+
+        let widgetListData = [],
+            error = true; // true;
+
+        let procName = 'ds_p1_widget_list_select_field_all';
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.asset_id,
+            request.form_id,
+            request.field_id,
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+        await db.callDBProcedure(request, procName, paramsArr, 0)
+            .then((data) => {
+                widgetListData = data;
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            });
+        return [error, widgetListData];
+    }
 }
 
 module.exports = FormConfigService;
