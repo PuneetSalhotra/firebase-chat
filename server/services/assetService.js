@@ -374,8 +374,8 @@ function AssetService(objectCollection) {
                 'asset_storage_bucket_name': util.replaceDefaultString(rowData['asset_storage_bucket_name']),
                 'asset_storage_url': util.replaceDefaultString(rowData['asset_storage_url']),
                 'asset_default_module_id': util.replaceDefaultNumber(rowData['asset_default_module_id']),
-                'asset_default_module_name': util.replaceDefaultString(rowData['asset_default_module_name'])
-
+                'asset_default_module_name': util.replaceDefaultString(rowData['asset_default_module_name']),
+                'asset_flag_module_locked': util.replaceDefaultNumber(rowData['asset_flag_module_locked']),
             };
             data.push(rowDataArr);
 
@@ -3275,10 +3275,11 @@ function AssetService(objectCollection) {
             request.workforce_id,
             request.asset_id,
             request.default_module_id,
+            request.default_module_lock_enable,
             util.getCurrentUTCTime(),
             request.asset_id
         );
-        const queryString = util.getQueryString('ds_p1_asset_list_update_default_module', paramsArr);
+        const queryString = util.getQueryString('ds_p1_1_asset_list_update_default_module', paramsArr);
         if (queryString !== '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 (err) ? callback(true, err, -9999): callback(false, data, 200);
@@ -3402,7 +3403,49 @@ function AssetService(objectCollection) {
             	callback(false, {}, -3101);
             }
     };
-   
+    
+
+    this.getAssetTimelineData = async (request) => {        
+        let paramsArr = new Array(                
+            request.organization_id, 
+            request.workforce_id, 
+            request.asset_id, 
+            request.stream_type_id || 0,
+            request.page_start,
+            util.replaceQueryLimit(request.page_limit)
+        );
+        let queryString = util.getQueryString('ds_p1_asset_timeline_transaction_select_asset_stream_type', paramsArr);
+        if (queryString != '') {
+            return await (db.executeQueryPromise(1, queryString, request));                
+        }        
+    };    
+
+    this.geAssetGeoFenceCounts = async function (request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.flag,
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.page_start,
+            request.page_limit
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_select_geofence_count', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
 
 }
 

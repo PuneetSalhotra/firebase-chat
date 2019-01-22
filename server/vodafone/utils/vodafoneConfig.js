@@ -123,5 +123,63 @@ vodafoneConfig = {
             "Contact_Email_Id": 5516,
             "Account_Code": 5371 //This we have in new order not in CRM
         }
+    },
+    "868": {
+        "NAME": "PLATFORM",
+        "BOT": {
+            "ASSET_ID": 31993,
+            "WORKFORCE_ID": 5400,
+            "ACCOUNT_ID": 983,
+            "ENC_TOKEN": "c15f6fb0-14c9-11e9-8b81-4dbdf2702f95"
+        },
+        "STATUS": {
+            "CAF_UPDATION": 282554,	
+            "VALIDATION_PENDING": 282555,	
+            "CUSTOMER_APPROVAL": 282556,	
+            "ORDER_LOGGED": 282557	
+        },
+        "FORM_ID": {
+            "ORDER_CLOSURE": 1054,
+            "HLD": 1055,
+            "CRM": 1056,
+            "FR": 1057,  
+            "CAF": 1058,  
+            "NEW_ORDER": 1059,  
+            "ORDER_SUPPLEMENTARY": 1060,  
+            "CAF_APPROVAL_ACCOUNT_MANAGER": 1061,  
+            "DOCUMENTS_NEW_CUSTOMER": 1062,  
+            "DOCUMENTS_EXISTING_CUSTOMER": 1063,  
+            "AUTHORISED_SIGNATORY_SIGN_AND_SEAL": 1064,  
+            "OMT_APPROVAL": 1065,  
+            "CUSTOMER_IT_COMMERCIAL_APPROVAL": 1066,  
+            "CUSTOMER_APPROVAL": 1067,  
+            "ORDER_DOCUMENTS": 1068,  
+            "CAF_REVISION_COMMENTS_CUSTOMER": 1069  
+        },
+        "CUSTOMER": {
+            "ACCOUNT_ID": 983,
+            "WORKFORCE_ID": 5405,
+            "ASSET_TYPE_ID": 127470,
+            "DESK_ASSET_TYPE_ID": 127473
+        },
+        "ACTIVITY_TYPE_IDS": {
+            "FORM_ACTIVITY_TYPE_ID": 133472,
+            "CONTACT_CARD_ACTIVITY_TYPE_ID": 133471,
+            "5400": 134414            
+        },
+        "SOLUTIONS_REP": {
+            "NAME": "Bharat",
+            "EMAIL": "bharat@masimukku.com"
+        },
+        "CRM_FIELDVALUES": {
+            "Company_Name": 5771,
+            "Contact_Company_Name": 5772,
+            "Contact_Number": 5773,
+            "Email": 5774,
+            "Contact_Person_Name": 5775,
+            "Contact_Designation": 5776,
+            "Contact_Email_Id": 5784,
+            "Account_Code": 6099 //This we have in new order not in CRM
+        }
     }
 };

@@ -701,7 +701,6 @@ function ActivityListingController(objCollection) {
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
     });
-
 }
 
 module.exports = ActivityListingController;

@@ -14,6 +14,86 @@ config.phone_call = 1; // both Domestic and International 1: Nexmo | 2: Twilio
 
 config.whitelist = ['http://mydesk.desker.co', 'https://mydesk.desker.co', 'http://127.0.0.1', 'http://localhost'];
 
+if (mode === 'masimukku') {
+
+    //Ports Config
+    config.version = 'r0';
+    config.servicePort = 4000;
+    config.standAlonePamServicePort = 4100;
+
+    config.consumerSix = 4200;
+    config.consumerOne = 4201;
+    config.consumerTwo = 4202;
+    config.consumerThree = 4203;
+    config.consumerFour = 4204;
+    config.consumerFive = 4205;
+
+    config.sqsConsumer = 4300;
+
+    //Mysql Config
+    config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
+
+    config.dbUser = 'apiuser';
+    config.database = 'desker_staging';
+    config.dbPassword = 'apidbuser';
+    config.conLimit = 2;
+
+    //Redis Config    
+    config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';
+    config.redisPort = 6379;
+
+    //IOS Push
+    config.iosPushMode = 'dev'; // currently shouuld be in dev
+
+    //SQS Queue
+    config.SQSqueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/logs-staging"; //Staging SQS QUEUE
+
+    //Portal Service URL & Mobile Service URL
+    config.portalBaseUrl = "https://stagingportal.worlddesk.cloud/";
+    config.mobileBaseUrl = "https://stagingapi.worldesk.cloud/";
+
+    //making twilio, Nexmo Calls
+    config.efsPath = "/Users/masimukku/Downloads/worlddesk/";
+    
+    //Kafka Configuration
+    config.BROKER_HOST = "kafka1:9092,kafka2:9092,kafka3:9092";
+    config.BROKER_CONNECT_TIMEOUT = 10000;
+    config.BROKER_REQUEST_TIMEOUT = 60000;
+    config.BROKER_AUTO_CONNECT = true;
+    config.BROKER_MAX_ASYNC_REQUESTS = 10;
+
+    config.PRODUCER_REQUIRE_ACKS = 1;
+    config.PRODUCER_ACKS_TIMEOUT = 100;
+    config.PRODUCER_PARTITONER_TYPE = 3;
+
+    //Desker
+    config.TOPIC_ID = 14; //Take from Sai
+    config.TOPIC_NAME = 'masimukku-desker-activities';
+    config.CONSUMER_GROUP_ID = 'masimukku-desker-activities-cg';    
+    
+    //Widget
+    config.WIDGET_TOPIC_NAME = 'masimukku-desker-widgets';    
+    config.WIDGET_CONSUMER_GROUP_ID = 'masimukku-desker-widgets-cg';
+    
+    //LOGS
+    config.LOGS_TOPIC_NAME = 'masimukku-desker-logs';
+    config.WIDGET_CONSUMER_GROUP_ID = 'masimukku-desker-logs-cg';
+
+    config.CONSUMER_AUTO_COMMIT = true;
+    config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
+    config.CONSUMER_FETCH_MAX_WAIT = 10;
+    config.CONSUMER_FETCH_MIN_BYTES = 1;
+    config.CONSUMER_FETCH_MAX_BYTES = 1048576;
+    config.CONSUMER_ENCODING = "utf8";
+    config.CONSUMER_KEY_ENCODING = "utf8";
+    ///////////////////////////////
+    
+    config.emailbaseUrlApprove = "https://stagingmydesk.desker.co"; 
+    config.emailbaseUrlUpload = "https://stagingmydesk.desker.co";    
+    
+}
+
 if (mode === 'local') {
 
     //Ports Config
@@ -411,6 +491,10 @@ if (mode === 'prod') {
 
 //Android
 config.platformApplicationAndroid = "arn:aws:sns:ap-south-1:430506864995:app/GCM/worldDeskAndroidPush";
+
+//World Desk IOS normal Push platform endpoints
+config.platformApplicationIosWorldDeskDevGR = 'arn:aws:sns:ap-south-1:430506864995:app/APNS_SANDBOX/worldDeskIOSDevPush';
+config.platformApplicationIosWorldDeskProdGR = 'arn:aws:sns:ap-south-1:430506864995:app/APNS/worldDeskIOSProdPush';
 
 //Service Desk IOS normal Push platform endpoints
 config.platformApplicationIosSDPushDev = 'arn:aws:sns:ap-south-1:430506864995:app/APNS_SANDBOX/serviceDeskIOSDevPush';

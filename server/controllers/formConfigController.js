@@ -12,6 +12,7 @@ function FormConfigController(objCollection) {
     var app = objCollection.app;
     var util = objCollection.util;
     var queueWrapper = objCollection.queueWrapper;
+    const cacheWrapper = objCollection.cacheWrapper;
 
     var formConfigService = new FormConfigService(objCollection);
 
@@ -241,14 +242,13 @@ function FormConfigController(objCollection) {
     });
     
     app.post('/' + global.config.version + '/form/field/combo/list', function (req, res) {
-
-    	formConfigService.getFormFieldComboValues(req.body).then((data)=>{   
-    		//console.log(data);
-    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
-    	}).catch((err) => { 
-    		data = {};
-    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
-        	});
+        formConfigService.getFormFieldComboValues(req.body).then((data)=>{   
+            //console.log(data);
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        }).catch((err) => { 
+            let data = {};
+            res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        });
     });
 
     // "Service for creating form definition
@@ -260,7 +260,7 @@ function FormConfigController(objCollection) {
         if (!err) {
             res.send(responseWrapper.getResponse({}, formData, 200, req.body));
         } else {
-            console.log("Error: ", err)
+            console.log("Error: ", err);
             res.send(responseWrapper.getResponse(err, formData, -9999, req.body));
         }
 
@@ -272,7 +272,7 @@ function FormConfigController(objCollection) {
         if (!err) {
             res.send(responseWrapper.getResponse({}, formFieldList, 200, req.body));
         } else {
-            console.log("Error: ", err)
+            console.log("Error: ", err);
             res.send(responseWrapper.getResponse(err, formFieldList, -9999, req.body));
         }
 
@@ -287,7 +287,7 @@ function FormConfigController(objCollection) {
         if (!err) {
             res.send(responseWrapper.getResponse({}, formAccessList, 200, req.body));
         } else {
-            console.log("Error: ", err)
+            console.log("Error: ", err);
             res.send(responseWrapper.getResponse(err, formAccessList, -9999, req.body));
         }
 
@@ -300,7 +300,7 @@ function FormConfigController(objCollection) {
         if (!err) {
             res.send(responseWrapper.getResponse({}, workflowFormSubmittedStatusList, 200, req.body));
         } else {
-            console.log("Error: ", err)
+            console.log("Error: ", err);
             res.send(responseWrapper.getResponse(err, workflowFormSubmittedStatusList, -9999, req.body));
         }
 
@@ -320,7 +320,7 @@ function FormConfigController(objCollection) {
         if (!err) {
             res.send(responseWrapper.getResponse({}, updateStatus, 200, req.body));
         } else {
-            console.log("Error: ", err)
+            console.log("Error: ", err);
             res.send(responseWrapper.getResponse(err, updateStatus, -9999, req.body));
         }
 
@@ -337,7 +337,7 @@ function FormConfigController(objCollection) {
         if (!err) {
             res.send(responseWrapper.getResponse({}, updateStatus, 200, req.body));
         } else {
-            console.log("Error: ", err)
+            console.log("Error: ", err);
             res.send(responseWrapper.getResponse(err, updateStatus, -9999, req.body));
         }
 
@@ -395,15 +395,31 @@ function FormConfigController(objCollection) {
     
     app.post('/' + global.config.version + '/form/transaction/data', function (req, res) {
 
-    	formConfigService.getFormTransactionData(req.body).then((data)=>{   
-    		//console.log(data);
-    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
-    	}).catch((err) => { 
-    		data = {};
-    		res.send(responseWrapper.getResponse(err, data, -999, req.body));
-        	});
+        formConfigService.getFormTransactionData(req.body).then((data) => {
+            //console.log(data);
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        }).catch((err) => {
+            data = {};
+            res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        });
     });
-    
-};
+
+    // Service for modifying form definition
+    app.post('/' + global.config.version + '/form/field/definition/update', async function (req, res) {
+
+        // flag: 1 => Udpdate both activity_type mapping and config values
+        // flag: 2 => Udpdate activity_type mapping only
+        // flag: 3 => Udpdate config values only
+
+        const [err, updateStatus] = await formConfigService.formFieldDefinitionUpdate(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, updateStatus, 200, req.body));
+        } else {
+            console.log("Error: ", err);
+            res.send(responseWrapper.getResponse(err, updateStatus, -9999, req.body));
+        }
+
+    });
+}
 
 module.exports = FormConfigController;

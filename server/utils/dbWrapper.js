@@ -197,6 +197,42 @@ var executeRecursiveQuery = function (flag, start, limit, callName, paramsArr, c
     checkAndFetchRecords(start);
 };
 
+//Generic function for firing stored procedures
+//Bharat Masimukku
+//2019-01-20
+let callDBProcedure = 
+async (request, procName, paramsArray, flagReadOperation) =>
+{
+    try
+    {
+        let queryString = getQueryString(procName, paramsArray);
+
+        if (queryString != '') 
+        {                
+            let result = await (executeQueryPromise(flagReadOperation, queryString, request));
+            console.log(`DB SP Result:\n${JSON.stringify(result, null, 4)}`);
+            console.log(`Query Status: ${JSON.stringify(result[0].query_status, null, 4)}`);
+
+            if (result[0].query_status === 0)
+            {
+                return result;
+            }
+            else
+            {
+                return Promise.reject(result);
+            }            
+        }
+        else
+        {
+            return Promise.reject(`Invalid Query String`);
+        }
+    }
+    catch(error)
+    {
+        return Promise.reject(error);
+    }
+};
+
 /*process.on('exit', (err) => {
     global.logger.write('conLog', 'Closing the poolCluster : ' + err, {}, {});
     writeCluster.end();
@@ -216,5 +252,6 @@ process.on('SIGINT', () => {
 module.exports = {
     executeQuery: executeQuery,
     executeQueryPromise: executeQueryPromise,
-    executeRecursiveQuery: executeRecursiveQuery
+    executeRecursiveQuery: executeRecursiveQuery,
+    callDBProcedure: callDBProcedure,
 };
