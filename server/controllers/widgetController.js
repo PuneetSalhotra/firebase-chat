@@ -151,6 +151,16 @@ function WidgetController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/widget/access/level/entity/list', async function (req, res) {
+        const [err, data] = await widgetService.widgetAccessLevelEntityList(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("Error: ", err)
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = WidgetController;
