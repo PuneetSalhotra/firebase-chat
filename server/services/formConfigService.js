@@ -549,7 +549,7 @@ function FormConfigService(objCollection) {
                             });
 
                         }).catch((err) => {
-                            global.logger.write(err);
+                            // global.logger.write(err);
                         });
 
                         // Workflow trigger on form edit
@@ -646,9 +646,9 @@ function FormConfigService(objCollection) {
                         //The following piece of code will be executed only if it is CAF Form Edit and 
                         //the request is not fired internally device_os_id = 7 means internal call
                         if (Number(request.form_id) === CAF_FORM_ID && Number(request.device_os_id) !== 7) {
-                            global.logger.write('debug', "\x1b[35m [Log] CAF EDIT \x1b[0m", {}, request);
+                            global.logger.write('conLog', "\x1b[35m [Log] CAF EDIT \x1b[0m", {}, request);
                             await fetchReferredFormActivityId(request, request.activity_id, newData.form_transaction_id, request.form_id).then((data) => {
-                                global.logger.write('debug', "\x1b[35m [Log] DATA \x1b[0m", {}, request);
+                                global.logger.write('conLog', "\x1b[35m [Log] DATA \x1b[0m", {}, request);
                                 global.logger.write('debug', data, {}, request);
 
                                 if (data.length > 0) {
@@ -678,7 +678,7 @@ function FormConfigService(objCollection) {
                                         payload: fire713OnNewOrderFileRequest
                                     };
 
-                                    global.logger.write('debug', "\x1b[35m [Log]  Raising 713 entry onto New Order Form \x1b[0m", {}, request);
+                                    global.logger.write('conLog', "\x1b[35m [Log]  Raising 713 entry onto New Order Form \x1b[0m", {}, request);
                                     queueWrapper.raiseActivityEvent(fire705OnNewOrderFileEvent, request.activity_id, (err, resp) => {
                                         if (err) {
                                             global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
@@ -688,7 +688,7 @@ function FormConfigService(objCollection) {
                                         }
                                     });
                                 } else {
-                                    global.logger.write('debug', "\x1b[35m [Log] Data from this call fetchReferredFormActivityId is empty \x1b[0m", {}, request);
+                                    global.logger.write('conLog', "\x1b[35m [Log] Data from this call fetchReferredFormActivityId is empty \x1b[0m", {}, request);
                                 }
 
                             });
@@ -884,7 +884,7 @@ function FormConfigService(objCollection) {
                 params.push(request.datetime_log); // IN p_entity_datetime_2 DATETIME            
                 params.push(request.update_sequence_id);
 
-                global.logger.write('debug', '\x1b[32m In formConfigService - addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
+                global.logger.write('conLog', '\x1b[32m In formConfigService - addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
 
                 let queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
                 if (queryString != '') {
@@ -952,8 +952,8 @@ function FormConfigService(objCollection) {
         return new Promise((resolve, reject) => {
 
             fetchReferredFormActivityId(request, request.activity_id, request.form_transaction_id, request.form_id).then((data) => {
-                global.logger.write('debug', "\x1b[35m [Log] DATA \x1b[0m", {}, request);
-                global.logger.write('debug', data, {}, request);
+                global.logger.write('conLog', "\x1b[35m [Log] DATA \x1b[0m", {}, request);
+                global.logger.write('conLog', data, {}, request);
                 if (data.length > 0) {
                     let newOrderFormActivityId = Number(data[0].activity_id);
 
@@ -1666,7 +1666,7 @@ function FormConfigService(objCollection) {
                         return [err, formConfigData];
                     });
 
-                global.logger.write('debug', "New activityId is :" + activityId, {}, request);
+                global.logger.write('conLog', "New activityId is :" + activityId, {}, request);
 
                 // Prepare a new request object and fire the addActivity service
                 let createWorkflowRequest = Object.assign({}, request);
