@@ -193,15 +193,15 @@ function AccountController(objCollection) {
     //Voice XML for TWILIO
     app.post('/' + global.config.version + '/account/voice*', function (req, res) {
         // console.log('VNK : ' , req.body);
-        global.logger.write('debug', 'VNK : ' + JSON.stringify(req.body, null, 2), {}, req);
+        global.logger.write('conLog', 'VNK : ' + JSON.stringify(req.body, null, 2), {}, req);
         var x = req.body.url;
         x = x.split("/");
         // console.log('x[3] : ' + x[3]);
-        global.logger.write('debug', 'x[3] : ' + x[3], {}, req);
+        global.logger.write('conLog', 'x[3] : ' + x[3], {}, req);
 
         var file = global.config.efsPath + 'twiliovoicesxmlfiles/' + x[3] + '.xml';
         // console.log(file);               
-        global.logger.write('debug', 'Voice XML for TWILIO: ' + file, {}, req);
+        global.logger.write('conLog', 'Voice XML for TWILIO: ' + file, {}, req);
 
         fs.readFile(file, function (err, data) {
             if (err) {
