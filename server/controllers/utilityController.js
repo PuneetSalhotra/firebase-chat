@@ -96,7 +96,7 @@ function UtilityController(objCollection) {
     //VNK webhook
     app.post('/' + global.config.version + '/vnk', function (req, res) {
         //console.log('Request : ', req.body);
-        global.logger.write('debug', 'Request : ' + req.body, {}, req.body);
+        global.logger.write('debug', 'Request : ' + JSON.stringify(req.body), {}, req.body);
         req.body.country_code = '91';
         req.body.to_phone_number = '9966626954';
         req.body.from_phone_number = '+15107094638';
@@ -114,7 +114,7 @@ function UtilityController(objCollection) {
     //VNK webhook
     app.get('/' + global.config.version + '/vnk', function (req, res) {
         //console.log('Request : ', req.body);
-        global.logger.write('debug', 'Request : ' + req.body, {}, req.body);
+        global.logger.write('debug', 'Request : ' + JSON.stringify(req.body), {}, req.body);
         req.body.country_code = '91';
         req.body.to_phone_number = '9966626954';
         req.body.from_phone_number = '+15107094638';
@@ -146,7 +146,7 @@ function UtilityController(objCollection) {
         var internationalSmsMode = global.config.international_sms_mode;
 
         //console.log('Request params : ', request);
-        global.logger.write('debug', 'Request params : ' + request, {}, request);
+        global.logger.write('debug', 'Request params : ' + JSON.stringify(request), {}, request);
         var text;
 
         if (!request.hasOwnProperty("task_title")) {
@@ -232,7 +232,7 @@ function UtilityController(objCollection) {
        
         util.sendSmsHorizon(smapleSMS, req.body.country_code, req.body.phone_number, function (err, data) {
             if (err === false) {
-            	global.logger.write('debug', 'SMS HORIZON RESPONSE: '+JSON.stringify(data), {}, req);
+            	global.logger.write('debug', 'SMS HORIZON RESPONSE: ' + JSON.stringify(data), {}, req);
                 res.send(responseWrapper.getResponse(err, data.response, 200, req.body));
             } else {
                 res.send(responseWrapper.getResponse(err, data.code, 200, req.body));
@@ -246,7 +246,7 @@ function UtilityController(objCollection) {
         
          util.sendSmsHorizon(smapleSMS, req.body.country_code, req.body.phone_number, function (err, data) {
              if (err === false) {
-             	global.logger.write('debug', 'SMS HORIZON RESPONSE: '+JSON.stringify(data), {}, req);
+             	global.logger.write('debug', 'SMS HORIZON RESPONSE: ' + JSON.stringify(data), {}, req);
                  res.send(responseWrapper.getResponse(err, data.response, 200, req.body));
              } else {
                  res.send(responseWrapper.getResponse(err, data.code, 200, req.body));

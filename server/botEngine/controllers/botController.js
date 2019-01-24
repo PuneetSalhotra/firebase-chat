@@ -195,7 +195,7 @@ function BotController(objCollection) {
     //Retrieve the workflow steps of a specific bot
     app.post('/' + global.config.version + '/bot/mapping/workflow_step/list', async (req, res) => {
         try {            
-            global.logger.write('conLog', req.body,{},{});
+            global.logger.write('conLog', req.body, {}, {});
             let result = await botService.getBotworkflowSteps(req.body);
             res.send(responseWrapper.getResponse(false, result, 200, req.body));
         } catch(err) {
@@ -209,7 +209,7 @@ function BotController(objCollection) {
             let result = await botService.initBotEngine(req.body);
             res.send(responseWrapper.getResponse(false, result, 200, req.body));
         } catch(err) {            
-            global.logger.write('conLog', err,{},{});
+            global.logger.write('conLog', err, {}, {});
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });

@@ -74,7 +74,7 @@ function PamUpdateController(objCollection) {
                                             global.logger.write('serverError',"error in setting in asset parity",err,req.body);
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('debug',"asset parity is set successfully",{},req.body);
+                                            global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
 
                                     });
                                 }
@@ -154,10 +154,10 @@ function PamUpdateController(objCollection) {
                                     cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                         if (err) {
                                             //console.log("error in setting in asset parity");
-                                            global.logger.write('serverError',"error in setting in asset parity",err,req.body);
+                                            global.logger.write('serverError', "error in setting in asset parity", err, req.body);
                                         } else
                                             //console.log("asset parity is set successfully")
-                                        global.logger.write('debug',"asset parity is set successfully",{},req.body);
+                                        global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
 
                                     });
                                 }

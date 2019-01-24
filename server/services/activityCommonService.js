@@ -54,8 +54,8 @@ function ActivityCommonService(db, util, forEachAsync) {
             50
         );
         var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_other_participants', paramsArr);
-        global.logger.write('debug', "getAllParticipantsExceptAsset", {}, request);
-        global.logger.write('debug', queryString, {}, request);
+        global.logger.write('conLog', "getAllParticipantsExceptAsset", {}, request);
+        global.logger.write('conLog', queryString, {}, request);
 
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
@@ -112,7 +112,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 } else {
                     callback(true, false);
                     //console.log(err);
-                    global.logger.write('serverError', JSON.stringify(err), err, request);
+                    global.logger.write('conLog', JSON.stringify(err), err, request);
                     return;
                 }
             });
@@ -138,8 +138,8 @@ function ActivityCommonService(db, util, forEachAsync) {
             queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_last_updated_datetime', paramsArr);
         }
 
-        global.logger.write('debug', "Calling updateActivityLogLastUpdatedDatetimeAsset", {}, request);
-        global.logger.write('debug', queryString, {}, request);
+        global.logger.write('conLog', "Calling updateActivityLogLastUpdatedDatetimeAsset", {}, request);
+        global.logger.write('conLog', queryString, {}, request);
 
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
@@ -168,7 +168,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 updateActivityLogLastUpdatedDatetimeAsset(request, assetCollection, function (err, data) {
                     if (err !== false) {
                         //console.log(err);
-                        global.logger.write('serverError', '', err, request);
+                        global.logger.write('conLog', err, err, {});
                     }
                 });
             }, this);
@@ -434,7 +434,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                     return;
                 } else {
                     callback(err, false);
-                    global.logger.write('serverError', JSON.stringify(err), err, request);
+                    global.logger.write('conLog', JSON.stringify(err), err, request);
                     return;
                 }
             });
@@ -489,8 +489,8 @@ function ActivityCommonService(db, util, forEachAsync) {
             messageUniqueId = participantData.message_unique_id;
         }
 
-        global.logger.write('debug', 'streamTypeId: ' + streamTypeId, {}, request);
-        global.logger.write('debug', 'typeof streamTypeId: ' + typeof streamTypeId, {}, request);
+        global.logger.write('conLog', 'streamTypeId: ' + streamTypeId, {}, request);
+        global.logger.write('conLog', 'typeof streamTypeId: ' + typeof streamTypeId, {}, request);
 
         switch (streamTypeId) {
             case 4: // activity updated
@@ -666,7 +666,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                     return;
                 } else {
                     callback(err, false);
-                    global.logger.write('serverError', JSON.stringify(err), err, request);
+                    global.logger.write('conLog', JSON.stringify(err), err, request);
                     return;
                 }
             });
@@ -715,7 +715,7 @@ function ActivityCommonService(db, util, forEachAsync) {
 
         var duration = util.differenceDatetimes(request.timeline_transaction_datetime, request.datetime_log);
         //console.log('Duration in Seconds : ', duration);
-        global.logger.write('debug', 'Duration in Seconds : ' + duration, {}, request);
+        global.logger.write('conLog', 'Duration in Seconds : ' + duration, {}, request);
 
         var paramsArr = new Array(
             activityId,
@@ -910,7 +910,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 if (err) {
                     //console.log(err);
                     //console.log('error occured');
-                    global.logger.write('serverError', 'error occurred', err, rowData);
+                    global.logger.write('conLog', 'error occurred', err, rowData);
                 }
                 rowDataArr.field_value = fieldValue;
                 responseData.push(rowDataArr);
@@ -1007,7 +1007,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 fieldValue = util.replaceDefaultNumber(rowData['data_entity_tinyint_1']);
             default:
                 //console.log('came into default for data type id: ' + dataTypeId);
-                global.logger.write('debug', 'asset parity is set successfully', {}, rowData);
+                global.logger.write('conLog', 'asset parity is set successfully', {}, {});
                 fieldValue = '';
                 break;
         };
@@ -1078,7 +1078,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
                     //console.log('DAta in inventory check : ', data);
-                    global.logger.write('debug', 'Data in inventory check : ' + JSON.stringify(data, null, 2), {}, request);
+                    global.logger.write('conLog', 'Data in inventory check : ' + JSON.stringify(data, null, 2), {}, request);
                     if (data.length > 0) {
                         var ingredients = new Array();
                         forEachAsync(data, function (next, x) {
@@ -1109,8 +1109,8 @@ function ActivityCommonService(db, util, forEachAsync) {
                                 }).then(() => {
                                     //console.log('stationIdArrays: ', stationIdArrays);
                                     //console.log('TempArray: ', tempArray);
-                                    global.logger.write('debug', 'stationIdArrays: ' + JSON.stringify(stationIdArrays, null, 2), {}, request);
-                                    global.logger.write('debug', 'TempArray: ' + JSON.stringify(tempArray, null, 2), {}, request);
+                                    global.logger.write('conLog', 'stationIdArrays: ' + JSON.stringify(stationIdArrays, null, 2), {}, request);
+                                    global.logger.write('conLog', 'TempArray: ' + JSON.stringify(tempArray, null, 2), {}, request);
                                     tempArray.forEach(function (item, index) {
                                         //console.log('util.getFrequency(item'+item+',tempArray) : ' , util.getFrequency(item, tempArray))
                                         //console.log('stationIdArrays.length : ', stationIdArrays.length)
@@ -1214,7 +1214,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log('data.length :' + data.length);                
                 //console.log('data : ', data);
-                global.logger.write('debug', 'data : ' + JSON.stringify(data, null, 2), {}, request);
+                global.logger.write('conLog', 'data : ' + JSON.stringify(data, null, 2), {}, request);
                 if (data.length > 0) {
                     callback(true, data);
                 } else {
@@ -1236,7 +1236,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log('data : ', data);
-                global.logger.write('debug', 'data : ' + JSON.stringify(data, null, 2), {}, request);
+                global.logger.write('conLog', 'data : ' + JSON.stringify(data, null, 2), {}, request);
                 if (data.length > 0) {
                     callback(true, data);
                 } else {
@@ -1261,7 +1261,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log('DAta : ', data);
-                global.logger.write('debug', 'data : ' + JSON.stringify(data, null, 2), {}, request);
+                global.logger.write('conLog', 'data : ' + JSON.stringify(data, null, 2), {}, request);
                 if (err === false) {
                     if (data.length > 0) {
                         callback(false, data);
@@ -1286,7 +1286,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log('getOccupiedDeskCounts : ', data);
-                global.logger.write('debug', 'getOccupiedDeskCounts : ' + JSON.stringify(data, null, 2), {}, request);
+                global.logger.write('conLog', 'getOccupiedDeskCounts : ' + JSON.stringify(data, null, 2), {}, request);
                 (err === false) ? callback(false, data): callback(true, err);
             });
         }
@@ -1451,7 +1451,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 } else {
                     callback(err, false, false);
                     //console.log(err);
-                    global.logger.write('serverError', err, {}, request);
+                    global.logger.write('conLog', err, {}, request);
                     return;
                 }
             });
@@ -1593,7 +1593,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                     tableNames += data[0].asset_first_name + "-";
 
                     //console.log('data[0].asset_inline_data : ' , data[0].asset_inline_data);
-                    global.logger.write('debug', 'data[0].asset_inline_data : ' + data[0].asset_inline_data, {}, request);
+                    global.logger.write('debug', 'data[0].asset_inline_data : ' + data[0].asset_inline_data, {}, {});
                     var inlineJson = JSON.parse(data[0].asset_inline_data);
                     noOfGuests += util.replaceDefaultNumber(inlineJson.element_cover_capacity);
                     next();
@@ -1610,10 +1610,10 @@ function ActivityCommonService(db, util, forEachAsync) {
             //console.log('countryCode: ', countryCode);
             //console.log('phoneNumber : ', phoneNumber);
             //console.log('tableNames : ', tableNames);
-            global.logger.write('debug', 'memberName : ' + memberName, {}, request);
-            global.logger.write('debug', 'countryCode: ' + countryCode, {}, request);
-            global.logger.write('debug', 'phoneNumber : ' + phoneNumber, {}, request);
-            global.logger.write('debug', 'tableNames : ' + tableNames, {}, request);
+            global.logger.write('conLog', 'memberName : ' + memberName, {}, request);
+            global.logger.write('conLog', 'countryCode: ' + countryCode, {}, request);
+            global.logger.write('conLog', 'phoneNumber : ' + phoneNumber, {}, request);
+            global.logger.write('conLog', 'tableNames : ' + tableNames, {}, request);
 
             var expiryDateTime = util.addUnitsToDateTime(util.replaceDefaultDatetime(request.event_start_datetime), 5.5, 'hours');
             //expiryDateTime = util.getDatewithndrdth(expiryDateTime);
@@ -1699,7 +1699,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 if (err === false) {
                     var participantCount = data[0].participant_count;
                     //console.log('participant count retrieved from query is: ' + participantCount);
-                    global.logger.write('debug', 'participant count retrieved from query is: ' + participantCount, request);
+                    global.logger.write('conLog', 'participant count retrieved from query is: ' + participantCount, request);
                     paramsArr = new Array(
                         activityId,
                         organizationId,
@@ -1738,7 +1738,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                             } else {
                                 callback(err, false);
                                 //console.log(err);
-                                global.logger.write('serverError', err, {}, request);
+                                global.logger.write('conLog', err, {}, request);
                                 return;
                             }
                         });
@@ -1746,7 +1746,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', err, {}, request);
+                    global.logger.write('conLog', err, {}, request);
                     return;
                 }
             });
@@ -1844,8 +1844,8 @@ function ActivityCommonService(db, util, forEachAsync) {
                             if (data.length > 0) {
                                 //console.log("Asset - " + data[0].asset_id + " - " + data[0].operating_asset_first_name +" - Active Organization is : " + data[0].organization_id);
                                 //console.log("Asset - " + data[0].asset_id + " - " + data[0].operating_asset_first_name +" - Organization in participant List: " , rowData['organization_id']);
-                                global.logger.write('debug', "Asset - " + data[0].asset_id + " - " + data[0].operating_asset_first_name + " - Active Organization is : " + data[0].organization_id, {}, request);
-                                global.logger.write('debug', "Asset - " + data[0].asset_id + " - " + data[0].operating_asset_first_name + " - Organization in participant List: " + rowData['organization_id'], {}, request);
+                                global.logger.write('debug', "Asset - " + data[0].asset_id + " - " + data[0].operating_asset_first_name + " - Active Organization is : " + data[0].organization_id, {}, {});
+                                global.logger.write('debug', "Asset - " + data[0].asset_id + " - " + data[0].operating_asset_first_name + " - Organization in participant List: " + rowData['organization_id'], {}, {});
 
                                 if (data[0].organization_id == rowData['organization_id']) {
                                     refinedParticipantList.push(rowData);
@@ -1862,7 +1862,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 }
             }).then(() => {
                 //console.log('refinedParticipantList : ', refinedParticipantList.length);
-                global.logger.write('debug', 'refinedParticipantList : ' + refinedParticipantList.length, {}, request);
+                global.logger.write('debug', 'refinedParticipantList : ' + refinedParticipantList.length, {}, {});
                 resolve(refinedParticipantList);
             });
         });
@@ -1960,9 +1960,9 @@ function ActivityCommonService(db, util, forEachAsync) {
                     //console.log('projectEndDtTime : ', projectEndDtTime);
                     //console.log('taskProjectsEndDtTime : ', taskProjectsEndDtTime);
                     //console.log('Math.sign(util.differenceDatetimes(' + taskProjectsEndDtTime+ ', ' + projectEndDtTime  + '): ', Math.sign(util.differenceDatetimes(taskProjectsEndDtTime, projectEndDtTime)));
-                    global.logger.write('debug', 'projectEndDtTime : ' + projectEndDtTime, {}, request);
-                    global.logger.write('debug', 'taskProjectsEndDtTime : ' + taskProjectsEndDtTime, {}, request);
-                    global.logger.write('debug', 'Math.sign(util.differenceDatetimes(' + taskProjectsEndDtTime + ', ' + projectEndDtTime + '): ' + Math.sign(util.differenceDatetimes(taskProjectsEndDtTime, projectEndDtTime)), {}, request);
+                    global.logger.write('debug', 'projectEndDtTime : ' + projectEndDtTime, {}, {});
+                    global.logger.write('debug', 'taskProjectsEndDtTime : ' + taskProjectsEndDtTime, {}, {});
+                    global.logger.write('debug', 'Math.sign(util.differenceDatetimes(' + taskProjectsEndDtTime + ', ' + projectEndDtTime + '): ' + Math.sign(util.differenceDatetimes(taskProjectsEndDtTime, projectEndDtTime)), {}, {});
                     if ((Math.sign(util.differenceDatetimes(taskProjectsEndDtTime, projectEndDtTime)) !== 0)) {
                         //Call alter cover for that project
                         //Add timeline Entry
@@ -1973,7 +1973,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 });
             } else {
                 //console.log('There are no tasks in the project - project id - ', request.activity_parent_id);
-                global.logger.write('debug', 'There are no tasks in the project - project id - ' + request.activity_parent_id, {}, request);
+                global.logger.write('debug', 'There are no tasks in the project - project id - ' + request.activity_parent_id, {}, {});
             }
         });
     };
@@ -1996,7 +1996,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     if (err === false) {
                         //console.log('DATA : ', data);
-                        global.logger.write('debug', 'DATA : ' + JSON.stringify(data, null, 2), {}, request);
+                        global.logger.write('conLog', 'DATA : ' + JSON.stringify(data, null, 2), {}, request);
                         resolve(data);
                     } else {
                         reject(err);
@@ -2083,7 +2083,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         var queryString = util.getQueryString('ds_p1_partititon_offset_transaction_select', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
-                global.logger.write('debug', data, {}, {});
+                global.logger.write('conLog', data, {}, {});
                 (data.length > 0) ? callback(true, {}): callback(false, data);
             });
         }
@@ -2101,7 +2101,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         var queryString = util.getQueryString('ds_p1_partition_offset_transaction_insert', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
-                global.logger.write('debug', data, {}, request);
+                global.logger.write('conLog', data, {}, request);
                 (err == false) ? callback(false, data): callback(true, {});
             });
         }

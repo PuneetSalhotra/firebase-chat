@@ -536,7 +536,7 @@ function AssetController(objCollection) {
     //Retrieve the asset Timeline Data
     app.post('/' + global.config.version + '/asset/access/timeline/list', async (req, res) => {
         try {            
-            global.logger.write('conLog', req.body,{},{});
+            global.logger.write('conLog', req.body, {}, {});
             let result = await assetService.getAssetTimelineData(req.body);
             res.send(responseWrapper.getResponse(false, result, 200, req.body));
         } catch(err) {

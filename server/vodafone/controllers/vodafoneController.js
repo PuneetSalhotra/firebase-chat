@@ -28,7 +28,7 @@ function VodafoneController(objCollection) {
 
         queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp) => {
             if (err) {
-                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req);
+                global.logger.write('conLog', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req);
                 res.send(responseWrapper.getResponse(err, {}, -5999, req));
                 throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
             } else {
@@ -50,7 +50,7 @@ function VodafoneController(objCollection) {
 
         queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp) => {
             if (err) {
-                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req);
+                global.logger.write('conLog', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req);
                 res.send(responseWrapper.getResponse(err, {}, -5999, req));
                 throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
             } else {
@@ -83,7 +83,7 @@ function VodafoneController(objCollection) {
 
         queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp) => {
             if (err) {
-                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req);
+                global.logger.write('conLog', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req);
                 res.send(responseWrapper.getResponse(err, {}, -5999, req));
                 throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
             } else {
@@ -136,7 +136,7 @@ function VodafoneController(objCollection) {
 
         queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp) => {
             if (err) {
-                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req.body);
+                global.logger.write('conLog', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req.body);
                 res.send(responseWrapper.getResponse(err, {}, -5999, req));
                 throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
             } else {
@@ -182,10 +182,10 @@ function VodafoneController(objCollection) {
                                     cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                         if (err) {
                                             //console.log("error in setting in asset parity");
-                                            global.logger.write('serverError',"error in setting in asset parity",err,req.body);
+                                            global.logger.write('conLog', "error in setting in asset parity", err, req.body);
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('debug',"asset parity is set successfully",{},req.body);
+                                            global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
 
                                     });
                                 }
@@ -324,7 +324,7 @@ function VodafoneController(objCollection) {
 
         queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp) => {
             if (err) {
-                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req);
+                global.logger.write('conLog', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req);
                 return res.send(responseWrapper.getResponse(err, {
                     err
                 }, -5999999, req.body));

@@ -24,7 +24,7 @@ function FormConfigController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper rseponse');
-                global.logger.write('debug', 'did not get proper response', {}, req.body);
+                global.logger.write('debug', 'did not get proper response', err, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -39,7 +39,7 @@ function FormConfigController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper rseponse');
-                global.logger.write('debug', 'did not get proper response', {}, req.body);
+                global.logger.write('debug', 'did not get proper response', err, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -54,7 +54,7 @@ function FormConfigController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper rseponse');
-                global.logger.write('debug', 'did not get proper response', {}, req.body);
+                global.logger.write('debug', 'did not get proper response', err, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -69,7 +69,7 @@ function FormConfigController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper rseponse');
-                global.logger.write('debug', 'did not get proper response', {}, req.body);
+                global.logger.write('debug', 'did not get proper response', err, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -84,7 +84,7 @@ function FormConfigController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper rseponse');
-                global.logger.write('debug', 'did not get proper response', {}, req.body);
+                global.logger.write('debug', 'did not get proper response', err, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -195,7 +195,7 @@ function FormConfigController(objCollection) {
                                     global.logger.write('serverError', "error in setting in asset parity", err, req.body);
                                 } else
                                     //console.log("asset parity is set successfully")
-                                    global.logger.write('debug', "asset parity is set successfully", {}, req.body);
+                                    global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
 
                             });
                         }
@@ -209,7 +209,7 @@ function FormConfigController(objCollection) {
         try {
             JSON.parse(req.body.activity_inline_data);
             // console.log('json is fine');
-            global.logger.write('debug', "json is fine", {}, req.body);
+            global.logger.write('conLog', "json is fine", {}, req.body);
 
         } catch (exeption) {
             res.send(responseWrapper.getResponse(false, {}, -3308, req.body));

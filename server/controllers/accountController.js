@@ -193,15 +193,15 @@ function AccountController(objCollection) {
     //Voice XML for TWILIO
     app.post('/' + global.config.version + '/account/voice*', function (req, res) {
         // console.log('VNK : ' , req.body);
-        global.logger.write('debug', 'VNK : ' + JSON.stringify(req.body, null, 2), {}, req);
+        global.logger.write('conLog', 'VNK : ' + JSON.stringify(req.body, null, 2), {}, req);
         var x = req.body.url;
         x = x.split("/");
         // console.log('x[3] : ' + x[3]);
-        global.logger.write('debug', 'x[3] : ' + x[3], {}, req);
+        global.logger.write('conLog', 'x[3] : ' + x[3], {}, req);
 
         var file = global.config.efsPath + 'twiliovoicesxmlfiles/' + x[3] + '.xml';
         // console.log(file);               
-        global.logger.write('debug', 'Voice XML for TWILIO: ' + file, {}, req);
+        global.logger.write('conLog', 'Voice XML for TWILIO: ' + file, {}, req);
 
         fs.readFile(file, function (err, data) {
             if (err) {
@@ -255,13 +255,13 @@ function AccountController(objCollection) {
         /*var text = "Hey "+ request.receiver_name +" , "+ request.sender_name+" has requested your participation in "+request.task_title+" using the Desker App, ";
             text += "it's due by " + request.due_date + ". Download the App from http://desker.co/download.";*/
 
-        /*util.sendSmsSinfini(request.message, request.country_code, request.phone_number, function (err, res) {
+        util.sendSmsSinfini(request.message, request.country_code, request.phone_number, function (err, response) {
             // console.log(err,'\n',res);
             global.logger.write('debug', 'Sinfini Error: ' + JSON.stringify(err, null, 2), {}, request);
-            global.logger.write('debug', 'Sinfini Response: ' + JSON.stringify(res, null, 2), {}, request);
-        });*/
+            global.logger.write('debug', 'Sinfini Response: ' + JSON.stringify(response, null, 2), {}, request);
+            res.send(responseWrapper.getResponse(false, {}, 200, req.body));
+        });
 
-        res.send(responseWrapper.getResponse(false, {}, 200, req.body));
     });
 
     /* GET SINFINI SMS delivery receipt  */
