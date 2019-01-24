@@ -139,8 +139,8 @@ function connectToKafkaBroker(){
         //global.logger = new Logger();
         global.logger = new Logger(queueWrapper);
         
-        global.logger.write('debug', 'Kafka Producer is ready', {}, {});
-        global.logger.write('debug', 'BROKER_HOST : ' + global.config.BROKER_HOST, {}, {});
+        global.logger.write('conLog', 'Kafka Producer is ready', {}, {});
+        global.logger.write('conLog', 'BROKER_HOST : ' + global.config.BROKER_HOST, {}, {});
 
         var util = new Util();
         var responseWrapper = new ResponseWrapper(util);

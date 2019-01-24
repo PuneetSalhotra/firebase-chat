@@ -472,9 +472,9 @@ function ActivityListingService(objCollection) {
 										// console.log('monthly_summary.completion_rate : ' + monthly_summary.completion_rate);
 										// console.log('monthly_summary.unread_update_response_rate : ' + monthly_summary.unread_update_response_rate);
 
-										global.logger.write('debug', 'Denominator after processing: ' + denominator, {}, request);
-										global.logger.write('debug', 'monthly_summary.completion_rate: ' + monthly_summary.completion_rate, {}, request);
-										global.logger.write('debug', 'monthly_summary.unread_update_response_rate: ' + monthly_summary.unread_update_response_rate, {}, request);
+										global.logger.write('debug', 'Denominator after processing: ' + denominator, {}, {});
+										global.logger.write('debug', 'monthly_summary.completion_rate: ' + monthly_summary.completion_rate, {}, {});
+										global.logger.write('debug', 'monthly_summary.unread_update_response_rate: ' + monthly_summary.unread_update_response_rate, {}, {});
 
 										if (denominator == 0) {
 											monthly_summary.average_value = -1;
@@ -607,7 +607,7 @@ function ActivityListingService(objCollection) {
 		if (queryString != '') {
 			db.executeQuery(1, queryString, request, function (err, coworkerData) {
 				console.log(coworkerData);
-				global.logger.write('debug', 'coworkerData' + JSON.stringify(coworkerData, null, 2), {}, request);
+				global.logger.write('debug', 'coworkerData' + JSON.stringify(coworkerData, null, 2), {}, {});
 
 				if (err === false) {
 					if (coworkerData.length > 0) {
@@ -997,7 +997,7 @@ function ActivityListingService(objCollection) {
 			db.executeQuery(1, queryString, request, function (err, data) {
 				if (err === false) {
 					// console.log('Data of pending count : ', data);
-					global.logger.write('debug', 'Data of pending count: ' + JSON.stringify(data, null, 2), {}, request);
+					global.logger.write('debug', 'Data of pending count: ' + JSON.stringify(data, null, 2), {}, {});
 
 					(data.length > 0) ? taskCnt = data[0].count: taskCnt = 0;
 					getCatGrpCts(request).then((resp) => {
@@ -1049,7 +1049,7 @@ function ActivityListingService(objCollection) {
 			db.executeQuery(1, queryString, request, function (err, data) {
 				if (err === false) {
 					// console.log('Data of pending count : ', data);
-					global.logger.write('debug', 'Data of pending count: ' + JSON.stringify(data, null, 2), {}, request);
+					global.logger.write('debug', 'Data of pending count: ' + JSON.stringify(data, null, 2), {}, {});
 
 					(data.length > 0) ? taskCnt = data[0].count: taskCnt = 0;
 					getCatGrpCts(request).then((resp) => {
@@ -1195,7 +1195,7 @@ function ActivityListingService(objCollection) {
 			db.executeQuery(1, queryString, request, function (err, data) {
 				if (err === false) {
 					// console.log('Inmail pending count : ', data);
-					global.logger.write('debug', 'Inmail pending count: ' + JSON.stringify(data, null, 2), {}, request);
+					global.logger.write('debug', 'Inmail pending count: ' + JSON.stringify(data, null, 2), {}, {});
 
 					(data.length > 0) ? callback(false, data, 200): callback(false, {}, 200);
 				} else {
@@ -1352,7 +1352,7 @@ function ActivityListingService(objCollection) {
 				db.executeQuery(1, queryString, request, function (err, resp) {
 					if (err === false) {
 						// console.log('Data of group counts : ', resp);
-						global.logger.write('debug', 'Data of group counts: ' + JSON.stringify(resp, null, 2), {}, request);
+						global.logger.write('debug', 'Data of group counts: ' + JSON.stringify(resp, null, 2), {}, {});
 
 						return resolve(resp);
 						/*forEachAsync(resp, (next, row)=>{                            
@@ -1396,7 +1396,7 @@ function ActivityListingService(objCollection) {
 				db.executeQuery(1, queryString, request, function (err, resp) {
 					if (err === false) {
 						// console.log('Badge Counts : ', resp);
-						global.logger.write('debug', 'Badge Counts: ' + JSON.stringify(resp, null, 2), {}, request);
+						global.logger.write('debug', 'Badge Counts: ' + JSON.stringify(resp, null, 2), {}, {});
 
 						return resolve(resp);
 					} else {

@@ -43,7 +43,7 @@ function ActivityUpdateController(objCollection) {
                                             global.logger.write('serverError', "error in setting in asset parity", err, req.body);
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('debug', "asset parity is set successfully", {}, req.body);
+                                            global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
 
                                     });
                                 }
@@ -57,7 +57,7 @@ function ActivityUpdateController(objCollection) {
         try {
             JSON.parse(req.body.activity_inline_data);
             // console.log('json is fine');
-            global.logger.write('debug', "json is fine", {}, req.body);
+            global.logger.write('conLog', "json is fine", {}, req.body);
 
         } catch (exeption) {
             res.send(responseWrapper.getResponse(false, {}, -3308,req.body));
@@ -118,7 +118,7 @@ function ActivityUpdateController(objCollection) {
                                             global.logger.write('serverError',"error in setting in asset parity",err,req.body);
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('debug',"asset parity is set successfully",{},req.body);
+                                            global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
 
                                     });
                                 }
@@ -187,7 +187,7 @@ function ActivityUpdateController(objCollection) {
                                             global.logger.write('serverError',"error in setting in asset parity",err,req.body);
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('debug',"asset parity is set successfully",{},req.body);
+                                            global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
 
                                     });
                                 }
@@ -260,7 +260,7 @@ function ActivityUpdateController(objCollection) {
                                             global.logger.write('serverError',"error in setting in asset parity",err,req.body);
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('debug',"asset parity is set successfully",{},req.body);
+                                            global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
 
                                     });
                                 }
@@ -347,7 +347,7 @@ function ActivityUpdateController(objCollection) {
                                             global.logger.write('serverError',"error in setting in asset parity",err,req.body);
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('debug',"asset parity is set successfully",{},req.body);
+                                            global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
 
                                     });
                                 }
@@ -482,7 +482,7 @@ function ActivityUpdateController(objCollection) {
                                             global.logger.write('serverError',"error in setting in asset parity",err,req.body);
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('debug',"asset parity is set successfully",{},req.body);
+                                            global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
 
                                     });
                                 }
@@ -549,7 +549,7 @@ function ActivityUpdateController(objCollection) {
                                             global.logger.write('serverError',"error in setting in asset parity",err,req.body);
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('debug',"asset parity is set successfully",{},req.body);
+                                            global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
 
                                     });
                                 }
@@ -604,7 +604,7 @@ function ActivityUpdateController(objCollection) {
                 } else {
                     if (status) { // proceed
                         // console.log("calling deleteAccountFromWorkforce");
-                        global.logger.write('debug', 'calling deleteAccountFromWorkforce', {}, req.body);
+                        global.logger.write('conLog', 'calling deleteAccountFromWorkforce', {}, req.body);
                         // Raise event
                         initiateServiceToDeleteUserFromWorkforce(req.body, function (err, data) {
                             if (!err) {
@@ -669,7 +669,7 @@ function ActivityUpdateController(objCollection) {
                                     global.logger.write('serverError', 'error in setting in asset parity', err, reqBody);
                                 } else
                                     // console.log("asset parity is set successfully")
-                                    global.logger.write('debug', "asset parity is set successfully", {}, reqBody);
+                                    global.logger.write('conLog', "asset parity is set successfully", {}, reqBody);
 
                             });
                         }
