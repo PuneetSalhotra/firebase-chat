@@ -135,7 +135,7 @@ function ActivityParticipantController(objCollection) {
         }
     });
 
-    app.put('/' + global.config.version + '/activity/participant/access/reset', function (req, res) {
+    app.post('/' + global.config.version + '/activity/participant/access/reset', function (req, res) {
         var assetMessageCounter = 0;
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))
@@ -213,7 +213,7 @@ function ActivityParticipantController(objCollection) {
 
     });
 
-    app.put('/' + global.config.version + '/activity/participant/access/alter', function (req, res) {
+    app.post('/' + global.config.version + '/activity/participant/access/alter', function (req, res) {
         var assetMessageCounter = 0;
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))
@@ -283,7 +283,7 @@ function ActivityParticipantController(objCollection) {
     });
 
     //BETA
-    app.put('/' + global.config.version + '/activity/participant/timestamp/alter', function (req, res) {
+    app.post('/' + global.config.version + '/activity/participant/timestamp/alter', function (req, res) {
         var assetMessageCounter = 0;
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))
@@ -353,7 +353,7 @@ function ActivityParticipantController(objCollection) {
     });
     
     //Adding the invitee as a participant in invitor the ID Card Activity
-    app.put('/' + global.config.version + '/activity/access/participant_invitee/set', function (req, res) {
+    app.post('/' + global.config.version + '/activity/access/participant_invitee/set', function (req, res) {
         var assetMessageCounter = 0;
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))

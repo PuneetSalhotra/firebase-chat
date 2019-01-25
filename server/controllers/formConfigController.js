@@ -166,7 +166,7 @@ function FormConfigController(objCollection) {
     });
 
 
-    app.put('/' + global.config.version + '/form/activity/alter', function (req, res) {
+    app.post('/' + global.config.version + '/form/activity/alter', function (req, res) {
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);

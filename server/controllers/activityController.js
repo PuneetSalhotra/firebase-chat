@@ -656,7 +656,7 @@ function ActivityController(objCollection) {
         });
     };
 
-    app.put('/' + global.config.version + '/activity/status/alter', function (req, res) {
+    app.post('/' + global.config.version + '/activity/status/alter', function (req, res) {
         var assetMessageCounter = 0;
         var deviceOsId = 0;
         var activityData = {
@@ -752,7 +752,7 @@ function ActivityController(objCollection) {
         });
     });
 
-    app.put('/' + global.config.version + '/activity/access/owner_rating/set', function (req, res) {
+    app.post('/' + global.config.version + '/activity/access/owner_rating/set', function (req, res) {
         activityService.updateOwnerRating(req.body, function (err, data, statusCode) {
             if (err === false) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
@@ -762,7 +762,7 @@ function ActivityController(objCollection) {
         });
     });
 
-    app.put('/' + global.config.version + '/activity/access/lead_rating/set', function (req, res) {
+    app.post('/' + global.config.version + '/activity/access/lead_rating/set', function (req, res) {
         activityService.updateLeadRating(req.body, function (err, data, statusCode) {
             if (err === false) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
@@ -773,7 +773,7 @@ function ActivityController(objCollection) {
     });    
     
     
-    app.put('/' + global.config.version + '/activity/form/field/validation/set', function (req, res) {
+    app.post('/' + global.config.version + '/activity/form/field/validation/set', function (req, res) {
    	 activityService.updateActivityFormFieldValidation(req.body).then((data)=>{   
    		global.logger.write('conLog', "VALIDATION SET : RESPONSE : " + data, {}, req);
    		//res.send(responseWrapper.getResponse({}, data, 200, req.body));
@@ -785,7 +785,7 @@ function ActivityController(objCollection) {
    	 	res.send(responseWrapper.getResponse({}, {}, 200, req.body));
    });
     
-    // app.put('/' + global.config.version + '/test/workflow/queue/mapping/set', function (req, res) {
+    // app.post('/' + global.config.version + '/test/workflow/queue/mapping/set', function (req, res) {
     //     activityService.updateWorkflowQueueMapping(req.body)
     //         .then((data) => {
     //             // console.log("Data: ", data)
