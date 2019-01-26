@@ -631,7 +631,7 @@ function BotService(objectCollection) {
                         }
                     } catch(err) {
                         global.logger.write('serverError', err, {}, {});
-                        global.logger.write('serverError', 'Error in executing changeStatus Step', {}, {}); 
+                        global.logger.write('conLog', 'Error in executing changeStatus Step', {}, {}); 
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({"err": err});                       
                         //return Promise.reject(err);
@@ -647,7 +647,7 @@ function BotService(objectCollection) {
                         global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
                         await copyFields(request, botOperationsJson.bot_operations.form_field_copy);
                     } catch(err) {
-                        global.logger.write('serverError', 'Error in executing copyFields Step', {}, {});
+                        global.logger.write('conLog', 'Error in executing copyFields Step', {}, {});
                         global.logger.write('serverError', err, {}, {});
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({"err": err});
@@ -669,7 +669,7 @@ function BotService(objectCollection) {
                             i.bot_operation_inline_data = JSON.stringify({"err": result[1]});
                         }
                     } catch(err) {
-                        global.logger.write('serverError', 'Error in executing alterWFCompletionPercentage Step', {}, {});
+                        global.logger.write('conLog', 'Error in executing alterWFCompletionPercentage Step', {}, {});
                         global.logger.write('serverError', err, {}, {});
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({"err": err});
@@ -685,7 +685,7 @@ function BotService(objectCollection) {
                     try {
                         await fireApi(request, botOperationsJson.bot_operations.fire_api);
                     } catch(err) {
-                        global.logger.write('serverError', 'Error in executing fireApi Step', {}, {});
+                        global.logger.write('conLog', 'Error in executing fireApi Step', {}, {});
                         global.logger.write('serverError', err, {}, {});
                         i.bot_operation_status_id = 3;
                         i.bot_operation_inline_data = JSON.stringify({"err": err});
@@ -701,7 +701,7 @@ function BotService(objectCollection) {
                     try {
                         await fireTextMsg(request, botOperationsJson.bot_operations.fire_text);                        
                     } catch(err) {
-                        global.logger.write('serverError', 'Error in executing fireTextMsg Step', {}, {});
+                        global.logger.write('conLog', 'Error in executing fireTextMsg Step', {}, {});
                         global.logger.write('serverError', err, {}, {});
                         i.bot_operation_status_id = 4;
                         i.bot_operation_inline_data = JSON.stringify({"err": err});
@@ -717,7 +717,7 @@ function BotService(objectCollection) {
                     try {
                         await fireEmail(request, botOperationsJson.bot_operations.fire_email);
                     } catch(err) {
-                        global.logger.write('serverError', 'Error in executing fireEmail Step', {}, {});
+                        global.logger.write('conLog', 'Error in executing fireEmail Step', {}, {});
                         global.logger.write('serverError', err, {}, {});
                         i.bot_operation_status_id = 4;
                         i.bot_operation_inline_data = JSON.stringify({"err": err});
@@ -759,7 +759,7 @@ function BotService(objectCollection) {
     //Bot Step to change the status
     async function changeStatus(request, inlineData) {
         let newReq = Object.assign({}, request);
-        global.logger.write('debug', inlineData, {}, {});
+        global.logger.write('conLog', inlineData, {}, {});
         newReq.activity_id = request.workflow_activity_id;
         newReq.activity_status_id = inlineData.activity_status_id;
         //newRequest.activity_status_type_id = inlineData.activity_status_id; 
@@ -981,7 +981,7 @@ function BotService(objectCollection) {
             }*/
 
             txn_id = await activityCommonService.getActivityTimelineTransactionByFormId713(newReq, newReq.activity_id, i.target_form_id);
-            global.logger.write('conLog',txn_id,{},{});
+            global.logger.write('conLog', txn_id, {}, {});
             
             if(txn_id.length > 0) {
                 targetFormTxnId = txn_id[0].data_form_transaction_id;
@@ -1313,9 +1313,9 @@ function BotService(objectCollection) {
         let newReq = Object.assign({}, request);
         let resp;        
         
-        global.logger.write('conLog', inlineData,{},{});
+        global.logger.write('conLog', inlineData, {}, {});
         let type = Object.keys(inlineData);        
-        global.logger.write('conLog', type,{},{});
+        global.logger.write('conLog', type, {}, {});
 
         if(type[0] === 'static') {
             newReq.endpoint = inlineData[type[0]].endpoint;
@@ -1335,7 +1335,7 @@ function BotService(objectCollection) {
                                             "field_id": i.parameter_value.field_id,
                                             "organization_id": newReq.organization_id
                                         });                
-                global.logger.write('conLog', resp,{},{});
+                global.logger.write('conLog', resp, {}, {});
                 i.parameter_value = resp[0].data_entity_text_1;
             }
         }
@@ -2104,14 +2104,14 @@ function BotService(objectCollection) {
                 params.push(request.datetime_log);                                  // IN p_entity_datetime_2 DATETIME            
                 params.push(request.update_sequence_id);            
 
-                global.logger.write('debug', '\x1b[32m In BotService - addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
+                global.logger.write('conLog', '\x1b[32m In BotService - addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
                 
                 let queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
                 if (queryString != '') {
                     try {
                         await db.executeQueryPromise(0, queryString, request);
                     } catch(err) {
-                        global.logger.write('debug', err,{},{});                    
+                        global.logger.write('debug', err, {}, {});
                     }                    
                 }
         }

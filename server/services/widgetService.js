@@ -110,7 +110,7 @@ function WidgetService(objCollection) {
                             }
 
                             //console.log(widgetArr);
-                            global.logger.write('debug', widgetArr, {}, request);
+                            global.logger.write('conLog', widgetArr, {}, request);
                         });
                     }).then(function () {
                         callback(false, responseArr, 200);

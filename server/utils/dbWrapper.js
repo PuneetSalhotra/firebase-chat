@@ -208,6 +208,7 @@ let callDBProcedure =
             if (queryString != '') {
                 let result = await (executeQueryPromise(flagReadOperation, queryString, request));
                 console.log(`DB SP Result:\n${JSON.stringify(result, null, 4)}`);
+                global.logger.write('dbResponse', queryString, result, request);
                 // console.log(`Query Status: ${JSON.stringify(result[0].query_status, null, 4)}`);
 
                 if (result[0].query_status === 0) {
@@ -216,9 +217,11 @@ let callDBProcedure =
                     return Promise.reject(result);
                 }
             } else {
+                global.logger.write('dbResponse', "Invalid Query String: " + queryString, {}, request);
                 return Promise.reject(`Invalid Query String`);
             }
         } catch (error) {
+            global.logger.write('dbResponse', 'QUERY ERROR | ', error, request);
             return Promise.reject(error);
         }
     };
