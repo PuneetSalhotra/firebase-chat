@@ -30,6 +30,10 @@ apiKey.apiKey = 'xkeysib-bf69ddcbccdb2bd2091eddcf8302ca9ab9bbd32dddd41a002e941c1
 const apiInstance = new SibApiV3Sdk.SMTPApi();
 // 
 
+// MySQL for generating prepared statements
+const mysql = require('mysql');
+
+
 function Util() {
 
     this.getSMSString = function (verificationCode) {
@@ -493,22 +497,37 @@ function Util() {
         return dateTimeString;
     };
 
-    this.getQueryString = function (callName, paramsArr) {
-        var queryString = "CALL " + callName + "(";
-        paramsArr.forEach(function (item, index) {
-            if (typeof item === 'string' || item instanceof String)
-                item = item.replace(/'/g, "\\'") // escaping single quote                   
-                .replace(/\"/g, '\\"') // escaping \" from UI
-                .replace(/\n/g, '\\n');
-            if (index === (paramsArr.length - 1))
-                queryString = queryString + "'" + item + "'";
-            else
-                queryString = queryString + "'" + item + "',";
-        }, this);
-        queryString = queryString + ");";
-        return queryString;
+    // this.getQueryString = function (callName, paramsArr) {
+    //     var queryString = "CALL " + callName + "(";
+    //     paramsArr.forEach(function (item, index) {
+    //         if (typeof item === 'string' || item instanceof String)
+    //             item = item.replace(/'/g, "\\'") // escaping single quote                   
+    //             .replace(/\"/g, '\\"') // escaping \" from UI
+    //             .replace(/\n/g, '\\n');
+    //         if (index === (paramsArr.length - 1))
+    //             queryString = queryString + "'" + item + "'";
+    //         else
+    //             queryString = queryString + "'" + item + "',";
+    //     }, this);
+    //     queryString = queryString + ");";
+    //     return queryString;
 
-    };
+    // };
+
+    this.getQueryString = function (callName, paramsArr) {
+        let queryString = '',
+            preparedQueryString;
+        if (paramsArr.length > 0) {
+            queryString = `CALL ?? (${new Array(paramsArr.length).fill('?').join(', ')});`;
+            // console.log("queryString: ", queryString);
+            // console.log("paramsArr: ", paramsArr);
+            preparedQueryString = mysql.format(queryString, [String(callName)].concat(paramsArr));
+            // console.log("preparedQueryString: ", preparedQueryString);
+            return preparedQueryString;
+        } else {
+            return '';
+        }
+    }
 
     this.getRandomInt = function () {
         /*

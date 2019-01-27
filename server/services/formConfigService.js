@@ -1075,6 +1075,8 @@ function FormConfigService(objCollection) {
 
     this.formAdd = async function (request) {
 
+        request.update_type_id = 28;
+
         let formId = 0,
             formFields = [],
             formData = [],
@@ -1244,7 +1246,7 @@ function FormConfigService(objCollection) {
 
             let paramsArr = new Array(
                 formFieldCollection.field_id,
-                formFieldCollection.field_name,
+                formFieldCollection.field_name || '',
                 formFieldCollection.field_description,
                 formFieldCollection.field_sequence_id,
                 formFieldCollection.field_mandatory_enabled,
