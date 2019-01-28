@@ -161,6 +161,16 @@ function WidgetController(objCollection) {
         }
     });
 
+    app.put('/' + global.config.version + '/widget/delete', async function (req, res) {
+        const [err, data] = await widgetService.widgetDelete(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("Error: ", err)
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = WidgetController;
