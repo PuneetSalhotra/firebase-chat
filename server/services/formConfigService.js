@@ -2712,6 +2712,91 @@ function FormConfigService(objCollection) {
         return [error, fieldData];
     }
 
+    this.formFieldBotWidgetList = async function (request) {
+
+        let botListData = [],
+            error = true,
+            fieldId,
+            responseObject = {}; // true;
+
+        try {
+            fieldId = JSON.parse(request.field_id)
+        } catch (err) {
+            console.log("Invalid JSON, while parsing the field_id: ", err)
+            return [error, botListData];
+        }
+
+        // console.log("fieldId: ", fieldId)
+
+        request.flag = 5;
+        request.page_start = request.page_start || 0;
+
+        if (Array.isArray(fieldId) === true) {
+            console.log("An Array!")
+
+            for (const field of fieldId) {
+                responseObject[`${field}`] = {};
+                responseObject[`${field}`].bots = [];
+                responseObject[`${field}`].widgets = [];
+
+                try {
+                    let newRequest = Object.assign({}, request);
+                    newRequest.field_id = field;
+                    botListData = await activityCommonService.getBotsMappedToActType(newRequest);
+                    responseObject[`${field}`].bots = formatBotListData(botListData);
+
+                    widgetListData = await activityCommonService.widgetListSelectFieldAll(newRequest);
+                    responseObject[`${field}`].widgets = formatWidgetListData(widgetListData);
+                    error = false;
+                } catch (error) {
+                    error = err;
+                }
+            }
+        } else {
+            // Single field_id query
+            try {
+                responseObject[`${fieldId}`] = {};
+                responseObject[`${fieldId}`].bots = [];
+                responseObject[`${fieldId}`].widgets = [];
+
+                botListData = await activityCommonService.getBotsMappedToActType(request);
+                responseObject[`${fieldId}`].bots = formatBotListData(botListData);
+
+                widgetListData = await activityCommonService.widgetListSelectFieldAll(request);
+                responseObject[`${fieldId}`].widgets = formatWidgetListData(widgetListData);
+                error = false;
+            } catch (err) {
+                error = err;
+            }
+        }
+        return [error, responseObject];
+    }
+
+    function formatBotListData(botListData) {
+        let updatedData = [];
+        botListData.forEach(element => {
+            updatedData.push({
+                bot_id: element.bot_id,
+                bot_name: String(element.bot_name).trim(),
+                bot_trigger_name: String(element.bot_trigger_name).trim()
+            });
+        });
+        return updatedData;
+    }
+
+    function formatWidgetListData(widgetListData) {
+        let updatedData = [];
+        widgetListData.forEach(element => {
+            updatedData.push({
+                widget_id: element.widget_id,
+                widget_name: String(element.widget_name).trim(),
+                widget_aggregate_name: String(element.widget_aggregate_name).trim(),
+                widget_chart_name: String(element.widget_chart_name).trim()
+            });
+        });
+        return updatedData;
+    }
+
 }
 
 module.exports = FormConfigService;
