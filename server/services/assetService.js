@@ -374,8 +374,8 @@ function AssetService(objectCollection) {
                 'asset_storage_bucket_name': util.replaceDefaultString(rowData['asset_storage_bucket_name']),
                 'asset_storage_url': util.replaceDefaultString(rowData['asset_storage_url']),
                 'asset_default_module_id': util.replaceDefaultNumber(rowData['asset_default_module_id']),
-                'asset_default_module_name': util.replaceDefaultString(rowData['asset_default_module_name'])
-
+                'asset_default_module_name': util.replaceDefaultString(rowData['asset_default_module_name']),
+                'asset_flag_module_locked': util.replaceDefaultNumber(rowData['asset_flag_module_locked']),
             };
             data.push(rowDataArr);
 
@@ -736,7 +736,7 @@ function AssetService(objectCollection) {
                                         // Set verification status  to true
                                         setPasscodeVerificationStatusForNewPhonenumber(data[0].phone_passcode_transaction_id, true, request);
                                         console.log("******* PASSCODE VERIFIED *******");
-                                        global.logger.write('debug', "******* PASSCODE VERIFIED *******", {}, request);
+                                        global.logger.write('conLog', "******* PASSCODE VERIFIED *******", {}, request);
                                         callback(false, {
                                             data: []
                                         }, 200)
@@ -776,7 +776,7 @@ function AssetService(objectCollection) {
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     //console.log("ds_p1_phone_passcode_transaction_select data: ", data);
-                    global.logger.write('debug', "ds_p1_phone_passcode_transaction_select data: " + JSON.stringify(data, null, 2), {}, request);
+                    global.logger.write('conLog', "ds_p1_phone_passcode_transaction_select data: " + JSON.stringify(data, null, 2), {}, request);
                     (!err) ? resolve(data): reject(err);
                 });
             }
@@ -799,7 +799,7 @@ function AssetService(objectCollection) {
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     //console.log("ds_p1_phone_passcode_transaction_update_verified data: ", data);
-                    global.logger.write('debug', "ds_p1_phone_passcode_transaction_update_verified data: " + JSON.stringify(data, null, 2), {}, request);
+                    global.logger.write('conLog', "ds_p1_phone_passcode_transaction_update_verified data: " + JSON.stringify(data, null, 2), {}, request);
                     (!err) ? resolve(data): reject(err);
                 });
             }
@@ -931,7 +931,7 @@ function AssetService(objectCollection) {
                     switch (phoneCall) {
                         case 1: //Nexmo
                             //console.log('Making Nexmo Call');
-                            global.logger.write('debug', 'Making Nexmo Call', {}, request);
+                            global.logger.write('conLog', 'Making Nexmo Call', {}, request);
                             var passcode = request.passcode;
                             passcode = passcode.split("");
                             passcode = passcode.toString();
@@ -956,7 +956,7 @@ function AssetService(objectCollection) {
 
                         case 2: //Twilio
                             //console.log('Making Twilio Call');
-                            global.logger.write('debug', 'Making Twilio Call', {}, request);
+                            global.logger.write('conLog', 'Making Twilio Call', {}, request);
                             var passcode = request.passcode;
                             passcode = passcode.split("");
 
@@ -1086,7 +1086,7 @@ function AssetService(objectCollection) {
             sns.createPlatformEndPoint(Number(request.device_os_id), request.asset_token_push, flag, flagAppAccount, function (err, endPointArn) {
                 if (!err) {
                     //console.log('success in creating platform end point');
-                    global.logger.write('debug', 'success in creating platform end point', {}, request)
+                    global.logger.write('conLog', 'success in creating platform end point', {}, request)
                     request.asset_push_arn = endPointArn;
                     proceedLinking(function (err, response, status) {
                         if (status == 200) {
@@ -1196,7 +1196,7 @@ function AssetService(objectCollection) {
 
         if (request.hasOwnProperty('timezone_offset')) {
             //console.log('\x1b[36m timezone_offset parameter found \x1b[0m');
-            global.logger.write('debug', '\x1b[36m timezone_offset parameter found \x1b[0m', {}, request);
+            global.logger.write('conLog', '\x1b[36m timezone_offset parameter found \x1b[0m', {}, request);
             paramsArr.push(request.timezone_offset);
 
             // IN p_asset_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_device_hardware_id VARCHAR(300), 
@@ -1243,7 +1243,7 @@ function AssetService(objectCollection) {
                             //Create a Task in a given Project and add an update
                             //Asset_id, operating_asset_name, organization_name, workforce_name
                             //console.log('Create a Task for Paramesh');
-                            global.logger.write('debug', 'Create a Task for Paramesh', {}, request);
+                            global.logger.write('conLog', 'Create a Task for Paramesh', {}, request);
                             var newRequest = {};
 
                             newRequest.organization_id = 336;
@@ -2503,15 +2503,15 @@ function AssetService(objectCollection) {
                             //console.log('A2 :', A2);
                             //console.log('A3 :', A3);
 
-                            global.logger.write('debug', 'A1 :' + A1, {}, request);
-                            global.logger.write('debug', 'A2 :' + A2, {}, request);
-                            global.logger.write('debug', 'A3 :' + A3, {}, request);
+                            global.logger.write('conLog', 'A1 :' + A1, {}, request);
+                            global.logger.write('conLog', 'A2 :' + A2, {}, request);
+                            global.logger.write('conLog', 'A3 :' + A3, {}, request);
 
 
                             (A1 == 0 || A2 == 0) ? X = -1: X = ((A3 / (A2 / A1)) * 100);
 
                             console.log('Work Presence : ' + X);
-                            global.logger.write('debug', 'Work Presence : ' + X, {}, request);
+                            global.logger.write('conLog', 'Work Presence : ' + X, {}, request);
 
 
                             D1 = resp[0].countAllVoice;
@@ -2525,16 +2525,16 @@ function AssetService(objectCollection) {
                             //console.log('E1 :', E1);
                             //console.log('E2 :', E2);
 
-                            global.logger.write('debug', 'D1 :' + D1, {}, request);
-                            global.logger.write('debug', 'D2 :' + D2, {}, request);
-                            global.logger.write('debug', 'E1 :' + E1, {}, request);
-                            global.logger.write('debug', 'E2 :' + E2, {}, request);
+                            global.logger.write('conLog', 'D1 :' + D1, {}, request);
+                            global.logger.write('conLog', 'D2 :' + D2, {}, request);
+                            global.logger.write('conLog', 'E1 :' + E1, {}, request);
+                            global.logger.write('conLog', 'E2 :' + E2, {}, request);
 
 
                             ((D1 + E1) == 0) ? Y = -1: Y = ((((D1 + E1) - (D2 + E2)) / (D1 + E1)) * 100);
 
                             console.log('Communication Aptitude : ' + Y);
-                            global.logger.write('debug', 'Communication Aptitude : ' + Y, {}, request);
+                            global.logger.write('conLog', 'Communication Aptitude : ' + Y, {}, request);
 
                             F1 = resp[0].countCreatedTasks;
                             F3 = resp[0].countCompletedTasks;
@@ -2547,21 +2547,21 @@ function AssetService(objectCollection) {
                             //console.log('G1 :', G1);
                             //console.log('G3 :', G3);
 
-                            global.logger.write('debug', 'F1 :' + F1, {}, request);
-                            global.logger.write('debug', 'F3 :' + F3, {}, request);
-                            global.logger.write('debug', 'G1 :' + G1, {}, request);
-                            global.logger.write('debug', 'G3 :' + G3, {}, request);
+                            global.logger.write('conLog', 'F1 :' + F1, {}, request);
+                            global.logger.write('conLog', 'F3 :' + F3, {}, request);
+                            global.logger.write('conLog', 'G1 :' + G1, {}, request);
+                            global.logger.write('conLog', 'G3 :' + G3, {}, request);
 
                             ((F1 + G1) == 0) ? Z = -1: Z = (((F3 + G3) / (F1 + G1)) * 100);
 
                             console.log('Productivity : ' + Z);
-                            global.logger.write('debug', 'Productivity : ' + Z, {}, request);
+                            global.logger.write('conLog', 'Productivity : ' + Z, {}, request);
 
                             var rating;
                             (X == -1 || Y == -1 || Z == -1) ? rating = -1: rating = (((12 / 70) * X) + ((34 / 70) * Y) + ((24 / 70) * Z));
 
                             console.log('Rating : ' + rating);
-                            global.logger.write('debug', 'Rating : ' + rating, {}, request);
+                            global.logger.write('conLog', 'Rating : ' + rating, {}, request);
                             response.asset_id = request.viewee_asset_id;
                             response.work_presence = X;
                             response.communication_aptitude = Y;
@@ -2727,7 +2727,7 @@ function AssetService(objectCollection) {
             sns.createPlatformEndPoint(Number(request.device_os_id), request.asset_token_push, flag, flagAppAccount, function (err, endPointArn) { //flag 1 is prod and 0 is dev
                 if (!err) {
                     //console.log('success in creating platform end point');
-                    global.logger.write('debug', 'success in creating platform end point', {}, request)
+                    global.logger.write('conLog', 'success in creating platform end point', {}, request)
                     request.asset_push_arn = endPointArn;
                     proceed(function (err, response, status) {
                         callback(err, response, status);
@@ -2833,7 +2833,7 @@ function AssetService(objectCollection) {
                                         finalAssetIds.push(rowData.asset_id);
                                         if (allAssetIds.includes(rowData.asset_id)) {
                                             //console.log(rowData.asset_id + ' is there.');
-                                            global.logger.write('debug', rowData.asset_id + ' is there.', {}, request);
+                                            global.logger.write('conLog', rowData.asset_id + ' is there.', {}, request);
                                             next();
                                         } else {
                                             formatActiveAccountsCountData(rowData, (err, formatedData) => {
@@ -2851,7 +2851,7 @@ function AssetService(objectCollection) {
                                         forEachAsync(response, (next, rowData) => {
                                             if (finalAssetIds.includes(rowData.asset_id)) {
                                                 //console.log(rowData.asset_id);
-                                                global.logger.write('debug', rowData.asset_id, {}, request);
+                                                global.logger.write('conLog', rowData.asset_id, {}, request);
                                                 finalResponse.push(rowData);
                                             }
                                             next();
@@ -3275,10 +3275,11 @@ function AssetService(objectCollection) {
             request.workforce_id,
             request.asset_id,
             request.default_module_id,
+            request.default_module_lock_enable,
             util.getCurrentUTCTime(),
             request.asset_id
         );
-        const queryString = util.getQueryString('ds_p1_asset_list_update_default_module', paramsArr);
+        const queryString = util.getQueryString('ds_p1_1_asset_list_update_default_module', paramsArr);
         if (queryString !== '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 (err) ? callback(true, err, -9999): callback(false, data, 200);

@@ -54,8 +54,8 @@ function ActivityCommonService(db, util, forEachAsync) {
             50
         );
         var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_other_participants', paramsArr);
-        global.logger.write('debug', "getAllParticipantsExceptAsset", {}, request);
-        global.logger.write('debug', queryString, {}, request);
+        global.logger.write('conLog', "getAllParticipantsExceptAsset", {}, request);
+        global.logger.write('conLog', queryString, {}, request);
 
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
@@ -103,7 +103,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             request.organization_id,
             request.datetime_log
         );
-        queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_last_differential', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_last_differential', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
@@ -112,7 +112,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 } else {
                     callback(true, false);
                     //console.log(err);
-                    global.logger.write('serverError', JSON.stringify(err), err, request);
+                    global.logger.write('conLog', JSON.stringify(err), err, request);
                     return;
                 }
             });
@@ -127,6 +127,8 @@ function ActivityCommonService(db, util, forEachAsync) {
             assetCollection.organization_id,
             request.datetime_log
         );
+
+        let queryString = '';
         if ((request.activity_status_type_id == 74 && request.activity_type_category_id == 28) ||
             (request.activity_status_type_id == 37 && request.activity_type_category_id == 14) ||
             (request.activity_status_type_id == 41 && request.activity_type_category_id == 15)) {
@@ -136,8 +138,8 @@ function ActivityCommonService(db, util, forEachAsync) {
             queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_last_updated_datetime', paramsArr);
         }
 
-        global.logger.write('debug', "Calling updateActivityLogLastUpdatedDatetimeAsset", {}, request);
-        global.logger.write('debug', queryString, {}, request);
+        global.logger.write('conLog', "Calling updateActivityLogLastUpdatedDatetimeAsset", {}, request);
+        global.logger.write('conLog', queryString, {}, request);
 
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
@@ -166,11 +168,11 @@ function ActivityCommonService(db, util, forEachAsync) {
                 updateActivityLogLastUpdatedDatetimeAsset(request, assetCollection, function (err, data) {
                     if (err !== false) {
                         //console.log(err);
-                        global.logger.write('serverError', '', err, request);
+                        global.logger.write('conLog', err, err, {});
                     }
                 });
             }, this);
-        };
+        }
         if (assetId > 0) {
             this.getAllParticipantsExceptAsset(request, assetId, function (err, data) {
                 if (err === false) {
@@ -235,443 +237,8 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
     };
 
-    /*this.assetTimelineTransactionInsert = function (request, participantData, streamTypeId, callback) {
-        //console.log('vnk streamTypeId : ', streamTypeId);
-        var assetId = request.asset_id;
-        var organizationId = request.organization_id;
-        var accountId = request.account_id;
-        var workforceId = request.workforce_id;
-        var messageUniqueId = request.message_unique_id;
-        var entityTypeId = 0;
-        var entityText1 = "";
-        var entityText2 = "";
-        var entityText3 = "";
-        var activityTimelineCollection = "{}"; //BETA
-        var retryFlag = 0;
-        var formTransactionId = 0;
-        var dataTypeId = 0;
-        var formId = 0;
-        if (Number(request.device_os_id) === 5)
-            retryFlag = 1;
-
-        entityText3 = (request.hasOwnProperty('activity_timeline_title')) ? request.activity_timeline_title : "";
-
-        if (request.hasOwnProperty('activity_type_category_id')) {
-            var activityTypeCategoryId = Number(request.activity_type_category_id);
-            if (activityTypeCategoryId === 4) {
-                if (request.hasOwnProperty('activity_inline_data')) {
-                    var inlineJson = JSON.parse(request.activity_inline_data);
-                    assetId = inlineJson.employee_asset_id;
-                } else {
-                    assetId = request.asset_id;
-                }
-            } else {
-                assetId = request.asset_id;
-            }
-        } else {
-            assetId = request.asset_id;
-        }
-
-
-        if (Object.keys(participantData).length > 0) {
-            organizationId = participantData.organization_id;
-            accountId = participantData.account_id;
-            workforceId = participantData.workforce_id;
-            assetId = participantData.asset_id;
-            messageUniqueId = participantData.message_unique_id
-        }
-
-        switch (streamTypeId) {
-            case 4: // activity updated
-                entityTypeId = 0;
-                entityText1 = "activity updated";
-                entityText2 = request.activity_inline_data;
-                break;
-            case 207: // Contact card has been clipped to a Document
-                entityTypeId = 0;
-                entityText1 = request.activity_timeline_collection;
-                entityText2 = '';
-                break;
-            case 309: // activity cover altered
-                entityTypeId = 0;
-                entityText1 = ""
-                entityText2 = request.activity_cover_collection;
-                break;
-            case 310: // text message     --> File
-            case 607: // text message     --> Customer Request
-            case 1307: // text message    --> Visitor Request
-            case 1507: // text message    --> Time Card
-                entityTypeId = 0;
-                entityText1 = "";
-                entityText2 = request.activity_timeline_text;
-                break;
-            case 311: // image    --> file
-            case 608: // image    --> Customer Request
-            case 1308: // image    --> Visitor Request
-            case 1508: // image   --> Time Card
-                entityTypeId = 0;
-                entityText1 = request.activity_timeline_url;
-                entityText2 = (request.hasOwnProperty('activity_timeline_url_preview')) ? request.activity_timeline_url_preview : '';
-                break;
-            case 313: // form
-                entityTypeId = 0;
-                entityText1 = request.form_transaction_id;
-                entityText2 = request.activity_timeline_collection;
-                break;
-            case 705: // form
-                entityTypeId = 0;
-                entityText1 = request.form_transaction_id;
-                // entityText2 = request.activity_timeline_collection;
-                activityTimelineCollection = request.activity_timeline_collection || '{}';
-                formTransactionId = request.form_transaction_id;
-                formId = request.form_id;
-                dataTypeId = 37; //static for all form submissions
-                break;
-            case 710: // form field alter
-                entityTypeId = 0;
-                //entityText2 = request.activity_timeline_collection;
-                activityTimelineCollection = request.activity_timeline_collection || '{}';
-                break;
-            case 314: // cloud based document -- file
-            case 610: // cloud based document -- Customer Request
-            case 709: // cloud based document -- Form
-            case 1310: // cloud based document -- Visitor Request
-            case 1408: // cloud based document -- Project
-            case 1510: // cloud based document -- Time Card
-                entityTypeId = 0;
-                entityText1 = request.activity_timeline_url;
-                entityText2 = (request.hasOwnProperty('activity_timeline_url_preview')) ? request.activity_timeline_url_preview : '';
-                break;
-            case 315: // clip mail to task
-                entityTypeId = 0;
-                entityText1 = request.activity_timeline_collection;
-                entityText2 = '';
-                break;
-            case 316: // clip notepad
-                entityTypeId = 0;
-                entityText1 = request.activity_timeline_collection;
-                entityText2 = '';
-                break;
-            case 320: // Add video call communication
-            case 321: // Add phone call communication
-            case 322: // Add mobile call communication
-                entityTypeId = 0;
-                entityText1 = request.activity_timeline_url;
-                entityText2 = (request.hasOwnProperty('activity_timeline_url_preview')) ? request.activity_timeline_url_preview : '';
-                break;
-            case 323: // Add message communication
-                entityTypeId = 0;
-                entityText1 = "";
-                entityText2 = request.activity_timeline_text;
-                break;
-            case 325: // Add Participant Collection for taskList BETA
-                activityTimelineCollection = request.activity_timeline_collection;
-                entityText1 = "";
-                entityText2 = request.activity_timeline_text;
-                break;
-            default:
-                entityTypeId = 0;
-                entityText1 = "";
-                entityText2 = "";
-                break;
-        };
-
-        var paramsArr = new Array(
-            request.activity_id || 0,
-            assetId,
-            workforceId,
-            accountId,
-            organizationId,
-            streamTypeId,
-            entityTypeId, // entity type id
-            entityText1, // entity text 1
-            entityText2, // entity text 2
-            entityText3, //Beta
-            activityTimelineCollection, //BETA
-            request.track_latitude,
-            request.track_longitude,
-            formTransactionId, //form_transaction_id
-            formId, //form_id
-            dataTypeId, //data_type_id  should be 37 static
-            request.track_latitude, //location latitude
-            request.track_longitude, //location longitude
-            request.track_gps_accuracy,
-            request.track_gps_status,
-            request.track_gps_location,
-            request.track_gps_datetime,
-            "",
-            "",
-            request.device_os_id,
-            "",
-            "",
-            request.app_version,
-            request.service_version,
-            request.asset_id,
-            messageUniqueId,
-            retryFlag,
-            request.flag_offline,
-            request.track_gps_datetime,
-            request.datetime_log
-        );
-        var queryString = util.getQueryString("ds_v1_2_asset_timeline_transaction_insert", paramsArr);
-        //var queryString = util.getQueryString("ds_v1_3_asset_timeline_transaction_insert", paramsArr);
-        if (queryString != '') {
-            db.executeQuery(0, queryString, request, function (err, data) {
-                if (err === false) {
-                    callback(false, true);
-                    return;
-                } else {
-                    callback(err, false);
-                    //console.log(err);
-                    global.logger.write('serverError', JSON.stringify(err), err, request)
-                    return;
-                }
-            });
-        }
-    };
-
-    this.activityTimelineTransactionInsert = function (request, participantData, streamTypeId, callback) {
-
-        // IN p_activity_id BIGINT(20), IN p_asset_id BIGINT(20), IN p_workforce_id BIGINT(20), IN p_account_id BIGINT(20), 
-        // IN p_organization_id BIGINT(20), IN p_stream_type_id SMALLINT(6), IN p_entity_type_id SMALLINT(6), IN p_entity_datetime_1 DATETIME, 
-        // IN p_entity_datetime_2 DATETIME, IN p_entity_text_1 VARCHAR(1200), IN p_entity_text_2 VARCHAR(1200), IN p_entity_text_3 VARCHAR(100), 
-        // IN p_data_entity_inline JSON,  IN p_entity_decimal_1 DECIMAL(14,8), IN p_entity_decimal_2 DECIMAL(14,8), IN p_entity_tinyint_1 TINYINT(4), 
-        // IN p_entity_tinyint_2 TINYINT(4), IN p_entity_bigint_1 BIGINT(20), IN p_form_transaction_id BIGINT(20), IN p_form_id BIGINT(20), 
-        // IN p_data_type_id SMALLINT(6), IN p_location_latitude DECIMAL(12,8), IN p_location_longitude DECIMAL(12,8), 
-        // IN p_location_gps_accuracy DOUBLE(16,4), IN p_location_gps_enabled tinyint(4), IN p_location_address VARCHAR(300), 
-        // IN p_location_datetime DATETIME, IN p_device_manufacturer_name VARCHAR(50), IN p_device_model_name VARCHAR(50), 
-        // IN p_device_os_id TINYINT(4), IN p_device_os_name VARCHAR(50), IN p_device_os_version VARCHAR(50), IN p_device_app_version VARCHAR(50), 
-        // IN p_device_api_version VARCHAR(50), IN p_log_asset_id BIGINT(20), IN p_log_message_unique_id VARCHAR(50), IN p_log_retry tinyint(4), 
-        // IN p_log_offline tinyint(4), IN p_transaction_datetime DATETIME, IN p_log_datetime DATETIME
-
-        var assetId = request.asset_id;
-        var organizationId = request.organization_id;
-        var accountId = request.account_id;
-        var workforceId = request.workforce_id;
-        var messageUniqueId = request.message_unique_id;
-        var entityTypeId = 0;
-        var entityText1 = "";
-        var entityText2 = "";
-        var entityText3 = ""; //Beta
-        var activityTimelineCollection = "{}"; //BETA
-        var retryFlag = 0;
-        var formTransactionId = 0;
-        var dataTypeId = 0;
-        var formId = 0;
-        var newUserAssetId = (request.hasOwnProperty('signedup_asset_id')) ? request.signedup_asset_id : 0;
-        if (Number(request.device_os_id) === 5)
-            retryFlag = 1;
-
-        entityText3 = (request.hasOwnProperty('activity_timeline_title')) ? request.activity_timeline_title : "";
-
-        if (request.hasOwnProperty('activity_type_category_id')) {
-            var activityTypeCategoryId = Number(request.activity_type_category_id);
-            if (activityTypeCategoryId === 4) {
-                if (request.hasOwnProperty('activity_inline_data')) {
-                    var inlineJson = JSON.parse(request.activity_inline_data);
-                    assetId = inlineJson.employee_asset_id;
-                } else {
-                    assetId = request.asset_id;
-                }
-            } else {
-                assetId = request.asset_id;
-            }
-        } else {
-            assetId = request.asset_id;
-        }
-
-
-        if (Object.keys(participantData).length > 0) {
-            organizationId = participantData.organization_id;
-            accountId = participantData.account_id;
-            workforceId = participantData.workforce_id;
-            assetId = participantData.asset_id;
-            messageUniqueId = participantData.message_unique_id;
-        }
-
-        global.logger.write('debug', 'streamTypeId: ' + streamTypeId, {}, request);
-        global.logger.write('debug', 'typeof streamTypeId: ' + typeof streamTypeId, {}, request);
-
-        switch (streamTypeId) {
-            case 4: // activity updated
-                entityTypeId = 0;
-                entityText1 = "activity updated";
-                entityText2 = request.activity_inline_data;
-                break;
-            case 207: // Contact card has been clipped to a Document
-                entityTypeId = 0;
-                entityText1 = request.activity_timeline_collection;
-                entityText2 = '';
-                break;
-            case 309: // activity cover altered
-                entityTypeId = 0;
-                entityText1 = ""
-                entityText2 = request.activity_cover_collection;
-                break;
-            case 310: // text message     --> File
-            case 607: // text message     --> Customer Request
-            case 1307: // text message    --> Visitor Request
-            case 1507: // text message    --> Time Card
-                entityTypeId = 0;
-                entityText1 = ""
-                entityText2 = JSON.stringify(request.activity_timeline_text);
-                break;
-            case 311: // image    --> file
-            case 608: // image    --> Customer Request
-            case 1308: // image    --> Visitor Request
-            case 1508: // image   --> Time Card
-                entityTypeId = 0;
-                entityText1 = request.activity_timeline_url;
-                entityText2 = (request.hasOwnProperty('activity_timeline_url_preview')) ? request.activity_timeline_url_preview : '';
-                break;
-            case 313: // form
-                entityTypeId = 0;
-                entityText1 = request.form_transaction_id;
-                entityText2 = request.activity_timeline_collection;
-                break;
-            case 704: // form: status alter
-                entityTypeId = 0;
-                entityText2 = request.activity_timeline_collection;
-                activityTimelineCollection = request.activity_timeline_collection || '{}';
-                break;
-            case 705: // form
-                entityTypeId = 0;
-                entityText1 = request.form_transaction_id;
-                entityText2 = '';
-                activityTimelineCollection = request.activity_timeline_collection;
-                formTransactionId = request.form_transaction_id;
-                formId = request.form_id;
-                request.entity_bigint_1 = request.reference_form_activity_id || 0;
-                dataTypeId = 37; //static for all form submissions
-                break;
-            case 710: // form field alter
-                entityTypeId = 0;
-                //entityText2 = request.activity_timeline_collection;
-                activityTimelineCollection = request.activity_timeline_collection || '{}';
-                break;
-            case 314: // cloud based document -- file
-            case 610: // cloud based document -- Customer Request
-            case 709: // cloud based document -- Form
-            case 1310: // cloud based document -- Visitor Request
-            case 1408: // cloud based document -- Project
-            case 1510: // cloud based document -- Time Card
-                entityTypeId = 0;
-                entityText1 = request.activity_timeline_url;
-                entityText2 = (request.hasOwnProperty('activity_timeline_url_preview')) ? request.activity_timeline_url_preview : '';
-                break;
-            case 315: // clip mail to task
-                entityTypeId = 0;
-                entityText1 = request.activity_timeline_collection;
-                entityText2 = '';
-                break;
-            case 316: // clip notepad
-                entityTypeId = 0;
-                entityText1 = request.activity_timeline_collection;
-                entityText2 = '';
-                break;
-            case 320: // Add video call communication
-            case 321: // Add phone call communication
-            case 322: // Add mobile call communication
-                entityTypeId = 0;
-                entityText1 = request.activity_timeline_url;
-                entityText2 = (request.hasOwnProperty('activity_timeline_url_preview')) ? request.activity_timeline_url_preview : '';
-                break;
-            case 323: // Add message communication
-                entityTypeId = 0;
-                entityText1 = "";
-                entityText2 = request.activity_timeline_text;
-                break;
-            case 325: // Add Participant Collection for taskList
-                activityTimelineCollection = request.activity_timeline_collection;
-                entityText1 = "";
-                entityText2 = request.activity_timeline_text;
-                break;
-            case 23002: // Telephone Module: Altered the status of the chat
-            case 23003: // Telephone Module: Added an update to the chat
-            case 23004: // Telephone Module: Voice call started
-            case 23005: // Telephone Module: Voice call answered
-            case 23006: // Telephone Module: Voice call ended
-            case 23007: // Telephone Module: Voice call Missed
-            case 23008: // Telephone Module: Video call started
-            case 23009: // Telephone Module: Video call answered
-            case 23010: // Telephone Module: Video call ended
-            case 23011: // Telephone Module: Video call Missed
-                activityTimelineCollection = request.activity_timeline_collection;
-                entityText1 = "";
-                entityText2 = JSON.stringify(request.activity_timeline_text);
-                break;
-            default:
-                entityTypeId = 0;
-                entityText1 = "";
-                entityText2 = "";
-                break;
-        };
-
-        global.logger.write('debug', 'activityTimelineCollection : ', {}, request);
-        global.logger.write('debug', activityTimelineCollection, {}, request);
-
-        var paramsArr = new Array(
-            request.activity_id,
-            assetId,
-            workforceId,
-            accountId,
-            organizationId,
-            streamTypeId,
-            entityTypeId, // entity type id
-            request.entity_datetime_1 || '1970-01-01 00:00:00', // entity type id
-            request.entity_datetime_2 || '1970-01-01 00:00:00', // entity type id
-            entityText1, // entity text 1
-            entityText2, // entity text 2
-            entityText3, //BetafetchQueueActivityMappingId
-            activityTimelineCollection, //BETA
-            newUserAssetId, //New User Signed Up Asset ID
-            request.track_longitude,
-            request.entity_tinyint_1 || 0,
-            request.entity_tinyint_2 || 0,
-            request.entity_bigint_1 || 0,
-            formTransactionId, //form_transaction_id
-            formId, //form_id
-            dataTypeId, //data_type_id  should be 37 static
-            request.track_latitude, //location latitude
-            request.track_longitude, //location longitude
-            request.track_gps_accuracy,
-            request.track_gps_status,
-            request.track_gps_location,
-            request.track_gps_datetime,
-            "",
-            "",
-            request.device_os_id,
-            "",
-            "",
-            request.app_version,
-            request.service_version,
-            request.asset_id,
-            messageUniqueId,
-            retryFlag,
-            request.flag_offline,
-            request.track_gps_datetime,
-            request.datetime_log
-        );
-        //Beta
-        var queryString = util.getQueryString("ds_v1_3_activity_timeline_transaction_insert", paramsArr);
-        //var queryString = util.getQueryString("ds_v1_5_activity_timeline_transaction_insert", paramsArr);        
-        if (queryString != '') {
-            db.executeQuery(0, queryString, request, function (err, data) {
-                if (err === false) {
-                    callback(false, true);
-                    return;
-                } else {
-                    callback(err, false);
-                    //console.log(err);
-                    global.logger.write('serverError', JSON.stringify(err), err, request)
-                    return;
-                }
-            });
-        }
-    };*/
-
     this.assetTimelineTransactionInsert = function (request, participantData, streamTypeId, callback) {
-        
+
         var assetId = request.asset_id;
         var organizationId = request.organization_id;
         var accountId = request.account_id;
@@ -867,7 +434,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                     return;
                 } else {
                     callback(err, false);
-                    global.logger.write('serverError', JSON.stringify(err), err, request);
+                    global.logger.write('conLog', JSON.stringify(err), err, request);
                     return;
                 }
             });
@@ -922,8 +489,8 @@ function ActivityCommonService(db, util, forEachAsync) {
             messageUniqueId = participantData.message_unique_id;
         }
 
-        global.logger.write('debug', 'streamTypeId: ' + streamTypeId, {}, request);
-        global.logger.write('debug', 'typeof streamTypeId: ' + typeof streamTypeId, {}, request);        
+        global.logger.write('conLog', 'streamTypeId: ' + streamTypeId, {}, request);
+        global.logger.write('conLog', 'typeof streamTypeId: ' + typeof streamTypeId, {}, request);
 
         switch (streamTypeId) {
             case 4: // activity updated
@@ -971,7 +538,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             case 713: // form field alter
             case 714: //Bot Firing External API
             case 715:
-            case 716:            
+            case 716:
                 entityTypeId = 0;
                 entityText1 = request.form_transaction_id;
                 entityText2 = '';
@@ -1037,15 +604,15 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityText1 = "";
                 entityText2 = JSON.stringify(request.activity_timeline_text);
                 break;
-            default:                
+            default:
                 entityTypeId = 0;
                 entityText1 = "";
                 entityText2 = "";
                 break;
         }
 
-        global.logger.write('debug', 'activityTimelineCollection : ', {}, request);
-        global.logger.write('debug', activityTimelineCollection, {}, request);        
+        //global.logger.write('debug', 'activityTimelineCollection : ', {}, request);
+        //global.logger.write('debug', activityTimelineCollection, {}, request);        
 
         var paramsArr = new Array(
             request.activity_id,
@@ -1099,7 +666,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                     return;
                 } else {
                     callback(err, false);
-                    global.logger.write('serverError', JSON.stringify(err), err, request);
+                    global.logger.write('conLog', JSON.stringify(err), err, request);
                     return;
                 }
             });
@@ -1148,7 +715,7 @@ function ActivityCommonService(db, util, forEachAsync) {
 
         var duration = util.differenceDatetimes(request.timeline_transaction_datetime, request.datetime_log);
         //console.log('Duration in Seconds : ', duration);
-        global.logger.write('debug', 'Duration in Seconds : ' + duration, {}, request);
+        global.logger.write('conLog', 'Duration in Seconds : ' + duration, {}, request);
 
         var paramsArr = new Array(
             activityId,
@@ -1343,7 +910,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 if (err) {
                     //console.log(err);
                     //console.log('error occured');
-                    global.logger.write('serverError', 'error occurred', err, rowData);
+                    global.logger.write('conLog', 'error occurred', err, rowData);
                 }
                 rowDataArr.field_value = fieldValue;
                 responseData.push(rowDataArr);
@@ -1440,7 +1007,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 fieldValue = util.replaceDefaultNumber(rowData['data_entity_tinyint_1']);
             default:
                 //console.log('came into default for data type id: ' + dataTypeId);
-                global.logger.write('debug', 'asset parity is set successfully', {}, rowData);
+                global.logger.write('conLog', 'asset parity is set successfully', {}, {});
                 fieldValue = '';
                 break;
         };
@@ -1511,7 +1078,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
                     //console.log('DAta in inventory check : ', data);
-                    global.logger.write('debug', 'Data in inventory check : ' + JSON.stringify(data, null, 2), {}, request);
+                    global.logger.write('conLog', 'Data in inventory check : ' + JSON.stringify(data, null, 2), {}, request);
                     if (data.length > 0) {
                         var ingredients = new Array();
                         forEachAsync(data, function (next, x) {
@@ -1542,8 +1109,8 @@ function ActivityCommonService(db, util, forEachAsync) {
                                 }).then(() => {
                                     //console.log('stationIdArrays: ', stationIdArrays);
                                     //console.log('TempArray: ', tempArray);
-                                    global.logger.write('debug', 'stationIdArrays: ' + JSON.stringify(stationIdArrays, null, 2), {}, request);
-                                    global.logger.write('debug', 'TempArray: ' + JSON.stringify(tempArray, null, 2), {}, request);
+                                    global.logger.write('conLog', 'stationIdArrays: ' + JSON.stringify(stationIdArrays, null, 2), {}, request);
+                                    global.logger.write('conLog', 'TempArray: ' + JSON.stringify(tempArray, null, 2), {}, request);
                                     tempArray.forEach(function (item, index) {
                                         //console.log('util.getFrequency(item'+item+',tempArray) : ' , util.getFrequency(item, tempArray))
                                         //console.log('stationIdArrays.length : ', stationIdArrays.length)
@@ -1647,7 +1214,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log('data.length :' + data.length);                
                 //console.log('data : ', data);
-                global.logger.write('debug', 'data : ' + JSON.stringify(data, null, 2), {}, request);
+                global.logger.write('conLog', 'data : ' + JSON.stringify(data, null, 2), {}, request);
                 if (data.length > 0) {
                     callback(true, data);
                 } else {
@@ -1669,7 +1236,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log('data : ', data);
-                global.logger.write('debug', 'data : ' + JSON.stringify(data, null, 2), {}, request);
+                global.logger.write('conLog', 'data : ' + JSON.stringify(data, null, 2), {}, request);
                 if (data.length > 0) {
                     callback(true, data);
                 } else {
@@ -1694,7 +1261,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log('DAta : ', data);
-                global.logger.write('debug', 'data : ' + JSON.stringify(data, null, 2), {}, request);
+                global.logger.write('conLog', 'data : ' + JSON.stringify(data, null, 2), {}, request);
                 if (err === false) {
                     if (data.length > 0) {
                         callback(false, data);
@@ -1719,7 +1286,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log('getOccupiedDeskCounts : ', data);
-                global.logger.write('debug', 'getOccupiedDeskCounts : ' + JSON.stringify(data, null, 2), {}, request);
+                global.logger.write('conLog', 'getOccupiedDeskCounts : ' + JSON.stringify(data, null, 2), {}, request);
                 (err === false) ? callback(false, data): callback(true, err);
             });
         }
@@ -1884,7 +1451,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 } else {
                     callback(err, false, false);
                     //console.log(err);
-                    global.logger.write('serverError', err, {}, request);
+                    global.logger.write('conLog', err, {}, request);
                     return;
                 }
             });
@@ -2026,7 +1593,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                     tableNames += data[0].asset_first_name + "-";
 
                     //console.log('data[0].asset_inline_data : ' , data[0].asset_inline_data);
-                    global.logger.write('debug', 'data[0].asset_inline_data : ' + data[0].asset_inline_data, {}, request);
+                    global.logger.write('debug', 'data[0].asset_inline_data : ' + data[0].asset_inline_data, {}, {});
                     var inlineJson = JSON.parse(data[0].asset_inline_data);
                     noOfGuests += util.replaceDefaultNumber(inlineJson.element_cover_capacity);
                     next();
@@ -2043,10 +1610,10 @@ function ActivityCommonService(db, util, forEachAsync) {
             //console.log('countryCode: ', countryCode);
             //console.log('phoneNumber : ', phoneNumber);
             //console.log('tableNames : ', tableNames);
-            global.logger.write('debug', 'memberName : ' + memberName, {}, request);
-            global.logger.write('debug', 'countryCode: ' + countryCode, {}, request);
-            global.logger.write('debug', 'phoneNumber : ' + phoneNumber, {}, request);
-            global.logger.write('debug', 'tableNames : ' + tableNames, {}, request);
+            global.logger.write('conLog', 'memberName : ' + memberName, {}, request);
+            global.logger.write('conLog', 'countryCode: ' + countryCode, {}, request);
+            global.logger.write('conLog', 'phoneNumber : ' + phoneNumber, {}, request);
+            global.logger.write('conLog', 'tableNames : ' + tableNames, {}, request);
 
             var expiryDateTime = util.addUnitsToDateTime(util.replaceDefaultDatetime(request.event_start_datetime), 5.5, 'hours');
             //expiryDateTime = util.getDatewithndrdth(expiryDateTime);
@@ -2132,7 +1699,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 if (err === false) {
                     var participantCount = data[0].participant_count;
                     //console.log('participant count retrieved from query is: ' + participantCount);
-                    global.logger.write('debug', 'participant count retrieved from query is: ' + participantCount, request);
+                    global.logger.write('conLog', 'participant count retrieved from query is: ' + participantCount, request);
                     paramsArr = new Array(
                         activityId,
                         organizationId,
@@ -2171,7 +1738,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                             } else {
                                 callback(err, false);
                                 //console.log(err);
-                                global.logger.write('serverError', err, {}, request);
+                                global.logger.write('conLog', err, {}, request);
                                 return;
                             }
                         });
@@ -2179,7 +1746,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', err, {}, request);
+                    global.logger.write('conLog', err, {}, request);
                     return;
                 }
             });
@@ -2277,8 +1844,8 @@ function ActivityCommonService(db, util, forEachAsync) {
                             if (data.length > 0) {
                                 //console.log("Asset - " + data[0].asset_id + " - " + data[0].operating_asset_first_name +" - Active Organization is : " + data[0].organization_id);
                                 //console.log("Asset - " + data[0].asset_id + " - " + data[0].operating_asset_first_name +" - Organization in participant List: " , rowData['organization_id']);
-                                global.logger.write('debug', "Asset - " + data[0].asset_id + " - " + data[0].operating_asset_first_name + " - Active Organization is : " + data[0].organization_id, {}, request);
-                                global.logger.write('debug', "Asset - " + data[0].asset_id + " - " + data[0].operating_asset_first_name + " - Organization in participant List: " + rowData['organization_id'], {}, request);
+                                global.logger.write('debug', "Asset - " + data[0].asset_id + " - " + data[0].operating_asset_first_name + " - Active Organization is : " + data[0].organization_id, {}, {});
+                                global.logger.write('debug', "Asset - " + data[0].asset_id + " - " + data[0].operating_asset_first_name + " - Organization in participant List: " + rowData['organization_id'], {}, {});
 
                                 if (data[0].organization_id == rowData['organization_id']) {
                                     refinedParticipantList.push(rowData);
@@ -2295,7 +1862,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 }
             }).then(() => {
                 //console.log('refinedParticipantList : ', refinedParticipantList.length);
-                global.logger.write('debug', 'refinedParticipantList : ' + refinedParticipantList.length, {}, request);
+                global.logger.write('debug', 'refinedParticipantList : ' + refinedParticipantList.length, {}, {});
                 resolve(refinedParticipantList);
             });
         });
@@ -2393,9 +1960,9 @@ function ActivityCommonService(db, util, forEachAsync) {
                     //console.log('projectEndDtTime : ', projectEndDtTime);
                     //console.log('taskProjectsEndDtTime : ', taskProjectsEndDtTime);
                     //console.log('Math.sign(util.differenceDatetimes(' + taskProjectsEndDtTime+ ', ' + projectEndDtTime  + '): ', Math.sign(util.differenceDatetimes(taskProjectsEndDtTime, projectEndDtTime)));
-                    global.logger.write('debug', 'projectEndDtTime : ' + projectEndDtTime, {}, request);
-                    global.logger.write('debug', 'taskProjectsEndDtTime : ' + taskProjectsEndDtTime, {}, request);
-                    global.logger.write('debug', 'Math.sign(util.differenceDatetimes(' + taskProjectsEndDtTime + ', ' + projectEndDtTime + '): ' + Math.sign(util.differenceDatetimes(taskProjectsEndDtTime, projectEndDtTime)), {}, request);
+                    global.logger.write('debug', 'projectEndDtTime : ' + projectEndDtTime, {}, {});
+                    global.logger.write('debug', 'taskProjectsEndDtTime : ' + taskProjectsEndDtTime, {}, {});
+                    global.logger.write('debug', 'Math.sign(util.differenceDatetimes(' + taskProjectsEndDtTime + ', ' + projectEndDtTime + '): ' + Math.sign(util.differenceDatetimes(taskProjectsEndDtTime, projectEndDtTime)), {}, {});
                     if ((Math.sign(util.differenceDatetimes(taskProjectsEndDtTime, projectEndDtTime)) !== 0)) {
                         //Call alter cover for that project
                         //Add timeline Entry
@@ -2406,7 +1973,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 });
             } else {
                 //console.log('There are no tasks in the project - project id - ', request.activity_parent_id);
-                global.logger.write('debug', 'There are no tasks in the project - project id - ' + request.activity_parent_id, {}, request);
+                global.logger.write('debug', 'There are no tasks in the project - project id - ' + request.activity_parent_id, {}, {});
             }
         });
     };
@@ -2429,7 +1996,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     if (err === false) {
                         //console.log('DATA : ', data);
-                        global.logger.write('debug', 'DATA : ' + JSON.stringify(data, null, 2), {}, request);
+                        global.logger.write('conLog', 'DATA : ' + JSON.stringify(data, null, 2), {}, request);
                         resolve(data);
                     } else {
                         reject(err);
@@ -2516,7 +2083,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         var queryString = util.getQueryString('ds_p1_partititon_offset_transaction_select', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
-                global.logger.write('debug', data, {}, {});
+                global.logger.write('conLog', data, {}, {});
                 (data.length > 0) ? callback(true, {}): callback(false, data);
             });
         }
@@ -2534,7 +2101,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         var queryString = util.getQueryString('ds_p1_partition_offset_transaction_insert', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
-                global.logger.write('debug', data, {}, request);
+                global.logger.write('conLog', data, {}, request);
                 (err == false) ? callback(false, data): callback(true, {});
             });
         }
@@ -2812,8 +2379,8 @@ function ActivityCommonService(db, util, forEachAsync) {
     };
 
     // Fetching the Asset Type ID for a given organisation/workforce and asset type category ID
-    this.workforceAssetTypeMappingSelectCategoryPromise = function (request, assetTypeCategoryId) {        
-        return new Promise((resolve, reject)=>{
+    this.workforceAssetTypeMappingSelectCategoryPromise = function (request, assetTypeCategoryId) {
+        return new Promise((resolve, reject) => {
             let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
@@ -2828,7 +2395,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                     (err === false) ? resolve(data): reject(err);
                 });
             }
-        });        
+        });
     };
 
     this.getWorkflowForAGivenUrl = function (request) {
@@ -3464,15 +3031,32 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
     };
 
-    this.getFormDataByFormTransaction = async (request) => {        
-        var paramsArr = new Array(            
+    this.widgetListSelectFieldAll = async (request) => {
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.asset_id,
+            request.form_id,
+            request.field_id,
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+        let queryString = util.getQueryString('ds_p1_widget_list_select_field_all', paramsArr);
+        if (queryString != '') {
+            return await (db.executeQueryPromise(1, queryString, request));
+        }
+    };
+
+    this.getFormDataByFormTransaction = async (request) => {
+        var paramsArr = new Array(
             request.organization_id,
             request.form_transaction_id
         );
 
         let queryString = util.getQueryString('ds_p1_activity_list_select_form_transaction', paramsArr);
-       
-        if (queryString != '') {                
+
+        if (queryString != '') {
             return await (db.executeQueryPromise(1, queryString, request));
         }
     };

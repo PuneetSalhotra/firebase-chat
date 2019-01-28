@@ -8,23 +8,525 @@ var ActivityParticipantService = require('../../services/activityParticipantServ
 var ActivityTimelineService = require('../../services/activityTimelineService.js');
 //var ActivityListingService = require('../../services/activityListingService.js');
 
-
 function BotService(objectCollection) {
 
     const moment = require('moment');
     const makeRequest = require('request');
     const TinyURL = require('tinyurl');
+
     const cacheWrapper = objectCollection.cacheWrapper;
     //const queueWrapper = objectCollection.queueWrapper;
     //const activityPushService = objectCollection.activityPushService;
+
     const util = objectCollection.util;
-    const db = objectCollection.db;    
+    const db = objectCollection.db;
+    const botConfig = require('../utils/botConfig.js');
+
     const activityCommonService = objectCollection.activityCommonService;    
     //const activityUpdateService = new ActivityUpdateService(objectCollection);
     const activityParticipantService = new ActivityParticipantService(objectCollection);
     const activityService = new ActivityService(objectCollection);
     //const activityListingService = new ActivityListingService(objectCollection);
     const activityTimelineService = new ActivityTimelineService(objectCollection);
+
+    /*
+    //Generic function for firing stored procedures
+    //Bharat Masimukku
+    //2019-01-20
+    this.callDBProcedure = 
+    async (request, procName, paramsArray, flagReadOperation) =>
+    {
+        try
+        {
+            let queryString = util.getQueryString(procName, paramsArray);
+
+            if (queryString != '') 
+            {                
+                let result = await (db.executeQueryPromise(flagReadOperation, queryString, request));
+                console.log(`DB SP Result:\n${JSON.stringify(result, null, 4)}`);
+                console.log(`Query Status:\n${JSON.stringify(result[0].query_status, null, 4)}`);
+
+                if (result[0].query_status === 0)
+                {
+                    return result;
+                }
+                else
+                {
+                    return Promise.reject(result);
+                }            
+            }
+            else
+            {
+                return Promise.reject(`Invalid Query String`);
+            }
+        }
+        catch(error)
+        {
+            return Promise.reject(error);
+        }
+    };
+    */
+
+    //Retrieve the supported trigger types for defining a new bot
+    //Bharat Masimukku
+    //2019-01-17
+    this.getBotTriggerTypes = 
+    async (request) => 
+    {
+        try
+        {
+            let results = new Array();
+            let paramsArray;
+
+            paramsArray = 
+            new Array
+            (
+                request.page_start,
+                util.replaceQueryLimit(request.page_limit)
+            );
+
+            results[0] = db.callDBProcedure(request, 'ds_p1_bot_trigger_master_select', paramsArray, 1);
+            
+            return results[0];
+        }
+        catch(error)
+        {
+            return Promise.reject(error);
+        }
+    };
+
+    //Retrieve the supported operation types for defining a new bot
+    //Bharat Masimukku
+    //2019-01-17
+    this.getBotOperationTypes = 
+    async (request) => 
+    {
+        try
+        {
+            let results = new Array();
+            let paramsArray;
+
+            paramsArray = 
+            new Array
+            (
+                request.page_start,
+                util.replaceQueryLimit(request.page_limit)
+            );
+
+            results[0] = db.callDBProcedure(request, 'ds_p1_bot_operation_type_master_select', paramsArray, 1);
+            
+            return results[0];
+        }
+        catch(error)
+        {
+            return Promise.reject(error);
+        }
+    };
+
+    //Insert a new bot definition which includes the type of trigger and the supporting info for the trigger
+    //Bharat Masimukku
+    //2019-01-17
+    this.addBot = 
+    async (request) =>
+    {
+        try
+        {
+            let results = new Array();
+            let paramsArray;
+            
+            paramsArray = 
+            new Array
+            (
+                request.bot_name,
+                request.bot_inline_data,
+                request.bot_level_id,
+                request.bot_trigger_id,
+                request.field_id,
+                request.form_id,
+                request.activity_status_id,
+                request.activity_type_id,
+                request.workforce_id,
+                request.account_id,
+                request.organization_id,
+                request.log_asset_id,
+                request.log_datetime,
+            );
+
+            results[0] = await db.callDBProcedure(request, 'ds_p1_bot_list_insert', paramsArray, 0);
+
+            paramsArray = 
+            new Array
+            (
+                results[0][0].bot_id,
+                request.organization_id,
+                global.botConfig.botAdded,
+                request.log_asset_id,
+                request.log_datetime,
+            );
+
+            results[1] = await db.callDBProcedure(request, 'ds_p1_bot_list_history_insert', paramsArray, 0);
+
+            return results[0];
+        }
+        catch(error)
+        {
+            return Promise.reject(error);
+        }
+    };
+
+    //Alter bot definition
+    //Bharat Masimukku
+    //2019-01-18
+    this.alterBot = 
+    async (request) =>
+    {
+        try
+        {
+            let results = new Array();
+            let paramsArray;
+            
+            paramsArray = 
+            new Array
+            (
+                request.bot_id,
+                request.bot_level_id,
+                request.bot_trigger_id,
+                request.organization_id,
+                request.log_asset_id,
+                request.log_datetime,
+            );
+
+            results[0] = await db.callDBProcedure(request, 'ds_p1_bot_list_update', paramsArray, 0);
+
+            paramsArray = 
+            new Array
+            (
+                request.bot_id,
+                request.organization_id,
+                global.botConfig.botAltered,
+                request.log_asset_id,
+                request.log_datetime,
+            );
+
+            results[1] = await db.callDBProcedure(request, 'ds_p1_bot_list_history_insert', paramsArray, 0);
+
+            return results[0];
+        }
+        catch(error)
+        {
+            return Promise.reject(error);
+        }
+    };
+
+    //Archive bot definition
+    //Bharat Masimukku
+    //2019-01-18
+    this.archiveBot = 
+    async (request) =>
+    {
+        try
+        {
+            let results = new Array();
+            let paramsArray;
+            
+            paramsArray = 
+            new Array
+            (
+                request.bot_id,
+                request.organization_id,
+                request.log_state,
+                request.log_asset_id,
+                request.log_datetime,
+            );
+
+            results[0] = await db.callDBProcedure(request, 'ds_p1_bot_list_update_log_state', paramsArray, 0);
+
+            paramsArray = 
+            new Array
+            (
+                request.bot_id,
+                request.organization_id,
+                global.botConfig.botArchived,
+                request.log_asset_id,
+                request.log_datetime,
+            );
+
+            results[1] = await db.callDBProcedure(request, 'ds_p1_bot_list_history_insert', paramsArray, 0);
+
+            return results[0];
+        }
+        catch(error)
+        {
+            return Promise.reject(error);
+        }
+    };
+
+    //Insert a new bot operation mapping
+    //Bharat Masimukku
+    //2019-01-18
+    this.addBotWorkflowStep = 
+    async (request) =>
+    {
+        try
+        {
+            let results = new Array();
+            let paramsArray;
+            
+            paramsArray = 
+            new Array
+            (
+                request.bot_id,
+                request.bot_operation_type_id,
+                request.bot_operation_sequence_id,
+                request.bot_operation_inline_data,
+                request.organization_id,
+                request.log_asset_id,
+                request.log_datetime,
+            );
+
+            results[0] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_insert', paramsArray, 0);
+
+            paramsArray = 
+            new Array
+            (
+                request.bot_id,
+                results[0][0].bot_operation_id,
+                request.organization_id,
+                global.botConfig.botOperationAdded,
+                request.log_asset_id,
+                request.log_datetime,
+            );
+
+            results[1] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
+
+            return results[0];
+        }
+        catch(error)
+        {
+            return Promise.reject(error);
+        }
+    };
+
+    //Alter bot operation mapping
+    //Bharat Masimukku
+    //2019-01-18
+    this.alterBotWorkflowStep = 
+    async (request) =>
+    {
+        try
+        {
+            let results = new Array();
+            let paramsArray;
+
+            let sequenceCurrent = request.bot_operation_sequence_current;
+            let sequenceNew = request.bot_operation_sequence_new;
+
+            paramsArray = 
+            new Array
+            (
+                request.bot_id,
+                0,
+                1000,
+            );
+
+            results[0] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_select', paramsArray, 0);
+            
+            if (sequenceCurrent < sequenceNew)
+            {
+                for(let value of results[0]) 
+                {
+                    //console.log(value.bot_operation_sequence_id);
+
+                    if (Number(value.bot_operation_sequence_id) > Number(sequenceCurrent) && Number(value.bot_operation_sequence_id) <= Number(sequenceNew))
+                    {
+                        paramsArray = 
+                        new Array
+                        (
+                            value.bot_operation_id,
+                            value.bot_id,
+                            (value.bot_operation_sequence_id - 1),
+                            value.organization_id,
+                            request.log_asset_id,
+                            request.log_datetime,
+                        );
+
+                        results[1] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_update_sequence', paramsArray, 0);
+
+                        paramsArray = 
+                        new Array
+                        (
+                            value.bot_id,
+                            value.bot_operation_id,
+                            value.organization_id,
+                            global.botConfig.botOperationAltered,
+                            request.log_asset_id,
+                            request.log_datetime,
+                        );
+
+                        results[2] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
+                    }
+
+                    if (Number(value.bot_operation_sequence_id) === Number(sequenceCurrent))
+                    {
+                        paramsArray = 
+                        new Array
+                        (
+                            value.bot_operation_id,
+                            value.bot_id,
+                            sequenceNew,
+                            value.organization_id,
+                            request.log_asset_id,
+                            request.log_datetime,
+                        );
+
+                        results[1] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_update_sequence', paramsArray, 0);
+
+                        paramsArray = 
+                        new Array
+                        (
+                            value.bot_id,
+                            value.bot_operation_id,
+                            value.organization_id,
+                            global.botConfig.botOperationAltered,
+                            request.log_asset_id,
+                            request.log_datetime,
+                        );
+
+                        results[2] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
+                    }
+                }
+            }
+            else if (sequenceCurrent > sequenceNew)
+            {
+                for(let value of results[0]) 
+                {
+                    //console.log(value.bot_operation_sequence_id);
+
+                    if (Number(value.bot_operation_sequence_id) >= Number(sequenceNew) && Number(value.bot_operation_sequence_id) < Number(sequenceCurrent))
+                    {
+                        paramsArray = 
+                        new Array
+                        (
+                            value.bot_operation_id,
+                            value.bot_id,
+                            (value.bot_operation_sequence_id + 1),
+                            value.organization_id,
+                            request.log_asset_id,
+                            request.log_datetime,
+                        );
+
+                        results[1] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_update_sequence', paramsArray, 0);
+
+                        paramsArray = 
+                        new Array
+                        (
+                            value.bot_id,
+                            value.bot_operation_id,
+                            value.organization_id,
+                            global.botConfig.botOperationAltered,
+                            request.log_asset_id,
+                            request.log_datetime,
+                        );
+
+                        results[2] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
+                    }
+
+                    if (Number(value.bot_operation_sequence_id) === Number(sequenceCurrent))
+                    {
+                        paramsArray = 
+                        new Array
+                        (
+                            value.bot_operation_id,
+                            value.bot_id,
+                            sequenceNew,
+                            value.organization_id,
+                            request.log_asset_id,
+                            request.log_datetime,
+                        );
+
+                        results[1] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_update_sequence', paramsArray, 0);
+
+                        paramsArray = 
+                        new Array
+                        (
+                            value.bot_id,
+                            value.bot_operation_id,
+                            value.organization_id,
+                            global.botConfig.botOperationAltered,
+                            request.log_asset_id,
+                            request.log_datetime,
+                        );
+
+                        results[2] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
+                    }
+                }
+            }
+            else
+            {
+                return Promise.reject("Invalid new sequence id for the bot operation");
+            }
+
+            paramsArray = 
+            new Array
+            (
+                request.bot_id,
+                0,
+                1000,
+            );
+
+            results[3] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_select', paramsArray, 0);
+            return results[3];
+        }
+        catch(error)
+        {
+            return Promise.reject(error);
+        }  
+    };
+
+    //Archive bot operation mapping
+    //Bharat Masimukku
+    //2019-01-18
+    this.archiveBotWorkflowStep = 
+    async (request) =>
+    {
+        try
+        {
+            let results = new Array();
+            let paramsArray;
+
+            paramsArray = 
+            new Array
+            (
+                request.bot_id,
+                request.bot_operation_id,
+                request.organization_id,
+                request.log_state,
+                request.log_asset_id,
+                request.log_datetime,
+            );
+
+            results[0] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_update_log_state', paramsArray, 0);
+
+            paramsArray = 
+            new Array
+            (
+                request.bot_id,
+                request.bot_operation_id,
+                request.organization_id,
+                global.botConfig.botOperationArchived,
+                request.log_asset_id,
+                request.log_datetime,
+            );
+
+            results[1] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_history_insert', paramsArray, 0);
+
+            return results[0];
+        }
+        catch(error)
+        {
+            return Promise.reject(error);
+        }
+    };
     
     this.getBotsMappedToActType = async (request) => {            
             let paramsArr = new Array(
@@ -129,7 +631,7 @@ function BotService(objectCollection) {
                         }
                     } catch(err) {
                         global.logger.write('serverError', err, {}, {});
-                        global.logger.write('serverError', 'Error in executing changeStatus Step', {}, {}); 
+                        global.logger.write('conLog', 'Error in executing changeStatus Step', {}, {}); 
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({"err": err});                       
                         //return Promise.reject(err);
@@ -145,7 +647,7 @@ function BotService(objectCollection) {
                         global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
                         await copyFields(request, botOperationsJson.bot_operations.form_field_copy);
                     } catch(err) {
-                        global.logger.write('serverError', 'Error in executing copyFields Step', {}, {});
+                        global.logger.write('conLog', 'Error in executing copyFields Step', {}, {});
                         global.logger.write('serverError', err, {}, {});
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({"err": err});
@@ -167,7 +669,7 @@ function BotService(objectCollection) {
                             i.bot_operation_inline_data = JSON.stringify({"err": result[1]});
                         }
                     } catch(err) {
-                        global.logger.write('serverError', 'Error in executing alterWFCompletionPercentage Step', {}, {});
+                        global.logger.write('conLog', 'Error in executing alterWFCompletionPercentage Step', {}, {});
                         global.logger.write('serverError', err, {}, {});
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({"err": err});
@@ -183,7 +685,7 @@ function BotService(objectCollection) {
                     try {
                         await fireApi(request, botOperationsJson.bot_operations.fire_api);
                     } catch(err) {
-                        global.logger.write('serverError', 'Error in executing fireApi Step', {}, {});
+                        global.logger.write('conLog', 'Error in executing fireApi Step', {}, {});
                         global.logger.write('serverError', err, {}, {});
                         i.bot_operation_status_id = 3;
                         i.bot_operation_inline_data = JSON.stringify({"err": err});
@@ -199,7 +701,7 @@ function BotService(objectCollection) {
                     try {
                         await fireTextMsg(request, botOperationsJson.bot_operations.fire_text);                        
                     } catch(err) {
-                        global.logger.write('serverError', 'Error in executing fireTextMsg Step', {}, {});
+                        global.logger.write('conLog', 'Error in executing fireTextMsg Step', {}, {});
                         global.logger.write('serverError', err, {}, {});
                         i.bot_operation_status_id = 4;
                         i.bot_operation_inline_data = JSON.stringify({"err": err});
@@ -215,7 +717,7 @@ function BotService(objectCollection) {
                     try {
                         await fireEmail(request, botOperationsJson.bot_operations.fire_email);
                     } catch(err) {
-                        global.logger.write('serverError', 'Error in executing fireEmail Step', {}, {});
+                        global.logger.write('conLog', 'Error in executing fireEmail Step', {}, {});
                         global.logger.write('serverError', err, {}, {});
                         i.bot_operation_status_id = 4;
                         i.bot_operation_inline_data = JSON.stringify({"err": err});
@@ -257,7 +759,7 @@ function BotService(objectCollection) {
     //Bot Step to change the status
     async function changeStatus(request, inlineData) {
         let newReq = Object.assign({}, request);
-        global.logger.write('debug', inlineData, {}, {});
+        global.logger.write('conLog', inlineData, {}, {});
         newReq.activity_id = request.workflow_activity_id;
         newReq.activity_status_id = inlineData.activity_status_id;
         //newRequest.activity_status_type_id = inlineData.activity_status_id; 
@@ -339,7 +841,7 @@ function BotService(objectCollection) {
     } else {
         return [true, "Resp is Empty"];
     }
-}
+    }
 
     //Bot Step Copying the fields
     async function copyFields(request, inlineData) {        
@@ -479,7 +981,7 @@ function BotService(objectCollection) {
             }*/
 
             txn_id = await activityCommonService.getActivityTimelineTransactionByFormId713(newReq, newReq.activity_id, i.target_form_id);
-            global.logger.write('conLog',txn_id,{},{});
+            global.logger.write('conLog', txn_id, {}, {});
             
             if(txn_id.length > 0) {
                 targetFormTxnId = txn_id[0].data_form_transaction_id;
@@ -588,10 +1090,30 @@ function BotService(objectCollection) {
             newReq.desk_asset_id = 0;
             newReq.form_id = inlineData[type[0]].form_id;
             newReq.field_id = inlineData[type[0]].field_id;            
+            let activityInlineData;
 
             resp = await getFieldValue(newReq);
-            newReq.phone_country_code = String(resp[0].data_entity_bigint_1);
-            newReq.phone_number = String(resp[0].data_entity_text_1);
+            if(resp.length > 0) {
+                newReq.phone_country_code = String(resp[0].data_entity_bigint_1);
+                newReq.phone_number = String(resp[0].data_entity_text_1);
+            } else {
+                resp = await getActivityIdBasedOnTransId(newReq);
+                activityInlineData = JSON.parse(resp[0].activity_inline_data);
+                for(let i of activityInlineData) {
+                    if(i.form_id === newReq.form_id && i.field_id === newReq.field_id) {
+                        
+                        let phoneNumber = i.field_value;               
+                        let phone;
+
+                        (phoneNumber.includes('||')) ?
+                                    phone = phoneNumber.split('||'):                                                   
+                                    phone = phoneNumber.split('|');
+                                    
+                        newReq.country_code = phone[0];  //country code
+                        newReq.phone_number = phone[1];  //phone number                      
+                    }
+                }
+            }
         }       
         
         if(newReq.phone_number !== -1) {
@@ -791,9 +1313,9 @@ function BotService(objectCollection) {
         let newReq = Object.assign({}, request);
         let resp;        
         
-        global.logger.write('conLog', inlineData,{},{});
+        global.logger.write('conLog', inlineData, {}, {});
         let type = Object.keys(inlineData);        
-        global.logger.write('conLog', type,{},{});
+        global.logger.write('conLog', type, {}, {});
 
         if(type[0] === 'static') {
             newReq.endpoint = inlineData[type[0]].endpoint;
@@ -813,7 +1335,7 @@ function BotService(objectCollection) {
                                             "field_id": i.parameter_value.field_id,
                                             "organization_id": newReq.organization_id
                                         });                
-                global.logger.write('conLog', resp,{},{});
+                global.logger.write('conLog', resp, {}, {});
                 i.parameter_value = resp[0].data_entity_text_1;
             }
         }
@@ -863,7 +1385,8 @@ function BotService(objectCollection) {
         global.logger.write('conLog', inlineData.workflow_percentage_contribution,{},{});
         newrequest.workflow_completion_percentage = inlineData.workflow_percentage_contribution;
         let wfCompletionPercentage = newrequest.workflow_completion_percentage;
-        let resp = await getQueueActivity(newrequest, newrequest.workflow_activity_id);        
+        //let resp = await getQueueActivity(newrequest, newrequest.workflow_activity_id);        
+        let resp = await getAllQueuesBasedOnActId(newrequest, newrequest.workflow_activity_id);
         global.logger.write('conLog', resp,{},{});
 
         if(Number(wfCompletionPercentage) !== 0 && resp.length > 0) {
@@ -872,35 +1395,44 @@ function BotService(objectCollection) {
             newrequest.start_from = 0;
             newrequest.limit_value = 1;               
             
-            //Checking the queuemappingid
-            let queueActivityMappingData = await (activityCommonService.fetchQueueActivityMappingId({activity_id: newrequest.workflow_activity_id,
-                                                                                                     organization_id: newrequest.organization_id}, 
-                                                                                                     resp[0].queue_id));            
-            global.logger.write('conLog', 'queueActivityMappingData : ',{},{});
-            global.logger.write('conLog', queueActivityMappingData,{},{});
+            let queueActivityMappingData;
+            let data;
+            let queueActivityMappingId;
+            let queueActMapInlineData;
+
+            for(let i of resp){
             
-            if(queueActivityMappingData.length > 0){
-                let queueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;  
-                let queueActMapInlineData = JSON.parse(queueActivityMappingData[0].queue_activity_mapping_inline_data);
-                let obj = {};
-                
-                global.logger.write('conLog', 'queueActMapInlineData.length',Object.keys(queueActMapInlineData).length,{});
-                if(Object.keys(queueActMapInlineData).length === 0) {                    
-                    obj.queue_sort = {};                    
-                    obj.queue_sort.caf_completion_percentage = wfCompletionPercentage;
-                    queueActMapInlineData = obj;
+                //Checking the queuemappingid
+                queueActivityMappingData = await (activityCommonService.fetchQueueActivityMappingId({activity_id: newrequest.workflow_activity_id,
+                                                                                                        organization_id: newrequest.organization_id}, 
+                                                                                                        i.queue_id));            
+                global.logger.write('conLog', 'queueActivityMappingData : ',{},{});
+                global.logger.write('conLog', queueActivityMappingData,{},{});
+
+                if(queueActivityMappingData.length > 0){
+                    queueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;  
+                    queueActMapInlineData = JSON.parse(queueActivityMappingData[0].queue_activity_mapping_inline_data);
+                    let obj = {};
+
+                    global.logger.write('conLog', 'queueActMapInlineData.length',Object.keys(queueActMapInlineData).length,{});
+                    if(Object.keys(queueActMapInlineData).length === 0) {                    
+                        obj.queue_sort = {};                    
+                        obj.queue_sort.caf_completion_percentage = wfCompletionPercentage;
+                        queueActMapInlineData = obj;
                 } else {                    
                     //queueActMapInlineData.queue_sort.caf_completion_percentage += wfCompletionPercentage;
                     queueActMapInlineData.queue_sort.caf_completion_percentage = wfCompletionPercentage;
                 }                
                 global.logger.write('conLog', 'Updated Queue JSON : ',queueActMapInlineData,{});
-                
-                let data = await (activityCommonService.queueActivityMappingUpdateInlineData(newrequest, queueActivityMappingId, JSON.stringify(queueActMapInlineData)));                
+
+                data = await (activityCommonService.queueActivityMappingUpdateInlineData(newrequest, queueActivityMappingId, JSON.stringify(queueActMapInlineData)));                
                 global.logger.write('conLog', 'Updating the Queue Json : ',data,{});                
-                
-                activityCommonService.queueHistoryInsert(newrequest, 1402, queueActivityMappingId).then(()=>{});                
-                return [false, {}];
+
+                activityCommonService.queueHistoryInsert(newrequest, 1402, queueActivityMappingId).then(()=>{});
+                //return [false, {}];
+                }
             }
+            return [false, {}];
         } else {
             return [true, "Queue Not Available"];
         }
@@ -1572,14 +2104,14 @@ function BotService(objectCollection) {
                 params.push(request.datetime_log);                                  // IN p_entity_datetime_2 DATETIME            
                 params.push(request.update_sequence_id);            
 
-                global.logger.write('debug', '\x1b[32m In BotService - addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
+                global.logger.write('conLog', '\x1b[32m In BotService - addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
                 
                 let queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
                 if (queryString != '') {
                     try {
                         await db.executeQueryPromise(0, queryString, request);
                     } catch(err) {
-                        global.logger.write('debug', err,{},{});                    
+                        global.logger.write('debug', err, {}, {});
                     }                    
                 }
         }
@@ -1703,7 +2235,16 @@ function BotService(objectCollection) {
         }
     }
 
+    async function getActivityIdBasedOnTransId(request) {
+        let paramsArr = new Array(
+             request.organization_id,
+             request.form_transaction_id || 0            
+         );
+         let queryString = util.getQueryString('ds_p1_activity_list_select_form_transaction', paramsArr);         
+         if (queryString != '') {                
+            return await (db.executeQueryPromise(1, queryString, request));
+        }
+    }
 }
-
 
 module.exports = BotService;

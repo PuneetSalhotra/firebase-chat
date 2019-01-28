@@ -22,7 +22,7 @@ function AssetConfigController(objCollection) {
 
             } else {
                 //console.log('did not get proper response');
-                global.logger.write('debug', 'did not get proper response', {}, req.body);
+                global.logger.write('debug', 'did not get proper response', err, req.body);
                 data = new Array();
                 res.send(responseWrapper.getResponse(err, data, statusCode,req.body));
             }

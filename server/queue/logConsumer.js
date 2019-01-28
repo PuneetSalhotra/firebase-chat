@@ -113,13 +113,17 @@ let Consumer = function () {
         // For MySQL Query and Response
         if (String(messageJson.message).includes('CALL ')) {
             dbCall = messageJson.message;
-            dbResponse = JSON.stringify(messageJson.object);
+            dbResponse = messageJson.object;
+            // console.log("dbCall: ", dbCall);
+            // console.log("dbResponse: ", dbResponse);
         }
 
         // For Redis Cache Query and Response
         if (messageJson.level === "cacheResponse") {
             dbCall = messageJson.message;
-            dbResponse = JSON.stringify(messageJson.object) || '';
+            dbResponse = messageJson.object || {};
+            // console.log("dbCall: ", dbCall);
+            // console.log("dbResponse: ", dbResponse);
         }
 
         // SOME CLEANING
@@ -132,10 +136,12 @@ let Consumer = function () {
 
         let logMessage = messageJson.message || '{}';
         try {
-            JSON.parse(logMessage)
+            JSON.parse(logMessage);
         } catch (error) {
-            console.log("[insertIntoDB | logMessage] Error: ", error)
-            logMessage = JSON.stringify(messageJson.message) || '{}';
+            // console.log("[insertIntoDB | logMessage] Error: ", error);
+            logMessage = JSON.stringify({
+                message: messageJson.message
+            }) || '{}';
         }
 
         let paramsArr = new Array(
@@ -169,7 +175,7 @@ let Consumer = function () {
         if (queryString != '') {
             db.logExecuteQuery(0, queryString, request, function (err, data) {});
         }
-    };
+    }
 
 };
 module.exports = Consumer;

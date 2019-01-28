@@ -115,7 +115,7 @@ function PamController(objCollection) {
         });
     });
 
-    app.put('/' + global.config.version + '/update/operating_asset/details', function (req, res) {
+    app.post('/' + global.config.version + '/update/operating_asset/details', function (req, res) {
         pamService.updateOperatingAssetDetails(req.body, function (err, data, statusCode) {
             if (err === false) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
@@ -126,7 +126,7 @@ function PamController(objCollection) {
         });
     });
 
-    app.put('/' + global.config.version + '/activity/mintime_station/access/set', function (req, res) {
+    app.post('/' + global.config.version + '/activity/mintime_station/access/set', function (req, res) {
         pamService.stationAssignAlter(req.body, function (err, data, statusCode) {
             if (err === false) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
@@ -136,7 +136,7 @@ function PamController(objCollection) {
         });
     });
 
-    app.put('/' + global.config.version + '/pam/bulk/status/alter', function (req, res) {
+    app.post('/' + global.config.version + '/pam/bulk/status/alter', function (req, res) {
         pamService.bulkStatusAlter(req.body, function (err, data, statusCode) {
             if (err === false) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
@@ -177,7 +177,7 @@ function PamController(objCollection) {
         });
     });
     
-    app.put('/' + global.config.version + '/pam/passcode/reset', function (req, res) {
+    app.post('/' + global.config.version + '/pam/passcode/reset', function (req, res) {
         pamService.updatePhonePasscode(req.body, function (err, data, statusCode) {
             if (err === false) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
@@ -187,7 +187,7 @@ function PamController(objCollection) {
         });
     });
     
-    app.put('/' + global.config.version + '/pam/asset/details/alter', function (req, res) {
+    app.post('/' + global.config.version + '/pam/asset/details/alter', function (req, res) {
         pamService.assetListUpdate(req.body, function (err, data, statusCode) {
             if (err === false) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
@@ -208,7 +208,7 @@ function PamController(objCollection) {
         });
     });
     
-    app.put('/' + global.config.version + '/pam/inventory/quantity/alter', function (req, res) {
+    app.post('/' + global.config.version + '/pam/inventory/quantity/alter', function (req, res) {
         pamService.updateInvtQty(req.body, function (err, data, statusCode) {
             if (err === false) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
@@ -218,7 +218,7 @@ function PamController(objCollection) {
         });
     });
     
-    app.put('/' + global.config.version + '/pam/activity/title/alter', function (req, res) {
+    app.post('/' + global.config.version + '/pam/activity/title/alter', function (req, res) {
         pamService.updateTitleDesc(req.body, function (err, data, statusCode) {
             if (err === false) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
@@ -228,7 +228,7 @@ function PamController(objCollection) {
         });
     });
     
-    app.put('/' + global.config.version + '/pam/asset/cover/alter/clockin', function (req, res) {
+    app.post('/' + global.config.version + '/pam/asset/cover/alter/clockin', function (req, res) {
         pamService.assetClockIn(req.body, function (err, data, statusCode) {
             if (err === false) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
@@ -239,7 +239,7 @@ function PamController(objCollection) {
         });
     });
     
-    app.put('/' + global.config.version + '/pam/asset/cover/alter/clockout', function (req, res) {
+    app.post('/' + global.config.version + '/pam/asset/cover/alter/clockout', function (req, res) {
         pamService.assetClockOut(req.body, function (err, data, statusCode) {
             if (err === false) {    
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
@@ -250,7 +250,7 @@ function PamController(objCollection) {
         });
     });
     
-    app.put('/' + global.config.version + '/pam/activity/status_cancel/alter', function (req, res) {
+    app.post('/' + global.config.version + '/pam/activity/status_cancel/alter', function (req, res) {
         pamService.cancelItem(req.body, function (err, data, statusCode) {
             if (err === false) {    
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
@@ -261,7 +261,7 @@ function PamController(objCollection) {
         });
     });
     
-    app.put('/' + global.config.version + '/pam/activity/status_preparing/alter', function (req, res) {
+    app.post('/' + global.config.version + '/pam/activity/status_preparing/alter', function (req, res) {
         pamService.preparingItem(req.body, function (err, data, statusCode) {
             if (err === false) {    
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
@@ -272,7 +272,7 @@ function PamController(objCollection) {
         });
     });  
     
-    app.put('/' + global.config.version + '/pam/cover/inline/alter', function (req, res) {
+    app.post('/' + global.config.version + '/pam/cover/inline/alter', function (req, res) {
         pamService.coverInlineAlter(req.body, function (err, data, statusCode) {
             if (err === false) {    
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
@@ -305,7 +305,7 @@ function PamController(objCollection) {
         });
     });
     
-    app.put('/' + global.config.version + '/pam/activity/status_pay/alter', function (req, res) {
+    app.post('/' + global.config.version + '/pam/activity/status_pay/alter', function (req, res) {
         pamService.paymentStatusAlter(req.body, function (err, data, statusCode) {
             if (err === false) {    
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
@@ -346,10 +346,10 @@ function PamController(objCollection) {
                                     cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                         if (err) {
                                             //console.log("error in setting in asset parity");
-                                            global.logger.write('serverError',"error in setting in asset parity",err,req.body);
+                                            global.logger.write('serverError', "error in setting in asset parity", err, req.body);
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('debug',"asset parity is set successfully",{},req.body);
+                                            global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
 
                                     });
                                 }
@@ -400,7 +400,7 @@ function PamController(objCollection) {
         
     });
     
-    app.put('/' + global.config.version + '/pam/asset/desc/alter', function (req, res) {
+    app.post('/' + global.config.version + '/pam/asset/desc/alter', function (req, res) {
         pamService.assetListUpdateDesc(req.body, function (err, data, statusCode) {
             if (err === false) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
@@ -410,7 +410,7 @@ function PamController(objCollection) {
         });
     });
     
-    app.put('/' + global.config.version + '/asset/activate/alter', function (req, res) {
+    app.post('/' + global.config.version + '/asset/activate/alter', function (req, res) {
     	pamService.deactivateAsset(req.body).then((data)=>{    		
     		res.send(responseWrapper.getResponse(data, {}, 200, req.body));    	
     	}).catch((err) => {        	

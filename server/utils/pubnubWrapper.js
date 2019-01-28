@@ -20,8 +20,8 @@ function PubnubPush() {
             };
             
              pubnub.publish(publishConfig, function(status, response) {               
-                global.logger.write('debug', status, {}, {});                
-                global.logger.write('debug', response, {}, {});
+                global.logger.write('conLog', status, {}, {});                
+                global.logger.write('conLog', response, {}, {});
             });
         };
         
@@ -33,8 +33,8 @@ function PubnubPush() {
             };
             
              pubnub.publish(publishConf, function(status, response) {               
-                global.logger.write('debug', status, {}, {});
-                global.logger.write('debug', response, {}, {});
+                global.logger.write('conLog', status, {}, {});
+                global.logger.write('conLog', response, {}, {});
             });
         };
          
@@ -43,7 +43,7 @@ function PubnubPush() {
                 pubnub.subscribe({ channels: [channelId] });
                 pubnub.addListener({
                     message: function (message) {                                
-                                global.logger.write('debug', message, {}, {});
+                                global.logger.write('conLog', message, {}, {});
                                 resolve(message.message);
                              }
                 });
