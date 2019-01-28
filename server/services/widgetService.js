@@ -483,6 +483,33 @@ function WidgetService(objCollection) {
         return [error, responseData];
     };
 
+    this.widgetDelete = async function (request) {
+
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.widget_id,
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.asset_id,
+            request.log_datetime
+        );
+
+        var queryString = util.getQueryString('ds_p1_widget_list_delete', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
 }
 
 
