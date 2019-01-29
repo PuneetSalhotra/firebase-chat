@@ -14,7 +14,7 @@ function ActivityUpdateController(objCollection) {
     var util = objCollection.util;
     var forEachAsync = objCollection.forEachAsync;
 
-    app.put('/' + global.config.version + '/activity/inline/alter', function (req, res) {
+    app.post('/' + global.config.version + '/activity/inline/alter', function (req, res) {
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
@@ -89,7 +89,7 @@ function ActivityUpdateController(objCollection) {
 
     });
 
-    app.put('/' + global.config.version + '/activity/cover/alter', function (req, res) {
+    app.post('/' + global.config.version + '/activity/cover/alter', function (req, res) {
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
@@ -155,7 +155,7 @@ function ActivityUpdateController(objCollection) {
         }
     });
 
-    app.put('/' + global.config.version + '/activity/parent/alter', function (req, res) {
+    app.post('/' + global.config.version + '/activity/parent/alter', function (req, res) {
         var assetMessageCounter = 0;
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))
@@ -228,7 +228,7 @@ function ActivityUpdateController(objCollection) {
     });
     
     //Added by V Nani Kalyan
-    app.put('/' + global.config.version + '/activity/unread/count/reset', function (req, res) {
+    app.post('/' + global.config.version + '/activity/unread/count/reset', function (req, res) {
         var cnt = 0;
         var deviceOsId = 0;
         var activityArray = JSON.parse(req.body.activity_id_array);
@@ -307,7 +307,7 @@ function ActivityUpdateController(objCollection) {
         }); 
         
     //Added by V Nani Kalyan
-    app.put('/' + global.config.version + '/activity/unread/count/reset/v1', function (req, res) {
+    app.post('/' + global.config.version + '/activity/unread/count/reset/v1', function (req, res) {
         var cnt = 0;
         var deviceOsId = 0;
         try {
@@ -395,7 +395,7 @@ function ActivityUpdateController(objCollection) {
         
         
    //PAM
-   app.put('/' + global.config.version + '/pam/activity/cover/alter/channel_activity', function (req, res) {
+   app.post('/' + global.config.version + '/pam/activity/cover/alter/channel_activity', function (req, res) {
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
@@ -424,7 +424,7 @@ function ActivityUpdateController(objCollection) {
     });
     
     //PAM
-    app.put('/' + global.config.version + '/pam/activity/cover/alter/subtype_activity', function (req, res) {
+    app.post('/' + global.config.version + '/pam/activity/cover/alter/subtype_activity', function (req, res) {
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
@@ -453,7 +453,7 @@ function ActivityUpdateController(objCollection) {
     });
     
     //BETA
-    app.put('/' + global.config.version + '/activity/owner/alter', function (req, res) {
+    app.post('/' + global.config.version + '/activity/owner/alter', function (req, res) {
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
@@ -520,7 +520,7 @@ function ActivityUpdateController(objCollection) {
     });    
     
     //Setting or unsetting the activity_flag_file_enabled 
-    app.put('/' + global.config.version + '/activity/asset/file_enabled_flag/alter', function (req, res) {
+    app.post('/' + global.config.version + '/activity/asset/file_enabled_flag/alter', function (req, res) {
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
@@ -587,7 +587,7 @@ function ActivityUpdateController(objCollection) {
     });
 
     // Delete a user from the Organization/Workforce
-    app.put('/' + global.config.version + '/asset/access/workforce/reset', function (req, res) {
+    app.post('/' + global.config.version + '/asset/access/workforce/reset', function (req, res) {
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id')) {
             deviceOsId = Number(req.body.device_os_id);

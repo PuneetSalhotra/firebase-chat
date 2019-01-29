@@ -166,7 +166,7 @@ function FormConfigController(objCollection) {
     });
 
 
-    app.put('/' + global.config.version + '/form/activity/alter', function (req, res) {
+    app.post('/' + global.config.version + '/form/activity/alter', function (req, res) {
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
@@ -497,6 +497,18 @@ function FormConfigController(objCollection) {
             data = {};
             res.send(responseWrapper.getResponse(err, data, -999, req.body));
         });
+    });
+
+    // Service for lists bots dependant on a form field
+    app.post('/' + global.config.version + '/form/field/bot_widget/list', async function (req, res) {
+
+        const [err, botsWidgetsListData] = await formConfigService.formFieldBotWidgetList(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, botsWidgetsListData, 200, req.body));
+        } else {
+            console.log("Error: ", err);
+            res.send(responseWrapper.getResponse(err, botsWidgetsListData, -9999, req.body));
+        }
     });
 
 }

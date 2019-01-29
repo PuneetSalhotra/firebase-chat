@@ -77,7 +77,7 @@ function ActivityConfigController(objCollection) {
         });    		
     });
     
-    app.put('/' + global.config.version + '/activity_type/alter', function (req, res) {
+    app.post('/' + global.config.version + '/activity_type/alter', function (req, res) {
     	activityConfigService.workForceActivityTypeUpdate(req.body).then((data)=>{    		
     		res.send(responseWrapper.getResponse(data, {}, 200, req.body));    	
     	}).catch((err) => {        	
@@ -85,7 +85,7 @@ function ActivityConfigController(objCollection) {
         });    		
     });
     
-    app.put('/' + global.config.version + '/activity_type/archive', function (req, res) {
+    app.post('/' + global.config.version + '/activity_type/archive', function (req, res) {
     	activityConfigService.workForceActivityTypeDelete(req.body).then((data)=>{    		
     		res.send(responseWrapper.getResponse(data, {}, 200, req.body));    	
     	}).catch((err) => {        	

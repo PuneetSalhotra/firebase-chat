@@ -121,7 +121,7 @@ function WidgetController(objCollection) {
         }
     });
 
-    app.put('/' + global.config.version + '/widget/mapping/delete', async function (req, res) {
+    app.post('/' + global.config.version + '/widget/mapping/delete', async function (req, res) {
         const [err, data] = await widgetService.widgetMappingDelete(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse({}, data, 200, req.body));
@@ -131,7 +131,7 @@ function WidgetController(objCollection) {
         }
     });
 
-    app.put('/' + global.config.version + '/widget/update', async function (req, res) {
+    app.post('/' + global.config.version + '/widget/update', async function (req, res) {
         const [err, data] = await widgetService.widgetUpdate(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse({}, data, 200, req.body));
@@ -153,6 +153,16 @@ function WidgetController(objCollection) {
 
     app.post('/' + global.config.version + '/widget/access/level/entity/list', async function (req, res) {
         const [err, data] = await widgetService.widgetAccessLevelEntityList(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("Error: ", err)
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
+    app.put('/' + global.config.version + '/widget/delete', async function (req, res) {
+        const [err, data] = await widgetService.widgetDelete(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse({}, data, 200, req.body));
         } else {

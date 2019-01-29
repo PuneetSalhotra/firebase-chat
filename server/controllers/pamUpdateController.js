@@ -14,7 +14,7 @@ function PamUpdateController(objCollection) {
     var pamUpdateService = new PamUpdateService(objCollection);
     
     //PAM
-    app.put('/' + global.config.version + '/pam/activity/ingredient/alter', function (req, res) {
+    app.post('/' + global.config.version + '/pam/activity/ingredient/alter', function (req, res) {
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
@@ -43,7 +43,7 @@ function PamUpdateController(objCollection) {
     });
     
     
-    app.put('/' + global.config.version + '/pam/activity/participant/access/reset', function (req, res) {
+    app.post('/' + global.config.version + '/pam/activity/participant/access/reset', function (req, res) {
         var assetMessageCounter = 0;
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))
@@ -120,7 +120,7 @@ function PamUpdateController(objCollection) {
     });
     
     //Activity Status Alter
-    app.put('/' + global.config.version + '/pam/activity/status/alter', function (req, res) {
+    app.post('/' + global.config.version + '/pam/activity/status/alter', function (req, res) {
         
         //global.logger.write('debug', 'PAM::/pam/activity/status/alter::'+req.body, {}, req); 
         
@@ -202,7 +202,7 @@ function PamUpdateController(objCollection) {
 
     });
     
-    app.put('/' + global.config.version + '/pam/activity/event/covers/alter', function (req, res) {
+    app.post('/' + global.config.version + '/pam/activity/event/covers/alter', function (req, res) {
     	pamUpdateService.activityListUpdateEventCovers(req.body).then(()=>{    	
     		pamUpdateService.activityAssetMappingUpdateEventCovers(req.body).then(()=>{   	
     			res.send(responseWrapper.getResponse({}, {}, 200, req.body));    	
@@ -214,7 +214,7 @@ function PamUpdateController(objCollection) {
     	});
     });
     
-    app.put('/' + global.config.version + '/pam/activity/status/alter/nonqueue', function (req, res) {
+    app.post('/' + global.config.version + '/pam/activity/status/alter/nonqueue', function (req, res) {
     	//global.logger.write('debug', ':::::::::::::::::::SERVICE START:::::::::::::::::::::', {}, req);
     	//global.logger.write('debug', '/pam/activity/status/alter/nonqueue', {}, req);
     	//global.logger.write('debug', req.body, {}, req);    
