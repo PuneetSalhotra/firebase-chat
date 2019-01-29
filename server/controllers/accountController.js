@@ -40,7 +40,7 @@ function AccountController(objCollection) {
         });
     });
 
-    app.put('/' + global.config.version + '/account/cover/update/email', function (req, res) {
+    app.post('/' + global.config.version + '/account/cover/update/email', function (req, res) {
         accountService.updateAccountEmail(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response   
@@ -53,7 +53,7 @@ function AccountController(objCollection) {
         });
     });
 
-    app.put('/' + global.config.version + '/account/cover/update/mailing-address', function (req, res) {
+    app.post('/' + global.config.version + '/account/cover/update/mailing-address', function (req, res) {
         try {
             JSON.parse(req.body.mailing_address_collection);
             accountService.updateAccountMailingAddress(req.body, function (err, data, statusCode) {
@@ -73,7 +73,7 @@ function AccountController(objCollection) {
 
     });
 
-    app.put('/' + global.config.version + '/account/cover/update/forwarding-address', function (req, res) {
+    app.post('/' + global.config.version + '/account/cover/update/forwarding-address', function (req, res) {
         try {
             JSON.parse(req.body.account_forwarding_address);
             accountService.updateAccountForwardingAddress(req.body, function (err, data, statusCode) {
@@ -93,7 +93,7 @@ function AccountController(objCollection) {
 
     });
 
-    app.put('/' + global.config.version + '/account/cover/update/phone', function (req, res) {
+    app.post('/' + global.config.version + '/account/cover/update/phone', function (req, res) {
         try {
             JSON.parse(req.body.account_phone_number_collection);
             accountService.updateAccountPhone(req.body, function (err, data, statusCode) {
@@ -340,7 +340,7 @@ function AccountController(objCollection) {
 
 
     // Set Account Config Values
-    app.put('/' + global.config.version + '/account/config/set', function (req, res) {
+    app.post('/' + global.config.version + '/account/config/set', function (req, res) {
         accountService.setAccountConfigValues(req.body, function (err, data, statusCode) {
             (err === false) ?
             res.send(responseWrapper.getResponse(err, data, statusCode, req.body)):

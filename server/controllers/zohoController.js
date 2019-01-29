@@ -43,7 +43,7 @@ function ZohoController(objCollection) {
     });
     
     //Update a Customer
-    app.put('/' + global.config.version + '/zoho/customer/update', function (req, res) {
+    app.post('/' + global.config.version + '/zoho/customer/update', function (req, res) {
         zohoService.updateCustomerDetails(req.body, function (err, data, statusCode) {
             if (err === false) {                
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
@@ -121,7 +121,7 @@ function ZohoController(objCollection) {
     });
     
     //Update subscription
-    app.put('/' + global.config.version + '/zoho/customer/subscription/update', function (req, res) {
+    app.post('/' + global.config.version + '/zoho/customer/subscription/update', function (req, res) {
         zohoService.updateCustomerSubscription(req.body, function (err, data, statusCode) {
             if (err === false) {                
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
@@ -160,7 +160,7 @@ function ZohoController(objCollection) {
     });
     
     //Updating Card of a Customer
-    app.put('/' + global.config.version + '/zoho/customer/card/update', function (req, res) {
+    app.post('/' + global.config.version + '/zoho/customer/card/update', function (req, res) {
         zohoService.updateCustomerCardDetails(req.body, function (err, data, statusCode) {
             if (err === false) {                
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
@@ -186,7 +186,7 @@ function ZohoController(objCollection) {
     });
 
     //Zoho Payment Integration -- Update account Billing Details
-    app.put('/' + global.config.version + '/zoho/account/billing/update', function (req, res) {
+    app.post('/' + global.config.version + '/zoho/account/billing/update', function (req, res) {
         zohoService.updateAcctBillingDetails(req.body, function (err, data, statusCode) {
             if (err === false) {                
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
@@ -199,7 +199,7 @@ function ZohoController(objCollection) {
     });
     
     //Zoho Payment Integration -- Update account Billing asset
-    app.put('/' + global.config.version + '/zoho/asset/account/billing/update', function (req, res) {
+    app.post('/' + global.config.version + '/zoho/asset/account/billing/update', function (req, res) {
         zohoService.updateAssetBillingDetails(req.body, function (err, data, statusCode) {
             if (err === false) {                
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
