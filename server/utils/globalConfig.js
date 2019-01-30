@@ -124,7 +124,7 @@ if (mode === 'local') {
     // config.logMasterIp = 'worlddesk-r1-log.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
     config.logMasterIp = '10.0.0.169';    
     config.logDatabase = 'worlddesk_log_staging';
-    config.logDbPassword = 'Apiuser_123';
+    config.logDbPassword = 'Apidbuser_123';
 
     //Redis Config
     //config.redisIp = '127.0.0.1';
@@ -209,6 +209,10 @@ if (mode === 'dev') {
     config.dbPassword = 'apidbuser';
     config.conLimit = 2;
 
+    config.logMasterIp = '10.0.0.169';
+    config.logDatabase = 'worlddesk_log_staging';
+    config.logDbPassword = 'Apidbuser_123';
+
     //Redis Config
     config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';
     config.redisPort = 6379;    
@@ -285,7 +289,7 @@ if (mode === 'staging') {
     // config.logMasterIp = 'worlddesk-r1-log.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
     config.logMasterIp = '10.0.0.169';    
     config.logDatabase = 'worlddesk_log_staging';
-    config.logDbPassword = 'Apiuser_123';
+    config.logDbPassword = 'Apidbuser_123';
 
     //Redis Config    
     config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';
@@ -441,7 +445,7 @@ if (mode === 'prod') {
     // config.logMasterIp = 'worlddesk-r1-log.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
     config.logMasterIp = '10.0.0.169';    
     config.logDatabase = 'worlddesk_log';
-    config.logDbPassword = 'Apiuser_123';
+    config.logDbPassword = 'Apidbuser_123';
 
     //Redis    
     config.redisIp = 'cache-production.7otgcu.ng.0001.aps1.cache.amazonaws.com';
