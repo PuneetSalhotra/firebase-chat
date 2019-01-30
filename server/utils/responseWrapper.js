@@ -11,7 +11,7 @@ function ResponseWrapper(util) {
         };
         
         try {
-            global.logger.write('response', response, response, request);
+            global.logger.write('response', 'response', response, request);
         } catch(e){}       
 
         return response;

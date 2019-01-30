@@ -2626,7 +2626,8 @@ function VodafoneService(objectCollection) {
             registrationChargesGrandTotal: 0,
             totalAmountPayableGrandTotal: 0,
             totalAmountPayableTotal_A: 0,
-            totalAmountPayableTotal_B: 0
+            totalAmountPayableTotal_B: 0,
+            totalAmountPayableTotal_C: 0
         };
         cafFormData.forEach(formEntry => {
             switch (formEntry.field_id) {
@@ -2867,12 +2868,23 @@ function VodafoneService(objectCollection) {
                 case 7191: // Platform | Miscellaneous Charges2-Annual Recurring(B)
                     sumsKeyValueJson.totalAmountPayableTotal_B += Number(formEntry.field_value);
                     break;
+
+                case 7145: // Service Rental-Security Deposit(C)
+                case 7164: // CPE Rentals-Security Deposit(C)
+                case 7168: // CPE 1-Security Deposit(C)
+                case 7172: // CPE 2-Security Deposit(C)
+                case 7176: // CPE 3-Security Deposit(C)
+                case 7180: // CPE 4-Security Deposit(C)
+                case 7184: // CPE 5-Security Deposit(C)
+                case 7188: // Miscellaneous Charges-1-Security Deposit(C)
+                    sumsKeyValueJson.totalAmountPayableTotal_C += Number(formEntry.field_value);
+                    break;
             }
         });
 
         // 6096 | Total Amount Payable-Grand Total(A+B+C)
         // Platform | 7248 | Total Amount Payable-Grand Total(A+B+C)
-        sumsKeyValueJson.totalAmountPayableGrandTotal = sumsKeyValueJson.totalAmountPayableTotal_A + sumsKeyValueJson.totalAmountPayableTotal_B;
+        sumsKeyValueJson.totalAmountPayableGrandTotal = sumsKeyValueJson.totalAmountPayableTotal_A + sumsKeyValueJson.totalAmountPayableTotal_B + sumsKeyValueJson.totalAmountPayableTotal_C;
 
         return sumsKeyValueJson;
     }
