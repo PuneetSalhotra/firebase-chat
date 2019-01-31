@@ -116,14 +116,25 @@ function ActivityTimelineService(objectCollection) {
 
             request.non_dedicated_file = 1;
             
-            getActivityIdBasedOnTransId(request).then((data)=>{
-                if(data.length > 0) {
-                    request.data_activity_id = Number(data[0].activity_id);
-                }
-                timelineStandardCalls(request).then(() => {}).catch((err) => {
-                    global.logger.write('debug', 'Error in timelineStandardCalls' + err, {}, request);
+            setTimeout(() => {
+                getActivityIdBasedOnTransId(request).then((data) => {
+                    if (data.length > 0) {
+                        request.data_activity_id = Number(data[0].activity_id);
+                    }
+                    timelineStandardCalls(request).then(() => {}).catch((err) => {
+                        global.logger.write('debug', 'Error in timelineStandardCalls' + err, {}, request);
+                    });
                 });
-            });
+            }, 1000);
+
+            // getActivityIdBasedOnTransId(request).then((data)=>{
+            //     if(data.length > 0) {
+            //         request.data_activity_id = Number(data[0].activity_id);
+            //     }
+            //     timelineStandardCalls(request).then(() => {}).catch((err) => {
+            //         global.logger.write('debug', 'Error in timelineStandardCalls' + err, {}, request);
+            //     });
+            // });
         } else {
             
             request.form_id = 0;            
