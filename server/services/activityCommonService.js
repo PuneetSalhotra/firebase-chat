@@ -2580,6 +2580,27 @@ function ActivityCommonService(db, util, forEachAsync) {
         });
     };
 
+    this.queueActivityMappingUpdateDatetimeEndDeffered = function (request, queueActivityMappingId, datetimeEndDeffered) {
+        return new Promise((resolve, reject) => {
+            // IN p_queue_activity_mapping_id BIGINT(20), IN p_organization_id BIGINT(20), 
+            // IN p_datetime_end_deffered DATETIME, IN p_log_asset_id BIGINT(20), 
+            // IN p_log_datetime DATETIME
+            let paramsArr = new Array(
+                queueActivityMappingId,
+                request.organization_id,
+                datetimeEndDeffered,
+                request.asset_id,
+                util.getCurrentUTCTime()
+            );
+            const queryString = util.getQueryString('ds_p1_queue_activity_mapping_update_datetime_end_deffered', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                });
+            }
+        });
+    };
+
     // Unmap the form file from the Order Validation queue
     this.queueActivityMappingUpdateInlineStatus = function (request, queueActivityMappingId, queueActivityInlineData) {
         return new Promise((resolve, reject) => {
