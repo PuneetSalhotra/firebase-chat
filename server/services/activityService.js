@@ -274,7 +274,7 @@ function ActivityService(objectCollection) {
                             // Workflow Trigger
                             if (activityTypeCategroyId === 9 && request.device_os_id !== 9) {
 
-                                if (request.device_os_id === 5) {
+                                if (Number(request.device_os_id) === 5) {
                                     let workflowEngineRequest = Object.assign({}, request);
 
                                     let workflowEngineEvent = {
