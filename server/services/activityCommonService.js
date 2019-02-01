@@ -843,6 +843,33 @@ function ActivityCommonService(db, util, forEachAsync) {
         });
     };
 
+    this.activityAssetMappingSelectActivityParticipant = function (request, activityId) {
+        // IN p_activity_id BIGINT(20), IN p_asset_id BIGINT(20), IN p_organization_id BIGINT(20)
+
+        return new Promise((resolve, reject) => {
+            let paramsArr;
+            if (Number(activityId > 0)) {
+                paramsArr = new Array(
+                    activityId,
+                    request.asset_id,
+                    request.organization_id
+                );
+            } else {
+                paramsArr = new Array(
+                    request.activity_id,
+                    request.asset_id,
+                    request.organization_id
+                );
+            }
+            const queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_activity_participant', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                });
+            }
+        });
+    };
+
     this.updateAssetLocation = function (request, callback) {
         //if (request.track_latitude !== '0.0000' || request.track_latitude !== '0.0') {
         var paramsArr = new Array(

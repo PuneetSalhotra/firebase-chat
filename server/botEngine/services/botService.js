@@ -718,6 +718,7 @@ function BotService(objectCollection) {
                         await fireEmail(request, botOperationsJson.bot_operations.fire_email);
                     } catch(err) {
                         global.logger.write('conLog', 'Error in executing fireEmail Step', {}, {});
+                        console.log("Error in executing fireEmail Step: ", err)
                         global.logger.write('serverError', err, {}, {});
                         i.bot_operation_status_id = 4;
                         i.bot_operation_inline_data = JSON.stringify({"err": err});
@@ -1126,19 +1127,19 @@ function BotService(objectCollection) {
 
     //Bot Step Firing an eMail
     async function fireEmail(request, inlineData) {
-        let newReq = Object.assign({}, request);        
+        let newReq = Object.assign({}, request);
         let resp;
 
-        global.logger.write('conLog', inlineData,{},{});
-        let type = Object.keys(inlineData);        
-        global.logger.write('conLog', type,{},{});
+        global.logger.write('conLog', inlineData, {}, {});
+        let type = Object.keys(inlineData);
+        global.logger.write('conLog', type, {}, {});
 
-        if(type[0] === 'static') {            
+        if (type[0] === 'static') {
             newReq.communication_id = inlineData[type[0]].template_id;
             newReq.email_id = inlineData[type[0]].email;
             newReq.email_sender = inlineData[type[0]].sender_email;
             newReq.email_sender_name = inlineData[type[0]].sender_name;
-        } else if(type[0] === 'dynamic') {
+        } else if (type[0] === 'dynamic') {
             newReq.communication_id = inlineData[type[0]].template_id;
             newReq.form_id = inlineData[type[0]].form_id;
             newReq.field_id = inlineData[type[0]].field_id;
@@ -1148,14 +1149,174 @@ function BotService(objectCollection) {
             //request.email_sender = 'OMT.IN1@vodafoneidea.com'; 
             //request.email_sender_name = 'Vodafoneidea';
 
-            resp = await getFieldValue(newReq);            
-            newReq.email_id = resp[0].data_entity_text_1;       
+            resp = await getFieldValue(newReq);
+            newReq.email_id = resp[0].data_entity_text_1;
         }
-        
+
         let dbResp = await getCommTemplates(newReq);
-        let retrievedCommInlineData = JSON.parse(dbResp[0].communication_inline_data);        
-        global.logger.write('conLog', retrievedCommInlineData.communication_template.email,{},{});
-        
+        let retrievedCommInlineData = JSON.parse(dbResp[0].communication_inline_data);
+        // global.logger.write('conLog', retrievedCommInlineData.communication_template.email, {}, {});
+        let emailBody = '';
+        try {
+            let buff = new Buffer(retrievedCommInlineData.communication_template.email.body, 'base64');
+            emailBody = buff.toString('ascii');
+        } catch (error) {
+            console.log("Fire Email | base64_2_string | Decode Error: ", error);
+        }
+
+        // Find and replace placeholders
+        // 1. {$dateTime}
+        if (String(emailBody).includes("{$dateTime}")) {
+            emailBody = String(emailBody).replace(/{\$dateTime}/g, moment().utcOffset("+05:30").format("YYYY/MM/DD hh:mm A"));
+        }
+
+        let placeholders = retrievedCommInlineData.communication_template.email.placeholders;
+        let userName = placeholders.userName;
+        let userNameValue = '';
+        // 
+        let fromName = placeholders.fromName;
+        let fromNameValue = '';
+        // 
+        let reqFormId = 0;
+        if (request.hasOwnProperty('activity_form_id')) {
+            reqFormId = Number(request.activity_form_id);
+        } else if (request.hasOwnProperty('form_id')) {
+            reqFormId = Number(request.form_id);
+        }
+
+        let activityInlineData = [];
+        if (request.hasOwnProperty('activity_inline_data')) {
+            try {
+                activityInlineData = JSON.parse(request.activity_inline_data);
+            } catch (error) {
+                activityInlineData = [];
+            }
+        }
+
+        // 2. {$userName}
+        if (Number(userName.fieldId) === 0) {
+            userNameValue = userName.defaultValue;
+
+        } else if (reqFormId === Number(userName.formId) && request.hasOwnProperty('activity_inline_data')) {
+            for (const fieldEntry of activityInlineData) {
+                if (Number(fieldEntry.field_id) === Number(userName.fieldId)) {
+                    userNameValue = fieldEntry.field_value;
+                }
+            }
+        } else {
+            let activityId = 0,
+                formTransactionId = 0;
+            try {
+                let formData = await activityCommonService.getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, userName.formId);
+                if (formData.length > 0) {
+                    activityId = formData[0].data_activity_id;
+                    formTransactionId = formData[0].data_form_transaction_id;
+
+                    let fieldData = await getFieldValue({
+                        form_transaction_id: formTransactionId,
+                        form_id: userName.formId,
+                        field_id: userName.fieldId,
+                        organization_id: request.organization_id
+                    });
+                    userNameValue = fieldData[0].data_entity_text_1;
+                } else {
+                    // Populate with the default value
+                }
+            } catch (error) {
+                console.log("Error fetching userNameValue value: ", error)
+            }
+        }
+
+        if (String(emailBody).includes("{$userName}")) {
+            emailBody = String(emailBody).replace(/{\$userName}/g, userNameValue);
+        }
+
+        // 3. {$fromName}
+        if (Number(fromName.fieldId) === 0) {
+            fromNameValue = fromName.defaultValue;
+
+        } else if (reqFormId === Number(fromName.formId) && request.hasOwnProperty('activity_inline_data')) {
+            for (const fieldEntry of activityInlineData) {
+                if (Number(fieldEntry.field_id) === Number(fromName.fieldId)) {
+                    fromName = fieldEntry.field_value;
+                }
+            }
+        } else {
+            let activityId = 0,
+                formTransactionId = 0;
+            try {
+                let formData = await activityCommonService.getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, fromName.formId);
+                if (formData.length > 0) {
+                    activityId = formData[0].data_activity_id;
+                    formTransactionId = formData[0].data_form_transaction_id;
+
+                    let fieldData = await getFieldValue({
+                        form_transaction_id: formTransactionId,
+                        form_id: fromName.formId,
+                        field_id: fromName.fieldId,
+                        organization_id: request.organization_id
+                    });
+                    fromNameValue = fieldData[0].data_entity_text_1;
+                } else {
+                    // Populate with the default value
+                }
+            } catch (error) {
+                console.log("Error fetching userNameValue value: ", error)
+            }
+        }
+        if (String(emailBody).includes("{$fromName}")) {
+            emailBody = String(emailBody).replace(/{\$fromName}/g, fromNameValue);
+        }
+
+        // Fetch 
+        if (request.hasOwnProperty("workflow_activity_id")) {
+            try {
+                let processUserData = await activityCommonService.activityAssetMappingSelectActivityParticipant(request, request.workflow_activity_id);
+                if (processUserData.length > 0) {
+                    request.asset_first_name = processUserData[0].asset_first_name;
+                    request.operating_asset_first_name = processUserData[0].operating_asset_first_name;
+                    request.operating_asset_phone_number = processUserData[0].operating_asset_phone_number;
+                }
+            } catch (error) {
+                console.log("Error fetching processUserData: ", error)
+            }
+        }
+        // All call to actions!
+        let callToActions = retrievedCommInlineData.communication_template.email.call_to_actions;
+
+        // 5. {$statusLink}
+        let emailFlagWorkflowStatus = callToActions.flag_workflow_status;
+        let statusLink = '';
+        if (Number(emailFlagWorkflowStatus) === 1) {
+            statusLink = await getStatusLink(request, {}, request.workflow_activity_id);
+        }
+
+        // 4. {$actionLink}
+        let formActions = callToActions.forms;
+        let actionLink = '';
+        for (const formAction of formActions) {
+            if (formAction.call_to_action_label !== '') {
+                let link = await getActionLink(request, formAction, request.workflow_activity_id);
+                actionLink += link;
+            }
+        }
+
+        if (statusLink !== '') {
+            actionLink += statusLink;
+        }
+
+        if (String(emailBody).includes("{$actionLink}")) {
+            emailBody = String(emailBody).replace(/{\$actionLink}/g, actionLink);
+        }
+
+        if (emailBody !== '') {
+            retrievedCommInlineData.communication_template.email.body = emailBody;
+        }
+
+        // console.log("************************************************************")
+        // console.log("emailBody: ", emailBody)
+        // console.log("************************************************************")
+
         await sendEmail(newReq, retrievedCommInlineData.communication_template.email);
 
         //Make a 715 timeline entry - (715 streamtypeid is for email)
@@ -1166,30 +1327,80 @@ function BotService(objectCollection) {
         };
 
         let fire715OnWFOrderFileRequest = Object.assign({}, newReq);
-            fire715OnWFOrderFileRequest.activity_id = newReq.workflow_activity_id;
-            fire715OnWFOrderFileRequest.form_transaction_id = newReq.form_transaction_id;
-            fire715OnWFOrderFileRequest.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
-            fire715OnWFOrderFileRequest.activity_stream_type_id = 715;
-            fire715OnWFOrderFileRequest.form_id = newReq.form_id || 0;
-            fire715OnWFOrderFileRequest.asset_message_counter = 0;
-            fire715OnWFOrderFileRequest.activity_type_category_id = 48;
-            fire715OnWFOrderFileRequest.message_unique_id = util.getMessageUniqueId(request.asset_id);
-            fire715OnWFOrderFileRequest.activity_timeline_text = '';
-            fire715OnWFOrderFileRequest.activity_timeline_url = '';
-            fire715OnWFOrderFileRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
-            fire715OnWFOrderFileRequest.flag_timeline_entry = 1;
-            fire715OnWFOrderFileRequest.service_version = '1.0';
-            fire715OnWFOrderFileRequest.app_version = '2.8.16';
-            fire715OnWFOrderFileRequest.device_os_id = 9;
-            fire715OnWFOrderFileRequest.data_activity_id = request.activity_id;
-            fire715OnWFOrderFileRequest.log_asset_id = 100;
-        
-        global.logger.write('conLog', 'fire715OnWFOrderFileRequest : ',fire715OnWFOrderFileRequest,{});
-        return new Promise((resolve, reject)=>{
-            activityTimelineService.addTimelineTransaction(fire715OnWFOrderFileRequest, (err, resp)=>{
-                (err === false)? resolve() : reject(err);
+        fire715OnWFOrderFileRequest.activity_id = newReq.workflow_activity_id;
+        fire715OnWFOrderFileRequest.form_transaction_id = newReq.form_transaction_id;
+        fire715OnWFOrderFileRequest.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
+        fire715OnWFOrderFileRequest.activity_stream_type_id = 715;
+        fire715OnWFOrderFileRequest.form_id = newReq.form_id || 0;
+        fire715OnWFOrderFileRequest.asset_message_counter = 0;
+        fire715OnWFOrderFileRequest.activity_type_category_id = 48;
+        fire715OnWFOrderFileRequest.message_unique_id = util.getMessageUniqueId(request.asset_id);
+        fire715OnWFOrderFileRequest.activity_timeline_text = '';
+        fire715OnWFOrderFileRequest.activity_timeline_url = '';
+        fire715OnWFOrderFileRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+        fire715OnWFOrderFileRequest.flag_timeline_entry = 1;
+        fire715OnWFOrderFileRequest.service_version = '1.0';
+        fire715OnWFOrderFileRequest.app_version = '2.8.16';
+        fire715OnWFOrderFileRequest.device_os_id = 9;
+        fire715OnWFOrderFileRequest.data_activity_id = request.activity_id;
+        fire715OnWFOrderFileRequest.log_asset_id = 100;
+
+        // global.logger.write('conLog', 'fire715OnWFOrderFileRequest : ', fire715OnWFOrderFileRequest, {});
+        return new Promise((resolve, reject) => {
+            activityTimelineService.addTimelineTransaction(fire715OnWFOrderFileRequest, (err, resp) => {
+                (err === false) ? resolve(): reject(err);
             });
         });
+    }
+
+    async function getActionLink(request, formAction, workflowActivityId) {
+        // Get activity_id of the form instance in the process/workflow
+        const JsonData = {
+            organization_id: request.organization_id,
+            account_id: request.account_id,
+            workforce_id: request.workforce_id,
+            asset_id: request.asset_id,
+            auth_asset_id: 31347,
+            asset_token_auth: "05986bb0-e364-11e8-a1c0-0b6831833754",
+            activity_id: workflowActivityId, // request.activity_id,
+            activity_type_category_id: 9,
+            activity_stream_type_id: 705,
+            form_transaction_id: request.form_transaction_id,
+            form_id: formAction.form_id,
+            activity_type_id: request.activity_type_id,
+            type: "approval",
+            asset_first_name: request.asset_first_name || '',
+            asset_phone_number: request.operating_asset_phone_number || 0,
+            operating_asset_first_name: request.operating_asset_first_name || ''
+        }
+
+        const base64Json = Buffer.from(JSON.stringify(JsonData)).toString('base64');
+        const urlStrFill = "https://officedesk.app/#/forms/view/" + base64Json;
+        const buttonName = formAction.call_to_action_label;
+        const actionLink = `<a style='background: #f47920;display: inline-block;color: #FFFFFF;text-decoration: none;font-size: 12px;margin-top: 1.0em;background-clip: padding-box;padding: 5px 15px;box-shadow: 4px 4px 6px 1px #cbcbcb;margin-left:10px' target='_blank' href='${urlStrFill}'>${buttonName}</a> `;
+
+        return actionLink;
+    }
+
+    async function getStatusLink(request, formAction, workflowActivityId) {
+        const JsonData = {
+            organization_id: request.organization_id,
+            account_id: request.account_id,
+            workforce_id: request.workforce_id,
+            asset_id: request.asset_id,
+            auth_asset_id: 31347,
+            asset_token_auth: "05986bb0-e364-11e8-a1c0-0b6831833754",
+            activity_id: workflowActivityId, // request.activity_id,
+            activity_type_category_id: 9,
+            activity_stream_type_id: 705,
+            activity_type_id: request.activity_type_id,
+            asset_first_name: request.asset_first_name || ''
+        }
+        const base64Json = Buffer.from(JSON.stringify(JsonData)).toString('base64');
+        const urlStrFill = "https://officedesk.app/#/forms/view/" + base64Json;
+        const statusLink = `<a style='background: #f47920;display: inline-block;color: #FFFFFF;text-decoration: none;font-size: 12px;margin-top: 1.0em;background-clip: padding-box;padding: 5px 15px;box-shadow: 4px 4px 6px 1px #cbcbcb;margin-left:10px' target='_blank' href='${urlStrFill}'>Order Status</a>`;
+
+        return statusLink;
     }
 
     //Bot Step Firing a Text Message
