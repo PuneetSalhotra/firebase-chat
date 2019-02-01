@@ -1319,9 +1319,12 @@ function BotService(objectCollection) {
 
         await sendEmail(newReq, retrievedCommInlineData.communication_template.email);
 
-        //Make a 715 timeline entry - (715 streamtypeid is for email)
+        // Make a 715 timeline entry - (715 streamtypeid is for email)
+        // Buffer.from(retrievedCommInlineData.communication_template.email).toString('base64')
+        let timelineEntryEmailContent = retrievedCommInlineData.communication_template.email;
+        timelineEntryEmailContent.body = Buffer.from(emailBody).toString('base64');
         let activityTimelineCollection = {
-            email: retrievedCommInlineData.communication_template.email,
+            email: timelineEntryEmailContent,
             email_sender: newReq.email_sender,
             email_sender_name: newReq.email_sender_name
         };
