@@ -152,7 +152,7 @@ vodafoneConfig = {
             "AUTHORISED_SIGNATORY_SIGN_AND_SEAL": 1064,  
             "OMT_APPROVAL": 1065,  
             "CUSTOMER_IT_COMMERCIAL_APPROVAL": 1066,  
-            "CUSTOMER_APPROVAL": 1067,  
+            "CUSTOMER_APPROVAL": 1064,  
             "ORDER_DOCUMENTS": 1068,  
             "CAF_REVISION_COMMENTS_CUSTOMER": 1069  
         },
