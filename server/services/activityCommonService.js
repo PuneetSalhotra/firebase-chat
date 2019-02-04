@@ -843,6 +843,33 @@ function ActivityCommonService(db, util, forEachAsync) {
         });
     };
 
+    this.activityAssetMappingSelectActivityParticipant = function (request, activityId) {
+        // IN p_activity_id BIGINT(20), IN p_asset_id BIGINT(20), IN p_organization_id BIGINT(20)
+
+        return new Promise((resolve, reject) => {
+            let paramsArr;
+            if (Number(activityId > 0)) {
+                paramsArr = new Array(
+                    activityId,
+                    request.asset_id,
+                    request.organization_id
+                );
+            } else {
+                paramsArr = new Array(
+                    request.activity_id,
+                    request.asset_id,
+                    request.organization_id
+                );
+            }
+            const queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_activity_participant', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                });
+            }
+        });
+    };
+
     this.updateAssetLocation = function (request, callback) {
         //if (request.track_latitude !== '0.0000' || request.track_latitude !== '0.0') {
         var paramsArr = new Array(
@@ -2574,6 +2601,27 @@ function ActivityCommonService(db, util, forEachAsync) {
             const queryString = util.getQueryString('ds_p1_1_queue_activity_mapping_select', paramsArr);
             if (queryString !== '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                });
+            }
+        });
+    };
+
+    this.queueActivityMappingUpdateDatetimeEndDeffered = function (request, queueActivityMappingId, datetimeEndDeffered) {
+        return new Promise((resolve, reject) => {
+            // IN p_queue_activity_mapping_id BIGINT(20), IN p_organization_id BIGINT(20), 
+            // IN p_datetime_end_deffered DATETIME, IN p_log_asset_id BIGINT(20), 
+            // IN p_log_datetime DATETIME
+            let paramsArr = new Array(
+                queueActivityMappingId,
+                request.organization_id,
+                datetimeEndDeffered,
+                request.asset_id,
+                util.getCurrentUTCTime()
+            );
+            const queryString = util.getQueryString('ds_p1_queue_activity_mapping_update_datetime_end_deffered', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
                     (err) ? reject(err): resolve(data);
                 });
             }

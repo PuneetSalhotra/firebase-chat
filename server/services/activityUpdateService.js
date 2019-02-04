@@ -13,6 +13,9 @@ function ActivityUpdateService(objectCollection) {
     var makeRequest = require('request');
     const moment = require('moment');
 
+    const ActivityListingService = require("../services/activityListingService");
+    const activityListingService = new ActivityListingService(objectCollection);
+
     var activityListUpdateInline = function (request, callback) {
 
         var paramsArr = new Array(
@@ -1193,6 +1196,23 @@ function ActivityUpdateService(objectCollection) {
                     }
                 }
 
+                // For type workflow or process
+                if (activityTypeCategoryId === 48) {
+                    let parsedActivityCoverData = JSON.parse(request.activity_cover_data);
+                    console.log("parsedActivityCoverData: ", parsedActivityCoverData)
+                    console.log("parsedActivityCoverData.duedate.old: ", parsedActivityCoverData.duedate.old)
+                    console.log("parsedActivityCoverData.duedate.new: ", parsedActivityCoverData.duedate.new)
+
+                    if (parsedActivityCoverData.duedate.old !== parsedActivityCoverData.duedate.new) {
+                        try {
+                            let datetimeEndDeffered = parsedActivityCoverData.duedate.new;
+                            updateDuedateForQueueActivityMappingEntries(request, datetimeEndDeffered);
+                        } catch (error) {
+                            console.log("Workflow Datetime update Error: ", error)
+                        }
+                    }
+                }
+
                 callback(false, {}, 200);
 
                 // if activity_type_category_id = 17 update asset image id also
@@ -1207,6 +1227,48 @@ function ActivityUpdateService(objectCollection) {
         // call resource ranking...
 
     };
+
+    async function updateDuedateForQueueActivityMappingEntries(request, datetimeEndDeffered) {
+        let newRequest = Object.assign({}, request);
+        newRequest.flag = 0;
+        try {
+            const queueMap = await activityListingService.getEntityQueueMapping(newRequest);
+            if (queueMap.length > 0) {
+                for (const queue of queueMap) {
+                    let queueId = Number(queue.queue_id);
+                    let queueActivityMappingId = 0;
+                    await activityCommonService
+                        .fetchQueueActivityMappingIdV1(newRequest, queueId)
+                        .then((queueActivityMappingData) => {
+                            if (queueActivityMappingData.length > 0) {
+                                queueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;
+                            }
+                        });
+                    console.log("queueActivityMappingId: ", queueActivityMappingId)
+                    if (queueActivityMappingId !== 0) {
+                        // datetimeEndDeffered
+                        try {
+                            await activityCommonService
+                                .queueActivityMappingUpdateDatetimeEndDeffered(request, queueActivityMappingId, datetimeEndDeffered);
+
+                            activityCommonService
+                                .queueHistoryInsert(newRequest, 1404, queueActivityMappingId)
+                                .then(() => {})
+                                .catch(() => {});
+                        } catch (error) {
+                            // 
+                            console.log("queueActivityMappingUpdateDatetimeEndDeffered | Error: ", error);
+                        }
+                    }
+                }
+            } else {
+                return '';
+            }
+        } catch (error) {
+            console.log("updateWorkflowQueueMapping | queueMap | Error: ", error);
+            return '';
+        }
+    }
 
     // Update due date alter counts
     function activityListUpdateDueDateAlterCount(request, flag_ontime) {
