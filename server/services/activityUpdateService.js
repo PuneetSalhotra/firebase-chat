@@ -2165,7 +2165,7 @@ function ActivityUpdateService(objectCollection) {
             request.activity_id,
             request.asset_id,
             request.activity_status_id,
-            request.activity_status_type_id,
+            request.activity_status_type_id || 0,
             util.getCurrentUTCTime() // request.log_datetime
         );
 
