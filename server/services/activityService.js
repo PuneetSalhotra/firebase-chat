@@ -153,6 +153,8 @@ function ActivityService(objectCollection) {
                     assetActivityListInsertAddActivity(request, async function (err, status) {
                         if (err === false) {
 
+                            alterActivityFlagFileEnabled(request).then(() => {});
+
                             activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
 
                             });
@@ -368,7 +370,7 @@ function ActivityService(objectCollection) {
 
                             });
 
-                            alterActivityFlagFileEnabled(request).then(() => {});
+                            // alterActivityFlagFileEnabled(request).then(() => {});
 
                             updateProjectStatusCounts(request).then(() => {});
                             if (request.hasOwnProperty('activity_parent_id')) {
