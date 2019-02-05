@@ -2128,7 +2128,7 @@ function FormConfigService(objCollection) {
                         field_name: fieldName,
                         field_description: '',
                         data_type_combo_value: dataTypeComboValue,
-                        field_sequence_id: option.sequence_id,
+                        field_sequence_id: field.sequence_id,
                         field_mandatory_enabled: fieldMandatoryEnabled,
                         field_preview_enabled: '0'
                     });
