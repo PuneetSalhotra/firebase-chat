@@ -1822,8 +1822,8 @@ function ActivityTimelineService(objectCollection) {
             params.push(request.api_version);                                   // IN p_device_api_version VARCHAR(50)
             params.push(request.asset_id);                                      // IN p_log_asset_id BIGINT(20)
             params.push(row.message_unique_id);                                 // IN p_log_message_unique_id VARCHAR(50)
-            params.push(request.flag_retry);                                    // IN p_log_retry TINYINT(1)
-            params.push(request.flag_offline);                                  // IN p_log_offline TINYINT(1)
+            params.push(request.flag_retry || 0);                                    // IN p_log_retry TINYINT(1)
+            params.push(request.flag_offline || 0);                                  // IN p_log_offline TINYINT(1)
             params.push(util.getCurrentUTCTime());                              // IN p_transaction_datetime DATETIME
             params.push(request.datetime_log);                                  // IN p_log_datetime DATETIME
             params.push(request.entity_datetime_2);                             // IN p_entity_datetime_2 DATETIME
