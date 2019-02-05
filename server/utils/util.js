@@ -518,10 +518,10 @@ function Util() {
         let queryString = '',
             preparedQueryString;
         if (paramsArr.length > 0) {
-            if (callName === 'ds_v1_activity_list_insert_pam') {
-                console.log("ds_v1_activity_list_insert_pam | paramsArr | Length: ", paramsArr.length);
-                console.log("ds_v1_activity_list_insert_pam | paramsArr: ", paramsArr);
-            }
+            // if (callName === 'ds_v1_activity_list_insert_pam') {
+            //     console.log("ds_v1_activity_list_insert_pam | paramsArr | Length: ", paramsArr.length);
+            //     console.log("ds_v1_activity_list_insert_pam | paramsArr: ", paramsArr);
+            // }
             queryString = `CALL ?? (${new Array(paramsArr.length).fill('?').join(', ')});`;
             // console.log("queryString: ", queryString);
             // console.log("paramsArr: ", paramsArr);
