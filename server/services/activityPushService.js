@@ -14,7 +14,7 @@ function ActivityPushService(objectCollection) {
         msg.activity_type_category_id = 0;
 
         var activityTypeCategoryId = Number(request.activity_type_category_id);
-        objectCollection.activityCommonService.getActivityDetails(request, 0, function (err, activityData) {
+        objectCollection.activityCommonService.getActivityDetails(request, 0, async function (err, activityData) {
             if (err === false) {
                 var activityTitle = activityData[0]['activity_title'];
                 var activityInlineJson = JSON.parse(activityData[0]['activity_inline_data']);
@@ -106,6 +106,19 @@ function ActivityPushService(objectCollection) {
                                              pushString.description = 'Has added CAF to ' + activityTitle;
                                              break;
                                     }
+
+                                    const [formConfigError, formConfigData] = await objectCollection
+                                        .activityCommonService
+                                        .workforceFormMappingSelect(request);
+                                    if (
+                                        formConfigError === false &&
+                                        Number(formConfigData.length) > 0 && 
+                                        Number(formConfigData[0].form_flag_workflow_enabled) === 1
+                                    ) {
+                                        pushString.description = `added ${formConfigData[0].form_name} to ${activityTitle}`;
+                                    }
+                                    console.log("ActivityPushService | getPushString | description: ", pushString.description);
+                                    // console.log("ActivityPushService | getPushString: ", request);
                                 }
 
                                 msg.activity_type_category_id = 9

@@ -117,6 +117,30 @@ function ActivityConfigController(objCollection) {
         	res.send(responseWrapper.getResponse(err, {}, -999, req.body));
         });    		
     });
+
+    app.post('/' + global.config.version + '/activity_status/add', function (req, res) {
+    	activityConfigService.workForceActivityStatusInsert(req.body).then((data)=>{    		
+    		res.send(responseWrapper.getResponse(data, {}, 200, req.body));    	
+    	}).catch((err) => {        	
+        	res.send(responseWrapper.getResponse(err, {}, -999, req.body));
+        });    		
+    });
+    
+    app.post('/' + global.config.version + '/activity_status/archive', function (req, res) {
+    	activityConfigService.workForceActivityStatusDelete(req.body).then((data)=>{    		
+    		res.send(responseWrapper.getResponse(data, {}, 200, req.body));    	
+    	}).catch((err) => {        	
+        	res.send(responseWrapper.getResponse(err, {}, -999, req.body));
+        });    		
+    });
+    
+    app.post('/' + global.config.version + '/activity_status/alter', function (req, res) {
+    	activityConfigService.workForceActivityStatusUpdate(req.body).then((data)=>{    		
+    		res.send(responseWrapper.getResponse(data, {}, 200, req.body));    	
+    	}).catch((err) => {        	
+        	res.send(responseWrapper.getResponse(err, {}, -999, req.body));
+        });    		
+    });
 }
 
 

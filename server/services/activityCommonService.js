@@ -421,7 +421,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             request.log_asset_id || request.asset_id,
             messageUniqueId,
             retryFlag,
-            request.flag_offline,
+            request.flag_offline || 0,
             request.track_gps_datetime,
             request.datetime_log,
             request.data_activity_id || 0
@@ -653,7 +653,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             request.log_asset_id || request.asset_id,
             messageUniqueId,
             retryFlag,
-            request.flag_offline,
+            request.flag_offline || 0,
             request.track_gps_datetime,
             request.datetime_log,
             request.data_activity_id || 0 //Added on 10-12-2018
