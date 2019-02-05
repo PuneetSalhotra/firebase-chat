@@ -169,11 +169,11 @@ function WorkflowQueueService(objectCollection)
             (
                 request.queue_id,
                 request.access_level_id,
-                request.asset_id,
+                request.target_asset_id,
                 request.workforce_id,
                 request.account_id,
                 request.organization_id,
-                request.log_asset_id,
+                request.asset_id,
                 request.log_datetime,
             );
 
