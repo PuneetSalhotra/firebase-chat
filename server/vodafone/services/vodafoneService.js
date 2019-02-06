@@ -20,6 +20,7 @@ function VodafoneService(objectCollection) {
     // Form Config Service
     // const FormConfigService = require("../../services/formConfigService");
     // const formConfigService = new FormConfigService(objectCollection);
+    // console.log(`global.vodafoneConfig["134564"].FORM_FIELD_MAPPING_DATA: `, global.vodafoneConfig["134564"].FORM_FIELD_MAPPING_DATA)
 
     this.newOrderFormAddToQueues = function (request, callback) {
 
@@ -3996,6 +3997,8 @@ function VodafoneService(objectCollection) {
     this.buildAndSubmitCafFormV1 = async function (request) {
         let workflowActivityData = [],
             formWorkflowActivityTypeId = 0;
+        
+        // Begin with the basic checks
         if (request.hasOwnProperty("workflow_activity_id")) {
             try {
                 workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
@@ -4010,9 +4013,10 @@ function VodafoneService(objectCollection) {
             console.log("buildAndSubmitCafFormV1 | Error | workflow_activity_id NOT FOUND.")
             return [new Error("workflow_activity_id not found in the request."), false];;
         }
-        let requiredForms = global.vodafoneConfig[formWorkflowActivityTypeId].REQUIRED_FORMS;
+        const requiredForms = global.vodafoneConfig[formWorkflowActivityTypeId].REQUIRED_FORMS;
         // requiredForms.push(1076)
         
+        // Check whether all the mandatory forms have been submitted or not
         let requiredFormsCheck = [];
         for (let i = 0; i < requiredForms.length; i++) {
             requiredFormsCheck.push(
@@ -4036,9 +4040,65 @@ function VodafoneService(objectCollection) {
             .catch((error) => {
                 console.log("Promise.all | error: ", error);
             });
-
         console.log("allFormsExist: ", allFormsExist);
         
+        // If all the mandatory forms exist, proceed with the buildign the form
+        // Fetch relevant source and target form field mappings
+        const FORM_FIELD_MAPPING_DATA = global.vodafoneConfig[formWorkflowActivityTypeId].FORM_FIELD_MAPPING_DATA;
+        
+        // Source form IDs
+        const sourceFormIDs = Object.keys(FORM_FIELD_MAPPING_DATA);
+        console.log("sourceFormIDs: ", sourceFormIDs);
+
+        // Fetch all source forms' latest entries for the process
+        let targetFormData = [];
+        const TARGET_FORM_ID = global.vodafoneConfig[formWorkflowActivityTypeId].TARGET_FORM_ID;
+        for (const sourceFormID of sourceFormIDs) {
+            let formExists = false;
+            let sourceFormData = [];
+            await activityCommonService
+                .getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, sourceFormID)
+                .then((formData) => {
+                    if (formData.length > 0) {
+                        let formDataCollection = JSON.parse(formData[0].data_entity_inline);
+                        if (Array.isArray(formDataCollection.form_submitted) === true || typeof formDataCollection.form_submitted === 'object') {
+                            sourceFormData = formDataCollection.form_submitted;
+                        } else {
+                            sourceFormData = JSON.parse(formDataCollection.form_submitted);
+                        }
+                        formExists = true;
+                        console.log("formData[0].data_form_id: ", formData[0].data_form_id);
+                        // console.log("sourceFormData: ", sourceFormData);
+                    }
+                })
+            
+            if (formExists && sourceFormData.length > 0) {
+                console.log("*****formExists*****");
+                const SOURCE_FORM_FIELD_MAP = FORM_FIELD_MAPPING_DATA[sourceFormID];
+                for (const fieldEntry of sourceFormData) {
+
+                    if (Object.keys(SOURCE_FORM_FIELD_MAP).includes(String(fieldEntry.field_id))) {
+                        targetFormData.push({
+                            "form_id": TARGET_FORM_ID,
+                            "field_id": SOURCE_FORM_FIELD_MAP[fieldEntry.field_id],
+                            "field_name": fieldEntry.field_name,
+                            "field_data_type_id": fieldEntry.field_data_type_id,
+                            "field_data_type_category_id": fieldEntry.field_data_type_category_id,
+                            "data_type_combo_id": fieldEntry.data_type_combo_id,
+                            "data_type_combo_value": fieldEntry.data_type_combo_value,
+                            "field_value": fieldEntry.field_value,
+                            "message_unique_id": fieldEntry.message_unique_id
+                        });    
+                    } else {
+                        // Ignore all other entries
+                    }
+                }
+            }
+        }
+
+        const fs = require("fs");
+        fs.writeFileSync('/Users/Bensooraj/Desktop/desker_api/server/vodafone/utils/data.json', JSON.stringify(targetFormData, null, 2) , 'utf-8');
+
         return [false, {
             formWorkflowActivityTypeId,
             requiredForms

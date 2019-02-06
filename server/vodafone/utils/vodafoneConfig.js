@@ -1,3 +1,5 @@
+const digitalMplsCrfMappings = require("./digital_mpls_crf_mappings.json");
+
 vodafoneConfig = {
     "860": {
         "NAME": "Vodafone Idea | Production | BETA",
@@ -183,6 +185,8 @@ vodafoneConfig = {
         }
     },
     "134564": {
-        "REQUIRED_FORMS": [1073, 1076, 1077]
+        "REQUIRED_FORMS": [1073, 1076, 1077],
+        "FORM_FIELD_MAPPING_DATA": digitalMplsCrfMappings,
+        "TARGET_FORM_ID": 1109
     }
 };
