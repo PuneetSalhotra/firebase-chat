@@ -11,7 +11,7 @@ writeCluster.add('MASTER', {
     connectionLimit: global.config.conLimit,
     host: global.config.logMasterIp,
     user: global.config.dbUser,
-    password: global.config.dbPassword,
+    password: global.config.logDbPassword,
     database: global.config.logDatabase,
     debug: false
 });

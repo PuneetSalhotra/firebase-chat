@@ -101,25 +101,29 @@ let Consumer = function () {
         console.log("[insertIntoDB] messageJson: ", messageJson)
 
         let response = {};
-        let responseCode = "";
+        let responseCode = 0;
         let dbCall = '{}';
         let dbResponse = '{}';
 
         if (messageJson.object !== null && Object.keys(messageJson.object).length > 0) {
             response = messageJson.object.response || {};
-            responseCode = messageJson.object.status || "";
+            responseCode = Number(messageJson.object.status) || 0;
         }
 
         // For MySQL Query and Response
         if (String(messageJson.message).includes('CALL ')) {
             dbCall = messageJson.message;
-            dbResponse = JSON.stringify(messageJson.object);
+            dbResponse = messageJson.object;
+            // console.log("dbCall: ", dbCall);
+            // console.log("dbResponse: ", dbResponse);
         }
 
         // For Redis Cache Query and Response
         if (messageJson.level === "cacheResponse") {
             dbCall = messageJson.message;
-            dbResponse = JSON.stringify(messageJson.object) || '';
+            dbResponse = messageJson.object || {};
+            // console.log("dbCall: ", dbCall);
+            // console.log("dbResponse: ", dbResponse);
         }
 
         // SOME CLEANING
@@ -134,9 +138,23 @@ let Consumer = function () {
         try {
             JSON.parse(logMessage);
         } catch (error) {
-            console.log("[insertIntoDB | logMessage] Error: ", error);
-            logMessage = JSON.stringify(messageJson.message) || '{}';
+            // console.log("[insertIntoDB | logMessage] Error: ", error);
+            logMessage = JSON.stringify({
+                message: messageJson.message
+            }) || '{}';
         }
+
+        // IN p_log_record_key VARCHAR(300), IN p_log_bundle_key VARCHAR(300), 
+        // IN p_log_level_id SMALLINT(6), IN p_log_level_name VARCHAR(300), 
+        // IN p_log_service_url VARCHAR(300), IN p_log_request_data JSON, 
+        // IN p_log_response_data JSON, IN p_log_db_call JSON, 
+        // IN p_log_db_response JSON, IN p_log_response_code SMALLINT(6), 
+        // IN p_log_message json, IN p_log_request_datetime DATETIME, 
+        // IN p_log_response_datetime DATETIME, IN p_log_stack_trace_data JSON,  
+        // IN p_log_datetime DATETIME, IN p_activity_id BIGINT(20) , 
+        // IN p_activity_title VARCHAR(300), IN p_asset_id BIGINT(20), 
+        // IN p_asset_first_name VARCHAR(300), IN p_device_phone_country_code SMALLINT(6), 
+        // IN p_device_phone_number VARCHAR(50), IN p_device_os_id SMALLINT(6)
 
         let paramsArr = new Array(
             uuid.v1(),
@@ -148,9 +166,9 @@ let Consumer = function () {
             JSON.stringify(response), //Log Response Data
             JSON.stringify(dbCall),
             JSON.stringify(dbResponse),
-            responseCode || '', //Log Response Code
+            responseCode || 0, //Log Response Code
             logMessage, //Log Message
-            request.datetime_log || '',
+            request.datetime_log || util.getCurrentUTCTime(),
             request.log_response_datetime || util.getCurrentUTCTime(),
             request.log_stack_trace_data || '{}',
             request.datetime_log || util.getCurrentUTCTime(),

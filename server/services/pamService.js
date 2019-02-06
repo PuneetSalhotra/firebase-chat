@@ -1032,7 +1032,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                     addParticipant(request, participantData, newRecordStatus, function (err, data) {
                         if (err === false) {
                             //console.log("participant successfully added");
-                            global.logger.write('debug','participant successfully added', {},request)
+                            global.logger.write('conLog', 'participant successfully added', {}, request)
                             var nextIndex = index + 1;
                             if (nextIndex <= maxIndex) {
                                 loopAddParticipant(participantCollection, nextIndex, maxIndex);
@@ -1040,13 +1040,13 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                             callback(false, true);
                         } else {
                             console.log(err);
-                            global.logger.write('serverError','' + err, {},request)
+                            global.logger.write('serverError', '' + err, {}, request)
                             callback(true, err);
                         }
                     }.bind(this));
                 } else {
                     if (alreadyAssignedStatus > 0) {
-                        global.logger.write('debug','participant already assigned', {}, request)
+                        global.logger.write('conLog', 'participant already assigned', {}, request)
                         var nextIndex = index + 1;
                         if (nextIndex <= maxIndex) {
                             loopAddParticipant(participantCollection, nextIndex, maxIndex);
@@ -1135,7 +1135,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
             });
         } else {
             //console.log('re-assigining to the archived row');
-            global.logger.write('debug','re-assigining to the archived row', {},request)
+            global.logger.write('conLog', 're-assigining to the archived row', {}, request)
             activityAssetMappingUpdateParticipantReAssign(request, participantData, function (err, data) {
                 if (err === false) {
                     activityCommonService.assetActivityListHistoryInsert(request, participantData.asset_id, 502, function (err, restult) {
@@ -1195,7 +1195,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                 } else {
                     callback(true, err);
                     console.log('nani : ', err);
-                    global.logger.write('serverError','' + err, request)
+                    global.logger.write('serverError', err, err, request)
                     return;
                 }
             });
@@ -1277,7 +1277,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError','' + err, request)
+                    global.logger.write('serverError', err, err, request)
                     return;
                 }
             });
@@ -2826,7 +2826,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError','',err, request)
+                    global.logger.write('serverError', err, err, request)
                     return;
                 }
             });
@@ -2933,7 +2933,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', '', err, request)
+                    global.logger.write('serverError', err, err, request)
                     return;
                 }
             });
@@ -3092,7 +3092,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', '', err, request)
+                    global.logger.write('serverError', err, err, request)
                     return;
                 }
             });
@@ -3298,7 +3298,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
 					
 					getReservationBilling(request, idReservation, data[0].nameReservation, data[0].idMember, data[0].nameMember, data[0].memberDiscount).then((resevationBillAmount)=>{
 						
-						global.logger.write('debug','resevationBill '+resevationBillAmount, {},request);
+						global.logger.write('conLog', 'resevationBill ' + resevationBillAmount, {}, request);
 						
 						if(request.hasOwnProperty('is_insert')){
 							pamEventBillingInsert(request, data[0].idEvent, data[0].titleEvent, idReservation, data[0].nameReservation, data[0].idActivityStatusType, data[0].nameActivityStatusType, data[0].idMember, data[0].nameMember, resevationBillAmount);
@@ -3461,7 +3461,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
 							};
 						
 						pamOrderInsert(request, attributeArray).then(()=>{
-							global.logger.write('debug','OrderId '+rowData1.activity_id+'-'+rowData1.channel_activity_id+' : '+final_price, {},request);
+							global.logger.write('conLog', 'OrderId ' + rowData1.activity_id + '-' + rowData1.channel_activity_id + ' : ' + final_price, {}, request);
 						if(JSON.parse(rowData1.activity_inline_data).hasOwnProperty('item_choice_price_tax'))
 						{
 							var arr = JSON.parse(rowData1.activity_inline_data).item_choice_price_tax;
@@ -3524,7 +3524,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
 								attributeArray.final_price=choice_final_price;
 								
 								pamOrderInsert(request, attributeArray).then(()=>{
-									global.logger.write('debug','OrderId '+rowData1.activity_id+'-'+choiceData.activity_id+' : '+choice_final_price, {},request);
+									global.logger.write('conLog', 'OrderId ' + rowData1.activity_id + '-' + choiceData.activity_id + ' : ' + choice_final_price, {}, request);
 									next2();
 									});
 							}).then(()=>{
@@ -3544,7 +3544,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
 					})
 				}).then(()=>{
 					//console.log("Reservation "+idReservation+" is done");
-					global.logger.write('debug','Reservation '+idReservation+' is done', {},request);
+					global.logger.write('conLog', 'Reservation ' + idReservation + ' is done', {}, request);
 					resolve(total_price);
 				});
 			 

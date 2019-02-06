@@ -13,6 +13,9 @@ function ActivityUpdateService(objectCollection) {
     var makeRequest = require('request');
     const moment = require('moment');
 
+    const ActivityListingService = require("../services/activityListingService");
+    const activityListingService = new ActivityListingService(objectCollection);
+
     var activityListUpdateInline = function (request, callback) {
 
         var paramsArr = new Array(
@@ -687,7 +690,7 @@ function ActivityUpdateService(objectCollection) {
                             default:
                                 activityStreamTypeId = 1705; //by default so that we know
                                 //console.log('adding streamtype id 1705');
-                                global.logger.write('debug', 'adding streamtype id 1705', {}, request)
+                                global.logger.write('conLog', 'adding streamtype id 1705', {}, request)
                                 break;
                         }
 
@@ -871,7 +874,7 @@ function ActivityUpdateService(objectCollection) {
                         default:
                             activityStreamTypeId = 1506; //by default so that we know
                             //console.log('adding streamtype id 1506');
-                            global.logger.write('debug', 'adding streamtype id 1506', {}, request)
+                            global.logger.write('conLog', 'adding streamtype id 1506', {}, request)
                             break;
                     };
 
@@ -953,7 +956,7 @@ function ActivityUpdateService(objectCollection) {
                                                     if (err === false) {
                                                         var newEndEstimatedDatetime = result[0]['activity_datetime_end_estimated'];
                                                         // console.log('setting new datetime for contact as ' + newEndEstimatedDatetime);
-                                                        global.logger.write('debug', 'Setting new datetime for contact as: ' + newEndEstimatedDatetime, {}, request);
+                                                        global.logger.write('conLog', 'Setting new datetime for contact as: ' + newEndEstimatedDatetime, {}, request);
 
                                                         coverAlterJson.description = {
                                                             old: activityData[0]['activity_datetime_end_estimated'],
@@ -1033,8 +1036,8 @@ function ActivityUpdateService(objectCollection) {
                                 // console.log('\x1b[32m activity_datetime_start_expected in DB :\x1b[0m ' , util.replaceDefaultDatetime(activityData[0].activity_datetime_start_expected));
                                 // console.log('\x1b[32m activity_datetime_end_deferred in DB: \x1b[0m' , util.replaceDefaultDatetime(activityData[0].activity_datetime_end_deferred));
 
-                                global.logger.write('debug', 'activity_datetime_start_expected in DB: ' + util.replaceDefaultDatetime(activityData[0].activity_datetime_start_expected), {}, request);
-                                global.logger.write('debug', 'activity_datetime_end_deferred in DB: ' + util.replaceDefaultDatetime(activityData[0].activity_datetime_end_deferred), {}, request);
+                                global.logger.write('conLog', 'activity_datetime_start_expected in DB: ' + util.replaceDefaultDatetime(activityData[0].activity_datetime_start_expected), {}, request);
+                                global.logger.write('conLog', 'activity_datetime_end_deferred in DB: ' + util.replaceDefaultDatetime(activityData[0].activity_datetime_end_deferred), {}, request);
 
                                 taskDateTimeDiffInHours = util.differenceDatetimes(
                                     parsedActivityCoverData.duedate.old,
@@ -1044,7 +1047,7 @@ function ActivityUpdateService(objectCollection) {
                                 taskDateTimeDiffInHours = Number(taskDateTimeDiffInHours / 3600000);
 
                                 // console.log('\x1b[34m taskDateTimeDiffInHours:\x1b[0m ', taskDateTimeDiffInHours);
-                                global.logger.write('debug', 'taskDateTimeDiffInHours: ' + taskDateTimeDiffInHours, {}, request);
+                                global.logger.write('conLog', 'taskDateTimeDiffInHours: ' + taskDateTimeDiffInHours, {}, request);
 
                                 // Fetch account_config_due_date_hours from the account_list table
                                 activityCommonService.retrieveAccountList(request, function (error, data) {
@@ -1189,7 +1192,24 @@ function ActivityUpdateService(objectCollection) {
 
                     } else {
                         // console.log('Else Part');
-                        global.logger.write('debug', 'Else Part', {}, request);
+                        global.logger.write('conLog', 'Else Part', {}, request);
+                    }
+                }
+
+                // For type workflow or process
+                if (activityTypeCategoryId === 48) {
+                    let parsedActivityCoverData = JSON.parse(request.activity_cover_data);
+                    console.log("parsedActivityCoverData: ", parsedActivityCoverData)
+                    console.log("parsedActivityCoverData.duedate.old: ", parsedActivityCoverData.duedate.old)
+                    console.log("parsedActivityCoverData.duedate.new: ", parsedActivityCoverData.duedate.new)
+
+                    if (parsedActivityCoverData.duedate.old !== parsedActivityCoverData.duedate.new) {
+                        try {
+                            let datetimeEndDeffered = parsedActivityCoverData.duedate.new;
+                            updateDuedateForQueueActivityMappingEntries(request, datetimeEndDeffered);
+                        } catch (error) {
+                            console.log("Workflow Datetime update Error: ", error)
+                        }
                     }
                 }
 
@@ -1207,6 +1227,48 @@ function ActivityUpdateService(objectCollection) {
         // call resource ranking...
 
     };
+
+    async function updateDuedateForQueueActivityMappingEntries(request, datetimeEndDeffered) {
+        let newRequest = Object.assign({}, request);
+        newRequest.flag = 0;
+        try {
+            const queueMap = await activityListingService.getEntityQueueMapping(newRequest);
+            if (queueMap.length > 0) {
+                for (const queue of queueMap) {
+                    let queueId = Number(queue.queue_id);
+                    let queueActivityMappingId = 0;
+                    await activityCommonService
+                        .fetchQueueActivityMappingIdV1(newRequest, queueId)
+                        .then((queueActivityMappingData) => {
+                            if (queueActivityMappingData.length > 0) {
+                                queueActivityMappingId = queueActivityMappingData[0].queue_activity_mapping_id;
+                            }
+                        });
+                    console.log("queueActivityMappingId: ", queueActivityMappingId)
+                    if (queueActivityMappingId !== 0) {
+                        // datetimeEndDeffered
+                        try {
+                            await activityCommonService
+                                .queueActivityMappingUpdateDatetimeEndDeffered(request, queueActivityMappingId, datetimeEndDeffered);
+
+                            activityCommonService
+                                .queueHistoryInsert(newRequest, 1404, queueActivityMappingId)
+                                .then(() => {})
+                                .catch(() => {});
+                        } catch (error) {
+                            // 
+                            console.log("queueActivityMappingUpdateDatetimeEndDeffered | Error: ", error);
+                        }
+                    }
+                }
+            } else {
+                return '';
+            }
+        } catch (error) {
+            console.log("updateWorkflowQueueMapping | queueMap | Error: ", error);
+            return '';
+        }
+    }
 
     // Update due date alter counts
     function activityListUpdateDueDateAlterCount(request, flag_ontime) {
@@ -1474,7 +1536,7 @@ function ActivityUpdateService(objectCollection) {
                         default:
                             activityStreamTypeId = 1; //by default so that we know
                             //console.log('adding streamtype id 1506');
-                            global.logger.write('debug', 'adding streamtype id 1', {}, request)
+                            global.logger.write('conLog', 'adding streamtype id 1', {}, request)
                             break;
                     };
 
@@ -2020,7 +2082,7 @@ function ActivityUpdateService(objectCollection) {
 
     this.archiveAssetAndActivity = function (request, callback) {
 
-        global.logger.write('debug', 'Inside the archiveAssetAndActivity service', {}, request);
+        global.logger.write('conLog', 'Inside the archiveAssetAndActivity service', {}, request);
         request.datetime_log = util.getCurrentUTCTime();
 
         // 1.3 => Insert entry in asset timeline
@@ -2103,7 +2165,7 @@ function ActivityUpdateService(objectCollection) {
             request.activity_id,
             request.asset_id,
             request.activity_status_id,
-            request.activity_status_type_id,
+            request.activity_status_type_id || 0,
             util.getCurrentUTCTime() // request.log_datetime
         );
 
@@ -2120,7 +2182,7 @@ function ActivityUpdateService(objectCollection) {
 
         // Revoke the access mapping of an employee asset from the desk asset
         // 
-        global.logger.write('debug', 'Inside the removeEmployeetoDeskMapping service', {}, request);
+        global.logger.write('conLog', 'Inside the removeEmployeetoDeskMapping service', {}, request);
         request.datetime_log = util.getCurrentUTCTime();
         if (request.hasOwnProperty('activity_inline_data')) {
             var inlineJson = JSON.parse(request.activity_inline_data);

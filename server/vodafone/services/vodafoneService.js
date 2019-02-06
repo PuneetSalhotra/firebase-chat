@@ -996,10 +996,10 @@ function VodafoneService(objectCollection) {
 
             queueWrapper.raiseActivityEvent(addParticipantEvent, request.activity_id, (err, resp) => {
                 if (err) {
-                    global.logger.write('debug', "\x1b[35m [ERROR] Raising queue activity raised for adding Service Desk as a participant. \x1b[0m", {}, request);
+                    global.logger.write('conLog', "\x1b[35m [ERROR] Raising queue activity raised for adding Service Desk as a participant. \x1b[0m", {}, request);
                     reject('Error while raising queue activity for adding service desk as a participant');
                 } else {
-                    global.logger.write('debug', "\x1b[35m Queue activity raised for adding Service Desk as a participant. \x1b[0m", {}, request);
+                    global.logger.write('conLog', "\x1b[35m Queue activity raised for adding Service Desk as a participant. \x1b[0m", {}, request);
                     resolve();
                 }
             });
@@ -1580,10 +1580,10 @@ function VodafoneService(objectCollection) {
 
                     queueWrapper.raiseActivityEvent(event, flagAlterReq.activity_id, (err, resp) => {
                         if (err) {
-                            global.logger.write('debug', "\x1b[35m [ERROR] Raising queue activity raised for adding Service Desk as a participant. \x1b[0m", {}, request);
+                            global.logger.write('conLog', "\x1b[35m [ERROR] Raising queue activity raised for adding Service Desk as a participant. \x1b[0m", {}, request);
                             reject('Error while raising queue activity for adding service desk as a participant');
                         } else {
-                            global.logger.write('debug', "\x1b[35m Queue activity raised for adding Service Desk as a participant. \x1b[0m", {}, request);
+                            global.logger.write('conLog', "\x1b[35m Queue activity raised for adding Service Desk as a participant. \x1b[0m", {}, request);
                             resolve();
                         }
                     });
@@ -2335,11 +2335,11 @@ function VodafoneService(objectCollection) {
 
                 queueWrapper.raiseActivityEvent(cafFieldUpdateEvent, cafFormActivityId, (err, resp) => {
                     if (err) {
-                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                        global.logger.write('conLog', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                        global.logger.write('conLog', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
                     } else {
-                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                        global.logger.write('conLog', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                        global.logger.write('conLog', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
                     }
                 });
 
@@ -2409,11 +2409,11 @@ function VodafoneService(objectCollection) {
 
         queueWrapper.raiseActivityEvent(fire713OnNewOrderFileEvent, request.activity_id, (err, resp) => {
             if (err) {
-                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                global.logger.write('conLog', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                global.logger.write('conLog', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
             } else {
-                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                global.logger.write('conLog', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                global.logger.write('conLog', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
             }
         });
 
@@ -2626,7 +2626,8 @@ function VodafoneService(objectCollection) {
             registrationChargesGrandTotal: 0,
             totalAmountPayableGrandTotal: 0,
             totalAmountPayableTotal_A: 0,
-            totalAmountPayableTotal_B: 0
+            totalAmountPayableTotal_B: 0,
+            totalAmountPayableTotal_C: 0
         };
         cafFormData.forEach(formEntry => {
             switch (formEntry.field_id) {
@@ -2867,12 +2868,23 @@ function VodafoneService(objectCollection) {
                 case 7191: // Platform | Miscellaneous Charges2-Annual Recurring(B)
                     sumsKeyValueJson.totalAmountPayableTotal_B += Number(formEntry.field_value);
                     break;
+
+                case 7145: // Service Rental-Security Deposit(C)
+                case 7164: // CPE Rentals-Security Deposit(C)
+                case 7168: // CPE 1-Security Deposit(C)
+                case 7172: // CPE 2-Security Deposit(C)
+                case 7176: // CPE 3-Security Deposit(C)
+                case 7180: // CPE 4-Security Deposit(C)
+                case 7184: // CPE 5-Security Deposit(C)
+                case 7188: // Miscellaneous Charges-1-Security Deposit(C)
+                    sumsKeyValueJson.totalAmountPayableTotal_C += Number(formEntry.field_value);
+                    break;
             }
         });
 
         // 6096 | Total Amount Payable-Grand Total(A+B+C)
         // Platform | 7248 | Total Amount Payable-Grand Total(A+B+C)
-        sumsKeyValueJson.totalAmountPayableGrandTotal = sumsKeyValueJson.totalAmountPayableTotal_A + sumsKeyValueJson.totalAmountPayableTotal_B;
+        sumsKeyValueJson.totalAmountPayableGrandTotal = sumsKeyValueJson.totalAmountPayableTotal_A + sumsKeyValueJson.totalAmountPayableTotal_B + sumsKeyValueJson.totalAmountPayableTotal_C;
 
         return sumsKeyValueJson;
     }
@@ -3202,7 +3214,7 @@ function VodafoneService(objectCollection) {
 
         queueWrapper.raiseActivityEvent(statusAlterRequestEvent, request.activity_id, (err, resp) => {
             if (err) {
-                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                global.logger.write('conLog', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
             } else {
                 // 
                 // Also modify the last status alter time and current status 
@@ -3466,7 +3478,7 @@ function VodafoneService(objectCollection) {
 
             queueWrapper.raiseActivityEvent(statusAlterRequestEvent, request.activity_id, (err, resp) => {
                 if (err) {
-                    global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                    global.logger.write('conLog', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
                 } else {
                     // 
                     console.log("Form status changed to validation pending");
@@ -3746,11 +3758,11 @@ function VodafoneService(objectCollection) {
 
                     queueWrapper.raiseActivityEvent(cafFieldUpdateEvent, cafFieldUpdateRequest.activity_id, (err, resp) => {
                         if (err) {
-                            global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                            global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                            global.logger.write('conLog', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                            global.logger.write('conLog', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
                         } else {
-                            global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                            global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                            global.logger.write('conLog', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                            global.logger.write('conLog', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
                         }
                     });
 
@@ -3841,11 +3853,11 @@ function VodafoneService(objectCollection) {
 
                     queueWrapper.raiseActivityEvent(fire705OnNewOrderFileEvent, request.activity_id, (err, resp) => {
                         if (err) {
-                            global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                            global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                            global.logger.write('conLog', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                            global.logger.write('conLog', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
                         } else {
-                            global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                            global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                            global.logger.write('conLog', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                            global.logger.write('conLog', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
                         }
                     });
 
@@ -3881,11 +3893,11 @@ function VodafoneService(objectCollection) {
 
                                 queueWrapper.raiseActivityEvent(cafFieldUpdateEvent, cafFormActivityId, (err, resp) => {
                                     if (err) {
-                                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                                        global.logger.write('conLog', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                                        global.logger.write('conLog', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
                                     } else {
-                                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                                        global.logger.write('conLog', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                                        global.logger.write('conLog', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
                                     }
                                 });
                             }, waitTime * 2000);

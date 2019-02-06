@@ -354,6 +354,107 @@ function ActivityConfigService(db, util) {
 	   		}
 		});
     };
+
+    this.workForceActivityStatusDelete = function (request) {
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                    request.organization_id,
+                    request.account_id,
+                    request.workforce_id,
+                    request.activity_status_id,
+                    request.asset_id,
+                    request.datetime_log
+                );
+            var queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_delete', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                	if(err === false){                		
+                		request['update_type_id'] = 1502;
+                		workForceActivityStatusHistoryInsert(request).then(()=>{});
+                		resolve(data);
+                	}else{
+                		reject(err);
+                	}
+                });
+            }
+        });
+    }
+    
+    function workForceActivityStatusHistoryInsert(request) {
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                request.activity_status_id,
+                request.organization_id,
+                request.update_type_id,
+                request.datetime_log
+                );
+            var queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_history_insert', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data) : reject(err);
+                });
+            }
+        });
+    }
+    
+    this.workForceActivityStatusInsert = function (request) {
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                    request.activity_status_name,
+                    request.activity_status_description,
+                    request.status_sequence_id,
+                    request.activity_status_type_id,
+                    request.is_customer_exposed,
+                    request.activity_type_id,
+                    request.workforce_id,
+                    request.account_id,
+                    request.organization_id,
+                    request.asset_id,
+                    request.datetime_log
+                );
+            var queryString = util.getQueryString('ds_p1_1_workforce_activity_status_mapping_insert', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                	if(err === false){
+                		request['activity_status_id'] = data[0].activity_status_id;
+                		request['update_type_id'] = 0;
+                		workForceActivityStatusHistoryInsert(request).then(()=>{});
+                		resolve(data);
+                	}else{
+                		reject(err);
+                	}
+                });
+            }
+        });
+    }
+    
+    this.workForceActivityStatusUpdate =  function(request) {
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                    request.organization_id,
+                    request.account_id,
+                    request.workforce_id,
+                    request.activity_status_id,
+                    request.activity_status_name,
+                    request.activity_status_sequence_id,
+                    request.is_cusotmer_exposed,
+                    request.asset_id,
+                    request.datetime_log
+                );
+            var queryString = util.getQueryString('ds_p1_1_workforce_activity_status_mapping_update', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                	if(err === false){                		
+                		request['update_type_id'] = 1501;
+                		workForceActivityStatusHistoryInsert(request).then(()=>{});
+                		resolve(data);
+                	}else{
+                		reject(err);
+                	}
+                });
+            }
+        });
+    }
 }
 
 module.exports = ActivityConfigService;

@@ -21,16 +21,18 @@ class WidgetEngineConsumer extends ConsumerBase {
 
     actOnMessage(message) {
         return new Promise((resolve, reject) => {
-            const formInstance = forms.get(message.form_id, {objCollection: this.objCollection});
+            const formInstance = forms.get(message.form_id, {
+                objCollection: this.objCollection
+            });
             formInstance.getWidgets(message)
-                    .then((widgets) => {
-                        const promises = widgets.map((widget) => widget && widget.crunchDataAndSave(message));
-                        return Promise.all(promises);
-                    })
-                    .then(() => {
-                        resolve(message);
-                    })
-                    .catch(reject);
+                .then((widgets) => {
+                    const promises = widgets.map((widget) => widget && widget.crunchDataAndSave(message));
+                    return Promise.all(promises);
+                })
+                .then(() => {
+                    resolve(message);
+                })
+                .catch(reject);
         });
     }
 }
