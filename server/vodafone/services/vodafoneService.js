@@ -3993,6 +3993,58 @@ function VodafoneService(objectCollection) {
         })
     }
 
+    this.buildAndSubmitCafFormV1 = async function (request) {
+        let workflowActivityData = [],
+            formWorkflowActivityTypeId = 0;
+        if (request.hasOwnProperty("workflow_activity_id")) {
+            try {
+                workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
+                if (workflowActivityData.length > 0) {
+                    formWorkflowActivityTypeId = workflowActivityData[0].activity_type_id;
+                }
+            } catch (error) {
+                console.log("buildAndSubmitCafFormV1 | getActivityDetailsPromise | Error: ", error)
+                return [error, false];
+            }
+        } else {
+            console.log("buildAndSubmitCafFormV1 | Error | workflow_activity_id NOT FOUND.")
+            return [new Error("workflow_activity_id not found in the request."), false];;
+        }
+        let requiredForms = global.vodafoneConfig[formWorkflowActivityTypeId].REQUIRED_FORMS;
+        // requiredForms.push(1076)
+        
+        let requiredFormsCheck = [];
+        for (let i = 0; i < requiredForms.length; i++) {
+            requiredFormsCheck.push(
+                activityCommonService
+                .getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, requiredForms[i])
+            );
+        }
+
+        let allFormsExist = false;
+        await Promise.all(requiredFormsCheck)
+            .then((formEntries) => {
+                // console.log("Promise.all | formEntries: ", formEntries);
+                if (formEntries.length > 0) {
+                    allFormsExist = formEntries.every((e) => {
+                        return e.length > 0;
+                    });
+                } else {
+                    throw new Error("ErrorCheckingProcessFormEntries");
+                }
+            })
+            .catch((error) => {
+                console.log("Promise.all | error: ", error);
+            });
+
+        console.log("allFormsExist: ", allFormsExist);
+        
+        return [false, {
+            formWorkflowActivityTypeId,
+            requiredForms
+        }];
+    }
+
 }
 
 
