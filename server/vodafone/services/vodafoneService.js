@@ -4160,7 +4160,8 @@ function VodafoneService(objectCollection) {
             track_gps_status: 0,
             service_version: "1.0",
             app_version: "2.5.7",
-            device_os_id: 5
+            device_os_id: 5,
+            workflow_activity_id: Number(request.workflow_activity_id)
         };
 
         const makeRequestOptions = {
