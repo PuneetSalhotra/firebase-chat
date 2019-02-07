@@ -42,7 +42,7 @@ function FormConfigService(objCollection) {
                 if (err === false) {
                     if (data.length > 0) {
                         //console.log(data);
-                        formatFromsListing(data, function (err, finalData) {
+                        formatFromsListing(-1, data, function (err, finalData) {
                             if (err === false) {
                                 callback(false, {
                                     data: finalData
@@ -79,7 +79,7 @@ function FormConfigService(objCollection) {
                 if (err === false) {
                     if (data.length > 0) {
                         //console.log(data);
-                        formatFromsListing(data, function (err, finalData) {
+                        formatFromsListing(-1, data, function (err, finalData) {
                             if (err === false) {
                                 callback(false, {
                                     data: finalData
@@ -117,7 +117,7 @@ function FormConfigService(objCollection) {
                 if (err === false) {
                     if (data.length > 0) {
                         //console.log(data);
-                        formatFromsListing(data, function (err, finalData) {
+                        formatFromsListing(-1, data, function (err, finalData) {
                             if (err === false) {
                                 callback(false, {
                                     data: finalData
@@ -156,7 +156,7 @@ function FormConfigService(objCollection) {
                 if (err === false) {
                     if (data.length > 0) {
                         //console.log(data);
-                        formatFromsListing(data, function (err, finalData) {
+                        formatFromsListing(-1, data, function (err, finalData) {
                             if (err === false) {
                                 callback(false, {
                                     data: finalData
@@ -195,7 +195,7 @@ function FormConfigService(objCollection) {
                 if (err === false) {
                     if (data.length > 0) {
                         //console.log(data);
-                        formatFromsListing(data, function (err, finalData) {
+                        formatFromsListing(request.device_os_id, data, function (err, finalData) {
                             if (err === false) {
                                 callback(false, {
                                     data: finalData
@@ -262,7 +262,7 @@ function FormConfigService(objCollection) {
                 if (err === false) {
                     if (data.length > 0) {
                         //console.log(data);
-                        formatFromsListing(data, function (err, finalData) {
+                        formatFromsListing(-1, data, function (err, finalData) {
                             if (err === false) {
                                 callback(false, {
                                     data: finalData
@@ -303,7 +303,7 @@ function FormConfigService(objCollection) {
                     if (data.length > 0) {
                         //console.log(data);
                         activityCommonService.formatFormDataCollection(data, function (err, finalData) {
-                            //formatFromsListing(data, function (err, finalData) {
+                            //formatFromsListing(-1, data, function (err, finalData) {
                             if (err === false) {
                                 callback(false, {
                                     data: finalData
@@ -323,8 +323,8 @@ function FormConfigService(objCollection) {
         }
     };
 
-    var formatFromsListing = function (data, callback) {
-        console.log(data);
+    var formatFromsListing = function (device_os_id, data, callback) {
+        //console.log(data);
         var responseData = new Array();
         data.forEach(function (rowData, index) {
 
@@ -381,7 +381,16 @@ function FormConfigService(objCollection) {
                 "form_workflow_activity_type_name": util.replaceDefaultString(util.decodeSpecialChars(rowData['form_workflow_activity_type_name'])),
                 "form_flag_workflow_origin": util.replaceDefaultNumber(rowData['form_flag_workflow_origin'])
             };
-            responseData.push(rowDataArr);
+
+            if (Number(device_os_id) === 5 && Number(index) === 0 && Number(rowData['field_sequence_id']) === 0)
+            {
+                //Dont push the row data to array
+                //For device OS ID 5, do not send the form name stored in the label as per the requirement presented by the web team
+            }
+            else
+            {
+                responseData.push(rowDataArr);
+            }
         }, this);
         callback(false, responseData);
     };
