@@ -351,6 +351,30 @@ function ActivityTimelineService(objectCollection) {
                     }
                 });
             }
+
+            // Process/Workflow ROMS Target Form Generation Trigger
+            if (
+                activityStreamTypeId === 705 &&
+                request.hasOwnProperty("workflow_activity_id") &&
+                Number(request.workflow_activity_id) !== 0
+            ) {
+                console.log('CALLING buildAndSubmitCafFormV1');
+                const romsTargetFormGenerationEvent = {
+                    name: "vodafoneService",
+                    service: "vodafoneService",
+                    method: "buildAndSubmitCafFormV1",
+                    payload: request
+                };
+                queueWrapper.raiseActivityEvent(romsTargetFormGenerationEvent, request.activity_id, (err, resp) => {
+                    if (err) {
+                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                    } else {
+                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                    }
+                });
+            }
             
             timelineStandardCalls(request).then(() => {}).catch((err) => {
                 global.logger.write('debug', 'Error in timelineStandardCalls' + err, {}, request);
