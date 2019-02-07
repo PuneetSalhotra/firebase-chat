@@ -190,6 +190,7 @@ vodafoneConfig = {
     "134564": {
         "REQUIRED_FORMS": [1073, 1076, 1077],
         "TARGET_FORM_ID": 1109,
+        "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
         "FORM_FIELD_MAPPING_DATA": digitalMplsCrfMappings,
         "LABELS": digitalMplsCrfLabels,
         "ROMS": digitalMplsCrfRoms,

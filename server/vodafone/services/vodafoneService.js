@@ -16,11 +16,15 @@ function VodafoneService(objectCollection) {
     const moment = require('moment');
     const formFieldIdMapping = util.getVodafoneFormFieldIdMapping();
     const romsCafFieldsData = util.getVodafoneRomsCafFieldsData();
+    const nodeUtil = require('util');
 
     // Form Config Service
     // const FormConfigService = require("../../services/formConfigService");
     // const formConfigService = new FormConfigService(objectCollection);
     // console.log(`global.vodafoneConfig["134564"].FORM_FIELD_MAPPING_DATA: `, global.vodafoneConfig["134564"].FORM_FIELD_MAPPING_DATA)
+
+    const ActivityTimelineService = require('../../services/activityTimelineService');
+    const activityTimelineService = new ActivityTimelineService(objectCollection);
 
     this.newOrderFormAddToQueues = function (request, callback) {
 
@@ -4053,6 +4057,8 @@ function VodafoneService(objectCollection) {
         // Fetch all source forms' latest entries for the process
         let targetFormData = [];
         const TARGET_FORM_ID = global.vodafoneConfig[formWorkflowActivityTypeId].TARGET_FORM_ID;
+        const TARGET_FORM_ACTIVITY_TYPE_ID = global.vodafoneConfig[formWorkflowActivityTypeId].TARGET_FORM_ACTIVITY_TYPE_ID;
+
         for (const sourceFormID of sourceFormIDs) {
             let formExists = false;
             let sourceFormData = [];
@@ -4116,6 +4122,102 @@ function VodafoneService(objectCollection) {
 
         const fs = require("fs");
         fs.writeFileSync('/Users/Bensooraj/Desktop/desker_api/server/vodafone/utils/data.json', JSON.stringify(targetFormData, null, 2) , 'utf-8');
+
+        // Build the full and final CAF Form and submit the form data to the timeline of the form file
+        const targetFormSubmissionRequest = {
+            organization_id: request.organization_id,
+            account_id: request.account_id,
+            workforce_id: request.workforce_id,
+            asset_id: 31993,
+            asset_token_auth: "c15f6fb0-14c9-11e9-8b81-4dbdf2702f95",
+            asset_message_counter: 0,
+            activity_title: "Digital MPLS CRF",
+            activity_description: "Digital MPLS CRF",
+            activity_inline_data: JSON.stringify(targetFormData),
+            activity_datetime_start: util.getCurrentUTCTime(),
+            activity_datetime_end: util.getCurrentUTCTime(),
+            activity_type_category_id: 9,
+            activity_sub_type_id: 0,
+            activity_type_id: TARGET_FORM_ACTIVITY_TYPE_ID,
+            activity_access_role_id: 21,
+            asset_participant_access_id: 21,
+            activity_parent_id: 0,
+            flag_pin: 0,
+            flag_priority: 0,
+            activity_flag_file_enabled: -1,
+            activity_form_id: TARGET_FORM_ID,
+            flag_offline: 0,
+            flag_retry: 0,
+            message_unique_id: util.getMessageUniqueId(31993),
+            activity_channel_id: 0,
+            activity_channel_category_id: 0,
+            activity_flag_response_required: 0,
+            track_latitude: 0.0,
+            track_longitude: 0.0,
+            track_altitude: 0,
+            track_gps_datetime: util.getCurrentUTCTime(),
+            track_gps_accuracy: 0,
+            track_gps_status: 0,
+            service_version: "1.0",
+            app_version: "2.5.7",
+            device_os_id: 5
+        };
+
+        const makeRequestOptions = {
+            form: targetFormSubmissionRequest
+        };
+
+        // 
+        let targetFormActivityId = 0,
+            targetFormTransactionId = 0;
+        
+        const addActivityAsync = nodeUtil.promisify(makeRequest.post);
+        try {
+            const response = await addActivityAsync(global.config.mobileBaseUrl + 'r0' + '/activity/add/v1', makeRequestOptions);
+            // console.log("addActivityAsync | response: ", Object.keys(response));
+            const body = JSON.parse(response.body);
+            if (Number(body.status) === 200) {
+                targetFormActivityId = body.response.activity_id;
+                targetFormTransactionId = body.response.form_transaction_id;
+            }
+        } catch (error) {
+            console.log("addActivityAsync | Error: ", error);
+        }
+        // If an activity_id is returned, make an entry to the process's timeline
+        if (Number(targetFormActivityId) !== 0 && Number(targetFormActivityId) !== 0) {
+            console.log("targetFormActivityId: ", targetFormActivityId);
+            console.log("targetFormTransactionId: ", targetFormTransactionId);
+
+            let workflowFile713Request = Object.assign({}, targetFormSubmissionRequest);
+            workflowFile713Request.activity_id = Number(request.workflow_activity_id);
+            workflowFile713Request.data_activity_id = Number(targetFormActivityId);
+            workflowFile713Request.form_transaction_id = Number(targetFormTransactionId);
+            workflowFile713Request.activity_timeline_collection = JSON.stringify({
+                "mail_body": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+                "subject": `Digital MPLS CRF Form Submitted`,
+                "content": 'Form Submitted',
+                "asset_reference": [],
+                "activity_reference": [],
+                "form_approval_field_reference": [],
+                "form_submitted": targetFormData,
+                "attachments": []
+            });
+            // Append the incremental form data as well
+            workflowFile713Request.form_id = TARGET_FORM_ID;
+            workflowFile713Request.activity_type_category_id = 48;
+            workflowFile713Request.activity_stream_type_id = 705;
+            workflowFile713Request.flag_timeline_entry = 1;
+            workflowFile713Request.message_unique_id = util.getMessageUniqueId(request.asset_id);
+            workflowFile713Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+            workflowFile713Request.device_os_id = 8;
+
+            const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
+            try {
+                await addTimelineTransactionAsync(workflowFile713Request);
+            } catch (error) {
+                console.log("addActivityAsync | Error: ", error);
+            }
+        }
 
         return [false, {
             formWorkflowActivityTypeId,
