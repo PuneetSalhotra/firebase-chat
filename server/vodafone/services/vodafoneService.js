@@ -4096,6 +4096,10 @@ function VodafoneService(objectCollection) {
             }
         }
 
+        // Append Labels
+        const LABELS = global.vodafoneConfig[formWorkflowActivityTypeId].LABELS;
+        targetFormData = targetFormData.concat(LABELS);
+
         const fs = require("fs");
         fs.writeFileSync('/Users/Bensooraj/Desktop/desker_api/server/vodafone/utils/data.json', JSON.stringify(targetFormData, null, 2) , 'utf-8');
 
