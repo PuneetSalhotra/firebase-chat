@@ -1,6 +1,7 @@
 const digitalMplsCrfMappings = require("./digital_mpls_crf/digital_mpls_crf_mappings.json");
 const digitalMplsCrfLabels = require("./digital_mpls_crf/labels.json");
 const digitalMplsCrfRoms = require("./digital_mpls_crf/roms.json");
+const digitalMplsCrfRomsActions = require("./digital_mpls_crf/roms_actions.json");
 
 vodafoneConfig = {
     "860": {
@@ -191,6 +192,7 @@ vodafoneConfig = {
         "TARGET_FORM_ID": 1109,
         "FORM_FIELD_MAPPING_DATA": digitalMplsCrfMappings,
         "LABELS": digitalMplsCrfLabels,
-        "ROMS": digitalMplsCrfRoms
+        "ROMS": digitalMplsCrfRoms,
+        "ROMS_ACTIONS": digitalMplsCrfRomsActions
     }
 };

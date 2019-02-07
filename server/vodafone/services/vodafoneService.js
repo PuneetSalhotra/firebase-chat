@@ -4100,6 +4100,20 @@ function VodafoneService(objectCollection) {
         const LABELS = global.vodafoneConfig[formWorkflowActivityTypeId].LABELS;
         targetFormData = targetFormData.concat(LABELS);
 
+        // ****************** R E M O V E *******************
+        // ****************** R E M O V E *******************
+        targetFormData = addDummyData(targetFormData);
+        // ****************** R E M O V E *******************
+        // ****************** R E M O V E *******************
+
+        // Append default ROMS entries
+        const ROMS =  global.vodafoneConfig[formWorkflowActivityTypeId].ROMS;
+        targetFormData = targetFormData.concat(ROMS);
+
+        // Magic
+        const ROMS_ACTIONS = global.vodafoneConfig[formWorkflowActivityTypeId].ROMS_ACTIONS;
+        targetFormData = performRomsCalculations(request, targetFormData, ROMS_ACTIONS).TARGET_FORM_DATA;
+
         const fs = require("fs");
         fs.writeFileSync('/Users/Bensooraj/Desktop/desker_api/server/vodafone/utils/data.json', JSON.stringify(targetFormData, null, 2) , 'utf-8');
 
@@ -4107,6 +4121,165 @@ function VodafoneService(objectCollection) {
             formWorkflowActivityTypeId,
             requiredForms
         }];
+    }
+
+    // performRomsCalculations
+    function performRomsCalculations(request, targetFormData, ROMS_ACTIONS) {
+        // Convert targetFormData to an ES6 Map
+        let targetFormDataMap = new Map();
+        for (const field of targetFormData) {
+            targetFormDataMap.set(Number(field.field_id), field);
+        }
+        
+        for (const action of ROMS_ACTIONS) {
+            if (action.ACTION === "sum") {
+                // Iterate through each batch entry
+                for (const batch of action.BATCH) {
+                    // Iterate through each source field id 
+                    // and accumulate the sum
+                    let sum = 0;
+                    for (const sourceFieldID of batch.SOURCE_FORM_IDS) {
+                        if (targetFormDataMap.has(Number(sourceFieldID))) {
+                            sum += Number(targetFormDataMap.get(sourceFieldID).field_value);
+                        }
+                    }
+                    // Update the value of the target field ID
+                    let targetFieldID = batch.TARGET_FORM_ID;
+                    if (targetFormDataMap.has(Number(targetFieldID))) {
+                        // Get the entire object
+                        let targetFieldEntry = targetFormDataMap.get(Number(targetFieldID));
+                        // Set the value
+                        targetFieldEntry.field_value = sum;
+                        // Set the updated object as value for the target field ID
+                        targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
+                        console.log("sum: ", sum);
+                    }
+                }
+            }
+        }
+
+        // console.log("targetFormDataMap: ", targetFormDataMap);
+
+        // Spread the map values, to form the targetFormData back
+        targetFormData = [...targetFormDataMap.values()];
+        
+        return {
+            TARGET_FORM_DATA: targetFormData
+        };
+    }
+
+    function addDummyData(targetFormData) {
+        return targetFormData.concat([{
+                "form_id": 1109,
+                "field_id": 8532,
+                "field_name": "CPE 2-One Time(A)",
+                "field_data_type_id": 6,
+                "field_data_type_category_id": 2,
+                "data_type_combo_id": 0,
+                "data_type_combo_value": "",
+                "field_value": 1000,
+                "message_unique_id": 999999999999
+            },
+            {
+                "form_id": 1109,
+                "field_id": 8533,
+                "field_name": "CPE 2-Recurring(B)",
+                "field_data_type_id": 6,
+                "field_data_type_category_id": 2,
+                "data_type_combo_id": 0,
+                "data_type_combo_value": "",
+                "field_value": 200,
+                "message_unique_id": 999999999999
+            },
+            {
+                "form_id": 1109,
+                "field_id": 8534,
+                "field_name": "CPE 2-Security Deposit(C)",
+                "field_data_type_id": 6,
+                "field_data_type_category_id": 2,
+                "data_type_combo_id": 0,
+                "data_type_combo_value": "",
+                "field_value": 20,
+                "message_unique_id": 999999999999
+            },
+            {
+                "form_id": 1109,
+                "field_id": 8529,
+                "field_name": "CPE 1-One Time(A)",
+                "field_data_type_id": 6,
+                "field_data_type_category_id": 2,
+                "data_type_combo_id": 0,
+                "data_type_combo_value": "",
+                "field_value": 3000,
+                "message_unique_id": 999999999999
+            },
+            {
+                "form_id": 1109,
+                "field_id": 8530,
+                "field_name": "CPE 1-Recurring(B)",
+                "field_data_type_id": 6,
+                "field_data_type_category_id": 2,
+                "data_type_combo_id": 0,
+                "data_type_combo_value": "",
+                "field_value": 300,
+                "message_unique_id": 999999999999
+            },
+            {
+                "form_id": 1109,
+                "field_id": 8531,
+                "field_name": "CPE 1-Security Deposit(C)",
+                "field_data_type_id": 6,
+                "field_data_type_category_id": 2,
+                "data_type_combo_id": 0,
+                "data_type_combo_value": "",
+                "field_value": 30,
+                "message_unique_id": 999999999999
+            }, {
+                "form_id": 1109,
+                "field_id": 8544,
+                "field_name": "Miscellaneous Charges-1-One Time(A)",
+                "field_data_type_id": 6,
+                "field_data_type_category_id": 2,
+                "data_type_combo_id": 0,
+                "data_type_combo_value": "",
+                "field_value": 4000,
+                "message_unique_id": 999999999999
+            },
+            {
+                "form_id": 1109,
+                "field_id": 8545,
+                "field_name": "Miscellaneous Charges-1- Recurring(B)",
+                "field_data_type_id": 6,
+                "field_data_type_category_id": 2,
+                "data_type_combo_id": 0,
+                "data_type_combo_value": "",
+                "field_value": 999,
+                "message_unique_id": 999999999999
+            },
+            {
+                "form_id": 1109,
+                "field_id": 8546,
+                "field_name": "Miscellaneous Charges2-One Time(A)",
+                "field_data_type_id": 6,
+                "field_data_type_category_id": 2,
+                "data_type_combo_id": 0,
+                "data_type_combo_value": "",
+                "field_value": 5000,
+                "message_unique_id": 999999999999
+            },
+            {
+                "form_id": 1109,
+                "field_id": 8547,
+                "field_name": "Miscellaneous Charges-2- Recurring(B)",
+                "field_data_type_id": 6,
+                "field_data_type_category_id": 2,
+                "data_type_combo_id": 0,
+                "data_type_combo_value": "",
+                "field_value": 999,
+                "message_unique_id": 999999999999
+            }
+        ])
+
     }
 
 }
