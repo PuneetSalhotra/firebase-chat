@@ -1071,7 +1071,7 @@ function ActivityTimelineService(objectCollection) {
             var paramsArr = new Array(
                     request.organization_id,
                     request.activity_id,
-                    request.timeline_transaction_id,
+                    request.timeline_transaction_id || 0,
                     request.flag_previous,
                     request.page_start,
                     util.replaceQueryLimit(request.page_limit)

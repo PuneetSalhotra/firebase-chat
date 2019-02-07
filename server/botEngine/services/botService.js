@@ -1416,8 +1416,8 @@ function BotService(objectCollection) {
             asset_first_name: request.asset_first_name || ''
         }
         const base64Json = Buffer.from(JSON.stringify(JsonData)).toString('base64');
-        const urlStrFill = "https://officedesk.app/#/forms/view/" + base64Json;
-        const statusLink = `<a style='background: #f47920;display: inline-block;color: #FFFFFF;text-decoration: none;font-size: 12px;margin-top: 1.0em;background-clip: padding-box;padding: 5px 15px;box-shadow: 4px 4px 6px 1px #cbcbcb;margin-left:10px' target='_blank' href='${urlStrFill}'>Order Status</a>`;
+        const urlStrFill = "https://officedesk.app/#/orderstatus/" + base64Json;
+        const statusLink = `<a style='background: #f47920;display: inline-block;color: #FFFFFF;text-decoration: none;font-size: 12px;margin-top: 1.0em;background-clip: padding-box;padding: 5px 15px;box-shadow: 4px 4px 6px 1px #cbcbcb;margin-left:10px' target='_blank' href='${urlStrFill}'>Track Order Status</a>`;
 
         return statusLink;
     }

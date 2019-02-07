@@ -23,6 +23,9 @@ function ActivityService(objectCollection) {
 
     this.addActivity = function (request, callback) {
 
+        request.flag_retry = request.flag_retry || 0;
+        request.flag_offline = request.flag_offline || 0;
+
         var logDatetime = util.getCurrentUTCTime();
         responseactivityData = {
             activity_id: request.activity_id
