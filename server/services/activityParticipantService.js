@@ -83,6 +83,9 @@ function ActivityParticipantService(objectCollection) {
 
     this.assignCoworker = function (request, callback) { //Addparticipant Request
 
+        request.flag_retry = request.flag_retry || 0;
+        request.flag_offline = request.flag_offline || 0;
+
         var loopAddParticipant = function (participantCollection, index, maxIndex) {
             iterateAddParticipant(participantCollection, index, maxIndex, function (err, data) {
                 if (err === false) {
