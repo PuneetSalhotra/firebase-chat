@@ -351,6 +351,30 @@ function ActivityTimelineService(objectCollection) {
                     }
                 });
             }
+
+            // Process/Workflow ROMS Target Form Generation Trigger
+            if (
+                activityStreamTypeId === 705 &&
+                request.hasOwnProperty("workflow_activity_id") &&
+                Number(request.workflow_activity_id) !== 0
+            ) {
+                console.log('CALLING buildAndSubmitCafFormV1');
+                const romsTargetFormGenerationEvent = {
+                    name: "vodafoneService",
+                    service: "vodafoneService",
+                    method: "buildAndSubmitCafFormV1",
+                    payload: request
+                };
+                queueWrapper.raiseActivityEvent(romsTargetFormGenerationEvent, request.activity_id, (err, resp) => {
+                    if (err) {
+                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                    } else {
+                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                    }
+                });
+            }
             
             timelineStandardCalls(request).then(() => {}).catch((err) => {
                 global.logger.write('debug', 'Error in timelineStandardCalls' + err, {}, request);
@@ -1071,7 +1095,7 @@ function ActivityTimelineService(objectCollection) {
             var paramsArr = new Array(
                     request.organization_id,
                     request.activity_id,
-                    request.timeline_transaction_id,
+                    request.timeline_transaction_id || 0,
                     request.flag_previous,
                     request.page_start,
                     util.replaceQueryLimit(request.page_limit)
@@ -1822,8 +1846,8 @@ function ActivityTimelineService(objectCollection) {
             params.push(request.api_version);                                   // IN p_device_api_version VARCHAR(50)
             params.push(request.asset_id);                                      // IN p_log_asset_id BIGINT(20)
             params.push(row.message_unique_id);                                 // IN p_log_message_unique_id VARCHAR(50)
-            params.push(request.flag_retry);                                    // IN p_log_retry TINYINT(1)
-            params.push(request.flag_offline);                                  // IN p_log_offline TINYINT(1)
+            params.push(request.flag_retry || 0);                                    // IN p_log_retry TINYINT(1)
+            params.push(request.flag_offline || 0);                                  // IN p_log_offline TINYINT(1)
             params.push(util.getCurrentUTCTime());                              // IN p_transaction_datetime DATETIME
             params.push(request.datetime_log);                                  // IN p_log_datetime DATETIME
             params.push(request.entity_datetime_2);                             // IN p_entity_datetime_2 DATETIME

@@ -336,6 +336,22 @@ function ActivityPushService(objectCollection) {
                         break;
                     case 34: //Time Card
                         break;
+                    case 48: // Process/Workflow
+                        switch (request.url) {
+                            case '/' + global.config.version + '/activity/timeline/entry/add':
+                            case '/' + global.config.version + '/activity/timeline/entry/add/v1':
+                            case '/' + global.config.version + '/activity/status/alter':
+                            case '/' + global.config.version + '/activity/participant/access/set':
+                                msg.activity_type_category_id = 48;
+                                msg.type = 'activity_unread';
+                                break;
+                            case '/' + global.config.version + '/activity/unread/count/reset':
+                            case '/' + global.config.version + '/activity/unread/count/reset/v1':
+                                msg.activity_type_category_id = 48;
+                                msg.type = 'activity_read';
+                                break;
+                        };
+                    break;
                 };
                 
                 // Include activity_id and its category id in the push message, if there is a

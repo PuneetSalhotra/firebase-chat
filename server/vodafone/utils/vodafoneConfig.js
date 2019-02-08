@@ -1,3 +1,8 @@
+const digitalMplsCrfMappings = require("./digital_mpls_crf/digital_mpls_crf_mappings.json");
+const digitalMplsCrfLabels = require("./digital_mpls_crf/labels.json");
+const digitalMplsCrfRoms = require("./digital_mpls_crf/roms.json");
+const digitalMplsCrfRomsActions = require("./digital_mpls_crf/roms_actions.json");
+
 vodafoneConfig = {
     "860": {
         "NAME": "Vodafone Idea | Production | BETA",
@@ -181,5 +186,14 @@ vodafoneConfig = {
             "Contact_Email_Id": 5784,
             "Account_Code": 6099 //This we have in new order not in CRM
         }
+    },
+    "134564": {
+        "REQUIRED_FORMS": [1073, 1076, 1077],
+        "TARGET_FORM_ID": 1109,
+        "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
+        "FORM_FIELD_MAPPING_DATA": digitalMplsCrfMappings,
+        "LABELS": digitalMplsCrfLabels,
+        "ROMS": digitalMplsCrfRoms,
+        "ROMS_ACTIONS": digitalMplsCrfRomsActions
     }
 };

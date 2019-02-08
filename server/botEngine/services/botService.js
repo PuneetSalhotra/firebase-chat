@@ -1353,6 +1353,7 @@ function BotService(objectCollection) {
             activityTimelineService.addTimelineTransaction(fire715OnWFOrderFileRequest, (err, resp) => {
                 (err === false) ? resolve(): reject(err);
             });
+            // resolve();
         });
     }
 
@@ -1386,6 +1387,21 @@ function BotService(objectCollection) {
     }
 
     async function getStatusLink(request, formAction, workflowActivityId) {
+        let workflowActivityTypeId = request.activity_type_id;
+        try {
+            await activityCommonService
+                .getActivityDetailsPromise(request, workflowActivityId)
+                .then((workflowActivityData) => {
+                    if (workflowActivityData.length > 0) {
+                        workflowActivityTypeId = workflowActivityData[0].activity_type_id;
+                    }
+                })
+                .catch((error) => {
+                    console.log("workflowActivityTypeId | getActivityDetailsPromise | error: ", error);
+                });
+        } catch (error) {
+            console.log("workflowActivityTypeId | error: ", error);
+        }
         const JsonData = {
             organization_id: request.organization_id,
             account_id: request.account_id,
@@ -1396,12 +1412,12 @@ function BotService(objectCollection) {
             activity_id: workflowActivityId, // request.activity_id,
             activity_type_category_id: 9,
             activity_stream_type_id: 705,
-            activity_type_id: request.activity_type_id,
+            activity_type_id: workflowActivityTypeId,
             asset_first_name: request.asset_first_name || ''
         }
         const base64Json = Buffer.from(JSON.stringify(JsonData)).toString('base64');
-        const urlStrFill = "https://officedesk.app/#/forms/view/" + base64Json;
-        const statusLink = `<a style='background: #f47920;display: inline-block;color: #FFFFFF;text-decoration: none;font-size: 12px;margin-top: 1.0em;background-clip: padding-box;padding: 5px 15px;box-shadow: 4px 4px 6px 1px #cbcbcb;margin-left:10px' target='_blank' href='${urlStrFill}'>Order Status</a>`;
+        const urlStrFill = "https://officedesk.app/#/orderstatus/" + base64Json;
+        const statusLink = `<a style='background: #f47920;display: inline-block;color: #FFFFFF;text-decoration: none;font-size: 12px;margin-top: 1.0em;background-clip: padding-box;padding: 5px 15px;box-shadow: 4px 4px 6px 1px #cbcbcb;margin-left:10px' target='_blank' href='${urlStrFill}'>Track Order Status</a>`;
 
         return statusLink;
     }

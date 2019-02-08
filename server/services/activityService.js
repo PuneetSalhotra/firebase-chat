@@ -20,6 +20,9 @@ function ActivityService(objectCollection) {
 
     this.addActivity = function (request, callback) {
 
+        request.flag_retry = request.flag_retry || 0;
+        request.flag_offline = request.flag_offline || 0;
+
         var logDatetime = util.getCurrentUTCTime();
         responseactivityData = {
             activity_id: request.activity_id
@@ -1065,10 +1068,14 @@ function ActivityService(objectCollection) {
                     break;
                 case 48:
                 case 9: // form
+                    let activityDescription = request.activity_description;
+                    if (typeof request.activity_description === 'object') {
+                        activityDescription = JSON.stringify(request.activity_description);
+                    }
                     paramsArr = new Array(
                         request.activity_id,
                         request.activity_title,
-                        request.activity_description,
+                        activityDescription,
                         (request.activity_inline_data),
                         "",
                         0,
@@ -1082,8 +1089,8 @@ function ActivityService(objectCollection) {
                         request.account_id,
                         request.organization_id,
                         request.message_unique_id, //request.asset_id + new Date().getTime() + getRandomInt(), //message unique id
-                        request.flag_retry,
-                        request.flag_offline,
+                        request.flag_retry || 0,
+                        request.flag_offline || 0,
                         request.asset_id,
                         request.datetime_log, // server log date time   
                         activityFormId,
@@ -1630,7 +1637,7 @@ function ActivityService(objectCollection) {
                         request.activity_id,
                         rowData['asset_id'],
                         activityStatusId,
-                        activityStatusTypeId,
+                        activityStatusTypeId || 0,
                         request.datetime_log
                     );
                     queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_status', paramsArr);

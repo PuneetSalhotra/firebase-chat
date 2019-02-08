@@ -2000,23 +2000,24 @@ function ActivityListingService(objCollection) {
 		});
 	};
 		
-	function processMyQueueData(request, data){
+	function processMyQueueData(request, data) {
 		return new Promise((resolve, reject) => {
 			var array = [];
-			forEachAsync(data, function (next, newOrderData) {	
-				getQueueActivity(request, newOrderData.activity_id).then((queueData)=>{
-									if(queueData.length > 0) {
-										queueData[0].asset_unread_updates_count = newOrderData.asset_unread_updates_count;
-										array.push(queueData[0]);
-									}                                    
-				}).then(()=>{
+			forEachAsync(data, function (next, newOrderData) {
+				getQueueActivity(request, newOrderData.activity_id).then((queueData) => {
+					if (queueData.length > 0) {
+						queueData[0].asset_unread_updates_count = newOrderData.asset_unread_updates_count;
+						queueData[0].activity_datetime_end_deferred = newOrderData.activity_datetime_end_deferred;
+						array.push(queueData[0]);
+					}
+				}).then(() => {
 					next();
-							});				    
-						
-			}).then(()=>{
+				});
+
+			}).then(() => {
 				//console.log(array);
 				resolve(array);
-			});	    		
+			});
 		});
 	}
 	

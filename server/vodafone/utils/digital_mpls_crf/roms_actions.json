@@ -1,0 +1,29 @@
+[{
+        "ACTION": "sum",
+        "BATCH": [{
+            "SOURCE_FORM_IDS": [8529, 8530, 8531],
+            "TARGET_FORM_ID": 8572,
+            "VALUE": 0
+        }, {
+            "SOURCE_FORM_IDS": [8532, 8533, 8534],
+            "TARGET_FORM_ID": 8573,
+            "VALUE": 0
+        }, {
+            "SOURCE_FORM_IDS": [8544, 8545],
+            "TARGET_FORM_ID": 8577,
+            "VALUE": 0
+        }, {
+            "SOURCE_FORM_IDS": [8546, 8547],
+            "TARGET_FORM_ID": 8578,
+            "VALUE": 0
+        }]
+    },
+    {
+        "ACTION": "sum",
+        "BATCH": [{
+            "SOURCE_FORM_IDS": [8572, 8573, 8577, 8578],
+            "TARGET_FORM_ID": 8454,
+            "VALUE": 0
+        }]
+    }
+]
