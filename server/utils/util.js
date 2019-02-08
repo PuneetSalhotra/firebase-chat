@@ -30,6 +30,10 @@ apiKey.apiKey = 'xkeysib-bf69ddcbccdb2bd2091eddcf8302ca9ab9bbd32dddd41a002e941c1
 const apiInstance = new SibApiV3Sdk.SMTPApi();
 // 
 
+// MySQL for generating prepared statements
+const mysql = require('mysql');
+
+
 function Util() {
 
     this.getSMSString = function (verificationCode) {
@@ -92,7 +96,7 @@ function Util() {
         messageString = encodeURIComponent(messageString);
         var url = "http://api.mvaayoo.com/mvaayooapi/MessageCompose?user=junaid.m@grene.in:greneapple&senderID=PUDMNK&receipientno=" + countryCode + "" + phoneNumber + "&dcs=0&msgtxt=" + messageString + "&state=4";
         //console.log('URL : ', url);
-        global.logger.write('debug', 'URL : ' + url, {}, {});
+        global.logger.write('conLog', 'URL : ' + url, {}, {});
 
         request(url, function (error, response, body) {
             var res = {};
@@ -160,9 +164,9 @@ function Util() {
         //        console.log("inside sendSmsMvaayoo");
         messageString = encodeURI(messageString);
         var url = "http://smshorizon.co.in/api/sendsms.php?user=GreneRobotics&apikey=oLm0MhRHBt2KPXFRrk8k&mobile="+countryCode+""+phoneNumber+"&message="+messageString+"&senderid=WDDESK&type=txt";
-        global.logger.write('debug', 'URL: '+url, {}, {});
+        global.logger.write('conLog', 'URL: ' + url, {}, {});
         request(url, function (error, response, body) {
-        	global.logger.write('debug', 'SMS HORIZON RESP:: '+body, {}, {});
+        	global.logger.write('debug', 'SMS HORIZON RESP:: ' + body, {}, {});
             var res = {};            
             if (typeof body == 'string' && Number(body) > 0) {
                 res['status'] = 1;
@@ -219,11 +223,12 @@ function Util() {
         //console.log('To : ', to);
         //console.log('Text : ', text);
 
-        global.logger.write('debug', 'To : ' + to, {}, request);
-        global.logger.write('debug', 'Text : ' + text, {}, request);
+        global.logger.write('conLog', 'To : ' + to, {}, request);
+        global.logger.write('conLog', 'Text : ' + text, {}, request);
 
         nexmo.message.sendSms(from, to, text, (error, response) => {
             if (error) {
+                global.logger.write('debug', error, {}, request);
                 throw error;
             } else if (response.messages[0].status != '0') {
                 //console.error(response);
@@ -280,8 +285,8 @@ function Util() {
         //console.log('xmlText : ' + xmlText);
         //console.log(global.config.mobileBaseUrl + global.config.version + '/account/voice_'+passcode);
 
-        global.logger.write('debug', 'xmlText : ' + xmlText, {}, request);
-        global.logger.write('debug', global.config.mobileBaseUrl + global.config.version + '/account/voice_' + passcode, {}, request);
+        global.logger.write('conLog', 'xmlText : ' + xmlText, {}, request);
+        global.logger.write('conLog', global.config.mobileBaseUrl + global.config.version + '/account/voice_' + passcode, {}, request);
 
         fs.writeFile(global.config.efsPath + 'twiliovoicesxmlfiles/voice_' + passcode + '.xml', xmlText, function (err) {
             if (err) {
@@ -336,10 +341,10 @@ function Util() {
         jsonText += '"}]';
 
         //console.log('jsonText : ' + jsonText);
-        global.logger.write('debug', 'jsonText : ' + jsonText, {}, {});
+        global.logger.write('conLog', 'jsonText : ' + jsonText, {}, {});
         let answerUrl = global.config.mobileBaseUrl + global.config.version + '/account/nexmo/voice_' + passcode + '.json?file=voice_' + passcode + '.json';
         //console.log('Answer Url : ', answerUrl);
-        global.logger.write('debug', 'Answer Url : ' + answerUrl, {}, {});
+        global.logger.write('conLog', 'Answer Url : ' + answerUrl, {}, {});
         fs.writeFile(global.config.efsPath + 'nexmovoicesjsonfiles/voice_' + passcode + '.json', jsonText, function (err) {
             if (err) {
                 throw err;
@@ -492,22 +497,41 @@ function Util() {
         return dateTimeString;
     };
 
-    this.getQueryString = function (callName, paramsArr) {
-        var queryString = "CALL " + callName + "(";
-        paramsArr.forEach(function (item, index) {
-            if (typeof item === 'string' || item instanceof String)
-                item = item.replace(/'/g, "\\'") // escaping single quote                   
-                .replace(/\"/g, '\\"') // escaping \" from UI
-                .replace(/\n/g, '\\n');
-            if (index === (paramsArr.length - 1))
-                queryString = queryString + "'" + item + "'";
-            else
-                queryString = queryString + "'" + item + "',";
-        }, this);
-        queryString = queryString + ");";
-        return queryString;
+    // this.getQueryString = function (callName, paramsArr) {
+    //     var queryString = "CALL " + callName + "(";
+    //     paramsArr.forEach(function (item, index) {
+    //         if (typeof item === 'string' || item instanceof String)
+    //             item = item.replace(/'/g, "\\'") // escaping single quote                   
+    //             .replace(/\"/g, '\\"') // escaping \" from UI
+    //             .replace(/\n/g, '\\n');
+    //         if (index === (paramsArr.length - 1))
+    //             queryString = queryString + "'" + item + "'";
+    //         else
+    //             queryString = queryString + "'" + item + "',";
+    //     }, this);
+    //     queryString = queryString + ");";
+    //     return queryString;
 
-    };
+    // };
+
+    this.getQueryString = function (callName, paramsArr) {
+        let queryString = '',
+            preparedQueryString;
+        if (paramsArr.length > 0) {
+            // if (callName === 'ds_v1_activity_list_insert_pam') {
+            //     console.log("ds_v1_activity_list_insert_pam | paramsArr | Length: ", paramsArr.length);
+            //     console.log("ds_v1_activity_list_insert_pam | paramsArr: ", paramsArr);
+            // }
+            queryString = `CALL ?? (${new Array(paramsArr.length).fill('?').join(', ')});`;
+            // console.log("queryString: ", queryString);
+            // console.log("paramsArr: ", paramsArr);
+            preparedQueryString = mysql.format(queryString, [String(callName)].concat(paramsArr));
+            // console.log("preparedQueryString: ", preparedQueryString);
+            return preparedQueryString;
+        } else {
+            return '';
+        }
+    }
 
     this.getRandomInt = function () {
         /*
@@ -1041,9 +1065,9 @@ function Util() {
  
         messageString = encodeURI(messageString);
         var url = "http://smshorizon.co.in/api/sendsms.php?user=GreneRobotics&apikey=oLm0MhRHBt2KPXFRrk8k&mobile="+countryCode+""+phoneNumber+"&message="+messageString+"&senderid=WDDESK&type=txt";
-        global.logger.write('debug', 'URL: '+url, {}, {});
+        global.logger.write('conLog', 'URL: ' + url, {}, {});
         request(url, function (error, response, body) {
-        	global.logger.write('debug', 'SMS HORIZON RESP:: '+body, {}, {});
+        	global.logger.write('debug', 'SMS HORIZON RESP:: ' + body, {}, {});
             var res = {};            
             if (typeof body == 'string' && Number(body) > 0) {
                 res['status'] = 1;

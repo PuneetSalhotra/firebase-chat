@@ -53,7 +53,7 @@ function ActivityParticipantController(objCollection) {
             activityCommonService.getActivityDetails(req.body, 0, function(err, data){
                 var x = data[0].activity_type_category_id;                
                 // console.log('X : ', data[0].activity_type_category_id);
-                global.logger.write('debug', 'X : ' + data[0].activity_type_category_id, {}, req.body);
+                global.logger.write('conLog', 'X : ' + data[0].activity_type_category_id, {}, req.body);
 
                 req.body.activity_type_category_id = x;
             });
@@ -84,7 +84,7 @@ function ActivityParticipantController(objCollection) {
 
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('debug', "Asset parity is set successfully", {}, req.body);
+                                            global.logger.write('conLog', "Asset parity is set successfully", {}, req.body);
 
                                     });
                                 }
@@ -135,7 +135,7 @@ function ActivityParticipantController(objCollection) {
         }
     });
 
-    app.put('/' + global.config.version + '/activity/participant/access/reset', function (req, res) {
+    app.post('/' + global.config.version + '/activity/participant/access/reset', function (req, res) {
         var assetMessageCounter = 0;
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))
@@ -166,7 +166,7 @@ function ActivityParticipantController(objCollection) {
                                             global.logger.write('serverError', "Error in setting asset parity", err, req.body);
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('debug', "Asset parity is set successfully", {}, req.body);
+                                            global.logger.write('conLog', "Asset parity is set successfully", {}, req.body);
 
                                     });
                                 }
@@ -213,7 +213,7 @@ function ActivityParticipantController(objCollection) {
 
     });
 
-    app.put('/' + global.config.version + '/activity/participant/access/alter', function (req, res) {
+    app.post('/' + global.config.version + '/activity/participant/access/alter', function (req, res) {
         var assetMessageCounter = 0;
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))
@@ -244,7 +244,7 @@ function ActivityParticipantController(objCollection) {
                                             global.logger.write('serverError', "Error in setting in asset parity", err, req.body);
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('debug', "Asset parity is set successfully", {}, req.body);
+                                            global.logger.write('conLog', "Asset parity is set successfully", {}, req.body);
 
                                     });
                                 }
@@ -283,7 +283,7 @@ function ActivityParticipantController(objCollection) {
     });
 
     //BETA
-    app.put('/' + global.config.version + '/activity/participant/timestamp/alter', function (req, res) {
+    app.post('/' + global.config.version + '/activity/participant/timestamp/alter', function (req, res) {
         var assetMessageCounter = 0;
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))
@@ -314,7 +314,7 @@ function ActivityParticipantController(objCollection) {
                                             global.logger.write('serverError', "Error in setting in asset parity", err, req.body);
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('debug', "Asset parity is set successfully", {}, req.body);
+                                            global.logger.write('conLog', "Asset parity is set successfully", {}, req.body);
 
                                     });
                                 }
@@ -353,7 +353,7 @@ function ActivityParticipantController(objCollection) {
     });
     
     //Adding the invitee as a participant in invitor the ID Card Activity
-    app.put('/' + global.config.version + '/activity/access/participant_invitee/set', function (req, res) {
+    app.post('/' + global.config.version + '/activity/access/participant_invitee/set', function (req, res) {
         var assetMessageCounter = 0;
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))
@@ -386,7 +386,7 @@ function ActivityParticipantController(objCollection) {
 
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('debug', "Asset parity is set successfully", {}, req.body);
+                                            global.logger.write('conLog', "Asset parity is set successfully", {}, req.body);
 
                                     });
                                 }

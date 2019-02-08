@@ -115,6 +115,7 @@ function CommnTemplateService(objectCollection)
             (
                 request.communication_id,
                 request.commn_template_inline_data,
+                request.commn_template_name,
                 request.activity_type_id,
                 request.organization_id,
                 request.log_asset_id,

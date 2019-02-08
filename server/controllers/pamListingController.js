@@ -123,7 +123,7 @@ function PamListingController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 console.log('did not get proper response');
-                global.logger.write('response','did not get proper response',err,req.body);
+                global.logger.write('response', 'did not get proper response', err, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }

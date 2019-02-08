@@ -11,7 +11,7 @@ function AssetController(objCollection) {
     var app = objCollection.app;
     var activityCommonService = objCollection.activityCommonService;
     var assetService = new AssetService(objCollection);
-    app.put('/' + global.config.version + '/asset/passcode/alter', function (req, res) {
+    app.post('/' + global.config.version + '/asset/passcode/alter', function (req, res) {
 
         assetService.getPhoneNumberAssets(req.body, function (err, data, statusCode) {
             if (err === false) {
@@ -25,7 +25,7 @@ function AssetController(objCollection) {
         });
     });
 
-    app.put('/' + global.config.version + '/asset/passcode/alter/v1', function (req, res) {
+    app.post('/' + global.config.version + '/asset/passcode/alter/v1', function (req, res) {
 
         assetService.getPhoneNumberAssetsV1(req.body, function (err, data, statusCode) {
             if (err === false) {
@@ -82,7 +82,7 @@ function AssetController(objCollection) {
             }
         });
     });
-    app.put('/' + global.config.version + '/asset/link/set', function (req, res) {
+    app.post('/' + global.config.version + '/asset/link/set', function (req, res) {
 
         assetService.linkAsset(req.body, function (err, data, statusCode) {
 
@@ -98,7 +98,7 @@ function AssetController(objCollection) {
             }
         });
     });
-    app.put('/' + global.config.version + '/asset/link/reset', function (req, res) {
+    app.post('/' + global.config.version + '/asset/link/reset', function (req, res) {
 
         assetService.unlinkAsset(req.body, function (err, data, statusCode) {
             if (err === false) {
@@ -113,7 +113,7 @@ function AssetController(objCollection) {
             }
         });
     });
-    app.put('/' + global.config.version + '/asset/cover/lamp/set', function (req, res) {
+    app.post('/' + global.config.version + '/asset/cover/lamp/set', function (req, res) {
 
         req.body.update_type_id = 213;
         req.body.lamp_status = 1;
@@ -130,7 +130,7 @@ function AssetController(objCollection) {
             }
         });
     });
-    app.put('/' + global.config.version + '/asset/cover/lamp/reset', function (req, res) {
+    app.post('/' + global.config.version + '/asset/cover/lamp/reset', function (req, res) {
 
         req.body.update_type_id = 214;
         req.body.lamp_status = 0;
@@ -210,7 +210,7 @@ function AssetController(objCollection) {
             }
         });
     });
-    app.put('/' + global.config.version + '/asset/cover/status/alter', function (req, res) {
+    app.post('/' + global.config.version + '/asset/cover/status/alter', function (req, res) {
         assetService.alterAssetStatus(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response    
@@ -222,7 +222,7 @@ function AssetController(objCollection) {
             }
         });
     });
-    app.put('/' + global.config.version + '/asset/cover/location/alter', function (req, res) {
+    app.post('/' + global.config.version + '/asset/cover/location/alter', function (req, res) {
         assetService.updateAssetCoverLocation(req.body, function (err, data, statusCode) {
             if (err === false) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
@@ -232,7 +232,7 @@ function AssetController(objCollection) {
             }
         });
     });
-    /*app.put('/' + global.config.version + '/asset/cover/assigned_status/alter', function (req, res) {
+    /*app.post('/' + global.config.version + '/asset/cover/assigned_status/alter', function (req, res) {
      req.body['module'] = 'asset';
      assetService.alterAssetAssignedStatus(req.body, function (err, data, statusCode) {
      if (err === false) {
@@ -248,7 +248,7 @@ function AssetController(objCollection) {
      
      }); 
      
-     app.put('/' + global.config.version + '/asset/cover/lamp/alter', function (req, res) {
+     app.post('/' + global.config.version + '/asset/cover/lamp/alter', function (req, res) {
      req.body['module'] = 'asset';
      assetService.alterAssetLampStatus(req.body, function (err, data, statusCode) {
      if (err === false) {
@@ -278,7 +278,7 @@ function AssetController(objCollection) {
         });
     });
     //PAM
-    app.put('/' + global.config.version + '/asset/status/alter', function (req, res) {
+    app.post('/' + global.config.version + '/asset/status/alter', function (req, res) {
         assetService.removeAsset(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response   
@@ -292,7 +292,7 @@ function AssetController(objCollection) {
     })
 
     //PAM
-    app.put('/' + global.config.version + '/asset/inline/alter', function (req, res) {
+    app.post('/' + global.config.version + '/asset/inline/alter', function (req, res) {
         assetService.assetInlineAlter(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response    
@@ -328,7 +328,7 @@ function AssetController(objCollection) {
             }
         });
     });
-    app.put('/' + global.config.version + '/asset/cover/notification/set', function (req, res) {
+    app.post('/' + global.config.version + '/asset/cover/notification/set', function (req, res) {
 
         assetService.updateAssetPushToken(req.body, function (err, data, statusCode) {
 
@@ -371,7 +371,7 @@ function AssetController(objCollection) {
         });
     });
 
-    app.put('/' + global.config.version + '/asset/update/invite/count', function (req, res) {
+    app.post('/' + global.config.version + '/asset/update/invite/count', function (req, res) {
 
         assetService.updateInviteCount(req.body, function (err, data, statusCode) {
             if (err === false) {
@@ -384,7 +384,7 @@ function AssetController(objCollection) {
     });
 
     //Deleting the phone number of an asset
-    app.put('/' + global.config.version + '/asset/access/phonenumber/reset', function (req, res) {
+    app.post('/' + global.config.version + '/asset/access/phonenumber/reset', function (req, res) {
         assetService.phoneNumberDelete(req.body, function (err, data, statusCode) {
             if (err === false) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
@@ -503,7 +503,7 @@ function AssetController(objCollection) {
             });
     });
     
-   app.put('/' + global.config.version + '/pam/asset/passcode/alter/v1', function (req, res) {
+   app.post('/' + global.config.version + '/pam/asset/passcode/alter/v1', function (req, res) {
 
         assetService.getPamMemberPhoneNumberAsset(req.body, function (err, data, statusCode) {
             if (err === false) {
@@ -536,7 +536,7 @@ function AssetController(objCollection) {
     //Retrieve the asset Timeline Data
     app.post('/' + global.config.version + '/asset/access/timeline/list', async (req, res) => {
         try {            
-            global.logger.write('conLog', req.body,{},{});
+            global.logger.write('conLog', req.body, {}, {});
             let result = await assetService.getAssetTimelineData(req.body);
             res.send(responseWrapper.getResponse(false, result, 200, req.body));
         } catch(err) {
@@ -550,6 +550,16 @@ function AssetController(objCollection) {
         (!err) ?
             res.send(responseWrapper.getResponse({}, data, 200, req.body)):                    
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+    });
+
+    app.post('/' + global.config.version + '/asset/access/queue/list', async (req, res) => {
+        try {
+            global.logger.write('conLog', req.body, {}, {});
+            let result = await assetService.queueAccessListSelectAsset(req.body);
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch (err) {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
     });
 }
 module.exports = AssetController;
