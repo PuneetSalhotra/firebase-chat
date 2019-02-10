@@ -2806,6 +2806,161 @@ function FormConfigService(objCollection) {
         return updatedData;
     }
 
+    this.alterFormActivityFieldValues = async function (request) {
+        let fieldsNewValues = [],
+            fieldsNewValuesMap = new Map();
+        fieldsNewValues = JSON.parse(request.activity_inline_data);
+        for (const field of fieldsNewValues) {
+            fieldsNewValuesMap.set(Number(field.field_id), field);
+        }
+        console.log("fieldsNewValuesMap: ", fieldsNewValuesMap);
+
+        let activityData = [];
+        // Fetch the activity data from the DB
+        try {
+            activityData = await activityCommonService.getActivityByFormTransaction(request, request.activity_id);
+        } catch (error) {
+            console
+            return [error, []];
+        }
+        // If the activity exists, retrieve and parse the inline data
+        let activityInlineData = [];
+        if (activityData.length > 0) {
+            try {
+                activityInlineData = JSON.parse(activityData[0].activity_inline_data);
+            } catch (error) {
+                return [error, []];
+            }
+        } else {
+            return [new Error("ActivityNotFound"), []];
+        }
+        // Convert the inline data to a map, for easy processing
+        let activityInlineDataMap = new Map();
+        for (const field of activityInlineData) {
+            activityInlineDataMap.set(Number(field.field_id), field);
+        }
+        // Build the promises array for concurrent processing
+        let fetchUpdateSeqIdPromises = [];
+        // Content to be displayed on the UI
+        let content = '',
+            formName = '';
+        for (const fieldID of fieldsNewValuesMap.keys()) {
+            // Fetch the latest upate sequence ID
+            fetchUpdateSeqIdPromises.push(
+                getLatestUpdateSeqId({
+                    form_transaction_id: request.form_transaction_id,
+                    form_id: request.form_id,
+                    field_id: fieldID,
+                    organization_id: request.organization_id
+                })
+                .then(async (data) => {
+                    let newRequest = Object.assign({}, request);
+                    let newFieldData = [];
+
+                    if (data.length > 0) {
+                        newRequest.update_sequence_id = Number(data[0].update_sequence_id) + 1;
+                    } else {
+                        newRequest.update_sequence_id = 1;
+                    }
+
+                    newRequest.field_id = fieldID;
+                    newRequest.data_type_combo_id = fieldsNewValuesMap.get(fieldID).data_type_combo_id;
+                    newRequest.datetime_log = util.getCurrentUTCTime();
+                    newFieldData.push(fieldsNewValuesMap.get(fieldID));
+                    // Update the field entry
+                    await putLatestUpdateSeqId(newRequest, newFieldData);
+
+                    formName = fieldsNewValuesMap.get(fieldID).form_name;
+                    let fieldName = fieldsNewValuesMap.get(fieldID).field_name;
+                    // Update the activity inline data as well
+                    if (activityInlineDataMap.has(fieldID)) {
+                        let oldFieldEntry = activityInlineDataMap.get(fieldID);
+                        let newFieldEntry = Object.assign({}, oldFieldEntry);
+                        newFieldEntry.field_value = fieldsNewValuesMap.get(fieldID).field_value;
+                        // Set the new value in the inline data map
+                        activityInlineDataMap.set(fieldID, newFieldEntry);
+
+                        // Form the content string
+                        content += `In the ${formName}, the field ${fieldName} was updated from ${oldFieldEntry.field_value} to ${newFieldEntry.field_value} <br />`;;
+                    } else {
+                        // If it doesn't already exist, make a fresh entry!
+                        let newFieldEntry = fieldsNewValuesMap.get(fieldID);
+                        activityInlineDataMap.set(fieldID, {
+                            "data_type_combo_id": newFieldEntry.data_type_combo_id,
+                            "data_type_combo_value": newFieldEntry.data_type_combo_value,
+                            "field_data_type_category_id": newFieldEntry.field_data_type_category_id,
+                            "field_data_type_id": newFieldEntry.field_data_type_id,
+                            "field_id": fieldID,
+                            "field_name": fieldName,
+                            "field_value": newFieldEntry.field_value,
+                            "form_id": newRequest.form_id,
+                            "message_unique_id": 12345678910
+                        });
+
+                        // Form the content string
+                        content += `In the ${formName}, the field ${fieldName} was updated to ${newFieldEntry.field_value} <br />`;;
+                    }
+
+                    return {
+                        field_id: fieldID,
+                        success: true,
+                        update_sequence_id: newRequest.update_sequence_id
+                    };
+                })
+                .catch((error) => {
+                    console.log("fetchUpdateSeqIdPromises | getLatestUpdateSeqId | Error: ", error);
+                    return 'Ghotala';
+                })
+            );
+        }
+
+        await Promise.all(fetchUpdateSeqIdPromises)
+            .then((updateSequenceIDs) => {
+                console.log("updateSequenceIDs: ", updateSequenceIDs);
+            })
+            .catch((error) => {
+                console.log("Promise.all | fetchUpdateSeqIdPromises | error: ", error);
+                return [error, []];
+            });
+
+        console.log("content: ", content);
+        // update the activity's inline data as well
+        activityInlineData = [...activityInlineDataMap.values()];
+        request.activity_inline_data = JSON.stringify(activityInlineData);
+
+        let activityTimelineCollection = {
+            form_submitted: activityInlineData,
+            subject: `Field Updated for ${formName}`,
+            content: content,
+            mail_body: `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+            attachments: [],
+            asset_reference: [],
+            activity_reference: [],
+            form_approval_field_reference: []
+
+        };
+        request.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
+
+        const event = {
+            name: "alterActivityInline",
+            service: "activityUpdateService",
+            method: "alterActivityInline",
+            payload: request
+        };
+
+        queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
+            if (err) {
+                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+            } else {
+                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+            }
+        });
+
+        return [false, activityData];
+    }
+
 }
 
 module.exports = FormConfigService;
