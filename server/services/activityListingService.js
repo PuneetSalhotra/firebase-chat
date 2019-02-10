@@ -2008,6 +2008,8 @@ function ActivityListingService(objCollection) {
 					if (queueData.length > 0) {
 						queueData[0].asset_unread_updates_count = newOrderData.asset_unread_updates_count;
 						queueData[0].activity_datetime_end_deferred = newOrderData.activity_datetime_end_deferred;
+						queueData[0].activity_datetime_start_expected = newOrderData.activity_datetime_start_expected;
+						queueData[0].activity_datetime_created = newOrderData.activity_datetime_created;
 						array.push(queueData[0]);
 					}
 				}).then(() => {
