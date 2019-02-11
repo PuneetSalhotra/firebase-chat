@@ -23,8 +23,8 @@ function VodafoneService(objectCollection) {
     // const formConfigService = new FormConfigService(objectCollection);
     // console.log(`global.vodafoneConfig["134564"].FORM_FIELD_MAPPING_DATA: `, global.vodafoneConfig["134564"].FORM_FIELD_MAPPING_DATA)
 
-    const ActivityTimelineService = require('../../services/activityTimelineService');
-    const activityTimelineService = new ActivityTimelineService(objectCollection);
+    // const ActivityTimelineService = require('../../services/activityTimelineService');
+    // const activityTimelineService = new ActivityTimelineService(objectCollection);
 
     this.newOrderFormAddToQueues = function (request, callback) {
 
@@ -4106,12 +4106,6 @@ function VodafoneService(objectCollection) {
         const LABELS = global.vodafoneConfig[formWorkflowActivityTypeId].LABELS;
         targetFormData = targetFormData.concat(LABELS);
 
-        // ****************** R E M O V E *******************
-        // ****************** R E M O V E *******************
-        targetFormData = addDummyData(targetFormData);
-        // ****************** R E M O V E *******************
-        // ****************** R E M O V E *******************
-
         // Append default ROMS entries
         const ROMS =  global.vodafoneConfig[formWorkflowActivityTypeId].ROMS;
         targetFormData = targetFormData.concat(ROMS);
@@ -4122,6 +4116,11 @@ function VodafoneService(objectCollection) {
 
         const fs = require("fs");
         fs.writeFileSync('/Users/Bensooraj/Desktop/desker_api/server/vodafone/utils/data.json', JSON.stringify(targetFormData, null, 2) , 'utf-8');
+
+        // return [false, {
+        //     formWorkflowActivityTypeId,
+        //     requiredForms
+        // }];
 
         // Build the full and final CAF Form and submit the form data to the timeline of the form file
         const targetFormSubmissionRequest = {
@@ -4174,7 +4173,7 @@ function VodafoneService(objectCollection) {
         
         const addActivityAsync = nodeUtil.promisify(makeRequest.post);
         try {
-            const response = await addActivityAsync(global.config.mobileBaseUrl + 'r0' + '/activity/add/v1', makeRequestOptions);
+            const response = await addActivityAsync(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', makeRequestOptions);
             // console.log("addActivityAsync | response: ", Object.keys(response));
             const body = JSON.parse(response.body);
             if (Number(body.status) === 200) {
@@ -4212,11 +4211,25 @@ function VodafoneService(objectCollection) {
             workflowFile713Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
             workflowFile713Request.device_os_id = 8;
 
-            const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
+            // const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
             try {
-                await addTimelineTransactionAsync(workflowFile713Request);
+                // await addTimelineTransactionAsync(workflowFile713Request);
+                let workflowFile713RequestEvent = {
+                    name: "addTimelineTransaction",
+                    service: "activityTimelineService",
+                    method: "addTimelineTransaction",
+                    payload: workflowFile713Request
+                };
+
+                queueWrapper.raiseActivityEvent(workflowFile713RequestEvent, workflowFile713Request.activity_id, (err, resp) => {
+                    if (err) {
+                        console.log("\x1b[35m [ERROR] Raising queue activity raised for 713 streamtypeid for Workflow/Process file. \x1b[0m", err);
+                    } else {
+                        console.log("\x1b[35m Raising queue activity raised for 713 streamtypeid for Workflow/Process file. \x1b[0m");
+                    }
+                });
             } catch (error) {
-                console.log("addActivityAsync | Error: ", error);
+                console.log("addTimelineTransaction | Error: ", error);
             }
         }
 
@@ -4235,19 +4248,20 @@ function VodafoneService(objectCollection) {
         }
         
         for (const action of ROMS_ACTIONS) {
+            // sum
             if (action.ACTION === "sum") {
                 // Iterate through each batch entry
                 for (const batch of action.BATCH) {
                     // Iterate through each source field id 
                     // and accumulate the sum
                     let sum = 0;
-                    for (const sourceFieldID of batch.SOURCE_FORM_IDS) {
+                    for (const sourceFieldID of batch.SOURCE_FIELD_IDS) {
                         if (targetFormDataMap.has(Number(sourceFieldID))) {
                             sum += Number(targetFormDataMap.get(sourceFieldID).field_value);
                         }
                     }
                     // Update the value of the target field ID
-                    let targetFieldID = batch.TARGET_FORM_ID;
+                    let targetFieldID = batch.TARGET_FIELD_ID;
                     if (targetFormDataMap.has(Number(targetFieldID))) {
                         // Get the entire object
                         let targetFieldEntry = targetFormDataMap.get(Number(targetFieldID));
@@ -4256,6 +4270,38 @@ function VodafoneService(objectCollection) {
                         // Set the updated object as value for the target field ID
                         targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
                         console.log("sum: ", sum);
+                    }
+                }
+            }
+
+            // set_static_value
+            if (action.ACTION === "set_static_value") {
+                for (const batch of action.BATCH) {
+                    // Update the value of the target field ID
+                    let targetFieldID = batch.TARGET_FIELD_ID;
+                    if (targetFormDataMap.has(Number(targetFieldID))) {
+                        // Get the entire object
+                        let targetFieldEntry = targetFormDataMap.get(Number(targetFieldID));
+                        // Set the value
+                        targetFieldEntry.field_value = batch.VALUE;
+                        // Set the updated object as value for the target field ID
+                        targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
+                    }
+                }
+            }
+
+            // set_date
+            if (action.ACTION === "set_date") {
+                for (const batch of action.BATCH) {
+                    // Update the value of the target field ID
+                    let targetFieldID = batch.TARGET_FIELD_ID;
+                    if (targetFormDataMap.has(Number(targetFieldID))) {
+                        // Get the entire object
+                        let targetFieldEntry = targetFormDataMap.get(Number(targetFieldID));
+                        // Set the value
+                        targetFieldEntry.field_value = moment().utcOffset(String(batch.TZ_OFFSET)).format('YYYY-MM-DD HH:mm:ss');
+                        // Set the updated object as value for the target field ID
+                        targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
                     }
                 }
             }
@@ -4269,120 +4315,6 @@ function VodafoneService(objectCollection) {
         return {
             TARGET_FORM_DATA: targetFormData
         };
-    }
-
-    function addDummyData(targetFormData) {
-        return targetFormData.concat([{
-                "form_id": 1109,
-                "field_id": 8532,
-                "field_name": "CPE 2-One Time(A)",
-                "field_data_type_id": 6,
-                "field_data_type_category_id": 2,
-                "data_type_combo_id": 0,
-                "data_type_combo_value": "",
-                "field_value": 1000,
-                "message_unique_id": 999999999999
-            },
-            {
-                "form_id": 1109,
-                "field_id": 8533,
-                "field_name": "CPE 2-Recurring(B)",
-                "field_data_type_id": 6,
-                "field_data_type_category_id": 2,
-                "data_type_combo_id": 0,
-                "data_type_combo_value": "",
-                "field_value": 200,
-                "message_unique_id": 999999999999
-            },
-            {
-                "form_id": 1109,
-                "field_id": 8534,
-                "field_name": "CPE 2-Security Deposit(C)",
-                "field_data_type_id": 6,
-                "field_data_type_category_id": 2,
-                "data_type_combo_id": 0,
-                "data_type_combo_value": "",
-                "field_value": 20,
-                "message_unique_id": 999999999999
-            },
-            {
-                "form_id": 1109,
-                "field_id": 8529,
-                "field_name": "CPE 1-One Time(A)",
-                "field_data_type_id": 6,
-                "field_data_type_category_id": 2,
-                "data_type_combo_id": 0,
-                "data_type_combo_value": "",
-                "field_value": 3000,
-                "message_unique_id": 999999999999
-            },
-            {
-                "form_id": 1109,
-                "field_id": 8530,
-                "field_name": "CPE 1-Recurring(B)",
-                "field_data_type_id": 6,
-                "field_data_type_category_id": 2,
-                "data_type_combo_id": 0,
-                "data_type_combo_value": "",
-                "field_value": 300,
-                "message_unique_id": 999999999999
-            },
-            {
-                "form_id": 1109,
-                "field_id": 8531,
-                "field_name": "CPE 1-Security Deposit(C)",
-                "field_data_type_id": 6,
-                "field_data_type_category_id": 2,
-                "data_type_combo_id": 0,
-                "data_type_combo_value": "",
-                "field_value": 30,
-                "message_unique_id": 999999999999
-            }, {
-                "form_id": 1109,
-                "field_id": 8544,
-                "field_name": "Miscellaneous Charges-1-One Time(A)",
-                "field_data_type_id": 6,
-                "field_data_type_category_id": 2,
-                "data_type_combo_id": 0,
-                "data_type_combo_value": "",
-                "field_value": 4000,
-                "message_unique_id": 999999999999
-            },
-            {
-                "form_id": 1109,
-                "field_id": 8545,
-                "field_name": "Miscellaneous Charges-1- Recurring(B)",
-                "field_data_type_id": 6,
-                "field_data_type_category_id": 2,
-                "data_type_combo_id": 0,
-                "data_type_combo_value": "",
-                "field_value": 999,
-                "message_unique_id": 999999999999
-            },
-            {
-                "form_id": 1109,
-                "field_id": 8546,
-                "field_name": "Miscellaneous Charges2-One Time(A)",
-                "field_data_type_id": 6,
-                "field_data_type_category_id": 2,
-                "data_type_combo_id": 0,
-                "data_type_combo_value": "",
-                "field_value": 5000,
-                "message_unique_id": 999999999999
-            },
-            {
-                "form_id": 1109,
-                "field_id": 8547,
-                "field_name": "Miscellaneous Charges-2- Recurring(B)",
-                "field_data_type_id": 6,
-                "field_data_type_category_id": 2,
-                "data_type_combo_id": 0,
-                "data_type_combo_value": "",
-                "field_value": 999,
-                "message_unique_id": 999999999999
-            }
-        ])
-
     }
 
 }
