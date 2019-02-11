@@ -4015,10 +4015,13 @@ function VodafoneService(objectCollection) {
             }
         } else {
             console.log("buildAndSubmitCafFormV1 | Error | workflow_activity_id NOT FOUND.")
-            return [new Error("workflow_activity_id not found in the request."), false];;
+            return [new Error("workflow_activity_id not found in the request."), false];
         }
         const requiredForms = global.vodafoneConfig[formWorkflowActivityTypeId].REQUIRED_FORMS;
-        // requiredForms.push(1076)
+        
+        if (!requiredForms.includes(Number(request.form_id))) {
+            return [new Error("[MISSION ABORT] Call to build the target forms is not from one of the required forms."), []];
+        }
         
         // Check whether all the mandatory forms have been submitted or not
         let requiredFormsCheck = [];
@@ -4045,6 +4048,11 @@ function VodafoneService(objectCollection) {
                 console.log("Promise.all | error: ", error);
             });
         console.log("allFormsExist: ", allFormsExist);
+
+        // Do NOT PROCEED further, if all the required forms do not exist
+        if (!allFormsExist) {
+            return [new Error("allFormsExist is false, all requried forms have not been submitted."), []];
+        }
         
         // If all the mandatory forms exist, proceed with the buildign the form
         // Fetch relevant source and target form field mappings
@@ -4114,8 +4122,31 @@ function VodafoneService(objectCollection) {
         const ROMS_ACTIONS = global.vodafoneConfig[formWorkflowActivityTypeId].ROMS_ACTIONS;
         targetFormData = performRomsCalculations(request, targetFormData, ROMS_ACTIONS).TARGET_FORM_DATA;
 
-        const fs = require("fs");
-        fs.writeFileSync('/Users/Bensooraj/Desktop/desker_api/server/vodafone/utils/data.json', JSON.stringify(targetFormData, null, 2) , 'utf-8');
+        // Fetch the target form's field sequence data
+        let fieldSequenceIdMap = {};
+        await activityCommonService
+            .getFormFieldMappings(request, TARGET_FORM_ID, 0, 500)
+            .then((data) => {
+                if (data.length > 0) {
+
+                    data.forEach(formMappingEntry => {
+                        fieldSequenceIdMap[formMappingEntry.field_id] = Number(formMappingEntry.field_sequence_id);
+                    });
+                }
+            });
+
+        // S O R T Target Form entries based on the 
+        // field_id:field_seq_id data feteched above
+        targetFormData.sort((a, b) => {
+            let keyA = Number(fieldSequenceIdMap[a.field_id]),
+                keyB = Number(fieldSequenceIdMap[b.field_id]);
+            if (keyA < keyB) return -1;
+            if (keyA > keyB) return 1;
+            return 0;
+        });
+
+        // const fs = require("fs");
+        // fs.writeFileSync('/Users/Bensooraj/Desktop/desker_api/server/vodafone/utils/data.json', JSON.stringify(targetFormData, null, 2) , 'utf-8');
 
         // return [false, {
         //     formWorkflowActivityTypeId,
