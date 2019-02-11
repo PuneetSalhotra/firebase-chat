@@ -171,6 +171,45 @@ function WidgetController(objCollection) {
         }
     });
 
+    //Get the count of files mapped to a specific activity type and that are set to a specific status type or status
+    //Bharat Masimukku
+    //2019-02-09
+    app.post
+    (
+        '/' + global.config.version + '/widget/activities/activityType/status/count', 
+        async (req, res) => 
+        {        
+            try 
+            {
+                let result = await widgetService.getActivitiesStatusCount(req.body);
+                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            } 
+            catch(err) 
+            {
+                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            } 
+        }
+    );
+
+    //Get the list of files mapped to a specific activity type and that are set to a specific status type or status
+    //Bharat Masimukku
+    //2019-02-09
+    app.post
+    (
+        '/' + global.config.version + '/widget/activities/activityType/status/list', 
+        async (req, res) => 
+        {        
+            try 
+            {
+                let result = await widgetService.getActivitiesStatusList(req.body);
+                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            } 
+            catch(err) 
+            {
+                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            } 
+        }
+    );
 }
 
 module.exports = WidgetController;
