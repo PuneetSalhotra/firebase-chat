@@ -36,14 +36,17 @@ const CommnTemplateController = require('../commnTemplate/controllers/commnTempl
 // Stats
 var StatsController = require('../controllers/statsController');
 
+// PoCs
+const PocController = require("../pocs/pocController");
+
 function ControlInterceptor(objCollection) {
-    
-    new UtilityController(objCollection);    
+
+    new UtilityController(objCollection);
     new ActivityConfigController(objCollection);
     new ActivityController(objCollection);
     new ActivityParticipantController(objCollection);
     new ActivityUpdateController(objCollection);
-    new ActivityListingController(objCollection);    
+    new ActivityListingController(objCollection);
     new AssetController(objCollection);
     new AssetConfigController(objCollection);
     new ActivityTimelineController(objCollection);
@@ -64,7 +67,7 @@ function ControlInterceptor(objCollection) {
 
     // Stats
     new StatsController(objCollection);
-    
+
     //Vodafone
     new VodafoneController(objCollection);
     new BotController(objCollection);
@@ -72,6 +75,7 @@ function ControlInterceptor(objCollection) {
     new CommnTemplateController(objCollection);
     ////////////////////////////////
 
-}
-;
+    // PoC
+    new PocController(objCollection);
+};
 module.exports = ControlInterceptor;

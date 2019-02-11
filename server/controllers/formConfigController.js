@@ -343,38 +343,7 @@ function FormConfigController(objCollection) {
 
     });
 
-    // THIS IS A DUMMY/TEST ENDPOINT
-    // app.post('/' + global.config.version + '/workflow/test/1', async function (req, res) {
 
-    //     // flag: 1 => Udpdate both activity_type mapping and config values
-    //     // flag: 2 => Udpdate activity_type mapping only
-    //     // flag: 3 => Udpdate config values only
-
-    //     const [err, workflowStatus] = await formConfigService.alterFormActivityFieldValues(req.body);
-    //     if (!err) {
-    //         res.send(responseWrapper.getResponse({}, workflowStatus, 200, req.body));
-    //     } else {
-    //         console.log("Error: ", err)
-    //         res.send(responseWrapper.getResponse(err, workflowStatus, -9999, req.body));
-    //     }
-    // });
-
-    // // THIS IS A DUMMY/TEST ENDPOINT
-    // app.post(['/' + global.config.version + '/workflow/test/2', '/' + global.config.version + '/workflow/test/3'], async function (req, res) {
-
-    //     // flag: 1 => Udpdate both activity_type mapping and config values
-    //     // flag: 2 => Udpdate activity_type mapping only
-    //     // flag: 3 => Udpdate config values only
-
-    //     const [err, workflowStatus] = await formConfigService.workflowOnFormEdit(req.body);
-    //     if (!err) {
-    //         res.send(responseWrapper.getResponse({}, workflowStatus, 200, req.body));
-    //     } else {
-    //         console.log("Error: ", err)
-    //         res.send(responseWrapper.getResponse(err, workflowStatus, -9999, req.body));
-    //     }
-
-    // });
 
 
     app.post('/' + global.config.version + '/form/transaction/data', function (req, res) {
