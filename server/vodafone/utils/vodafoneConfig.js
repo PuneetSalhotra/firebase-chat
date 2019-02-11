@@ -188,7 +188,7 @@ vodafoneConfig = {
         }
     },
     "134564": {
-        "REQUIRED_FORMS": [1073, 1076, 1077],
+        "REQUIRED_FORMS": [1073, 1076, 1077, 1078, 1079, 1080, 1102, 1103],
         "TARGET_FORM_ID": 1109,
         "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
         "FORM_FIELD_MAPPING_DATA": digitalMplsCrfMappings,
