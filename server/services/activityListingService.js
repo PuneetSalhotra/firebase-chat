@@ -1975,25 +1975,27 @@ function ActivityListingService(objCollection) {
 	
 	this.getMyQueueActivitiesV2 = function (request) {
 		return new Promise((resolve, reject) => {
-			
+
 			var paramsArr = new Array(
 				request.organization_id,
 				request.account_id,
 				request.workforce_id,
 				request.target_asset_id,
 				request.page_start,
-				request.page_limit	            
+				request.page_limit
 			);
-			var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_myqueue', paramsArr);
+			// ds_v1_1_activity_asset_mapping_select_myqueue
+			var queryString = util.getQueryString('ds_v1_1_activity_asset_mapping_select_myqueue', paramsArr);
 			if (queryString != '') {
 				db.executeQuery(1, queryString, request, function (err, data) {
 					//console.log('queryString : '+queryString+ "err "+err+ ": data.length "+data.length);
 					if (err === false) {
-						processMyQueueData(request, data).then((queueData)=>{
-							resolve(queueData);	
-						});
-					} else {	                    
-						reject(err);	                    
+						// processMyQueueData(request, data).then((queueData) => {
+						// 	resolve(queueData);
+						// });
+						resolve(data);
+					} else {
+						reject(err);
 					}
 				});
 			}
@@ -2008,6 +2010,8 @@ function ActivityListingService(objCollection) {
 					if (queueData.length > 0) {
 						queueData[0].asset_unread_updates_count = newOrderData.asset_unread_updates_count;
 						queueData[0].activity_datetime_end_deferred = newOrderData.activity_datetime_end_deferred;
+						queueData[0].activity_datetime_start_expected = newOrderData.activity_datetime_start_expected;
+						queueData[0].activity_datetime_created = newOrderData.activity_datetime_created;
 						array.push(queueData[0]);
 					}
 				}).then(() => {
