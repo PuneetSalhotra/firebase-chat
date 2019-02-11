@@ -1,9 +1,6 @@
 [{
         "ACTION": "set_static_value",
         "BATCH": [{
-            "TARGET_FIELD_ID": 8375,
-            "VALUE": "Should I leave it empty? - Ben"
-        }, {
             "TARGET_FIELD_ID": 8551,
             "VALUE": "What should I set this to? - Ben"
         }, {
