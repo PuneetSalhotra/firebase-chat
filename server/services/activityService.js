@@ -153,11 +153,9 @@ function ActivityService(objectCollection) {
                     }
                     //console.log('streamtype id is: ' + activityStreamTypeId)
                     global.logger.write('conLog', 'streamtype id is: ' + activityStreamTypeId, {}, request);
-                    global.logger.write('1', '::::streamtype id is: ', {}, request);
                     assetActivityListInsertAddActivity(request, async function (err, status) {
-                    	global.logger.write('2', '::::streamtype id is: ', {}, request);
                         if (err === false) {
-                        	console.log('conLog 3');
+
                             alterActivityFlagFileEnabled(request).then(() => {});
 
                             activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
@@ -166,15 +164,9 @@ function ActivityService(objectCollection) {
                             activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
 
                             });
-                            
-                            global.logger.write('conLog 9 ', '*****ADD ACTIVITY :HITTING WIDGET ENGINE*******', {}, request);	
-                            if (activityTypeCategroyId === 9 || activityTypeCategroyId === 48) {
-                                global.logger.write('conLog', '*****ADD ACTIVITY :HITTING WIDGET ENGINE*******', {}, request);
-                                sendRequesttoWidgetEngine(request);
-                            }
 
                             let activityTitle = "Form Submitted";
-                            console.log('conLog 4');
+
                             if (activityTypeCategroyId === 9) {
 
                                 if (Number(request.organization_id) === 860 || Number(request.organization_id) === 858 ||
@@ -254,28 +246,32 @@ function ActivityService(objectCollection) {
 
                                 await queueWrapper.raiseActivityEventPromise(displayFileEvent, request.activity_id);
                             }
-                            global.logger.write('5', '::::streamtype id is: ', {}, request);
+
                             if (activityTypeCategroyId === 10 && request.hasOwnProperty('owner_asset_id')) {
                                 if (request.owner_asset_id !== request.asset_id) {
                                     activityPushService.sendPush(request, objectCollection, 0, function () {});
                                     activityCommonService.updateParticipantCount(request.activity_id, request.organization_id, request, function (err, data) {});
                                 }
                             }
-                            global.logger.write('6', '::::streamtype id is: ', {}, request);
+
                             if (activityTypeCategroyId === 10 && Number(request.activity_sub_type_id) === 1) {
                                 updateTaskCreatedCnt(request).then(() => {});
                             }
-                            console.log('conLog 7');
+
                             // do the timeline transactions here..                    
                             if (activityTypeCategroyId === 38) {
                                 addIngredients(request);
                             }
-                            global.logger.write('8', '::::streamtype id is: ', {}, request);
+
                             if (activityTypeCategroyId === 40) {
                                 //if(request.hasOwnProperty('is_room_posting'))
                                 activityCommonService.processReservationBilling(request, request.activity_parent_id).then(() => {});
                             }
 
+                            if (activityTypeCategroyId === 9 || activityTypeCategroyId === 48) {
+                                global.logger.write('conLog', '*****ADD ACTIVITY :HITTING WIDGET ENGINE*******', {}, request);
+                                sendRequesttoWidgetEngine(request);
+                            }
 
                             // Workflow Trigger
                             if (activityTypeCategroyId === 9 && request.device_os_id !== 9) {
@@ -1863,7 +1859,7 @@ function ActivityService(objectCollection) {
         activityListUpdateStatus(request, async function (err, data) {
             if (err === false) {
 
-                if ((activityTypeCategroyId === 9 || activityTypeCategroyId === 48 )&& Number(request.device_os_id) !== 9) {
+                if ((activityTypeCategroyId === 9 || activityTypeCategroyId === 48) && Number(request.device_os_id) !== 9) {
 
                     global.logger.write('conLog', '*****ALTER STATUS : STATUS CHANGE TXN INSERT*******', {}, request);
 
@@ -2177,6 +2173,9 @@ function ActivityService(objectCollection) {
                 }
 
 
+                // }
+                // 
+                // 
                 updateProjectStatusCounts(request).then(() => {});
                 try {
                     activityPushService.sendPush(request, objectCollection, 0, function () {});
