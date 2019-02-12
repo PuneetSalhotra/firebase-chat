@@ -4348,6 +4348,139 @@ function VodafoneService(objectCollection) {
         };
     }
 
+    this.regenerateAndSubmitTargetForm = async function (request) {
+        // Fetch form's config data
+        request.page_start = 0;
+        const [formConfigError, formConfigData] = await activityCommonService.workforceFormMappingSelect(request);
+        if (formConfigError !== false) {
+            return [formConfigError, formConfigData];
+        } else if (
+            Number(formConfigData.length) === 0 ||
+            Number(formConfigData[0].form_flag_workflow_enabled) !== 1
+        ) {
+            return [new Error("formConfigData Not Found Error"), []];
+        }
+
+        let workflowActivityId = 0,
+            workflowActivityTypeId = 0;
+
+        if (Number(formConfigData.length) > 0) {
+            workflowActivityTypeId = formConfigData[0].form_workflow_activity_type_id;
+            console.log("workflowActivityTypeId: ", workflowActivityTypeId);
+        }
+
+        // Get the corresponding workflow's activity_id
+        try {
+            await fetchReferredFormActivityId(request, request.activity_id, request.form_transaction_id, request.form_id)
+                .then((workflowData) => {
+                    if (workflowData.length > 0) {
+                        workflowActivityId = Number(workflowData[0].activity_id);
+                    } else {
+                        return [new Error("workflowData Not Found Error"), []];
+                    }
+                })
+        } catch (error) {
+            return [error, []];
+        }
+        console.log("regenerateAndSubmitTargetForm | workflowActivityId: ", workflowActivityId);
+
+        const TARGET_FORM_ID = global.vodafoneConfig[workflowActivityTypeId].TARGET_FORM_ID;
+        const TARGET_FORM_ACTIVITY_TYPE_ID = global.vodafoneConfig[workflowActivityTypeId].TARGET_FORM_ACTIVITY_TYPE_ID;
+
+        // Check if the target form already exists
+        let targetForm = [],
+            targetFormActivityId = 0,
+            targetFormTransactionId = 0,
+            targetFormName = '',
+            targetFormData = [],
+            targetFormDataMap = new Map();
+        try {
+            targetForm = await activityCommonService
+                .getActivityTimelineTransactionByFormId713(request, workflowActivityId, TARGET_FORM_ID);
+
+            if (
+                targetForm.length > 0 &&
+                Number(targetForm[0].data_activity_id) !== 0 &&
+                targetForm[0].data_form_transaction_id !== 0
+            ) {
+                targetFormActivityId = targetForm[0].data_activity_id;
+                targetFormTransactionId = targetForm[0].data_form_transaction_id;
+                targetFormName = targetForm[0].data_form_name;
+                let formDataCollection = JSON.parse(targetForm[0].data_entity_inline);
+                if (Array.isArray(formDataCollection.form_submitted) === true || typeof formDataCollection.form_submitted === 'object') {
+                    targetFormData = formDataCollection.form_submitted;
+                } else {
+                    targetFormData = JSON.parse(formDataCollection.form_submitted);
+                }
+                for (const field of targetFormData) {
+                    targetFormDataMap.set(Number(field.field_id), field);
+                }
+            } else {
+                throw new Error("TargetFormDoesNotExist");
+            }
+        } catch (error) {
+            console.log("regenerateAndSubmitTargetForm | Error: ", error);
+            return [error, []];
+        }
+        console.log("regenerateAndSubmitTargetForm | targetFormActivityId: ", targetFormActivityId);
+        console.log("regenerateAndSubmitTargetForm | targetFormTransactionId: ", targetFormTransactionId);
+        console.log("regenerateAndSubmitTargetForm | targetFormName: ", targetFormName);
+        console.log("regenerateAndSubmitTargetForm | targetFormData.length: ", targetFormData.length);
+        console.log("regenerateAndSubmitTargetForm | targetFormDataMap.size: ", targetFormDataMap.size);
+
+        let sourceFieldsUpdated = [],
+            sourceFieldsUpdatedMap = new Map();
+        try {
+            sourceFieldsUpdated = JSON.parse(request.activity_inline_data);
+            // console.log("regenerateAndSubmitTargetForm | sourceFieldsUpdated: ", sourceFieldsUpdated);
+            for (const field of sourceFieldsUpdated) {
+                sourceFieldsUpdatedMap.set(Number(field.field_id), field);
+            }
+            // console.log("regenerateAndSubmitTargetForm | sourceFieldsUpdatedMap: ", sourceFieldsUpdatedMap);
+        } catch (error) {
+            console.log("regenerateAndSubmitTargetForm | sourceFieldsUpdated | error: ", error);
+            return [error, []];
+        }
+
+        // Fetch relevant source and target form field mappings
+        const SOURCE_FORM_FIELD_MAPPING_DATA = global.vodafoneConfig[workflowActivityTypeId].FORM_FIELD_MAPPING_DATA[request.form_id];
+        console.log("SOURCE_FORM_FIELD_MAPPING_DATA | length: ", Object.keys(SOURCE_FORM_FIELD_MAPPING_DATA).length);
+        
+        let targetFieldsUpdated = [];
+        for (const sourceField of sourceFieldsUpdated) {
+            let sourceFieldID = String(sourceField.field_id);
+            if (Object.keys(SOURCE_FORM_FIELD_MAPPING_DATA).includes(sourceFieldID)) {
+                console.log("Mapping Exists: ", sourceFieldID, " => ", SOURCE_FORM_FIELD_MAPPING_DATA[sourceFieldID]);
+
+                let targetFieldID = Number(SOURCE_FORM_FIELD_MAPPING_DATA[sourceFieldID]);
+                if (targetFormDataMap.has(targetFieldID)) {
+                    console.log(targetFormDataMap.get(targetFieldID));
+                    // Get the entire object
+                    let targetFieldEntry = targetFormDataMap.get(Number(targetFieldID));
+                    if (String(targetFieldEntry.field_value) !== String(sourceField.field_value)) {
+                        // Update the value
+                        targetFieldEntry.field_value = sourceField.field_value;
+                        // Set the updated object as value for the target field ID
+                        targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
+                        // Keep track of target fields updated
+                        targetFieldsUpdated.push(
+                            Object.assign({
+                                form_id: TARGET_FORM_ID,
+                                form_transaction_id: targetFormTransactionId,
+                                form_name: targetFormName
+                            }, targetFieldEntry)
+                        );
+                    }
+                }
+            }
+        }
+
+        console.log("***** ***** ***** ***** ***** ***** ***** *****");
+        console.log("targetFieldsUpdated: ", targetFieldsUpdated);
+        console.log("***** ***** ***** ***** ***** ***** ***** *****"); 
+
+        return [true, false];
+    }
 }
 
 
