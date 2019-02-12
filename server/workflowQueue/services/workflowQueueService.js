@@ -121,6 +121,49 @@ function WorkflowQueueService(objectCollection)
         {
             let results = new Array();
             let paramsArray;
+
+            paramsArray = 
+            new Array
+            (
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.queue_id,
+                0,
+                0,
+                100,
+            );
+
+            results[0] = await db.callDBProcedure(request, 'ds_p1_queue_access_mapping_select_queue_participants', paramsArray, 1);
+
+            for(let value of results[0]) 
+            {
+                //console.log(value);
+
+                paramsArray = 
+                new Array
+                (
+                    value.queue_access_id,
+                    request.organization_id,
+                    request.log_state,
+                    request.log_asset_id,
+                    request.log_datetime,
+                );
+
+                results[1] = await db.callDBProcedure(request, 'ds_p1_queue_access_mapping_update_log_state', paramsArray, 0);
+
+                paramsArray = 
+                new Array
+                (
+                    value.queue_access_id,
+                    request.organization_id,
+                    global.workflowQueueConfig.queueAccessReset,
+                    request.log_asset_id,
+                    request.log_datetime,
+                );
+
+                results[2] = await db.callDBProcedure(request, 'ds_p1_queue_access_mapping_history_insert', paramsArray, 0);
+            }
             
             paramsArray = 
             new Array
@@ -132,7 +175,7 @@ function WorkflowQueueService(objectCollection)
                 request.log_datetime,
             );
 
-            results[0] = await db.callDBProcedure(request, 'ds_p1_queue_list_update_log_state', paramsArray, 0);
+            results[3] = await db.callDBProcedure(request, 'ds_p1_queue_list_update_log_state', paramsArray, 0);
 
             paramsArray = 
             new Array
@@ -143,9 +186,9 @@ function WorkflowQueueService(objectCollection)
                 request.log_datetime,
             );
 
-            results[1] = await db.callDBProcedure(request, 'ds_p1_queue_list_history_insert', paramsArray, 0);
+            results[4] = await db.callDBProcedure(request, 'ds_p1_queue_list_history_insert', paramsArray, 0);
 
-            return results[0];
+            return results[3];
         }
         catch(error)
         {
