@@ -4510,6 +4510,7 @@ function VodafoneService(objectCollection) {
         fieldsAlterRequest.field_id = REQUEST_FIELD_ID;
         fieldsAlterRequest.activity_inline_data = JSON.stringify(targetFieldsUpdated);
         fieldsAlterRequest.activity_id = targetFormActivityId;
+        fieldsAlterRequest.workflow_activity_id = workflowActivityId;
 
         const event = {
             name: "alterFormActivityFieldValues",
