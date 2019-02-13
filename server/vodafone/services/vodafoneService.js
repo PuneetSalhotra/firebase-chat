@@ -4277,6 +4277,9 @@ function VodafoneService(objectCollection) {
         for (const field of targetFormData) {
             targetFormDataMap.set(Number(field.field_id), field);
         }
+
+        // To keep track updated ROMS fields
+        let updatedRomsFields = [];
         
         for (const action of ROMS_ACTIONS) {
             // sum
@@ -4297,7 +4300,11 @@ function VodafoneService(objectCollection) {
                         // Get the entire object
                         let targetFieldEntry = targetFormDataMap.get(Number(targetFieldID));
                         // Set the value
+                        let oldValue = Number(targetFieldEntry.field_value);
                         targetFieldEntry.field_value = sum;
+                        if (oldValue !== sum) {
+                            updatedRomsFields.push(targetFieldEntry);
+                        }
                         // Set the updated object as value for the target field ID
                         targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
                         console.log("sum: ", sum);
@@ -4344,7 +4351,8 @@ function VodafoneService(objectCollection) {
         targetFormData = [...targetFormDataMap.values()];
         
         return {
-            TARGET_FORM_DATA: targetFormData
+            TARGET_FORM_DATA: targetFormData,
+            UPDATED_ROMS_FIELDS: updatedRomsFields
         };
     }
 
@@ -4446,13 +4454,15 @@ function VodafoneService(objectCollection) {
         const SOURCE_FORM_FIELD_MAPPING_DATA = global.vodafoneConfig[workflowActivityTypeId].FORM_FIELD_MAPPING_DATA[request.form_id];
         console.log("SOURCE_FORM_FIELD_MAPPING_DATA | length: ", Object.keys(SOURCE_FORM_FIELD_MAPPING_DATA).length);
         
-        let targetFieldsUpdated = [];
+        let targetFieldsUpdated = [],
+            REQUEST_FIELD_ID = 0;
         for (const sourceField of sourceFieldsUpdated) {
             let sourceFieldID = String(sourceField.field_id);
             if (Object.keys(SOURCE_FORM_FIELD_MAPPING_DATA).includes(sourceFieldID)) {
                 console.log("Mapping Exists: ", sourceFieldID, " => ", SOURCE_FORM_FIELD_MAPPING_DATA[sourceFieldID]);
 
                 let targetFieldID = Number(SOURCE_FORM_FIELD_MAPPING_DATA[sourceFieldID]);
+                REQUEST_FIELD_ID = targetFieldID;
                 if (targetFormDataMap.has(targetFieldID)) {
                     console.log(targetFormDataMap.get(targetFieldID));
                     // Get the entire object
@@ -4475,9 +4485,47 @@ function VodafoneService(objectCollection) {
             }
         }
 
+        // ROMS Recalculation
+        const ROMS_ACTIONS = global.vodafoneConfig[workflowActivityTypeId].ROMS_ACTIONS;
+        const updatedRomsFields = performRomsCalculations(request, [...targetFormDataMap.values()], ROMS_ACTIONS).UPDATED_ROMS_FIELDS;
+        for (let i = 0; i < updatedRomsFields.length; i++) {
+            updatedRomsFields[i].form_id = TARGET_FORM_ID;
+            updatedRomsFields[i].form_transaction_id = targetFormTransactionId;
+            updatedRomsFields[i].form_name = targetFormName;
+        }
+
         console.log("***** ***** ***** ***** ***** ***** ***** *****");
         console.log("targetFieldsUpdated: ", targetFieldsUpdated);
-        console.log("***** ***** ***** ***** ***** ***** ***** *****"); 
+        console.log("***** ***** ***** ***** ***** ***** ***** *****");
+
+        console.log("updatedRomsFields: ", updatedRomsFields);
+
+        // Final list of fields to be updated
+        targetFieldsUpdated = targetFieldsUpdated.concat(updatedRomsFields);
+
+        // Fire field alter
+        let fieldsAlterRequest = Object.assign({}, request);
+        fieldsAlterRequest.form_transaction_id = targetFormTransactionId;
+        fieldsAlterRequest.form_id = TARGET_FORM_ID;
+        fieldsAlterRequest.field_id = REQUEST_FIELD_ID;
+        fieldsAlterRequest.activity_inline_data = JSON.stringify(targetFieldsUpdated);
+        fieldsAlterRequest.activity_id = targetFormActivityId;
+
+        const event = {
+            name: "alterFormActivityFieldValues",
+            service: "formConfigService",
+            method: "alterFormActivityFieldValues",
+            payload: fieldsAlterRequest
+        };
+
+        queueWrapper.raiseActivityEvent(event, fieldsAlterRequest.activity_id, (err, resp) => {
+            if (err) {
+                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+            } else {
+                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+            }
+        });
 
         return [true, false];
     }
