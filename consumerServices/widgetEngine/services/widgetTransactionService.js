@@ -316,10 +316,11 @@ class WidgetTransactionService {
                     lookupData.workforce_id,
                     lookupData.account_id,
                     lookupData.organization_id,
-                    lookupData.activity_status_id
+                    lookupData.activity_status_id,
+                    lookupData.activity_type_id
                     );
 
-            var queryString = this.objCollection.util.getQueryString('ds_p1_widget_transaction_select_file_status_flag', paramsArr);
+            var queryString = this.objCollection.util.getQueryString('ds_p1_1_widget_transaction_select_file_status_flag', paramsArr);
             if (queryString === '')
                 return reject();
             this.objCollection.db.executeQuery(1, queryString, {}, function (err, data) {

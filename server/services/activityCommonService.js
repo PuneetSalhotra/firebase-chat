@@ -3108,8 +3108,21 @@ function ActivityCommonService(db, util, forEachAsync) {
             return await (db.executeQueryPromise(1, queryString, request));
         }
     };
+    
+    this.getFormDataByFormTransaction = async (request) => {        
+        var paramsArr = new Array(            
+            request.organization_id,
+            request.form_transaction_id
+        );
 
-}
+        let queryString = util.getQueryString('ds_p1_activity_list_select_form_transaction', paramsArr);
+       
+        if (queryString != '') {                
+            return await (db.executeQueryPromise(1, queryString, request));
+        }
+    };
+    
+};
 
 
 module.exports = ActivityCommonService;

@@ -692,7 +692,7 @@ function ActivityListingController(objCollection) {
         	res.send(responseWrapper.getResponse(err, {}, -999, req.body));
         });    		
     });
-
+    
     app.post('/' + global.config.version + '/activity/form/transaction/data', async (req, res) => {        
         try {
             let result = await activityCommonService.getFormDataByFormTransaction(req.body);
