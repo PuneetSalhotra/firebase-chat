@@ -1904,7 +1904,7 @@ function VodafoneService(objectCollection) {
                 // formId = HLD_FORM_ID;
                 // return activityCommonService.getActivityTimelineTransactionByFormId(request, request.activity_id, formId)
             })
-            .then((customerApprovalForm) => {
+            .then(async (customerApprovalForm) => {
                 if (customerApprovalForm.length > 0) {
                     let formDataCollection = JSON.parse(customerApprovalForm[0].data_entity_inline);
                     let formDataArrayOfObjects = [];
@@ -1924,6 +1924,7 @@ function VodafoneService(objectCollection) {
                     // throw new Error("customerApprovalFormNotFound");
                 }
                 formId = HLD_FORM_ID;
+                await sleep(4000);
                 return activityCommonService.getActivityTimelineTransactionByFormId713(request, request.activity_id, formId);
             })
             .then(async (hldFormData) => {
@@ -2249,6 +2250,10 @@ function VodafoneService(objectCollection) {
                 return;
             });
     };
+
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
 
     this.customerManagementApprovalWorkflow = async function (request, callback) {
         const CAF_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CAF,
