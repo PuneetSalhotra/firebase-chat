@@ -115,6 +115,34 @@ function WorkflowQueueController(objCollection)
             } 
         }
     );
+    
+
+    //Queue ParticipantCont
+    //Bharat Masimukku
+    //2019-01-21
+    app.post
+    (
+        '/' + global.config.version + '/workflowQueue/participant/count', 
+        async (req, res) => 
+        {
+	    	const [err, data] =  await workflowQueueService.workflowQueueParticipantCount(req.body);
+	        global.logger.write('debug', data, {}, req.body);
+	        (!err) ?
+	                res.send(responseWrapper.getResponse({}, data, 200, req.body)):                    
+	                res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+	    
+        }
+    );
+    
+    app.post('/' + global.config.version + '/queue/user/mappings', async function (req, res) {
+        const [err, data] = await workflowQueueService.getQueueMappingUsers(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("Error: ", err)
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
 }
 
 module.exports = WorkflowQueueController;
