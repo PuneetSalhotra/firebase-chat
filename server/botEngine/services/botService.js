@@ -1379,7 +1379,11 @@ function BotService(objectCollection) {
         }
 
         const base64Json = Buffer.from(JSON.stringify(JsonData)).toString('base64');
-        const urlStrFill = "https://officedesk.app/#/forms/view/" + base64Json;
+        let urlStrFill = "https://staging.officedesk.app/#/forms/view/" + base64Json;
+        if (global.mode === 'prod') {
+            urlStrFill = "https://officedesk.app/#/forms/view/" + base64Json;
+        }
+
         const buttonName = formAction.call_to_action_label;
         const actionLink = `<a style='background: #f47920;display: inline-block;color: #FFFFFF;text-decoration: none;font-size: 12px;margin-top: 1.0em;background-clip: padding-box;padding: 5px 15px;box-shadow: 4px 4px 6px 1px #cbcbcb;margin-left:10px' target='_blank' href='${urlStrFill}'>${buttonName}</a> `;
 
@@ -1416,7 +1420,10 @@ function BotService(objectCollection) {
             asset_first_name: request.asset_first_name || ''
         }
         const base64Json = Buffer.from(JSON.stringify(JsonData)).toString('base64');
-        const urlStrFill = "https://officedesk.app/#/orderstatus/" + base64Json;
+        let urlStrFill = "https://staging.officedesk.app/#/orderstatus/" + base64Json;
+        if (global.mode === 'prod') {
+            urlStrFill = "https://officedesk.app/#/orderstatus/" + base64Json;
+        }
         const statusLink = `<a style='background: #f47920;display: inline-block;color: #FFFFFF;text-decoration: none;font-size: 12px;margin-top: 1.0em;background-clip: padding-box;padding: 5px 15px;box-shadow: 4px 4px 6px 1px #cbcbcb;margin-left:10px' target='_blank' href='${urlStrFill}'>Track Order Status</a>`;
 
         return statusLink;

@@ -511,6 +511,73 @@ function WidgetService(objCollection) {
         return [error, responseData];
     };
 
+    this.widgetEntityMappingSelectAssetActivityTypes = async function (request) {
+
+        let responseData = [],
+            error = true;
+
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
+        // IN p_workforce_id BIGINT(20), IN p_asset_id BIGINT(20), 
+        // IN p_sort_flag TINYINT(4), IN p_start_from INT(11), 
+        // IN p_limit_value TINYINT(4)
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.asset_id,
+            request.sort_flag || 0,
+            Number(request.page_start) || 0,
+            util.replaceQueryLimit(Number(request.page_limit))
+        );
+
+        var queryString = util.getQueryString('ds_p1_widget_entity_mapping_select_asset_activity_types', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
+
+    this.widgetEntityMappingSelectAssetActivityTypeWidgets = async function (request) {
+
+        let responseData = [],
+            error = true;
+
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
+        // IN p_workforce_id BIGINT(20), IN p_asset_id BIGINT(20), 
+        // IN p_activity_type_id BIGINT(20), IN p_sort_flag TINYINT(4), 
+        // IN p_start_from INT(11), IN p_limit_value TINYINT(4)
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.asset_id,
+            request.activity_type_id,
+            request.sort_flag || 0,
+            Number(request.page_start) || 0,
+            util.replaceQueryLimit(Number(request.page_limit))
+        );
+
+        var queryString = util.getQueryString('ds_p1_widget_entity_mapping_select_asset_activity_type_widgets', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
+
     //Get the count of files mapped to a specific activity type and that are set to a specific status type or status
     //Bharat Masimukku
     //2019-02-09
