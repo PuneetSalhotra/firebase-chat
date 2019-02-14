@@ -2717,12 +2717,13 @@ function ActivityCommonService(db, util, forEachAsync) {
     this.fetchActivitiesMappedToQueue = function (request) {
         return new Promise((resolve, reject) => {
             // IN p_queue_id BIGINT(20), IN p_organization_id BIGINT(20), 
-            // IN p_flag SMALLINT(6), IN p_start_from BIGINT(20), 
-            // IN p_limit_value SMALLINT(6)
+            // IN p_flag SMALLINT(6), IN p_sort_flag TINYINT(4), 
+            // IN p_start_from BIGINT(20), IN p_limit_value SMALLINT(6)
             let paramsArr = new Array(
                 request.queue_id,
                 request.organization_id,
-                0, // request.flag
+                request.sort_flag || 0, // 0 => Ascending | 1 => Descending
+                request.flag || 0, // 0 => Due date | 1 => Created date
                 request.start_from,
                 request.limit_value
             );

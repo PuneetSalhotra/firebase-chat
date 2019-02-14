@@ -1976,11 +1976,17 @@ function ActivityListingService(objCollection) {
 	this.getMyQueueActivitiesV2 = function (request) {
 		return new Promise((resolve, reject) => {
 
+			// IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
+			// IN p_workforce_id BIGINT(20), IN p_asset_id BIGINT(20), 
+			// IN p_flag TINYINT(4), IN p_sort_flag TINYINT(4), 
+			// IN p_start_from INT(11), IN p_limit_value TINYINT(4)
 			var paramsArr = new Array(
 				request.organization_id,
 				request.account_id,
 				request.workforce_id,
 				request.target_asset_id,
+				request.sort_flag || 0, // 0 => Ascending | 1 => Descending
+				request.flag || 0, // 0 => Due date | 1 => Created date
 				request.page_start,
 				request.page_limit
 			);
