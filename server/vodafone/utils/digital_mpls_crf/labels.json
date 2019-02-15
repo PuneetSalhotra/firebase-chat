@@ -386,13 +386,13 @@
     {
         "form_id": 1109,
         "field_id": 8553,
-        "field_name": "I / We confirm having received",
-        "field_data_type_id": "read and understood the Product Terms & Conditions (provided overleaf) and the General Terms & Conditions. I / We further confirm that the tariff plan selected and applicable rates form part of this Agreement (as defined herein) and I / We agree to abide by the Applicable Law in force and also any statutory amendments",
-        "field_data_type_category_id": "or new legistlations as may be enacted from time to time",
-        "data_type_combo_id": "in so far as they realte to the services. I / We hereby declare and confirm that the above information provided by us is true and correct in all respects and I / We hereby undertake to be bound by the same.",
-        "data_type_combo_value": 21,
-        "field_value": 8,
-        "message_unique_id": 0
+        "field_name": "I / We confirm having received, read and understood the Product Terms & Conditions (provided overleaf) and the General Terms & Conditions. I / We further confirm that the tariff plan selected and applicable rates form part of this Agreement (as defined herein) and I / We agree to abide by the Applicable Law in force and also any statutory amendments, or new legistlations as may be enacted from time to time, in so far as they realte to the services. I / We hereby declare and confirm that the above information provided by us is true and correct in all respects and I / We hereby undertake to be bound by the same.",
+        "field_data_type_id": 21,
+        "field_data_type_category_id": 8,
+        "data_type_combo_id": 0,
+        "data_type_combo_value": "",
+        "field_value": "I / We confirm having received, read and understood the Product Terms & Conditions (provided overleaf) and the General Terms & Conditions. I / We further confirm that the tariff plan selected and applicable rates form part of this Agreement (as defined herein) and I / We agree to abide by the Applicable Law in force and also any statutory amendments, or new legistlations as may be enacted from time to time, in so far as they realte to the services. I / We hereby declare and confirm that the above information provided by us is true and correct in all respects and I / We hereby undertake to be bound by the same.",
+        "message_unique_id": 1111222233334444
     },
     {
         "form_id": 1109,

@@ -10,13 +10,16 @@ function ActivityService(objectCollection) {
     var util = objectCollection.util;
     var forEachAsync = objectCollection.forEachAsync;
     var queueWrapper = objectCollection.queueWrapper;
-    var activityPushService = objectCollection.activityPushService;
+    // var activityPushService = objectCollection.activityPushService;
     var responseactivityData = {};
     const suzukiPdfEngine = require('../utils/suzukiPdfGenerationEngine');
     const moment = require('moment');
 
     const ActivityListingService = require("../services/activityListingService");
     const activityListingService = new ActivityListingService(objectCollection);
+
+    const ActivityPushService = require('../services/activityPushService');
+    const activityPushService = new ActivityPushService(objectCollection);
 
     this.addActivity = function (request, callback) {
 
@@ -1273,8 +1276,8 @@ function ActivityService(objectCollection) {
                                 request.organization_id,
                                 26, //request.participant_access_id,
                                 request.message_unique_id,
-                                request.flag_retry,
-                                request.flag_offline,
+                                request.flag_retry || 0,
+                                request.flag_offline || 0,
                                 request.asset_id,
                                 request.datetime_log,
                                 0 //Field Id
