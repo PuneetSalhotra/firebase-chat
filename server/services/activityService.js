@@ -10,13 +10,16 @@ function ActivityService(objectCollection) {
     var util = objectCollection.util;
     var forEachAsync = objectCollection.forEachAsync;
     var queueWrapper = objectCollection.queueWrapper;
-    var activityPushService = objectCollection.activityPushService;
+    // var activityPushService = objectCollection.activityPushService;
     var responseactivityData = {};
     const suzukiPdfEngine = require('../utils/suzukiPdfGenerationEngine');
     const moment = require('moment');
 
     const ActivityListingService = require("../services/activityListingService");
     const activityListingService = new ActivityListingService(objectCollection);
+
+    const ActivityPushService = require('../services/activityPushService');
+    const activityPushService = new ActivityPushService(objectCollection);
 
     this.addActivity = function (request, callback) {
 
