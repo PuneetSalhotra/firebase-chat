@@ -9,7 +9,10 @@ function ActivityParticipantService(objectCollection) {
     var activityCommonService = objectCollection.activityCommonService;
     var util = objectCollection.util;
     var sns = objectCollection.sns;
-    var activityPushService = objectCollection.activityPushService;
+    // var activityPushService = objectCollection.activityPushService;
+
+    const ActivityPushService = require('../services/activityPushService');
+    const activityPushService = new ActivityPushService(objectCollection);
 
     this.getParticipantsList = function (request, callback) {
 
