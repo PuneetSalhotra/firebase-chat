@@ -1435,8 +1435,8 @@ function ActivityUpdateService(objectCollection) {
                                 request.organization_id,
                                 27, //request.participant_access_id,
                                 request.message_unique_id,
-                                request.flag_retry,
-                                request.flag_offline,
+                                request.flag_retry || 0,
+                                request.flag_offline || 0,
                                 request.asset_id,
                                 request.datetime_log,
                                 0, //Field Id
