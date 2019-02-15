@@ -817,7 +817,7 @@ function FormConfigService(objCollection) {
                         params[18] = money[1];
                         break;
                     case 19: //Short Text
-                        params[18] = request.new_field_value;
+                        params[18] = request.new_field_value || row.field_value;
                         break;
                     case 20: //Long Text
                         params[19] = row.field_value;
@@ -2926,6 +2926,30 @@ function FormConfigService(objCollection) {
         console.log("content: ", content);
         // update the activity's inline data as well
         activityInlineData = [...activityInlineDataMap.values()];
+        
+        // [REORDER | SORT] Fetch the target form's field sequence data
+        let fieldSequenceIdMap = {};
+        await activityCommonService
+            .getFormFieldMappings(request, Number(request.form_id), 0, 500)
+            .then((data) => {
+                if (data.length > 0) {
+
+                    data.forEach(formMappingEntry => {
+                        fieldSequenceIdMap[formMappingEntry.field_id] = Number(formMappingEntry.field_sequence_id);
+                    });
+                }
+            });
+
+        // S O R T Target Form entries based on the 
+        // field_id:field_seq_id data feteched above
+        activityInlineData.sort((a, b) => {
+            let keyA = Number(fieldSequenceIdMap[a.field_id]),
+                keyB = Number(fieldSequenceIdMap[b.field_id]);
+            if (keyA < keyB) return -1;
+            if (keyA > keyB) return 1;
+            return 0;
+        });
+        
         request.activity_inline_data = JSON.stringify(activityInlineData);
 
         let activityTimelineCollection = {
