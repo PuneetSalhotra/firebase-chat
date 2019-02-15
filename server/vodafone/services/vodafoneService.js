@@ -17,6 +17,7 @@ function VodafoneService(objectCollection) {
     const formFieldIdMapping = util.getVodafoneFormFieldIdMapping();
     const romsCafFieldsData = util.getVodafoneRomsCafFieldsData();
     const nodeUtil = require('util');
+    const self = this;
 
     // Form Config Service
     // const FormConfigService = require("../../services/formConfigService");
@@ -3999,6 +4000,9 @@ function VodafoneService(objectCollection) {
     }
 
     this.buildAndSubmitCafFormV1 = async function (request) {
+
+        await sleep(2000);
+        
         let workflowActivityData = [],
             formWorkflowActivityTypeId = 0;
         
@@ -4017,8 +4021,36 @@ function VodafoneService(objectCollection) {
             console.log("buildAndSubmitCafFormV1 | Error | workflow_activity_id NOT FOUND.")
             return [new Error("workflow_activity_id not found in the request."), false];
         }
+
+        const TARGET_FORM_ID = global.vodafoneConfig[formWorkflowActivityTypeId].TARGET_FORM_ID;
+        let targetFormExists = false;
+        // Check if the target form is already submitted, if yes, move control to regenerateAndSubmitTargetForm
+        await activityCommonService
+            .getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, TARGET_FORM_ID)
+            .then((formData) => {
+                console.log("formData.length: ", formData.length);
+                console.log("formData: ", formData.length)
+                console.log("formData.length > 0: ", formData.length > 0);
+                if (formData.length > 0) {
+                    targetFormExists = true;
+                }
+            })
+            .catch((error) => {
+                return [error, false];
+            });
+
+        console.log("TargetFormExists", targetFormExists);
+        if (targetFormExists) {
+            request.form_id = Number(request.activity_form_id);
+            console.log("TargetFormExists", targetFormExists);
+            await self.regenerateAndSubmitTargetForm(request);
+            return [new Error("TargetFormExists"), []];
+        } else {
+            console.log("TargetFormDoesNotExist", targetFormExists);
+        }
+
         const requiredForms = global.vodafoneConfig[formWorkflowActivityTypeId].REQUIRED_FORMS;
-        
+        console.log("buildAndSubmitCafFormV1 | requiredForms: ", requiredForms);
         if (!requiredForms.includes(Number(request.form_id))) {
             return [new Error("[MISSION ABORT] Call to build the target forms is not from one of the required forms."), []];
         }
@@ -4064,7 +4096,7 @@ function VodafoneService(objectCollection) {
 
         // Fetch all source forms' latest entries for the process
         let targetFormData = [];
-        const TARGET_FORM_ID = global.vodafoneConfig[formWorkflowActivityTypeId].TARGET_FORM_ID;
+        
         const TARGET_FORM_ACTIVITY_TYPE_ID = global.vodafoneConfig[formWorkflowActivityTypeId].TARGET_FORM_ACTIVITY_TYPE_ID;
 
         for (const sourceFormID of sourceFormIDs) {
@@ -4378,18 +4410,25 @@ function VodafoneService(objectCollection) {
         }
 
         // Get the corresponding workflow's activity_id
-        try {
-            await fetchReferredFormActivityId(request, request.activity_id, request.form_transaction_id, request.form_id)
-                .then((workflowData) => {
-                    if (workflowData.length > 0) {
-                        workflowActivityId = Number(workflowData[0].activity_id);
-                    } else {
-                        return [new Error("workflowData Not Found Error"), []];
-                    }
-                })
-        } catch (error) {
-            return [error, []];
+        if (request.hasOwnProperty("workflow_activity_id")) {
+            workflowActivityId = Number(request.workflow_activity_id);
+
+        } else {
+            // If it doesn't exist in the request object, fetch it
+            try {
+                await fetchReferredFormActivityId(request, request.activity_id, request.form_transaction_id, request.form_id)
+                    .then((workflowData) => {
+                        if (workflowData.length > 0) {
+                            workflowActivityId = Number(workflowData[0].activity_id);
+                        } else {
+                            return [new Error("workflowData Not Found Error"), []];
+                        }
+                    })
+            } catch (error) {
+                return [error, []];
+            }
         }
+
         console.log("regenerateAndSubmitTargetForm | workflowActivityId: ", workflowActivityId);
 
         const TARGET_FORM_ID = global.vodafoneConfig[workflowActivityTypeId].TARGET_FORM_ID;
@@ -4481,6 +4520,22 @@ function VodafoneService(objectCollection) {
                             }, targetFieldEntry)
                         );
                     }
+                } else {
+                    // If the field doesn't exist already, insert it
+                    let targetFieldEntry = Object.assign({}, sourceField);
+                    targetFieldEntry.form_id = TARGET_FORM_ID;
+                    targetFieldEntry.field_id = targetFieldID;
+                    targetFieldEntry.message_unique_id = util.getMessageUniqueId(Number(request.asset_id));
+                    // Set the new object as value for the target field ID
+                    targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
+                    // Keep track of target fields updated
+                    targetFieldsUpdated.push(
+                        Object.assign({
+                            form_id: TARGET_FORM_ID,
+                            form_transaction_id: targetFormTransactionId,
+                            form_name: targetFormName
+                        }, targetFieldEntry)
+                    );
                 }
             }
         }
@@ -4502,6 +4557,10 @@ function VodafoneService(objectCollection) {
 
         // Final list of fields to be updated
         targetFieldsUpdated = targetFieldsUpdated.concat(updatedRomsFields);
+        // If no fields have been updated, don't proceed
+        if (targetFieldsUpdated.length === 0) {
+            return [new Error("NoTargetFormFieldsUpdated"), []];
+        }
 
         // Fire field alter
         let fieldsAlterRequest = Object.assign({}, request);
@@ -4529,6 +4588,10 @@ function VodafoneService(objectCollection) {
         });
 
         return [true, false];
+    }
+
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
 }
 
