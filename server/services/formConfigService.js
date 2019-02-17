@@ -569,6 +569,7 @@ function FormConfigService(objCollection) {
 
                         } else if (Number(formConfigData.length) > 0 && Number(formConfigData[0].form_flag_workflow_enabled) === 1) {
                             let workflowRequest = Object.assign({}, request);
+                            workflowRequest.activity_inline_data = JSON.stringify(activityInlineData);
                             try {
                                 self.workflowOnFormEdit(workflowRequest);
                             } catch (error) {
@@ -1882,14 +1883,37 @@ function FormConfigService(objCollection) {
         workflowFile713Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
         workflowFile713Request.device_os_id = 8;
 
-        //const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
-        //await addTimelineTransactionAsync(workflowFile713Request);
-
-
         if (Number(formConfigData.length) > 0) {
 
             formWorkflowActivityTypeId = formConfigData[0].form_workflow_activity_type_id;
             console.log("formWorkflowActivityTypeId: ", formWorkflowActivityTypeId);
+
+            if (Number(formWorkflowActivityTypeId) !== 134562) {
+                // 713 timeline entry on the workflow file
+                try {
+                    const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
+                    await addTimelineTransactionAsync(workflowFile713Request);
+                } catch (error) {
+                    console.log("workflowOnFormEdit | addTimelineTransactionAsync | workflowFile713Request: ", error);
+                }
+                // Regenerate target form (if required/mapping exists), and then submit a 713 entry
+                console.log("Calling [regenerateAndSubmitTargetForm]: ", request.activity_inline_data);
+
+                const rebuildTargetFormEvent = {
+                    name: "vodafoneService",
+                    service: "vodafoneService",
+                    method: "regenerateAndSubmitTargetForm",
+                    payload: Object.assign(request)
+                };
+                queueWrapper.raiseActivityEvent(rebuildTargetFormEvent, request.activity_id, (err, resp) => {
+                    if (err) {
+                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                    } else {
+                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                    }
+                });
+            }
 
             try {
                 let newRequest = Object.assign({}, request);
@@ -1969,31 +1993,6 @@ function FormConfigService(objCollection) {
                                 targetFormName = targetFormData[0].data_form_name;
                             }
                         });
-
-                    // 
-                    // if (Array.isArray(targetFormInlineData.form_submitted) === true || typeof targetFormInlineData.form_submitted === 'object') {
-                    //     targetFormSubmittedData = targetFormInlineData.form_submitted;
-                    // } else {
-                    //     targetFormSubmittedData = JSON.parse(targetFormInlineData.form_submitted);
-                    // }
-
-                    // let newActivityInlineData = JSON.parse(request.activity_inline_data);
-                    // newActivityInlineData[0].form_id = Number(mapping.target_form_id);
-                    // newActivityInlineData[0].form_name = targetFormName;
-                    // newActivityInlineData[0].field_id = Number(mapping.target_field_id);
-                    // newActivityInlineData[0].form_transaction_id = targetFormTransactionId;
-
-                    // let fieldAlterRequest = Object.assign({}, request);
-                    // fieldAlterRequest.activity_id = targetFormActivityId;
-                    // fieldAlterRequest.form_id = Number(mapping.target_form_id);
-                    // fieldAlterRequest.form_transaction_id = targetFormTransactionId;
-                    // fieldAlterRequest.field_id = Number(mapping.target_field_id);
-                    // fieldAlterRequest.activity_inline_data = JSON.stringify(newActivityInlineData);
-                    // fieldAlterRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
-                    // fieldAlterRequest.device_os_id = 7;
-
-                    // const alterFormActivityAsync = nodeUtil.promisify(self.alterFormActivity);
-                    // await alterFormActivityAsync(fieldAlterRequest);
                 }
             }
 
