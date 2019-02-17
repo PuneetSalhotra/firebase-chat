@@ -286,21 +286,18 @@ function VodafoneController(objCollection) {
     //         });
     // });
     // BOT Test
-    // app.post('/' + global.config.version + '/vodafone/bot/test_3', function (req, res) {
-
-    //     vodafoneService.regenerateAndSubmitCAF(req.body, (error, data) => {
-    //         if (error) {
-    //             return res.send(responseWrapper.getResponse(error, {
-    //                 error
-    //             }, -5999999, req.body));
-    //         }
-    //         return res.send(responseWrapper.getResponse(error, {
-    //             data
-    //         }, 200, req.body));
-
-    //     })
-
-    // });
+    app.post('/' + global.config.version + '/vodafone/bot/test_3', async function (req, res) {
+        const [error, status] = await vodafoneService.regenerateAndSubmitTargetForm(req.body);
+        if (error) {
+            return res.send(responseWrapper.getResponse(error, {
+                error
+            }, -5999999, req.body));
+        } else {
+            return res.send(responseWrapper.getResponse(error, {
+                status
+            }, 200, req.body));
+        }
+    });
 
     // BOT 6
     app.post('/' + global.config.version + '/vodafone/status/set/approval_pending', function (req, res) {
