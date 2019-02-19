@@ -2012,6 +2012,13 @@ function VodafoneService(objectCollection) {
                 // Append the Labels
                 cafFormJson = appendLabels(request, cafFormJson);
 
+                // As per CAF Annexure
+                try {
+                    cafFormJson = await setAsPerCAFAnnexure(request, cafFormJson);
+                } catch (error) {
+                    console.log("cafFormJson | setAsPerCAFAnnexure | Error: ", error);
+                }
+
                 // console.log("[FINAL] cafFormJson: ", cafFormJson);
                 // fs.appendFileSync('pdfs/caf.json', JSON.stringify(cafFormJson));
 
@@ -2251,6 +2258,59 @@ function VodafoneService(objectCollection) {
                 return;
             });
     };
+
+    async function setAsPerCAFAnnexure(request, targetFormData) {
+        let sourceFormActivityID = 0,
+            sourceFormTransactionID = 0,
+            isAnnexureUploaded = false;
+
+        const sourceFormID = global.vodafoneConfig[request.organization_id].ANNEXURE_DEFAULTS.SOURCE_FORM_ID,
+            sourceFormFieldID = global.vodafoneConfig[request.organization_id].ANNEXURE_DEFAULTS.SOURCE_FIELD_ID;
+
+        await activityCommonService
+            .getActivityTimelineTransactionByFormId713(request, request.activity_id, sourceFormID)
+            .then((formData) => {
+                if (formData.length > 0) {
+                    sourceFormActivityID = formData[0].data_activity_id;
+                    sourceFormTransactionID = formData[0].data_form_transaction_id;
+                }
+            });
+
+        if (Number(sourceFormTransactionID) !== 0) {
+            fieldValue = await getFieldValue({
+                form_transaction_id: sourceFormTransactionID,
+                form_id: sourceFormID,
+                field_id: sourceFormFieldID,
+                organization_id: request.organization_id
+            });
+            if (fieldValue[0].data_entity_text_1 !== '') {
+                isAnnexureUploaded = true;
+            }
+        }
+        const TARGET_FIELD_IDS = global.vodafoneConfig[request.organization_id].ANNEXURE_DEFAULTS.TARGET_FIELD_IDS;
+        if (isAnnexureUploaded) {
+            targetFormData.forEach((fieldEntry, index) => {
+                if (TARGET_FIELD_IDS.includes(Number(fieldEntry.field_id))) {
+                    targetFormData[index].field_value = 'As per CAF Annexure';
+                }
+            });
+        }
+        return targetFormData;
+    }
+
+    // Get the field value based on form id and form_transaction_id
+    async function getFieldValue(request) {
+        let paramsArr = new Array(
+            request.form_transaction_id || 0,
+            request.form_id,
+            request.field_id,
+            request.organization_id
+        );
+        let queryString = util.getQueryString('ds_p1_activity_form_transaction_select_field_sequence_id', paramsArr);
+        if (queryString != '') {
+            return await (db.executeQueryPromise(1, queryString, request));
+        }
+    }
 
     function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
@@ -3738,7 +3798,7 @@ function VodafoneService(objectCollection) {
                     throw new Error("cafFormDataNotFound");
                 }
             })
-            .then((mappingExists) => {
+            .then(async (mappingExists) => {
 
                 if (mappingExists) {
                     console.log("mappingExists: ", mappingExists)
@@ -3749,6 +3809,12 @@ function VodafoneService(objectCollection) {
                     newActivityInlineData[0].form_name = "Digital CAF";
                     newActivityInlineData[0].field_id = cafFormTargetFieldId;
                     newActivityInlineData[0].form_transaction_id = cafFormTransactionId;
+
+                    console.log("newActivityInlineData: ", newActivityInlineData);
+                    let newRequest = Object.assign({}, request);
+                    newRequest.activity_id = newOrderFormActivityId;
+                    newActivityInlineData = await setAsPerCAFAnnexure(newRequest, newActivityInlineData);
+                    console.log("newActivityInlineData: ", newActivityInlineData);
 
                     // Fire the 'alterFormActivity' service | '/form/activity/alter' for CAF file
                     let cafFieldUpdateRequest = Object.assign({}, request);

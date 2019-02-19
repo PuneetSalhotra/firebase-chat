@@ -185,6 +185,11 @@ vodafoneConfig = {
             "Contact_Designation": 5776,
             "Contact_Email_Id": 5784,
             "Account_Code": 6099 //This we have in new order not in CRM
+        },
+        "ANNEXURE_DEFAULTS": {
+            "SOURCE_FORM_ID": 1068,
+            "SOURCE_FIELD_ID": 9764,
+            "TARGET_FIELD_IDS": [7010, 7011, 7012, 7013, 7014, 7015, 7016, 7017, 7018, 7496, 7030, 7007, 7019, 7020, 7021, 7032, 7035, 7076, 7086, 7088, 7093]
         }
     },
     "134564": {
