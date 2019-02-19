@@ -387,6 +387,36 @@ function AccountController(objCollection) {
         });
     });
 
+    // Call to update the inline data of the workforce
+    app.post('/' + global.config.version + '/workforce/inline_data/update', async function (req, res) {
+        const [err, data] = await accountService.workforceListUpdateInlineData(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
+    // Call to get differential data for a workforce
+    app.post('/' + global.config.version + '/workforce/list', async function (req, res) {
+        const [err, data] = await accountService.workforceListSelect(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
+    // Call to search processes
+    app.post('/' + global.config.version + '/workforce/activity_type/search', async function (req, res) {
+        const [err, data] = await accountService.workforceActivityTypeMappingSelectSearch(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
 };
 
 module.exports = AccountController;
