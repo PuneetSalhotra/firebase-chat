@@ -9,7 +9,10 @@ function ActivityParticipantService(objectCollection) {
     var activityCommonService = objectCollection.activityCommonService;
     var util = objectCollection.util;
     var sns = objectCollection.sns;
-    var activityPushService = objectCollection.activityPushService;
+    // var activityPushService = objectCollection.activityPushService;
+
+    const ActivityPushService = require('../services/activityPushService');
+    const activityPushService = new ActivityPushService(objectCollection);
 
     this.getParticipantsList = function (request, callback) {
 
@@ -734,8 +737,8 @@ function ActivityParticipantService(objectCollection) {
             participantData.organization_id,
             participantData.access_role_id,
             participantData.message_unique_id,
-            request.flag_retry,
-            request.flag_offline,
+            request.flag_retry || 0,
+            request.flag_offline || 0,
             request.asset_id,
             request.datetime_log,
             fieldId,

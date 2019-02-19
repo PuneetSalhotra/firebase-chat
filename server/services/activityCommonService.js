@@ -2717,12 +2717,13 @@ function ActivityCommonService(db, util, forEachAsync) {
     this.fetchActivitiesMappedToQueue = function (request) {
         return new Promise((resolve, reject) => {
             // IN p_queue_id BIGINT(20), IN p_organization_id BIGINT(20), 
-            // IN p_flag SMALLINT(6), IN p_start_from BIGINT(20), 
-            // IN p_limit_value SMALLINT(6)
+            // IN p_flag SMALLINT(6), IN p_sort_flag TINYINT(4), 
+            // IN p_start_from BIGINT(20), IN p_limit_value SMALLINT(6)
             let paramsArr = new Array(
                 request.queue_id,
                 request.organization_id,
-                0, // request.flag
+                request.sort_flag || 0, // 0 => Ascending | 1 => Descending
+                request.flag || 0, // 0 => Due date | 1 => Created date
                 request.start_from,
                 request.limit_value
             );
@@ -2824,6 +2825,26 @@ function ActivityCommonService(db, util, forEachAsync) {
                 request.datetime_log
             );
             const queryString = util.getQueryString('ds_p1_queue_activity_mapping_history_insert', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                });
+            }
+        });
+    };
+
+    // Workforce History Insert
+    this.workforceListHistoryInsert = function (request, updateTypeId) {
+        // IN p_workforce_id BIGINT(20), IN p_organization_id BIGINT(20), 
+        // IN p_update_type_id SMALLINT(6), IN p_update_datetime DATETIME
+        return new Promise((resolve, reject) => {
+            let paramsArr = new Array(
+                request.workforce_id,
+                request.organization_id,
+                updateTypeId,
+                util.getCurrentUTCTime(),
+            );
+            const queryString = util.getQueryString('ds_p1_workforce_list_history_insert', paramsArr);
             if (queryString !== '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err) ? reject(err): resolve(data);
