@@ -2833,6 +2833,26 @@ function ActivityCommonService(db, util, forEachAsync) {
         });
     };
 
+    // Workforce History Insert
+    this.workforceListHistoryInsert = function (request, updateTypeId) {
+        // IN p_workforce_id BIGINT(20), IN p_organization_id BIGINT(20), 
+        // IN p_update_type_id SMALLINT(6), IN p_update_datetime DATETIME
+        return new Promise((resolve, reject) => {
+            let paramsArr = new Array(
+                request.workforce_id,
+                request.organization_id,
+                updateTypeId,
+                util.getCurrentUTCTime(),
+            );
+            const queryString = util.getQueryString('ds_p1_workforce_list_history_insert', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                });
+            }
+        });
+    };
+
     this.getActivityCollection = function (request) {
         return new Promise((resolve, reject) => {
             var paramsArr = new Array(
