@@ -12,12 +12,12 @@
     {
         "form_id": 1119,
         "field_id": 8658,
-        "field_name": "Name of Supporting Document (GST Certificate",
-        "field_data_type_id": "SEZ Certificate",
-        "field_data_type_category_id": "Diplomat Certificate)",
-        "data_type_combo_id": 32,
-        "data_type_combo_value": 13,
-        "field_value": 0,
+        "field_name": "Name of Supporting Document (GST Certificate, SEZ Certificate, Diplomat Certificate)",
+        "field_data_type_id": 32,
+        "field_data_type_category_id": 13,
+        "data_type_combo_id": 0,
+        "data_type_combo_value": "",
+        "field_value": "",
         "message_unique_id": ""
     },
     {
