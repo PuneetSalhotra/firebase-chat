@@ -254,5 +254,14 @@ function UtilityController(objCollection) {
          });
      });
 
+     app.post('/' + global.config.version + '/s3/excel_json/list', async (req, res) => {       
+        try {
+            let result = await util.getJSONfromXcel(req.body);
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch(err) {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }         
+     });
+
 }
 module.exports = UtilityController;
