@@ -4223,7 +4223,8 @@ function VodafoneService(objectCollection) {
 
         // Magic
         const ROMS_ACTIONS = global.vodafoneConfig[formWorkflowActivityTypeId].ROMS_ACTIONS;
-        targetFormData = performRomsCalculations(request, targetFormData, ROMS_ACTIONS).TARGET_FORM_DATA;
+        const {TARGET_FORM_DATA, UPDATED_ROMS_FIELDS} = await performRomsCalculations(request, targetFormData, ROMS_ACTIONS);
+        targetFormData = TARGET_FORM_DATA;
 
         // Fetch the target form's field sequence data
         let fieldSequenceIdMap = {};
@@ -4374,7 +4375,7 @@ function VodafoneService(objectCollection) {
     }
 
     // performRomsCalculations
-    function performRomsCalculations(request, targetFormData, ROMS_ACTIONS) {
+    async function performRomsCalculations(request, targetFormData, ROMS_ACTIONS) {
         // Convert targetFormData to an ES6 Map
         let targetFormDataMap = new Map();
         for (const field of targetFormData) {
@@ -4444,6 +4445,46 @@ function VodafoneService(objectCollection) {
                         // Set the updated object as value for the target field ID
                         targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
                     }
+                }
+            }
+
+            // set_participant_name
+            if (action.ACTION === "set_participant_name") {
+                const newRequest = Object.assign({}, request);
+                newRequest.activity_id = request.workflow_activity_id;
+
+                let workflowParticipantsData = [];
+                // Fetch participants data
+                await activityCommonService
+                    .getAllParticipantsPromise(newRequest)
+                    .then((participantData) => {
+                        if (participantData.length > 0) {
+                            workflowParticipantsData = participantData;
+                            // console.log("participantData: ", participantData)
+                        }
+                    });
+
+                if (workflowParticipantsData.length > 0) {
+                    for (const batch of action.BATCH) {
+                        // Update the value of the target field ID
+                        let targetFieldID = batch.TARGET_FIELD_ID;
+                        for (const participant of workflowParticipantsData) {
+                            if (Number(participant.asset_type_id) === batch.ASSET_TYPE_ID) {
+                                // Get the entire object
+                                let targetFieldEntry = targetFormDataMap.get(Number(targetFieldID));
+                                // Set the value
+                                let oldValue = Number(targetFieldEntry.field_value);
+                                targetFieldEntry.field_value = participant.operating_asset_first_name;
+                                if (oldValue !== participant.operating_asset_first_name) {
+                                    updatedRomsFields.push(targetFieldEntry);
+                                }
+                                // Set the updated object as value for the target field ID
+                                targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
+                                console.log("participant.operating_asset_first_name: ", participant.operating_asset_first_name);
+                            }
+                        }
+                    }
+
                 }
             }
         }
@@ -4613,21 +4654,22 @@ function VodafoneService(objectCollection) {
 
         // ROMS Recalculation
         const ROMS_ACTIONS = global.vodafoneConfig[workflowActivityTypeId].ROMS_ACTIONS;
-        const updatedRomsFields = performRomsCalculations(request, [...targetFormDataMap.values()], ROMS_ACTIONS).UPDATED_ROMS_FIELDS;
-        for (let i = 0; i < updatedRomsFields.length; i++) {
-            updatedRomsFields[i].form_id = TARGET_FORM_ID;
-            updatedRomsFields[i].form_transaction_id = targetFormTransactionId;
-            updatedRomsFields[i].form_name = targetFormName;
+        let {TARGET_FORM_DATA, UPDATED_ROMS_FIELDS} = await performRomsCalculations(request, [...targetFormDataMap.values()], ROMS_ACTIONS);
+        // updatedRomsFields
+        for (let i = 0; i < UPDATED_ROMS_FIELDS.length; i++) {
+            UPDATED_ROMS_FIELDS[i].form_id = TARGET_FORM_ID;
+            UPDATED_ROMS_FIELDS[i].form_transaction_id = targetFormTransactionId;
+            UPDATED_ROMS_FIELDS[i].form_name = targetFormName;
         }
 
         console.log("***** ***** ***** ***** ***** ***** ***** *****");
         console.log("targetFieldsUpdated: ", targetFieldsUpdated);
         console.log("***** ***** ***** ***** ***** ***** ***** *****");
 
-        console.log("updatedRomsFields: ", updatedRomsFields);
+        console.log("UPDATED_ROMS_FIELDS: ", UPDATED_ROMS_FIELDS);
 
         // Final list of fields to be updated
-        targetFieldsUpdated = targetFieldsUpdated.concat(updatedRomsFields);
+        targetFieldsUpdated = targetFieldsUpdated.concat(UPDATED_ROMS_FIELDS);
         // If no fields have been updated, don't proceed
         if (targetFieldsUpdated.length === 0) {
             return [new Error("NoTargetFormFieldsUpdated"), []];

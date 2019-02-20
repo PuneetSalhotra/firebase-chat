@@ -3,6 +3,12 @@ const digitalMplsCrfLabels = require("./digital_mpls_crf/labels.json");
 const digitalMplsCrfRoms = require("./digital_mpls_crf/roms.json");
 const digitalMplsCrfRomsActions = require("./digital_mpls_crf/roms_actions.json");
 
+// Digital ILL CAF
+const digitalIllCafMappings = require("./digital_ill_caf/digital_ill_caf_mappings.json");
+const digitalIllCafLabels = require("./digital_ill_caf/labels.json");
+const digitalIllCafRoms = require("./digital_ill_caf/roms.json");
+const digitalIllCafRomsActions = require("./digital_ill_caf/roms_actions.json");
+
 vodafoneConfig = {
     "860": {
         "NAME": "Vodafone Idea | Production | BETA",
@@ -200,5 +206,14 @@ vodafoneConfig = {
         "LABELS": digitalMplsCrfLabels,
         "ROMS": digitalMplsCrfRoms,
         "ROMS_ACTIONS": digitalMplsCrfRomsActions
+    },
+    "134565": {
+        "REQUIRED_FORMS": [1104 , 1105, 1106, 1107, 1108, 1115],
+        "TARGET_FORM_ID": 1119,
+        "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
+        "FORM_FIELD_MAPPING_DATA": digitalIllCafMappings,
+        "LABELS": digitalIllCafLabels,
+        "ROMS": digitalIllCafRoms,
+        "ROMS_ACTIONS": digitalIllCafRomsActions
     }
 };
