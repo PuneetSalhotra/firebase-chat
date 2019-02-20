@@ -404,5 +404,27 @@
         "data_type_combo_value": "",
         "field_value": "** Taxes as applicable.",
         "message_unique_id": 1111222233334444
+    },
+    {
+        "form_id": 1109,
+        "field_id": 8388,
+        "field_name": "New Billing Address",
+        "field_data_type_id": 21,
+        "field_data_type_category_id": 8,
+        "data_type_combo_id": 0,
+        "data_type_combo_value": "",
+        "field_value": "New Billing Address",
+        "message_unique_id": 1111222233334444
+    },
+    {
+        "form_id": 1109,
+        "field_id": 8398,
+        "field_name": "New Installation Address",
+        "field_data_type_id": 21,
+        "field_data_type_category_id": 8,
+        "data_type_combo_id": 0,
+        "data_type_combo_value": "",
+        "field_value": "New Installation Address",
+        "message_unique_id": 1111222233334444
     }
 ]
