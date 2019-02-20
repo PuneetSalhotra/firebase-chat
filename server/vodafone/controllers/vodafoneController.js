@@ -268,6 +268,19 @@ function VodafoneController(objCollection) {
                 status
             }, 200, req.body));
         }
+
+        // buildAndSubmitCafForm
+        // vodafoneService.regenerateAndSubmitCAF(req.body, (err, data) => {
+        //     if (err) {
+        //         return res.send(responseWrapper.getResponse(err, {
+        //             err
+        //         }, -5999999, req.body));
+        //     } else {
+        //         return res.send(responseWrapper.getResponse(err, {
+        //             data
+        //         }, 200, req.body));
+        //     }
+        // });
     });
 
     // // BOT Test
