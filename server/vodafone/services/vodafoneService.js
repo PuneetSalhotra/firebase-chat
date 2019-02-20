@@ -4487,57 +4487,6 @@ function VodafoneService(objectCollection) {
 
                 }
             }
-
-            // check_and_set_annexure_defaults
-            if (action.ACTION === "check_and_set_annexure_defaults") {
-                for (const batch of action.BATCH) {
-                    const sourceFormID = Number(batch.SOURCE_FORM_ID);
-                    const sourceFormFieldID = Number(batch.SOURCE_FIELD_ID);
-                    let sourceFormActivityID = 0,
-                        sourceFormTransactionID = 0,
-                        isAnnexureUploaded = false;
-                    // Check if the excel file has been uploaded or not
-                    await activityCommonService
-                        .getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, sourceFormID)
-                        .then((formData) => {
-                            if (formData.length > 0) {
-                                sourceFormActivityID = formData[0].data_activity_id;
-                                sourceFormTransactionID = formData[0].data_form_transaction_id;
-                            }
-                        });
-                    
-                    // Fetch the specific field (Excel Document) using the form transaction ID
-                    if (Number(sourceFormTransactionID) !== 0) {
-                        fieldValue = await getFieldValue({
-                            form_transaction_id: sourceFormTransactionID,
-                            form_id: sourceFormID,
-                            field_id: sourceFormFieldID,
-                            organization_id: request.organization_id
-                        });
-                        if (fieldValue.length > 0 && fieldValue[0].data_entity_text_1 !== '') {
-                            isAnnexureUploaded = true;
-                        }
-                    }
-                    // isAnnexureUploaded = true;
-                    if (isAnnexureUploaded) {
-                        for (const targetFieldID of batch.TARGET_FIELD_IDS) {
-                            if (targetFormDataMap.has(Number(targetFieldID))) {
-                                // Get the entire object
-                                let targetFieldEntry = targetFormDataMap.get(Number(targetFieldID));
-                                // Set the value
-                                let oldValue = Number(targetFieldEntry.field_value);
-                                targetFieldEntry.field_value = batch.VALUE;
-                                if (oldValue !== batch.VALUE) {
-                                    updatedRomsFields.push(targetFieldEntry);
-                                }
-                                // Set the updated object as value for the target field ID
-                                targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
-                            }
-                        }
-                    }
-                    console.log("isAnnexureUploaded: ", isAnnexureUploaded);
-                }
-            }
         }
 
         // console.log("targetFormDataMap: ", targetFormDataMap);
