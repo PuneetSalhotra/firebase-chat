@@ -344,8 +344,6 @@ function ActivityPushService(objectCollection) {
                             case '/' + global.config.version + '/activity/participant/access/set':
                                 msg.activity_type_category_id = 48;
                                 msg.type = 'activity_unread';
-                                pushString.title = senderName;
-                                pushString.description = 'has added an update - ' + activityTitle + '.';
                                 break;
                             case '/' + global.config.version + '/activity/unread/count/reset':
                             case '/' + global.config.version + '/activity/unread/count/reset/v1':

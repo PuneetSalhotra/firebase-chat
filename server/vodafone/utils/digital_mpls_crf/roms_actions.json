@@ -2,13 +2,10 @@
         "ACTION": "set_static_value",
         "BATCH": [{
             "TARGET_FIELD_ID": 8551,
-            "VALUE": "----"
+            "VALUE": "What should I set this to? - Ben"
         }, {
             "TARGET_FIELD_ID": 8556,
-            "VALUE": "----"
-        }, {
-            "TARGET_FIELD_ID": 8560,
-            "VALUE": "Mumbai Circle - Account Managers"
+            "VALUE": "What should I update the Place value to? - Ben"
         }]
 
     }, {
@@ -91,13 +88,6 @@
         "BATCH": [{
             "TARGET_FIELD_ID": 8557,
             "TZ_OFFSET": "+05:30"
-        }]
-    },
-    {
-        "ACTION": "set_participant_name",
-        "BATCH": [{
-            "TARGET_FIELD_ID": 8559,
-            "ASSET_TYPE_ID": 127254
         }]
     }
 ]
