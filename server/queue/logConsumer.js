@@ -95,7 +95,7 @@ let Consumer = function () {
    };
        
    // for a single topic pass in a string
-   var consumerGroup = new kafkaConsumerGroup(optionsConsumerGroup, global.config.TOPIC_NAME);
+   var consumerGroup = new kafkaConsumerGroup(optionsConsumerGroup, global.config.LOGS_TOPIC_NAME);
 
     new Promise((resolve, reject) => {
         if (kafkaProducer.ready)
