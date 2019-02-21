@@ -40,7 +40,7 @@ function AccountController(objCollection) {
         });
     });
 
-    app.put('/' + global.config.version + '/account/cover/update/email', function (req, res) {
+    app.post('/' + global.config.version + '/account/cover/update/email', function (req, res) {
         accountService.updateAccountEmail(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response   
@@ -53,7 +53,7 @@ function AccountController(objCollection) {
         });
     });
 
-    app.put('/' + global.config.version + '/account/cover/update/mailing-address', function (req, res) {
+    app.post('/' + global.config.version + '/account/cover/update/mailing-address', function (req, res) {
         try {
             JSON.parse(req.body.mailing_address_collection);
             accountService.updateAccountMailingAddress(req.body, function (err, data, statusCode) {
@@ -73,7 +73,7 @@ function AccountController(objCollection) {
 
     });
 
-    app.put('/' + global.config.version + '/account/cover/update/forwarding-address', function (req, res) {
+    app.post('/' + global.config.version + '/account/cover/update/forwarding-address', function (req, res) {
         try {
             JSON.parse(req.body.account_forwarding_address);
             accountService.updateAccountForwardingAddress(req.body, function (err, data, statusCode) {
@@ -93,7 +93,7 @@ function AccountController(objCollection) {
 
     });
 
-    app.put('/' + global.config.version + '/account/cover/update/phone', function (req, res) {
+    app.post('/' + global.config.version + '/account/cover/update/phone', function (req, res) {
         try {
             JSON.parse(req.body.account_phone_number_collection);
             accountService.updateAccountPhone(req.body, function (err, data, statusCode) {
@@ -193,15 +193,15 @@ function AccountController(objCollection) {
     //Voice XML for TWILIO
     app.post('/' + global.config.version + '/account/voice*', function (req, res) {
         // console.log('VNK : ' , req.body);
-        global.logger.write('debug', 'VNK : ' + JSON.stringify(req.body, null, 2), {}, req);
+        global.logger.write('conLog', 'VNK : ' + JSON.stringify(req.body, null, 2), {}, req);
         var x = req.body.url;
         x = x.split("/");
         // console.log('x[3] : ' + x[3]);
-        global.logger.write('debug', 'x[3] : ' + x[3], {}, req);
+        global.logger.write('conLog', 'x[3] : ' + x[3], {}, req);
 
         var file = global.config.efsPath + 'twiliovoicesxmlfiles/' + x[3] + '.xml';
         // console.log(file);               
-        global.logger.write('debug', 'Voice XML for TWILIO: ' + file, {}, req);
+        global.logger.write('conLog', 'Voice XML for TWILIO: ' + file, {}, req);
 
         fs.readFile(file, function (err, data) {
             if (err) {
@@ -255,13 +255,13 @@ function AccountController(objCollection) {
         /*var text = "Hey "+ request.receiver_name +" , "+ request.sender_name+" has requested your participation in "+request.task_title+" using the Desker App, ";
             text += "it's due by " + request.due_date + ". Download the App from http://desker.co/download.";*/
 
-        /*util.sendSmsSinfini(request.message, request.country_code, request.phone_number, function (err, res) {
+        util.sendSmsSinfini(request.message, request.country_code, request.phone_number, function (err, response) {
             // console.log(err,'\n',res);
             global.logger.write('debug', 'Sinfini Error: ' + JSON.stringify(err, null, 2), {}, request);
-            global.logger.write('debug', 'Sinfini Response: ' + JSON.stringify(res, null, 2), {}, request);
-        });*/
+            global.logger.write('debug', 'Sinfini Response: ' + JSON.stringify(response, null, 2), {}, request);
+            res.send(responseWrapper.getResponse(false, {}, 200, req.body));
+        });
 
-        res.send(responseWrapper.getResponse(false, {}, 200, req.body));
     });
 
     /* GET SINFINI SMS delivery receipt  */
@@ -340,7 +340,7 @@ function AccountController(objCollection) {
 
 
     // Set Account Config Values
-    app.put('/' + global.config.version + '/account/config/set', function (req, res) {
+    app.post('/' + global.config.version + '/account/config/set', function (req, res) {
         accountService.setAccountConfigValues(req.body, function (err, data, statusCode) {
             (err === false) ?
             res.send(responseWrapper.getResponse(err, data, statusCode, req.body)):
@@ -385,6 +385,36 @@ function AccountController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
+    });
+
+    // Call to update the inline data of the workforce
+    app.post('/' + global.config.version + '/workforce/inline_data/update', async function (req, res) {
+        const [err, data] = await accountService.workforceListUpdateInlineData(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
+    // Call to get differential data for a workforce
+    app.post('/' + global.config.version + '/workforce/list', async function (req, res) {
+        const [err, data] = await accountService.workforceListSelect(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
+    // Call to search processes
+    app.post('/' + global.config.version + '/workforce/activity_type/search', async function (req, res) {
+        const [err, data] = await accountService.workforceActivityTypeMappingSelectSearch(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
     });
 
 };

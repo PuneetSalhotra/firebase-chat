@@ -24,7 +24,7 @@ function FormConfigController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper rseponse');
-                global.logger.write('debug', 'did not get proper response', {}, req.body);
+                global.logger.write('debug', 'did not get proper response', err, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -39,7 +39,7 @@ function FormConfigController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper rseponse');
-                global.logger.write('debug', 'did not get proper response', {}, req.body);
+                global.logger.write('debug', 'did not get proper response', err, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -54,7 +54,7 @@ function FormConfigController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper rseponse');
-                global.logger.write('debug', 'did not get proper response', {}, req.body);
+                global.logger.write('debug', 'did not get proper response', err, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -69,7 +69,7 @@ function FormConfigController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper rseponse');
-                global.logger.write('debug', 'did not get proper response', {}, req.body);
+                global.logger.write('debug', 'did not get proper response', err, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -84,7 +84,7 @@ function FormConfigController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper rseponse');
-                global.logger.write('debug', 'did not get proper response', {}, req.body);
+                global.logger.write('debug', 'did not get proper response', err, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -150,12 +150,12 @@ function FormConfigController(objCollection) {
             }
         });
     });
-    
-    
+
+
     //Get the list of forms submitted by the user
     //Search the list of forms submitted by the user
     app.post('/' + global.config.version + '/form/access/user/list', function (req, res) {
-        formConfigService.getSearchUserForms(req.body, function (err, data, statusCode) {        
+        formConfigService.getSearchUserForms(req.body, function (err, data, statusCode) {
             if (err === false) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
@@ -164,9 +164,9 @@ function FormConfigController(objCollection) {
             }
         });
     });
-    
-    
-    app.put('/' + global.config.version + '/form/activity/alter', function (req, res) {
+
+
+    app.post('/' + global.config.version + '/form/activity/alter', function (req, res) {
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
@@ -179,52 +179,52 @@ function FormConfigController(objCollection) {
                 payload: req.body
             };
 
-            queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp)=>{
-                        if(err) {
-                            //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                            //global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);
-                            res.send(responseWrapper.getResponse(false, {}, -5999,req.body));
-                            throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
-                        } else {
-                            if (req.hasOwnProperty('device_os_id')) {
-                                if (Number(req.device_os_id) !== 5) {
-                                    //incr the asset_message_counter                        
-                                    cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
-                                        if (err) {
-                                            //console.log("error in setting in asset parity");
-                                            global.logger.write('serverError', "error in setting in asset parity", err, req.body);
-                                        } else
-                                            //console.log("asset parity is set successfully")
-                                            global.logger.write('debug', "asset parity is set successfully", {}, req.body);
+            queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp) => {
+                if (err) {
+                    //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
+                    //global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);
+                    res.send(responseWrapper.getResponse(false, {}, -5999, req.body));
+                    throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+                } else {
+                    if (req.hasOwnProperty('device_os_id')) {
+                        if (Number(req.device_os_id) !== 5) {
+                            //incr the asset_message_counter                        
+                            cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
+                                if (err) {
+                                    //console.log("error in setting in asset parity");
+                                    global.logger.write('serverError', "error in setting in asset parity", err, req.body);
+                                } else
+                                    //console.log("asset parity is set successfully")
+                                    global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
 
-                                    });
-                                }
-                            }
-                            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                            });
                         }
-                });
+                    }
+                    res.send(responseWrapper.getResponse(false, {}, 200, req.body));
+                }
+            });
             //res.send(responseWrapper.getResponse(false, {}, 200,req.body));
             //return;
         };
         try {
             JSON.parse(req.body.activity_inline_data);
             // console.log('json is fine');
-            global.logger.write('debug', "json is fine", {}, req.body);
+            global.logger.write('conLog', "json is fine", {}, req.body);
 
         } catch (exeption) {
-            res.send(responseWrapper.getResponse(false, {}, -3308,req.body));
+            res.send(responseWrapper.getResponse(false, {}, -3308, req.body));
             return;
         }
         if (util.hasValidActivityId(req.body)) {
             if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5) {
                 cacheWrapper.checkAssetParity(req.body.asset_id, Number(req.body.asset_message_counter), function (err, status) {
                     if (err) {
-                        res.send(responseWrapper.getResponse(false, {}, -7998,req.body));
+                        res.send(responseWrapper.getResponse(false, {}, -7998, req.body));
                     } else {
-                        if (status) {     // proceed
+                        if (status) { // proceed
                             proceedInlineUpdate();
-                        } else {  // this is a duplicate hit,
-                            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                        } else { // this is a duplicate hit,
+                            res.send(responseWrapper.getResponse(false, {}, 200, req.body));
                         }
                     }
                 });
@@ -233,19 +233,19 @@ function FormConfigController(objCollection) {
                 proceedInlineUpdate();
 
             } else {
-                res.send(responseWrapper.getResponse(false, {}, -3304,req.body));
+                res.send(responseWrapper.getResponse(false, {}, -3304, req.body));
             }
         } else {
-            res.send(responseWrapper.getResponse(false, {}, -3301,req.body));
+            res.send(responseWrapper.getResponse(false, {}, -3301, req.body));
         }
 
     });
-    
+
     app.post('/' + global.config.version + '/form/field/combo/list', function (req, res) {
-        formConfigService.getFormFieldComboValues(req.body).then((data)=>{   
+        formConfigService.getFormFieldComboValues(req.body).then((data) => {
             //console.log(data);
             res.send(responseWrapper.getResponse({}, data, 200, req.body));
-        }).catch((err) => { 
+        }).catch((err) => {
             let data = {};
             res.send(responseWrapper.getResponse(err, data, -999, req.body));
         });
@@ -346,6 +346,17 @@ function FormConfigController(objCollection) {
     // THIS IS A DUMMY/TEST ENDPOINT
     // app.post('/' + global.config.version + '/workflow/test/1', async function (req, res) {
 
+    //     // flag: 1 => Udpdate both activity_type mapping and config values
+    //     // flag: 2 => Udpdate activity_type mapping only
+    //     // flag: 3 => Udpdate config values only
+
+    //     const [err, workflowStatus] = await formConfigService.alterFormActivityFieldValues(req.body);
+    //     if (!err) {
+    //         res.send(responseWrapper.getResponse({}, workflowStatus, 200, req.body));
+    //     } else {
+    //         console.log("Error: ", err)
+    //         res.send(responseWrapper.getResponse(err, workflowStatus, -9999, req.body));
+    //     }
     // });
 
     // // THIS IS A DUMMY/TEST ENDPOINT
@@ -365,7 +376,7 @@ function FormConfigController(objCollection) {
 
     // });
 
-    
+
     app.post('/' + global.config.version + '/form/transaction/data', function (req, res) {
 
         formConfigService.getFormTransactionData(req.body).then((data) => {
@@ -380,10 +391,6 @@ function FormConfigController(objCollection) {
     // Service for modifying form definition
     app.post('/' + global.config.version + '/form/field/definition/update', async function (req, res) {
 
-        // flag: 1 => Udpdate both activity_type mapping and config values
-        // flag: 2 => Udpdate activity_type mapping only
-        // flag: 3 => Udpdate config values only
-
         const [err, updateStatus] = await formConfigService.formFieldDefinitionUpdate(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse({}, updateStatus, 200, req.body));
@@ -393,6 +400,101 @@ function FormConfigController(objCollection) {
         }
 
     });
+
+    // Service for updating the form name
+    app.post('/' + global.config.version + '/form/field/form_name/update', async function (req, res) {
+
+        const [err, updateStatus] = await formConfigService.formFieldNameUpdate(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, updateStatus, 200, req.body));
+        } else {
+            console.log("Error: ", err);
+            res.send(responseWrapper.getResponse(err, updateStatus, -9999, req.body));
+        }
+    });
+
+    // Service for deleting form field definitions
+    app.post('/' + global.config.version + '/form/field/definition/delete', async function (req, res) {
+
+        const [err, updateStatus] = await formConfigService.formFieldDefinitionDelete(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, updateStatus, 200, req.body));
+        } else {
+            console.log("Error: ", err);
+            res.send(responseWrapper.getResponse(err, updateStatus, -9999, req.body));
+        }
+    });
+
+    // Service for inserting form field definitions
+    app.post('/' + global.config.version + '/form/field/definition/insert', async function (req, res) {
+
+        const [err, updateStatus] = await formConfigService.formFieldDefinitionInsert(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, updateStatus, 200, req.body));
+        } else {
+            console.log("Error: ", err);
+            res.send(responseWrapper.getResponse(err, updateStatus, -9999, req.body));
+        }
+    });
+
+    // Service for lists bots dependant on a form field
+    app.post('/' + global.config.version + '/form/field/bot/list', async function (req, res) {
+
+        const [err, botsListData] = await formConfigService.formFieldBotList(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, botsListData, 200, req.body));
+        } else {
+            console.log("Error: ", err);
+            res.send(responseWrapper.getResponse(err, botsListData, -9999, req.body));
+        }
+    });
+
+    // Service for inserting form field definitions
+    app.post('/' + global.config.version + '/form/field/widget/list', async function (req, res) {
+
+        const [err, widgetListData] = await formConfigService.formFieldWidgetList(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, widgetListData, 200, req.body));
+        } else {
+            console.log("Error: ", err);
+            res.send(responseWrapper.getResponse(err, widgetListData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/data_type/list', function (req, res) {
+
+        formConfigService.getDataTypeList(req.body).then((data) => {
+            //console.log(data);
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        }).catch((err) => {
+            data = {};
+            res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        });
+    });
+
+    app.post('/' + global.config.version + '/form/field/numeric', function (req, res) {
+
+        formConfigService.workforceFormFieldMappingSelectNumericFields(req.body).then((data) => {
+            //console.log(data);
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        }).catch((err) => {
+            data = {};
+            res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        });
+    });
+
+    // Service for lists bots dependant on a form field
+    app.post('/' + global.config.version + '/form/field/bot_widget/list', async function (req, res) {
+
+        const [err, botsWidgetsListData] = await formConfigService.formFieldBotWidgetList(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, botsWidgetsListData, 200, req.body));
+        } else {
+            console.log("Error: ", err);
+            res.send(responseWrapper.getResponse(err, botsWidgetsListData, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = FormConfigController;

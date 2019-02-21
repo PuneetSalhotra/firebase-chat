@@ -65,20 +65,20 @@ var executeQuery = function (flag, queryString, request, callback) {
     try {
         conPool.getConnection(function (err, conn) {
             if (err) {
-                global.logger.write('serverError', 'ERROR WHILE GETTING CONNECTON - ' + err, err, request);                
+                global.logger.write('serverError', 'ERROR WHILE GETTING CONNECTON - ' + err, err, request);
                 callback(err, false);
                 return;
             } else {
                 //global.logger.write('conLog', 'conPool flag - ' + flag, {}, request);
                 //global.logger.write('conLog', 'Connection is: ' + conn.config.host, {}, request); 
                 conn.query(queryString, function (err, rows, fields) {
-                    if (!err) {                        
+                    if (!err) {
                         global.logger.write('dbResponse', queryString, rows, request);
                         conn.release();
                         callback(false, rows[0]);
                         return;
-                    } else {                        
-                        global.logger.write('dbResponse', 'SOME ERROR IN QUERY | ' + queryString, err, request);                        
+                    } else {
+                        global.logger.write('dbResponse', 'SOME ERROR IN QUERY | ' + queryString, err, request);
                         global.logger.write('serverError', err, err, request);
                         conn.release();
                         callback(err, false);
@@ -94,24 +94,24 @@ var executeQuery = function (flag, queryString, request, callback) {
 };
 
 var executeQueryPromise = function (flag, queryString, request) {
-    return new Promise((resolve, reject)=>{
-        let conPool;        
-        
-        (flag === 0) ? conPool = writeCluster : conPool = readCluster;
-        
+    return new Promise((resolve, reject) => {
+        let conPool;
+
+        (flag === 0) ? conPool = writeCluster: conPool = readCluster;
+
         try {
             conPool.getConnection(function (err, conn) {
                 if (err) {
-                    global.logger.write('serverError', 'ERROR WHILE GETTING CONNECTON - ' + err, err, request);                
+                    global.logger.write('serverError', 'ERROR WHILE GETTING CONNECTON - ' + err, err, request);
                     reject(err);
-                } else {                    
+                } else {
                     conn.query(queryString, function (err, rows, fields) {
-                        if (!err) {                        
+                        if (!err) {
                             global.logger.write('dbResponse', queryString, rows, request);
-                            conn.release();                            
+                            conn.release();
                             resolve(rows[0]);
-                        } else {                        
-                            global.logger.write('dbResponse', 'SOME ERROR IN QUERY | ' + queryString, err, request);                        
+                        } else {
+                            global.logger.write('dbResponse', 'SOME ERROR IN QUERY | ' + queryString, err, request);
                             global.logger.write('serverError', err, err, request);
                             conn.release();
                             reject(err);
@@ -119,7 +119,7 @@ var executeQueryPromise = function (flag, queryString, request) {
                     });
                 }
             });
-        } catch (exception) {       
+        } catch (exception) {
             global.logger.write('serverError', 'Exception Occurred - ' + exception, exception, request);
             reject(exception);
         }
@@ -200,38 +200,31 @@ var executeRecursiveQuery = function (flag, start, limit, callName, paramsArr, c
 //Generic function for firing stored procedures
 //Bharat Masimukku
 //2019-01-20
-let callDBProcedure = 
-async (request, procName, paramsArray, flagReadOperation) =>
-{
-    try
-    {
-        let queryString = getQueryString(procName, paramsArray);
+let callDBProcedure =
+    async (request, procName, paramsArray, flagReadOperation) => {
+        try {
+            let queryString = getQueryString(procName, paramsArray);
 
-        if (queryString != '') 
-        {                
-            let result = await (executeQueryPromise(flagReadOperation, queryString, request));
-            console.log(`DB SP Result:\n${JSON.stringify(result, null, 4)}`);
-            console.log(`Query Status: ${JSON.stringify(result[0].query_status, null, 4)}`);
+            if (queryString != '') {
+                let result = await (executeQueryPromise(flagReadOperation, queryString, request));
+                console.log(`DB SP Result:\n${JSON.stringify(result, null, 4)}`);
+                global.logger.write('dbResponse', queryString, result, request);
+                // console.log(`Query Status: ${JSON.stringify(result[0].query_status, null, 4)}`);
 
-            if (result[0].query_status === 0)
-            {
-                return result;
+                if (result[0].query_status === 0) {
+                    return result;
+                } else {
+                    return Promise.reject(result);
+                }
+            } else {
+                global.logger.write('dbResponse', "Invalid Query String: " + queryString, {}, request);
+                return Promise.reject(`Invalid Query String`);
             }
-            else
-            {
-                return Promise.reject(result);
-            }            
+        } catch (error) {
+            global.logger.write('dbResponse', 'QUERY ERROR | ', error, request);
+            return Promise.reject(error);
         }
-        else
-        {
-            return Promise.reject(`Invalid Query String`);
-        }
-    }
-    catch(error)
-    {
-        return Promise.reject(error);
-    }
-};
+    };
 
 /*process.on('exit', (err) => {
     global.logger.write('conLog', 'Closing the poolCluster : ' + err, {}, {});

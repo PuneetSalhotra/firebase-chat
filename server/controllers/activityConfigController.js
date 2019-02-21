@@ -23,7 +23,7 @@ function ActivityConfigController(objCollection) {
 
             } else {
                 //console.log('did not get proper rseponse');
-                global.logger.write('response', err, {}, req.body);
+                global.logger.write('conLog', err, {}, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode,req.body));
             }
@@ -42,7 +42,7 @@ function ActivityConfigController(objCollection) {
 
             } else {
                 //console.log('did not get proper rseponse');
-                global.logger.write('response', err, {}, req.body);
+                global.logger.write('conLog', err, {}, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode,req.body));
             }
@@ -61,7 +61,7 @@ function ActivityConfigController(objCollection) {
 
             } else {
                 //console.log('did not get proper respone');
-                global.logger.write('response', err, {}, req.body);
+                global.logger.write('conLog', err, {}, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode,req.body));
             }
@@ -77,7 +77,7 @@ function ActivityConfigController(objCollection) {
         });    		
     });
     
-    app.put('/' + global.config.version + '/activity_type/alter', function (req, res) {
+    app.post('/' + global.config.version + '/activity_type/alter', function (req, res) {
     	activityConfigService.workForceActivityTypeUpdate(req.body).then((data)=>{    		
     		res.send(responseWrapper.getResponse(data, {}, 200, req.body));    	
     	}).catch((err) => {        	
@@ -85,7 +85,7 @@ function ActivityConfigController(objCollection) {
         });    		
     });
     
-    app.put('/' + global.config.version + '/activity_type/archive', function (req, res) {
+    app.post('/' + global.config.version + '/activity_type/archive', function (req, res) {
     	activityConfigService.workForceActivityTypeDelete(req.body).then((data)=>{    		
     		res.send(responseWrapper.getResponse(data, {}, 200, req.body));    	
     	}).catch((err) => {        	
@@ -113,6 +113,30 @@ function ActivityConfigController(objCollection) {
     app.post('/' + global.config.version + '/activtity_type/communication/list', function (req, res) {
     	activityConfigService.getCommunicationList(req.body).then((data)=>{    		
     		res.send(responseWrapper.getResponse({}, data, 200, req.body));     	
+    	}).catch((err) => {        	
+        	res.send(responseWrapper.getResponse(err, {}, -999, req.body));
+        });    		
+    });
+
+    app.post('/' + global.config.version + '/activity_status/add', function (req, res) {
+    	activityConfigService.workForceActivityStatusInsert(req.body).then((data)=>{    		
+    		res.send(responseWrapper.getResponse(data, {}, 200, req.body));    	
+    	}).catch((err) => {        	
+        	res.send(responseWrapper.getResponse(err, {}, -999, req.body));
+        });    		
+    });
+    
+    app.post('/' + global.config.version + '/activity_status/archive', function (req, res) {
+    	activityConfigService.workForceActivityStatusDelete(req.body).then((data)=>{    		
+    		res.send(responseWrapper.getResponse(data, {}, 200, req.body));    	
+    	}).catch((err) => {        	
+        	res.send(responseWrapper.getResponse(err, {}, -999, req.body));
+        });    		
+    });
+    
+    app.post('/' + global.config.version + '/activity_status/alter', function (req, res) {
+    	activityConfigService.workForceActivityStatusUpdate(req.body).then((data)=>{    		
+    		res.send(responseWrapper.getResponse(data, {}, 200, req.body));    	
     	}).catch((err) => {        	
         	res.send(responseWrapper.getResponse(err, {}, -999, req.body));
         });    		

@@ -11,7 +11,7 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
 
             if (err) {
                 //console.log('Unable to get the service Id')
-                global.logger.write('debug', 'Unable to get the service Id', {}, req.body);
+                global.logger.write('conLog', 'Unable to get the service Id', {}, req.body);
                 req.body.service_id = 0;
             } else {                
                 global.logger.write('conLog', 'Service Id : ', JSON.stringify(result), {});
@@ -21,12 +21,12 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                 req.body.url = req.url;
                 if (req.body.url.includes('/' + global.config.version + '/account/')) {
                     req.body['module'] = 'asset';
-                    global.logger.write('request', JSON.stringify(req.body, null, 2), req.body, req.body);
-                    global.logger.write('info', 'bypassing enc token checking as request is from account', {}, req.body);
+                    global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                    global.logger.write('conLog', 'bypassing enc token checking as request is from account', {}, req.body);
                     next();
                 } else if (req.body.url.includes('/' + global.config.version + '/zoho/')) {
-                    global.logger.write('request', JSON.stringify(req.body, null, 2), req.body, req.body);
-                    global.logger.write('info', 'bypassing enc token checking as request is for zoho services', {}, req.body);
+                    global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                    global.logger.write('conLog', 'bypassing enc token checking as request is for zoho services', {}, req.body);
                     next();
                 } else {
 
@@ -37,42 +37,42 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                             //case '/' + global.config.version + '/sms-dlvry/nexmo':
                             //case '/' + global.config.version + '/sms-dlvry/twilio':
                             req.body['module'] = 'device';
-                            global.logger.write('request', JSON.stringify(req.body, null, 2), req.body, req.body);
+                            global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
                             next();
                             break;
                         case '/' + global.config.version + '/asset/passcode/check':
                             req.body['module'] = 'device';
-                            global.logger.write('request', JSON.stringify(req.body, null, 2), req.body, req.body);
+                            global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
                             next();
                             break;
                         case '/' + global.config.version + '/asset/link/set':
                             req.body['module'] = 'asset';
-                            global.logger.write('request', JSON.stringify(req.body, null, 2), req.body, req.body);
+                            global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
                             next();
                             break;
                         case '/' + global.config.version + '/asset/phonenumber/access/organization/list':
                             req.body['module'] = 'asset';
-                            global.logger.write('request', JSON.stringify(req.body, null, 2), req.body, req.body);
+                            global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
                             next();
                             break;
                         case '/' + global.config.version + '/pam/asset/cover/alter/clockin':
                             req.body['module'] = 'asset';
-                            global.logger.write('request', JSON.stringify(req.body, null, 2), req.body, req.body);
+                            global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
                             next();
                             break;
                         case '/' + global.config.version + '/asset/status/collection':
                             req.body['module'] = 'asset';
-                            global.logger.write('request', JSON.stringify(req.body, null, 2), req.body, req.body);
+                            global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
                             next();
                             break;
                         case '/' + global.config.version + '/pam/asset/passcode/check':
                             req.body['module'] = 'device';
-                            global.logger.write('request', JSON.stringify(req.body, null, 2), req.body, req.body);
+                            global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
                             next();
                             break;    
                         case '/' + global.config.version + '/pam/asset/passcode/alter/v1':
                             req.body['module'] = 'device';
-                            global.logger.write('request', JSON.stringify(req.body, null, 2), req.body, req.body);
+                            global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
                             next();
                             break;                                                
                         case '/' + global.config.version + '/send/email':
@@ -113,7 +113,7 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                                 
                             }
                             //console.log('Module : ' + req.body['module']);
-                            global.logger.write('debug', 'Module : ' + req.body['module'], {}, req.body);
+                            global.logger.write('conLog', 'Module : ' + req.body['module'], {}, req.body);
 
                             var asset_id = req.body.auth_asset_id || req.body.asset_id;
 
@@ -124,13 +124,13 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                                     res.send(responseWrapper.getResponse(null, {}, -7998, req.body));
                                     return;
                                 } else {                                    
-                                    global.logger.write('debug', encToken, {}, req.body);
+                                    global.logger.write('conLog', encToken, {}, req.body);
                                     if (encToken === req.body.asset_token_auth) {                                        
-                                        global.logger.write('debug', 'successfully redis encToken checking is done', {}, req.body);
+                                        global.logger.write('conLog', 'successfully redis encToken checking is done', {}, {});
                                         next();
                                     } else {                                        
-                                        global.logger.write('debug', 'req.url : ' + req.url, {}, req.body);
-                                        global.logger.write('serverError', 'Redis encToken checking failed : ' + JSON.stringify(err), {}, req.body);
+                                        global.logger.write('conLog', 'req.url : ' + req.url, {}, req.body);
+                                        global.logger.write('serverError', 'Redis encToken checking failed : ' + JSON.stringify(err), {}, {});
                                         res.send(responseWrapper.getResponse(null, {}, -3204, req.body));
                                         return;
                                     }

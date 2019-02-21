@@ -8,6 +8,7 @@ let Logger = require('../utils/logger.js');
 var kafka = require('kafka-node');
 var kafkaConsumer = kafka.Consumer;
 var KafkaProducer = kafka.Producer;
+var kafkaConsumerGroup = kafka.ConsumerGroup;
 var Util = require('../utils/util');
 var db = require("../utils/dbWrapper");
 var redis = require('redis'); //using elasticache as redis
@@ -39,6 +40,7 @@ var Consumer = function () {
         });
     var kafkaProducer = new KafkaProducer(kfkClient);
 
+    /*
     var consumer =
         new kafkaConsumer(
             kfkClient,
@@ -58,8 +60,55 @@ var Consumer = function () {
                 keyEncoding: global.config.CONSUMER_KEY_ENCODING
             }
         );
+    */
 
-    
+    let optionsConsumerGroup = 
+    {
+        // Connect directly to kafka broker (instantiates a KafkaClient)
+        kafkaHost: global.config.BROKER_HOST, 
+        
+        // Put client batch settings if you need them
+        batch: global.config.CONSUMER_GROUP_BATCH, 
+        
+        // Optional (defaults to false) or tls options hash
+        ssl: global.config.CONSUMER_GROUP_SSL, 
+        
+        // Consumer group name
+        groupId: global.config.CONSUMER_GROUP_ID,
+        
+        // Consumer group session timeout
+        sessionTimeout: global.config.CONSUMER_GROUP_SESSION_TIMEOUT,
+
+        // An array of partition assignment protocols ordered by preference.
+        // 'roundrobin' or 'range' string for built ins (see below to pass in custom assignment protocol)
+        protocol: global.config.CONSUMER_GROUP_PARTITION_ASSIGNMENT_PROTOCOL,
+
+        // default is utf8, use 'buffer' for binary data
+        encoding: global.config.CONSUMER_ENCODING, 
+        
+        // Offsets to use for new groups other options could be 'earliest' or 'none' (none will emit an error if no offsets were saved)
+        // equivalent to Java client's auto.offset.reset
+        // default
+        fromOffset: global.config.CONSUMER_GROUP_FROM_OFFSET, 
+        
+        // on the very first time this consumer group subscribes to a topic, record the offset returned in fromOffset (latest/earliest)
+        commitOffsetsOnFirstJoin: global.config.CONSUMER_GROUP_COMMIT_OFFSET_ONFIRSTJOIN, 
+
+        // how to recover from OutOfRangeOffset error (where save offset is past server retention) accepts same value as fromOffset
+        // default
+        outOfRangeOffset: global.config.CONSUMER_GROUP_OUTOFRANGE_OFFSET, 
+
+        // for details please see Migration section below
+        migrateHLC: global.config.CONSUMER_GROUP_MIGRATE_HLC,    
+        migrateRolling: global.config.CONSUMER_GROUP_MIGRATE_ROLLING,
+
+        // Callback to allow consumers with autoCommit false a chance to commit before a rebalance finishes
+        // isAlreadyMember will be false on the first connection, and true on rebalances triggered after that
+        onRebalance: (isAlreadyMember, callback) => { callback(); } // or null
+    };
+        
+    // for a single topic pass in a string
+    var consumerGroup = new kafkaConsumerGroup(optionsConsumerGroup, global.config.TOPIC_NAME);
 
     new Promise((resolve, reject) => {
         if (kafkaProducer.ready)
@@ -85,6 +134,7 @@ var Consumer = function () {
             activityPushService: activityPushService
         };
 
+        /*
         consumer.on('message', function (message) {
 
             global.logger.write('conLog', `topic ${message.topic} partition ${message.partition} offset ${message.offset}`, {}, {});
@@ -129,6 +179,58 @@ var Consumer = function () {
         });
 
         consumer.on('offsetOutOfRange', function (err) {
+            global.logger.write('conLog', 'offsetOutOfRange => ' + JSON.stringify(err), {}, {});
+        });
+
+        kafkaProducer.on('error', function (error) {
+            global.logger.write('conLog', error, {}, {});
+        });
+        */
+
+        consumerGroup.on('message', function (message) {
+
+            global.logger.write('conLog', `topic ${message.topic} partition ${message.partition} offset ${message.offset}`, {}, {});
+            var kafkaMsgId = message.topic + '_' + message.partition + '_' + message.offset;
+            global.logger.write('conLog', 'kafkaMsgId : ' + kafkaMsgId, {}, {});
+            global.logger.write('conLog', 'getting this key from Redis : ' + message.topic + '_' + message.partition, {}, {});
+
+            var messageJson = JSON.parse(message.value);
+            var request = messageJson['payload'];
+            request.partition = message.partition;
+            request.offset = message.offset;
+
+            activityCommonService.checkingPartitionOffset(request, (err, data) => {
+                global.logger.write('conLog', 'err from checkingPartitionOffset : ' + err, {}, request);
+                if (err === false) {
+                    global.logger.write('conLog', 'Consuming the message', {}, request);
+                    activityCommonService.partitionOffsetInsert(request, (err, data) => {});
+                    
+                    consumingMsg(message, kafkaMsgId, objCollection).then(() => {                        
+                        if(Number(request.pubnub_push) === 1) {
+                            pubnubWrapper.publish(kafkaMsgId, {"status": 200});
+                        }
+                    }).catch((err)=>{
+                        if(Number(request.pubnub_push) === 1) {
+                            pubnubWrapper.publish(kafkaMsgId, {"status": err});
+                        }
+                    });
+                    
+                } else {
+                    global.logger.write('conLog', 'Before calling this duplicateMsgUniqueIdInsert', {}, request);
+                    activityCommonService.duplicateMsgUniqueIdInsert(request, (err, data) => {});
+                }
+            });
+        });
+
+        consumerGroup.on('connect', function (err, data) {
+            global.logger.write('conLog', "Connected to Kafka Host", {}, {});
+        });
+
+        consumerGroup.on('error', function (err) {
+            global.logger.write('conLog', 'err => ' + JSON.stringify(err), {}, {});
+        });
+
+        consumerGroup.on('offsetOutOfRange', function (err) {
             global.logger.write('conLog', 'offsetOutOfRange => ' + JSON.stringify(err), {}, {});
         });
 

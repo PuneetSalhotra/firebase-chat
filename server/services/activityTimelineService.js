@@ -36,12 +36,12 @@ function ActivityTimelineService(objectCollection) {
                     //act id in request is different from retrieved one
                     // Adding 705 entires onto a diff file not a dedicated file
                     //Should not do Form Transaction Insertion as it is not a dedicated file
-                    global.logger.write('debug', "\x1b[35m [Log] request.activity_id \x1b[0m" + Number(request.activity_id) ,{}, request);
-                    global.logger.write('debug', "\x1b[35m [Log] data[0].activity_id \x1b[0m" + Number(data[0].activity_id) ,{}, request);
+                    global.logger.write('conLog', "\x1b[35m [Log] request.activity_id \x1b[0m" + Number(request.activity_id), {}, request);
+                    global.logger.write('conLog', "\x1b[35m [Log] data[0].activity_id \x1b[0m" + Number(data[0].activity_id), {}, request);
                     
                     if(Number(request.activity_id) !== Number(data[0].activity_id)) { 
-                        global.logger.write('debug', "\x1b[35m [Log] Activity_ID from request is different from retrived Activity_id hence proceeding \x1b[0m",{}, request);
-                        global.logger.write('debug', "\x1b[35m [Log] Non Dedicated File \x1b[0m",{}, request);
+                        global.logger.write('conLog', "\x1b[35m [Log] Activity_ID from request is different from retrived Activity_id hence proceeding \x1b[0m", {}, request);
+                        global.logger.write('conLog', "\x1b[35m [Log] Non Dedicated File \x1b[0m", {}, request);
                         request.data_activity_id = Number(data[0].activity_id); //Dedicated file activity id
                         request.non_dedicated_file = 1;
 
@@ -54,9 +54,9 @@ function ActivityTimelineService(objectCollection) {
                         }
                         
                     } else {
-                        global.logger.write('debug', "\x1b[35m [Log] Activity_ID from request is same as retrived Activity_id hence checking for device os id 7 \x1b[0m",{}, request);
-                        global.logger.write('conLog', "\x1b[35m [Log] Number(request.device_os_id) : ",Number(request.device_os_id), {});
-                        global.logger.write('debug', "\x1b[35m [Log] Dedicated File \x1b[0m",{}, request);
+                        global.logger.write('debug', "\x1b[35m [Log] Activity_ID from request is same as retrived Activity_id hence checking for device os id 7 \x1b[0m", {}, request);
+                        global.logger.write('conLog', "\x1b[35m [Log] Number(request.device_os_id) : ", Number(request.device_os_id), {});
+                        global.logger.write('debug', "\x1b[35m [Log] Dedicated File \x1b[0m", {}, request);
                         
                         //705 for Dedicated file
                         if(Number(request.device_os_id) === 7) {
@@ -81,15 +81,17 @@ function ActivityTimelineService(objectCollection) {
                         }
                     }
                 } else {
-                    global.logger.write('conLog', "\x1b[35m [Log] There is no data hence checking for device os id \x1b[0m",{}, request);
-                    global.logger.write('conLog', "\x1b[35m [Log] Number(request.device_os_id) : ",Number(request.device_os_id), {});
+                    global.logger.write('conLog', "\x1b[35m [Log] There is no data hence checking for device os id \x1b[0m", {}, request);
+                    global.logger.write('conLog', "\x1b[35m [Log] Number(request.device_os_id) : ", Number(request.device_os_id), {});
                     
                     if(Number(request.device_os_id) === 7) { //7 means calling internal from services
                         //retrievingFormIdandProcess(request, data).then(()=>{});  
                         if(Number(request.organization_id) === 860 || Number(request.organization_id) === 858 || Number(request.organization_id) === 868) { 
                             retrievingFormIdandProcess(request, data).then(()=>{});
                         } else {
-                            timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
+                            timelineStandardCalls(request).then(() => {}).catch((err) => {
+                                global.logger.write('debug', 'Error in timelineStandardCalls' + err, {}, request);
+                            });
                         }
                         
                         //Form Transaction Insertion should happen only for dedicated files
@@ -105,23 +107,40 @@ function ActivityTimelineService(objectCollection) {
             }, 2000);
         } else if (activityTypeCategoryId === 9 && activityStreamTypeId === 713) {
             
-            timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
+            timelineStandardCalls(request).then(() => {}).catch((err) => {
+                global.logger.write('debug', 'Error in timelineStandardCalls' + err, {}, request);
+            });
 
         } else if (activityTypeCategoryId === 48 && (activityStreamTypeId === 713 || activityStreamTypeId === 705 ||
                 activityStreamTypeId === 715 || activityStreamTypeId === 716)) {
 
             request.non_dedicated_file = 1;
             
-            getActivityIdBasedOnTransId(request).then((data)=>{
-                if(data.length > 0) {
-                    request.data_activity_id = Number(data[0].activity_id);
-                }
-                timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
-            });
+            setTimeout(() => {
+                getActivityIdBasedOnTransId(request).then((data) => {
+                    if (data.length > 0) {
+                        request.data_activity_id = Number(data[0].activity_id);
+                    }
+                    timelineStandardCalls(request).then(() => {}).catch((err) => {
+                        global.logger.write('debug', 'Error in timelineStandardCalls' + err, {}, request);
+                    });
+                });
+            }, 1000);
+
+            // getActivityIdBasedOnTransId(request).then((data)=>{
+            //     if(data.length > 0) {
+            //         request.data_activity_id = Number(data[0].activity_id);
+            //     }
+            //     timelineStandardCalls(request).then(() => {}).catch((err) => {
+            //         global.logger.write('debug', 'Error in timelineStandardCalls' + err, {}, request);
+            //     });
+            // });
         } else {
             
             request.form_id = 0;            
-            timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
+            timelineStandardCalls(request).then(() => {}).catch((err) => {
+                global.logger.write('debug', 'Error in timelineStandardCalls' + err, {}, request);
+            });
         }
         
         new Promise(()=>{
@@ -144,9 +163,9 @@ function ActivityTimelineService(objectCollection) {
                 global.logger.write('debug', 'form id extracted from json is: ' + formDataJson[0]['form_id'], {}, request);
                 let lastObject = formDataJson[formDataJson.length - 1];
                 
-                global.logger.write('debug', 'Last object : ' + JSON.stringify(lastObject, null, 2), {}, request);
+                global.logger.write('conLog', 'Last object : ' + JSON.stringify(lastObject, null, 2), {}, request);
                 if (lastObject.hasOwnProperty('field_value')) {                
-                    global.logger.write('debug', 'Has the field value in the last object', {}, request);
+                    global.logger.write('conLog', 'Has the field value in the last object', {}, request);
                     //remote Analytics
                     if (request.form_id == 325) {
                         monthlySummaryTransInsert(request).then(() => {
@@ -159,7 +178,7 @@ function ActivityTimelineService(objectCollection) {
             if ((Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER))) {
                         
                         if(Number(request.organization_id) !== 868) {
-                            global.logger.write('debug', "\x1b[35m [Log] Triggering the BOT 1 \x1b[0m", {}, request);
+                            global.logger.write('conLog', "\x1b[35m [Log] Triggering the BOT 1 \x1b[0m", {}, request);
                         
                             //makeRequest to /vodafone/neworder_form/queue/add
                             let newRequest = Object.assign({}, request);
@@ -173,7 +192,7 @@ function ActivityTimelineService(objectCollection) {
             //Triggering BOT 2
             if ((Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.FR) || 
                     Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.CRM))) {
-                global.logger.write('debug', "\x1b[35m [Log] Triggering the BOT 2 \x1b[0m", {}, request);
+                global.logger.write('conLog', "\x1b[35m [Log] Triggering the BOT 2 \x1b[0m", {}, request);
                 
                 activityCommonService.makeRequest(request, "vodafone/customer_form/add", 1).then((resp)=>{
                     global.logger.write('debug', resp, {}, request);
@@ -183,7 +202,7 @@ function ActivityTimelineService(objectCollection) {
             //BOT to send email on CRM form submission
             //if (Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.CRM) && Number(request.device_os_id) === 7) {
             if (Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.CRM) && Number(request.non_dedicated_file) === 1) {
-                global.logger.write('debug', "\x1b[35m [Log] Triggering BOT to send email on CRM form submission \x1b[0m", {}, request);
+                global.logger.write('conLog', "\x1b[35m [Log] Triggering BOT to send email on CRM form submission \x1b[0m", {}, request);
                 
                 let newRequest = Object.assign({}, request);
                 const crmFormData = JSON.parse(request.activity_inline_data);
@@ -332,8 +351,34 @@ function ActivityTimelineService(objectCollection) {
                     }
                 });
             }
+
+            // Process/Workflow ROMS Target Form Generation Trigger
+            if (
+                activityStreamTypeId === 705 &&
+                request.hasOwnProperty("workflow_activity_id") &&
+                Number(request.workflow_activity_id) !== 0
+            ) {
+                console.log('CALLING buildAndSubmitCafFormV1');
+                const romsTargetFormGenerationEvent = {
+                    name: "vodafoneService",
+                    service: "vodafoneService",
+                    method: "buildAndSubmitCafFormV1",
+                    payload: request
+                };
+                queueWrapper.raiseActivityEvent(romsTargetFormGenerationEvent, request.activity_id, (err, resp) => {
+                    if (err) {
+                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                    } else {
+                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                    }
+                });
+            }
             
-            timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
+            timelineStandardCalls(request).then(() => {}).catch((err) => {
+                global.logger.write('debug', 'Error in timelineStandardCalls' + err, {}, request);
+            });
             resolve();
         });
     }
@@ -404,7 +449,7 @@ function ActivityTimelineService(objectCollection) {
                                 });
                             }
                         } else {                            
-                            global.logger.write('debug', 'asset_reference is not available', {}, request);
+                            global.logger.write('conLog', 'asset_reference is not available', {}, request);
                         }
                     }
                 });
@@ -427,43 +472,46 @@ function ActivityTimelineService(objectCollection) {
                 newrequest.asset_id = global.vodafoneConfig[request.organization_id].BOT.ASSET_ID :
                 newrequest.asset_id = request.asset_id;
             
-            let cafCompletionPercentage;
-            
-            switch(Number(newrequest.form_id)) {
-                //case global.vodafoneConfig[newrequest.organization_id].FORM_ID.NEW_ORDER:
-                    //cafCompletionPercentage = 3;
-                    //break;
-                //case global.vodafoneConfig[newrequest.organization_id].FORM_ID.ORDER_SUPPLEMENTARY:
-                    //cafCompletionPercentage = 20;
-                  //  cafCompletionPercentage = 23;
-                    //break;
-                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.FR:
-                    cafCompletionPercentage = 5;
-                    break;
-                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.CRM:
-                    cafCompletionPercentage = 7;
-                    break;
-                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.HLD:
-                    cafCompletionPercentage = 12;
-                    break;
-                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.NEW_CUSTOMER:
-                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.EXISTING_CUSTOMER:
-                    cafCompletionPercentage = 5;
-                    break;
-                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.OMT_APPROVAL:
-                    cafCompletionPercentage = 1;
-                    break;
-                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.ACCOUNT_MANAGER_APPROVAL:
-                    cafCompletionPercentage = 1;
-                    break;
-                case global.vodafoneConfig[newrequest.organization_id].FORM_ID.CUSTOMER_APPROVAL:
-                    cafCompletionPercentage = 1;
-                    break;      
-                // case global.vodafoneConfig[newrequest.organization_id].FORM_ID.CAF:
-                //     cafCompletionPercentage = 45;
-                //     break;
-                default: cafCompletionPercentage = newrequest.workflow_completion_percentage || 0;
+            let cafCompletionPercentage = 0;
+
+            if (Number(newrequest.organization_id) === 858 || Number(newrequest.organization_id) === 860) {
+                switch(Number(newrequest.form_id)) {
+                    //case global.vodafoneConfig[newrequest.organization_id].FORM_ID.NEW_ORDER:
+                        //cafCompletionPercentage = 3;
+                        //break;
+                    //case global.vodafoneConfig[newrequest.organization_id].FORM_ID.ORDER_SUPPLEMENTARY:
+                        //cafCompletionPercentage = 20;
+                      //  cafCompletionPercentage = 23;
+                        //break;
+                    case global.vodafoneConfig[newrequest.organization_id].FORM_ID.FR:
+                        cafCompletionPercentage = 5;
+                        break;
+                    case global.vodafoneConfig[newrequest.organization_id].FORM_ID.CRM:
+                        cafCompletionPercentage = 7;
+                        break;
+                    case global.vodafoneConfig[newrequest.organization_id].FORM_ID.HLD:
+                        cafCompletionPercentage = 12;
+                        break;
+                    case global.vodafoneConfig[newrequest.organization_id].FORM_ID.NEW_CUSTOMER:
+                    case global.vodafoneConfig[newrequest.organization_id].FORM_ID.EXISTING_CUSTOMER:
+                        cafCompletionPercentage = 5;
+                        break;
+                    case global.vodafoneConfig[newrequest.organization_id].FORM_ID.OMT_APPROVAL:
+                        cafCompletionPercentage = 1;
+                        break;
+                    case global.vodafoneConfig[newrequest.organization_id].FORM_ID.ACCOUNT_MANAGER_APPROVAL:
+                        cafCompletionPercentage = 1;
+                        break;
+                    case global.vodafoneConfig[newrequest.organization_id].FORM_ID.CUSTOMER_APPROVAL:
+                        cafCompletionPercentage = 1;
+                        break;      
+                    // case global.vodafoneConfig[newrequest.organization_id].FORM_ID.CAF:
+                    //     cafCompletionPercentage = 45;
+                    //     break;
+                    default: cafCompletionPercentage = newrequest.workflow_completion_percentage || 0;
+                }
             }
+            
             
             console.log('cafCompletionPercentage : ', cafCompletionPercentage);
             
@@ -540,7 +588,7 @@ function ActivityTimelineService(objectCollection) {
     //This is to support the feature - Not to increase unread count during timeline entry
     this.addTimelineTransactionV1 = function (request, callback) {
         //console.log('In addTimelineTransactionV1');
-        global.logger.write('debug', 'In addTimelineTransactionV1', {}, request);
+        global.logger.write('conLog', 'In addTimelineTransactionV1', {}, request);
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         var activityTypeCategoryId = Number(request.activity_type_category_id);
@@ -556,7 +604,7 @@ function ActivityTimelineService(objectCollection) {
             global.logger.write('debug', 'Last object : ' + JSON.stringify(lastObject, null, 2), {}, request);
             if (lastObject.hasOwnProperty('field_value')) {
                 //console.log('Has the field value in the last object')
-                global.logger.write('debug', 'Has the field value in the last object', {}, request);
+                global.logger.write('conLog', 'Has the field value in the last object', {}, request);
                 //remote Analytics
                 if (request.form_id == 325) {
                     monthlySummaryTransInsert(request).then(() => {
@@ -611,7 +659,7 @@ function ActivityTimelineService(objectCollection) {
                         }
                     } else {
                         //console.log('asset_reference is not availale');
-                        global.logger.write('debug', 'asset_reference is not available', {}, request);
+                        global.logger.write('conLog', 'asset_reference is not available', {}, request);
                     }
 
 
@@ -867,7 +915,7 @@ function ActivityTimelineService(objectCollection) {
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     //console.log('getFormTransTimeCardsStats : \n', data, "\n");
-                    global.logger.write('debug', 'getFormTransTimeCardsStats : \n' + JSON.stringify(data, null, 2) + "\n", {}, request);
+                    global.logger.write('conLog', 'getFormTransTimeCardsStats : \n' + JSON.stringify(data, null, 2) + "\n", {}, request);
                     (err === false) ? resolve(data) : reject(err);
                 });
             }
@@ -1047,7 +1095,7 @@ function ActivityTimelineService(objectCollection) {
             var paramsArr = new Array(
                     request.organization_id,
                     request.activity_id,
-                    request.timeline_transaction_id,
+                    request.timeline_transaction_id || 0,
                     request.flag_previous,
                     request.page_start,
                     util.replaceQueryLimit(request.page_limit)
@@ -1593,7 +1641,7 @@ function ActivityTimelineService(objectCollection) {
             try {
                 formDataCollection = JSON.parse(request.activity_timeline_collection);
             } catch(err) {
-                global.logger.write('debug', '\x1b[32m Error in addFormEntries() function - ONE. JSON Error \x1b[0m', {}, request);
+                global.logger.write('conLog', '\x1b[32m Error in addFormEntries() function - ONE. JSON Error \x1b[0m', {}, request);
                 global.logger.write('debug', err, {}, request);
             }         
         
@@ -1604,7 +1652,7 @@ function ActivityTimelineService(objectCollection) {
                 try {
                     formDataJson = JSON.parse(formDataCollection.form_submitted);
                 } catch(err) {
-                    global.logger.write('debug', '\x1b[32m Error in addFormEntries() function - TWO. JSON Error \x1b[0m', {}, request);
+                    global.logger.write('conLog', '\x1b[32m Error in addFormEntries() function - TWO. JSON Error \x1b[0m', {}, request);
                     global.logger.write('debug', err, {}, request);
                 }           
                 
@@ -1706,6 +1754,22 @@ function ActivityTimelineService(objectCollection) {
                     } catch(err) {                        
                     }                  
                     break;
+                case 52: // Excel Document
+                    try {
+                        const fieldValue = JSON.parse(row.field_value);
+                        params[18] = fieldValue.excel_file_url; // p_entity_text_1
+                        params[19] = fieldValue.pdf_file_url; // p_entity_text_2
+                    } catch (err) {
+                        global.logger.write('debug', '\x1b[32m Error parsing field_value for Excel Document data type - \x1b[0m', err, request);
+                        console.log("ActivityTimelineService | addFormEntries | case 50 | Excel Document | Error: ", err);
+                    }
+                    break;
+                case 53: // IP Address Form
+                    params[18] = row.field_value;
+                    break;
+                case 54: // MAC Address Form
+                    params[18] = row.field_value;
+                    break;
                 case 17:    //Location
                     var location = row.field_value.split('|');
                     params[16] = location[0];
@@ -1798,13 +1862,13 @@ function ActivityTimelineService(objectCollection) {
             params.push(request.api_version);                                   // IN p_device_api_version VARCHAR(50)
             params.push(request.asset_id);                                      // IN p_log_asset_id BIGINT(20)
             params.push(row.message_unique_id);                                 // IN p_log_message_unique_id VARCHAR(50)
-            params.push(request.flag_retry);                                    // IN p_log_retry TINYINT(1)
-            params.push(request.flag_offline);                                  // IN p_log_offline TINYINT(1)
+            params.push(request.flag_retry || 0);                                    // IN p_log_retry TINYINT(1)
+            params.push(request.flag_offline || 0);                                  // IN p_log_offline TINYINT(1)
             params.push(util.getCurrentUTCTime());                              // IN p_transaction_datetime DATETIME
             params.push(request.datetime_log);                                  // IN p_log_datetime DATETIME
             params.push(request.entity_datetime_2);                             // IN p_entity_datetime_2 DATETIME
             
-            global.logger.write('debug', '\x1b[32m addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
+            global.logger.write('conLog', '\x1b[32m addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
 
             //var queryString = util.getQueryString('ds_v1_activity_form_transaction_insert', params);
             // var queryString = util.getQueryString('ds_v1_1_activity_form_transaction_insert', params); //BETA
@@ -1852,7 +1916,7 @@ function ActivityTimelineService(objectCollection) {
             }
 
         }).then(function () {
-        	 global.logger.write('debug', '*********************************AFTER FORM DATA ENTRY *********************************************88 : ', {}, request);
+        	 global.logger.write('conLog', '*********************************AFTER FORM DATA ENTRY *********************************************88 : ', {}, request);
         	 sendRequesttoWidgetEngine(request);
             callback(false, approvalFields);
         });
@@ -1860,7 +1924,7 @@ function ActivityTimelineService(objectCollection) {
     
     function sendRequesttoWidgetEngine(request){
     	
-        global.logger.write('debug', '*********************************88BEFORE FORM WIDGET *********************************************88 : ', {}, request);
+        global.logger.write('conLog', '*********************************88BEFORE FORM WIDGET *********************************************88 : ', {}, request);
         if (request.activity_type_category_id == 9) { //form and submitted state                    
         	activityCommonService.getActivityDetails(request, 0, function (err, activityData) { // get activity form_id and form_transaction id
                  var widgetEngineQueueMessage = {
@@ -1887,7 +1951,7 @@ function ActivityTimelineService(objectCollection) {
                     name: "Form Based Widget Engine",
                     payload: widgetEngineQueueMessage
                 };
-                global.logger.write('debug', 'Hitting Widget Engine with request:' + event, {}, request);
+                global.logger.write('conLog', 'Hitting Widget Engine with request:' + event, {}, request);
                 
                 queueWrapper.raiseFormWidgetEvent(event, request.activity_id);
             });

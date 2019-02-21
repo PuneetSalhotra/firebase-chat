@@ -26,7 +26,7 @@ function ActivityController(objCollection) {
             deviceOsId = Number(req.body.device_os_id);
 
         var proceedAddActivity = function () {
-            global.logger.write('debug', 'Came into proceedAddActivity() ', {}, req.body);
+            global.logger.write('conLog', 'Came into proceedAddActivity() ', {}, req.body);
 
             if (util.hasValidGenericId(req.body, 'activity_type_category_id')) {
                 if (util.hasValidGenericId(req.body, 'activity_type_id')) {
@@ -91,7 +91,7 @@ function ActivityController(objCollection) {
                             cacheWrapper.getFormTransactionId(function (err, formTransactionId) {
                                 if (err) {
                                     // console.log(err);
-                                    global.logger.write('serverError', err, err, req.body);
+                                    global.logger.write('serverError', err, err, {});
                                     res.send(responseWrapper.getResponse(false, {
                                         activity_id: 0
                                     }, -7998, req.body));
@@ -146,7 +146,7 @@ function ActivityController(objCollection) {
                                     return;
                                 } else {
                                     // console.log('Request Parameters : ' + req.body);
-                                    global.logger.write('debug', 'Request Parameters: ' + JSON.stringify(req.body, null, 2), {}, req.body);
+                                    global.logger.write('conLog', 'Request Parameters: ' + JSON.stringify(req.body, null, 2), {}, req.body);
 
                                     req.body.activity_id = activityId;
                                     activityService.addActivity(req.body, function (err, data, statusCode) {
@@ -194,7 +194,7 @@ function ActivityController(objCollection) {
                             break;
                         default:
                             //console.log('generating activity id via default condition');
-                            global.logger.write('debug', 'Generating activity_id via default condition', {}, req.body);
+                            global.logger.write('conLog', 'Generating activity_id via default condition', {}, req.body);
 
                             addActivity(req.body, function (err, activityId) {
                                 if (err === false) {
@@ -248,7 +248,7 @@ function ActivityController(objCollection) {
                 } else {
                     if (status) { // proceed
                         // console.log("calling proceedAddActivity");
-                        global.logger.write('debug', 'Calling proceedAddActivity', {}, req.body);
+                        global.logger.write('conLog', 'Calling proceedAddActivity', {}, req.body);
 
                         proceedAddActivity();
                     } else { // get the activity id using message unique id and send as response
@@ -284,7 +284,7 @@ function ActivityController(objCollection) {
             deviceOsId = Number(req.body.device_os_id);
 
         var proceedAddActivity = function () {
-            global.logger.write('debug', 'Came into proceedAddActivity() ', {}, req.body);
+            global.logger.write('conLog', 'Came into proceedAddActivity() ', {}, req.body);
 
             if (util.hasValidGenericId(req.body, 'activity_type_category_id')) {
                 if (util.hasValidGenericId(req.body, 'activity_type_id')) {
@@ -468,7 +468,7 @@ function ActivityController(objCollection) {
                                     return;
                                 } else {
                                     // console.log('Request Parameters : ' + req.body);
-                                    global.logger.write('debug', 'Request Parameters: ' + JSON.stringify(req.body, null, 2), {}, req.body);
+                                    global.logger.write('conLog', 'Request Parameters: ' + JSON.stringify(req.body, null, 2), {}, req.body);
 
                                     req.body.activity_id = activityId;
                                     activityService.addActivity(req.body, function (err, data, statusCode) {
@@ -516,7 +516,7 @@ function ActivityController(objCollection) {
                             break;
                         default:
                             //console.log('generating activity id via default condition');
-                            global.logger.write('debug', 'Generating activity_id via default condition', {}, req.body);
+                            global.logger.write('conLog', 'Generating activity_id via default condition', {}, req.body);
 
                             addActivity(req.body, function (err, activityId) {
                                 if (err === false) {
@@ -572,7 +572,7 @@ function ActivityController(objCollection) {
                 } else {
                     if (status) { // proceed
                         //console.log("calling proceedAddActivity");
-                        global.logger.write('debug', 'calling proceedAddActivity', {
+                        global.logger.write('conLog', 'calling proceedAddActivity', {
                             status
                         }, req.body);
 
@@ -606,7 +606,7 @@ function ActivityController(objCollection) {
         cacheWrapper.getActivityId(function (err, activityId) {
             if (err) {
                 console.log(err);
-                global.logger.write('debug', err, err, req);
+                global.logger.write('conLog', err, err, req);
 
                 callback(true, 0);
                 return;
@@ -621,7 +621,7 @@ function ActivityController(objCollection) {
                 queueWrapper.raiseActivityEvent(event, activityId, (err, resp) => {
                     if (err) {
                         // console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                        global.logger.write('serverError', 'Error in queueWrapper raiseActivityEvent', err, req);
+                        global.logger.write('serverError', 'Error in queueWrapper raiseActivityEvent', err, {});
 
                         callback(true, 1);
 
@@ -656,7 +656,7 @@ function ActivityController(objCollection) {
         });
     };
 
-    app.put('/' + global.config.version + '/activity/status/alter', function (req, res) {
+    app.post('/' + global.config.version + '/activity/status/alter', function (req, res) {
         var assetMessageCounter = 0;
         var deviceOsId = 0;
         var activityData = {
@@ -752,7 +752,7 @@ function ActivityController(objCollection) {
         });
     });
 
-    app.put('/' + global.config.version + '/activity/access/owner_rating/set', function (req, res) {
+    app.post('/' + global.config.version + '/activity/access/owner_rating/set', function (req, res) {
         activityService.updateOwnerRating(req.body, function (err, data, statusCode) {
             if (err === false) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
@@ -762,7 +762,7 @@ function ActivityController(objCollection) {
         });
     });
 
-    app.put('/' + global.config.version + '/activity/access/lead_rating/set', function (req, res) {
+    app.post('/' + global.config.version + '/activity/access/lead_rating/set', function (req, res) {
         activityService.updateLeadRating(req.body, function (err, data, statusCode) {
             if (err === false) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
@@ -773,9 +773,9 @@ function ActivityController(objCollection) {
     });    
     
     
-    app.put('/' + global.config.version + '/activity/form/field/validation/set', function (req, res) {
+    app.post('/' + global.config.version + '/activity/form/field/validation/set', function (req, res) {
    	 activityService.updateActivityFormFieldValidation(req.body).then((data)=>{   
-   		global.logger.write('debug', "VALIDATION SET : RESPONSE : " + data, {}, req);
+   		global.logger.write('conLog', "VALIDATION SET : RESPONSE : " + data, {}, req);
    		//res.send(responseWrapper.getResponse({}, data, 200, req.body));
    	}).catch((err) => { 
    		data = {};
@@ -785,7 +785,7 @@ function ActivityController(objCollection) {
    	 	res.send(responseWrapper.getResponse({}, {}, 200, req.body));
    });
     
-    // app.put('/' + global.config.version + '/test/workflow/queue/mapping/set', function (req, res) {
+    // app.post('/' + global.config.version + '/test/workflow/queue/mapping/set', function (req, res) {
     //     activityService.updateWorkflowQueueMapping(req.body)
     //         .then((data) => {
     //             // console.log("Data: ", data)

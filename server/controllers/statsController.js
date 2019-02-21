@@ -13,7 +13,7 @@ function statsController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log("err: ", err);
-                global.logger.write('debug', 'err: ' + err, {}, req.body);
+                global.logger.write('debug', err, {}, req.body);
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })
@@ -25,7 +25,7 @@ function statsController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log("err: ", err);
-                global.logger.write('debug', 'err: ' + err, {}, req.body);
+                global.logger.write('debug', err, {}, req.body);
                 data = {};
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -38,7 +38,7 @@ function statsController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log("err: ", err);
-                global.logger.write('debug', 'err: ' + err, {}, req.body);
+                global.logger.write('debug', err, {}, req.body);
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })
@@ -144,7 +144,7 @@ function statsController(objCollection) {
 
                 res.send(responseWrapper.getResponse(err, responseJSON, statusCode, req.body));
             } else {
-                global.logger.write('debug', 'err: ' + err, {}, req.body);
+                global.logger.write('debug', err, {}, req.body);
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })
@@ -168,7 +168,7 @@ function statsController(objCollection) {
 
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                global.logger.write('debug', 'err: ' + err, {}, req.body);
+                global.logger.write('debug', err, {}, req.body);
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })
@@ -491,7 +491,7 @@ function statsController(objCollection) {
                 });
                 res.send(responseWrapper.getResponse(err, responseJSON, statusCode, req.body));
             } else {
-                global.logger.write('debug', 'err: ' + err, {}, req.body);
+                global.logger.write('debug', err, {}, req.body);
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })
@@ -817,7 +817,7 @@ function statsController(objCollection) {
 
                 res.send(responseWrapper.getResponse(err, responseJSON, statusCode, req.body));
             } else {
-                global.logger.write('debug', 'err: ' + err, {}, req.body);
+                global.logger.write('debug', err, {}, req.body);
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })
@@ -887,7 +887,7 @@ function statsController(objCollection) {
 
                 res.send(responseWrapper.getResponse(err, responseJSON, statusCode, req.body));
             } else {
-                global.logger.write('debug', 'err: ' + err, {}, req.body);
+                global.logger.write('debug', err, {}, req.body);
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })

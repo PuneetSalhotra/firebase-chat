@@ -472,9 +472,9 @@ function ActivityListingService(objCollection) {
 										// console.log('monthly_summary.completion_rate : ' + monthly_summary.completion_rate);
 										// console.log('monthly_summary.unread_update_response_rate : ' + monthly_summary.unread_update_response_rate);
 
-										global.logger.write('debug', 'Denominator after processing: ' + denominator, {}, request);
-										global.logger.write('debug', 'monthly_summary.completion_rate: ' + monthly_summary.completion_rate, {}, request);
-										global.logger.write('debug', 'monthly_summary.unread_update_response_rate: ' + monthly_summary.unread_update_response_rate, {}, request);
+										global.logger.write('debug', 'Denominator after processing: ' + denominator, {}, {});
+										global.logger.write('debug', 'monthly_summary.completion_rate: ' + monthly_summary.completion_rate, {}, {});
+										global.logger.write('debug', 'monthly_summary.unread_update_response_rate: ' + monthly_summary.unread_update_response_rate, {}, {});
 
 										if (denominator == 0) {
 											monthly_summary.average_value = -1;
@@ -607,7 +607,7 @@ function ActivityListingService(objCollection) {
 		if (queryString != '') {
 			db.executeQuery(1, queryString, request, function (err, coworkerData) {
 				console.log(coworkerData);
-				global.logger.write('debug', 'coworkerData' + JSON.stringify(coworkerData, null, 2), {}, request);
+				global.logger.write('debug', 'coworkerData' + JSON.stringify(coworkerData, null, 2), {}, {});
 
 				if (err === false) {
 					if (coworkerData.length > 0) {
@@ -997,7 +997,7 @@ function ActivityListingService(objCollection) {
 			db.executeQuery(1, queryString, request, function (err, data) {
 				if (err === false) {
 					// console.log('Data of pending count : ', data);
-					global.logger.write('debug', 'Data of pending count: ' + JSON.stringify(data, null, 2), {}, request);
+					global.logger.write('debug', 'Data of pending count: ' + JSON.stringify(data, null, 2), {}, {});
 
 					(data.length > 0) ? taskCnt = data[0].count: taskCnt = 0;
 					getCatGrpCts(request).then((resp) => {
@@ -1049,7 +1049,7 @@ function ActivityListingService(objCollection) {
 			db.executeQuery(1, queryString, request, function (err, data) {
 				if (err === false) {
 					// console.log('Data of pending count : ', data);
-					global.logger.write('debug', 'Data of pending count: ' + JSON.stringify(data, null, 2), {}, request);
+					global.logger.write('debug', 'Data of pending count: ' + JSON.stringify(data, null, 2), {}, {});
 
 					(data.length > 0) ? taskCnt = data[0].count: taskCnt = 0;
 					getCatGrpCts(request).then((resp) => {
@@ -1195,7 +1195,7 @@ function ActivityListingService(objCollection) {
 			db.executeQuery(1, queryString, request, function (err, data) {
 				if (err === false) {
 					// console.log('Inmail pending count : ', data);
-					global.logger.write('debug', 'Inmail pending count: ' + JSON.stringify(data, null, 2), {}, request);
+					global.logger.write('debug', 'Inmail pending count: ' + JSON.stringify(data, null, 2), {}, {});
 
 					(data.length > 0) ? callback(false, data, 200): callback(false, {}, 200);
 				} else {
@@ -1352,7 +1352,7 @@ function ActivityListingService(objCollection) {
 				db.executeQuery(1, queryString, request, function (err, resp) {
 					if (err === false) {
 						// console.log('Data of group counts : ', resp);
-						global.logger.write('debug', 'Data of group counts: ' + JSON.stringify(resp, null, 2), {}, request);
+						global.logger.write('debug', 'Data of group counts: ' + JSON.stringify(resp, null, 2), {}, {});
 
 						return resolve(resp);
 						/*forEachAsync(resp, (next, row)=>{                            
@@ -1396,7 +1396,7 @@ function ActivityListingService(objCollection) {
 				db.executeQuery(1, queryString, request, function (err, resp) {
 					if (err === false) {
 						// console.log('Badge Counts : ', resp);
-						global.logger.write('debug', 'Badge Counts: ' + JSON.stringify(resp, null, 2), {}, request);
+						global.logger.write('debug', 'Badge Counts: ' + JSON.stringify(resp, null, 2), {}, {});
 
 						return resolve(resp);
 					} else {
@@ -1975,48 +1975,59 @@ function ActivityListingService(objCollection) {
 	
 	this.getMyQueueActivitiesV2 = function (request) {
 		return new Promise((resolve, reject) => {
-			
+
+			// IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
+			// IN p_workforce_id BIGINT(20), IN p_asset_id BIGINT(20), 
+			// IN p_flag TINYINT(4), IN p_sort_flag TINYINT(4), 
+			// IN p_start_from INT(11), IN p_limit_value TINYINT(4)
 			var paramsArr = new Array(
 				request.organization_id,
 				request.account_id,
 				request.workforce_id,
 				request.target_asset_id,
+				request.sort_flag || 0, // 0 => Ascending | 1 => Descending
+				request.flag || 0, // 0 => Due date | 1 => Created date
 				request.page_start,
-				request.page_limit	            
+				request.page_limit
 			);
-			var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_myqueue', paramsArr);
+			// ds_v1_1_activity_asset_mapping_select_myqueue
+			var queryString = util.getQueryString('ds_v1_1_activity_asset_mapping_select_myqueue', paramsArr);
 			if (queryString != '') {
 				db.executeQuery(1, queryString, request, function (err, data) {
 					//console.log('queryString : '+queryString+ "err "+err+ ": data.length "+data.length);
 					if (err === false) {
-						processMyQueueData(request, data).then((queueData)=>{
-							resolve(queueData);	
-						});
-					} else {	                    
-						reject(err);	                    
+						// processMyQueueData(request, data).then((queueData) => {
+						// 	resolve(queueData);
+						// });
+						resolve(data);
+					} else {
+						reject(err);
 					}
 				});
 			}
 		});
 	};
 		
-	function processMyQueueData(request, data){
+	function processMyQueueData(request, data) {
 		return new Promise((resolve, reject) => {
 			var array = [];
-			forEachAsync(data, function (next, newOrderData) {	
-				getQueueActivity(request, newOrderData.activity_id).then((queueData)=>{
-									if(queueData.length > 0) {
-										queueData[0].asset_unread_updates_count = newOrderData.asset_unread_updates_count;
-										array.push(queueData[0]);
-									}                                    
-				}).then(()=>{
+			forEachAsync(data, function (next, newOrderData) {
+				getQueueActivity(request, newOrderData.activity_id).then((queueData) => {
+					if (queueData.length > 0) {
+						queueData[0].asset_unread_updates_count = newOrderData.asset_unread_updates_count;
+						queueData[0].activity_datetime_end_deferred = newOrderData.activity_datetime_end_deferred;
+						queueData[0].activity_datetime_start_expected = newOrderData.activity_datetime_start_expected;
+						queueData[0].activity_datetime_created = newOrderData.activity_datetime_created;
+						array.push(queueData[0]);
+					}
+				}).then(() => {
 					next();
-							});				    
-						
-			}).then(()=>{
+				});
+
+			}).then(() => {
 				//console.log(array);
 				resolve(array);
-			});	    		
+			});
 		});
 	}
 	

@@ -37,7 +37,7 @@ function PerformanceStatsController(objCollection) {
     });
 
     // To update ratings
-    app.put('/' + global.config.version + '/asset/task_creator/rating/alter', function (req, res) {
+    app.post('/' + global.config.version + '/asset/task_creator/rating/alter', function (req, res) {
         performanceStatsService.updateCreatorRating(req.body, function (err, data, statusCode) {
             if (err === false) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
@@ -48,7 +48,7 @@ function PerformanceStatsController(objCollection) {
     });
     
     // To update ratings
-    app.put('/' + global.config.version + '/asset/task_lead/rating/alter', function (req, res) {
+    app.post('/' + global.config.version + '/asset/task_lead/rating/alter', function (req, res) {
         performanceStatsService.updateLeadRating(req.body, function (err, data, statusCode) {
             if (err === false) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
@@ -59,7 +59,7 @@ function PerformanceStatsController(objCollection) {
     });
     
     // To update ratings
-    app.put('/' + global.config.version + '/asset/task_collaborator/rating/alter', function (req, res) {
+    app.post('/' + global.config.version + '/asset/task_collaborator/rating/alter', function (req, res) {
         performanceStatsService.updateCollaboratorRating(req.body, function (err, data, statusCode) {
             if (err === false) {
                 res.send(responseWrapper.getResponse(err, data, statusCode, req.body));

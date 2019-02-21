@@ -9,7 +9,10 @@ function ActivityParticipantService(objectCollection) {
     var activityCommonService = objectCollection.activityCommonService;
     var util = objectCollection.util;
     var sns = objectCollection.sns;
-    var activityPushService = objectCollection.activityPushService;
+    // var activityPushService = objectCollection.activityPushService;
+
+    const ActivityPushService = require('../services/activityPushService');
+    const activityPushService = new ActivityPushService(objectCollection);
 
     this.getParticipantsList = function (request, callback) {
 
@@ -83,6 +86,9 @@ function ActivityParticipantService(objectCollection) {
 
     this.assignCoworker = function (request, callback) { //Addparticipant Request
 
+        request.flag_retry = request.flag_retry || 0;
+        request.flag_offline = request.flag_offline || 0;
+
         var loopAddParticipant = function (participantCollection, index, maxIndex) {
             iterateAddParticipant(participantCollection, index, maxIndex, function (err, data) {
                 if (err === false) {
@@ -91,7 +97,7 @@ function ActivityParticipantService(objectCollection) {
                     }
                 } else {
                     //console.log("something is not wright in adding a participant");
-                    global.logger.write('serverError', 'something is not right in adding a participant', {}, request)
+                    global.logger.write('serverError', 'something is not right in adding a participant', err, {})
                 }
             });
         };
@@ -105,7 +111,7 @@ function ActivityParticipantService(objectCollection) {
                     addParticipant(request, participantData, newRecordStatus, function (err, data) {
                         if (err === false) {
                             //console.log("participant successfully added");
-                            global.logger.write('debug', 'participant successfully added', {}, request)
+                            global.logger.write('conLog', 'participant successfully added', {}, {})
                             //check participant is active in last 48 hrs or not
                             if (activityTypeCategroyId === 28 || activityTypeCategroyId === 8) {
                                 activityPushService.sendSMSNotification(request, objectCollection, participantData.asset_id, function () {});
@@ -117,14 +123,14 @@ function ActivityParticipantService(objectCollection) {
                             callback(false, true);
                         } else {
                             //console.log(err);
-                            global.logger.write('serverError', '' + err, {}, request)
+                            global.logger.write('serverError', err, {}, {})
                             callback(true, false);
                         }
                     }.bind(this));
                 } else {
                     if (alreadyAssignedStatus > 0) {
                         //console.log("participant already assigned");
-                        global.logger.write('debug', 'participant already assigned', {}, request)
+                        global.logger.write('conLog', 'participant already assigned', {}, {})
                         var nextIndex = index + 1;
                         if (nextIndex <= maxIndex) {
                             loopAddParticipant(participantCollection, nextIndex, maxIndex);
@@ -225,7 +231,7 @@ function ActivityParticipantService(objectCollection) {
                 default:
                     activityStreamTypeId = 2; //by default so that we know
                     //console.log('adding streamtype id 2');
-                    global.logger.write('debug', 'adding streamtype id 2', {}, request)
+                    global.logger.write('conLog', 'adding streamtype id 2', {}, {})
                     break;
 
             }
@@ -255,7 +261,7 @@ function ActivityParticipantService(objectCollection) {
                 }
             } else {                
                 //console.log("something is not wright in adding a participant");
-                global.logger.write('serverError', 'something is not right in adding a participant', {}, request);
+                global.logger.write('serverError', 'something is not right in adding a participant', err, {});
                 callback(false, {}, 200);
             }
         });
@@ -273,7 +279,7 @@ function ActivityParticipantService(objectCollection) {
                     }
                 } else {
                     //console.log("something is not wright in unassign a participant");
-                    global.logger.write('serverError', 'something is not wright in unassign a participant', {}, request)
+                    global.logger.write('serverError', 'something is not wright in unassign a participant', err, {})
                 }
             });
         };
@@ -283,7 +289,7 @@ function ActivityParticipantService(objectCollection) {
             unassignAssetFromActivity(request, participantData, function (err, data) {
                 if (err === false) {
                     //console.log("participant successfully un-assigned");
-                    global.logger.write('debug', 'participant successfully un-assigned', {}, request)
+                    global.logger.write('debug', 'participant successfully un-assigned', {}, {})
                     var nextIndex = index + 1;
                     if (nextIndex <= maxIndex) {
                         loopUnassignParticipant(participantCollection, nextIndex, maxIndex);
@@ -291,7 +297,7 @@ function ActivityParticipantService(objectCollection) {
                     callback(false, true);
                 } else {
                     //console.log(err);
-                    global.logger.write('serverError', err, err, request)
+                    global.logger.write('serverError', err, err, {})
                     callback(true, false);
                 }
             }.bind(this));
@@ -364,7 +370,7 @@ function ActivityParticipantService(objectCollection) {
                 default:
                     activityStreamTypeId = 3; //by default so that we know
                     //console.log('adding streamtype id 3');
-                    global.logger.write('debug', 'adding streamtype id 3', {}, request)
+                    global.logger.write('conLog', 'adding streamtype id 3', {}, request)
                     break;
 
             };
@@ -385,7 +391,7 @@ function ActivityParticipantService(objectCollection) {
                 }
             } else {
                 //console.log("something is not wright in adding a participant");
-                global.logger.write('serverError', 'something is not right in adding a participant', {}, request)
+                global.logger.write('serverError', 'something is not right in adding a participant', err, {})
             }
         });
     };
@@ -402,7 +408,7 @@ function ActivityParticipantService(objectCollection) {
                     }
                 } else {
                     //console.log("something is not wright in unassign a participant");
-                    global.logger.write('serverError', 'something is not wright in unassign a participant', {}, request)
+                    global.logger.write('serverError', 'something is not wright in unassign a participant', err, {})
                 }
             });
         };
@@ -412,7 +418,7 @@ function ActivityParticipantService(objectCollection) {
             updateAssetParticipantAccess(request, participantData, function (err, data) {
                 if (err === false) {
                     //console.log("participant successfully updated");
-                    global.logger.write('debug', 'participant successfully updated', {}, request)
+                    global.logger.write('conLog', 'participant successfully updated', {}, {})
                     var nextIndex = index + 1;
                     if (nextIndex <= maxIndex) {
                         loopUpdateParticipantAccess(participantCollection, nextIndex, maxIndex);
@@ -420,7 +426,7 @@ function ActivityParticipantService(objectCollection) {
                     callback(false, true);
                 } else {
                     //console.log(err);
-                    global.logger.write('serverError', err, err, request)
+                    global.logger.write('serverError', err, err, {})
                     callback(true, false);
                 }
             }.bind(this));
@@ -489,7 +495,7 @@ function ActivityParticipantService(objectCollection) {
                 default:
                     activityStreamTypeId = 4; //by default so that we know
                     //console.log('adding streamtype id 4');
-                    global.logger.write('debug', 'adding streamtype id 4', {}, request)
+                    global.logger.write('conLog', 'adding streamtype id 4', {}, request)
                     break;
 
             };
@@ -512,7 +518,7 @@ function ActivityParticipantService(objectCollection) {
                 }
             } else {
                 //console.log("something is not wright in adding a participant");
-                global.logger.write('serverError', 'something is not right in adding a participant', {}, request)
+                global.logger.write('serverError', 'something is not right in adding a participant', err, {})
             }
         });
     };
@@ -564,7 +570,7 @@ function ActivityParticipantService(objectCollection) {
 
         } else {
             //console.log('re-assigining to the archived row');
-            global.logger.write('debug', 're-assigining to the archived row', {}, request)
+            global.logger.write('conLog', 're-assigining to the archived row', {}, {})
             activityAssetMappingUpdateParticipantReAssign(request, participantData, function (err, data) {
                 if (err === false) {
                     activityPushService.sendPush(request, objectCollection, participantData.asset_id, function () {});
@@ -579,7 +585,7 @@ function ActivityParticipantService(objectCollection) {
                                 });
                             } else {
                                 //console.log('either documnent or a file');
-                                global.logger.write('debug', 'either documnent or a file', {}, request)
+                                global.logger.write('conLog', 'either documnent or a file', {}, {})
                             }
                         }
 
@@ -664,7 +670,7 @@ function ActivityParticipantService(objectCollection) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', err, err, request)
+                    global.logger.write('serverError', err, err, {})
                     return;
                 }
             });
@@ -708,7 +714,7 @@ function ActivityParticipantService(objectCollection) {
                 if (err === false) {
                     callback(false, true);
                 } else {
-                    global.logger.write('serverError', err, {}, request);
+                    global.logger.write('serverError', err, {}, {});
                     callback(true, err);
                 }
             });
@@ -731,8 +737,8 @@ function ActivityParticipantService(objectCollection) {
             participantData.organization_id,
             participantData.access_role_id,
             participantData.message_unique_id,
-            request.flag_retry,
-            request.flag_offline,
+            request.flag_retry || 0,
+            request.flag_offline || 0,
             request.asset_id,
             request.datetime_log,
             fieldId,
@@ -766,7 +772,7 @@ function ActivityParticipantService(objectCollection) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', err, {}, request)
+                    global.logger.write('serverError', err, {}, {})
                     return;
                 }
             });
@@ -797,7 +803,7 @@ function ActivityParticipantService(objectCollection) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', err, {}, request)
+                    global.logger.write('serverError', err, {}, {})
                     return;
                 }
             });
@@ -826,7 +832,7 @@ function ActivityParticipantService(objectCollection) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', err, {}, request)
+                    global.logger.write('serverError', err, {}, {})
                     return;
                 }
             });
@@ -844,7 +850,7 @@ function ActivityParticipantService(objectCollection) {
                 if (err === false) {
                     var participantCount = data[0].participant_count;
                     //console.log('participant count retrieved from query is: ' + participantCount);
-                    global.logger.write('debug', 'participant count retrieved from query is: ' + participantCount, request)
+                    global.logger.write('conLog', 'participant count retrieved from query is: ' + participantCount, request)
                     paramsArr = new Array(
                         activityId,
                         organizationId,
@@ -900,7 +906,7 @@ function ActivityParticipantService(objectCollection) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', err, {}, request)
+                    global.logger.write('serverError', err, {}, {})
                     return;
                 }
             });
@@ -1003,7 +1009,7 @@ function ActivityParticipantService(objectCollection) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', err, err, request)
+                    global.logger.write('serverError', err, err, {})
                     return;
                 }
             });
