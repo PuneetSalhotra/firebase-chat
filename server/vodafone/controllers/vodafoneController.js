@@ -257,28 +257,31 @@ function VodafoneController(objCollection) {
     });
 
     // BOT 5
-    // app.post('/' + global.config.version + '/vodafone/hld_form/timeline/entry/add', function (req, res) {
+    app.post('/' + global.config.version + '/vodafone/process/timeline/entry/add', async function (req, res) {
+        const [error, status] = await vodafoneService.buildAndSubmitCafFormV1(req.body);
+        if (error) {
+            return res.send(responseWrapper.getResponse(error, {
+                error
+            }, -5999999, req.body));
+        } else {
+            return res.send(responseWrapper.getResponse(error, {
+                status
+            }, 200, req.body));
+        }
 
-        // vodafoneService.buildAndSubmitCafForm(req.body, (error, data) => {
-        //     if (error) {
-        //         return res.send(responseWrapper.getResponse(error, {
-        //             error
+        // buildAndSubmitCafForm
+        // vodafoneService.regenerateAndSubmitCAF(req.body, (err, data) => {
+        //     if (err) {
+        //         return res.send(responseWrapper.getResponse(err, {
+        //             err
         //         }, -5999999, req.body));
+        //     } else {
+        //         return res.send(responseWrapper.getResponse(err, {
+        //             data
+        //         }, 200, req.body));
         //     }
-        //     return res.send(responseWrapper.getResponse(error, {data}, 200, req.body));
-
-        // })
-
-    //     vodafoneService.customerManagementApprovalWorkflow(req.body, (error, data) => {
-    //         if (error) {
-    //             return res.send(responseWrapper.getResponse(error, {
-    //                 error
-    //             }, -5999999, req.body));
-    //         }
-    //         return res.send(responseWrapper.getResponse(error, {data}, 200, req.body));
-
-    //     })
-    // });
+        // });
+    });
 
     // // BOT Test
     // app.post('/' + global.config.version + '/vodafone/bot/test_2', function (req, res) {
@@ -296,21 +299,18 @@ function VodafoneController(objCollection) {
     //         });
     // });
     // BOT Test
-    // app.post('/' + global.config.version + '/vodafone/bot/test_3', function (req, res) {
-
-    //     vodafoneService.regenerateAndSubmitCAF(req.body, (error, data) => {
-    //         if (error) {
-    //             return res.send(responseWrapper.getResponse(error, {
-    //                 error
-    //             }, -5999999, req.body));
-    //         }
-    //         return res.send(responseWrapper.getResponse(error, {
-    //             data
-    //         }, 200, req.body));
-
-    //     })
-
-    // });
+    app.post('/' + global.config.version + '/vodafone/bot/test_3', async function (req, res) {
+        const [error, status] = await vodafoneService.regenerateAndSubmitTargetForm(req.body);
+        if (error) {
+            return res.send(responseWrapper.getResponse(error, {
+                error
+            }, -5999999, req.body));
+        } else {
+            return res.send(responseWrapper.getResponse(error, {
+                status
+            }, 200, req.body));
+        }
+    });
 
     // BOT 6
     app.post('/' + global.config.version + '/vodafone/status/set/approval_pending', function (req, res) {

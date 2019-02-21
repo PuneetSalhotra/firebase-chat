@@ -10,7 +10,7 @@ function ActivityService(objectCollection) {
     var util = objectCollection.util;
     var forEachAsync = objectCollection.forEachAsync;
     var queueWrapper = objectCollection.queueWrapper;
-    var activityPushService = objectCollection.activityPushService;
+    // var activityPushService = objectCollection.activityPushService;
     var responseactivityData = {};
     const suzukiPdfEngine = require('../utils/suzukiPdfGenerationEngine');
     const moment = require('moment');
@@ -18,10 +18,13 @@ function ActivityService(objectCollection) {
     const ActivityListingService = require("../services/activityListingService");
     const activityListingService = new ActivityListingService(objectCollection);
 
-    const HavmorService = require("../pocs/havmorService");
-    const havmorService = new HavmorService(objectCollection);
+    const ActivityPushService = require('../services/activityPushService');
+    const activityPushService = new ActivityPushService(objectCollection);
 
     this.addActivity = function (request, callback) {
+
+        request.flag_retry = request.flag_retry || 0;
+        request.flag_offline = request.flag_offline || 0;
 
         var logDatetime = util.getCurrentUTCTime();
         responseactivityData = {
@@ -268,7 +271,7 @@ function ActivityService(objectCollection) {
                                 activityCommonService.processReservationBilling(request, request.activity_parent_id).then(() => {});
                             }
 
-                            if (activityTypeCategroyId === 9) {
+                            if (activityTypeCategroyId === 9 || activityTypeCategroyId === 48) {
                                 global.logger.write('conLog', '*****ADD ACTIVITY :HITTING WIDGET ENGINE*******', {}, request);
                                 sendRequesttoWidgetEngine(request);
                             }
@@ -628,24 +631,6 @@ function ActivityService(objectCollection) {
                     }*/
                     // 
                     // 
-
-                    // HavMor Freezer Survey Form Trigger
-                    if (activityTypeCategroyId === 9 && Number(request.activity_form_id) === 1032) {
-                        try {
-                            havmorService.checkAndSubimtExceptionForm(request);
-                        } catch (error) {
-                            console.log("HavMor Freezer Survey Form Trigger | Error: ", error);
-                        }
-                    }
-
-                    // HavMor Exception Form Trigger
-                    if (activityTypeCategroyId === 9 && Number(request.activity_form_id) === 1044) {
-                        try {
-                            havmorService.exceptionFormProcess(request);
-                        } catch (error) {
-                            console.log("HavMor Exception Form Trigger | Error: ", error);
-                        }
-                    }
 
                     //callback(false, responseactivityData, 200);                    
                 } else { //This is activityList Insert if(err === false) else part
@@ -1291,8 +1276,8 @@ function ActivityService(objectCollection) {
                                 request.organization_id,
                                 26, //request.participant_access_id,
                                 request.message_unique_id,
-                                request.flag_retry,
-                                request.flag_offline,
+                                request.flag_retry || 0,
+                                request.flag_offline || 0,
                                 request.asset_id,
                                 request.datetime_log,
                                 0 //Field Id
@@ -1877,7 +1862,7 @@ function ActivityService(objectCollection) {
         activityListUpdateStatus(request, async function (err, data) {
             if (err === false) {
 
-                if (activityTypeCategroyId === 9 && Number(request.device_os_id) !== 9) {
+                if ((activityTypeCategroyId === 9 || activityTypeCategroyId === 48) && Number(request.device_os_id) !== 9) {
 
                     global.logger.write('conLog', '*****ALTER STATUS : STATUS CHANGE TXN INSERT*******', {}, request);
 
@@ -3212,7 +3197,7 @@ function ActivityService(objectCollection) {
     function sendRequesttoWidgetEngine(request) {
 
         global.logger.write('conLog', '********IN HITTING WIDGET *********************************************: ', {}, request);
-        if (request.activity_type_category_id == 9) { //form and submitted state                    
+        if (request.activity_type_category_id == 9 || request.activity_type_category_id == 48) { //form and submitted state                    
             activityCommonService.getActivityCollection(request).then((activityData) => { // get activity form_id and form_transaction id
                 console.log('activityData:' + activityData[0]);
                 var widgetEngineQueueMessage = {
@@ -3223,6 +3208,7 @@ function ActivityService(objectCollection) {
                     workforce_id: request.workforce_id,
                     asset_id: request.asset_id,
                     activity_id: request.activity_id,
+                    activity_type_id: activityData[0].activity_type_id,
                     req_activity_status_id: request.activity_status_id,
                     activity_type_category_id: request.activity_type_category_id,
                     activity_stream_type_id: request.activity_stream_type_id,

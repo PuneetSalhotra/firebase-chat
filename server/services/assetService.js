@@ -3447,6 +3447,25 @@ function AssetService(objectCollection) {
         return [error, responseData];
     };
 
+    this.queueAccessListSelectAsset = async (request) => {
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
+        // IN p_workforce_id BIGINT(20), IN p_asset_id BIGINT(20), 
+        // IN p_flag TINYINT(4), IN p_start_from BIGINT(20), IN p_limit_value TINYINT(4)
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.asset_id,
+            request.flag,
+            request.page_start,
+            util.replaceQueryLimit(request.page_limit)
+        );
+        let queryString = util.getQueryString('ds_p1_queue_access_list_select_asset', paramsArr);
+        if (queryString != '') {
+            return await (db.executeQueryPromise(1, queryString, request));
+        }
+    };
+
 }
 
 module.exports = AssetService;

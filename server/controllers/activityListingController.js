@@ -551,6 +551,23 @@ function ActivityListingController(objCollection) {
             });
     });
 
+    // Check if a form transaction with a specific form_id has already been 
+    // submitted on a form file
+    app.post('/' + global.config.version + '/activity/form_transaction/check/v1', function (req, res) {
+        // 
+        // Check if a form transaction with a specific form_id has already 
+        // been submitted on a form file
+        activityCommonService
+            .getActivityTimelineTransactionByFormId713(req.body, req.body.activity_id, req.body.form_id)
+            .then((data) => {
+                res.send(responseWrapper.getResponse(false, data, 200, req.body));
+            })
+            .catch((err) => {
+                let data = {};
+                res.send(responseWrapper.getResponse(err, data, -9998, req.body));
+            });
+    });
+
     // List of forms with data submitted on the queue mapped activity
     app.post('/' + global.config.version + '/activity/timeline/form/list', function (req, res) {
         // 
@@ -692,7 +709,7 @@ function ActivityListingController(objCollection) {
         	res.send(responseWrapper.getResponse(err, {}, -999, req.body));
         });    		
     });
-
+    
     app.post('/' + global.config.version + '/activity/form/transaction/data', async (req, res) => {        
         try {
             let result = await activityCommonService.getFormDataByFormTransaction(req.body);

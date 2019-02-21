@@ -1,0 +1,151 @@
+[{
+        "ACTION": "set_static_value",
+        "BATCH": [{
+            "TARGET_FIELD_ID": 8823,
+            "VALUE": "Placeholder text - Default Place"
+        }, {
+            "TARGET_FIELD_ID": 8849,
+            "VALUE": "Placeholder text - Default Place"
+        }, {
+            "TARGET_FIELD_ID": 8859,
+            "VALUE": "Placeholder text - Default Place"
+        }, {
+            "TARGET_FIELD_ID": 8852,
+            "VALUE": "Placeholder text - Default Witness"
+        }, {
+            "TARGET_FIELD_ID": 8861,
+            "VALUE": "Placeholder text - Default Witness"
+        }, {
+            "TARGET_FIELD_ID": 8862,
+            "VALUE": "Placeholder text - Default Witness"
+        }, {
+            "TARGET_FIELD_ID": 8827,
+            "VALUE": "Mumbai Circle - Account Managers"
+        }]
+    },
+    {
+        "ACTION": "sum",
+        "BATCH": [{
+            "SOURCE_FIELD_IDS": [8747, 8748, 8749],
+            "TARGET_FIELD_ID": 8750,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [8751, 8752],
+            "TARGET_FIELD_ID": 8753,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [8754, 8755],
+            "TARGET_FIELD_ID": 8756,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [8757, 8758],
+            "TARGET_FIELD_ID": 8759,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [8760, 8761, 8762],
+            "TARGET_FIELD_ID": 8763,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [8764, 8765, 8766],
+            "TARGET_FIELD_ID": 8767,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [8775, 8776],
+            "TARGET_FIELD_ID": 8777,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [8781, 8782],
+            "TARGET_FIELD_ID": 8783,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [8787, 8788],
+            "TARGET_FIELD_ID": 8789,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [8790, 8791, 8792],
+            "TARGET_FIELD_ID": 8793,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [8794, 8795, 8796],
+            "TARGET_FIELD_ID": 8797,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [8798, 8799, 8800],
+            "TARGET_FIELD_ID": 8801,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [8802, 8803, 8804],
+            "TARGET_FIELD_ID": 8805,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [8806, 8807],
+            "TARGET_FIELD_ID": 8808,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [8809, 8810],
+            "TARGET_FIELD_ID": 8811,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [8812],
+            "TARGET_FIELD_ID": 8813,
+            "VALUE": 0
+        }]
+    }, {
+        "ACTION": "sum",
+        "BATCH": [{
+            "SOURCE_FIELD_IDS": [8747, 8751, 8754, 8757, 8760, 8764, 8775, 8781, 8787, 8790, 8790, 8794, 8798, 8802, 8806, 8809, 8812],
+            "TARGET_FIELD_ID": 8814,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [8748, 8752, 8755, 8758, 8761, 8765, 8776, 8782, 8788, 8791, 8791, 8795, 8799, 8803, 8807, 8810],
+            "TARGET_FIELD_ID": 8815,
+            "VALUE": 0
+        }]
+    }, {
+        "ACTION": "sum",
+        "BATCH": [{
+            "SOURCE_FIELD_IDS": [8814, 8815],
+            "TARGET_FIELD_ID": 8816,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [8814, 8815],
+            "TARGET_FIELD_ID": 8817,
+            "VALUE": 0
+        }]
+    },
+    {
+        "ACTION": "set_date",
+        "BATCH": [{
+            "TARGET_FIELD_ID": 8824,
+            "TZ_OFFSET": "+05:30"
+        }, {
+            "TARGET_FIELD_ID": 8850,
+            "TZ_OFFSET": "+05:30"
+        }, {
+            "TARGET_FIELD_ID": 8860,
+            "TZ_OFFSET": "+05:30"
+        }, {
+            "TARGET_FIELD_ID": 8663,
+            "TZ_OFFSET": "+05:30"
+        }, {
+            "TARGET_FIELD_ID": 8666,
+            "TZ_OFFSET": "+05:30"
+        }]
+    },
+    {
+        "ACTION": "set_participant_name",
+        "BATCH": [{
+            "TARGET_FIELD_ID": 8826,
+            "ASSET_TYPE_ID": 127254
+        }]
+    },
+    {
+        "ACTION": "check_and_set_annexure_defaults",
+        "BATCH": [{
+            "SOURCE_FORM_ID": 1211,
+            "SOURCE_FIELD_ID": 9769,
+            "TARGET_FIELD_IDS": [8670, 8626, 8627, 8628, 8629, 8630, 8632, 8633, 8634, 8635, 8636, 8637, 8655, 8656, 8681, 8697, 8709, 8711, 8714],
+            "VALUE": "As Per CAF Annexure"
+        }]
+    }
+]

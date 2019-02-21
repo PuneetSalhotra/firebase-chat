@@ -67,6 +67,17 @@ if (mode === 'masimukku') {
     config.PRODUCER_ACKS_TIMEOUT = 100;
     config.PRODUCER_PARTITONER_TYPE = 3;
 
+    //Configs for Consumer Group
+    config.CONSUMER_GROUP_BATCH = undefined;
+    config.CONSUMER_GROUP_SSL = false;
+    config.CONSUMER_GROUP_SESSION_TIMEOUT = 15000;
+    config.CONSUMER_GROUP_PARTITION_ASSIGNMENT_PROTOCOL = ['roundrobin'];
+    config.CONSUMER_GROUP_FROM_OFFSET = 'latest';
+    config.CONSUMER_GROUP_COMMIT_OFFSET_ONFIRSTJOIN = true;
+    config.CONSUMER_GROUP_OUTOFRANGE_OFFSET = 'earliest';
+    config.CONSUMER_GROUP_MIGRATE_HLC = false;
+    config.CONSUMER_GROUP_MIGRATE_ROLLING = true;
+
     //Desker
     config.TOPIC_ID = 14; //Take from Sai
     config.TOPIC_NAME = 'masimukku-desker-activities';
@@ -157,6 +168,17 @@ if (mode === 'local') {
     config.PRODUCER_ACKS_TIMEOUT = 100;
     config.PRODUCER_PARTITONER_TYPE = 3;
 
+    //Configs for Consumer Group
+    config.CONSUMER_GROUP_BATCH = undefined;
+    config.CONSUMER_GROUP_SSL = false;
+    config.CONSUMER_GROUP_SESSION_TIMEOUT = 15000;
+    config.CONSUMER_GROUP_PARTITION_ASSIGNMENT_PROTOCOL = ['roundrobin'];
+    config.CONSUMER_GROUP_FROM_OFFSET = 'latest';
+    config.CONSUMER_GROUP_COMMIT_OFFSET_ONFIRSTJOIN = true;
+    config.CONSUMER_GROUP_OUTOFRANGE_OFFSET = 'earliest';
+    config.CONSUMER_GROUP_MIGRATE_HLC = false;
+    config.CONSUMER_GROUP_MIGRATE_ROLLING = true;
+
     //Desker
     config.TOPIC_ID = 8;
     config.TOPIC_NAME = "desker-activities";
@@ -241,6 +263,17 @@ if (mode === 'dev') {
     config.PRODUCER_ACKS_TIMEOUT = 100;
     config.PRODUCER_PARTITONER_TYPE = 3;
 
+    //Configs for Consumer Group
+    config.CONSUMER_GROUP_BATCH = undefined;
+    config.CONSUMER_GROUP_SSL = false;
+    config.CONSUMER_GROUP_SESSION_TIMEOUT = 15000;
+    config.CONSUMER_GROUP_PARTITION_ASSIGNMENT_PROTOCOL = ['roundrobin'];
+    config.CONSUMER_GROUP_FROM_OFFSET = 'latest';
+    config.CONSUMER_GROUP_COMMIT_OFFSET_ONFIRSTJOIN = true;
+    config.CONSUMER_GROUP_OUTOFRANGE_OFFSET = 'earliest';
+    config.CONSUMER_GROUP_MIGRATE_HLC = false;
+    config.CONSUMER_GROUP_MIGRATE_ROLLING = true;
+
     config.TOPIC_ID = 1;
     config.TOPIC_NAME = "dev-desker-activities";
     config.WIDGET_TOPIC_NAME = 'dev-desker-form-widgets';
@@ -318,6 +351,17 @@ if (mode === 'staging') {
     config.PRODUCER_REQUIRE_ACKS = 1;
     config.PRODUCER_ACKS_TIMEOUT = 100;
     config.PRODUCER_PARTITONER_TYPE = 3;
+
+    //Configs for Consumer Group
+    config.CONSUMER_GROUP_BATCH = undefined;
+    config.CONSUMER_GROUP_SSL = false;
+    config.CONSUMER_GROUP_SESSION_TIMEOUT = 15000;
+    config.CONSUMER_GROUP_PARTITION_ASSIGNMENT_PROTOCOL = ['roundrobin'];
+    config.CONSUMER_GROUP_FROM_OFFSET = 'latest';
+    config.CONSUMER_GROUP_COMMIT_OFFSET_ONFIRSTJOIN = true;
+    config.CONSUMER_GROUP_OUTOFRANGE_OFFSET = 'earliest';
+    config.CONSUMER_GROUP_MIGRATE_HLC = false;
+    config.CONSUMER_GROUP_MIGRATE_ROLLING = true;
 
     config.TOPIC_ID = 10;
     config.TOPIC_NAME = 'staging-desker-activities_v1'; //v1 is only one partition
@@ -397,6 +441,17 @@ if (mode === 'preprod') {
     config.PRODUCER_ACKS_TIMEOUT = 100;
     config.PRODUCER_PARTITONER_TYPE = 3;
 
+    //Configs for Consumer Group
+    config.CONSUMER_GROUP_BATCH = undefined;
+    config.CONSUMER_GROUP_SSL = false;
+    config.CONSUMER_GROUP_SESSION_TIMEOUT = 15000;
+    config.CONSUMER_GROUP_PARTITION_ASSIGNMENT_PROTOCOL = ['roundrobin'];
+    config.CONSUMER_GROUP_FROM_OFFSET = 'latest';
+    config.CONSUMER_GROUP_COMMIT_OFFSET_ONFIRSTJOIN = true;
+    config.CONSUMER_GROUP_OUTOFRANGE_OFFSET = 'earliest';
+    config.CONSUMER_GROUP_MIGRATE_HLC = false;
+    config.CONSUMER_GROUP_MIGRATE_ROLLING = true;
+
     config.TOPIC_ID = 11;
     config.TOPIC_NAME = 'preprod-desker-activities-v1'; //Only one partition
     config.WIDGET_TOPIC_NAME = 'preprod-desker-form-widgets';
@@ -461,6 +516,17 @@ if (mode === 'prod') {
     config.PRODUCER_REQUIRE_ACKS = 1;
     config.PRODUCER_ACKS_TIMEOUT = 100;
     config.PRODUCER_PARTITONER_TYPE = 3;
+
+    //Configs for Consumer Group
+    config.CONSUMER_GROUP_BATCH = undefined;
+    config.CONSUMER_GROUP_SSL = false;
+    config.CONSUMER_GROUP_SESSION_TIMEOUT = 15000;
+    config.CONSUMER_GROUP_PARTITION_ASSIGNMENT_PROTOCOL = ['roundrobin'];
+    config.CONSUMER_GROUP_FROM_OFFSET = 'latest';
+    config.CONSUMER_GROUP_COMMIT_OFFSET_ONFIRSTJOIN = true;
+    config.CONSUMER_GROUP_OUTOFRANGE_OFFSET = 'earliest';
+    config.CONSUMER_GROUP_MIGRATE_HLC = false;
+    config.CONSUMER_GROUP_MIGRATE_ROLLING = true;
 
     config.TOPIC_ID = 12;
     config.TOPIC_NAME = 'prod-desker-activities-v1'; //Only one partition

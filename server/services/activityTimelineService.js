@@ -351,6 +351,30 @@ function ActivityTimelineService(objectCollection) {
                     }
                 });
             }
+
+            // Process/Workflow ROMS Target Form Generation Trigger
+            if (
+                activityStreamTypeId === 705 &&
+                request.hasOwnProperty("workflow_activity_id") &&
+                Number(request.workflow_activity_id) !== 0
+            ) {
+                console.log('CALLING buildAndSubmitCafFormV1');
+                const romsTargetFormGenerationEvent = {
+                    name: "vodafoneService",
+                    service: "vodafoneService",
+                    method: "buildAndSubmitCafFormV1",
+                    payload: request
+                };
+                queueWrapper.raiseActivityEvent(romsTargetFormGenerationEvent, request.activity_id, (err, resp) => {
+                    if (err) {
+                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                    } else {
+                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                    }
+                });
+            }
             
             timelineStandardCalls(request).then(() => {}).catch((err) => {
                 global.logger.write('debug', 'Error in timelineStandardCalls' + err, {}, request);
@@ -1071,7 +1095,7 @@ function ActivityTimelineService(objectCollection) {
             var paramsArr = new Array(
                     request.organization_id,
                     request.activity_id,
-                    request.timeline_transaction_id,
+                    request.timeline_transaction_id || 0,
                     request.flag_previous,
                     request.page_start,
                     util.replaceQueryLimit(request.page_limit)
@@ -1729,6 +1753,22 @@ function ActivityTimelineService(objectCollection) {
                         params[18] = row.field_value; // p_entity_text_1
                     } catch(err) {                        
                     }                  
+                    break;
+                case 52: // Excel Document
+                    try {
+                        const fieldValue = JSON.parse(row.field_value);
+                        params[18] = fieldValue.excel_file_url; // p_entity_text_1
+                        params[19] = fieldValue.pdf_file_url; // p_entity_text_2
+                    } catch (err) {
+                        global.logger.write('debug', '\x1b[32m Error parsing field_value for Excel Document data type - \x1b[0m', err, request);
+                        console.log("ActivityTimelineService | addFormEntries | case 50 | Excel Document | Error: ", err);
+                    }
+                    break;
+                case 53: // IP Address Form
+                    params[18] = row.field_value;
+                    break;
+                case 54: // MAC Address Form
+                    params[18] = row.field_value;
                     break;
                 case 17:    //Location
                     var location = row.field_value.split('|');
