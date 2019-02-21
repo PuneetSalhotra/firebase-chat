@@ -14,7 +14,7 @@ function ActivityUpdateController(objCollection) {
     var util = objCollection.util;
     var forEachAsync = objCollection.forEachAsync;
 
-    app.put('/' + global.config.version + '/activity/inline/alter', function (req, res) {
+    app.post('/' + global.config.version + '/activity/inline/alter', function (req, res) {
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
@@ -43,7 +43,7 @@ function ActivityUpdateController(objCollection) {
                                             global.logger.write('serverError', "error in setting in asset parity", err, req.body);
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('debug', "asset parity is set successfully", {}, req.body);
+                                            global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
 
                                     });
                                 }
@@ -57,7 +57,7 @@ function ActivityUpdateController(objCollection) {
         try {
             JSON.parse(req.body.activity_inline_data);
             // console.log('json is fine');
-            global.logger.write('debug', "json is fine", {}, req.body);
+            global.logger.write('conLog', "json is fine", {}, req.body);
 
         } catch (exeption) {
             res.send(responseWrapper.getResponse(false, {}, -3308,req.body));
@@ -89,7 +89,7 @@ function ActivityUpdateController(objCollection) {
 
     });
 
-    app.put('/' + global.config.version + '/activity/cover/alter', function (req, res) {
+    app.post('/' + global.config.version + '/activity/cover/alter', function (req, res) {
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
@@ -118,7 +118,7 @@ function ActivityUpdateController(objCollection) {
                                             global.logger.write('serverError',"error in setting in asset parity",err,req.body);
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('debug',"asset parity is set successfully",{},req.body);
+                                            global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
 
                                     });
                                 }
@@ -155,7 +155,7 @@ function ActivityUpdateController(objCollection) {
         }
     });
 
-    app.put('/' + global.config.version + '/activity/parent/alter', function (req, res) {
+    app.post('/' + global.config.version + '/activity/parent/alter', function (req, res) {
         var assetMessageCounter = 0;
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))
@@ -187,7 +187,7 @@ function ActivityUpdateController(objCollection) {
                                             global.logger.write('serverError',"error in setting in asset parity",err,req.body);
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('debug',"asset parity is set successfully",{},req.body);
+                                            global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
 
                                     });
                                 }
@@ -228,7 +228,7 @@ function ActivityUpdateController(objCollection) {
     });
     
     //Added by V Nani Kalyan
-    app.put('/' + global.config.version + '/activity/unread/count/reset', function (req, res) {
+    app.post('/' + global.config.version + '/activity/unread/count/reset', function (req, res) {
         var cnt = 0;
         var deviceOsId = 0;
         var activityArray = JSON.parse(req.body.activity_id_array);
@@ -260,7 +260,7 @@ function ActivityUpdateController(objCollection) {
                                             global.logger.write('serverError',"error in setting in asset parity",err,req.body);
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('debug',"asset parity is set successfully",{},req.body);
+                                            global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
 
                                     });
                                 }
@@ -307,7 +307,7 @@ function ActivityUpdateController(objCollection) {
         }); 
         
     //Added by V Nani Kalyan
-    app.put('/' + global.config.version + '/activity/unread/count/reset/v1', function (req, res) {
+    app.post('/' + global.config.version + '/activity/unread/count/reset/v1', function (req, res) {
         var cnt = 0;
         var deviceOsId = 0;
         try {
@@ -347,7 +347,7 @@ function ActivityUpdateController(objCollection) {
                                             global.logger.write('serverError',"error in setting in asset parity",err,req.body);
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('debug',"asset parity is set successfully",{},req.body);
+                                            global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
 
                                     });
                                 }
@@ -395,7 +395,7 @@ function ActivityUpdateController(objCollection) {
         
         
    //PAM
-   app.put('/' + global.config.version + '/pam/activity/cover/alter/channel_activity', function (req, res) {
+   app.post('/' + global.config.version + '/pam/activity/cover/alter/channel_activity', function (req, res) {
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
@@ -424,7 +424,7 @@ function ActivityUpdateController(objCollection) {
     });
     
     //PAM
-    app.put('/' + global.config.version + '/pam/activity/cover/alter/subtype_activity', function (req, res) {
+    app.post('/' + global.config.version + '/pam/activity/cover/alter/subtype_activity', function (req, res) {
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
@@ -453,7 +453,7 @@ function ActivityUpdateController(objCollection) {
     });
     
     //BETA
-    app.put('/' + global.config.version + '/activity/owner/alter', function (req, res) {
+    app.post('/' + global.config.version + '/activity/owner/alter', function (req, res) {
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
@@ -482,7 +482,7 @@ function ActivityUpdateController(objCollection) {
                                             global.logger.write('serverError',"error in setting in asset parity",err,req.body);
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('debug',"asset parity is set successfully",{},req.body);
+                                            global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
 
                                     });
                                 }
@@ -520,7 +520,7 @@ function ActivityUpdateController(objCollection) {
     });    
     
     //Setting or unsetting the activity_flag_file_enabled 
-    app.put('/' + global.config.version + '/activity/asset/file_enabled_flag/alter', function (req, res) {
+    app.post('/' + global.config.version + '/activity/asset/file_enabled_flag/alter', function (req, res) {
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
@@ -549,7 +549,7 @@ function ActivityUpdateController(objCollection) {
                                             global.logger.write('serverError',"error in setting in asset parity",err,req.body);
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('debug',"asset parity is set successfully",{},req.body);
+                                            global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
 
                                     });
                                 }
@@ -587,7 +587,7 @@ function ActivityUpdateController(objCollection) {
     });
 
     // Delete a user from the Organization/Workforce
-    app.put('/' + global.config.version + '/asset/access/workforce/reset', function (req, res) {
+    app.post('/' + global.config.version + '/asset/access/workforce/reset', function (req, res) {
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id')) {
             deviceOsId = Number(req.body.device_os_id);
@@ -604,7 +604,7 @@ function ActivityUpdateController(objCollection) {
                 } else {
                     if (status) { // proceed
                         // console.log("calling deleteAccountFromWorkforce");
-                        global.logger.write('debug', 'calling deleteAccountFromWorkforce', {}, req.body);
+                        global.logger.write('conLog', 'calling deleteAccountFromWorkforce', {}, req.body);
                         // Raise event
                         initiateServiceToDeleteUserFromWorkforce(req.body, function (err, data) {
                             if (!err) {
@@ -669,7 +669,7 @@ function ActivityUpdateController(objCollection) {
                                     global.logger.write('serverError', 'error in setting in asset parity', err, reqBody);
                                 } else
                                     // console.log("asset parity is set successfully")
-                                    global.logger.write('debug', "asset parity is set successfully", {}, reqBody);
+                                    global.logger.write('conLog', "asset parity is set successfully", {}, reqBody);
 
                             });
                         }

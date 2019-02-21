@@ -1,3 +1,14 @@
+const digitalMplsCrfMappings = require("./digital_mpls_crf/digital_mpls_crf_mappings.json");
+const digitalMplsCrfLabels = require("./digital_mpls_crf/labels.json");
+const digitalMplsCrfRoms = require("./digital_mpls_crf/roms.json");
+const digitalMplsCrfRomsActions = require("./digital_mpls_crf/roms_actions.json");
+
+// Digital ILL CAF
+const digitalIllCafMappings = require("./digital_ill_caf/digital_ill_caf_mappings.json");
+const digitalIllCafLabels = require("./digital_ill_caf/labels.json");
+const digitalIllCafRoms = require("./digital_ill_caf/roms.json");
+const digitalIllCafRomsActions = require("./digital_ill_caf/roms_actions.json");
+
 vodafoneConfig = {
     "860": {
         "NAME": "Vodafone Idea | Production | BETA",
@@ -134,25 +145,25 @@ vodafoneConfig = {
         },
         "STATUS": {
             "CAF_UPDATION": 282554,	
-            "ORDER_VALIDATION": 282555,	
+            "VALIDATION_PENDING": 282555,	
             "CUSTOMER_APPROVAL": 282556,	
             "ORDER_LOGGED": 282557	
         },
         "FORM_ID": {
             "ORDER_CLOSURE": 1054,
-            "SOLUTION_DETAILS": 1055,
-            "CUSTOMER_DETAILS":1056,
-            "FEASIBILITY_REPORT": 1057,  
-            "DIGITAL_CAF": 1058,  
+            "HLD": 1055,
+            "CRM": 1056,
+            "FR": 1057,  
+            "CAF": 1058,  
             "NEW_ORDER": 1059,  
-            "OPTIONAL_ORDER_DETAILS": 1060,  
+            "ORDER_SUPPLEMENTARY": 1060,  
             "CAF_APPROVAL_ACCOUNT_MANAGER": 1061,  
             "DOCUMENTS_NEW_CUSTOMER": 1062,  
-            "DOCUMENTS_EXISTING Customer": 1063,  
+            "DOCUMENTS_EXISTING_CUSTOMER": 1063,  
             "AUTHORISED_SIGNATORY_SIGN_AND_SEAL": 1064,  
             "OMT_APPROVAL": 1065,  
             "CUSTOMER_IT_COMMERCIAL_APPROVAL": 1066,  
-            "CUSTOMER_AUTHORISED_SIGNATORY_APPROVAL": 1067,  
+            "CUSTOMER_APPROVAL": 1064,  
             "ORDER_DOCUMENTS": 1068,  
             "CAF_REVISION_COMMENTS_CUSTOMER": 1069  
         },
@@ -180,6 +191,29 @@ vodafoneConfig = {
             "Contact_Designation": 5776,
             "Contact_Email_Id": 5784,
             "Account_Code": 6099 //This we have in new order not in CRM
+        },
+        "ANNEXURE_DEFAULTS": {
+            "SOURCE_FORM_ID": 1068,
+            "SOURCE_FIELD_ID": 9764,
+            "TARGET_FIELD_IDS": [7010, 7011, 7012, 7013, 7014, 7015, 7016, 7017, 7018, 7496, 7030, 7007, 7019, 7020, 7021, 7032, 7035, 7076, 7086, 7088, 7093]
         }
+    },
+    "134564": {
+        "REQUIRED_FORMS": [1142],
+        "TARGET_FORM_ID": 1109,
+        "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
+        "FORM_FIELD_MAPPING_DATA": digitalMplsCrfMappings,
+        "LABELS": digitalMplsCrfLabels,
+        "ROMS": digitalMplsCrfRoms,
+        "ROMS_ACTIONS": digitalMplsCrfRomsActions
+    },
+    "134565": {
+        "REQUIRED_FORMS": [1104 , 1105, 1106, 1107, 1108, 1115],
+        "TARGET_FORM_ID": 1119,
+        "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
+        "FORM_FIELD_MAPPING_DATA": digitalIllCafMappings,
+        "LABELS": digitalIllCafLabels,
+        "ROMS": digitalIllCafRoms,
+        "ROMS_ACTIONS": digitalIllCafRomsActions
     }
 };

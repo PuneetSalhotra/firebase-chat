@@ -128,72 +128,71 @@ var AwsSns = function () {
                 if (flagAppAccount == 0) { //BlueFlock
                     if (flag == 0) {
                         //console.log('Flag is 0. Creating IOS Dev for Blue flock Account');
-                        global.logger.write('debug', 'Flag is 0. Creating IOS Dev for Blue flock Account', {}, {});
+                        global.logger.write('conLog', 'Flag is 0. Creating IOS Dev for Blue flock Account', {}, {});
                         platformApplicationArn = global.config.platformApplicationIosDev;
                     } else {
                         //console.log('Flag is 1. Creating IOS Prod for Blue flock Account');
-                        global.logger.write('debug', 'Flag is 1. Creating IOS Prod for Blue flock Account', {}, {});
+                        global.logger.write('conLog', 'Flag is 1. Creating IOS Prod for Blue flock Account', {}, {});
                         platformApplicationArn = global.config.platformApplicationIosProd;
                     }
                 } else if (flagAppAccount == 1) { //flagAppAccount == 1 i.e. Grene Robotics -- VOIP Push
                     if (flag == 0) {
                         //console.log('Flag is 0. Creating IOS Dev for Grene Robotics Account VOIP Push');
-                        global.logger.write('debug', 'Flag is 0. Creating IOS Dev for Grene Robotics Account VOIP Push', {}, {});
-                        platformApplicationArn = global.config.platformApplicationIosDevGR;                        
+                        global.logger.write('conLog', 'Flag is 0. Creating IOS Dev for Grene Robotics Account VOIP Push', {}, {});
+                        platformApplicationArn = global.config.platformApplicationIosDevGR;
                     } else {
                         //console.log('Flag is 1. Creating IOS Prod for Grene Robotics Account VOIP Push');
-                        global.logger.write('debug', 'Flag is 1. Creating IOS Prod for Grene Robotics Account VOIP Push', {}, {});
-                        platformApplicationArn = global.config.platformApplicationIosProdGR;                        
+                        global.logger.write('conLog', 'Flag is 1. Creating IOS Prod for Grene Robotics Account VOIP Push', {}, {});
+                        platformApplicationArn = global.config.platformApplicationIosProdGR;
                     }
-                } else if (flagAppAccount == 2){ //flagAppAccount == 2 i.e. Grene Robotics World Desk normal IOS Push
+                } else if (flagAppAccount == 2) { //flagAppAccount == 2 i.e. Grene Robotics World Desk normal IOS Push
                     if (flag == 0) {
                         //console.log('Flag is 0. Creating IOS Dev for Grene Robotics Account Plain Push');
-                        global.logger.write('debug', 'Flag is 0. Creating IOS Dev for Grene Robotics Account Plain Push', {}, {});
+                        global.logger.write('conLog', 'Flag is 0. Creating IOS Dev for Grene Robotics Account Plain Push', {}, {});
                         platformApplicationArn = global.config.platformApplicationIosWorldDeskDevGR;
                     } else {
                         //console.log('Flag is 1. Creating IOS Prod for Grene Robotics Account Plain Push');
-                        global.logger.write('debug', 'Flag is 1. Creating IOS Prod for Grene Robotics Account Plain Push', {}, {});
+                        global.logger.write('conLog', 'Flag is 1. Creating IOS Prod for Grene Robotics Account Plain Push', {}, {});
                         platformApplicationArn = global.config.platformApplicationIosWorldDeskProdGR;
                     }
-                } else if (flagAppAccount == 3){ //flagAppAccount == 3 i.e. Grene Robotics World Desk VOIP IOS Push New //XCODE 10 20-09-2018
+                } else if (flagAppAccount == 3) { //flagAppAccount == 3 i.e. Grene Robotics World Desk VOIP IOS Push New //XCODE 10 20-09-2018
                     if (flag == 0) {
                         //console.log('Flag is 0. Creating IOS Dev for Grene Robotics Account Plain Push');
-                        global.logger.write('debug', 'Flag is 0. Creating IOS Dev for Grene Robotics Account VOIP Push - new certificate', {}, {});
+                        global.logger.write('conLog', 'Flag is 0. Creating IOS Dev for Grene Robotics Account VOIP Push - new certificate', {}, {});
                         platformApplicationArn = global.config.platformApplicationIosVOIPDev;
                     } else {
                         //console.log('Flag is 1. Creating IOS Prod for Grene Robotics Account Plain Push');
-                        global.logger.write('debug', 'Flag is 1. Creating IOS Prod for Grene Robotics Account VOIP Push - new certificate', {}, {});
+                        global.logger.write('conLog', 'Flag is 1. Creating IOS Prod for Grene Robotics Account VOIP Push - new certificate', {}, {});
                         platformApplicationArn = global.config.platformApplicationIosVOIPProd;
                     }
-                } else if (flagAppAccount == 4){ //flagAppAccount == 4 i.e. Grene Robotics Service Desk normal IOS Push
+                } else if (flagAppAccount == 4) { //flagAppAccount == 4 i.e. Grene Robotics Service Desk normal IOS Push
                     if (flag == 0) {
                         //console.log('Flag is 0. Creating IOS Dev for Grene Robotics Account Service Desk Plain Push');
-                        global.logger.write('debug', 'Flag is 0. Creating IOS Dev for Grene Robotics Account Service Desk Plain Push', {}, {});
+                        global.logger.write('conLog', 'Flag is 0. Creating IOS Dev for Grene Robotics Account Service Desk Plain Push', {}, {});
                         platformApplicationArn = global.config.platformApplicationIosSDPushDev;
                     } else {
                         //console.log('Flag is 1. Creating IOS Prod for Grene Robotics Account Service Desk Plain Push');
-                        global.logger.write('debug', 'Flag is 1. Creating IOS Prod for Grene Robotics Account Service Desk Plain Push', {}, {});
+                        global.logger.write('conLog', 'Flag is 1. Creating IOS Prod for Grene Robotics Account Service Desk Plain Push', {}, {});
                         platformApplicationArn = global.config.platformApplicationIosSDPushProd;
                     }
-                } else if (flagAppAccount == 5){ //flagAppAccount == 5 i.e. PAM normal IOS Push
+                } else if (flagAppAccount == 5) { //flagAppAccount == 5 i.e. PAM normal IOS Push
                     if (flag == 0) {
                         //console.log('Flag is 0. Creating IOS Dev for Grene Robotics Account Service Desk Plain Push');
-                        global.logger.write('debug', 'Flag is 0. Creating IOS Dev for PAM App Plain Push', {}, {});
+                        global.logger.write('conLog', 'Flag is 0. Creating IOS Dev for PAM App Plain Push', {}, {});
                         platformApplicationArn = global.config.platformApplicationIosPamPushDev;
                     } else {
                         //console.log('Flag is 1. Creating IOS Prod for Grene Robotics Account Service Desk Plain Push');
-                        global.logger.write('debug', 'Flag is 1. Creating IOS Prod for PAM App Plain Push', {}, {});
+                        global.logger.write('conLog', 'Flag is 1. Creating IOS Prod for PAM App Plain Push', {}, {});
                         platformApplicationArn = global.config.platformApplicationIosPamPushProd;
                     }
-                }
-                 else if (flagAppAccount == 6){ //flagAppAccount == 6 i.e. Office Desk normal IOS Push
+                } else if (flagAppAccount == 6) { //flagAppAccount == 6 i.e. Office Desk normal IOS Push
                     if (flag == 0) {
                         //console.log('Flag is 0. Creating IOS Dev for Grene Robotics Account Office Desk Plain Push');
-                        global.logger.write('debug', 'Flag is 0. Creating IOS Dev for Office Desk App Plain Push', {}, {});
+                        global.logger.write('conLog', 'Flag is 0. Creating IOS Dev for Office Desk App Plain Push', {}, {});
                         platformApplicationArn = global.config.platformApplicationIosODPushDev;
                     } else {
                         //console.log('Flag is 1. Creating IOS Prod for Grene Robotics Account Office Desk Plain Push');
-                        global.logger.write('debug', 'Flag is 1. Creating IOS Prod for Office Desk App Plain Push', {}, {});
+                        global.logger.write('conLog', 'Flag is 1. Creating IOS Prod for Office Desk App Plain Push', {}, {});
                         platformApplicationArn = global.config.platformApplicationIosODPushProd;
                     }
                 }
@@ -210,11 +209,11 @@ var AwsSns = function () {
         sns.createPlatformEndpoint(params, function (err, data) {
             if (err) {
                 //console.log(err, err.stack); // an error occurred
-                global.logger.write('debug', err + ' ' + err.stack, {}, {});
+                global.logger.write('conLog', err + ' ' + err.stack, {}, {});
                 callback(true, '');
             } else {
                 //console.log(data);           // successful response
-                global.logger.write('debug', data, {}, {});
+                global.logger.write('conLog', data, {}, {});
                 callback(false, data.EndpointArn);
             }
         });

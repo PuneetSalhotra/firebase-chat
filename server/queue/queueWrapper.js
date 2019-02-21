@@ -17,7 +17,7 @@ function QueueWrapper(producer) {
     this.raiseActivityEvent = function (event, activityId, callback) {
         //event.payload.pubnub_push = 0;
         
-        global.logger.write('debug', 'producing to key: ' + activityId.toString(), {}, event.payload);        
+        global.logger.write('conLog', 'producing to key: ' + activityId.toString(), {}, event.payload);        
         var payloads = [{
             topic: global.config.TOPIC_NAME,
             messages: JSON.stringify((event)),
@@ -40,7 +40,7 @@ function QueueWrapper(producer) {
         //var partition = Number(activityId) % 3;
         //var partition = 0;        
         //global.logger.write('debug', 'producing to partition id: ' + partition, {}, event.payload);
-        global.logger.write('debug', 'producing to key: ' + activityId.toString(), {}, event.payload);
+        global.logger.write('conLog', 'producing to key: ' + activityId.toString(), {}, event.payload);
         var payloads = [{
             topic: global.config.WIDGET_TOPIC_NAME,
             messages: JSON.stringify((event)),
@@ -81,7 +81,7 @@ function QueueWrapper(producer) {
             let channelId;
             event.payload.pubnub_push = 1;
             
-            global.logger.write('debug', 'producing to key: ' + activityId.toString(), {}, event.payload);        
+            global.logger.write('conLog', 'producing to key: ' + activityId.toString(), {}, event.payload);        
             var payloads = [{
                 topic: global.config.TOPIC_NAME,
                 messages: JSON.stringify((event)),

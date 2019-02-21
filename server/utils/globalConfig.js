@@ -14,6 +14,97 @@ config.phone_call = 1; // both Domestic and International 1: Nexmo | 2: Twilio
 
 config.whitelist = ['http://mydesk.desker.co', 'https://mydesk.desker.co', 'http://127.0.0.1', 'http://localhost'];
 
+if (mode === 'masimukku') {
+
+    //Ports Config
+    config.version = 'r0';
+    config.servicePort = 4000;
+    config.standAlonePamServicePort = 4100;
+
+    config.consumerSix = 4200;
+    config.consumerOne = 4201;
+    config.consumerTwo = 4202;
+    config.consumerThree = 4203;
+    config.consumerFour = 4204;
+    config.consumerFive = 4205;
+
+    config.sqsConsumer = 4300;
+
+    //Mysql Config
+    config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
+
+    config.dbUser = 'apiuser';
+    config.database = 'desker_staging';
+    config.dbPassword = 'apidbuser';
+    config.conLimit = 2;
+
+    //Redis Config    
+    config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';
+    config.redisPort = 6379;
+
+    //IOS Push
+    config.iosPushMode = 'dev'; // currently shouuld be in dev
+
+    //SQS Queue
+    config.SQSqueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/logs-staging"; //Staging SQS QUEUE
+
+    //Portal Service URL & Mobile Service URL
+    config.portalBaseUrl = "https://stagingportal.worlddesk.cloud/";
+    config.mobileBaseUrl = "https://stagingapi.worldesk.cloud/";
+
+    //making twilio, Nexmo Calls
+    config.efsPath = "/Users/masimukku/Downloads/worlddesk/";
+    
+    //Kafka Configuration
+    config.BROKER_HOST = "kafka1:9092,kafka2:9092,kafka3:9092";
+    config.BROKER_CONNECT_TIMEOUT = 10000;
+    config.BROKER_REQUEST_TIMEOUT = 60000;
+    config.BROKER_AUTO_CONNECT = true;
+    config.BROKER_MAX_ASYNC_REQUESTS = 10;
+
+    config.PRODUCER_REQUIRE_ACKS = 1;
+    config.PRODUCER_ACKS_TIMEOUT = 100;
+    config.PRODUCER_PARTITONER_TYPE = 3;
+
+    //Configs for Consumer Group
+    config.CONSUMER_GROUP_BATCH = undefined;
+    config.CONSUMER_GROUP_SSL = false;
+    config.CONSUMER_GROUP_SESSION_TIMEOUT = 15000;
+    config.CONSUMER_GROUP_PARTITION_ASSIGNMENT_PROTOCOL = ['roundrobin'];
+    config.CONSUMER_GROUP_FROM_OFFSET = 'latest';
+    config.CONSUMER_GROUP_COMMIT_OFFSET_ONFIRSTJOIN = true;
+    config.CONSUMER_GROUP_OUTOFRANGE_OFFSET = 'earliest';
+    config.CONSUMER_GROUP_MIGRATE_HLC = false;
+    config.CONSUMER_GROUP_MIGRATE_ROLLING = true;
+
+    //Desker
+    config.TOPIC_ID = 14; //Take from Sai
+    config.TOPIC_NAME = 'masimukku-desker-activities';
+    config.CONSUMER_GROUP_ID = 'masimukku-desker-activities-cg';    
+    
+    //Widget
+    config.WIDGET_TOPIC_NAME = 'masimukku-desker-widgets';    
+    config.WIDGET_CONSUMER_GROUP_ID = 'masimukku-desker-widgets-cg';
+    
+    //LOGS
+    config.LOGS_TOPIC_NAME = 'masimukku-desker-logs';
+    config.WIDGET_CONSUMER_GROUP_ID = 'masimukku-desker-logs-cg';
+
+    config.CONSUMER_AUTO_COMMIT = true;
+    config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
+    config.CONSUMER_FETCH_MAX_WAIT = 10;
+    config.CONSUMER_FETCH_MIN_BYTES = 1;
+    config.CONSUMER_FETCH_MAX_BYTES = 1048576;
+    config.CONSUMER_ENCODING = "utf8";
+    config.CONSUMER_KEY_ENCODING = "utf8";
+    ///////////////////////////////
+    
+    config.emailbaseUrlApprove = "https://stagingmydesk.desker.co"; 
+    config.emailbaseUrlUpload = "https://stagingmydesk.desker.co";    
+    
+}
+
 if (mode === 'local') {
 
     //Ports Config
@@ -41,8 +132,10 @@ if (mode === 'local') {
     config.conLimit = 5;
     
     //Log Mysql Config
-    config.logMasterIp = 'worlddesk-r1-log.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
-    config.logDatabase = 'worlddesk_log_staging';    
+    // config.logMasterIp = 'worlddesk-r1-log.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
+    config.logMasterIp = '10.0.0.169';    
+    config.logDatabase = 'worlddesk_log_staging';
+    config.logDbPassword = 'Apidbuser_123';
 
     //Redis Config
     //config.redisIp = '127.0.0.1';
@@ -74,6 +167,17 @@ if (mode === 'local') {
     config.PRODUCER_REQUIRE_ACKS = 1;
     config.PRODUCER_ACKS_TIMEOUT = 100;
     config.PRODUCER_PARTITONER_TYPE = 3;
+
+    //Configs for Consumer Group
+    config.CONSUMER_GROUP_BATCH = undefined;
+    config.CONSUMER_GROUP_SSL = false;
+    config.CONSUMER_GROUP_SESSION_TIMEOUT = 15000;
+    config.CONSUMER_GROUP_PARTITION_ASSIGNMENT_PROTOCOL = ['roundrobin'];
+    config.CONSUMER_GROUP_FROM_OFFSET = 'latest';
+    config.CONSUMER_GROUP_COMMIT_OFFSET_ONFIRSTJOIN = true;
+    config.CONSUMER_GROUP_OUTOFRANGE_OFFSET = 'earliest';
+    config.CONSUMER_GROUP_MIGRATE_HLC = false;
+    config.CONSUMER_GROUP_MIGRATE_ROLLING = true;
 
     //Desker
     config.TOPIC_ID = 8;
@@ -132,6 +236,10 @@ if (mode === 'dev') {
     config.logMasterIp = 'worlddesk-r1-log.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
     config.logDatabase = 'worlddesk_log_staging'; 
 
+    config.logMasterIp = '10.0.0.169';
+    config.logDatabase = 'worlddesk_log_staging';
+    config.logDbPassword = 'Apidbuser_123';
+
     //Redis Config
     config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';
     config.redisPort = 6379;    
@@ -162,6 +270,17 @@ if (mode === 'dev') {
     config.PRODUCER_REQUIRE_ACKS = 1;
     config.PRODUCER_ACKS_TIMEOUT = 100;
     config.PRODUCER_PARTITONER_TYPE = 3;
+
+    //Configs for Consumer Group
+    config.CONSUMER_GROUP_BATCH = undefined;
+    config.CONSUMER_GROUP_SSL = false;
+    config.CONSUMER_GROUP_SESSION_TIMEOUT = 15000;
+    config.CONSUMER_GROUP_PARTITION_ASSIGNMENT_PROTOCOL = ['roundrobin'];
+    config.CONSUMER_GROUP_FROM_OFFSET = 'latest';
+    config.CONSUMER_GROUP_COMMIT_OFFSET_ONFIRSTJOIN = true;
+    config.CONSUMER_GROUP_OUTOFRANGE_OFFSET = 'earliest';
+    config.CONSUMER_GROUP_MIGRATE_HLC = false;
+    config.CONSUMER_GROUP_MIGRATE_ROLLING = true;
 
     config.TOPIC_ID = 1;
     config.TOPIC_NAME = "dev-desker-activities-v1";
@@ -216,8 +335,10 @@ if (mode === 'staging') {
     config.conLimit = 2;
     
     //Log Mysql Config
-    config.logMasterIp = 'worlddesk-r1-log.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
-    config.logDatabase = 'worlddesk_log_staging';    
+    // config.logMasterIp = 'worlddesk-r1-log.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
+    config.logMasterIp = '10.0.0.169';    
+    config.logDatabase = 'worlddesk_log_staging';
+    config.logDbPassword = 'Apidbuser_123';
 
     //Redis Config    
     config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';
@@ -246,6 +367,17 @@ if (mode === 'staging') {
     config.PRODUCER_REQUIRE_ACKS = 1;
     config.PRODUCER_ACKS_TIMEOUT = 100;
     config.PRODUCER_PARTITONER_TYPE = 3;
+
+    //Configs for Consumer Group
+    config.CONSUMER_GROUP_BATCH = undefined;
+    config.CONSUMER_GROUP_SSL = false;
+    config.CONSUMER_GROUP_SESSION_TIMEOUT = 15000;
+    config.CONSUMER_GROUP_PARTITION_ASSIGNMENT_PROTOCOL = ['roundrobin'];
+    config.CONSUMER_GROUP_FROM_OFFSET = 'latest';
+    config.CONSUMER_GROUP_COMMIT_OFFSET_ONFIRSTJOIN = true;
+    config.CONSUMER_GROUP_OUTOFRANGE_OFFSET = 'earliest';
+    config.CONSUMER_GROUP_MIGRATE_HLC = false;
+    config.CONSUMER_GROUP_MIGRATE_ROLLING = true;
 
     config.TOPIC_ID = 10;
     config.TOPIC_NAME = 'staging-desker-activities_v1'; //v1 is only one partition
@@ -325,6 +457,17 @@ if (mode === 'preprod') {
     config.PRODUCER_ACKS_TIMEOUT = 100;
     config.PRODUCER_PARTITONER_TYPE = 3;
 
+    //Configs for Consumer Group
+    config.CONSUMER_GROUP_BATCH = undefined;
+    config.CONSUMER_GROUP_SSL = false;
+    config.CONSUMER_GROUP_SESSION_TIMEOUT = 15000;
+    config.CONSUMER_GROUP_PARTITION_ASSIGNMENT_PROTOCOL = ['roundrobin'];
+    config.CONSUMER_GROUP_FROM_OFFSET = 'latest';
+    config.CONSUMER_GROUP_COMMIT_OFFSET_ONFIRSTJOIN = true;
+    config.CONSUMER_GROUP_OUTOFRANGE_OFFSET = 'earliest';
+    config.CONSUMER_GROUP_MIGRATE_HLC = false;
+    config.CONSUMER_GROUP_MIGRATE_ROLLING = true;
+
     config.TOPIC_ID = 11;
     config.TOPIC_NAME = 'preprod-desker-activities-v1'; //Only one partition
     config.WIDGET_TOPIC_NAME = 'preprod-desker-form-widgets';
@@ -370,8 +513,10 @@ if (mode === 'prod') {
     config.conLimit = 2;
     
     //Log Mysql Config
-    config.logMasterIp = 'worlddesk-r1-log.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
-    config.logDatabase = 'worlddesk_log';    
+    // config.logMasterIp = 'worlddesk-r1-log.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
+    config.logMasterIp = '10.0.0.169';    
+    config.logDatabase = 'worlddesk_log';
+    config.logDbPassword = 'Apidbuser_123';
 
     //Redis    
     config.redisIp = 'cache-production.7otgcu.ng.0001.aps1.cache.amazonaws.com';
@@ -387,6 +532,17 @@ if (mode === 'prod') {
     config.PRODUCER_REQUIRE_ACKS = 1;
     config.PRODUCER_ACKS_TIMEOUT = 100;
     config.PRODUCER_PARTITONER_TYPE = 3;
+
+    //Configs for Consumer Group
+    config.CONSUMER_GROUP_BATCH = undefined;
+    config.CONSUMER_GROUP_SSL = false;
+    config.CONSUMER_GROUP_SESSION_TIMEOUT = 15000;
+    config.CONSUMER_GROUP_PARTITION_ASSIGNMENT_PROTOCOL = ['roundrobin'];
+    config.CONSUMER_GROUP_FROM_OFFSET = 'latest';
+    config.CONSUMER_GROUP_COMMIT_OFFSET_ONFIRSTJOIN = true;
+    config.CONSUMER_GROUP_OUTOFRANGE_OFFSET = 'earliest';
+    config.CONSUMER_GROUP_MIGRATE_HLC = false;
+    config.CONSUMER_GROUP_MIGRATE_ROLLING = true;
 
     config.TOPIC_ID = 12;
     config.TOPIC_NAME = 'prod-desker-activities-v1'; //Only one partition

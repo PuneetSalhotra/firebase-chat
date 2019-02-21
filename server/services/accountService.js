@@ -8,7 +8,7 @@ function AccountService(objectCollection) {
     var util = objectCollection.util;
     var forEachAsync = objectCollection.forEachAsync;
     //var cacheWrapper = objectCollection.cacheWrapper;
-    //var activityCommonService = objectCollection.activityCommonService;
+    const activityCommonService = objectCollection.activityCommonService;
 
     this.getAdminAssets = function (request, callback) {
         var paramsArr = new Array(
@@ -72,7 +72,7 @@ function AccountService(objectCollection) {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (data.length > 0) {
                     // console.log(data);
-                    global.logger.write('debug', 'retrieveAccountList data: ' + JSON.stringify(data, null, 2), {}, request);
+                    global.logger.write('conLog', 'retrieveAccountList data: ' + JSON.stringify(data, null, 2), {}, {});
 
                     formatAccountAccessList(data, function (error, data) {
                         if (error === false)
@@ -512,10 +512,11 @@ function AccountService(objectCollection) {
             request.account_id,
             request.workforce_id,
             request.default_module_id,
+            request.default_module_lock_enable,
             util.getCurrentUTCTime(),
             request.asset_id
         );
-        const queryString = util.getQueryString('ds_p1_workforce_list_update_default_module', paramsArr);
+        const queryString = util.getQueryString('ds_p1_1_workforce_list_update_default_module', paramsArr);
         if (queryString !== '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 (err) ? callback(true, err, -9999): callback(false, data, 200);
@@ -533,15 +534,121 @@ function AccountService(objectCollection) {
             request.organization_id,
             request.account_id,
             request.default_module_id,
+            request.default_module_lock_enable,
             util.getCurrentUTCTime(),
             request.asset_id
         );
-        const queryString = util.getQueryString('ds_p1_account_list_update_default_module', paramsArr);
+        const queryString = util.getQueryString('ds_p1_1_account_list_update_default_module', paramsArr);
         if (queryString !== '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 (err) ? callback(true, err, -9999): callback(false, data, 200);
             });
         }
+    };
+
+    // Call to update the inline data of the workforce
+    this.workforceListUpdateInlineData = async function (request) {
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
+        // IN p_workforce_id BIGINT(20), IN p_inline_data JSON, 
+        // IN p_log_datetime DATETIME, IN p_log_asset_id BIGINT(20)
+
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.inline_data,
+            util.getCurrentUTCTime(),
+            request.asset_id
+        );
+
+        var queryString = util.getQueryString('ds_p1_workforce_list_update_inline_data', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        // History Insert as well
+        try {
+            activityCommonService.workforceListHistoryInsert(request, 1102);
+        } catch (error) {
+            // Nada
+        }
+
+        return [error, responseData];
+    };
+
+    // Call to get differential data for a workforce
+    this.workforceListSelect = async function (request) {
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
+        // IN p_workforce_id BIGINT(20), IN p_flag TINYINT(4), 
+        // IN p_differential_datetime DATETIME, IN p_start_from SMALLINT(6), 
+        // IN p_limit_value TINYINT(4)
+
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.flag,
+            request.differential_datetime,
+            request.page_start || 0,
+            util.replaceQueryLimit(request.page_limit)
+        );
+
+        var queryString = util.getQueryString('ds_p1_workforce_list_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
+
+    // Call to search processes
+    this.workforceActivityTypeMappingSelectSearch = async function (request) {
+        // IN p_organization_id bigint(20), IN p_account_id bigint(20), 
+        // IN p_workforce_id bigint(20), IN p_search_string VARCHAR(50), 
+        // IN p_start_from SMALLINT(6), IN p_limit_value TINYINT(4)
+
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.search_string || '',
+            request.page_start || 0,
+            util.replaceQueryLimit(request.page_limit)
+        );
+
+        var queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_select_search', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
     };
 
 };
