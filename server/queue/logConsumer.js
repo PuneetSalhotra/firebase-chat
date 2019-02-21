@@ -6,6 +6,7 @@ require('../utils/globalConfig');
 let Logger = require('../utils/logger.js');
 let kafka = require('kafka-node');
 let kafkaConsumer = kafka.Consumer;
+var kafkaConsumerGroup = kafka.ConsumerGroup;
 let KafkaProducer = kafka.Producer;
 let Util = require('../utils/util');
 let db = require("../utils/logDbWrapper");
@@ -26,6 +27,7 @@ let Consumer = function () {
         });
     let kafkaProducer = new KafkaProducer(kfkClient);
 
+    /*
     let consumer =
         new kafkaConsumer(
             kfkClient,
@@ -45,6 +47,55 @@ let Consumer = function () {
                 keyEncoding: global.config.CONSUMER_KEY_ENCODING
             }
         );
+    */
+
+   let optionsConsumerGroup = 
+   {
+       // Connect directly to kafka broker (instantiates a KafkaClient)
+       kafkaHost: global.config.BROKER_HOST, 
+       
+       // Put client batch settings if you need them
+       batch: global.config.CONSUMER_GROUP_BATCH, 
+       
+       // Optional (defaults to false) or tls options hash
+       ssl: global.config.CONSUMER_GROUP_SSL, 
+       
+       // Consumer group name
+       groupId: global.config.CONSUMER_GROUP_ID,
+       
+       // Consumer group session timeout
+       sessionTimeout: global.config.CONSUMER_GROUP_SESSION_TIMEOUT,
+
+       // An array of partition assignment protocols ordered by preference.
+       // 'roundrobin' or 'range' string for built ins (see below to pass in custom assignment protocol)
+       protocol: global.config.CONSUMER_GROUP_PARTITION_ASSIGNMENT_PROTOCOL,
+
+       // default is utf8, use 'buffer' for binary data
+       encoding: global.config.CONSUMER_ENCODING, 
+       
+       // Offsets to use for new groups other options could be 'earliest' or 'none' (none will emit an error if no offsets were saved)
+       // equivalent to Java client's auto.offset.reset
+       // default
+       fromOffset: global.config.CONSUMER_GROUP_FROM_OFFSET, 
+       
+       // on the very first time this consumer group subscribes to a topic, record the offset returned in fromOffset (latest/earliest)
+       commitOffsetsOnFirstJoin: global.config.CONSUMER_GROUP_COMMIT_OFFSET_ONFIRSTJOIN, 
+
+       // how to recover from OutOfRangeOffset error (where save offset is past server retention) accepts same value as fromOffset
+       // default
+       outOfRangeOffset: global.config.CONSUMER_GROUP_OUTOFRANGE_OFFSET, 
+
+       // for details please see Migration section below
+       migrateHLC: global.config.CONSUMER_GROUP_MIGRATE_HLC,    
+       migrateRolling: global.config.CONSUMER_GROUP_MIGRATE_ROLLING,
+
+       // Callback to allow consumers with autoCommit false a chance to commit before a rebalance finishes
+       // isAlreadyMember will be false on the first connection, and true on rebalances triggered after that
+       onRebalance: (isAlreadyMember, callback) => { callback(); } // or null
+   };
+       
+   // for a single topic pass in a string
+   var consumerGroup = new kafkaConsumerGroup(optionsConsumerGroup, global.config.TOPIC_NAME);
 
     new Promise((resolve, reject) => {
         if (kafkaProducer.ready)
@@ -59,6 +110,7 @@ let Consumer = function () {
         console.log(global.config.LOGS_TOPIC_NAME);
         console.log('Kafka Producer ready!!');
 
+        /*
         consumer.on('message', function (message) {
 
             let kafkaMsgId = message.topic + '_' + message.partition + '_' + message.offset;
@@ -92,7 +144,41 @@ let Consumer = function () {
         kafkaProducer.on('error', function (error) {
             console.log('debug', error, {}, {});
         });
+        */
 
+        consumerGroup.on('message', function (message) {
+
+            let kafkaMsgId = message.topic + '_' + message.partition + '_' + message.offset;
+
+            console.log(`topic ${message.topic} partition ${message.partition} offset ${message.offset}`);
+            console.log('kafkaMsgId : ' + kafkaMsgId);
+            console.log('getting this key from Redis : ' + message.topic + '_' + message.partition);
+
+            let messageJson = JSON.parse(message.value);
+
+            // console.log('messageJson : ', messageJson);            
+            let request = messageJson.request;
+            //request.partition = message.partition;
+            //request.offset = message.offset;          
+
+            insertIntoDB(request, messageJson).then(() => {});
+        });
+
+        consumerGroup.on('connect', function (err, data) {
+            console.log("Connected to Kafka Host");
+        });
+
+        consumerGroup.on('error', function (err) {
+            console.log('debug', 'err => ' + JSON.stringify(err), {}, {});
+        });
+
+        consumerGroup.on('offsetOutOfRange', function (err) {
+            console.log('debug', 'offsetOutOfRange => ' + JSON.stringify(err), {}, {});
+        });
+
+        kafkaProducer.on('error', function (error) {
+            console.log('debug', error, {}, {});
+        });
     });
 
 
