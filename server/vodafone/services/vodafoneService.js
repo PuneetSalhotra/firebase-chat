@@ -4094,6 +4094,13 @@ function VodafoneService(objectCollection) {
         }
 
         const TARGET_FORM_ID = global.vodafoneConfig[formWorkflowActivityTypeId].TARGET_FORM_ID;
+        // Check if the target form generation request is from the target form generated (from this 
+        // function: buildAndSubmitCafFormV1), itself. If yes, terminate the processing.
+        if (Number(TARGET_FORM_ID) === Number(request.form_id)) {
+            console.log("buildAndSubmitCafFormV1 | DuplicateTargetFormGenerationRequestFromGeneratedTargetForm")
+            return [new Error("DuplicateTargetFormGenerationRequestFromGeneratedTargetForm"), []];
+        }
+
         let targetFormExists = false;
         // Check if the target form is already submitted, if yes, move control to regenerateAndSubmitTargetForm
         await activityCommonService
@@ -4111,7 +4118,10 @@ function VodafoneService(objectCollection) {
             });
 
         console.log("TargetFormExists", targetFormExists);
-        if (targetFormExists) {
+        if (targetFormExists &&
+            request.hasOwnProperty("non_dedicated_file") &&
+            request.non_dedicated_file === 1
+        ) {
             request.form_id = Number(request.activity_form_id);
             console.log("TargetFormExists", targetFormExists);
             await self.regenerateAndSubmitTargetForm(request);

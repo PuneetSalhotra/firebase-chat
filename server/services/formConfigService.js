@@ -808,14 +808,7 @@ function FormConfigService(objCollection) {
                         params[18] = row.field_value; // p_entity_text_1
                         break;
                     case 52: // Excel Document
-                        try {
-                            const fieldValue = JSON.parse(row.field_value);
-                            params[18] = fieldValue.excel_file_url; // p_entity_text_1
-                            params[19] = fieldValue.pdf_file_url; // p_entity_text_2
-                        } catch (err) {
-                            global.logger.write('debug', '\x1b[32m Error parsing field_value for Excel Document data type - \x1b[0m', err, request);
-                            console.log("ActivityTimelineService | addFormEntries | case 50 | Excel Document | Error: ", err);
-                        }
+                        params[18] = row.field_value;
                         break;
                     case 53: // IP Address Form
                         params[18] = row.field_value;
