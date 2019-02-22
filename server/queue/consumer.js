@@ -40,7 +40,7 @@ var Consumer = function () {
         });
     var kafkaProducer = new KafkaProducer(kfkClient);
 
-    /*
+    // /*
     var consumer =
         new kafkaConsumer(
             kfkClient,
@@ -60,7 +60,7 @@ var Consumer = function () {
                 keyEncoding: global.config.CONSUMER_KEY_ENCODING
             }
         );
-    */
+    // */
 
     let optionsConsumerGroup = 
     {
@@ -108,7 +108,7 @@ var Consumer = function () {
     };
         
     // for a single topic pass in a string
-    var consumerGroup = new kafkaConsumerGroup(optionsConsumerGroup, global.config.TOPIC_NAME);
+    // var consumerGroup = new kafkaConsumerGroup(optionsConsumerGroup, global.config.TOPIC_NAME);
 
     new Promise((resolve, reject) => {
         if (kafkaProducer.ready)
@@ -134,7 +134,7 @@ var Consumer = function () {
             activityPushService: activityPushService
         };
 
-        /*
+        // /*
         consumer.on('message', function (message) {
 
             global.logger.write('conLog', `topic ${message.topic} partition ${message.partition} offset ${message.offset}`, {}, {});
@@ -185,8 +185,8 @@ var Consumer = function () {
         kafkaProducer.on('error', function (error) {
             global.logger.write('conLog', error, {}, {});
         });
-        */
-
+        // */
+/*        
         consumerGroup.on('message', function (message) {
 
             global.logger.write('conLog', `topic ${message.topic} partition ${message.partition} offset ${message.offset}`, {}, {});
@@ -237,7 +237,7 @@ var Consumer = function () {
         kafkaProducer.on('error', function (error) {
             global.logger.write('conLog', error, {}, {});
         });
-
+*/
     });
 
     function commitingOffset(message) {
