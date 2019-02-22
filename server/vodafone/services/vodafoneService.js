@@ -4096,7 +4096,9 @@ function VodafoneService(objectCollection) {
         const TARGET_FORM_ID = global.vodafoneConfig[formWorkflowActivityTypeId].TARGET_FORM_ID;
         // Check if the target form generation request is from the target form generated (from this 
         // function: buildAndSubmitCafFormV1), itself. If yes, terminate the processing.
-        if (Number(TARGET_FORM_ID) === Number(request.form_id)) {
+        if (Number(TARGET_FORM_ID) === Number(request.form_id) ||
+            !(request.hasOwnProperty("non_dedicated_file") && request.non_dedicated_file === 1)
+        ) {
             console.log("buildAndSubmitCafFormV1 | DuplicateTargetFormGenerationRequestFromGeneratedTargetForm")
             return [new Error("DuplicateTargetFormGenerationRequestFromGeneratedTargetForm"), []];
         }
