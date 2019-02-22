@@ -363,9 +363,9 @@ if (mode === 'staging') {
     config.CONSUMER_GROUP_MIGRATE_HLC = false;
     config.CONSUMER_GROUP_MIGRATE_ROLLING = true;
 
-    onfig.TOPIC_ID = 16;
-    onfig.TOPIC_NAME = 'staging-desker-activities-v3'; //v1 is only one partition
-    onfig.CONSUMER_GROUP_ID = 'staging-desker-activities-v3-cg';
+    config.TOPIC_ID = 16;
+    config.TOPIC_NAME = 'staging-desker-activities-v3'; //v1 is only one partition
+    config.CONSUMER_GROUP_ID = 'staging-desker-activities-v3-cg';
     config.WIDGET_TOPIC_NAME = 'staging-desker-form-widgets';    
     config.WIDGET_CONSUMER_GROUP_ID = 'staging-desker-activities-widget-cg';
     
