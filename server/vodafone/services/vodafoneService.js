@@ -2712,6 +2712,9 @@ function VodafoneService(objectCollection) {
                 case 7143: // Platform | Service Rental-One Time(A)
                 case 7144: // Platform | Service Rental-Annual Recurring(B)
                 case 7145: // Platform | Service Rental-Security Deposit(C)
+                    if (isNaN(Number(formEntry.field_value))) {
+                        formEntry.field_value = 0;
+                    }
                     sumsKeyValueJson.serviceRentalGrandTotal += Number(formEntry.field_value);
                     break;
                     // IP Address Charges-Grand Total(A+B+C)
@@ -4407,6 +4410,9 @@ function VodafoneService(objectCollection) {
                     let sum = 0;
                     for (const sourceFieldID of batch.SOURCE_FIELD_IDS) {
                         if (targetFormDataMap.has(Number(sourceFieldID))) {
+                            if (isNaN(Number(targetFormDataMap.get(sourceFieldID).field_value))) {
+                                continue;
+                            }
                             sum += Number(targetFormDataMap.get(sourceFieldID).field_value);
                         }
                     }

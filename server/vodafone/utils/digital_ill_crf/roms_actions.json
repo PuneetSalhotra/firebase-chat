@@ -1,0 +1,113 @@
+[{
+        "ACTION": "set_static_value",
+        "BATCH": [{
+            "TARGET_FIELD_ID": 9748,
+            "VALUE": "Mumbai Circle - Account Managers"
+        }]
+    }, {
+        "ACTION": "sum",
+        "BATCH": [{
+            "SOURCE_FIELD_IDS": [9664, 9665, 9666],
+            "TARGET_FIELD_ID": 9667,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [9668, 9669],
+            "TARGET_FIELD_ID": 9670,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [9671, 9672],
+            "TARGET_FIELD_ID": 9673,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [9674, 9675],
+            "TARGET_FIELD_ID": 9676,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [9677, 9678, 9679],
+            "TARGET_FIELD_ID": 9680,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [9681, 9682, 9683],
+            "TARGET_FIELD_ID": 9684,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [9685, 9686, 9687],
+            "TARGET_FIELD_ID": 9688,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [9689, 9690],
+            "TARGET_FIELD_ID": 9691,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [9692, 9693],
+            "TARGET_FIELD_ID": 9694,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [9695, 9696],
+            "TARGET_FIELD_ID": 9697,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [9698, 9699],
+            "TARGET_FIELD_ID": 9700,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [9701, 9702],
+            "TARGET_FIELD_ID": 9703,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [9704, 9705, 9706],
+            "TARGET_FIELD_ID": 9707,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [9708, 9709, 9710],
+            "TARGET_FIELD_ID": 9711,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [9712, 9713, 9714],
+            "TARGET_FIELD_ID": 9715,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [9716, 9717, 9718],
+            "TARGET_FIELD_ID": 9719,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [9720, 9721, 9722],
+            "TARGET_FIELD_ID": 9723,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [9724, 9725, 9726],
+            "TARGET_FIELD_ID": 9727,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [9728, 9729],
+            "TARGET_FIELD_ID": 9730,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [9731, 9732],
+            "TARGET_FIELD_ID": 9733,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [9734],
+            "TARGET_FIELD_ID": 9735,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [9736],
+            "TARGET_FIELD_ID": 9737,
+            "VALUE": 0
+        }]
+    },
+    {
+        "ACTION": "set_date",
+        "BATCH": [{
+            "TARGET_FIELD_ID": 9745,
+            "TZ_OFFSET": "+05:30"
+        }]
+    },
+    {
+        "ACTION": "set_participant_name",
+        "BATCH": [{
+            "TARGET_FIELD_ID": 9747,
+            "ASSET_TYPE_ID": 127254
+        }]
+    }
+]
