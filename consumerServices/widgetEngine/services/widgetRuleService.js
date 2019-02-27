@@ -17,12 +17,13 @@ class WidgetRuleService {
                         request.workforceId,
                         request.assetId,
                         request.activityId,
+                        request.activityTypeId,
                         request.formId,
                         request.widgetTypeCategoryId,
                         opts.startFrom,                        
                         limit
                         );
-                var queryString = args.util.getQueryString('ds_p1_2_widget_list_select_form', paramsArr);
+                var queryString = args.util.getQueryString('ds_p1_3_widget_list_select_form', paramsArr);
                 if (queryString === '')
                     return reject();
                 args.db.executeQuery(1, queryString, request, function (err, data) {

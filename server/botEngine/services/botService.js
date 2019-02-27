@@ -1064,65 +1064,65 @@ function BotService(objectCollection) {
         global.logger.write('conLog', inlineData, {}, {});
         newReq.message_unique_id = util.getMessageUniqueId(request.asset_id);
 
-        let type = Object.keys(inlineData);        
-        global.logger.write('conLog', type,{},{});
+        let type = Object.keys(inlineData);
+        global.logger.write('conLog', type, {}, {});
 
-        if(type[0] === 'static') {                
-            newReq.flag_asset = inlineData[type[0]].flag_asset;      
+        if (type[0] === 'static') {
+            newReq.flag_asset = inlineData[type[0]].flag_asset;
 
-            if(newReq.flag_asset === 1){
+            if (newReq.flag_asset === 1) {
                 //Use Asset Id
-                newReq.desk_asset_id = inlineData[type[0]].desk_asset_id;    
+                newReq.desk_asset_id = inlineData[type[0]].desk_asset_id;
                 newReq.phone_number = 0;
             } else {
                 //Use Phone Number
-                newReq.desk_asset_id = 0;    
-                let phoneNumber = inlineData[type[0]].phone_number;               
+                newReq.desk_asset_id = 0;
+                let phoneNumber = inlineData[type[0]].phone_number;
                 let phone;
                 (phoneNumber.includes('||')) ?
-                            phone = phoneNumber.split('||'):                                                   
-                            phone = phoneNumber.split('|');
-                            
-                newReq.country_code = phone[0];  //country code
-                newReq.phone_number = phone[1];  //phone number                      
-            }            
-            
-        } else if(type[0] === 'dynamic') {
+                phone = phoneNumber.split('||'):
+                    phone = phoneNumber.split('|');
+
+                newReq.country_code = phone[0]; //country code
+                newReq.phone_number = phone[1]; //phone number                      
+            }
+
+        } else if (type[0] === 'dynamic') {
             newReq.desk_asset_id = 0;
             newReq.form_id = inlineData[type[0]].form_id;
-            newReq.field_id = inlineData[type[0]].field_id;            
+            newReq.field_id = inlineData[type[0]].field_id;
             let activityInlineData;
 
             resp = await getFieldValue(newReq);
-            if(resp.length > 0) {
+            if (resp.length > 0) {
                 newReq.phone_country_code = String(resp[0].data_entity_bigint_1);
                 newReq.phone_number = String(resp[0].data_entity_text_1);
             } else {
                 resp = await getActivityIdBasedOnTransId(newReq);
                 activityInlineData = JSON.parse(resp[0].activity_inline_data);
-                for(let i of activityInlineData) {
-                    if(i.form_id === newReq.form_id && i.field_id === newReq.field_id) {
-                        
-                        let phoneNumber = i.field_value;               
+                for (let i of activityInlineData) {
+                    if (Number(i.form_id) === Number(newReq.form_id) && Number(i.field_id) === Number(newReq.field_id)) {
+
+                        let phoneNumber = i.field_value;
                         let phone;
 
                         (phoneNumber.includes('||')) ?
-                                    phone = phoneNumber.split('||'):                                                   
-                                    phone = phoneNumber.split('|');
-                                    
-                        newReq.country_code = phone[0];  //country code
-                        newReq.phone_number = phone[1];  //phone number                      
+                        phone = phoneNumber.split('||'):
+                            phone = phoneNumber.split('|');
+
+                        newReq.country_code = phone[0]; //country code
+                        newReq.phone_number = phone[1]; //phone number                      
                     }
                 }
             }
-        }       
-        
-        if(newReq.phone_number !== -1) {
+        }
+
+        if (newReq.phone_number !== -1) {
             return await addParticipantStep(newReq);
         } else {
             return [true, "Phone Number is Undefined"];
         }
-        
+
     }
 
     //Bot Step Firing an eMail
@@ -1379,7 +1379,11 @@ function BotService(objectCollection) {
         }
 
         const base64Json = Buffer.from(JSON.stringify(JsonData)).toString('base64');
-        const urlStrFill = "https://officedesk.app/#/forms/view/" + base64Json;
+        let urlStrFill = "https://staging.officedesk.app/#/forms/view/" + base64Json;
+        if (global.mode === 'prod') {
+            urlStrFill = "https://officedesk.app/#/forms/view/" + base64Json;
+        }
+
         const buttonName = formAction.call_to_action_label;
         const actionLink = `<a style='background: #f47920;display: inline-block;color: #FFFFFF;text-decoration: none;font-size: 12px;margin-top: 1.0em;background-clip: padding-box;padding: 5px 15px;box-shadow: 4px 4px 6px 1px #cbcbcb;margin-left:10px' target='_blank' href='${urlStrFill}'>${buttonName}</a> `;
 
@@ -1416,7 +1420,10 @@ function BotService(objectCollection) {
             asset_first_name: request.asset_first_name || ''
         }
         const base64Json = Buffer.from(JSON.stringify(JsonData)).toString('base64');
-        const urlStrFill = "https://officedesk.app/#/orderstatus/" + base64Json;
+        let urlStrFill = "https://staging.officedesk.app/#/orderstatus/" + base64Json;
+        if (global.mode === 'prod') {
+            urlStrFill = "https://officedesk.app/#/orderstatus/" + base64Json;
+        }
         const statusLink = `<a style='background: #f47920;display: inline-block;color: #FFFFFF;text-decoration: none;font-size: 12px;margin-top: 1.0em;background-clip: padding-box;padding: 5px 15px;box-shadow: 4px 4px 6px 1px #cbcbcb;margin-left:10px' target='_blank' href='${urlStrFill}'>Track Order Status</a>`;
 
         return statusLink;
@@ -2242,6 +2249,15 @@ function BotService(objectCollection) {
                     case 50:    // Reference - File
                         params[13] = Number(JSON.parse(row.field_value).activity_id); // p_entity_bigint_1
                         params[18] = row.field_value; // p_entity_text_1
+                        break;
+                    case 52: // Excel Document
+                        params[18] = row.field_value;
+                        break;
+                    case 53: // IP Address Form
+                        params[18] = row.field_value;
+                        break;
+                    case 54: // MAC Address Form
+                        params[18] = row.field_value;
                         break;
                     case 17:    //Location
                         var location = row.field_value.split('|');

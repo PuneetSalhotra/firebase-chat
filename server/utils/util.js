@@ -10,6 +10,16 @@ var tz = require('moment-timezone');
 const Nexmo = require('nexmo');
 var fs = require('fs');
 var os = require('os');
+const excelToJson = require('convert-excel-to-json');
+const AWS = require('aws-sdk');
+
+AWS.config.update(
+    {
+        accessKeyId: "AKIAJYK3ECSPVVT67DOQ",
+        secretAccessKey: "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",
+        region: 'ap-south-1'
+    }
+);
 
 // SendGrid
 const sgMail = require('@sendgrid/mail');
@@ -1081,7 +1091,52 @@ function Util() {
             callback(false, res);
         });
     };
+    
 
-};
+    this.getJSONfromXcel = async (request) => {            
+        let s3 = new AWS.S3();
+
+        let url = request.bucket_url;
+        const BucketName = url.slice(8, 25);
+        const KeyName = url.slice(43);        
+        
+        //console.log('request.bucket_url : ', url);
+        //console.log('BucketName : ', BucketName);
+        //console.log('KeyName : ', KeyName);
+        
+        let params =  {
+                        Bucket: BucketName, 
+                        Key: KeyName
+                        };
+
+        let fileName = '';
+        //HANDLE THE PATHS in STAGING and PREPROD AND PRODUCTION
+        switch(global.mode) {            
+            case 'staging': fileName = '/apistaging-data/';
+                            break;
+            case 'preprod': fileName = '/data/';
+                            break;
+            case 'prod': fileName = '/api-data/';
+                         break;            
+            default: break;
+        }
+
+        fileName += 'mpls-aws-'+this.getCurrentUTCTimestamp()+'.xlsx';
+        let file = require('fs').createWriteStream(fileName);
+        s3.getObject(params).createReadStream().pipe(file);
+
+        return new Promise((resolve, reject)=>{
+            setTimeout(() =>{
+                const result = excelToJson({sourceFile: fileName});
+                //console.log(JSON.stringify(result, null, 4));
+                fs.unlink(fileName, ()=>{});
+                resolve(JSON.stringify(result, null, 4));                
+            },
+            3000
+            );
+        });        
+    };
+
+}
 
 module.exports = Util;

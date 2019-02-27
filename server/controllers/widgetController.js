@@ -171,6 +171,65 @@ function WidgetController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/widget/asset/activity_type/list', async function (req, res) {
+        const [err, data] = await widgetService.widgetEntityMappingSelectAssetActivityTypes(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("Error: ", err)
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/asset/activity_type/widget/list', async function (req, res) {
+        const [err, data] = await widgetService.widgetEntityMappingSelectAssetActivityTypeWidgets(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("Error: ", err)
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
+    //Get the count of files mapped to a specific activity type and that are set to a specific status type or status
+    //Bharat Masimukku
+    //2019-02-09
+    app.post
+    (
+        '/' + global.config.version + '/widget/activities/activityType/status/count', 
+        async (req, res) => 
+        {        
+            try 
+            {
+                let result = await widgetService.getActivitiesStatusCount(req.body);
+                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            } 
+            catch(err) 
+            {
+                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            } 
+        }
+    );
+
+    //Get the list of files mapped to a specific activity type and that are set to a specific status type or status
+    //Bharat Masimukku
+    //2019-02-09
+    app.post
+    (
+        '/' + global.config.version + '/widget/activities/activityType/status/list', 
+        async (req, res) => 
+        {        
+            try 
+            {
+                let result = await widgetService.getActivitiesStatusList(req.body);
+                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            } 
+            catch(err) 
+            {
+                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            } 
+        }
+    );
 }
 
 module.exports = WidgetController;

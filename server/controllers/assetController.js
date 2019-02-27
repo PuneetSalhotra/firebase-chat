@@ -551,5 +551,15 @@ function AssetController(objCollection) {
             res.send(responseWrapper.getResponse({}, data, 200, req.body)):                    
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
     });
+
+    app.post('/' + global.config.version + '/asset/access/queue/list', async (req, res) => {
+        try {
+            global.logger.write('conLog', req.body, {}, {});
+            let result = await assetService.queueAccessListSelectAsset(req.body);
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch (err) {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
 }
 module.exports = AssetController;

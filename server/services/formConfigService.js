@@ -42,7 +42,7 @@ function FormConfigService(objCollection) {
                 if (err === false) {
                     if (data.length > 0) {
                         //console.log(data);
-                        formatFromsListing(data, function (err, finalData) {
+                        formatFromsListing(-1, data, function (err, finalData) {
                             if (err === false) {
                                 callback(false, {
                                     data: finalData
@@ -79,7 +79,7 @@ function FormConfigService(objCollection) {
                 if (err === false) {
                     if (data.length > 0) {
                         //console.log(data);
-                        formatFromsListing(data, function (err, finalData) {
+                        formatFromsListing(-1, data, function (err, finalData) {
                             if (err === false) {
                                 callback(false, {
                                     data: finalData
@@ -117,7 +117,7 @@ function FormConfigService(objCollection) {
                 if (err === false) {
                     if (data.length > 0) {
                         //console.log(data);
-                        formatFromsListing(data, function (err, finalData) {
+                        formatFromsListing(-1, data, function (err, finalData) {
                             if (err === false) {
                                 callback(false, {
                                     data: finalData
@@ -156,7 +156,7 @@ function FormConfigService(objCollection) {
                 if (err === false) {
                     if (data.length > 0) {
                         //console.log(data);
-                        formatFromsListing(data, function (err, finalData) {
+                        formatFromsListing(-1, data, function (err, finalData) {
                             if (err === false) {
                                 callback(false, {
                                     data: finalData
@@ -195,7 +195,7 @@ function FormConfigService(objCollection) {
                 if (err === false) {
                     if (data.length > 0) {
                         //console.log(data);
-                        formatFromsListing(data, function (err, finalData) {
+                        formatFromsListing(request.device_os_id, data, function (err, finalData) {
                             if (err === false) {
                                 callback(false, {
                                     data: finalData
@@ -262,7 +262,7 @@ function FormConfigService(objCollection) {
                 if (err === false) {
                     if (data.length > 0) {
                         //console.log(data);
-                        formatFromsListing(data, function (err, finalData) {
+                        formatFromsListing(-1, data, function (err, finalData) {
                             if (err === false) {
                                 callback(false, {
                                     data: finalData
@@ -303,7 +303,7 @@ function FormConfigService(objCollection) {
                     if (data.length > 0) {
                         //console.log(data);
                         activityCommonService.formatFormDataCollection(data, function (err, finalData) {
-                            //formatFromsListing(data, function (err, finalData) {
+                            //formatFromsListing(-1, data, function (err, finalData) {
                             if (err === false) {
                                 callback(false, {
                                     data: finalData
@@ -323,8 +323,8 @@ function FormConfigService(objCollection) {
         }
     };
 
-    var formatFromsListing = function (data, callback) {
-        console.log(data);
+    var formatFromsListing = function (device_os_id, data, callback) {
+        //console.log(data);
         var responseData = new Array();
         data.forEach(function (rowData, index) {
 
@@ -381,7 +381,16 @@ function FormConfigService(objCollection) {
                 "form_workflow_activity_type_name": util.replaceDefaultString(util.decodeSpecialChars(rowData['form_workflow_activity_type_name'])),
                 "form_flag_workflow_origin": util.replaceDefaultNumber(rowData['form_flag_workflow_origin'])
             };
-            responseData.push(rowDataArr);
+
+            if (Number(device_os_id) === 5 && Number(index) === 0 && Number(rowData['field_sequence_id']) === 0)
+            {
+                //Dont push the row data to array
+                //For device OS ID 5, do not send the form name stored in the label as per the requirement presented by the web team
+            }
+            else
+            {
+                responseData.push(rowDataArr);
+            }
         }, this);
         callback(false, responseData);
     };
@@ -560,6 +569,7 @@ function FormConfigService(objCollection) {
 
                         } else if (Number(formConfigData.length) > 0 && Number(formConfigData[0].form_flag_workflow_enabled) === 1) {
                             let workflowRequest = Object.assign({}, request);
+                            workflowRequest.activity_inline_data = JSON.stringify(activityInlineData);
                             try {
                                 self.workflowOnFormEdit(workflowRequest);
                             } catch (error) {
@@ -797,6 +807,15 @@ function FormConfigService(objCollection) {
                         params[13] = Number(JSON.parse(row.field_value).activity_id); // p_entity_bigint_1
                         params[18] = row.field_value; // p_entity_text_1
                         break;
+                    case 52: // Excel Document
+                        params[18] = row.field_value;
+                        break;
+                    case 53: // IP Address Form
+                        params[18] = row.field_value;
+                        break;
+                    case 54: // MAC Address Form
+                        params[18] = row.field_value;
+                        break;
                     case 17: //Location
                         var location = row.field_value.split('|');
                         params[16] = location[0];
@@ -808,7 +827,7 @@ function FormConfigService(objCollection) {
                         params[18] = money[1];
                         break;
                     case 19: //Short Text
-                        params[18] = request.new_field_value;
+                        params[18] = request.new_field_value || row.field_value;
                         break;
                     case 20: //Long Text
                         params[19] = row.field_value;
@@ -1873,14 +1892,37 @@ function FormConfigService(objCollection) {
         workflowFile713Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
         workflowFile713Request.device_os_id = 8;
 
-        //const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
-        //await addTimelineTransactionAsync(workflowFile713Request);
-
-
         if (Number(formConfigData.length) > 0) {
 
             formWorkflowActivityTypeId = formConfigData[0].form_workflow_activity_type_id;
             console.log("formWorkflowActivityTypeId: ", formWorkflowActivityTypeId);
+
+            if (Number(formWorkflowActivityTypeId) !== 134562) {
+                // 713 timeline entry on the workflow file
+                try {
+                    const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
+                    await addTimelineTransactionAsync(workflowFile713Request);
+                } catch (error) {
+                    console.log("workflowOnFormEdit | addTimelineTransactionAsync | workflowFile713Request: ", error);
+                }
+                // Regenerate target form (if required/mapping exists), and then submit a 713 entry
+                console.log("Calling [regenerateAndSubmitTargetForm]: ", request.activity_inline_data);
+
+                const rebuildTargetFormEvent = {
+                    name: "vodafoneService",
+                    service: "vodafoneService",
+                    method: "regenerateAndSubmitTargetForm",
+                    payload: Object.assign(request)
+                };
+                queueWrapper.raiseActivityEvent(rebuildTargetFormEvent, request.activity_id, (err, resp) => {
+                    if (err) {
+                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                    } else {
+                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                    }
+                });
+            }
 
             try {
                 let newRequest = Object.assign({}, request);
@@ -1960,31 +2002,6 @@ function FormConfigService(objCollection) {
                                 targetFormName = targetFormData[0].data_form_name;
                             }
                         });
-
-                    // 
-                    // if (Array.isArray(targetFormInlineData.form_submitted) === true || typeof targetFormInlineData.form_submitted === 'object') {
-                    //     targetFormSubmittedData = targetFormInlineData.form_submitted;
-                    // } else {
-                    //     targetFormSubmittedData = JSON.parse(targetFormInlineData.form_submitted);
-                    // }
-
-                    // let newActivityInlineData = JSON.parse(request.activity_inline_data);
-                    // newActivityInlineData[0].form_id = Number(mapping.target_form_id);
-                    // newActivityInlineData[0].form_name = targetFormName;
-                    // newActivityInlineData[0].field_id = Number(mapping.target_field_id);
-                    // newActivityInlineData[0].form_transaction_id = targetFormTransactionId;
-
-                    // let fieldAlterRequest = Object.assign({}, request);
-                    // fieldAlterRequest.activity_id = targetFormActivityId;
-                    // fieldAlterRequest.form_id = Number(mapping.target_form_id);
-                    // fieldAlterRequest.form_transaction_id = targetFormTransactionId;
-                    // fieldAlterRequest.field_id = Number(mapping.target_field_id);
-                    // fieldAlterRequest.activity_inline_data = JSON.stringify(newActivityInlineData);
-                    // fieldAlterRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
-                    // fieldAlterRequest.device_os_id = 7;
-
-                    // const alterFormActivityAsync = nodeUtil.promisify(self.alterFormActivity);
-                    // await alterFormActivityAsync(fieldAlterRequest);
                 }
             }
 
@@ -2795,6 +2812,205 @@ function FormConfigService(objCollection) {
             });
         });
         return updatedData;
+    }
+
+    this.alterFormActivityFieldValues = async function (request) {
+        let fieldsNewValues = [],
+            fieldsNewValuesMap = new Map();
+        fieldsNewValues = JSON.parse(request.activity_inline_data);
+        for (const field of fieldsNewValues) {
+            fieldsNewValuesMap.set(Number(field.field_id), field);
+        }
+        console.log("fieldsNewValuesMap: ", fieldsNewValuesMap);
+
+        let activityData = [];
+        // Fetch the activity data from the DB
+        try {
+            activityData = await activityCommonService.getActivityByFormTransaction(request, request.activity_id);
+        } catch (error) {
+            console
+            return [error, []];
+        }
+        // If the activity exists, retrieve and parse the inline data
+        let activityInlineData = [];
+        if (activityData.length > 0) {
+            try {
+                activityInlineData = JSON.parse(activityData[0].activity_inline_data);
+            } catch (error) {
+                return [error, []];
+            }
+        } else {
+            return [new Error("ActivityNotFound"), []];
+        }
+        // Convert the inline data to a map, for easy processing
+        let activityInlineDataMap = new Map();
+        for (const field of activityInlineData) {
+            activityInlineDataMap.set(Number(field.field_id), field);
+        }
+        // Build the promises array for concurrent processing
+        let fetchUpdateSeqIdPromises = [];
+        // Content to be displayed on the UI
+        let content = '',
+            formName = '';
+        for (const fieldID of fieldsNewValuesMap.keys()) {
+            // Fetch the latest upate sequence ID
+            fetchUpdateSeqIdPromises.push(
+                getLatestUpdateSeqId({
+                    form_transaction_id: request.form_transaction_id,
+                    form_id: request.form_id,
+                    field_id: fieldID,
+                    organization_id: request.organization_id
+                })
+                .then(async (data) => {
+                    let newRequest = Object.assign({}, request);
+                    let newFieldData = [];
+
+                    if (data.length > 0) {
+                        newRequest.update_sequence_id = Number(data[0].update_sequence_id) + 1;
+                    } else {
+                        newRequest.update_sequence_id = 1;
+                    }
+
+                    newRequest.field_id = fieldID;
+                    newRequest.data_type_combo_id = fieldsNewValuesMap.get(fieldID).data_type_combo_id;
+                    newRequest.datetime_log = util.getCurrentUTCTime();
+                    newFieldData.push(fieldsNewValuesMap.get(fieldID));
+                    // Update the field entry
+                    await putLatestUpdateSeqId(newRequest, newFieldData);
+
+                    formName = fieldsNewValuesMap.get(fieldID).form_name;
+                    let fieldName = fieldsNewValuesMap.get(fieldID).field_name;
+                    // Update the activity inline data as well
+                    if (activityInlineDataMap.has(fieldID)) {
+                        let oldFieldEntry = activityInlineDataMap.get(fieldID);
+                        let newFieldEntry = Object.assign({}, oldFieldEntry);
+                        newFieldEntry.field_value = fieldsNewValuesMap.get(fieldID).field_value;
+                        // Set the new value in the inline data map
+                        activityInlineDataMap.set(fieldID, newFieldEntry);
+
+                        // Form the content string
+                        content += `In the ${formName}, the field ${fieldName} was updated from ${oldFieldEntry.field_value} to ${newFieldEntry.field_value} <br />`;;
+                    } else {
+                        // If it doesn't already exist, make a fresh entry!
+                        let newFieldEntry = fieldsNewValuesMap.get(fieldID);
+                        activityInlineDataMap.set(fieldID, {
+                            "data_type_combo_id": newFieldEntry.data_type_combo_id,
+                            "data_type_combo_value": newFieldEntry.data_type_combo_value,
+                            "field_data_type_category_id": newFieldEntry.field_data_type_category_id,
+                            "field_data_type_id": newFieldEntry.field_data_type_id,
+                            "field_id": fieldID,
+                            "field_name": fieldName,
+                            "field_value": newFieldEntry.field_value,
+                            "form_id": newRequest.form_id,
+                            "message_unique_id": 12345678910
+                        });
+
+                        // Form the content string
+                        content += `In the ${formName}, the field ${fieldName} was updated to ${newFieldEntry.field_value} <br />`;;
+                    }
+
+                    return {
+                        field_id: fieldID,
+                        success: true,
+                        update_sequence_id: newRequest.update_sequence_id
+                    };
+                })
+                .catch((error) => {
+                    console.log("fetchUpdateSeqIdPromises | getLatestUpdateSeqId | Error: ", error);
+                    return 'Ghotala';
+                })
+            );
+        }
+
+        await Promise.all(fetchUpdateSeqIdPromises)
+            .then((updateSequenceIDs) => {
+                console.log("updateSequenceIDs: ", updateSequenceIDs);
+            })
+            .catch((error) => {
+                console.log("Promise.all | fetchUpdateSeqIdPromises | error: ", error);
+                return [error, []];
+            });
+
+        console.log("content: ", content);
+        // update the activity's inline data as well
+        activityInlineData = [...activityInlineDataMap.values()];
+        
+        // [REORDER | SORT] Fetch the target form's field sequence data
+        let fieldSequenceIdMap = {};
+        await activityCommonService
+            .getFormFieldMappings(request, Number(request.form_id), 0, 500)
+            .then((data) => {
+                if (data.length > 0) {
+
+                    data.forEach(formMappingEntry => {
+                        fieldSequenceIdMap[formMappingEntry.field_id] = Number(formMappingEntry.field_sequence_id);
+                    });
+                }
+            });
+
+        // S O R T Target Form entries based on the 
+        // field_id:field_seq_id data feteched above
+        activityInlineData.sort((a, b) => {
+            let keyA = Number(fieldSequenceIdMap[a.field_id]),
+                keyB = Number(fieldSequenceIdMap[b.field_id]);
+            if (keyA < keyB) return -1;
+            if (keyA > keyB) return 1;
+            return 0;
+        });
+        
+        request.activity_inline_data = JSON.stringify(activityInlineData);
+
+        let activityTimelineCollection = {
+            form_submitted: activityInlineData,
+            subject: `Field Updated for ${formName}`,
+            content: content,
+            mail_body: `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+            attachments: [],
+            asset_reference: [],
+            activity_reference: [],
+            form_approval_field_reference: []
+
+        };
+        request.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
+
+        const event = {
+            name: "alterActivityInline",
+            service: "activityUpdateService",
+            method: "alterActivityInline",
+            payload: request
+        };
+
+        queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
+            if (err) {
+                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+            } else {
+                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+            }
+        });
+
+        if (request.hasOwnProperty("workflow_activity_id")) {
+            // Make a 713 timeline transaction entry in the workflow file
+            let workflowFile713Request = Object.assign({}, request);
+            workflowFile713Request.activity_id = request.workflow_activity_id;
+            workflowFile713Request.data_activity_id = Number(request.activity_id);
+            workflowFile713Request.form_transaction_id = Number(request.form_transaction_id);
+            workflowFile713Request.activity_type_category_id = 48;
+            workflowFile713Request.activity_stream_type_id = 713;
+            workflowFile713Request.flag_timeline_entry = 1;
+            workflowFile713Request.message_unique_id = util.getMessageUniqueId(request.asset_id);
+            workflowFile713Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+            workflowFile713Request.device_os_id = 8;
+            const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
+            try {
+                await addTimelineTransactionAsync(workflowFile713Request);
+            } catch (error) {
+                console.log("alterFormActivityFieldValues | workflowFile713Request | addTimelineTransactionAsync | Error: ", error);
+            }
+        }
+
+        return [false, activityData];
     }
 
 }
