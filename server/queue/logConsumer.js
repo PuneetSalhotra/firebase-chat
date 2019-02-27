@@ -27,7 +27,7 @@ let Consumer = function () {
         });
     let kafkaProducer = new KafkaProducer(kfkClient);
 
-    /*
+    // /*
     let consumer =
         new kafkaConsumer(
             kfkClient,
@@ -47,7 +47,7 @@ let Consumer = function () {
                 keyEncoding: global.config.CONSUMER_KEY_ENCODING
             }
         );
-    */
+    // */
 
    let optionsConsumerGroup = 
    {
@@ -110,7 +110,7 @@ let Consumer = function () {
         console.log(global.config.LOGS_TOPIC_NAME);
         console.log('Kafka Producer ready!!');
 
-        /*
+        // /*
         consumer.on('message', function (message) {
 
             let kafkaMsgId = message.topic + '_' + message.partition + '_' + message.offset;
@@ -144,8 +144,8 @@ let Consumer = function () {
         kafkaProducer.on('error', function (error) {
             console.log('debug', error, {}, {});
         });
-        */
-
+        // */
+/*
         consumerGroup.on('message', function (message) {
 
             let kafkaMsgId = message.topic + '_' + message.partition + '_' + message.offset;
@@ -179,6 +179,7 @@ let Consumer = function () {
         kafkaProducer.on('error', function (error) {
             console.log('debug', error, {}, {});
         });
+*/
     });
 
 

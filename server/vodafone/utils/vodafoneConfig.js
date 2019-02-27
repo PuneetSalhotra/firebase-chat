@@ -9,6 +9,12 @@ const digitalIllCafLabels = require("./digital_ill_caf/labels.json");
 const digitalIllCafRoms = require("./digital_ill_caf/roms.json");
 const digitalIllCafRomsActions = require("./digital_ill_caf/roms_actions.json");
 
+// Digital ILL CRF
+const digitalIllCrfMappings = require("./digital_ill_crf/digital_ill_crf_mappings.json");
+const digitalIllCrfLabels = require("./digital_ill_crf/labels.json");
+const digitalIllCrfRoms = require("./digital_ill_crf/roms.json");
+const digitalIllCrfRomsActions = require("./digital_ill_crf/roms_actions.json");
+
 vodafoneConfig = {
     "860": {
         "NAME": "Vodafone Idea | Production | BETA",
@@ -195,7 +201,7 @@ vodafoneConfig = {
         "ANNEXURE_DEFAULTS": {
             "SOURCE_FORM_ID": 1068,
             "SOURCE_FIELD_ID": 11182,
-            "TARGET_FIELD_IDS": [7010, 7011, 7012, 7013, 7014, 7015, 7016, 7017, 7018, 7496, 7030, 7007, 7019, 7020, 7021, 7032, 7035, 7076, 7086, 7088, 7093]
+            "TARGET_FIELD_IDS": [7010, 7011, 7012, 7013, 7014, 7015, 7016, 7017, 7018, 7496, 7030, 7007, 7019, 7020, 7021, 7032, 7035, 7076, 7086, 7088, 7093, 7143, 7144]
         }
     },
     "134564": {
@@ -208,12 +214,21 @@ vodafoneConfig = {
         "ROMS_ACTIONS": digitalMplsCrfRomsActions
     },
     "134565": {
-        "REQUIRED_FORMS": [1104 , 1105, 1106, 1107, 1108, 1115],
+        "REQUIRED_FORMS": [1108],
         "TARGET_FORM_ID": 1119,
         "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
         "FORM_FIELD_MAPPING_DATA": digitalIllCafMappings,
         "LABELS": digitalIllCafLabels,
         "ROMS": digitalIllCafRoms,
         "ROMS_ACTIONS": digitalIllCafRomsActions
+    },
+    "134566": {
+        "REQUIRED_FORMS": [1307],
+        "TARGET_FORM_ID": 1229,
+        "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
+        "FORM_FIELD_MAPPING_DATA": digitalIllCrfMappings,
+        "LABELS": digitalIllCrfLabels,
+        "ROMS": digitalIllCrfRoms,
+        "ROMS_ACTIONS": digitalIllCrfRomsActions
     }
 };

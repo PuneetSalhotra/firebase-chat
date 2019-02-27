@@ -36,7 +36,7 @@ class ConsumerBase {
         this.partition = opts.partition || 0;
         this.topic = opts.topic;
         
-        /*
+        // /*
         this.kafkaConsumer 
                 = new KafkaConsumer(
                     kafkaClient,
@@ -55,7 +55,7 @@ class ConsumerBase {
                         keyEncoding: global.config.CONSUMER_KEY_ENCODING
                 }
         );
-        */
+        // */
 
         let optionsConsumerGroup = 
         {
@@ -103,7 +103,7 @@ class ConsumerBase {
         };
            
         // for a single topic pass in a string
-        this.consumerGroup = new KafkaConsumerGroup(optionsConsumerGroup, this.topic);
+        // this.consumerGroup = new KafkaConsumerGroup(optionsConsumerGroup, this.topic);
 
         this.objCollection = _.merge(opts.objCollection || {}, {
             util,
@@ -113,17 +113,19 @@ class ConsumerBase {
             pubnubWrapper
         });
         
-        /*
+        // /*
         this.kafkaConsumer.on('connect', this.onConnect.bind(this));
         this.kafkaConsumer.on('message', this.processMessage.bind(this));
         this.kafkaConsumer.on('error', this.onError.bind(this));
         this.kafkaConsumer.on('offsetOutOfRange', this.onOffsetOutOfRange.bind(this));
-        */
+        // */
 
+       /*
        this.consumerGroup.on('connect', this.onConnect.bind(this));
        this.consumerGroup.on('message', this.processMessage.bind(this));
        this.consumerGroup.on('error', this.onError.bind(this));
        this.consumerGroup.on('offsetOutOfRange', this.onOffsetOutOfRange.bind(this));
+       */
     }
 
     onConnect(err, data) {
