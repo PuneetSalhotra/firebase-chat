@@ -223,7 +223,7 @@ vodafoneConfig = {
         "ROMS_ACTIONS": digitalIllCafRomsActions
     },
     "134566": {
-        "REQUIRED_FORMS": [],
+        "REQUIRED_FORMS": [1307],
         "TARGET_FORM_ID": 1229,
         "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
         "FORM_FIELD_MAPPING_DATA": digitalIllCrfMappings,
