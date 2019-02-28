@@ -6,6 +6,7 @@ var uuid = require('uuid');
 var AwsSns = require('../utils/snsWrapper');
 var AwsSss = require('../utils/s3Wrapper');
 var fs = require('fs');
+const moment = require('moment');
 
 function AssetService(objectCollection) {
 
@@ -111,7 +112,7 @@ function AssetService(objectCollection) {
         }
     };
 
-    this.getPhoneNumberAssetsV1 = function (request, callback) {
+    this.getPhoneNumberAssetsV1 = async function (request, callback) {
 
         var phoneNumber = util.cleanPhoneNumber(request.asset_phone_number);
         var countryCode = util.cleanPhoneNumber(request.asset_phone_country_code);
@@ -119,6 +120,21 @@ function AssetService(objectCollection) {
         var verificationMethod = Number(request.verification_method);
         var organizationId = request.organization_id;
 
+        try {
+            const [error, rateLimit] = await checkIfOTPRateLimitExceeded(phoneNumber, countryCode, request);
+            if (rateLimit.length > 0 && rateLimit[0].passcode_count >= 5) {
+                callback(false, {
+                    message: `OTP rate limit exceeded!`
+                }, 200);
+                return;
+            }
+        } catch (error) {
+            console.log("checkIfOTPRateLimitExceeded | Error: ", error);
+            callback(true, {
+                message: `OTP rate limit check failed!`
+            }, 200);
+            return;
+        }
 
         //verification_method (0 - NA, 1 - SMS; 2 - Call; 3 - Email)
         if (verificationMethod === 1 || verificationMethod === 2) {
@@ -130,7 +146,7 @@ function AssetService(objectCollection) {
 
             var queryString = util.getQueryString('ds_p1_asset_list_select_phone_number_all', paramsArr);
             if (queryString != '') {
-                db.executeQuery(1, queryString, request, function (err, selectData) {
+                db.executeQuery(1, queryString, request, async function (err, selectData) {
                     if (err === false) {
                         var verificationCode;
                         (phoneNumber === 7032975769) ? verificationCode = 637979: verificationCode = util.getVerificationCode();
@@ -156,7 +172,11 @@ function AssetService(objectCollection) {
                                     });
 
                                 });
-
+                                try {
+                                    await newUserPassCodeSet(phoneNumber, verificationCode, request)
+                                } catch (error) {
+                                    console.log("getPhoneNumberAssetsV1 | Asset found | newUserPassCodeSet: ", error);
+                                }
                                 sendCallOrSms(verificationMethod, countryCode, phoneNumber, verificationCode, request);
                             } else if (verificationMethod === 2) {
                                 request.passcode = selectData[0].asset_phone_passcode;
@@ -200,6 +220,33 @@ function AssetService(objectCollection) {
         }
     };
 
+    async function checkIfOTPRateLimitExceeded(phoneNumber, countryCode, request) {
+        // IN p_phone_number VARCHAR(50), IN p_phone_country_code SMALLINT(6), 
+        // IN p_start_datetime DATETIME, IN p_end_datetime DATETIME
+        let responseData = [],
+            error = true,
+            currentUTCDateTime = moment().utc();
+        let paramsArr = new Array(
+            phoneNumber,
+            countryCode,
+            moment().utc().subtract(1, 'hour').format('YYYY-MM-DD HH:mm:ss'),
+            moment().utc().format('YYYY-MM-DD HH:mm:ss')
+        );
+        const queryString = util.getQueryString('ds_p1_phone_passcode_transaction_select_passcode_count', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
     function newUserPassCodeSet(phoneNumber, verificationCode, request) {
         return new Promise(function (resolve, reject) {
             // Check if the entry already exists
@@ -240,7 +287,7 @@ function AssetService(objectCollection) {
                 util.cleanPhoneNumber(request.asset_phone_country_code),
                 verificationCode,
                 util.getCurrentUTCTime(),
-                util.getCurrentUTCTime(),
+                moment().utc().add(24, 'hours').format('YYYY-MM-DD HH:mm:ss'), // util.getCurrentUTCTime(),
                 util.getCurrentUTCTime()
             );
             var queryString = util.getQueryString('ds_p1_phone_passcode_transaction_insert', paramsArr);
