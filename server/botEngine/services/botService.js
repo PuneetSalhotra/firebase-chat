@@ -1669,9 +1669,55 @@ function BotService(objectCollection) {
                 //return [false, {}];
                 }
             }
+            // Update the workflow percentage in the activity_list table
+            try {
+                await activityListUpdateWorkflowPercent(newrequest, wfCompletionPercentage);
+            } catch (error) {
+                console.log("Bot Engine | alterWFCompletionPercentage | activityListUpdateWorkflowPercent | Error: ", error)
+            }
+            // Update the workflow percentage in the activity_asset_mapping table
+            try {
+                await activityAssetMappingUpdateWorkflowPercent(newrequest, wfCompletionPercentage);
+            } catch (error) {
+                console.log("Bot Engine | alterWFCompletionPercentage | activityAssetMappingUpdateWorkflowPercent | Error: ", error)
+            }
             return [false, {}];
         } else {
             return [true, "Queue Not Available"];
+        }
+    }
+
+    async function activityListUpdateWorkflowPercent(request, workflowPercentage) {
+        // IN p_organization_id BIGINT(20), IN p_activity_id BIGINT(20), 
+        // IN p_workflow_percentage DECIMAL(4,2), IN p_log_asset_id BIGINT(20), 
+        // IN p_log_datetime DATETIME
+        let paramsArr = new Array(
+            request.organization_id,
+            request.workflow_activity_id,
+            workflowPercentage,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        let queryString = util.getQueryString('ds_p1_activity_list_update_workflow_percent', paramsArr);
+        if (queryString != '') {
+            return await (db.executeQueryPromise(0, queryString, request));
+        }
+    }
+
+    async function activityAssetMappingUpdateWorkflowPercent(request, workflowPercentage) {
+        // IN p_organization_id BIGINT(20), IN p_activity_id BIGINT(20), 
+        // IN p_workflow_percentage DECIMAL(4,2), IN p_log_asset_id BIGINT(20), 
+        // IN p_log_datetime DATETIME
+        let paramsArr = new Array(
+            request.organization_id,
+            request.workflow_activity_id,
+            workflowPercentage,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        let queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_workflow_percent', paramsArr);
+        if (queryString != '') {
+            return await (db.executeQueryPromise(0, queryString, request));
         }
     }
 
