@@ -1,0 +1,15 @@
+[{
+        "ACTION": "set_static_value",
+        "BATCH": [{
+            "TARGET_FIELD_ID": 11449,
+            "VALUE": "00"
+        }]
+    },
+    {
+        "ACTION": "set_participant_name",
+        "BATCH": [{
+            "TARGET_FIELD_ID": 11448,
+            "ASSET_TYPE_ID": 127254
+        }]
+    }
+]
