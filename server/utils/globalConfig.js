@@ -370,8 +370,8 @@ if (mode === 'staging') {
     config.WIDGET_CONSUMER_GROUP_ID = 'staging-desker-activities-widget-cg';
     
     //LOGS
-    config.LOGS_TOPIC_NAME = 'staging-desker-logs';
-    config.LOGS_CONSUMER_GROUP_ID = 'staging-desker-logs-cg';
+    config.LOGS_TOPIC_NAME = 'staging-desker-logs-v1';
+    config.WIDGET_CONSUMER_GROUP_ID = 'staging-desker-logs-v1-cg';
     
     config.CONSUMER_AUTO_COMMIT = true;
     config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
