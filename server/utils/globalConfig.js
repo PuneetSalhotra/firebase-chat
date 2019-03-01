@@ -371,7 +371,7 @@ if (mode === 'staging') {
     
     //LOGS
     config.LOGS_TOPIC_NAME = 'staging-desker-logs-v1';
-    config.WIDGET_CONSUMER_GROUP_ID = 'staging-desker-logs-v1-cg';
+    config.LOGS_CONSUMER_GROUP_ID = 'staging-desker-logs-v1-cg';
     
     config.CONSUMER_AUTO_COMMIT = true;
     config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
@@ -530,9 +530,12 @@ if (mode === 'prod') {
 
     config.TOPIC_ID = 12;
     config.TOPIC_NAME = 'prod-desker-activities-v1'; //Only one partition
-    config.WIDGET_TOPIC_NAME = 'prod-desker-form-widgets';
     config.CONSUMER_GROUP_ID = 'prod-desker-activities-consumer-group-v1';
     
+    // Widget
+    config.WIDGET_TOPIC_NAME = 'prod-desker-form-widgets';
+    config.WIDGET_CONSUMER_GROUP_ID = 'prod-desker-form-widgets-cg';
+
     //LOGS
     config.LOGS_TOPIC_NAME = 'prod-desker-logs';
     config.LOGS_CONSUMER_GROUP_ID = 'prod-desker-logs-cg';
@@ -583,6 +586,10 @@ config.platformApplicationIosODPushProd = 'arn:aws:sns:ap-south-1:430506864995:a
 //PAM App IOS Pushes
 config.platformApplicationIosPamPushDev = 'arn:aws:sns:ap-south-1:430506864995:app/APNS_SANDBOX/pamDevPush';
 config.platformApplicationIosPamPushProd = 'arn:aws:sns:ap-south-1:430506864995:app/APNS/pamProdPush';
+
+//TONY IOS normal Push platform endpoints
+config.platformApplicationIosTonyPushDev = 'arn:aws:sns:ap-south-1:430506864995:app/APNS_SANDBOX/TonyIOSDevPush';
+config.platformApplicationIosTonyPushProd = 'arn:aws:sns:ap-south-1:430506864995:app/APNS/TonyIOSProdPush';
 
 config.twilioAccountSid = "AC66cabb9ae7db92bbf7e6113ff2eeabad";
 config.twilioAuthToken = "7d4f9ee9f8122d2a7129e13fdaefd919";

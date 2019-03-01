@@ -22,7 +22,7 @@ class ActivityFormTransactionAnalytics {
                     data.start,
                     data.end,
                     data.activity_id,
-                    data.activity_type_category_id,
+                    data.activity_type_id,
                     data.asset_id,
                     data.asset_type_id,
                     data.workforce_id,

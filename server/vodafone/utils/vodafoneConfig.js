@@ -27,6 +27,12 @@ const digitalNplcCafLabels = require("./digital_nplc_caf/labels.json");
 const digitalNplcCafRoms = require("./digital_nplc_caf/roms.json");
 const digitalNplcCafRomsActions = require("./digital_nplc_caf/roms_actions.json");
 
+// Modify FLV - PRI/SIP/IP CRF - Digital FLV - CRF - 134575
+const digitalFlvCrfMappings = require("./digital_flv_pri_sip_ip_crf/mappings.json");
+const digitalFlvCrfLabels = require("./digital_flv_pri_sip_ip_crf/labels.json");
+const digitalFlvCrfRoms = require("./digital_flv_pri_sip_ip_crf/roms.json");
+const digitalFlvCrfRomsActions = require("./digital_flv_pri_sip_ip_crf/roms_actions.json");
+
 vodafoneConfig = {
     "860": {
         "NAME": "Vodafone Idea | Production | BETA",
@@ -260,5 +266,14 @@ vodafoneConfig = {
         "LABELS": digitalNplcCafLabels,
         "ROMS": digitalNplcCafRoms,
         "ROMS_ACTIONS": digitalNplcCafRomsActions
+    },
+    "134575": {
+        "REQUIRED_FORMS": [1349],
+        "TARGET_FORM_ID": 1277,
+        "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
+        "FORM_FIELD_MAPPING_DATA": digitalFlvCrfMappings,
+        "LABELS": digitalFlvCrfLabels,
+        "ROMS": digitalFlvCrfRoms,
+        "ROMS_ACTIONS": digitalFlvCrfRomsActions
     }
 };
