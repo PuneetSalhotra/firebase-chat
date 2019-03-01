@@ -196,7 +196,17 @@ var AwsSns = function () {
                         global.logger.write('conLog', 'Flag is 1. Creating IOS Prod for Office Desk App Plain Push', {}, {});
                         platformApplicationArn = global.config.platformApplicationIosODPushProd;
                     }
-                }
+                } else if (flagAppAccount == 7) { //flagAppAccount == 7 i.e. TONY App normal IOS Push
+                    if (flag == 0) {
+                        //console.log('Flag is 0. Creating IOS Dev for Grene Robotics Account Office Desk Plain Push');
+                        global.logger.write('conLog', 'Flag is 0. Creating IOS Dev for Tony App Plain Push', {}, {});
+                        platformApplicationArn = global.config.platformApplicationIosTonyPushDev;
+                    } else {
+                        //console.log('Flag is 1. Creating IOS Prod for Grene Robotics Account Office Desk Plain Push');
+                        global.logger.write('conLog', 'Flag is 1. Creating IOS Prod for Tony App Plain Push', {}, {});
+                        platformApplicationArn = global.config.platformApplicationIosTonyPushProd;
+                    }
+                }                
                 break;
             case 3: // windows
                 platformApplicationArn = global.config.platformApplicationWindows;

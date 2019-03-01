@@ -27,6 +27,12 @@ const digitalNplcCafLabels = require("./digital_nplc_caf/labels.json");
 const digitalNplcCafRoms = require("./digital_nplc_caf/roms.json");
 const digitalNplcCafRomsActions = require("./digital_nplc_caf/roms_actions.json");
 
+// Digital NPLC CRF - 134573
+const digitalNplcCrfMappings = require("./digital_nplc_crf/digital_nplc_crf_mappings.json");
+const digitalNplcCrfLabels = require("./digital_nplc_crf/labels.json");
+const digitalNplcCrfRoms = require("./digital_nplc_crf/roms.json");
+const digitalNplcCrfRomsActions = require("./digital_nplc_crf/roms_actions.json");
+
 vodafoneConfig = {
     "860": {
         "NAME": "Vodafone Idea | Production | BETA",
@@ -260,5 +266,14 @@ vodafoneConfig = {
         "LABELS": digitalNplcCafLabels,
         "ROMS": digitalNplcCafRoms,
         "ROMS_ACTIONS": digitalNplcCafRomsActions
+    },
+    "134573": {
+        //"REQUIRED_FORMS": [1335],
+        "TARGET_FORM_ID": 1234,
+        "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
+        "FORM_FIELD_MAPPING_DATA": digitalNplcCrfMappings,
+        "LABELS": digitalNplcCrfLabels,
+        "ROMS": digitalNplcCrfRoms,
+        "ROMS_ACTIONS": digitalNplcCrfRomsActions
     }
 };
