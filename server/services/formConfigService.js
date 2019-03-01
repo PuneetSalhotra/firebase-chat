@@ -1433,7 +1433,7 @@ function FormConfigService(objCollection) {
             0, // request.access_level_id || 0,
             request.log_datetime || '1970-01-01 00:00:00',
             request.start_from,
-            util.replaceQueryLimit(request.limit_value)
+            request.limit_value || 50
         );
         const queryString = util.getQueryString('ds_p1_workforce_form_mapping_select_workflow_forms', paramsArr);
         if (queryString !== '') {
