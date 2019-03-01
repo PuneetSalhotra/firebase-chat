@@ -17,14 +17,15 @@ function VodafoneService(objectCollection) {
     const formFieldIdMapping = util.getVodafoneFormFieldIdMapping();
     const romsCafFieldsData = util.getVodafoneRomsCafFieldsData();
     const nodeUtil = require('util');
+    const self = this;
 
     // Form Config Service
     // const FormConfigService = require("../../services/formConfigService");
     // const formConfigService = new FormConfigService(objectCollection);
     // console.log(`global.vodafoneConfig["134564"].FORM_FIELD_MAPPING_DATA: `, global.vodafoneConfig["134564"].FORM_FIELD_MAPPING_DATA)
 
-    const ActivityTimelineService = require('../../services/activityTimelineService');
-    const activityTimelineService = new ActivityTimelineService(objectCollection);
+    // const ActivityTimelineService = require('../../services/activityTimelineService');
+    // const activityTimelineService = new ActivityTimelineService(objectCollection);
 
     this.newOrderFormAddToQueues = function (request, callback) {
 
@@ -1904,7 +1905,7 @@ function VodafoneService(objectCollection) {
                 // formId = HLD_FORM_ID;
                 // return activityCommonService.getActivityTimelineTransactionByFormId(request, request.activity_id, formId)
             })
-            .then((customerApprovalForm) => {
+            .then(async (customerApprovalForm) => {
                 if (customerApprovalForm.length > 0) {
                     let formDataCollection = JSON.parse(customerApprovalForm[0].data_entity_inline);
                     let formDataArrayOfObjects = [];
@@ -1924,6 +1925,7 @@ function VodafoneService(objectCollection) {
                     // throw new Error("customerApprovalFormNotFound");
                 }
                 formId = HLD_FORM_ID;
+                await sleep(4000);
                 return activityCommonService.getActivityTimelineTransactionByFormId713(request, request.activity_id, formId);
             })
             .then(async (hldFormData) => {
@@ -2009,6 +2011,13 @@ function VodafoneService(objectCollection) {
 
                 // Append the Labels
                 cafFormJson = appendLabels(request, cafFormJson);
+
+                // As per CAF Annexure
+                try {
+                    cafFormJson = await setAsPerCAFAnnexure(request, cafFormJson);
+                } catch (error) {
+                    console.log("cafFormJson | setAsPerCAFAnnexure | Error: ", error);
+                }
 
                 // console.log("[FINAL] cafFormJson: ", cafFormJson);
                 // fs.appendFileSync('pdfs/caf.json', JSON.stringify(cafFormJson));
@@ -2249,6 +2258,63 @@ function VodafoneService(objectCollection) {
                 return;
             });
     };
+
+    async function setAsPerCAFAnnexure(request, targetFormData) {
+        let sourceFormActivityID = 0,
+            sourceFormTransactionID = 0,
+            isAnnexureUploaded = false;
+
+        const sourceFormID = global.vodafoneConfig[request.organization_id].ANNEXURE_DEFAULTS.SOURCE_FORM_ID,
+            sourceFormFieldID = global.vodafoneConfig[request.organization_id].ANNEXURE_DEFAULTS.SOURCE_FIELD_ID;
+
+        await activityCommonService
+            .getActivityTimelineTransactionByFormId713(request, request.activity_id, sourceFormID)
+            .then((formData) => {
+                if (formData.length > 0) {
+                    sourceFormActivityID = formData[0].data_activity_id;
+                    sourceFormTransactionID = formData[0].data_form_transaction_id;
+                }
+            });
+
+        if (Number(sourceFormTransactionID) !== 0) {
+            fieldValue = await getFieldValue({
+                form_transaction_id: sourceFormTransactionID,
+                form_id: sourceFormID,
+                field_id: sourceFormFieldID,
+                organization_id: request.organization_id
+            });
+            if (fieldValue[0].data_entity_text_1 !== '') {
+                isAnnexureUploaded = true;
+            }
+        }
+        const TARGET_FIELD_IDS = global.vodafoneConfig[request.organization_id].ANNEXURE_DEFAULTS.TARGET_FIELD_IDS;
+        if (isAnnexureUploaded) {
+            targetFormData.forEach((fieldEntry, index) => {
+                if (TARGET_FIELD_IDS.includes(Number(fieldEntry.field_id))) {
+                    targetFormData[index].field_value = 'As per CAF Annexure';
+                }
+            });
+        }
+        return targetFormData;
+    }
+
+    // Get the field value based on form id and form_transaction_id
+    async function getFieldValue(request) {
+        let paramsArr = new Array(
+            request.form_transaction_id || 0,
+            request.form_id,
+            request.field_id,
+            request.organization_id
+        );
+        let queryString = util.getQueryString('ds_p1_activity_form_transaction_select_field_sequence_id', paramsArr);
+        if (queryString != '') {
+            return await (db.executeQueryPromise(1, queryString, request));
+        }
+    }
+
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
 
     this.customerManagementApprovalWorkflow = async function (request, callback) {
         const CAF_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CAF,
@@ -2646,6 +2712,9 @@ function VodafoneService(objectCollection) {
                 case 7143: // Platform | Service Rental-One Time(A)
                 case 7144: // Platform | Service Rental-Annual Recurring(B)
                 case 7145: // Platform | Service Rental-Security Deposit(C)
+                    if (isNaN(Number(formEntry.field_value))) {
+                        formEntry.field_value = 0;
+                    }
                     sumsKeyValueJson.serviceRentalGrandTotal += Number(formEntry.field_value);
                     break;
                     // IP Address Charges-Grand Total(A+B+C)
@@ -3732,7 +3801,7 @@ function VodafoneService(objectCollection) {
                     throw new Error("cafFormDataNotFound");
                 }
             })
-            .then((mappingExists) => {
+            .then(async (mappingExists) => {
 
                 if (mappingExists) {
                     console.log("mappingExists: ", mappingExists)
@@ -3743,6 +3812,12 @@ function VodafoneService(objectCollection) {
                     newActivityInlineData[0].form_name = "Digital CAF";
                     newActivityInlineData[0].field_id = cafFormTargetFieldId;
                     newActivityInlineData[0].form_transaction_id = cafFormTransactionId;
+
+                    console.log("newActivityInlineData: ", newActivityInlineData);
+                    let newRequest = Object.assign({}, request);
+                    newRequest.activity_id = newOrderFormActivityId;
+                    newActivityInlineData = await setAsPerCAFAnnexure(newRequest, newActivityInlineData);
+                    console.log("newActivityInlineData: ", newActivityInlineData);
 
                     // Fire the 'alterFormActivity' service | '/form/activity/alter' for CAF file
                     let cafFieldUpdateRequest = Object.assign({}, request);
@@ -3999,6 +4074,9 @@ function VodafoneService(objectCollection) {
     }
 
     this.buildAndSubmitCafFormV1 = async function (request) {
+
+        await sleep(2000);
+        
         let workflowActivityData = [],
             formWorkflowActivityTypeId = 0;
         
@@ -4015,10 +4093,53 @@ function VodafoneService(objectCollection) {
             }
         } else {
             console.log("buildAndSubmitCafFormV1 | Error | workflow_activity_id NOT FOUND.")
-            return [new Error("workflow_activity_id not found in the request."), false];;
+            return [new Error("workflow_activity_id not found in the request."), false];
         }
+
+        const TARGET_FORM_ID = global.vodafoneConfig[formWorkflowActivityTypeId].TARGET_FORM_ID;
+        // Check if the target form generation request is from the target form generated (from this 
+        // function: buildAndSubmitCafFormV1), itself. If yes, terminate the processing.
+        if (Number(TARGET_FORM_ID) === Number(request.form_id) ||
+            !(request.hasOwnProperty("non_dedicated_file") && request.non_dedicated_file === 1)
+        ) {
+            console.log("buildAndSubmitCafFormV1 | DuplicateTargetFormGenerationRequestFromGeneratedTargetForm")
+            return [new Error("DuplicateTargetFormGenerationRequestFromGeneratedTargetForm"), []];
+        }
+
+        let targetFormExists = false;
+        // Check if the target form is already submitted, if yes, move control to regenerateAndSubmitTargetForm
+        await activityCommonService
+            .getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, TARGET_FORM_ID)
+            .then((formData) => {
+                console.log("formData.length: ", formData.length);
+                console.log("formData: ", formData.length)
+                console.log("formData.length > 0: ", formData.length > 0);
+                if (formData.length > 0) {
+                    targetFormExists = true;
+                }
+            })
+            .catch((error) => {
+                return [error, false];
+            });
+
+        console.log("TargetFormExists", targetFormExists);
+        if (targetFormExists &&
+            request.hasOwnProperty("non_dedicated_file") &&
+            request.non_dedicated_file === 1
+        ) {
+            request.form_id = Number(request.activity_form_id);
+            console.log("TargetFormExists", targetFormExists);
+            await self.regenerateAndSubmitTargetForm(request);
+            return [new Error("TargetFormExists"), []];
+        } else {
+            console.log("TargetFormDoesNotExist", targetFormExists);
+        }
+
         const requiredForms = global.vodafoneConfig[formWorkflowActivityTypeId].REQUIRED_FORMS;
-        // requiredForms.push(1076)
+        console.log("buildAndSubmitCafFormV1 | requiredForms: ", requiredForms);
+        if (!requiredForms.includes(Number(request.form_id))) {
+            return [new Error("[MISSION ABORT] Call to build the target forms is not from one of the required forms."), []];
+        }
         
         // Check whether all the mandatory forms have been submitted or not
         let requiredFormsCheck = [];
@@ -4045,6 +4166,11 @@ function VodafoneService(objectCollection) {
                 console.log("Promise.all | error: ", error);
             });
         console.log("allFormsExist: ", allFormsExist);
+
+        // Do NOT PROCEED further, if all the required forms do not exist
+        if (!allFormsExist) {
+            return [new Error("allFormsExist is false, all requried forms have not been submitted."), []];
+        }
         
         // If all the mandatory forms exist, proceed with the buildign the form
         // Fetch relevant source and target form field mappings
@@ -4056,7 +4182,7 @@ function VodafoneService(objectCollection) {
 
         // Fetch all source forms' latest entries for the process
         let targetFormData = [];
-        const TARGET_FORM_ID = global.vodafoneConfig[formWorkflowActivityTypeId].TARGET_FORM_ID;
+        
         const TARGET_FORM_ACTIVITY_TYPE_ID = global.vodafoneConfig[formWorkflowActivityTypeId].TARGET_FORM_ACTIVITY_TYPE_ID;
 
         for (const sourceFormID of sourceFormIDs) {
@@ -4106,22 +4232,45 @@ function VodafoneService(objectCollection) {
         const LABELS = global.vodafoneConfig[formWorkflowActivityTypeId].LABELS;
         targetFormData = targetFormData.concat(LABELS);
 
-        // ****************** R E M O V E *******************
-        // ****************** R E M O V E *******************
-        targetFormData = addDummyData(targetFormData);
-        // ****************** R E M O V E *******************
-        // ****************** R E M O V E *******************
-
         // Append default ROMS entries
         const ROMS =  global.vodafoneConfig[formWorkflowActivityTypeId].ROMS;
         targetFormData = targetFormData.concat(ROMS);
 
         // Magic
         const ROMS_ACTIONS = global.vodafoneConfig[formWorkflowActivityTypeId].ROMS_ACTIONS;
-        targetFormData = performRomsCalculations(request, targetFormData, ROMS_ACTIONS).TARGET_FORM_DATA;
+        const {TARGET_FORM_DATA, UPDATED_ROMS_FIELDS} = await performRomsCalculations(request, targetFormData, ROMS_ACTIONS);
+        targetFormData = TARGET_FORM_DATA;
 
-        const fs = require("fs");
-        fs.writeFileSync('/Users/Bensooraj/Desktop/desker_api/server/vodafone/utils/data.json', JSON.stringify(targetFormData, null, 2) , 'utf-8');
+        // Fetch the target form's field sequence data
+        let fieldSequenceIdMap = {};
+        await activityCommonService
+            .getFormFieldMappings(request, TARGET_FORM_ID, 0, 500)
+            .then((data) => {
+                if (data.length > 0) {
+
+                    data.forEach(formMappingEntry => {
+                        fieldSequenceIdMap[formMappingEntry.field_id] = Number(formMappingEntry.field_sequence_id);
+                    });
+                }
+            });
+
+        // S O R T Target Form entries based on the 
+        // field_id:field_seq_id data feteched above
+        targetFormData.sort((a, b) => {
+            let keyA = Number(fieldSequenceIdMap[a.field_id]),
+                keyB = Number(fieldSequenceIdMap[b.field_id]);
+            if (keyA < keyB) return -1;
+            if (keyA > keyB) return 1;
+            return 0;
+        });
+
+        // const fs = require("fs");
+        // fs.writeFileSync('/Users/Bensooraj/Desktop/desker_api/server/vodafone/utils/data.json', JSON.stringify(targetFormData, null, 2) , 'utf-8');
+
+        // return [false, {
+        //     formWorkflowActivityTypeId,
+        //     requiredForms
+        // }];
 
         // Build the full and final CAF Form and submit the form data to the timeline of the form file
         const targetFormSubmissionRequest = {
@@ -4174,7 +4323,7 @@ function VodafoneService(objectCollection) {
         
         const addActivityAsync = nodeUtil.promisify(makeRequest.post);
         try {
-            const response = await addActivityAsync(global.config.mobileBaseUrl + 'r0' + '/activity/add/v1', makeRequestOptions);
+            const response = await addActivityAsync(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', makeRequestOptions);
             // console.log("addActivityAsync | response: ", Object.keys(response));
             const body = JSON.parse(response.body);
             if (Number(body.status) === 200) {
@@ -4212,11 +4361,25 @@ function VodafoneService(objectCollection) {
             workflowFile713Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
             workflowFile713Request.device_os_id = 8;
 
-            const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
+            // const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
             try {
-                await addTimelineTransactionAsync(workflowFile713Request);
+                // await addTimelineTransactionAsync(workflowFile713Request);
+                let workflowFile713RequestEvent = {
+                    name: "addTimelineTransaction",
+                    service: "activityTimelineService",
+                    method: "addTimelineTransaction",
+                    payload: workflowFile713Request
+                };
+
+                queueWrapper.raiseActivityEvent(workflowFile713RequestEvent, workflowFile713Request.activity_id, (err, resp) => {
+                    if (err) {
+                        console.log("\x1b[35m [ERROR] Raising queue activity raised for 713 streamtypeid for Workflow/Process file. \x1b[0m", err);
+                    } else {
+                        console.log("\x1b[35m Raising queue activity raised for 713 streamtypeid for Workflow/Process file. \x1b[0m");
+                    }
+                });
             } catch (error) {
-                console.log("addActivityAsync | Error: ", error);
+                console.log("addTimelineTransaction | Error: ", error);
             }
         }
 
@@ -4227,36 +4390,170 @@ function VodafoneService(objectCollection) {
     }
 
     // performRomsCalculations
-    function performRomsCalculations(request, targetFormData, ROMS_ACTIONS) {
+    async function performRomsCalculations(request, targetFormData, ROMS_ACTIONS) {
         // Convert targetFormData to an ES6 Map
         let targetFormDataMap = new Map();
         for (const field of targetFormData) {
             targetFormDataMap.set(Number(field.field_id), field);
         }
+
+        // To keep track updated ROMS fields
+        let updatedRomsFields = [];
         
         for (const action of ROMS_ACTIONS) {
+            // sum
             if (action.ACTION === "sum") {
                 // Iterate through each batch entry
                 for (const batch of action.BATCH) {
                     // Iterate through each source field id 
                     // and accumulate the sum
                     let sum = 0;
-                    for (const sourceFieldID of batch.SOURCE_FORM_IDS) {
+                    for (const sourceFieldID of batch.SOURCE_FIELD_IDS) {
                         if (targetFormDataMap.has(Number(sourceFieldID))) {
+                            if (isNaN(Number(targetFormDataMap.get(sourceFieldID).field_value))) {
+                                continue;
+                            }
                             sum += Number(targetFormDataMap.get(sourceFieldID).field_value);
                         }
                     }
                     // Update the value of the target field ID
-                    let targetFieldID = batch.TARGET_FORM_ID;
+                    let targetFieldID = batch.TARGET_FIELD_ID;
                     if (targetFormDataMap.has(Number(targetFieldID))) {
                         // Get the entire object
                         let targetFieldEntry = targetFormDataMap.get(Number(targetFieldID));
                         // Set the value
+                        let oldValue = Number(targetFieldEntry.field_value);
                         targetFieldEntry.field_value = sum;
+                        if (oldValue !== sum) {
+                            updatedRomsFields.push(targetFieldEntry);
+                        }
                         // Set the updated object as value for the target field ID
                         targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
                         console.log("sum: ", sum);
                     }
+                }
+            }
+
+            // set_static_value
+            if (action.ACTION === "set_static_value") {
+                for (const batch of action.BATCH) {
+                    // Update the value of the target field ID
+                    let targetFieldID = batch.TARGET_FIELD_ID;
+                    if (targetFormDataMap.has(Number(targetFieldID))) {
+                        // Get the entire object
+                        let targetFieldEntry = targetFormDataMap.get(Number(targetFieldID));
+                        // Set the value
+                        targetFieldEntry.field_value = batch.VALUE;
+                        // Set the updated object as value for the target field ID
+                        targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
+                    }
+                }
+            }
+
+            // set_date
+            if (action.ACTION === "set_date") {
+                for (const batch of action.BATCH) {
+                    // Update the value of the target field ID
+                    let targetFieldID = batch.TARGET_FIELD_ID;
+                    if (targetFormDataMap.has(Number(targetFieldID))) {
+                        // Get the entire object
+                        let targetFieldEntry = targetFormDataMap.get(Number(targetFieldID));
+                        // Set the value
+                        targetFieldEntry.field_value = moment().utcOffset(String(batch.TZ_OFFSET)).format('YYYY-MM-DD HH:mm:ss');
+                        // Set the updated object as value for the target field ID
+                        targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
+                    }
+                }
+            }
+
+            // set_participant_name
+            if (action.ACTION === "set_participant_name") {
+                const newRequest = Object.assign({}, request);
+                newRequest.activity_id = request.workflow_activity_id;
+
+                let workflowParticipantsData = [];
+                // Fetch participants data
+                await activityCommonService
+                    .getAllParticipantsPromise(newRequest)
+                    .then((participantData) => {
+                        if (participantData.length > 0) {
+                            workflowParticipantsData = participantData;
+                            // console.log("participantData: ", participantData)
+                        }
+                    });
+
+                if (workflowParticipantsData.length > 0) {
+                    for (const batch of action.BATCH) {
+                        // Update the value of the target field ID
+                        let targetFieldID = batch.TARGET_FIELD_ID;
+                        for (const participant of workflowParticipantsData) {
+                            if (Number(participant.asset_type_id) === batch.ASSET_TYPE_ID) {
+                                // Get the entire object
+                                let targetFieldEntry = targetFormDataMap.get(Number(targetFieldID));
+                                // Set the value
+                                let oldValue = Number(targetFieldEntry.field_value);
+                                targetFieldEntry.field_value = participant.operating_asset_first_name;
+                                if (oldValue !== participant.operating_asset_first_name) {
+                                    updatedRomsFields.push(targetFieldEntry);
+                                }
+                                // Set the updated object as value for the target field ID
+                                targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
+                                console.log("participant.operating_asset_first_name: ", participant.operating_asset_first_name);
+                            }
+                        }
+                    }
+
+                }
+            }
+
+            // check_and_set_annexure_defaults
+            if (action.ACTION === "check_and_set_annexure_defaults") {
+                for (const batch of action.BATCH) {
+                    const sourceFormID = Number(batch.SOURCE_FORM_ID);
+                    const sourceFormFieldID = Number(batch.SOURCE_FIELD_ID);
+                    let sourceFormActivityID = 0,
+                        sourceFormTransactionID = 0,
+                        isAnnexureUploaded = false;
+                    // Check if the excel file has been uploaded or not
+                    await activityCommonService
+                        .getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, sourceFormID)
+                        .then((formData) => {
+                            if (formData.length > 0) {
+                                sourceFormActivityID = formData[0].data_activity_id;
+                                sourceFormTransactionID = formData[0].data_form_transaction_id;
+                            }
+                        });
+                    
+                    // Fetch the specific field (Excel Document) using the form transaction ID
+                    if (Number(sourceFormTransactionID) !== 0) {
+                        fieldValue = await getFieldValue({
+                            form_transaction_id: sourceFormTransactionID,
+                            form_id: sourceFormID,
+                            field_id: sourceFormFieldID,
+                            organization_id: request.organization_id
+                        });
+                        if (fieldValue.length > 0 && fieldValue[0].data_entity_text_1 !== '') {
+                            isAnnexureUploaded = true;
+                        }
+                    }
+                    // isAnnexureUploaded = true;
+                    if (isAnnexureUploaded) {
+                        for (const targetFieldID of batch.TARGET_FIELD_IDS) {
+                            if (targetFormDataMap.has(Number(targetFieldID))) {
+                                // Get the entire object
+                                let targetFieldEntry = targetFormDataMap.get(Number(targetFieldID));
+                                // Set the value
+                                let oldValue = Number(targetFieldEntry.field_value);
+                                targetFieldEntry.field_value = batch.VALUE;
+                                if (oldValue !== batch.VALUE) {
+                                    updatedRomsFields.push(targetFieldEntry);
+                                }
+                                // Set the updated object as value for the target field ID
+                                targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
+                            }
+                        }
+                    }
+                    console.log("isAnnexureUploaded: ", isAnnexureUploaded);
                 }
             }
         }
@@ -4267,124 +4564,217 @@ function VodafoneService(objectCollection) {
         targetFormData = [...targetFormDataMap.values()];
         
         return {
-            TARGET_FORM_DATA: targetFormData
+            TARGET_FORM_DATA: targetFormData,
+            UPDATED_ROMS_FIELDS: updatedRomsFields
         };
     }
 
-    function addDummyData(targetFormData) {
-        return targetFormData.concat([{
-                "form_id": 1109,
-                "field_id": 8532,
-                "field_name": "CPE 2-One Time(A)",
-                "field_data_type_id": 6,
-                "field_data_type_category_id": 2,
-                "data_type_combo_id": 0,
-                "data_type_combo_value": "",
-                "field_value": 1000,
-                "message_unique_id": 999999999999
-            },
-            {
-                "form_id": 1109,
-                "field_id": 8533,
-                "field_name": "CPE 2-Recurring(B)",
-                "field_data_type_id": 6,
-                "field_data_type_category_id": 2,
-                "data_type_combo_id": 0,
-                "data_type_combo_value": "",
-                "field_value": 200,
-                "message_unique_id": 999999999999
-            },
-            {
-                "form_id": 1109,
-                "field_id": 8534,
-                "field_name": "CPE 2-Security Deposit(C)",
-                "field_data_type_id": 6,
-                "field_data_type_category_id": 2,
-                "data_type_combo_id": 0,
-                "data_type_combo_value": "",
-                "field_value": 20,
-                "message_unique_id": 999999999999
-            },
-            {
-                "form_id": 1109,
-                "field_id": 8529,
-                "field_name": "CPE 1-One Time(A)",
-                "field_data_type_id": 6,
-                "field_data_type_category_id": 2,
-                "data_type_combo_id": 0,
-                "data_type_combo_value": "",
-                "field_value": 3000,
-                "message_unique_id": 999999999999
-            },
-            {
-                "form_id": 1109,
-                "field_id": 8530,
-                "field_name": "CPE 1-Recurring(B)",
-                "field_data_type_id": 6,
-                "field_data_type_category_id": 2,
-                "data_type_combo_id": 0,
-                "data_type_combo_value": "",
-                "field_value": 300,
-                "message_unique_id": 999999999999
-            },
-            {
-                "form_id": 1109,
-                "field_id": 8531,
-                "field_name": "CPE 1-Security Deposit(C)",
-                "field_data_type_id": 6,
-                "field_data_type_category_id": 2,
-                "data_type_combo_id": 0,
-                "data_type_combo_value": "",
-                "field_value": 30,
-                "message_unique_id": 999999999999
-            }, {
-                "form_id": 1109,
-                "field_id": 8544,
-                "field_name": "Miscellaneous Charges-1-One Time(A)",
-                "field_data_type_id": 6,
-                "field_data_type_category_id": 2,
-                "data_type_combo_id": 0,
-                "data_type_combo_value": "",
-                "field_value": 4000,
-                "message_unique_id": 999999999999
-            },
-            {
-                "form_id": 1109,
-                "field_id": 8545,
-                "field_name": "Miscellaneous Charges-1- Recurring(B)",
-                "field_data_type_id": 6,
-                "field_data_type_category_id": 2,
-                "data_type_combo_id": 0,
-                "data_type_combo_value": "",
-                "field_value": 999,
-                "message_unique_id": 999999999999
-            },
-            {
-                "form_id": 1109,
-                "field_id": 8546,
-                "field_name": "Miscellaneous Charges2-One Time(A)",
-                "field_data_type_id": 6,
-                "field_data_type_category_id": 2,
-                "data_type_combo_id": 0,
-                "data_type_combo_value": "",
-                "field_value": 5000,
-                "message_unique_id": 999999999999
-            },
-            {
-                "form_id": 1109,
-                "field_id": 8547,
-                "field_name": "Miscellaneous Charges-2- Recurring(B)",
-                "field_data_type_id": 6,
-                "field_data_type_category_id": 2,
-                "data_type_combo_id": 0,
-                "data_type_combo_value": "",
-                "field_value": 999,
-                "message_unique_id": 999999999999
-            }
-        ])
+    this.regenerateAndSubmitTargetForm = async function (request) {
+        // Fetch form's config data
+        request.page_start = 0;
+        const [formConfigError, formConfigData] = await activityCommonService.workforceFormMappingSelect(request);
+        if (formConfigError !== false) {
+            return [formConfigError, formConfigData];
+        } else if (
+            Number(formConfigData.length) === 0 ||
+            Number(formConfigData[0].form_flag_workflow_enabled) !== 1
+        ) {
+            return [new Error("formConfigData Not Found Error"), []];
+        }
 
+        let workflowActivityId = 0,
+            workflowActivityTypeId = 0;
+
+        if (Number(formConfigData.length) > 0) {
+            workflowActivityTypeId = formConfigData[0].form_workflow_activity_type_id;
+            console.log("workflowActivityTypeId: ", workflowActivityTypeId);
+        }
+
+        // Get the corresponding workflow's activity_id
+        if (request.hasOwnProperty("workflow_activity_id")) {
+            workflowActivityId = Number(request.workflow_activity_id);
+
+        } else {
+            // If it doesn't exist in the request object, fetch it
+            try {
+                await fetchReferredFormActivityId(request, request.activity_id, request.form_transaction_id, request.form_id)
+                    .then((workflowData) => {
+                        if (workflowData.length > 0) {
+                            workflowActivityId = Number(workflowData[0].activity_id);
+                        } else {
+                            return [new Error("workflowData Not Found Error"), []];
+                        }
+                    })
+            } catch (error) {
+                return [error, []];
+            }
+        }
+
+        console.log("regenerateAndSubmitTargetForm | workflowActivityId: ", workflowActivityId);
+
+        const TARGET_FORM_ID = global.vodafoneConfig[workflowActivityTypeId].TARGET_FORM_ID;
+        const TARGET_FORM_ACTIVITY_TYPE_ID = global.vodafoneConfig[workflowActivityTypeId].TARGET_FORM_ACTIVITY_TYPE_ID;
+
+        // Check if the target form already exists
+        let targetForm = [],
+            targetFormActivityId = 0,
+            targetFormTransactionId = 0,
+            targetFormName = '',
+            targetFormData = [],
+            targetFormDataMap = new Map();
+        try {
+            targetForm = await activityCommonService
+                .getActivityTimelineTransactionByFormId713(request, workflowActivityId, TARGET_FORM_ID);
+
+            if (
+                targetForm.length > 0 &&
+                Number(targetForm[0].data_activity_id) !== 0 &&
+                targetForm[0].data_form_transaction_id !== 0
+            ) {
+                targetFormActivityId = targetForm[0].data_activity_id;
+                targetFormTransactionId = targetForm[0].data_form_transaction_id;
+                targetFormName = targetForm[0].data_form_name;
+                let formDataCollection = JSON.parse(targetForm[0].data_entity_inline);
+                if (Array.isArray(formDataCollection.form_submitted) === true || typeof formDataCollection.form_submitted === 'object') {
+                    targetFormData = formDataCollection.form_submitted;
+                } else {
+                    targetFormData = JSON.parse(formDataCollection.form_submitted);
+                }
+                for (const field of targetFormData) {
+                    targetFormDataMap.set(Number(field.field_id), field);
+                }
+            } else {
+                throw new Error("TargetFormDoesNotExist");
+            }
+        } catch (error) {
+            console.log("regenerateAndSubmitTargetForm | Error: ", error);
+            return [error, []];
+        }
+        console.log("regenerateAndSubmitTargetForm | targetFormActivityId: ", targetFormActivityId);
+        console.log("regenerateAndSubmitTargetForm | targetFormTransactionId: ", targetFormTransactionId);
+        console.log("regenerateAndSubmitTargetForm | targetFormName: ", targetFormName);
+        console.log("regenerateAndSubmitTargetForm | targetFormData.length: ", targetFormData.length);
+        console.log("regenerateAndSubmitTargetForm | targetFormDataMap.size: ", targetFormDataMap.size);
+
+        let sourceFieldsUpdated = [],
+            sourceFieldsUpdatedMap = new Map();
+        try {
+            sourceFieldsUpdated = JSON.parse(request.activity_inline_data);
+            // console.log("regenerateAndSubmitTargetForm | sourceFieldsUpdated: ", sourceFieldsUpdated);
+            for (const field of sourceFieldsUpdated) {
+                sourceFieldsUpdatedMap.set(Number(field.field_id), field);
+            }
+            // console.log("regenerateAndSubmitTargetForm | sourceFieldsUpdatedMap: ", sourceFieldsUpdatedMap);
+        } catch (error) {
+            console.log("regenerateAndSubmitTargetForm | sourceFieldsUpdated | error: ", error);
+            return [error, []];
+        }
+
+        // Fetch relevant source and target form field mappings
+        const SOURCE_FORM_FIELD_MAPPING_DATA = global.vodafoneConfig[workflowActivityTypeId].FORM_FIELD_MAPPING_DATA[request.form_id];
+        console.log("SOURCE_FORM_FIELD_MAPPING_DATA | length: ", Object.keys(SOURCE_FORM_FIELD_MAPPING_DATA).length);
+        
+        let targetFieldsUpdated = [],
+            REQUEST_FIELD_ID = 0;
+        for (const sourceField of sourceFieldsUpdated) {
+            let sourceFieldID = String(sourceField.field_id);
+            if (Object.keys(SOURCE_FORM_FIELD_MAPPING_DATA).includes(sourceFieldID)) {
+                console.log("Mapping Exists: ", sourceFieldID, " => ", SOURCE_FORM_FIELD_MAPPING_DATA[sourceFieldID]);
+
+                let targetFieldID = Number(SOURCE_FORM_FIELD_MAPPING_DATA[sourceFieldID]);
+                REQUEST_FIELD_ID = targetFieldID;
+                if (targetFormDataMap.has(targetFieldID)) {
+                    console.log(targetFormDataMap.get(targetFieldID));
+                    // Get the entire object
+                    let targetFieldEntry = targetFormDataMap.get(Number(targetFieldID));
+                    if (String(targetFieldEntry.field_value) !== String(sourceField.field_value)) {
+                        // Update the value
+                        targetFieldEntry.field_value = sourceField.field_value;
+                        // Set the updated object as value for the target field ID
+                        targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
+                        // Keep track of target fields updated
+                        targetFieldsUpdated.push(
+                            Object.assign({
+                                form_id: TARGET_FORM_ID,
+                                form_transaction_id: targetFormTransactionId,
+                                form_name: targetFormName
+                            }, targetFieldEntry)
+                        );
+                    }
+                } else {
+                    // If the field doesn't exist already, insert it
+                    let targetFieldEntry = Object.assign({}, sourceField);
+                    targetFieldEntry.form_id = TARGET_FORM_ID;
+                    targetFieldEntry.field_id = targetFieldID;
+                    targetFieldEntry.message_unique_id = util.getMessageUniqueId(Number(request.asset_id));
+                    // Set the new object as value for the target field ID
+                    targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
+                    // Keep track of target fields updated
+                    targetFieldsUpdated.push(
+                        Object.assign({
+                            form_id: TARGET_FORM_ID,
+                            form_transaction_id: targetFormTransactionId,
+                            form_name: targetFormName
+                        }, targetFieldEntry)
+                    );
+                }
+            }
+        }
+
+        // ROMS Recalculation
+        const ROMS_ACTIONS = global.vodafoneConfig[workflowActivityTypeId].ROMS_ACTIONS;
+        let {TARGET_FORM_DATA, UPDATED_ROMS_FIELDS} = await performRomsCalculations(request, [...targetFormDataMap.values()], ROMS_ACTIONS);
+        // updatedRomsFields
+        for (let i = 0; i < UPDATED_ROMS_FIELDS.length; i++) {
+            UPDATED_ROMS_FIELDS[i].form_id = TARGET_FORM_ID;
+            UPDATED_ROMS_FIELDS[i].form_transaction_id = targetFormTransactionId;
+            UPDATED_ROMS_FIELDS[i].form_name = targetFormName;
+        }
+
+        console.log("***** ***** ***** ***** ***** ***** ***** *****");
+        console.log("targetFieldsUpdated: ", targetFieldsUpdated);
+        console.log("***** ***** ***** ***** ***** ***** ***** *****");
+
+        console.log("UPDATED_ROMS_FIELDS: ", UPDATED_ROMS_FIELDS);
+
+        // Final list of fields to be updated
+        targetFieldsUpdated = targetFieldsUpdated.concat(UPDATED_ROMS_FIELDS);
+        // If no fields have been updated, don't proceed
+        if (targetFieldsUpdated.length === 0) {
+            return [new Error("NoTargetFormFieldsUpdated"), []];
+        }
+
+        // Fire field alter
+        let fieldsAlterRequest = Object.assign({}, request);
+        fieldsAlterRequest.form_transaction_id = targetFormTransactionId;
+        fieldsAlterRequest.form_id = TARGET_FORM_ID;
+        fieldsAlterRequest.field_id = REQUEST_FIELD_ID;
+        fieldsAlterRequest.activity_inline_data = JSON.stringify(targetFieldsUpdated);
+        fieldsAlterRequest.activity_id = targetFormActivityId;
+        fieldsAlterRequest.workflow_activity_id = workflowActivityId;
+
+        const event = {
+            name: "alterFormActivityFieldValues",
+            service: "formConfigService",
+            method: "alterFormActivityFieldValues",
+            payload: fieldsAlterRequest
+        };
+
+        queueWrapper.raiseActivityEvent(event, fieldsAlterRequest.activity_id, (err, resp) => {
+            if (err) {
+                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+            } else {
+                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+            }
+        });
+
+        return [true, false];
     }
 
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
 }
 
 

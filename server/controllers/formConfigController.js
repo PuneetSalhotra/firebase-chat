@@ -350,29 +350,13 @@ function FormConfigController(objCollection) {
     //     // flag: 2 => Udpdate activity_type mapping only
     //     // flag: 3 => Udpdate config values only
 
-    //     // const [err, workflowStatus] = await formConfigService.workflowEngine(req.body);
-    //     // if (!err) {
-    //     //     res.send(responseWrapper.getResponse({}, workflowStatus, 200, req.body));
-    //     // } else {
-    //     //     console.log("Error: ", err)
-    //     //     res.send(responseWrapper.getResponse(err, workflowStatus, -9999, req.body));
-    //     // }
-    //     let botEngineRequest = Object.assign({}, req.body);
-    //     botEngineRequest.form_id = req.body.activity_form_id;
-    //     let botEngineEvent = {
-    //         name: "botEngine",
-    //         service: "botService",
-    //         method: "initBotEngine",
-    //         payload: botEngineRequest
-    //     };
-    //     queueWrapper.raiseActivityEvent(botEngineEvent, req.body.activity_id, (err, resp) => {
-    //         if (err) {
-    //             console.log("\x1b[35m [ERROR] Raising queue activity raised for workflow engine. \x1b[0m");
-    //         } else {
-    //             console.log("\x1b[35m Queue activity raised for workflow engine. \x1b[0m");
-    //         }
-    //     });
-
+    //     const [err, workflowStatus] = await formConfigService.alterFormActivityFieldValues(req.body);
+    //     if (!err) {
+    //         res.send(responseWrapper.getResponse({}, workflowStatus, 200, req.body));
+    //     } else {
+    //         console.log("Error: ", err)
+    //         res.send(responseWrapper.getResponse(err, workflowStatus, -9999, req.body));
+    //     }
     // });
 
     // // THIS IS A DUMMY/TEST ENDPOINT

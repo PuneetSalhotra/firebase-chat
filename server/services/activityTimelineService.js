@@ -1754,6 +1754,15 @@ function ActivityTimelineService(objectCollection) {
                     } catch(err) {                        
                     }                  
                     break;
+                case 52: // Excel Document
+                    params[18] = row.field_value;
+                    break;
+                case 53: // IP Address Form
+                    params[18] = row.field_value;
+                    break;
+                case 54: // MAC Address Form
+                    params[18] = row.field_value;
+                    break;
                 case 17:    //Location
                     var location = row.field_value.split('|');
                     params[16] = location[0];
