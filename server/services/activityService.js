@@ -268,8 +268,9 @@ function ActivityService(objectCollection) {
                                 activityCommonService.processReservationBilling(request, request.activity_parent_id).then(() => {});
                             }
 
-                            if (activityTypeCategroyId === 9 || activityTypeCategroyId === 48) {
+                            if (request.activity_type_category_id == 48) {
                                 global.logger.write('conLog', '*****ADD ACTIVITY :HITTING WIDGET ENGINE*******', {}, request);
+                                request['source_id'] = 1;
                                 sendRequesttoWidgetEngine(request);
                             }
 
@@ -1908,6 +1909,7 @@ function ActivityService(objectCollection) {
                             to_status_datetime: util.replaceDefaultDatetime(data[0].updatedDatetime)
                         }).then(() => {
                             global.logger.write('conLog', '*****ALTER STATUS : HITTING WIDGET ENGINE*******', {}, request);
+                            request['source_id'] = 3;
                             sendRequesttoWidgetEngine(request);
                         });
                     }
@@ -3194,9 +3196,13 @@ function ActivityService(objectCollection) {
     function sendRequesttoWidgetEngine(request) {
 
         global.logger.write('conLog', '********IN HITTING WIDGET *********************************************: ', {}, request);
-        if (request.activity_type_category_id == 9 || request.activity_type_category_id == 48) { //form and submitted state                    
+        if (request.activity_type_category_id == 48) { //form and submitted state  
+
             activityCommonService.getActivityCollection(request).then((activityData) => { // get activity form_id and form_transaction id
                 console.log('activityData:' + activityData[0]);
+                console.log('activityData[0].form_transaction_id :: '+activityData[0].form_transaction_id);
+                //activityCommonService.getWorkflowOfForm(request, activityData[0].form_id)
+                //.then((formData)=>{            
                 var widgetEngineQueueMessage = {
                     form_id: activityData[0].form_id,
                     form_transaction_id: activityData[0].form_transaction_id,
@@ -3217,7 +3223,8 @@ function ActivityService(objectCollection) {
                     service_version: request.service_version,
                     app_version: request.app_version,
                     api_version: request.api_version,
-                    widget_type_category_id: 2
+                    widget_type_category_id: 2,
+                    source_id: request.source_id
                 };
                 var event = {
                     name: "File Based Widget Engine",
@@ -3226,11 +3233,10 @@ function ActivityService(objectCollection) {
                 global.logger.write('conLog', 'Hitting Widget Engine with request:' + event, {}, request);
 
                 queueWrapper.raiseFormWidgetEvent(event, request.activity_id);
+            //});
             });
         }
     }
-
-
 
     this.updateActivityFormFieldValidation = function (request) {
         return new Promise((resolve, reject) => {

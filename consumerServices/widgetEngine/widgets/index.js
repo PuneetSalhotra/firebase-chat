@@ -9,6 +9,7 @@ const FormFileStatusDistribution = require('./formFileStatusDistribution');
 const FormFileStatusDuration = require('./formFileStatusDuration');
 const FormFileStatusTransition = require('./formFileStatusTransition');
 const FormFileDistribution = require('./formFileDistribution');
+const SingleDimensionalStatusAggr = require('./singleDimentionalStatusAggr');
 
 const CONST = require('../../constants');
 
@@ -38,6 +39,9 @@ exports.get = function (id, args) {
             break;
         case CONST.WIDGET_TYPE_IDS.FORM_FILE_DISTRIBUTION:
             widgetInstance = new FormFileDistribution(args);
+            break;
+        case CONST.WIDGET_TYPE_IDS.SINGLE_DIMENSIONAL_STATUS_AGGR:
+            widgetInstance = new SingleDimensionalStatusAggr(args);
             break;
         default:
             break;
