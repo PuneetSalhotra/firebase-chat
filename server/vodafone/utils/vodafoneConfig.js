@@ -21,6 +21,12 @@ const digitalPriCafLabels = require("./digital_pri_caf/labels.json");
 const digitalPriCafRoms = require("./digital_pri_caf/roms.json");
 const digitalPriCafRomsActions = require("./digital_pri_caf/roms_actions.json");
 
+// Digital NPLC CAF - 134569
+const digitalNplcCafMappings = require("./digital_nplc_caf/digital_nplc_caf_mappings.json");
+const digitalNplcCafLabels = require("./digital_nplc_caf/labels.json");
+const digitalNplcCafRoms = require("./digital_nplc_caf/roms.json");
+const digitalNplcCafRomsActions = require("./digital_nplc_caf/roms_actions.json");
+
 vodafoneConfig = {
     "860": {
         "NAME": "Vodafone Idea | Production | BETA",
@@ -156,28 +162,28 @@ vodafoneConfig = {
             "ENC_TOKEN": "c15f6fb0-14c9-11e9-8b81-4dbdf2702f95"
         },
         "STATUS": {
-            "CAF_UPDATION": 282554,	
-            "VALIDATION_PENDING": 282555,	
-            "CUSTOMER_APPROVAL": 282556,	
-            "ORDER_LOGGED": 282557	
+            "CAF_UPDATION": 282554,
+            "VALIDATION_PENDING": 282555,
+            "CUSTOMER_APPROVAL": 282556,
+            "ORDER_LOGGED": 282557
         },
         "FORM_ID": {
             "ORDER_CLOSURE": 1054,
             "HLD": 1055,
             "CRM": 1056,
-            "FR": 1057,  
-            "CAF": 1058,  
-            "NEW_ORDER": 1059,  
-            "ORDER_SUPPLEMENTARY": 1060,  
-            "CAF_APPROVAL_ACCOUNT_MANAGER": 1061,  
-            "DOCUMENTS_NEW_CUSTOMER": 1062,  
-            "DOCUMENTS_EXISTING_CUSTOMER": 1063,  
-            "AUTHORISED_SIGNATORY_SIGN_AND_SEAL": 1064,  
-            "OMT_APPROVAL": 1065,  
-            "CUSTOMER_IT_COMMERCIAL_APPROVAL": 1066,  
-            "CUSTOMER_APPROVAL": 1064,  
-            "ORDER_DOCUMENTS": 1068,  
-            "CAF_REVISION_COMMENTS_CUSTOMER": 1069  
+            "FR": 1057,
+            "CAF": 1058,
+            "NEW_ORDER": 1059,
+            "ORDER_SUPPLEMENTARY": 1060,
+            "CAF_APPROVAL_ACCOUNT_MANAGER": 1061,
+            "DOCUMENTS_NEW_CUSTOMER": 1062,
+            "DOCUMENTS_EXISTING_CUSTOMER": 1063,
+            "AUTHORISED_SIGNATORY_SIGN_AND_SEAL": 1064,
+            "OMT_APPROVAL": 1065,
+            "CUSTOMER_IT_COMMERCIAL_APPROVAL": 1066,
+            "CUSTOMER_APPROVAL": 1064,
+            "ORDER_DOCUMENTS": 1068,
+            "CAF_REVISION_COMMENTS_CUSTOMER": 1069
         },
         "CUSTOMER": {
             "ACCOUNT_ID": 983,
@@ -188,7 +194,7 @@ vodafoneConfig = {
         "ACTIVITY_TYPE_IDS": {
             "FORM_ACTIVITY_TYPE_ID": 133472,
             "CONTACT_CARD_ACTIVITY_TYPE_ID": 133471,
-            "5400": 134414            
+            "5400": 134414
         },
         "SOLUTIONS_REP": {
             "NAME": "Bharat",
@@ -245,5 +251,14 @@ vodafoneConfig = {
         "LABELS": digitalPriCafLabels,
         "ROMS": digitalPriCafRoms,
         "ROMS_ACTIONS": digitalPriCafRomsActions
+    },
+    "134569": {
+        "REQUIRED_FORMS": [1335],
+        "TARGET_FORM_ID": 1230,
+        "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
+        "FORM_FIELD_MAPPING_DATA": digitalNplcCafMappings,
+        "LABELS": digitalNplcCafLabels,
+        "ROMS": digitalNplcCafRoms,
+        "ROMS_ACTIONS": digitalNplcCafRomsActions
     }
 };
