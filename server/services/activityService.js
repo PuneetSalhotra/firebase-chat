@@ -1901,7 +1901,10 @@ function ActivityService(objectCollection) {
                     }
 
                     global.logger.write('conLog', '*****STATUS CHANGE FLAG : ' + request.status_changed_flag, {}, request);
-
+                    if(activityTypeCategroyId === 48){
+                        updateWidgetAggrStatus(request);
+                    }
+                    
                     var timeDuration = util.differenceDatetimes(util.getCurrentUTCTime(), util.replaceDefaultDatetime(data[0].datetimeExistingActivityStatusUpdated));
                     if (Number(data[0].idExistingActivityStatus) > 0 && Number(request.activity_status_id) > 0) {
 
@@ -3518,6 +3521,29 @@ function ActivityService(objectCollection) {
         if (queryString != '') {
             return await db.executeQueryPromise(1, queryString, request);
         }
+    }
+
+    function updateWidgetAggrStatus(request) {
+        return new Promise((resolve, reject) => {
+            global.logger.write('DEBUG', '::: UPDATING WIDGET AGGR STATUS :::', {}, request);
+            let paramsArr = new Array(
+                request.activity_id,
+                request.workforce_id,
+                request.account_id,
+                request.organization_id,
+                util.getCurrentUTCTime()
+            );
+            let queryString = util.getQueryString('ds_p1_widget_activity_field_transaction_update', paramsArr);
+            if (queryString != '') {
+               db.executeQuery(0, queryString, request, function (err, data) {
+                    if (err === false) {
+                        resolve();
+                    } else {
+                        reject(err);
+                    }
+                });
+            }
+        })
     }
 
 }

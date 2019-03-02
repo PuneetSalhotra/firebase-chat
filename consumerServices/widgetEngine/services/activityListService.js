@@ -66,7 +66,10 @@ insertUpdate(data){
 // IN p_workforce_id BIGINT(20), IN p_account_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_log_datetime DATETIME
         var paramsArr = new Array(
                 data.widget_id,
+                data.workflow_activity_id,
                 data.activity_id,
+                data.form_id,
+                data.form_transaction_id,
                 data.field_id,
                 data.field_value,
                 data.workforce_id,
