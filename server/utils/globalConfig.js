@@ -89,7 +89,7 @@ if (mode === 'masimukku') {
     
     //LOGS
     config.LOGS_TOPIC_NAME = 'masimukku-desker-logs';
-    config.WIDGET_CONSUMER_GROUP_ID = 'masimukku-desker-logs-cg';
+    config.LOGS_CONSUMER_GROUP_ID = 'masimukku-desker-logs-cg';
 
     config.CONSUMER_AUTO_COMMIT = true;
     config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
@@ -190,7 +190,7 @@ if (mode === 'local') {
     
     //LOGS
     config.LOGS_TOPIC_NAME = 'desker-logs';
-    config.WIDGET_CONSUMER_GROUP_ID = 'desker-logs-cg';
+    config.LOGS_CONSUMER_GROUP_ID = 'desker-logs-cg';
     
     config.CONSUMER_AUTO_COMMIT = true;
     config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
@@ -371,7 +371,7 @@ if (mode === 'staging') {
     
     //LOGS
     config.LOGS_TOPIC_NAME = 'staging-desker-logs-v1';
-    config.WIDGET_CONSUMER_GROUP_ID = 'staging-desker-logs-v1-cg';
+    config.LOGS_CONSUMER_GROUP_ID = 'staging-desker-logs-v1-cg';
     
     config.CONSUMER_AUTO_COMMIT = true;
     config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
@@ -530,12 +530,15 @@ if (mode === 'prod') {
 
     config.TOPIC_ID = 12;
     config.TOPIC_NAME = 'prod-desker-activities-v1'; //Only one partition
-    config.WIDGET_TOPIC_NAME = 'prod-desker-form-widgets';
     config.CONSUMER_GROUP_ID = 'prod-desker-activities-consumer-group-v1';
     
+    // Widget
+    config.WIDGET_TOPIC_NAME = 'prod-desker-form-widgets';
+    config.WIDGET_CONSUMER_GROUP_ID = 'prod-desker-form-widgets-cg';
+
     //LOGS
     config.LOGS_TOPIC_NAME = 'prod-desker-logs';
-    config.WIDGET_CONSUMER_GROUP_ID = 'prod-desker-logs-cg';
+    config.LOGS_CONSUMER_GROUP_ID = 'prod-desker-logs-cg';
     
     config.CONSUMER_AUTO_COMMIT = true;
     config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;

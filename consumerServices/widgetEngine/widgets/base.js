@@ -33,7 +33,7 @@ class WidgetBase {
     }
 
     getPeriodFlag() {
-        if ([1, 2, 3].indexOf(this.rule.widget_timeline_id) !== -1)
+        if ([0,1, 2, 3].indexOf(this.rule.widget_timeline_id) !== -1)
             return 0;
         else if ([4, 5, 6].indexOf(this.rule.widget_timeline_id) !== -1)
             return 1;

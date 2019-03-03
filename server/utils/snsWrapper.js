@@ -206,7 +206,7 @@ var AwsSns = function () {
                         global.logger.write('conLog', 'Flag is 1. Creating IOS Prod for Tony App Plain Push', {}, {});
                         platformApplicationArn = global.config.platformApplicationIosTonyPushProd;
                     }
-                }                
+                }
                 break;
             case 3: // windows
                 platformApplicationArn = global.config.platformApplicationWindows;

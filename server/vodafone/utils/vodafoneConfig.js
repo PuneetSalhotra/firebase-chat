@@ -33,6 +33,18 @@ const digitalNplcCrfLabels = require("./digital_nplc_crf/labels.json");
 const digitalNplcCrfRoms = require("./digital_nplc_crf/roms.json");
 const digitalNplcCrfRomsActions = require("./digital_nplc_crf/roms_actions.json");
 
+// Modify FLV - PRI/SIP/IP CRF - Digital FLV - CRF - 134575
+const digitalFlvCrfMappings = require("./digital_flv_pri_sip_ip_crf/mappings.json");
+const digitalFlvCrfLabels = require("./digital_flv_pri_sip_ip_crf/labels.json");
+const digitalFlvCrfRoms = require("./digital_flv_pri_sip_ip_crf/roms.json");
+const digitalFlvCrfRomsActions = require("./digital_flv_pri_sip_ip_crf/roms_actions.json");
+
+// New FLD - SuperWiFi CAF - 134583
+const digitalSuperWiFiCafMappings = require("./digital_super_wifi_caf/mappings.json");
+const digitalSuperWiFiCafLabels = require("./digital_super_wifi_caf/labels.json");
+const digitalSuperWiFiCafRoms = require("./digital_super_wifi_caf/roms.json");
+const digitalSuperWiFiCafRomsActions = require("./digital_super_wifi_caf/roms_actions.json");
+
 vodafoneConfig = {
     "860": {
         "NAME": "Vodafone Idea | Production | BETA",
@@ -275,5 +287,23 @@ vodafoneConfig = {
         "LABELS": digitalNplcCrfLabels,
         "ROMS": digitalNplcCrfRoms,
         "ROMS_ACTIONS": digitalNplcCrfRomsActions
+    },
+    "134575": {
+        "REQUIRED_FORMS": [1349],
+        "TARGET_FORM_ID": 1277,
+        "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
+        "FORM_FIELD_MAPPING_DATA": digitalFlvCrfMappings,
+        "LABELS": digitalFlvCrfLabels,
+        "ROMS": digitalFlvCrfRoms,
+        "ROMS_ACTIONS": digitalFlvCrfRomsActions
+    },
+    "134583": {
+        "REQUIRED_FORMS": [1357],
+        "TARGET_FORM_ID": 1347,
+        "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
+        "FORM_FIELD_MAPPING_DATA": digitalSuperWiFiCafMappings,
+        "LABELS": digitalSuperWiFiCafLabels,
+        "ROMS": digitalSuperWiFiCafRoms,
+        "ROMS_ACTIONS": digitalSuperWiFiCafRomsActions
     }
 };

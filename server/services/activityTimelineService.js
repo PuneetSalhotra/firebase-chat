@@ -1910,6 +1910,7 @@ function ActivityTimelineService(objectCollection) {
 
         }).then(function () {
         	 global.logger.write('conLog', '*********************************AFTER FORM DATA ENTRY *********************************************88 : ', {}, request);
+             request['source_id'] = 2;
         	 sendRequesttoWidgetEngine(request);
             callback(false, approvalFields);
         });
@@ -1920,6 +1921,8 @@ function ActivityTimelineService(objectCollection) {
         global.logger.write('conLog', '*********************************88BEFORE FORM WIDGET *********************************************88 : ', {}, request);
         if (request.activity_type_category_id == 9) { //form and submitted state                    
         	activityCommonService.getActivityDetails(request, 0, function (err, activityData) { // get activity form_id and form_transaction id
+                activityCommonService.getWorkflowOfForm(request)
+                .then((formData)=>{ 
                  var widgetEngineQueueMessage = {
                     form_id: activityData[0].form_id,
                     form_transaction_id: activityData[0].form_transaction_id,
@@ -1928,6 +1931,7 @@ function ActivityTimelineService(objectCollection) {
                     workforce_id: request.workforce_id,
                     asset_id: request.asset_id,
                     activity_id: request.activity_id,
+                    activity_type_id: formData[0].form_workflow_activity_type_id,
                     activity_type_category_id: request.activity_type_category_id,
                     activity_stream_type_id: request.activity_stream_type_id,
                     track_gps_location: request.track_gps_location,
@@ -1938,8 +1942,10 @@ function ActivityTimelineService(objectCollection) {
                     service_version: request.service_version,
                     app_version: request.app_version,
                     api_version: request.api_version,
-                    widget_type_category_id:1
+                    widget_type_category_id:1,
+                    source_id: request.source_id
                 };
+            }
                 var event = {
                     name: "Form Based Widget Engine",
                     payload: widgetEngineQueueMessage
