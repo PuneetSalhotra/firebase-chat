@@ -286,7 +286,7 @@ vodafoneConfig = {
         "ROMS_ACTIONS": digitalNplcCafRomsActions
     },
     "134573": {
-        //"REQUIRED_FORMS": [1335],
+        "REQUIRED_FORMS": [1268],
         "TARGET_FORM_ID": 1234,
         "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
         "FORM_FIELD_MAPPING_DATA": digitalNplcCrfMappings,
@@ -295,7 +295,7 @@ vodafoneConfig = {
         "ROMS_ACTIONS": digitalNplcCrfRomsActions
     },
     "134574": {
-        //"REQUIRED_FORMS": [1335],
+        "REQUIRED_FORMS": [1336],
         "TARGET_FORM_ID": 1337,
         "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
         "FORM_FIELD_MAPPING_DATA": digitalIplcCafMappings,
