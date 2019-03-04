@@ -34,7 +34,7 @@ const digitalNplcCrfRoms = require("./digital_nplc_crf/roms.json");
 const digitalNplcCrfRomsActions = require("./digital_nplc_crf/roms_actions.json");
 
 // Digital IPLC CAF - 134574
-const digitalIplcCafMappings = require("./digital_iplc_caf/digital_nplc_crf_mappings.json");
+const digitalIplcCafMappings = require("./digital_iplc_caf/digital_iplc_caf_mappings.json");
 const digitalIplcCafLabels = require("./digital_iplc_caf/labels.json");
 const digitalIplcCafRoms = require("./digital_iplc_caf/roms.json");
 const digitalIplcCafRomsActions = require("./digital_iplc_caf/roms_actions.json");
