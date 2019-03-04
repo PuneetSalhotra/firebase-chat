@@ -1557,7 +1557,7 @@ function ActivityListingService(objCollection) {
 				"activity_rating_lead_timeliness": util.replaceDefaultNumber(rowData['activity_rating_lead_timeliness']),
 				"activity_flag_file_enabled": util.replaceDefaultNumber(rowData['activity_flag_file_enabled']),
 				"count": util.replaceDefaultNumber(rowData['count']),
-				"activity_workflow_completion_percentage": util.replaceDefaultNumber(rowData['activity_workflow_completion_percentage'])
+				"activity_workflow_completion_percentage": parseInt(util.replaceDefaultNumber(rowData['activity_workflow_completion_percentage']))
 
 			};
 			responseData.push(rowDataArr);
