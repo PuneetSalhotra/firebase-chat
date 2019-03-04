@@ -540,6 +540,12 @@ function FormConfigService(objCollection) {
 
                         await putLatestUpdateSeqId(request, activityInlineData).then(() => {
 
+                            try{
+                                widgetAggrFieldValueUpdate(request);
+                            }catch(err){
+                                console.log('Error in updating Intermediate Table : ', err);
+                            }
+
                             var event = {
                                 name: "alterActivityInline",
                                 service: "activityUpdateService",
@@ -770,6 +776,7 @@ function FormConfigService(objCollection) {
                 );
 
                 var dataTypeId = Number(row.field_data_type_id);
+                request['field_value'] = row.field_value;
                 console.log('dataTypeId : ', dataTypeId);
                 switch (dataTypeId) {
                     case 1: // Date
@@ -3011,6 +3018,39 @@ function FormConfigService(objCollection) {
         }
 
         return [false, activityData];
+    }
+
+
+   async function widgetAggrFieldValueUpdate(request) {
+
+        let fieldUpdateStatus = [],
+            error = false; // true;
+
+        let paramsArr = new Array(
+            request.activity_id,
+            request.form_id,
+            request.field_id,
+            request.field_value,
+            request.form_transaction_id,
+            request.workforce_id,
+            request.account_id,
+            request.organization_id,
+            util.getCurrentUTCTime(),
+        );
+        const queryString = util.getQueryString('ds_p1_widget_activity_field_transaction_update_field_value', paramsArr);
+        if (queryString !== '') {
+            // console.log(queryString)
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    fieldUpdateStatus = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, fieldUpdateStatus];
     }
 
 }
