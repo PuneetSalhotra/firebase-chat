@@ -1,0 +1,88 @@
+[{
+        "ACTION": "set_static_value",
+        "BATCH": [{
+            "TARGET_FIELD_ID": 10263,
+            "VALUE": "Mumbai Circle - Account Managers"
+        }]
+
+    }, {
+        "ACTION": "sum",
+        "BATCH": [{
+                "SOURCE_FIELD_IDS": [10204, 10205, 10206],
+                "TARGET_FIELD_ID": 10207,
+                "VALUE": 0
+            },{
+                "SOURCE_FIELD_IDS": [10208, 10209],
+                "TARGET_FIELD_ID": 10210,
+                "VALUE": 0
+            },{
+                "SOURCE_FIELD_IDS": [10211, 10212],
+                "TARGET_FIELD_ID": 10213,
+                "VALUE": 0
+            },{
+                "SOURCE_FIELD_IDS": [10217, 10218],
+                "TARGET_FIELD_ID": 10219,
+                "VALUE": 0
+            },{
+                "SOURCE_FIELD_IDS": [10220, 10221, 10222],
+                "TARGET_FIELD_ID": 10223,
+                "VALUE": 0
+            },{
+                "SOURCE_FIELD_IDS": [10244, 10245],
+                "TARGET_FIELD_ID": 10246,
+                "VALUE": 0
+            },{
+                "SOURCE_FIELD_IDS": [10247],
+                "TARGET_FIELD_ID": 10249,
+                "VALUE": 0
+            },{
+                "SOURCE_FIELD_IDS": [10250],
+                "TARGET_FIELD_ID": 10251,
+                "VALUE": 0
+            },{
+                "SOURCE_FIELD_IDS": [10252],
+                "TARGET_FIELD_ID": 10253,
+                "VALUE": 0
+            },{
+                "SOURCE_FIELD_IDS": [10224, 10225, 10226],
+                "TARGET_FIELD_ID": 10227,
+                "VALUE": 0
+            },{
+                "SOURCE_FIELD_IDS": [10228,10229,10230],
+                "TARGET_FIELD_ID": 10231,
+                "VALUE": 0
+            },{
+                "SOURCE_FIELD_IDS": [10232, 10233, 10234],
+                "TARGET_FIELD_ID": 10235,
+                "VALUE": 0
+            },{
+                "SOURCE_FIELD_IDS": [10236, 10237, 10238],
+                "TARGET_FIELD_ID": 10239,
+                "VALUE": 0
+            },{
+                "SOURCE_FIELD_IDS": [10240, 10241, 10242],
+                "TARGET_FIELD_ID": 10243,
+                "VALUE": 0
+            },{
+                "SOURCE_FIELD_IDS": [10204, 10205, 10206],
+                "TARGET_FIELD_ID": 10207,
+                "VALUE": 0
+            }
+
+        ]
+    },    
+    {
+        "ACTION": "set_date",
+        "BATCH": [{
+            "TARGET_FIELD_ID": 10260,
+            "TZ_OFFSET": "+05:30"
+        }]
+    },
+    {
+        "ACTION": "set_participant_name",
+        "BATCH": [{
+            "TARGET_FIELD_ID": 10262,
+            "ASSET_TYPE_ID": 127254
+        }]
+    }
+]

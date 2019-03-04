@@ -1,0 +1,233 @@
+[
+  {
+    "form_id": 1337,
+    "field_id": 11883,
+    "field_name": "CAF ID",
+    "field_data_type_id": 19,
+    "field_data_type_category_id": 7,
+    "data_type_combo_id": 0,
+    "data_type_combo_value": "",
+    "field_value": "",
+    "message_unique_id": 2222333344445555
+  },
+  {
+    "form_id": 1337,
+    "field_id": 12021,
+    "field_name": "Service Rental-Grand Total(A+B+C)",
+    "field_data_type_id": 6,
+    "field_data_type_category_id": 2,
+    "data_type_combo_id": 0,
+    "data_type_combo_value": "",
+    "field_value": 0,
+    "message_unique_id": 2222333344445555
+  },
+  {
+    "form_id": 1337,
+    "field_id": 12024,
+    "field_name": "SLA Charges-Grand Total(A+B+C)",
+    "field_data_type_id": 6,
+    "field_data_type_category_id": 2,
+    "data_type_combo_id": 0,
+    "data_type_combo_value": "",
+    "field_value": 0,
+    "message_unique_id": 2222333344445555
+  },
+  {
+    "form_id": 1337,
+    "field_id": 12027,
+    "field_name": "Self Care Portal Service Charges-Grand Total(A+B+C)",
+    "field_data_type_id": 6,
+    "field_data_type_category_id": 2,
+    "data_type_combo_id": 0,
+    "data_type_combo_value": "",
+    "field_value": 0,
+    "message_unique_id": 2222333344445555
+  },
+  {
+    "form_id": 1337,
+    "field_id": 12030,
+    "field_name": "Managed Services Charges-Grand Total(A+B+C)",
+    "field_data_type_id": 6,
+    "field_data_type_category_id": 2,
+    "data_type_combo_id": 0,
+    "data_type_combo_value": "",
+    "field_value": 0,
+    "message_unique_id": 2222333344445555
+  },
+  {
+    "form_id": 1337,
+    "field_id": 12033,
+    "field_name": "Managed CPE Charges-Grand Total(A+B+C)",
+    "field_data_type_id": 6,
+    "field_data_type_category_id": 2,
+    "data_type_combo_id": 0,
+    "data_type_combo_value": "",
+    "field_value": 0,
+    "message_unique_id": 2222333344445555
+  },
+  {
+    "form_id": 1337,
+    "field_id": 12037,
+    "field_name": "CPE Rentals-Grand Total(A+B+C)",
+    "field_data_type_id": 6,
+    "field_data_type_category_id": 2,
+    "data_type_combo_id": 0,
+    "data_type_combo_value": "",
+    "field_value": 0,
+    "message_unique_id": 2222333344445555
+  },
+  {
+    "form_id": 1337,
+    "field_id": 12041,
+    "field_name": "CPE 1-Grand Total(A+B+C)",
+    "field_data_type_id": 6,
+    "field_data_type_category_id": 2,
+    "data_type_combo_id": 0,
+    "data_type_combo_value": "",
+    "field_value": 0,
+    "message_unique_id": 2222333344445555
+  },
+  {
+    "form_id": 1337,
+    "field_id": 12045,
+    "field_name": "CPE 2-Grand Total(A+B+C)",
+    "field_data_type_id": 6,
+    "field_data_type_category_id": 2,
+    "data_type_combo_id": 0,
+    "data_type_combo_value": "",
+    "field_value": 0,
+    "message_unique_id": 2222333344445555
+  },
+  {
+    "form_id": 1337,
+    "field_id": 12049,
+    "field_name": "CPE 3-Grand Total(A+B+C)",
+    "field_data_type_id": 6,
+    "field_data_type_category_id": 2,
+    "data_type_combo_id": 0,
+    "data_type_combo_value": "",
+    "field_value": 0,
+    "message_unique_id": 2222333344445555
+  },
+  {
+    "form_id": 1337,
+    "field_id": 12053,
+    "field_name": "CPE 4-Grand Total(A+B+C)",
+    "field_data_type_id": 6,
+    "field_data_type_category_id": 2,
+    "data_type_combo_id": 0,
+    "data_type_combo_value": "",
+    "field_value": 0,
+    "message_unique_id": 2222333344445555
+  },
+  {
+    "form_id": 1337,
+    "field_id": 12057,
+    "field_name": "CPE 5-Grand Total(A+B+C)",
+    "field_data_type_id": 6,
+    "field_data_type_category_id": 2,
+    "data_type_combo_id": 0,
+    "data_type_combo_value": "",
+    "field_value": 0,
+    "message_unique_id": 2222333344445555
+  },
+  {
+    "form_id": 1337,
+    "field_id": 12061,
+    "field_name": "Miscellaneous Charges-1-Grand Total(A+B+C)",
+    "field_data_type_id": 6,
+    "field_data_type_category_id": 2,
+    "data_type_combo_id": 0,
+    "data_type_combo_value": "",
+    "field_value": 0,
+    "message_unique_id": 2222333344445555
+  },
+  {
+    "form_id": 1337,
+    "field_id": 12064,
+    "field_name": "Miscellaneous Charges2-Grand Total(A+B+C)",
+    "field_data_type_id": 6,
+    "field_data_type_category_id": 2,
+    "data_type_combo_id": 0,
+    "data_type_combo_value": "",
+    "field_value": 0,
+    "message_unique_id": 2222333344445555
+  },
+  {
+    "form_id": 1337,
+    "field_id": 12066,
+    "field_name": "Total Amount Payable-One Time(A)",
+    "field_data_type_id": 6,
+    "field_data_type_category_id": 2,
+    "data_type_combo_id": 0,
+    "data_type_combo_value": "",
+    "field_value": 0,
+    "message_unique_id": 2222333344445555
+  },
+  {
+    "form_id": 1337,
+    "field_id": 12067,
+    "field_name": "Total Amount Payable-Annual Recurring(B)",
+    "field_data_type_id": 6,
+    "field_data_type_category_id": 2,
+    "data_type_combo_id": 0,
+    "data_type_combo_value": "",
+    "field_value": 0,
+    "message_unique_id": 2222333344445555
+  },
+  {
+    "form_id": 1337,
+    "field_id": 12068,
+    "field_name": "Total Amount Payable-Grand Total(A+B+C)",
+    "field_data_type_id": 6,
+    "field_data_type_category_id": 2,
+    "data_type_combo_id": 0,
+    "data_type_combo_value": "",
+    "field_value": 0,
+    "message_unique_id": 2222333344445555
+  },
+  {
+    "form_id": 1337,
+    "field_id": 12069,
+    "field_name": "Total Order Value",
+    "field_data_type_id": 6,
+    "field_data_type_category_id": 2,
+    "data_type_combo_id": 0,
+    "data_type_combo_value": "",
+    "field_value": 0,
+    "message_unique_id": 2222333344445555
+  },
+  {
+    "form_id": 1337,
+    "field_id": 12075,
+    "field_name": "Date",
+    "field_data_type_id": 1,
+    "field_data_type_category_id": 1,
+    "data_type_combo_id": 0,
+    "data_type_combo_value": "",
+    "field_value": "",
+    "message_unique_id": 2222333344445555
+  },
+  {
+    "form_id": 1337,
+    "field_id": 12077,
+    "field_name": "Account Manager Name",
+    "field_data_type_id": 19,
+    "field_data_type_category_id": 7,
+    "data_type_combo_id": 0,
+    "data_type_combo_value": "",
+    "field_value": "",
+    "message_unique_id": 2222333344445555
+  },
+  {
+    "form_id": 1337,
+    "field_id": 12078,
+    "field_name": "Account Manager Circle Office",
+    "field_data_type_id": 19,
+    "field_data_type_category_id": 7,
+    "data_type_combo_id": 0,
+    "data_type_combo_value": "",
+    "field_value": "",
+    "message_unique_id": 2222333344445555
+  }
+]
