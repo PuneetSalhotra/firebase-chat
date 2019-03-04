@@ -1863,6 +1863,15 @@ function ActivityService(objectCollection) {
         activityListUpdateStatus(request, async function (err, data) {
             if (err === false) {
 
+                console.log("*****STATUS CHANGE | activityTypeCategroyId: ", activityTypeCategroyId)
+                updateWidgetAggrStatus(request);
+                
+                if (Number(request.device_os_id) === 9) {
+                    global.logger.write('conLog', '*****ALTER STATUS : HITTING WIDGET ENGINE*******', {}, request);
+                    request['source_id'] = 3;
+                    sendRequesttoWidgetEngine(request);
+                }
+
                 if ((activityTypeCategroyId === 9 || activityTypeCategroyId === 48) && Number(request.device_os_id) !== 9) {
 
                     global.logger.write('conLog', '*****ALTER STATUS : STATUS CHANGE TXN INSERT*******', {}, request);
@@ -1901,9 +1910,6 @@ function ActivityService(objectCollection) {
                     }
 
                     global.logger.write('conLog', '*****STATUS CHANGE FLAG : ' + request.status_changed_flag, {}, request);
-                    if(activityTypeCategroyId === 48){
-                        updateWidgetAggrStatus(request);
-                    }
                     
                     var timeDuration = util.differenceDatetimes(util.getCurrentUTCTime(), util.replaceDefaultDatetime(data[0].datetimeExistingActivityStatusUpdated));
                     if (Number(data[0].idExistingActivityStatus) > 0 && Number(request.activity_status_id) > 0) {
