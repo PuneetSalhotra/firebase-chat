@@ -27,6 +27,18 @@ const digitalNplcCafLabels = require("./digital_nplc_caf/labels.json");
 const digitalNplcCafRoms = require("./digital_nplc_caf/roms.json");
 const digitalNplcCafRomsActions = require("./digital_nplc_caf/roms_actions.json");
 
+// Digital NPLC CRF - 134573
+const digitalNplcCrfMappings = require("./digital_nplc_crf/digital_nplc_crf_mappings.json");
+const digitalNplcCrfLabels = require("./digital_nplc_crf/labels.json");
+const digitalNplcCrfRoms = require("./digital_nplc_crf/roms.json");
+const digitalNplcCrfRomsActions = require("./digital_nplc_crf/roms_actions.json");
+
+// Digital IPLC CAF - 134574
+const digitalIplcCafMappings = require("./digital_iplc_caf/digital_iplc_caf_mappings.json");
+const digitalIplcCafLabels = require("./digital_iplc_caf/labels.json");
+const digitalIplcCafRoms = require("./digital_iplc_caf/roms.json");
+const digitalIplcCafRomsActions = require("./digital_iplc_caf/roms_actions.json");
+
 // Modify FLV - PRI/SIP/IP CRF - Digital FLV - CRF - 134575
 const digitalFlvCrfMappings = require("./digital_flv_pri_sip_ip_crf/mappings.json");
 const digitalFlvCrfLabels = require("./digital_flv_pri_sip_ip_crf/labels.json");
@@ -272,6 +284,24 @@ vodafoneConfig = {
         "LABELS": digitalNplcCafLabels,
         "ROMS": digitalNplcCafRoms,
         "ROMS_ACTIONS": digitalNplcCafRomsActions
+    },
+    "134573": {
+        "REQUIRED_FORMS": [1268],
+        "TARGET_FORM_ID": 1234,
+        "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
+        "FORM_FIELD_MAPPING_DATA": digitalNplcCrfMappings,
+        "LABELS": digitalNplcCrfLabels,
+        "ROMS": digitalNplcCrfRoms,
+        "ROMS_ACTIONS": digitalNplcCrfRomsActions
+    },
+    "134574": {
+        "REQUIRED_FORMS": [1336],
+        "TARGET_FORM_ID": 1337,
+        "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
+        "FORM_FIELD_MAPPING_DATA": digitalIplcCafMappings,
+        "LABELS": digitalIplcCafLabels,
+        "ROMS": digitalIplcCafRoms,
+        "ROMS_ACTIONS": digitalIplcCafRomsActions
     },
     "134575": {
         "REQUIRED_FORMS": [1349],
