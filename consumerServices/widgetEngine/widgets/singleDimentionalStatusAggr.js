@@ -31,35 +31,53 @@ class SingleDimensionalStatusAggrWidget extends WidgetBase {
         activityQueryData = _.merge(activityQueryData, data);
         var array = [];
         var array2 = [];
-        const widgetTransactionSvc1 = this.services.widgetTransaction;
+       /* const widgetTransactionSvc1 = this.services.widgetTransaction;
         widgetTransactionSvc1.getWidgetTxnsOfAWidget(activityQueryData).then((txns) => {
             console.log('txns :: '+txns);
             forEachAsync(txns, (next, row) => {
                 array.push(row.widget_axis_x_index);
                 next();
-            }).then(() => {
-                let activityQueryData = {            
-                    entity_id: this.rule.widget_entity2_id
-                };
-                activityQueryData = _.merge(activityQueryData, data);
+            }).then(() => {  */
+
+                if(data.source_id == 2){
+
+                    let activityQueryData = {            
+                        entity_id: this.rule.widget_entity2_id
+                    };
+                    activityQueryData = _.merge(activityQueryData, data);
 
 
-                this.services.activityListService.wait(500);
+                    this.services.activityListService.wait(500);
 
-                this.services.activityFormTransactionAnalytics.getByTransactionField(activityQueryData)
-                .then((fieldData) => {
+                    this.services.activityFormTransactionAnalytics.getWorkflowActivityId(data)
+                    .then((worlflowData)=>{
+                        console.log(' worlflowData :: '+worlflowData[0].activity_id);
 
-                    const transactionValue = fieldData[0] ? fieldData[0].data_entity_bigint_1 : undefined;
-                    console.log(' transactionValue :: '+transactionValue);
-                    let intermediateData = {      
-                                widget_id: this.rule.widget_id,      
-                                field_id: this.rule.widget_entity2_id,
-                                field_value: transactionValue,
-                         };
-                    intermediateData = _.merge(intermediateData, data);
-                
-                    this.services.activityListService.insertUpdate(intermediateData)
-                      .then((statuses) => {
+                        this.services.activityFormTransactionAnalytics.getFieldLatest(activityQueryData)
+                        .then((fieldData) => {
+                            if(fieldData.length > 0){
+                                let transactionValue = 0;
+
+                                if(fieldData[0].data_type_id == 5)
+                                    transactionValue = fieldData[0] ? fieldData[0].data_entity_bigint_1 : undefined;
+                                else if(fieldData[0].data_type_id == 6)
+                                    transactionValue = fieldData[0] ? fieldData[0].data_entity_double_1 : undefined;
+
+                                console.log(' transactionValue :: '+transactionValue);
+                                let intermediateData = {      
+                                            widget_id: this.rule.widget_id,      
+                                            field_id: this.rule.widget_entity2_id,
+                                            field_value: transactionValue,
+                                           // activity_id: worlflowData[0].activity_id
+                                     };
+                                     data['workflow_activity_id']= worlflowData[0].activity_id;
+                                    
+
+                                intermediateData = _.merge(intermediateData, data);
+                                
+                                this.services.activityListService.insertUpdate(intermediateData)
+                                  .then((statuses) => {
+                        /*
                         forEachAsync(statuses, (next2, rowData2) => {
                             array2.push(rowData2.activity_status_id);
                             next2();
@@ -118,13 +136,16 @@ class SingleDimensionalStatusAggrWidget extends WidgetBase {
                                 global.logger.write('debug', 'Distribution: WidgetId : ' + this.rule.widget_id + ' Done', {}, data);
                             });
 
-                        })
+                        })*/
                     });  
-
+                  }else{
+                    global.logger.write('debug', 'NO DATA FOR : ' + this.rule.widget_id + ' Done', {}, data);
+                    }
                 })
-})
-})
-})
+            })
+           // })
+        } // end of data_source_id == 2
+
 }
 }
 

@@ -175,6 +175,56 @@ class ActivityFormTransactionAnalytics {
         });
     }
 
+    getWorkflowActivityId(data) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                    data.organization_id,
+                    data.account_id,
+                    data.activity_id,
+                    data.form_id,
+                    data.form_transaction_id,
+                    0,
+                    10
+                    );
+            /*"ds_p1_activity_timeline_transaction_select_refered_activity
+             IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_activity_id BIGINT(20), 
+             IN p_form_id BIGINT(20), IN p_form_transaction_id BIGINT(20),
+              IN p_start_from SMALLINT(6), IN p_limit_value smallint(6)
+             "*/
+            var queryString = this.objCollection.util.getQueryString('ds_p1_activity_timeline_transaction_select_refered_activity', paramsArr);
+            if (queryString === '')
+                return reject();
+            this.objCollection.db.executeQuery(1, queryString, {}, function (err, data) {
+                if (err)
+                    return reject(err);
+                return resolve(data);
+            });
+        });
+    }
+
+    getFieldLatest(data) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                    0,
+                    data.organization_id,
+                    data.form_transaction_id,
+                    data.form_id,
+                    data.entity_id
+                    );
+            /*"ds_p1_activity_form_transaction_select_latest_field_value
+             IN p_flag SMALLINT(6), IN p_organization_id BIGINT(20), IN p_form_transaction_id BIGINT(20),
+              IN p_form_id BIGINT(20), IN p_field_id BIGINT(20)
+             "*/
+            var queryString = this.objCollection.util.getQueryString('ds_p1_activity_form_transaction_select_latest_field_value', paramsArr);
+            if (queryString === '')
+                return reject();
+            this.objCollection.db.executeQuery(1, queryString, {}, function (err, data) {
+                if (err)
+                    return reject(err);
+                return resolve(data);
+            });
+        });
+    }
 }
 
 module.exports = ActivityFormTransactionAnalytics;
