@@ -765,6 +765,7 @@ function BotService(objectCollection) {
         newReq.activity_status_id = inlineData.activity_status_id;
         //newRequest.activity_status_type_id = inlineData.activity_status_id; 
         //newRequest.activity_status_type_category_id = ""; 
+        newReq.activity_type_category_id = 48;
         newReq.message_unique_id = util.getMessageUniqueId(request.asset_id);
         newReq.device_os_id = 9;
         
