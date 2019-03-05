@@ -97,7 +97,8 @@ function sendSinfiniSms(options) {
         method: 'sms',
         api_key: 'A9113d0c40f299b66cdf5cf654bfc61b8',
         to: options.countryCode + '' + options.phoneNumber,
-        sender: 'DESKER',
+        //sender: 'DESKER',
+        sender: 'MYTONY',
         format: 'json',
         message: msgString,
         custom: options.type,
@@ -148,7 +149,8 @@ function sendMvayooSms(options) {
     }
     let qs = {
         user: 'junaid.m@grene.in:greneapple',
-        senderID: 'DESKER',
+        //senderID: 'DESKER',
+        senderID: 'MYTONY',
         receipientno: options.countryCode + '' + options.phoneNumber,
         dcs: 0, // Data Coding Schema. 0 => Text Message
         msgtxt: msgString,
@@ -199,7 +201,8 @@ function sendBulkSms(options) {
         user: 'gsaikiran',
         password: 'blueflock@1',
         genkey: '094729492',
-        sender: 'DESKER',
+        //sender: 'DESKER',
+        sender: 'MYTONY',
         number: options.countryCode + '' + options.phoneNumber,
         message: msgString,
     };
@@ -314,7 +317,8 @@ function sendNexmoSms(options) {
 ////////////////////////////////////////////////////////////
 // Utility functions
 function getOTPString(verificationCode) {
-    var msg_body = "Desker : Use " + verificationCode + " as verification code for registering the Desker App .";
+    //var msg_body = "Desker : Use " + verificationCode + " as verification code for registering the Desker App .";
+    var msg_body = verificationCode + " is the OTP to verify your mobile number - TONY";
     return msg_body;
 };
 
