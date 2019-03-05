@@ -109,5 +109,14 @@
             "TARGET_FIELD_ID": 9747,
             "ASSET_TYPE_ID": 127254
         }]
+    },
+    {
+        "ACTION": "check_and_set_annexure_defaults",
+        "BATCH": [{
+            "SOURCE_FORM_ID": 1137,
+            "SOURCE_FIELD_ID": 12891,
+            "TARGET_FIELD_IDS": [9455, 9456, 9457],
+            "VALUE": "As Per CRF Annexure"
+        }]
     }
 ]
