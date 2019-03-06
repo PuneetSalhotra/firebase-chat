@@ -4100,7 +4100,7 @@ function VodafoneService(objectCollection) {
         // Check if the target form generation request is from the target form generated (from this 
         // function: buildAndSubmitCafFormV1), itself. If yes, terminate the processing.
         if (Number(TARGET_FORM_ID) === Number(request.form_id) ||
-            !(request.hasOwnProperty("non_dedicated_file") && request.non_dedicated_file === 1)
+            !(request.hasOwnProperty("non_dedicated_file") && Number(request.non_dedicated_file) === 1)
         ) {
             console.log("buildAndSubmitCafFormV1 | DuplicateTargetFormGenerationRequestFromGeneratedTargetForm")
             return [new Error("DuplicateTargetFormGenerationRequestFromGeneratedTargetForm"), []];
@@ -4125,7 +4125,7 @@ function VodafoneService(objectCollection) {
         console.log("TargetFormExists", targetFormExists);
         if (targetFormExists &&
             request.hasOwnProperty("non_dedicated_file") &&
-            request.non_dedicated_file === 1
+            Number(request.non_dedicated_file) === 1
         ) {
             request.form_id = Number(request.activity_form_id);
             console.log("TargetFormExists", targetFormExists);
@@ -4550,6 +4550,68 @@ function VodafoneService(objectCollection) {
                                 }
                                 // Set the updated object as value for the target field ID
                                 targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
+                            }
+                        }
+                    }
+                    console.log("isAnnexureUploaded: ", isAnnexureUploaded);
+                }
+            }
+
+            // check_multiselect_and_set_annexure_defaults
+            if (action.ACTION === "check_multiselect_and_set_annexure_defaults") {
+                for (const batch of action.BATCH) {
+                    const sourceFormID = Number(batch.SOURCE_FORM_ID);
+                    const sourceFormFieldID = Number(batch.SOURCE_FIELD_ID);
+                    let sourceFormActivityID = 0,
+                        sourceFormTransactionID = 0,
+                        isAnnexureUploaded = false;
+                    // Check if the excel file has been uploaded or not
+                    await activityCommonService
+                        .getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, sourceFormID)
+                        .then((formData) => {
+                            if (formData.length > 0) {
+                                sourceFormActivityID = formData[0].data_activity_id;
+                                sourceFormTransactionID = formData[0].data_form_transaction_id;
+                            }
+                        });
+
+                    // Fetch the specific field (Excel Document) using the form transaction ID
+                    if (Number(sourceFormTransactionID) !== 0) {
+                        fieldValue = await getFieldValue({
+                            form_transaction_id: sourceFormTransactionID,
+                            form_id: sourceFormID,
+                            field_id: sourceFormFieldID,
+                            organization_id: request.organization_id
+                        });
+                        if (fieldValue.length > 0 && fieldValue[0].data_entity_text_1 !== '') {
+                            isAnnexureUploaded = true;
+                        }
+                    }
+                    // isAnnexureUploaded = true;
+                    if (isAnnexureUploaded) {
+                        // Target form field ID (single/multi-selection field) 
+                        const targetFormSelectionFieldID = Number(batch.CHECK_FIELD_ID);
+                        if (targetFormDataMap.has(Number(targetFormSelectionFieldID))) {
+                            // Get the entire object
+                            const multiSelectFieldEntry = targetFormDataMap.get(Number(targetFormSelectionFieldID));
+                            const multiSelectFieldValue = multiSelectFieldEntry.field_value;
+                            for (const selectBatch of batch.BATCH) {
+                                if (String(multiSelectFieldValue).includes(selectBatch.COMBO_VALUE)) {
+                                    for (const targetFieldID of selectBatch.TARGET_FIELD_IDS) {
+                                        if (targetFormDataMap.has(Number(targetFieldID))) {
+                                            // Get the entire object
+                                            let targetFieldEntry = targetFormDataMap.get(Number(targetFieldID));
+                                            // Set the value
+                                            let oldValue = Number(targetFieldEntry.field_value);
+                                            targetFieldEntry.field_value = batch.VALUE;
+                                            if (oldValue !== batch.VALUE) {
+                                                updatedRomsFields.push(targetFieldEntry);
+                                            }
+                                            // Set the updated object as value for the target field ID
+                                            targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
