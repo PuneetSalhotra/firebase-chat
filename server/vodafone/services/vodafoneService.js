@@ -2712,6 +2712,9 @@ function VodafoneService(objectCollection) {
                 case 7143: // Platform | Service Rental-One Time(A)
                 case 7144: // Platform | Service Rental-Annual Recurring(B)
                 case 7145: // Platform | Service Rental-Security Deposit(C)
+                    if (isNaN(Number(formEntry.field_value))) {
+                        formEntry.field_value = 0;
+                    }
                     sumsKeyValueJson.serviceRentalGrandTotal += Number(formEntry.field_value);
                     break;
                     // IP Address Charges-Grand Total(A+B+C)
@@ -4094,6 +4097,15 @@ function VodafoneService(objectCollection) {
         }
 
         const TARGET_FORM_ID = global.vodafoneConfig[formWorkflowActivityTypeId].TARGET_FORM_ID;
+        // Check if the target form generation request is from the target form generated (from this 
+        // function: buildAndSubmitCafFormV1), itself. If yes, terminate the processing.
+        if (Number(TARGET_FORM_ID) === Number(request.form_id) ||
+            !(request.hasOwnProperty("non_dedicated_file") && request.non_dedicated_file === 1)
+        ) {
+            console.log("buildAndSubmitCafFormV1 | DuplicateTargetFormGenerationRequestFromGeneratedTargetForm")
+            return [new Error("DuplicateTargetFormGenerationRequestFromGeneratedTargetForm"), []];
+        }
+
         let targetFormExists = false;
         // Check if the target form is already submitted, if yes, move control to regenerateAndSubmitTargetForm
         await activityCommonService
@@ -4111,7 +4123,10 @@ function VodafoneService(objectCollection) {
             });
 
         console.log("TargetFormExists", targetFormExists);
-        if (targetFormExists) {
+        if (targetFormExists &&
+            request.hasOwnProperty("non_dedicated_file") &&
+            request.non_dedicated_file === 1
+        ) {
             request.form_id = Number(request.activity_form_id);
             console.log("TargetFormExists", targetFormExists);
             await self.regenerateAndSubmitTargetForm(request);
@@ -4395,6 +4410,9 @@ function VodafoneService(objectCollection) {
                     let sum = 0;
                     for (const sourceFieldID of batch.SOURCE_FIELD_IDS) {
                         if (targetFormDataMap.has(Number(sourceFieldID))) {
+                            if (isNaN(Number(targetFormDataMap.get(sourceFieldID).field_value))) {
+                                continue;
+                            }
                             sum += Number(targetFormDataMap.get(sourceFieldID).field_value);
                         }
                     }
