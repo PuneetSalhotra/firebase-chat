@@ -1058,7 +1058,7 @@ function BotService(objectCollection) {
         return await alterFormActivity(newReq);
     }
 
-    //Bot Step Adding a participant
+    // Bot Step Adding a participant
     async function addParticipant(request, inlineData) {
         let newReq = Object.assign({}, request);
         let resp;
@@ -1090,8 +1090,13 @@ function BotService(objectCollection) {
 
         } else if (type[0] === 'dynamic') {
             newReq.desk_asset_id = 0;
+            // Phone number
             newReq.form_id = inlineData[type[0]].form_id;
             newReq.field_id = inlineData[type[0]].field_id;
+            // Name
+            newReq.name_field_id = inlineData[type[0]].name_field_id;
+            newReq.customer_name = '';
+
             let activityInlineData;
 
             resp = await getFieldValue(newReq);
@@ -1113,6 +1118,14 @@ function BotService(objectCollection) {
 
                         newReq.country_code = phone[0]; //country code
                         newReq.phone_number = phone[1]; //phone number                      
+                    }
+                    // Grab the name
+                    if (
+                        Number(i.form_id) === Number(newReq.form_id) &&
+                        Number(i.field_id) === Number(newReq.name_field_id)
+                    ) {
+                        newReq.customer_name = i.field_value;
+                        console.log("BotEngine | addParticipant | From Form | newReq.customer_name", newReq.customer_name);
                     }
                 }
             }
@@ -1791,49 +1804,50 @@ function BotService(objectCollection) {
         let dataResp,
             deskAssetData;
         let assetData = {};
-            assetData.desk_asset_id = 0;
+        assetData.desk_asset_id = 0;
 
-        if(request.desk_asset_id === 0) {
-            dataResp  = await getAssetDetailsOfANumber(request);
-            if(dataResp.length > 0) {
-                for(let i of dataResp){
-                    if(i.asset_type_category_id === 3 || i.asset_type_category_id === 45) {
+        if (request.desk_asset_id === 0) {
+            dataResp = await getAssetDetailsOfANumber(request);
+            if (dataResp.length > 0) {
+                for (let i of dataResp) {
+                    if (i.asset_type_category_id === 3 || i.asset_type_category_id === 45) {
                         deskAssetData = i;
                         break;
                     }
                 }
             } else {
                 //Create a Desk
-                let result = await createAssetContactDesk(request, {  "contact_designation": request.phone_number,
-                                                                      "contact_email_id": request.phone_number,
-                                                                      "first_name": request.phone_number,
-                                                                      "contact_phone_number":request.phone_number,
-                                                                      "contact_phone_country_code": 91                                                                      
-                                                                    });
+                let result = await createAssetContactDesk(request, {
+                    "contact_designation": request.phone_number,
+                    "contact_email_id": request.phone_number,
+                    "first_name": request.customer_name || request.phone_number,
+                    "contact_phone_number": request.phone_number,
+                    "contact_phone_country_code": 91
+                });
                 deskAssetData = result.response;
                 assetData.desk_asset_id = deskAssetData.desk_asset_id;
             }
-            
-        } else {            
+
+        } else {
             dataResp = await getAssetDetails({
-                                                "organization_id": request.organization_id,
-                                                "asset_id": request.desk_asset_id
-                                            });                                       
-            deskAssetData = dataResp[0];            
-        }        
-        global.logger.write('conLog', 'Desk Asset Details : ', deskAssetData,{});                    
-        
-        if(assetData.desk_asset_id === 0) {
+                "organization_id": request.organization_id,
+                "asset_id": request.desk_asset_id
+            });
+            deskAssetData = dataResp[0];
+        }
+        global.logger.write('conLog', 'Desk Asset Details : ', deskAssetData, {});
+
+        if (assetData.desk_asset_id === 0) {
             assetData.desk_asset_id = deskAssetData.asset_id;
         }
-        
+
         assetData.first_name = deskAssetData.operating_asset_first_name;
         assetData.contact_phone_number = deskAssetData.operating_asset_phone_number;
         assetData.contact_phone_country_code = deskAssetData.operating_asset_phone_country_code;
         assetData.asset_type_id = deskAssetData.asset_type_id;
 
         return await addDeskAsParticipant(request, assetData);
-        
+
         /*if(dataResp.length > 0) { //status is true means service desk exists
              
             let sdResp = dataResp[0];
@@ -1943,7 +1957,7 @@ function BotService(objectCollection) {
                         "contact_department": "",
                         "contact_designation": customerData.contact_designation,
                         "contact_email_id": customerData.contact_email_id,
-                        "contact_first_name": customerData.first_name,
+                        "contact_first_name": "Customer",
                         "contact_last_name": "",
                         "contact_location": "Hyderabad",
                         "contact_operating_asset_name": customerData.first_name,                        

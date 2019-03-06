@@ -99,5 +99,160 @@
             "TARGET_FIELD_ID": 8559,
             "ASSET_TYPE_ID": 127254
         }]
+    },
+    {
+        "ACTION": "check_and_set_annexure_defaults",
+        "BATCH": [{
+            "SOURCE_FORM_ID": 1074,
+            "SOURCE_FIELD_ID": 11746,
+            "TARGET_FIELD_IDS": [8370, 8371, 8372],
+            "VALUE": "As Per CRF Annexure"
+        }]
+    },
+    {
+        "ACTION": "check_multiselect_and_set_annexure_defaults",
+        "BATCH": [{
+            "SOURCE_FORM_ID": 1074,
+            "SOURCE_FIELD_ID": 11746,
+            "CHECK_FIELD_ID": 8373,
+            "BATCH": [{
+                "COMBO_VALUE": "Company Name Change",
+                "TARGET_FIELD_IDS": [
+                    8473, 8474
+                ]
+            }, {
+                "COMBO_VALUE": "Customer Contact Change",
+                "TARGET_FIELD_IDS": [
+                    8383, 8384, 8385, 8386
+                ]
+            }, {
+                "COMBO_VALUE": "Billing Address Change",
+                "TARGET_FIELD_IDS": [
+                    8388, 8389, 8390, 8391,
+                    8392, 8393, 8394, 8395,
+                    8396
+                ]
+            }, {
+                "COMBO_VALUE": "CIR Bandwidth Upgrade - same interface",
+                "TARGET_FIELD_IDS": [
+                    8408, 8409
+                ]
+            }, {
+                "COMBO_VALUE": "CIR Bandwidth Upgrade with interface change",
+                "TARGET_FIELD_IDS": [
+                    8414, 8415, 8416, 8417,
+                    8418, 8419, 8424, 8421,
+                    8422
+                ]
+            }, {
+                "COMBO_VALUE": "CIR Bandwidth Downgrade- Same Interface",
+                "TARGET_FIELD_IDS": [
+                    8411, 8412
+                ]
+            }, {
+                "COMBO_VALUE": "CIR Bandwidth Downgrade- Interface change",
+                "TARGET_FIELD_IDS": [
+                    8426, 8427, 8428, 8429,
+                    8430, 8431, 8432, 8433,
+                    8434
+                ]
+            }, {
+                "COMBO_VALUE": "Interface Change",
+                "TARGET_FIELD_IDS": [
+                    8435, 8436
+                ]
+            }, {
+                "COMBO_VALUE": "Interface Change- Media Change",
+                "TARGET_FIELD_IDS": [
+                    8438, 8439, 8441, 8442,
+                    8444, 8445
+                ]
+            }, {
+                "COMBO_VALUE": "Change in Class of Service",
+                "TARGET_FIELD_IDS": [
+                    8447, 8448, 8450, 8451,
+                    8452, 8453, 8454
+                ]
+            }, {
+                "COMBO_VALUE": "Change in Topology",
+                "TARGET_FIELD_IDS": [
+                    8456, 8457
+                ]
+            }, {
+                "COMBO_VALUE": "Change in Protocol",
+                "TARGET_FIELD_IDS": [
+                    8459, 8460
+                ]
+            }, {
+                "COMBO_VALUE": "Change in CPE- Add/ Remove",
+                "TARGET_FIELD_IDS": [
+                    8462, 8463, 8464, 8465,
+                    8466, 8467, 8468, 8469,
+                    8470, 8471
+                ]
+            }, {
+                "COMBO_VALUE": "Site Shifting",
+                "TARGET_FIELD_IDS": [
+                    8398, 8399, 8400, 8401,
+                    8402, 8403, 8404, 8405,
+                    8406
+                ]
+            }, {
+                "COMBO_VALUE": "Change of Managed Services Variant",
+                "TARGET_FIELD_IDS": [
+                    8484, 8485
+                ]
+            }, {
+                "COMBO_VALUE": "Change in SLA Type",
+                "TARGET_FIELD_IDS": [
+                    8487, 8488, 8489, 8490,
+                    8491, 8492, 8493, 8494
+                ]
+            }, {
+                "COMBO_VALUE": "SSL VPN - Change in Domain Name",
+                "TARGET_FIELD_IDS": [
+                    8499, 8500
+                ]
+            }, {
+                "COMBO_VALUE": "IP Sec VPN - Change in port bandwidth",
+                "TARGET_FIELD_IDS": [
+                    8502, 8503
+                ]
+            }, {
+                "COMBO_VALUE": "Dial Up VPN - Change in port bandwidth",
+                "TARGET_FIELD_IDS": [
+                    8505, 8506
+                ]
+            }, {
+                "COMBO_VALUE": "2G 3G API Solution - Change in port bandwidth",
+                "TARGET_FIELD_IDS": [
+                    8508, 8509
+                ]
+            }, {
+                "COMBO_VALUE": "Dial Up VPN - Change in port bandwidth 2G 3G API Solution - Change in port bandwidth Change in Self care service variant",
+                "TARGET_FIELD_IDS": [
+                    8496, 8497
+                ]
+            }, {
+                "COMBO_VALUE": "Dial Up VPN - Change in port bandwidth 2G 3G API Solution - Change in port bandwidth Change in Self care service variant Revision in charges",
+                "TARGET_FIELD_IDS": [
+                    8511, 8512, 8512, 8513,
+                    8514, 8515, 8565, 8516,
+                    8517, 8566, 8518, 8519,
+                    8567, 8520, 8521, 8568,
+                    8522, 8523, 8569, 8524,
+                    8525, 8570, 8526, 8527,
+                    8528, 8571, 8529, 8530,
+                    8531, 8572, 8532, 8533,
+                    8534, 8573, 8535, 8536,
+                    8537, 8574, 8538, 8539,
+                    8540, 8575, 8541, 8542,
+                    8543, 8576, 8544, 8545,
+                    8577, 8546, 8547, 8578,
+                    8548, 8579, 8549, 8580
+                ]
+            }],
+            "VALUE": "As Per CRF Annexure"
+        }]
     }
 ]
