@@ -9,6 +9,7 @@ then
   pm2 start stagingProcesses.yml
   pm2 stop Staging_ConsumerZero
   pm2 stop Staging_WidgetZero
+  pm2 stop Staging_LogConsumerZero
 else    
   echo "Unknown deployment Group"
 fi
