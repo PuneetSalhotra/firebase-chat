@@ -8,6 +8,7 @@ then
   pm2 delete /^Staging_Log/
   pm2 start stagingProcesses.yml
   pm2 stop Staging_ConsumerZero
+  pm2 stop Staging_WidgetZero
 else    
   echo "Unknown deployment Group"
 fi
