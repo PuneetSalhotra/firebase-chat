@@ -20,19 +20,19 @@ apps:
     instances: 1
     exec_mode: fork
     
-  - name : "Staging_LogConsumerOne"
-    env: {mode: staging, partition:1}
-    script   : ./logConsumer.js    
-    out_file: '/dev/null'
-    instances: 1
-    exec_mode: fork
+  #- name : "Staging_LogConsumerOne"
+  #  env: {mode: staging, partition:1}
+  #  script   : ./logConsumer.js    
+  #  out_file: '/dev/null'
+  #  instances: 1
+  #  exec_mode: fork
     
-  - name : "Staging_LogConsumerTwo"
-    env: {mode: staging, partition:2}
-    script   : ./logConsumer.js    
-    out_file: '/dev/null'
-    instances: 1
-    exec_mode: fork
+  #- name : "Staging_LogConsumerTwo"
+  #  env: {mode: staging, partition:2}
+  #  script   : ./logConsumer.js    
+  #  out_file: '/dev/null'
+  #  instances: 1
+  #  exec_mode: fork
     
   - name : "Staging_WidgetZero"
     env: {mode: staging, partition:0}
