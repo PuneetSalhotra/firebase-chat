@@ -366,8 +366,10 @@ if (mode === 'staging') {
     config.TOPIC_ID = 16;
     config.TOPIC_NAME = 'staging-desker-activities-v3'; //v1 is only one partition
     config.CONSUMER_GROUP_ID = 'staging-desker-activities-v3-cg';
-    config.WIDGET_TOPIC_NAME = 'staging-desker-form-widgets-v1';    
-    config.WIDGET_CONSUMER_GROUP_ID = 'staging-desker-form-widgets-v1-cg';
+    
+    //staging-desker-form-widgets-v2 - 1 partition
+    config.WIDGET_TOPIC_NAME = 'staging-desker-form-widgets-v2';    
+    config.WIDGET_CONSUMER_GROUP_ID = 'staging-desker-form-widgets-v2-cg';
     
     //LOGS
     config.LOGS_TOPIC_NAME = 'staging-desker-logs-v1';
