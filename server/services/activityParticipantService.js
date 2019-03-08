@@ -544,7 +544,7 @@ function ActivityParticipantService(objectCollection) {
 
                     console.log('BEFORE ACTIVITY TIMELINE INSERT activityTypeCategoryId :: '+activityTypeCategoryId);
 
-                    if (activityTypeCategoryId === 48){
+                    if (activityTypeCategoryId === 48 || activityTypeCategoryId === 9){
                         activityCommonService.activityTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
 
                         });
@@ -590,7 +590,7 @@ function ActivityParticipantService(objectCollection) {
                             });
 
                             console.log('BEFORE ACTIVITY TIMELINE INSERT activityTypeCategoryId :: '+activityTypeCategoryId);
-                            if (activityTypeCategoryId === 48){
+                            if (activityTypeCategoryId === 48 || activityTypeCategoryId === 9){
                                 activityCommonService.activityTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
 
                                 });
