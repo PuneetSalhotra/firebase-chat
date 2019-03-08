@@ -1272,7 +1272,7 @@ function ActivityTimelineService(objectCollection) {
             rowDataArr.data_form_transaction_id = util.replaceDefaultNumber(rowData['data_form_transaction_id']);
             rowDataArr.data_form_name = util.replaceDefaultString(rowData['data_form_name']);
             rowDataArr.activity_title = util.replaceDefaultString(rowData['activity_title']);
-
+            rowDataArr.log_asset_first_name = util.replaceDefaultString(rowData['log_asset_first_name']);
             //Added for Beta
             rowDataArr.activity_timeline_url_title = util.replaceDefaultString(rowData['data_entity_text_3']);
             rowDataArr.activity_timeline_url_preview = '';
@@ -1923,6 +1923,10 @@ function ActivityTimelineService(objectCollection) {
             activityCommonService.getActivityDetails(request, 0, function (err, activityData) { // get activity form_id and form_transaction id
                 activityCommonService.getWorkflowOfForm(request)
                     .then((formData) => {
+                        let idActivityType = activityData[0].activity_type_id;
+                        if(formData.length > 0){
+                            idActivityType = formData[0].form_workflow_activity_type_id;
+                        }
                         var widgetEngineQueueMessage = {
                             form_id: activityData[0].form_id,
                             form_transaction_id: activityData[0].form_transaction_id,
@@ -1931,7 +1935,7 @@ function ActivityTimelineService(objectCollection) {
                             workforce_id: request.workforce_id,
                             asset_id: request.asset_id,
                             activity_id: request.activity_id,
-                            activity_type_id: formData[0].form_workflow_activity_type_id,
+                            activity_type_id: idActivityType,
                             activity_type_category_id: request.activity_type_category_id,
                             activity_stream_type_id: request.activity_stream_type_id,
                             track_gps_location: request.track_gps_location,

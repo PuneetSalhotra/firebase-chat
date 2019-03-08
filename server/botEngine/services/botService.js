@@ -1096,6 +1096,8 @@ function BotService(objectCollection) {
             // Name
             newReq.name_field_id = inlineData[type[0]].name_field_id;
             newReq.customer_name = '';
+            newReq.participant_workforce_id = inlineData[type[0]].workforce_id || 0;
+            newReq.participant_account_id = inlineData[type[0]].account_id || 0;
 
             let activityInlineData;
 
@@ -1822,7 +1824,9 @@ function BotService(objectCollection) {
                     "contact_email_id": request.phone_number,
                     "first_name": request.customer_name || request.phone_number,
                     "contact_phone_number": request.phone_number,
-                    "contact_phone_country_code": 91
+                    "contact_phone_country_code": 91,
+                    "workforce_id": request.participant_workforce_id,
+                    "account_id": request.participant_account_id
                 });
                 deskAssetData = result.response;
                 assetData.desk_asset_id = deskAssetData.desk_asset_id;
@@ -1936,11 +1940,14 @@ function BotService(objectCollection) {
         return new Promise((resolve, reject)=>{   
             
             //Get asset_type_id for category 3 for the specific workforce
-            activityCommonService.workforceAssetTypeMappingSelectCategoryPromise(request, 13).then((data)=>{
+            let newRequest = Object.assign({}, request);
+            newRequest.workforce_id = customerData.workforce_id || request.workforce_id;
+            newRequest.account_id = customerData.account_id || request.account_id;
+            activityCommonService.workforceAssetTypeMappingSelectCategoryPromise(newRequest, 13).then((data)=>{
                 let customerServiceDeskRequest = {
                     organization_id: request.organization_id,
-                    account_id: request.account_id,
-                    workforce_id: request.workforce_id,
+                    account_id: customerData.account_id || request.account_id,
+                    workforce_id: customerData.workforce_id || request.workforce_id,
                     //asset_id: request.asset_id,
                     asset_id: 100,
                     asset_token_auth: '54188fa0-f904-11e6-b140-abfd0c7973d9',
@@ -1951,13 +1958,13 @@ function BotService(objectCollection) {
                         "activity_id": 0,
                         "activity_ineternal_id": -1,
                         "activity_type_category_id": 6,
-                        "contact_account_id": request.account_id,
+                        "contact_account_id": customerData.account_id || request.account_id,
                         "contact_asset_id": 0,
                         "contact_asset_type_id": data[0].asset_type_id || 0,
                         "contact_department": "",
                         "contact_designation": customerData.contact_designation,
                         "contact_email_id": customerData.contact_email_id,
-                        "contact_first_name": "Customer",
+                        "contact_first_name": customerData.first_name,
                         "contact_last_name": "",
                         "contact_location": "Hyderabad",
                         "contact_operating_asset_name": customerData.first_name,                        
@@ -1966,7 +1973,7 @@ function BotService(objectCollection) {
                         "contact_phone_country_code": customerData.contact_phone_country_code,
                         "contact_phone_number": customerData.contact_phone_number,
                         "contact_profile_picture": "",
-                        "contact_workforce_id":request.workforce_id,
+                        "contact_workforce_id":customerData.workforce_id || request.workforce_id,
                         "contact_asset_type_name": "Customer",
                         //"contact_company": customerData.contact_company,
                         "contact_lat": 0.0,
