@@ -541,6 +541,15 @@ function ActivityParticipantService(objectCollection) {
                     activityCommonService.assetTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
 
                     });
+
+                    console.log('BEFORE ACTIVITY TIMELINE INSERT activityTypeCategoryId :: '+activityTypeCategoryId);
+
+                    if (activityTypeCategoryId === 48){
+                        activityCommonService.activityTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
+
+                        });
+                    }
+
                     if (activityTypeCategoryId !== 10 && activityTypeCategoryId !== 11) {
                         if (activityTypeCategoryId !== 9) {
                             activityCommonService.activityTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
@@ -579,6 +588,14 @@ function ActivityParticipantService(objectCollection) {
                             activityCommonService.assetTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
 
                             });
+
+                            console.log('BEFORE ACTIVITY TIMELINE INSERT activityTypeCategoryId :: '+activityTypeCategoryId);
+                            if (activityTypeCategoryId === 48){
+                                activityCommonService.activityTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
+
+                                });
+                            }
+                            
                             if (activityTypeCategoryId !== 10 && activityTypeCategoryId !== 11 && (activityTypeCategoryId === 9 && fieldId > 0)) {
                                 activityCommonService.activityTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
 

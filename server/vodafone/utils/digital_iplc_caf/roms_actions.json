@@ -1,0 +1,137 @@
+[{
+        "ACTION": "set_static_value",
+        "BATCH": [{
+            "TARGET_FIELD_ID": 11883,
+            "VALUE": "----"
+        }, {
+            "TARGET_FIELD_ID": 12078,
+            "VALUE": "Mumbai Circle - Account Managers"
+        }]
+
+    }, {
+        "ACTION": "sum",
+        "BATCH": [{
+                "SOURCE_FIELD_IDS": [12018, 12019, 12020],
+                "TARGET_FIELD_ID": 12021,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [12022, 12023],
+                "TARGET_FIELD_ID": 12024,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [12025, 12026],
+                "TARGET_FIELD_ID": 12027,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [12028, 12029],
+                "TARGET_FIELD_ID": 12030,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [12031, 12032],
+                "TARGET_FIELD_ID": 12033,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [12034, 12035, 12036],
+                "TARGET_FIELD_ID": 12037,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [12038, 12039, 12040],
+                "TARGET_FIELD_ID": 12041,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [12042, 12043, 12044],
+                "TARGET_FIELD_ID": 12045,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [12046, 12047, 12048],
+                "TARGET_FIELD_ID": 12049,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [12050, 12051, 12052],
+                "TARGET_FIELD_ID": 12053,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [12054, 12055, 12056],
+                "TARGET_FIELD_ID": 12057,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [12058, 12059, 12060],
+                "TARGET_FIELD_ID": 12061,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [12062, 12063],
+                "TARGET_FIELD_ID": 12064,
+                "VALUE": 0
+            }
+        ]
+    },
+    {
+        "ACTION": "sum",
+        "BATCH": [{
+            "SOURCE_FIELD_IDS": [12018, 12022, 12025, 12028, 12031, 12034, 12038, 12042, 12046, 12050, 12054, 12058, 12062],
+            "TARGET_FIELD_ID": 12066,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [12019, 12023, 12026, 12029, 12032, 12035, 12039, 12043, 12047, 12051, 12055, 12059, 12063],
+            "TARGET_FIELD_ID": 12067,
+            "VALUE": 0
+        }]
+    },
+    {
+        "ACTION": "sum",
+        "BATCH": [{
+            "SOURCE_FIELD_IDS": [12066, 12067],
+            "TARGET_FIELD_ID": 12068,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [12066, 12067],
+            "TARGET_FIELD_ID": 12068,
+            "VALUE": 0
+        }]
+    }, {
+        "ACTION": "set_date",
+        "BATCH": [{
+            "TARGET_FIELD_ID": 12075,
+            "TZ_OFFSET": "+05:30"
+        }]
+    },
+    {
+        "ACTION": "set_participant_name",
+        "BATCH": [{
+            "TARGET_FIELD_ID": 12077,
+            "ASSET_TYPE_ID": 127254
+        }]
+    },
+    {
+        "ACTION": "check_and_set_annexure_defaults",
+        "BATCH": [{
+            "SOURCE_FORM_ID": 1278,
+            "SOURCE_FIELD_ID": 11029,
+            "TARGET_FIELD_IDS": [
+                11922, 11923, 11924, 11925,
+                11926, 11927, 11928, 11929,
+                11930, 11931, 11932, 11933,
+                11936, 11937, 11943, 11944,
+                11945, 11946, 11947, 11948,
+                11949, 11950, 11951, 11952,
+                11953, 11954, 11958, 11959,
+                11961, 11976, 11989, 11990,
+                11992, 12005, 12006, 12018,
+                12019, 12021
+            ],
+            "VALUE": "As Per CAF Annexure"
+        }]
+    }
+]

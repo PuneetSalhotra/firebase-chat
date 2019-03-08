@@ -1,0 +1,198 @@
+[{
+        "ACTION": "set_static_value",
+        "BATCH": [{
+            "TARGET_FIELD_ID": 10263,
+            "VALUE": "Mumbai Circle - Account Managers"
+        }]
+
+    }, {
+        "ACTION": "sum",
+        "BATCH": [{
+                "SOURCE_FIELD_IDS": [10204, 10205, 10206],
+                "TARGET_FIELD_ID": 10207,
+                "VALUE": 0
+            }, {
+                "SOURCE_FIELD_IDS": [10208, 10209],
+                "TARGET_FIELD_ID": 10210,
+                "VALUE": 0
+            }, {
+                "SOURCE_FIELD_IDS": [10211, 10212],
+                "TARGET_FIELD_ID": 10213,
+                "VALUE": 0
+            }, {
+                "SOURCE_FIELD_IDS": [10217, 10218],
+                "TARGET_FIELD_ID": 10219,
+                "VALUE": 0
+            }, {
+                "SOURCE_FIELD_IDS": [10220, 10221, 10222],
+                "TARGET_FIELD_ID": 10223,
+                "VALUE": 0
+            }, {
+                "SOURCE_FIELD_IDS": [10244, 10245],
+                "TARGET_FIELD_ID": 10246,
+                "VALUE": 0
+            }, {
+                "SOURCE_FIELD_IDS": [10247],
+                "TARGET_FIELD_ID": 10249,
+                "VALUE": 0
+            }, {
+                "SOURCE_FIELD_IDS": [10250],
+                "TARGET_FIELD_ID": 10251,
+                "VALUE": 0
+            }, {
+                "SOURCE_FIELD_IDS": [10252],
+                "TARGET_FIELD_ID": 10253,
+                "VALUE": 0
+            }, {
+                "SOURCE_FIELD_IDS": [10224, 10225, 10226],
+                "TARGET_FIELD_ID": 10227,
+                "VALUE": 0
+            }, {
+                "SOURCE_FIELD_IDS": [10228, 10229, 10230],
+                "TARGET_FIELD_ID": 10231,
+                "VALUE": 0
+            }, {
+                "SOURCE_FIELD_IDS": [10232, 10233, 10234],
+                "TARGET_FIELD_ID": 10235,
+                "VALUE": 0
+            }, {
+                "SOURCE_FIELD_IDS": [10236, 10237, 10238],
+                "TARGET_FIELD_ID": 10239,
+                "VALUE": 0
+            }, {
+                "SOURCE_FIELD_IDS": [10240, 10241, 10242],
+                "TARGET_FIELD_ID": 10243,
+                "VALUE": 0
+            }, {
+                "SOURCE_FIELD_IDS": [10204, 10205, 10206],
+                "TARGET_FIELD_ID": 10207,
+                "VALUE": 0
+            }
+
+        ]
+    },
+    {
+        "ACTION": "set_date",
+        "BATCH": [{
+            "TARGET_FIELD_ID": 10260,
+            "TZ_OFFSET": "+05:30"
+        }]
+    },
+    {
+        "ACTION": "set_participant_name",
+        "BATCH": [{
+            "TARGET_FIELD_ID": 10262,
+            "ASSET_TYPE_ID": 127254
+        }]
+    },
+    {
+        "ACTION": "check_and_set_annexure_defaults",
+        "BATCH": [{
+            "SOURCE_FORM_ID": 1266,
+            "SOURCE_FIELD_ID": 11748,
+            "TARGET_FIELD_IDS": [10099, 10100, 10101],
+            "VALUE": "As Per CRF Annexure"
+        }]
+    },
+    {
+        "ACTION": "check_multiselect_and_set_annexure_defaults",
+        "BATCH": [{
+            "SOURCE_FORM_ID": 1266,
+            "SOURCE_FIELD_ID": 11748,
+            "CHECK_FIELD_ID": 10102,
+            "BATCH": [{
+                "COMBO_VALUE": "Customer contact Change",
+                "TARGET_FIELD_IDS": [
+                    10107, 10108, 10109, 10110,
+                    10111, 10112, 10113, 10114,
+                    10115, 10116, 10117, 10118,
+                    10119, 10120
+                ]
+            }, {
+                "COMBO_VALUE": "Bandwidth Upgrade -same interface",
+                "TARGET_FIELD_IDS": [
+                    10133, 10134
+                ]
+            }, {
+                "COMBO_VALUE": "Bandwidth Upgrade with interface change",
+                "TARGET_FIELD_IDS": [
+                    10139, 10140, 10141, 10142,
+                    10143, 10144, 10145, 10146,
+                    10147
+                ]
+            }, {
+                "COMBO_VALUE": "Bandwidth Downgrade- Same Interface",
+                "TARGET_FIELD_IDS": [
+                    10136, 10137
+                ]
+            }, {
+                "COMBO_VALUE": "Bandwidth Downgrade- Interface change",
+                "TARGET_FIELD_IDS": [
+                    10149, 10150, 10151, 10152,
+                    10153, 10154, 10155, 10156,
+                    10157
+                ]
+            }, {
+                "COMBO_VALUE": "Interface Change",
+                "TARGET_FIELD_IDS": [
+                    10159, 10160
+                ]
+            }, {
+                "COMBO_VALUE": "Interface Change- Media Change",
+                "TARGET_FIELD_IDS": [
+                    10162, 10163, 10164, 10165,
+                    10166, 10167, 10168
+                ]
+            }, {
+                "COMBO_VALUE": "Change in CPE- Add/ Remove",
+                "TARGET_FIELD_IDS": [
+                    10170, 10171, 10172, 10173,
+                    10174, 10175, 10176, 10177,
+                    10178, 10179
+                ]
+            }, {
+                "COMBO_VALUE": "Site Shifting",
+                "TARGET_FIELD_IDS": [
+                    10122, 10123, 10124, 10125,
+                    10126, 10127, 10128, 10129,
+                    10130, 10131
+                ]
+            }, {
+                "COMBO_VALUE": "Change of Managed Services Variant",
+                "TARGET_FIELD_IDS": [
+                    10189, 10190
+                ]
+            }, {
+                "COMBO_VALUE": "Change in SLA Type",
+                "TARGET_FIELD_IDS": [
+                    10192, 10193, 10194, 10195,
+                    10196, 10197
+                ]
+            }, {
+                "COMBO_VALUE": "Change in Self care service variant",
+                "TARGET_FIELD_IDS": [
+                    10199, 10200
+                ]
+            }, {
+                "COMBO_VALUE": "Revision in charges",
+                "TARGET_FIELD_IDS": [
+                    10203, 10204, 10205, 10206,
+                    10207, 10208, 10209, 10210,
+                    10211, 10212, 10213, 10214,
+                    10215, 10216, 10217, 10218,
+                    10219, 10220, 10221, 10222,
+                    10223, 10224, 10225, 10226,
+                    10227, 10228, 10229, 10230,
+                    10231, 10232, 10233, 10234,
+                    10235, 10236, 10237, 10238,
+                    10239, 10240, 10241, 10242,
+                    10243, 10244, 10245, 10246,
+                    10247, 10248, 10249, 10250,
+                    10251, 10252, 10253, 10254,
+                    10255
+                ]
+            }],
+            "VALUE": "As Per CRF Annexure"
+        }]
+    }
+]

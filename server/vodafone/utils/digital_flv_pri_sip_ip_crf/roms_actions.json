@@ -1,0 +1,111 @@
+[{
+        "ACTION": "set_static_value",
+        "BATCH": [{
+            "TARGET_FIELD_ID": 11012,
+            "VALUE": "Mumbai Circle - Account Managers"
+        }]
+    },
+    {
+        "ACTION": "set_date",
+        "BATCH": [{
+            "TARGET_FIELD_ID": 11009,
+            "TZ_OFFSET": "+05:30"
+        }]
+    },
+    {
+        "ACTION": "set_participant_name",
+        "BATCH": [{
+            "TARGET_FIELD_ID": 11011,
+            "ASSET_TYPE_ID": 127254
+        }]
+    },
+    {
+        "ACTION": "check_multiselect_and_set_annexure_defaults",
+        "BATCH": [{
+            "SOURCE_FORM_ID": 1346,
+            "SOURCE_FIELD_ID": 12415,
+            "CHECK_FIELD_ID": 10918,
+            "BATCH": [{
+                "COMBO_VALUE": "Customer contact Change",
+                "TARGET_FIELD_IDS": [
+                    10923, 10924, 10925, 10926
+                ]
+            }, {
+                "COMBO_VALUE": "Billing Adress change",
+                "TARGET_FIELD_IDS": [
+                    10928, 10929, 10930, 10931,
+                    10932, 10933, 10934, 10935,
+                    10936
+                ]
+            }, {
+                "COMBO_VALUE": "Site Change (PRI)",
+                "TARGET_FIELD_IDS": [
+                    10938, 10939, 10940, 10941,
+                    10942, 10943, 10944, 10945,
+                    10946, 10947
+                ]
+            }, {
+                "COMBO_VALUE": "Activation of Service",
+                "TARGET_FIELD_IDS": [
+                    10949, 10950
+                ]
+            }, {
+                "COMBO_VALUE": "Pilot Number Change (PRI)",
+                "TARGET_FIELD_IDS": [
+                    10952, 10953, 10954, 10955,
+                    10956
+                ]
+            }, {
+                "COMBO_VALUE": "DID range change/extension (PRI)",
+                "TARGET_FIELD_IDS": [
+                    10958, 10959, 10960, 10961,
+                    10962
+                ]
+            }, {
+                "COMBO_VALUE": "Change in landing number (TFS/UAN/ITFS)",
+                "TARGET_FIELD_IDS": [
+                    10964, 10965, 10966, 10967,
+                    10968
+                ]
+            }, {
+                "COMBO_VALUE": "Change in Call Distribution (TFS/UAN/ITFS)",
+                "TARGET_FIELD_IDS": [
+                    10970, 10971, 10972, 10973,
+                    10974, 10975, 10976
+                ]
+            }, {
+                "COMBO_VALUE": "IVR configuration (TFS/UAN/ITFS)",
+                "TARGET_FIELD_IDS": [
+                    10978
+                ]
+            }, {
+                "COMBO_VALUE": "Addition of CPE",
+                "TARGET_FIELD_IDS": [
+                    10980, 10981, 10982, 10983
+                ]
+            }, {
+                "COMBO_VALUE": "Deletion of CPE",
+                "TARGET_FIELD_IDS": [
+                    10985, 10986, 10987, 10988
+                ]
+            }, {
+                "COMBO_VALUE": "Interface Change- LM provider change",
+                "TARGET_FIELD_IDS": [
+                    10990, 10991, 10992, 10993,
+                    10994, 10995, 10996, 10997
+                ]
+            }, {
+                "COMBO_VALUE": "Addition of E1 (PRI)",
+                "TARGET_FIELD_IDS": [
+                    10999, 11000
+                ]
+            }, {
+                "COMBO_VALUE": "Plan Change",
+                "TARGET_FIELD_IDS": [
+                    11002, 11003, 11004
+                ]
+            }],
+            "VALUE": "As Per CRF Annexure"
+        }]
+    }
+]

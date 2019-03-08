@@ -1,0 +1,137 @@
+[{
+        "ACTION": "set_static_value",
+        "BATCH": [{
+            "TARGET_FIELD_ID": 9753,
+            "VALUE": "----"
+        }, {
+            "TARGET_FIELD_ID": 9950,
+            "VALUE": "Mumbai Circle - Account Managers"
+        }]
+
+    }, {
+        "ACTION": "sum",
+        "BATCH": [{
+                "SOURCE_FIELD_IDS": [9892, 9893, 9894],
+                "TARGET_FIELD_ID": 9895,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [9896, 9897],
+                "TARGET_FIELD_ID": 9898,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [9899, 9900],
+                "TARGET_FIELD_ID": 9901,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [9902, 9903],
+                "TARGET_FIELD_ID": 9904,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [9905, 9906],
+                "TARGET_FIELD_ID": 9907,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [9908, 9909, 9910],
+                "TARGET_FIELD_ID": 9911,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [9912, 9913, 9914],
+                "TARGET_FIELD_ID": 9915,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [9916, 9917, 9918],
+                "TARGET_FIELD_ID": 9919,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [9920, 9921, 9922],
+                "TARGET_FIELD_ID": 9923,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [9924, 9925, 9926],
+                "TARGET_FIELD_ID": 9927,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [9928, 9929, 9930],
+                "TARGET_FIELD_ID": 9931,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [9932, 9933],
+                "TARGET_FIELD_ID": 9934,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [9935, 9936],
+                "TARGET_FIELD_ID": 9937,
+                "VALUE": 0
+            }
+        ]
+    },
+    {
+        "ACTION": "sum",
+        "BATCH": [{
+            "SOURCE_FIELD_IDS": [9892, 9896, 9899, 9902, 9905, 9908, 9912, 9916, 9920, 9924, 9928, 9932, 9935],
+            "TARGET_FIELD_ID": 9938,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [9893, 9897, 9900, 9903, 9906, 9909, 9913, 9917, 9921, 9925, 9929, 9933, 9936],
+            "TARGET_FIELD_ID": 9939,
+            "VALUE": 0
+        }]
+    },
+    {
+        "ACTION": "sum",
+        "BATCH": [{
+            "SOURCE_FIELD_IDS": [9938, 9939],
+            "TARGET_FIELD_ID": 9940,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [9938, 9939],
+            "TARGET_FIELD_ID": 9941,
+            "VALUE": 0
+        }]
+    }, {
+        "ACTION": "set_date",
+        "BATCH": [{
+            "TARGET_FIELD_ID": 9947,
+            "TZ_OFFSET": "+05:30"
+        }]
+    },
+    {
+        "ACTION": "set_participant_name",
+        "BATCH": [{
+            "TARGET_FIELD_ID": 9949,
+            "ASSET_TYPE_ID": 127254
+        }]
+    },
+    {
+        "ACTION": "check_and_set_annexure_defaults",
+        "BATCH": [{
+            "SOURCE_FORM_ID": 1261,
+            "SOURCE_FIELD_ID": 10489,
+            "TARGET_FIELD_IDS": [
+                9766, 9767, 9768, 9769,
+                9770, 9771, 9772, 9773,
+                9774, 9775, 9776, 9779,
+                9780, 9798, 9799, 9800,
+                9801, 9802, 9803, 9804,
+                9805, 9806, 9807, 9808,
+                9811, 9812, 9830, 9831,
+                9833, 9850, 9863, 9864,
+                9866, 9879, 9880, 9892,
+                9893, 9895
+            ],
+            "VALUE": "As Per CAF Annexure"
+        }]
+    }
+]

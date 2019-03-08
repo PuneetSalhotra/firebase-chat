@@ -33,32 +33,32 @@ class WidgetBase {
     }
 
     getPeriodFlag() {
-        if ([1, 2, 3].indexOf(this.rule.widget_timeline_id) !== -1)
+        if ([0,1, 2].indexOf(this.rule.widget_timeline_id) !== -1)
             return 0;
-        else if ([4, 5, 6].indexOf(this.rule.widget_timeline_id) !== -1)
+        else if ([3].indexOf(this.rule.widget_timeline_id) !== -1)
             return 1;
-        else if ([7, 8].indexOf(this.rule.widget_timeline_id) !== -1)
+        else if ([4].indexOf(this.rule.widget_timeline_id) !== -1)
             return 2;
         return -1;
     }
 
     convertUTCTimeToRuleTimeZoneByTimeline(time) {
         var ruleTime = moment.utc(time).utcOffset(this.rule.widget_timezone_offset / (60 * 1000));
-        if ([0, 1, 2, 3].indexOf(this.rule.widget_timeline_id) !== -1) {
+        if ([0, 1, 2].indexOf(this.rule.widget_timeline_id) !== -1) {
             let startEnd = {
                 startDate: moment(ruleTime).startOf('day').utc().format("YYYY-MM-DD HH:mm:ss"),
                 endDate: moment(ruleTime).endOf('day').utc().format("YYYY-MM-DD HH:mm:ss"),
                 valueInRuleTimeZone: moment(ruleTime).format("YYYY-MM-DD HH:mm:ss")
             };
             return startEnd;
-        } else if ([4, 5, 6].indexOf(this.rule.widget_timeline_id) !== -1) {
+        } else if ([3].indexOf(this.rule.widget_timeline_id) !== -1) {
             let startEnd = {
                 startDate: moment(ruleTime).startOf('month').utc().format("YYYY-MM-DD HH:mm:ss"),
                 endDate: moment(ruleTime).endOf('month').utc().format("YYYY-MM-DD HH:mm:ss"),
                 valueInRuleTimeZone: moment(ruleTime).format("YYYY-MM-DD HH:mm:ss")
             };
             return startEnd;
-        } else if ([7, 8].indexOf(this.rule.widget_timeline_id) !== -1) {
+        } else if ([4].indexOf(this.rule.widget_timeline_id) !== -1) {
             let startEnd = {
                 startDate: moment(ruleTime).startOf('year').utc().format("YYYY-MM-DD HH:mm:ss"),
                 endDate: moment(ruleTime).endOf('year').utc().format("YYYY-MM-DD HH:mm:ss"),

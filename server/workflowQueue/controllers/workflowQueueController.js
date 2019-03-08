@@ -89,7 +89,6 @@ function WorkflowQueueController(objCollection) {
             }
         }
     );
-
     app.post('/' + global.config.version + '/queue/user/mappings', async function (req, res) {
         const [err, data] = await workflowQueueService.getQueueMappingUsers(req.body);
         if (!err) {

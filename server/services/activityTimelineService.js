@@ -1272,7 +1272,7 @@ function ActivityTimelineService(objectCollection) {
             rowDataArr.data_form_transaction_id = util.replaceDefaultNumber(rowData['data_form_transaction_id']);
             rowDataArr.data_form_name = util.replaceDefaultString(rowData['data_form_name']);
             rowDataArr.activity_title = util.replaceDefaultString(rowData['activity_title']);
-
+            rowDataArr.log_asset_first_name = util.replaceDefaultString(rowData['log_asset_first_name']);
             //Added for Beta
             rowDataArr.activity_timeline_url_title = util.replaceDefaultString(rowData['data_entity_text_3']);
             rowDataArr.activity_timeline_url_preview = '';
@@ -1910,43 +1910,53 @@ function ActivityTimelineService(objectCollection) {
 
         }).then(function () {
         	 global.logger.write('conLog', '*********************************AFTER FORM DATA ENTRY *********************************************88 : ', {}, request);
+             request['source_id'] = 2;
         	 sendRequesttoWidgetEngine(request);
             callback(false, approvalFields);
         });
     };
     
-    function sendRequesttoWidgetEngine(request){
-    	
+    function sendRequesttoWidgetEngine(request) {
+
         global.logger.write('conLog', '*********************************88BEFORE FORM WIDGET *********************************************88 : ', {}, request);
         if (request.activity_type_category_id == 9) { //form and submitted state                    
-        	activityCommonService.getActivityDetails(request, 0, function (err, activityData) { // get activity form_id and form_transaction id
-                 var widgetEngineQueueMessage = {
-                    form_id: activityData[0].form_id,
-                    form_transaction_id: activityData[0].form_transaction_id,
-                    organization_id: request.organization_id,
-                    account_id: request.account_id,
-                    workforce_id: request.workforce_id,
-                    asset_id: request.asset_id,
-                    activity_id: request.activity_id,
-                    activity_type_category_id: request.activity_type_category_id,
-                    activity_stream_type_id: request.activity_stream_type_id,
-                    track_gps_location: request.track_gps_location,
-                    track_gps_datetime: request.track_gps_datetime,
-                    track_gps_accuracy: request.track_gps_accuracy,
-                    track_gps_status: request.track_gps_status,
-                    device_os_id: request.device_os_id,
-                    service_version: request.service_version,
-                    app_version: request.app_version,
-                    api_version: request.api_version,
-                    widget_type_category_id:1
-                };
-                var event = {
-                    name: "Form Based Widget Engine",
-                    payload: widgetEngineQueueMessage
-                };
-                global.logger.write('conLog', 'Hitting Widget Engine with request:' + event, {}, request);
-                
-                queueWrapper.raiseFormWidgetEvent(event, request.activity_id);
+            activityCommonService.getActivityDetails(request, 0, function (err, activityData) { // get activity form_id and form_transaction id
+                activityCommonService.getWorkflowOfForm(request)
+                    .then((formData) => {
+                        let idActivityType = activityData[0].activity_type_id;
+                        if(formData.length > 0){
+                            idActivityType = formData[0].form_workflow_activity_type_id;
+                        }
+                        var widgetEngineQueueMessage = {
+                            form_id: activityData[0].form_id,
+                            form_transaction_id: activityData[0].form_transaction_id,
+                            organization_id: request.organization_id,
+                            account_id: request.account_id,
+                            workforce_id: request.workforce_id,
+                            asset_id: request.asset_id,
+                            activity_id: request.activity_id,
+                            activity_type_id: idActivityType,
+                            activity_type_category_id: request.activity_type_category_id,
+                            activity_stream_type_id: request.activity_stream_type_id,
+                            track_gps_location: request.track_gps_location,
+                            track_gps_datetime: request.track_gps_datetime,
+                            track_gps_accuracy: request.track_gps_accuracy,
+                            track_gps_status: request.track_gps_status,
+                            device_os_id: request.device_os_id,
+                            service_version: request.service_version,
+                            app_version: request.app_version,
+                            api_version: request.api_version,
+                            widget_type_category_id: 1,
+                            source_id: request.source_id
+                        };
+                        var event = {
+                            name: "Form Based Widget Engine",
+                            payload: widgetEngineQueueMessage
+                        };
+                        global.logger.write('conLog', 'Hitting Widget Engine with request:' + event, {}, request);
+
+                        queueWrapper.raiseFormWidgetEvent(event, request.activity_id);
+                    });
             });
         }
     }
