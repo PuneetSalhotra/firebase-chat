@@ -11,89 +11,12 @@
     },
     {
         "form_id": 1119,
-        "field_id": 8658,
-        "field_name": "Name of Supporting Document (GST Certificate, SEZ Certificate, Diplomat Certificate)",
-        "field_data_type_id": 32,
-        "field_data_type_category_id": 13,
-        "data_type_combo_id": 0,
-        "data_type_combo_value": "",
-        "field_value": "",
-        "message_unique_id": ""
-    },
-    {
-        "form_id": 1119,
-        "field_id": 8667,
-        "field_name": "Customer Vertical Type",
-        "field_data_type_id": 33,
-        "field_data_type_category_id": 14,
-        "data_type_combo_id": 1,
-        "data_type_combo_value": "Automotive",
-        "field_value": 0,
-        "message_unique_id": 2222333344445555
-    },
-    {
-        "form_id": 1119,
-        "field_id": 8669,
-        "field_name": "Type of Order",
-        "field_data_type_id": 33,
-        "field_data_type_category_id": 14,
-        "data_type_combo_id": 1,
-        "data_type_combo_value": "New",
-        "field_value": 0,
-        "message_unique_id": 2222333344445555
-    },
-    {
-        "form_id": 1119,
-        "field_id": 8698,
-        "field_name": "Primary L M Technology",
-        "field_data_type_id": 33,
-        "field_data_type_category_id": 14,
-        "data_type_combo_id": 1,
-        "data_type_combo_value": "TDM",
-        "field_value": 0,
-        "message_unique_id": 2222333344445555
-    },
-    {
-        "form_id": 1119,
-        "field_id": 8699,
-        "field_name": "Backup LM",
-        "field_data_type_id": 33,
-        "field_data_type_category_id": 14,
-        "data_type_combo_id": 1,
-        "data_type_combo_value": "TDM",
-        "field_value": 0,
-        "message_unique_id": 2222333344445555
-    },
-    {
-        "form_id": 1119,
-        "field_id": 8700,
-        "field_name": "Customer end equipment",
-        "field_data_type_id": 33,
-        "field_data_type_category_id": 14,
-        "data_type_combo_id": 1,
-        "data_type_combo_value": "Router/Switch",
-        "field_value": 0,
-        "message_unique_id": 2222333344445555
-    },
-    {
-        "form_id": 1119,
         "field_id": 8713,
         "field_name": "Parallel Bandwidth in Mbps/Kbps (To be filled only if the second link used on load sharing basis )",
         "field_data_type_id": 19,
         "field_data_type_category_id": 7,
         "data_type_combo_id": 0,
         "data_type_combo_value": "",
-        "field_value": 0,
-        "message_unique_id": 2222333344445555
-    },
-    {
-        "form_id": 1119,
-        "field_id": 8746,
-        "field_name": "Specify Currency",
-        "field_data_type_id": 33,
-        "field_data_type_category_id": 14,
-        "data_type_combo_id": 1,
-        "data_type_combo_value": "INR",
         "field_value": 0,
         "message_unique_id": 2222333344445555
     },
@@ -349,94 +272,6 @@
         "data_type_combo_value": "",
         "field_value": 0,
         "message_unique_id": 2222333344445555
-    },
-    {
-        "form_id": 1119,
-        "field_id": 8685,
-        "field_name": "Sr. No.",
-        "field_data_type_id": 5,
-        "field_data_type_category_id": 2,
-        "data_type_combo_id": 0,
-        "data_type_combo_value": "",
-        "field_value": 0,
-        "message_unique_id": 3333444455556666
-    },
-    {
-        "form_id": 1119,
-        "field_id": 8686,
-        "field_name": "Type (Standard / Other)",
-        "field_data_type_id": 19,
-        "field_data_type_category_id": 7,
-        "data_type_combo_id": 0,
-        "data_type_combo_value": "",
-        "field_value": "",
-        "message_unique_id": 3333444455556666
-    },
-    {
-        "form_id": 1119,
-        "field_id": 8687,
-        "field_name": "Make",
-        "field_data_type_id": 19,
-        "field_data_type_category_id": 7,
-        "data_type_combo_id": 0,
-        "data_type_combo_value": "",
-        "field_value": "",
-        "message_unique_id": 3333444455556666
-    },
-    {
-        "form_id": 1119,
-        "field_id": 8688,
-        "field_name": "Model",
-        "field_data_type_id": 19,
-        "field_data_type_category_id": 7,
-        "data_type_combo_id": 0,
-        "data_type_combo_value": "",
-        "field_value": "",
-        "message_unique_id": 3333444455556666
-    },
-    {
-        "form_id": 1119,
-        "field_id": 8689,
-        "field_name": "Version",
-        "field_data_type_id": 19,
-        "field_data_type_category_id": 7,
-        "data_type_combo_id": 0,
-        "data_type_combo_value": "",
-        "field_value": "",
-        "message_unique_id": 3333444455556666
-    },
-    {
-        "form_id": 1119,
-        "field_id": 8701,
-        "field_name": "If Router/Switch - Qty",
-        "field_data_type_id": 5,
-        "field_data_type_category_id": 2,
-        "data_type_combo_id": 0,
-        "data_type_combo_value": "",
-        "field_value": 0,
-        "message_unique_id": 3333444455556666
-    },
-    {
-        "form_id": 1119,
-        "field_id": 8702,
-        "field_name": "If Modem - Qty",
-        "field_data_type_id": 5,
-        "field_data_type_category_id": 2,
-        "data_type_combo_id": 0,
-        "data_type_combo_value": "",
-        "field_value": 0,
-        "message_unique_id": 3333444455556666
-    },
-    {
-        "form_id": 1119,
-        "field_id": 8703,
-        "field_name": "If Convertor - Qty",
-        "field_data_type_id": 5,
-        "field_data_type_category_id": 2,
-        "data_type_combo_id": 0,
-        "data_type_combo_value": "",
-        "field_value": 0,
-        "message_unique_id": 3333444455556666
     },
     {
         "form_id": 1119,
@@ -756,5 +591,49 @@
         "data_type_combo_value": "",
         "field_value": "",
         "message_unique_id": 3333444455556666
+    },
+    {
+        "form_id": 1119,
+        "field_id": 8771,
+        "field_name": "Nth Percentile Subscription Charges-Grand Total(A+B+C)",
+        "field_data_type_id": 6,
+        "field_data_type_category_id": 2,
+        "data_type_combo_id": 0,
+        "data_type_combo_value": "",
+        "field_value": 0,
+        "message_unique_id": 2222333344445555
+    },
+    {
+        "form_id": 1119,
+        "field_id": 8774,
+        "field_name": "Managed Proxy Service Charges-Grand Total(A+B+C)",
+        "field_data_type_id": 6,
+        "field_data_type_category_id": 2,
+        "data_type_combo_id": 0,
+        "data_type_combo_value": "",
+        "field_value": 0,
+        "message_unique_id": 2222333344445555
+    },
+    {
+        "form_id": 1119,
+        "field_id": 8780,
+        "field_name": "SMTP Relay Service Charges-Grand Total(A+B+C)",
+        "field_data_type_id": 6,
+        "field_data_type_category_id": 2,
+        "data_type_combo_id": 0,
+        "data_type_combo_value": "",
+        "field_value": 0,
+        "message_unique_id": 2222333344445555
+    },
+    {
+        "form_id": 1119,
+        "field_id": 8786,
+        "field_name": "Managed CPE Charges-Grand Total(A+B+C)",
+        "field_data_type_id": 6,
+        "field_data_type_category_id": 2,
+        "data_type_combo_id": 0,
+        "data_type_combo_value": "",
+        "field_value": 0,
+        "message_unique_id": 2222333344445555
     }
 ]
