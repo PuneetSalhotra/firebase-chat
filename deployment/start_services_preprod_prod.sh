@@ -3,6 +3,10 @@ if [ "$DEPLOYMENT_GROUP_NAME" == "preProdCodeDeploy-Group" ]
 then
   cd /preprod_desker_api/
   pm2 reload preProdProcesses.yml
+elif [ "$DEPLOYMENT_GROUP_NAME" == "tempdeploy-Group" ] 
+then
+  cd /preprod_desker_api/
+  pm2 reload preProdProcesses.yml  
 elif [ "$DEPLOYMENT_GROUP_NAME" == "prodCodeDeploy-Group" ] 
 then
   cd /production_desker_api/2018-11-28-02/
