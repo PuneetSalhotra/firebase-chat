@@ -18,6 +18,6 @@ hooks:
       timeout: 300
       runas: root
   ApplicationStart:
-    - location: deployment/start_services_preprod.sh
+    - location: deployment/start_services_preprod_prod.sh
       timeout: 300    
       runas: root  
