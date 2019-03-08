@@ -59,6 +59,35 @@ getFileCount(data) {
         });
     });
 }
+
+insertUpdate(data){
+    return new Promise((resolve, reject) => {
+// IN p_widget_id BIGINT(20), IN p_activity_id BIGINT(20), IN p_field_id BIGINT(20), IN p_field_value DECIMAL(16,4), 
+// IN p_workforce_id BIGINT(20), IN p_account_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_log_datetime DATETIME
+        var paramsArr = new Array(
+                data.widget_id,
+                data.workflow_activity_id,
+                data.activity_id,
+                data.form_id,
+                data.form_transaction_id,
+                data.field_id,
+                data.field_value,
+                data.workforce_id,
+                data.account_id,
+                data.organization_id,
+                this.objCollection.util.getCurrentUTCTime()
+                );
+        var queryString = this.objCollection.util.getQueryString('ds_p1_widget_activity_field_transaction_insert', paramsArr);
+        if (queryString === '')
+            return reject();
+        this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
+            if (err)
+                return reject(err);
+            return resolve(data);
+        });
+
+    });
+}
 }
 
 module.exports = ActivityListService;

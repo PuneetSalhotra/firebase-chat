@@ -20,19 +20,19 @@ apps:
     instances: 1
     exec_mode: fork
     
-  - name : "Staging_LogConsumerOne"
-    env: {mode: staging, partition:1}
-    script   : ./logConsumer.js    
-    out_file: '/dev/null'
-    instances: 1
-    exec_mode: fork
+  #- name : "Staging_LogConsumerOne"
+  #  env: {mode: staging, partition:1}
+  #  script   : ./logConsumer.js    
+  #  out_file: '/dev/null'
+  #  instances: 1
+  #  exec_mode: fork
     
-  - name : "Staging_LogConsumerTwo"
-    env: {mode: staging, partition:2}
-    script   : ./logConsumer.js    
-    out_file: '/dev/null'
-    instances: 1
-    exec_mode: fork
+  #- name : "Staging_LogConsumerTwo"
+  #  env: {mode: staging, partition:2}
+  #  script   : ./logConsumer.js    
+  #  out_file: '/dev/null'
+  #  instances: 1
+  #  exec_mode: fork
     
   - name : "Staging_WidgetZero"
     env: {mode: staging, partition:0}
@@ -41,37 +41,37 @@ apps:
     instances: 1
     exec_mode: fork
     
-  - name : "Staging_WidgetOne"
-    env: {mode: staging, partition:1}
-    script   : ./consumerServices/widgetEngine/server.js
-    out_file: '/dev/null'
-    instances: 1
-    exec_mode: fork
+  #- name : "Staging_WidgetOne"
+  #  env: {mode: staging, partition:1}
+  #  script   : ./consumerServices/widgetEngine/server.js
+  #  out_file: '/dev/null'
+  #  instances: 1
+  #  exec_mode: fork
     
-  - name : "Staging_WidgetTwo"
-    env: {mode: staging, partition:2}
-    script   : ./consumerServices/widgetEngine/server.js
-    out_file: '/dev/null'
-    instances: 1
-    exec_mode: fork
+  #- name : "Staging_WidgetTwo"
+  #  env: {mode: staging, partition:2}
+  #  script   : ./consumerServices/widgetEngine/server.js
+  #  out_file: '/dev/null'
+  #  instances: 1
+  #  exec_mode: fork
     
-  - name : "Staging_WidgetThree"
-    env: {mode: staging, partition:3}
-    script   : ./consumerServices/widgetEngine/server.js
-    out_file: '/dev/null'
-    instances: 1
-    exec_mode: fork
+  #- name : "Staging_WidgetThree"
+  #  env: {mode: staging, partition:3}
+  #  script   : ./consumerServices/widgetEngine/server.js
+  #  out_file: '/dev/null'
+  #  instances: 1
+  #  exec_mode: fork
     
-  - name : "Staging_WidgetFour"
-    env: {mode: staging, partition:4}
-    script   : ./consumerServices/widgetEngine/server.js
-    out_file: '/dev/null'
-    instances: 1
-    exec_mode: fork
+  #- name : "Staging_WidgetFour"
+  #  env: {mode: staging, partition:4}
+  #  script   : ./consumerServices/widgetEngine/server.js
+  #  out_file: '/dev/null'
+  #  instances: 1
+  #  exec_mode: fork
     
-  - name : "Staging_WidgetFive"
-    env: {mode: staging, partition:5}
-    script   : ./consumerServices/widgetEngine/server.js
-    out_file: '/dev/null'
-    instances: 1
-    exec_mode: fork
+  #- name : "Staging_WidgetFive"
+  #  env: {mode: staging, partition:5}
+  #  script   : ./consumerServices/widgetEngine/server.js
+  #  out_file: '/dev/null'
+  #  instances: 1
+  #  exec_mode: fork

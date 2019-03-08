@@ -765,6 +765,7 @@ function BotService(objectCollection) {
         newReq.activity_status_id = inlineData.activity_status_id;
         //newRequest.activity_status_type_id = inlineData.activity_status_id; 
         //newRequest.activity_status_type_category_id = ""; 
+        newReq.activity_type_category_id = 48;
         newReq.message_unique_id = util.getMessageUniqueId(request.asset_id);
         newReq.device_os_id = 9;
         
@@ -1057,7 +1058,7 @@ function BotService(objectCollection) {
         return await alterFormActivity(newReq);
     }
 
-    //Bot Step Adding a participant
+    // Bot Step Adding a participant
     async function addParticipant(request, inlineData) {
         let newReq = Object.assign({}, request);
         let resp;
@@ -1089,8 +1090,15 @@ function BotService(objectCollection) {
 
         } else if (type[0] === 'dynamic') {
             newReq.desk_asset_id = 0;
+            // Phone number
             newReq.form_id = inlineData[type[0]].form_id;
             newReq.field_id = inlineData[type[0]].field_id;
+            // Name
+            newReq.name_field_id = inlineData[type[0]].name_field_id;
+            newReq.customer_name = '';
+            newReq.participant_workforce_id = inlineData[type[0]].workforce_id || 0;
+            newReq.participant_account_id = inlineData[type[0]].account_id || 0;
+
             let activityInlineData;
 
             resp = await getFieldValue(newReq);
@@ -1112,6 +1120,14 @@ function BotService(objectCollection) {
 
                         newReq.country_code = phone[0]; //country code
                         newReq.phone_number = phone[1]; //phone number                      
+                    }
+                    // Grab the name
+                    if (
+                        Number(i.form_id) === Number(newReq.form_id) &&
+                        Number(i.field_id) === Number(newReq.name_field_id)
+                    ) {
+                        newReq.customer_name = i.field_value;
+                        console.log("BotEngine | addParticipant | From Form | newReq.customer_name", newReq.customer_name);
                     }
                 }
             }
@@ -1669,9 +1685,55 @@ function BotService(objectCollection) {
                 //return [false, {}];
                 }
             }
+            // Update the workflow percentage in the activity_list table
+            try {
+                await activityListUpdateWorkflowPercent(newrequest, wfCompletionPercentage);
+            } catch (error) {
+                console.log("Bot Engine | alterWFCompletionPercentage | activityListUpdateWorkflowPercent | Error: ", error)
+            }
+            // Update the workflow percentage in the activity_asset_mapping table
+            try {
+                await activityAssetMappingUpdateWorkflowPercent(newrequest, wfCompletionPercentage);
+            } catch (error) {
+                console.log("Bot Engine | alterWFCompletionPercentage | activityAssetMappingUpdateWorkflowPercent | Error: ", error)
+            }
             return [false, {}];
         } else {
             return [true, "Queue Not Available"];
+        }
+    }
+
+    async function activityListUpdateWorkflowPercent(request, workflowPercentage) {
+        // IN p_organization_id BIGINT(20), IN p_activity_id BIGINT(20), 
+        // IN p_workflow_percentage DECIMAL(4,2), IN p_log_asset_id BIGINT(20), 
+        // IN p_log_datetime DATETIME
+        let paramsArr = new Array(
+            request.organization_id,
+            request.workflow_activity_id,
+            workflowPercentage,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        let queryString = util.getQueryString('ds_p1_activity_list_update_workflow_percent', paramsArr);
+        if (queryString != '') {
+            return await (db.executeQueryPromise(0, queryString, request));
+        }
+    }
+
+    async function activityAssetMappingUpdateWorkflowPercent(request, workflowPercentage) {
+        // IN p_organization_id BIGINT(20), IN p_activity_id BIGINT(20), 
+        // IN p_workflow_percentage DECIMAL(4,2), IN p_log_asset_id BIGINT(20), 
+        // IN p_log_datetime DATETIME
+        let paramsArr = new Array(
+            request.organization_id,
+            request.workflow_activity_id,
+            workflowPercentage,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        let queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_workflow_percent', paramsArr);
+        if (queryString != '') {
+            return await (db.executeQueryPromise(0, queryString, request));
         }
     }
 
@@ -1744,49 +1806,52 @@ function BotService(objectCollection) {
         let dataResp,
             deskAssetData;
         let assetData = {};
-            assetData.desk_asset_id = 0;
+        assetData.desk_asset_id = 0;
 
-        if(request.desk_asset_id === 0) {
-            dataResp  = await getAssetDetailsOfANumber(request);
-            if(dataResp.length > 0) {
-                for(let i of dataResp){
-                    if(i.asset_type_category_id === 3 || i.asset_type_category_id === 45) {
+        if (request.desk_asset_id === 0) {
+            dataResp = await getAssetDetailsOfANumber(request);
+            if (dataResp.length > 0) {
+                for (let i of dataResp) {
+                    if (i.asset_type_category_id === 3 || i.asset_type_category_id === 45) {
                         deskAssetData = i;
                         break;
                     }
                 }
             } else {
                 //Create a Desk
-                let result = await createAssetContactDesk(request, {  "contact_designation": request.phone_number,
-                                                                      "contact_email_id": request.phone_number,
-                                                                      "first_name": request.phone_number,
-                                                                      "contact_phone_number":request.phone_number,
-                                                                      "contact_phone_country_code": 91                                                                      
-                                                                    });
+                let result = await createAssetContactDesk(request, {
+                    "contact_designation": request.phone_number,
+                    "contact_email_id": request.phone_number,
+                    "first_name": request.customer_name || request.phone_number,
+                    "contact_phone_number": request.phone_number,
+                    "contact_phone_country_code": 91,
+                    "workforce_id": request.participant_workforce_id,
+                    "account_id": request.participant_account_id
+                });
                 deskAssetData = result.response;
                 assetData.desk_asset_id = deskAssetData.desk_asset_id;
             }
-            
-        } else {            
+
+        } else {
             dataResp = await getAssetDetails({
-                                                "organization_id": request.organization_id,
-                                                "asset_id": request.desk_asset_id
-                                            });                                       
-            deskAssetData = dataResp[0];            
-        }        
-        global.logger.write('conLog', 'Desk Asset Details : ', deskAssetData,{});                    
-        
-        if(assetData.desk_asset_id === 0) {
+                "organization_id": request.organization_id,
+                "asset_id": request.desk_asset_id
+            });
+            deskAssetData = dataResp[0];
+        }
+        global.logger.write('conLog', 'Desk Asset Details : ', deskAssetData, {});
+
+        if (assetData.desk_asset_id === 0) {
             assetData.desk_asset_id = deskAssetData.asset_id;
         }
-        
+
         assetData.first_name = deskAssetData.operating_asset_first_name;
         assetData.contact_phone_number = deskAssetData.operating_asset_phone_number;
         assetData.contact_phone_country_code = deskAssetData.operating_asset_phone_country_code;
         assetData.asset_type_id = deskAssetData.asset_type_id;
 
         return await addDeskAsParticipant(request, assetData);
-        
+
         /*if(dataResp.length > 0) { //status is true means service desk exists
              
             let sdResp = dataResp[0];
@@ -1875,11 +1940,14 @@ function BotService(objectCollection) {
         return new Promise((resolve, reject)=>{   
             
             //Get asset_type_id for category 3 for the specific workforce
-            activityCommonService.workforceAssetTypeMappingSelectCategoryPromise(request, 13).then((data)=>{
+            let newRequest = Object.assign({}, request);
+            newRequest.workforce_id = customerData.workforce_id || request.workforce_id;
+            newRequest.account_id = customerData.account_id || request.account_id;
+            activityCommonService.workforceAssetTypeMappingSelectCategoryPromise(newRequest, 13).then((data)=>{
                 let customerServiceDeskRequest = {
                     organization_id: request.organization_id,
-                    account_id: request.account_id,
-                    workforce_id: request.workforce_id,
+                    account_id: customerData.account_id || request.account_id,
+                    workforce_id: customerData.workforce_id || request.workforce_id,
                     //asset_id: request.asset_id,
                     asset_id: 100,
                     asset_token_auth: '54188fa0-f904-11e6-b140-abfd0c7973d9',
@@ -1890,7 +1958,7 @@ function BotService(objectCollection) {
                         "activity_id": 0,
                         "activity_ineternal_id": -1,
                         "activity_type_category_id": 6,
-                        "contact_account_id": request.account_id,
+                        "contact_account_id": customerData.account_id || request.account_id,
                         "contact_asset_id": 0,
                         "contact_asset_type_id": data[0].asset_type_id || 0,
                         "contact_department": "",
@@ -1905,7 +1973,7 @@ function BotService(objectCollection) {
                         "contact_phone_country_code": customerData.contact_phone_country_code,
                         "contact_phone_number": customerData.contact_phone_number,
                         "contact_profile_picture": "",
-                        "contact_workforce_id":request.workforce_id,
+                        "contact_workforce_id":customerData.workforce_id || request.workforce_id,
                         "contact_asset_type_name": "Customer",
                         //"contact_company": customerData.contact_company,
                         "contact_lat": 0.0,
@@ -2251,14 +2319,7 @@ function BotService(objectCollection) {
                         params[18] = row.field_value; // p_entity_text_1
                         break;
                     case 52: // Excel Document
-                        try {
-                            const fieldValue = JSON.parse(row.field_value);
-                            params[18] = fieldValue.excel_file_url; // p_entity_text_1
-                            params[19] = fieldValue.pdf_file_url; // p_entity_text_2
-                        } catch (err) {
-                            global.logger.write('debug', '\x1b[32m Error parsing field_value for Excel Document data type - \x1b[0m', err, request);
-                            console.log("ActivityTimelineService | addFormEntries | case 50 | Excel Document | Error: ", err);
-                        }
+                        params[18] = row.field_value;
                         break;
                     case 53: // IP Address Form
                         params[18] = row.field_value;

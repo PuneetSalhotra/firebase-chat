@@ -417,6 +417,16 @@ function AccountController(objCollection) {
         }
     });
 
+    // Service to fetch S3 User Credentials
+    app.post('/' + global.config.version + '/account/s3/user-credentials/fetch', async function (req, res) {
+        const [err, data] = await accountService.fetchS3UserCredentials(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
 };
 
 module.exports = AccountController;

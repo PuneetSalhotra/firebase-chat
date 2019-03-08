@@ -271,8 +271,9 @@ function ActivityService(objectCollection) {
                                 activityCommonService.processReservationBilling(request, request.activity_parent_id).then(() => {});
                             }
 
-                            if (activityTypeCategroyId === 9 || activityTypeCategroyId === 48) {
+                            if (request.activity_type_category_id == 48) {
                                 global.logger.write('conLog', '*****ADD ACTIVITY :HITTING WIDGET ENGINE*******', {}, request);
+                                request['source_id'] = 1;
                                 sendRequesttoWidgetEngine(request);
                             }
 
@@ -1862,6 +1863,15 @@ function ActivityService(objectCollection) {
         activityListUpdateStatus(request, async function (err, data) {
             if (err === false) {
 
+                console.log("*****STATUS CHANGE | activityTypeCategroyId: ", activityTypeCategroyId)
+                updateWidgetAggrStatus(request);
+                
+                if (Number(request.device_os_id) === 9) {
+                    global.logger.write('conLog', '*****ALTER STATUS : HITTING WIDGET ENGINE*******', {}, request);
+                    request['source_id'] = 3;
+                    sendRequesttoWidgetEngine(request);
+                }
+
                 if ((activityTypeCategroyId === 9 || activityTypeCategroyId === 48) && Number(request.device_os_id) !== 9) {
 
                     global.logger.write('conLog', '*****ALTER STATUS : STATUS CHANGE TXN INSERT*******', {}, request);
@@ -1900,7 +1910,7 @@ function ActivityService(objectCollection) {
                     }
 
                     global.logger.write('conLog', '*****STATUS CHANGE FLAG : ' + request.status_changed_flag, {}, request);
-
+                    
                     var timeDuration = util.differenceDatetimes(util.getCurrentUTCTime(), util.replaceDefaultDatetime(data[0].datetimeExistingActivityStatusUpdated));
                     if (Number(data[0].idExistingActivityStatus) > 0 && Number(request.activity_status_id) > 0) {
 
@@ -1911,6 +1921,7 @@ function ActivityService(objectCollection) {
                             to_status_datetime: util.replaceDefaultDatetime(data[0].updatedDatetime)
                         }).then(() => {
                             global.logger.write('conLog', '*****ALTER STATUS : HITTING WIDGET ENGINE*******', {}, request);
+                            request['source_id'] = 3;
                             sendRequesttoWidgetEngine(request);
                         });
                     }
@@ -3197,9 +3208,13 @@ function ActivityService(objectCollection) {
     function sendRequesttoWidgetEngine(request) {
 
         global.logger.write('conLog', '********IN HITTING WIDGET *********************************************: ', {}, request);
-        if (request.activity_type_category_id == 9 || request.activity_type_category_id == 48) { //form and submitted state                    
+        if (request.activity_type_category_id == 48) { //form and submitted state  
+
             activityCommonService.getActivityCollection(request).then((activityData) => { // get activity form_id and form_transaction id
                 console.log('activityData:' + activityData[0]);
+                console.log('activityData[0].form_transaction_id :: '+activityData[0].form_transaction_id);
+                //activityCommonService.getWorkflowOfForm(request, activityData[0].form_id)
+                //.then((formData)=>{            
                 var widgetEngineQueueMessage = {
                     form_id: activityData[0].form_id,
                     form_transaction_id: activityData[0].form_transaction_id,
@@ -3220,7 +3235,8 @@ function ActivityService(objectCollection) {
                     service_version: request.service_version,
                     app_version: request.app_version,
                     api_version: request.api_version,
-                    widget_type_category_id: 2
+                    widget_type_category_id: 2,
+                    source_id: request.source_id
                 };
                 var event = {
                     name: "File Based Widget Engine",
@@ -3229,11 +3245,10 @@ function ActivityService(objectCollection) {
                 global.logger.write('conLog', 'Hitting Widget Engine with request:' + event, {}, request);
 
                 queueWrapper.raiseFormWidgetEvent(event, request.activity_id);
+            //});
             });
         }
     }
-
-
 
     this.updateActivityFormFieldValidation = function (request) {
         return new Promise((resolve, reject) => {
@@ -3512,6 +3527,29 @@ function ActivityService(objectCollection) {
         if (queryString != '') {
             return await db.executeQueryPromise(1, queryString, request);
         }
+    }
+
+    function updateWidgetAggrStatus(request) {
+        return new Promise((resolve, reject) => {
+            global.logger.write('DEBUG', '::: UPDATING WIDGET AGGR STATUS :::', {}, request);
+            let paramsArr = new Array(
+                request.activity_id,
+                request.workforce_id,
+                request.account_id,
+                request.organization_id,
+                util.getCurrentUTCTime()
+            );
+            let queryString = util.getQueryString('ds_p1_widget_activity_field_transaction_update', paramsArr);
+            if (queryString != '') {
+               db.executeQuery(0, queryString, request, function (err, data) {
+                    if (err === false) {
+                        resolve();
+                    } else {
+                        reject(err);
+                    }
+                });
+            }
+        })
     }
 
 }

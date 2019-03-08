@@ -651,6 +651,16 @@ function AccountService(objectCollection) {
         return [error, responseData];
     };
 
+    // Service to fetch S3 User Credentials
+    this.fetchS3UserCredentials = async function (request) {
+
+        return [false, {
+            username: "wd-user-s3",
+            access_key_id: "AKIAI72IRX6A77QNHM6A",
+            secret_access_key: "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"
+        }];
+    };
+
 };
 
 module.exports = AccountService;
