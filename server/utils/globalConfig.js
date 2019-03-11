@@ -431,7 +431,7 @@ if (mode === 'preprod') {
     config.mobileBaseUrl = "https://preprodapi.worlddesk.cloud/";
 
     //making twilio, Nexmo Calls
-    config.efsPath = "/apistaging-data/";
+    config.efsPath = "/data/";
     
     //Kafka Configuration
     config.BROKER_HOST = "kafka1:9092,kafka2:9092,kafka3:9092";
