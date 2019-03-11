@@ -1,12 +1,6 @@
 [{
         "ACTION": "set_static_value",
         "BATCH": [{
-            "TARGET_FIELD_ID": 8551,
-            "VALUE": "----"
-        }, {
-            "TARGET_FIELD_ID": 8556,
-            "VALUE": "----"
-        }, {
             "TARGET_FIELD_ID": 8560,
             "VALUE": "Mumbai Circle - Account Managers"
         }]
