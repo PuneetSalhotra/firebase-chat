@@ -4663,6 +4663,7 @@ function VodafoneService(objectCollection) {
                     .then((workflowData) => {
                         if (workflowData.length > 0) {
                             workflowActivityId = Number(workflowData[0].activity_id);
+                            request.workflow_activity_id = workflowActivityId;
                         } else {
                             return [new Error("workflowData Not Found Error"), []];
                         }
