@@ -1,6 +1,3 @@
-/*
- * author: Sri Sai Venkatesh
- */
 
 function FormConfigService(objCollection) {
 
@@ -1038,10 +1035,10 @@ function FormConfigService(objCollection) {
             );
             db.executeRecursiveQuery(1, 0, 10, queryString, paramsArr, function (err, data) {
                 if (err === false) {
-                    /*	processFormTransactionData(request, data).then((finalData)=>{
-  	               			//console.log("finalData : "+finalData);
-  	               			resolve(finalData);
-  	               		});   */
+                    /*  processFormTransactionData(request, data).then((finalData)=>{
+                            //console.log("finalData : "+finalData);
+                            resolve(finalData);
+                        });   */
                     resolve(data);
                 } else {
                     reject(err);
@@ -3051,6 +3048,67 @@ function FormConfigService(objCollection) {
         }
 
         return [error, fieldUpdateStatus];
+    }
+
+    this.formEntityMappingSelect = async function (request) {
+
+        let fieldData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_id,
+            request.flag,
+            request.datetime,
+            request.page_start,
+            util.replaceQueryLimit(request.page_limit)
+        );
+        const queryString = util.getQueryString('ds_p1_form_entity_mapping_select', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    fieldData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, fieldData];
+    }
+
+    this.workforceFormFieldMappingSelectForm = async function (request) {
+
+        let formFieldData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.form_id,
+            request.datetime,
+            request.page_start,
+            util.replaceQueryLimit(request.page_limit)
+        );
+        const queryString = util.getQueryString('ds_v1_workforce_form_field_mapping_select', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    formFieldData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, formFieldData];
     }
 
 }
