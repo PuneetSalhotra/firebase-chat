@@ -42,11 +42,11 @@
             "TARGET_FIELD_ID": 8759,
             "VALUE": 0
         }, {
-            "SOURCE_FIELD_IDS": [8760, 8761, 8762],
+            "SOURCE_FIELD_IDS": [8760, 8761],
             "TARGET_FIELD_ID": 8763,
             "VALUE": 0
         }, {
-            "SOURCE_FIELD_IDS": [8764, 8765, 8766],
+            "SOURCE_FIELD_IDS": [8764, 8765],
             "TARGET_FIELD_ID": 8767,
             "VALUE": 0
         }, {
@@ -89,15 +89,31 @@
             "SOURCE_FIELD_IDS": [8812],
             "TARGET_FIELD_ID": 8813,
             "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [8768, 8769],
+            "TARGET_FIELD_ID": 8771,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [8772, 8773],
+            "TARGET_FIELD_ID": 8774,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [8778, 8779],
+            "TARGET_FIELD_ID": 8780,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [8784, 8785],
+            "TARGET_FIELD_ID": 8786,
+            "VALUE": 0
         }]
     }, {
         "ACTION": "sum",
         "BATCH": [{
-            "SOURCE_FIELD_IDS": [8747, 8751, 8754, 8757, 8760, 8764, 8775, 8781, 8787, 8790, 8790, 8794, 8798, 8802, 8806, 8809, 8812],
+            "SOURCE_FIELD_IDS": [8747, 8751, 8754, 8757, 8760, 8764, 8775, 8781, 8787, 8790, 8790, 8794, 8798, 8802, 8806, 8809, 8812, 8768, 8772, 8778, 8784],
             "TARGET_FIELD_ID": 8814,
             "VALUE": 0
         }, {
-            "SOURCE_FIELD_IDS": [8748, 8752, 8755, 8758, 8761, 8765, 8776, 8782, 8788, 8791, 8791, 8795, 8799, 8803, 8807, 8810],
+            "SOURCE_FIELD_IDS": [8748, 8752, 8755, 8758, 8761, 8765, 8776, 8782, 8788, 8791, 8791, 8795, 8799, 8803, 8807, 8810, 8769, 8773, 8779, 8785],
             "TARGET_FIELD_ID": 8815,
             "VALUE": 0
         }]
@@ -151,7 +167,8 @@
                 8652, 8655, 8656, 8670,
                 8681, 8697, 8709, 8710,
                 8711, 8712, 8747, 8748,
-                8750, 8816, 8817
+                8749, 8750, 8814, 8815,
+                8816, 8817
             ],
             "VALUE": "As Per CAF Annexure"
         }]
