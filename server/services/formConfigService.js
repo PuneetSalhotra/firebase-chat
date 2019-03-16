@@ -3100,8 +3100,17 @@ function FormConfigService(objCollection) {
 
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
-                    formFieldData = data;
-                    error = false;
+                    if (data.length > 0) {
+                        //console.log(data);
+                        formatFromsListing(-1, data, function (err, finalData) {
+                            if (err === false) {
+                                formFieldData = finalData;
+                                error = false;
+                            }
+                        });
+                    }else{                        
+                        error = false;
+                    }
                 })
                 .catch((err) => {
                     error = err;
