@@ -2133,6 +2133,25 @@ function ActivityCommonService(db, util, forEachAsync) {
             });
         }
     };
+    
+    this.partitionOffsetInsertPromise = function (request) {
+        return new Promise((resolve, reject) => {
+            const paramsArr = new Array(
+                global.config.TOPIC_ID,
+                request.partition,
+                request.offset,
+                request.asset_id,
+                request.activity_id,
+                request.form_transaction_id
+            );
+            const queryString = util.getQueryString('ds_p1_partition_offset_transaction_insert', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data): reject(err);
+                });
+            }
+        });
+    };
 
     /*this.msgUniqueIdInsert = function (request, callback) {
         var paramsArr = new Array(
