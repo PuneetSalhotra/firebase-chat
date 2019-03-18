@@ -1763,6 +1763,9 @@ function ActivityTimelineService(objectCollection) {
                 case 54: // MAC Address Form
                     params[18] = row.field_value;
                     break;
+                case 55: // Word Document
+                    params[18] = row.field_value;
+                    break;
                 case 17:    //Location
                     var location = row.field_value.split('|');
                     params[16] = location[0];
