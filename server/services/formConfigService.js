@@ -1701,8 +1701,8 @@ function FormConfigService(objCollection) {
                 createWorkflowRequest.activity_id = Number(activityId);
                 createWorkflowRequest.activity_type_category_id = 48;
                 createWorkflowRequest.activity_type_id = workflowActivityTypeId;
-                createWorkflowRequest.activity_title = workflowActivityTypeName;
-                createWorkflowRequest.activity_description = workflowActivityTypeName;
+                //createWorkflowRequest.activity_title = workflowActivityTypeName;
+                //createWorkflowRequest.activity_description = workflowActivityTypeName;
                 createWorkflowRequest.activity_form_id = Number(request.activity_form_id);
                 createWorkflowRequest.form_transaction_id = Number(request.form_transaction_id);
 
