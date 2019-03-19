@@ -230,6 +230,32 @@ function WidgetController(objCollection) {
             } 
         }
     );
+
+    app.post(
+        '/' + global.config.version + '/widget/organization/level/status/count',
+        async (req, res) => {
+            try {
+                let result = await widgetService.getOrgLevelWorkflowStatusWiseCount(req.body);
+                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            } catch (err) {
+                console.log('err :', err);
+                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            }
+        }
+    );
+
+    app.post(
+        '/' + global.config.version + '/widget/organization/level/status/aggr',
+        async (req, res) => {
+            try {
+                let result = await widgetService.getOrgLevelWorkflowStatusWiseAggr(req.body);
+                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            } catch (err) {
+                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            }
+        }
+    );
+    
 }
 
 module.exports = WidgetController;
