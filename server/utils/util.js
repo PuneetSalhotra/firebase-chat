@@ -972,6 +972,42 @@ function Util() {
             });
     };
 
+    // SendInBlue, htmlTemplate is sent as base64 encoded
+    this.sendEmailV4 = function (request, email, subject, text, base64EncodedHtmlTemplate, callback) {
+        console.log('email : ', email);
+        console.log('subject : ', subject);
+        console.log('text : ', text);
+
+        let buff = new Buffer(base64EncodedHtmlTemplate, 'base64');
+        let htmlTemplate = buff.toString('ascii');
+
+        // SendSmtpEmail | Values to send a transactional email
+        var sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+        sendSmtpEmail.to = [{
+            "name": request.email_receiver_name || undefined,
+            "email": email
+        }];
+        sendSmtpEmail.sender = {
+            "name": request.email_sender_name || undefined,
+            "email": request.email_sender
+        };
+        sendSmtpEmail.textContent = text;
+        sendSmtpEmail.htmlContent = htmlTemplate;
+        sendSmtpEmail.subject = subject;
+        sendSmtpEmail.headers = {
+            "x-mailin-custom": "Grene Robotics"
+        };
+        sendSmtpEmail.tags = ["live"];
+
+        apiInstance.sendTransacEmail(sendSmtpEmail)
+            .then(function (data) {
+                console.log('API called successfully. Returned data: ', data);
+                return callback(false, data);
+            }, function (error) {
+                return callback(true, error);
+            });
+    };
+
     this.getRedableFormatLogDate = function (timeString, type) {
         if (typeof type == 'undefined' || type == '' || type == null)
             type = 0;
