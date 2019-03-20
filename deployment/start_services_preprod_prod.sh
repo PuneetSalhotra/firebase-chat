@@ -11,6 +11,9 @@ then
   pm2 delete PreProd_Log_ConsumerZero
   pm2 delete PreProd_Widget_ConsumerZero
   pm2 start preProdProcesses.yml  
+  pm2 stop PreProd_ConsumerZero
+  pm2 stop PreProd_Log_ConsumerZero
+  pm2 stop PreProd_Widget_ConsumerZero
 elif [ "$DEPLOYMENT_GROUP_NAME" == "prodCodeDeploy-Group" ] 
 then
   cd /production_desker_api/2018-11-28-02/
