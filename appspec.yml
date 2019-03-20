@@ -5,9 +5,9 @@ version: 0.0
 os: linux
 files:
   - source: .
-    destination: /production_desker_api/2019-03-14-01
+    destination: /production_desker_api/2019-03-20-01
 permissions:
-  - object: /production_desker_api/2019-03-14-01/deployment
+  - object: /production_desker_api/2019-03-20-01/deployment
     owner: root
     mode: 777
     type:
