@@ -3069,7 +3069,7 @@ function FormConfigService(objCollection) {
             request.flag,
             request.datetime,
             request.page_start,
-            util.replaceQueryLimit(request.page_limit)
+            request.page_limit
         );
         const queryString = util.getQueryString('ds_p1_form_entity_mapping_select', paramsArr);
         if (queryString !== '') {
@@ -3099,7 +3099,7 @@ function FormConfigService(objCollection) {
             request.form_id,
             request.datetime,
             request.page_start,
-            util.replaceQueryLimit(request.page_limit)
+            request.page_limit
         );
         const queryString = util.getQueryString('ds_v1_workforce_form_field_mapping_select', paramsArr);
         if (queryString !== '') {
