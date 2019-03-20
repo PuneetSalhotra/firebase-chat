@@ -1132,6 +1132,23 @@ function BotService(objectCollection) {
                 }
             }
         }
+        // Fetch participant name from the DB
+        if (newReq.customer_name === '') {
+            try {
+                let fieldData = await getFieldValue({
+                    form_transaction_id: newReq.form_transaction_id,
+                    form_id: newReq.form_id,
+                    field_id: newReq.name_field_id,
+                    organization_id: newReq.organization_id
+                });
+                if (fieldData.length > 0) {
+                    newReq.customer_name = String(fieldData[0].data_entity_text_1);
+                    console.log("BotEngine | addParticipant | getFieldValue | Customer Name: ", newReq.customer_name);
+                }
+            } catch (error) {
+                console.log("BotEngine | addParticipant | getFieldValue | Customer Name | Error: ", error);
+            }
+        }
 
         if (newReq.phone_number !== -1) {
             return await addParticipantStep(newReq);
@@ -2325,6 +2342,12 @@ function BotService(objectCollection) {
                         params[18] = row.field_value;
                         break;
                     case 54: // MAC Address Form
+                        params[18] = row.field_value;
+                        break;
+                    case 55: // Word Document
+                        params[18] = row.field_value;
+                        break;
+                    case 56: // Outlook Message
                         params[18] = row.field_value;
                         break;
                     case 17:    //Location

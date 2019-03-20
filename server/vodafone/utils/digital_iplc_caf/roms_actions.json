@@ -71,7 +71,7 @@
                 "VALUE": 0
             },
             {
-                "SOURCE_FIELD_IDS": [12062, 12063],
+                "SOURCE_FIELD_IDS": [12062, 12063, 12065],
                 "TARGET_FIELD_ID": 12064,
                 "VALUE": 0
             }

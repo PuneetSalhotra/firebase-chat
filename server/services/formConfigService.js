@@ -1,6 +1,3 @@
-/*
- * author: Sri Sai Venkatesh
- */
 
 function FormConfigService(objCollection) {
 
@@ -823,6 +820,12 @@ function FormConfigService(objCollection) {
                     case 54: // MAC Address Form
                         params[18] = row.field_value;
                         break;
+                    case 55: // Word Document
+                        params[18] = row.field_value;
+                        break;
+                    case 56: // Outlook Message
+                        params[18] = row.field_value;
+                        break;
                     case 17: //Location
                         var location = row.field_value.split('|');
                         params[16] = location[0];
@@ -1038,10 +1041,10 @@ function FormConfigService(objCollection) {
             );
             db.executeRecursiveQuery(1, 0, 10, queryString, paramsArr, function (err, data) {
                 if (err === false) {
-                    /*	processFormTransactionData(request, data).then((finalData)=>{
-  	               			//console.log("finalData : "+finalData);
-  	               			resolve(finalData);
-  	               		});   */
+                    /*  processFormTransactionData(request, data).then((finalData)=>{
+                            //console.log("finalData : "+finalData);
+                            resolve(finalData);
+                        });   */
                     resolve(data);
                 } else {
                     reject(err);
@@ -1701,8 +1704,8 @@ function FormConfigService(objCollection) {
                 createWorkflowRequest.activity_id = Number(activityId);
                 createWorkflowRequest.activity_type_category_id = 48;
                 createWorkflowRequest.activity_type_id = workflowActivityTypeId;
-                createWorkflowRequest.activity_title = workflowActivityTypeName;
-                createWorkflowRequest.activity_description = workflowActivityTypeName;
+                //createWorkflowRequest.activity_title = workflowActivityTypeName;
+                //createWorkflowRequest.activity_description = workflowActivityTypeName;
                 createWorkflowRequest.activity_form_id = Number(request.activity_form_id);
                 createWorkflowRequest.form_transaction_id = Number(request.form_transaction_id);
 
@@ -3051,6 +3054,76 @@ function FormConfigService(objCollection) {
         }
 
         return [error, fieldUpdateStatus];
+    }
+
+    this.formEntityMappingSelect = async function (request) {
+
+        let fieldData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_id,
+            request.flag,
+            request.datetime,
+            request.page_start,
+            request.page_limit
+        );
+        const queryString = util.getQueryString('ds_p1_form_entity_mapping_select', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    fieldData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, fieldData];
+    }
+
+    this.workforceFormFieldMappingSelectForm = async function (request) {
+
+        let formFieldData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.form_id,
+            request.datetime,
+            request.page_start,
+            request.page_limit
+        );
+        const queryString = util.getQueryString('ds_v1_workforce_form_field_mapping_select', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    if (data.length > 0) {
+                        //console.log(data);
+                        formatFromsListing(-1, data, function (err, finalData) {
+                            if (err === false) {
+                                formFieldData = finalData;
+                                error = false;
+                            }
+                        });
+                    }else{                        
+                        error = false;
+                    }
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, formFieldData];
     }
 
 }
