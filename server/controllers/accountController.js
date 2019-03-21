@@ -249,13 +249,21 @@ function AccountController(objCollection) {
     //Send SMS
     app.post('/' + global.config.version + '/account/send/sms', function (req, res) {
         var request = req.body;
+        let senderId;
         // console.log('Request params : ', request);
         global.logger.write('debug', 'Request params: ' + JSON.stringify(request, null, 2), {}, request);
 
         /*var text = "Hey "+ request.receiver_name +" , "+ request.sender_name+" has requested your participation in "+request.task_title+" using the Desker App, ";
             text += "it's due by " + request.due_date + ". Download the App from http://desker.co/download.";*/
 
-        util.sendSmsSinfini(request.message, request.country_code, request.phone_number, function (err, response) {
+        switch(Number(request.organization_id)) {
+            case 868: senderId = 'MYTONY';
+                       break;
+            default: senderId = 'DESKER';
+                      break;
+        }
+        
+        util.sendSmsSinfiniV1(request.message, request.country_code, request.phone_number, senderId, function (err, response) {
             // console.log(err,'\n',res);
             global.logger.write('debug', 'Sinfini Error: ' + JSON.stringify(err, null, 2), {}, request);
             global.logger.write('debug', 'Sinfini Response: ' + JSON.stringify(response, null, 2), {}, request);
