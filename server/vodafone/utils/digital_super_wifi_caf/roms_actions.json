@@ -26,15 +26,23 @@
             "SOURCE_FIELD_IDS": [12604, 12605],
             "TARGET_FIELD_ID": 12606,
             "VALUE": 0
-        }, {
-            "SOURCE_FIELD_IDS": [12607, 12608],
-            "TARGET_FIELD_ID": 12609,
-            "VALUE": 0
         }]
     },
     {
         "ACTION": "sum",
         "BATCH": [{
+            "SOURCE_FIELD_IDS": [12595, 12598, 12601, 12604],
+            "TARGET_FIELD_ID": 12607,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [12596, 12599, 12602, 12605],
+            "TARGET_FIELD_ID": 12608,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [12607, 12608],
+            "TARGET_FIELD_ID": 12609,
+            "VALUE": 0
+        }, {
             "SOURCE_FIELD_IDS": [12597, 12600, 12603, 12606, 12609],
             "TARGET_FIELD_ID": 12610,
             "VALUE": 0

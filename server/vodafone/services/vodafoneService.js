@@ -2617,10 +2617,9 @@ function VodafoneService(objectCollection) {
                     accumulateUpdatedFields(ROMS_CAF_FIELDS_DATA[index], calculatedValuesJSON.totalAmountPayableGrandTotal);
                     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.totalAmountPayableGrandTotal;
                     break;
-                    // case 5780: // LIVE | Total Order Value
-                    // case 6048: // BETA | Total Order Value
-                    //     ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.serviceRentalGrandTotal;
-                    //     break;
+                case 7200: // Platform | Total Order Value
+                    ROMS_CAF_FIELDS_DATA[index].field_value = calculatedValuesJSON.totalAmountPayableGrandTotal;
+                    break;
                 case 5705: // LIVE | Account Manager Name
                 case 5973: // BETA | Account Manager Name
                 case 7125: // Platform | Account Manager Name
@@ -4243,6 +4242,7 @@ function VodafoneService(objectCollection) {
 
         // Fetch the target form's field sequence data
         let fieldSequenceIdMap = {};
+        let targetFormName = '';
         await activityCommonService
             .getFormFieldMappings(request, TARGET_FORM_ID, 0, 500)
             .then((data) => {
@@ -4251,6 +4251,9 @@ function VodafoneService(objectCollection) {
                     data.forEach(formMappingEntry => {
                         fieldSequenceIdMap[formMappingEntry.field_id] = Number(formMappingEntry.field_sequence_id);
                     });
+
+                    // Get the target form's name as well
+                    targetFormName = data[0].form_name;
                 }
             });
 
@@ -4280,8 +4283,8 @@ function VodafoneService(objectCollection) {
             asset_id: 31993,
             asset_token_auth: "c15f6fb0-14c9-11e9-8b81-4dbdf2702f95",
             asset_message_counter: 0,
-            activity_title: "Digital MPLS CRF",
-            activity_description: "Digital MPLS CRF",
+            activity_title: targetFormName || "Digital CAF/CRF",
+            activity_description: "",
             activity_inline_data: JSON.stringify(targetFormData),
             activity_datetime_start: util.getCurrentUTCTime(),
             activity_datetime_end: util.getCurrentUTCTime(),
