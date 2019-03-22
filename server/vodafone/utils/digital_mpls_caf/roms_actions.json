@@ -1,0 +1,155 @@
+[{
+        "ACTION": "set_static_value",
+        "BATCH": [{
+            "TARGET_FIELD_ID": 6988,
+            "VALUE": "---"
+        }, {
+            "TARGET_FIELD_ID": 7126,
+            "VALUE": "Mumbai Circle - Account Managers"
+        }]
+
+    }, {
+        "ACTION": "sum",
+        "BATCH": [{
+                "SOURCE_FIELD_IDS": [7143, 7144, 7145],
+                "TARGET_FIELD_ID": 7146,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [7147, 7148],
+                "TARGET_FIELD_ID": 7149,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [7150, 7151],
+                "TARGET_FIELD_ID": 7152,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [7153, 7154],
+                "TARGET_FIELD_ID": 7155,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [7156, 7157],
+                "TARGET_FIELD_ID": 7158,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [7159, 7160],
+                "TARGET_FIELD_ID": 7161,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [7162, 7163, 7164],
+                "TARGET_FIELD_ID": 7165,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [7166, 7167, 7168],
+                "TARGET_FIELD_ID": 7169,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [7170, 7171, 7172],
+                "TARGET_FIELD_ID": 7173,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [7174, 7175, 7176],
+                "TARGET_FIELD_ID": 7177,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [7178, 7179, 7180],
+                "TARGET_FIELD_ID": 7181,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [7182, 7183, 7184],
+                "TARGET_FIELD_ID": 7185,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [7186, 7187, 7188],
+                "TARGET_FIELD_ID": 7189,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [7190, 7191],
+                "TARGET_FIELD_ID": 7193,
+                "VALUE": 0
+            },
+            {
+                "SOURCE_FIELD_IDS": [7194],
+                "TARGET_FIELD_ID": 7195,
+                "VALUE": 0
+            }
+        ]
+    },
+    {
+        "ACTION": "sum",
+        "BATCH": [{
+            "SOURCE_FIELD_IDS": [
+                7143, 7147, 7150, 7153,
+                7156, 7159, 7162, 7166,
+                7170, 7174, 7178, 7182,
+                7186, 7190, 7194
+            ],
+            "TARGET_FIELD_ID": 7196,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [
+                7144, 7148, 7151, 7154,
+                7157, 7160, 7163, 7167,
+                7171, 7175, 7179, 7183,
+                7187, 7191
+            ],
+            "TARGET_FIELD_ID": 7197,
+            "VALUE": 0
+        }]
+    },
+    {
+        "ACTION": "sum",
+        "BATCH": [{
+            "SOURCE_FIELD_IDS": [7196, 7197],
+            "TARGET_FIELD_ID": 7248,
+            "VALUE": 0
+        }, {
+            "SOURCE_FIELD_IDS": [7196, 7197],
+            "TARGET_FIELD_ID": 7200,
+            "VALUE": 0
+        }]
+    }, {
+        "ACTION": "set_date",
+        "BATCH": [{
+            "TARGET_FIELD_ID": 7123,
+            "TZ_OFFSET": "+05:30"
+        }]
+    },
+    {
+        "ACTION": "set_participant_name",
+        "BATCH": [{
+            "TARGET_FIELD_ID": 7125,
+            "ASSET_TYPE_ID": 127254
+        }]
+    },
+    {
+        "ACTION": "check_and_set_annexure_defaults",
+        "BATCH": [{
+            "SOURCE_FORM_ID": 1068,
+            "SOURCE_FIELD_ID": 11182,
+            "TARGET_FIELD_IDS": [
+                7010, 7011, 7012, 7013,
+                7014, 7015, 7016, 7017,
+                7018, 7496, 7030, 7007,
+                7019, 7020, 7021, 7032,
+                7035, 7076, 7086, 7088,
+                7093, 7143, 7144, 7145,
+                7146, 7196, 7197, 7248,
+                7200
+            ],
+            "VALUE": "As Per CAF Annexure"
+        }]
+    }
+]
