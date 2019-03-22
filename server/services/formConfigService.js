@@ -1131,11 +1131,11 @@ function FormConfigService(objCollection) {
 
                     formFields = JSON.parse(request.form_fields);
 
-                    formFields.unshift({
+                    /*formFields.unshift({
                         label: request.form_name,
                         description: 'Form Name',
                         datatypeid: 19
-                    });
+                    });*/
 
                     for (const formField of formFields) {
                         let fieldName = (typeof formField.label == 'undefined') ? formField.title : formField.label;
