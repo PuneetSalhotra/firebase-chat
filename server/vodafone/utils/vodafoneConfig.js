@@ -51,6 +51,12 @@ const digitalSuperWiFiCafLabels = require("./digital_super_wifi_caf/labels.json"
 const digitalSuperWiFiCafRoms = require("./digital_super_wifi_caf/roms.json");
 const digitalSuperWiFiCafRomsActions = require("./digital_super_wifi_caf/roms_actions.json");
 
+// New FLD - MPLS CAF - 134562
+const digitalMplsCafMappings = require("./digital_mpls_caf/mappings.json");
+const digitalMplsCafLabels = require("./digital_mpls_caf/labels.json");
+const digitalMplsCafRoms = require("./digital_mpls_caf/roms.json");
+const digitalMplsCafRomsActions = require("./digital_mpls_caf/roms_actions.json");
+
 vodafoneConfig = {
     "860": {
         "NAME": "Vodafone Idea | Production | BETA",
@@ -320,5 +326,14 @@ vodafoneConfig = {
         "LABELS": digitalSuperWiFiCafLabels,
         "ROMS": digitalSuperWiFiCafRoms,
         "ROMS_ACTIONS": digitalSuperWiFiCafRomsActions
+    },
+    "134562": {
+        "REQUIRED_FORMS": [1055],
+        "TARGET_FORM_ID": 1058,
+        "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
+        "FORM_FIELD_MAPPING_DATA": digitalMplsCafMappings,
+        "LABELS": digitalMplsCafLabels,
+        "ROMS": digitalMplsCafRoms,
+        "ROMS_ACTIONS": digitalMplsCafRomsActions
     }
 };

@@ -12,6 +12,7 @@ function AccountController(objCollection) {
     var responseWrapper = objCollection.responseWrapper;
     var app = objCollection.app;
     var util = objCollection.util;
+    const db = objCollection.db;
     var accountService = new AccountService(objCollection);
 
     app.post('/' + global.config.version + '/account/access/admin-asset/list', function (req, res) {
@@ -247,28 +248,27 @@ function AccountController(objCollection) {
     });
 
     //Send SMS
-    app.post('/' + global.config.version + '/account/send/sms', function (req, res) {
-        var request = req.body;
-        let senderId;
-        // console.log('Request params : ', request);
-        global.logger.write('debug', 'Request params: ' + JSON.stringify(request, null, 2), {}, request);
+    app.post('/' + global.config.version + '/account/send/sms', async (req, res) => {
+        let request = req.body;
+        
+        global.logger.write('debug', 'Request params: ' + JSON.stringify(request, null, 2), {}, request);         
+        
+        let paramsArr = new Array(request.organization_id);        
+        let queryString = util.getQueryString('ds_p1_organization_list_select', paramsArr);
+        let result, senderId;
 
-        /*var text = "Hey "+ request.receiver_name +" , "+ request.sender_name+" has requested your participation in "+request.task_title+" using the Desker App, ";
-            text += "it's due by " + request.due_date + ". Download the App from http://desker.co/download.";*/
-
-        switch(Number(request.organization_id)) {
-            case 868: senderId = 'MYTONY';
-                       break;
-            default: senderId = 'DESKER';
-                      break;
+        if (queryString != '') {                
+            result = await (db.executeQueryPromise(1, queryString, request));
         }
+
+        (result.length > 0) ? senderId = result[0].organization_text_sender_name : senderId = 'MYTONY';        
         
         util.sendSmsSinfiniV1(request.message, request.country_code, request.phone_number, senderId, function (err, response) {
             // console.log(err,'\n',res);
             global.logger.write('debug', 'Sinfini Error: ' + JSON.stringify(err, null, 2), {}, request);
             global.logger.write('debug', 'Sinfini Response: ' + JSON.stringify(response, null, 2), {}, request);
             res.send(responseWrapper.getResponse(false, {}, 200, req.body));
-        });
+        });       
 
     });
 
