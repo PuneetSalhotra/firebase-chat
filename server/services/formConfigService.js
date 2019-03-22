@@ -1907,7 +1907,7 @@ function FormConfigService(objCollection) {
             formWorkflowActivityTypeId = formConfigData[0].form_workflow_activity_type_id;
             console.log("formWorkflowActivityTypeId: ", formWorkflowActivityTypeId);
 
-            if (Number(formWorkflowActivityTypeId) !== 134562) {
+            if (Number(formWorkflowActivityTypeId) !== 0) {
                 // 713 timeline entry on the workflow file
                 try {
                     const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
