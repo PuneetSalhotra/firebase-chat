@@ -263,8 +263,6 @@ function ActivityTimelineService(objectCollection) {
                 //     }
                 // });
             }
-                });
-            }
             //
             // 
             // [VODAFONE] Provided the form file has submissions for New Order, FR, CRM and HLD, 
