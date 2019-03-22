@@ -613,20 +613,20 @@ function FormConfigService(objCollection) {
 
                             // console.log("[regenerateAndSubmitCAF] Calling regenerateAndSubmitCAF");
 
-                            queueWrapper.raiseActivityEvent(rebuildCafEvent, request.activity_id, (err, resp) => {
-                                if (err) {
-                                    global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                                    throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
-                                } else {
-                                    global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                                    global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                            // queueWrapper.raiseActivityEvent(rebuildCafEvent, request.activity_id, (err, resp) => {
+                            //     if (err) {
+                            //         global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                            //         throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+                            //     } else {
+                            //         global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                            //         global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
 
-                                    // Fire 713 addTimelineTransaction entry for the incoming dedicated form
-                                    // ...
-                                    fire713OnNewOrderFileForDedicatedFile(request).then(() => {});
+                            //         // Fire 713 addTimelineTransaction entry for the incoming dedicated form
+                            //         // ...
+                            //         fire713OnNewOrderFileForDedicatedFile(request).then(() => {});
 
-                                }
-                            });
+                            //     }
+                            // });
                         }
 
                         // [Vodafone] New order 713 entry trigger point for non-CAF-impacting forms 
