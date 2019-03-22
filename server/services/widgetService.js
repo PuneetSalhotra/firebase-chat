@@ -676,7 +676,7 @@ function WidgetService(objCollection) {
                         error = err;
                     })
             }
-            return [error, responseData];
+            return responseData;
         } catch (error) {
             return Promise.reject(error);
         }
@@ -712,7 +712,7 @@ function WidgetService(objCollection) {
                         error = err;
                     })
             }
-            return [error, responseData];
+            return responseData;
 
         } catch (error) {
             return Promise.reject(error);
