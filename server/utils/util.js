@@ -47,7 +47,7 @@ const mysql = require('mysql');
 function Util() {
 
     this.getSMSString = function (verificationCode) {
-        var msg_body = "Desker : Use " + verificationCode + " as verification code for registering the Desker App .";
+        var msg_body = "MyTony : Use " + verificationCode + " as verification code for registering the MyTony App .";
         return (msg_body);
     };
 
@@ -84,7 +84,7 @@ function Util() {
     this.sendSmsMvaayoo = function (messageString, countryCode, phoneNumber, callback) {
         //        console.log("inside sendSmsMvaayoo");
         messageString = encodeURI(messageString);
-        var url = "http://api.mvaayoo.com/mvaayooapi/MessageCompose?user=junaid.m@grene.in:greneapple&senderID=DESKER&receipientno=" + countryCode + "" + phoneNumber + "&dcs=0&msgtxt=" + messageString + "&state=4";
+        var url = "http://api.mvaayoo.com/mvaayooapi/MessageCompose?user=junaid.m@grene.in:greneapple&senderID=MYTONY&receipientno=" + countryCode + "" + phoneNumber + "&dcs=0&msgtxt=" + messageString + "&state=4";
 
         request(url, function (error, response, body) {
             var res = {};
@@ -145,7 +145,7 @@ function Util() {
     this.sendSmsSinfini = function (messageString, countryCode, phoneNumber, callback) {
         messageString = encodeURI(messageString);
         //var url = "http://api-alerts.solutionsinfini.com/v3/?method=sms&api_key=A85da7898dc8bd4d79fdd62cd6f5cc4ec&to=" + countryCode + "" + phoneNumber + "&sender=BLUFLK&format=json&message=" + messageString;
-        var url = "http://api-alerts.solutionsinfini.com/v3/?method=sms&api_key=A9113d0c40f299b66cdf5cf654bfc61b8&to=" + countryCode + "" + phoneNumber + "&sender=DESKER&format=json&message=" + messageString;
+        var url = "http://api-alerts.solutionsinfini.com/v3/?method=sms&api_key=A9113d0c40f299b66cdf5cf654bfc61b8&to=" + countryCode + "" + phoneNumber + "&sender=MYTONY&format=json&message=" + messageString;
         //console.log(url);
         global.logger.write('debug', url, {}, {});
         request(url, function (error, response, body) {
