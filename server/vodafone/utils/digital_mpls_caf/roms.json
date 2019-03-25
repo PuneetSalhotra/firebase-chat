@@ -1,16 +1,5 @@
 [{
         "form_id": 1058,
-        "field_id": 6988,
-        "field_name": "CAF ID",
-        "field_data_type_id": 5,
-        "field_data_type_category_id": 2,
-        "data_type_combo_id": 0,
-        "data_type_combo_value": "0",
-        "field_value": "",
-        "message_unique_id": "313591541834883314219"
-    },
-    {
-        "form_id": 1058,
         "field_id": 7136,
         "field_name": "If Others(mention here)",
         "field_data_type_id": 19,
