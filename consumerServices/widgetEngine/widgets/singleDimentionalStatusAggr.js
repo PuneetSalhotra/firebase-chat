@@ -14,140 +14,145 @@ class SingleDimensionalStatusAggrWidget extends WidgetBase {
     }
 
     aggregateAndSaveTransaction(formSubmissionDate, data) {
-        console.log(' data.source_id :: '+data.source_id);
-        
-        if(data.source_id === 2 || data.source_id === 3){
+        console.log(' data.source_id :: ' + data.source_id);
 
-        let activityQueryData = {
-            start: formSubmissionDate.startDate,
-            end: formSubmissionDate.endDate,
-            form_id: this.form.id,
-            widget_access_level_id: this.rule.widget_access_level_id,
-            asset_type_id: 0,
-            widget_id: this.rule.widget_id,
-            date: formSubmissionDate.valueInRuleTimeZone
-        };
+        if (data.source_id === 2 || data.source_id === 3) {
 
-        activityQueryData = _.merge(activityQueryData, data);
-        var array = [];
-        var array2 = [];
-       /* const widgetTransactionSvc1 = this.services.widgetTransaction;
-        widgetTransactionSvc1.getWidgetTxnsOfAWidget(activityQueryData).then((txns) => {
-            console.log('txns :: '+txns);
-            forEachAsync(txns, (next, row) => {
-                array.push(row.widget_axis_x_index);
-                next();
-            }).then(() => {  */
+            let activityQueryData = {
+                start: formSubmissionDate.startDate,
+                end: formSubmissionDate.endDate,
+                form_id: this.form.id,
+                widget_access_level_id: this.rule.widget_access_level_id,
+                asset_type_id: 0,
+                widget_id: this.rule.widget_id,
+                date: formSubmissionDate.valueInRuleTimeZone
+            };
 
-                if(data.source_id == 2){
+            activityQueryData = _.merge(activityQueryData, data);
+            var array = [];
+            var array2 = [];
+            /* const widgetTransactionSvc1 = this.services.widgetTransaction;
+             widgetTransactionSvc1.getWidgetTxnsOfAWidget(activityQueryData).then((txns) => {
+                 console.log('txns :: '+txns);
+                 forEachAsync(txns, (next, row) => {
+                     array.push(row.widget_axis_x_index);
+                     next();
+                 }).then(() => {  */
 
-                    let activityQueryData = {            
-                        entity_id: this.rule.widget_entity2_id
-                    };
-                    activityQueryData = _.merge(activityQueryData, data);
+            if (data.source_id == 2) {
+
+                let activityQueryData = {
+                    entity_id: this.rule.widget_entity2_id
+                };
+                activityQueryData = _.merge(activityQueryData, data);
 
 
-                    this.services.activityListService.wait(500);
+                this.services.activityListService.wait(10000).then(() => {
+                    console.log(' WAIT :: ', this.rule.widget_id);
 
                     this.services.activityFormTransactionAnalytics.getWorkflowActivityId(data)
-                    .then((worlflowData)=>{
-                        console.log(' worlflowData :: '+worlflowData[0].activity_id);
+                        .then((worlflowData) => {
 
-                        this.services.activityFormTransactionAnalytics.getFieldLatest(activityQueryData)
-                        .then((fieldData) => {
-                            if(fieldData.length > 0){
-                                let transactionValue = 0;
+                            console.log(' worlflowData Length :: ' + worlflowData.length);
+                            console.log(' worlflowData :: ' + worlflowData[0].activity_id);
 
-                                if(fieldData[0].data_type_id == 5)
-                                    transactionValue = fieldData[0] ? fieldData[0].data_entity_bigint_1 : undefined;
-                                else if(fieldData[0].data_type_id == 6)
-                                    transactionValue = fieldData[0] ? fieldData[0].data_entity_double_1 : undefined;
+                            this.services.activityFormTransactionAnalytics.getFieldLatest(activityQueryData)
+                                .then((fieldData) => {
+                                    if (fieldData.length > 0) {
+                                        let transactionValue = 0;
 
-                                console.log(' transactionValue :: '+transactionValue);
-                                let intermediateData = {      
-                                            widget_id: this.rule.widget_id,      
+                                        if (fieldData[0].data_type_id == 5)
+                                            transactionValue = fieldData[0] ? fieldData[0].data_entity_bigint_1 : undefined;
+                                        else if (fieldData[0].data_type_id == 6)
+                                            transactionValue = fieldData[0] ? fieldData[0].data_entity_double_1 : undefined;
+
+                                        console.log(' transactionValue :: ' + transactionValue);
+                                        let intermediateData = {
+                                            widget_id: this.rule.widget_id,
                                             field_id: this.rule.widget_entity2_id,
                                             field_value: transactionValue,
-                                           // activity_id: worlflowData[0].activity_id
-                                     };
-                                     data['workflow_activity_id']= worlflowData[0].activity_id;
-                                    
+                                            // activity_id: worlflowData[0].activity_id
+                                        };
+                                        data['workflow_activity_id'] = worlflowData[0].activity_id;
 
-                                intermediateData = _.merge(intermediateData, data);
-                                
-                                this.services.activityListService.insertUpdate(intermediateData)
-                                  .then((statuses) => {
-                        /*
-                        forEachAsync(statuses, (next2, rowData2) => {
-                            array2.push(rowData2.activity_status_id);
-                            next2();
-                        }).then(() => {
-                            var diffArray = [];
-                            forEachAsync(array, (n, x) => {
-                            global.logger.write('debug', 'Distribution: WidgetId : ' + this.rule.widget_id + " : " + x + " includes" + array2.includes(x), {}, data);
-                            if (array2.includes(x) == false) {
-                                diffArray.push(x);
-                                var obj = {};
-                                obj.aggr_value = 0;
-                                obj.activity_status_id = x;
-                                obj.activity_status_name = '';
-                                statuses.push(obj);
-                                n();
-                            } else {
-                                n();
-                            }
 
-                        }).then(() => {
-                            //global.logger.write('debug', 'Distribution: WidgetId : ' + this.rule.widget_id + " StatusJsonData: " + JSON.stringify(result), {}, data);
-                            forEachAsync(statuses, (next, rowData) => {
-                                console.log(rowData)
-                                const aggr_value = rowData ? rowData.aggr_value : 0;
-                                let widgetData = {
-                                    date: formSubmissionDate.valueInRuleTimeZone,
-                                    count: aggr_value,
-                                    widget_id: this.rule.widget_id,
-                                    period_flag: this.getPeriodFlag(),
-                                    widget_access_level_id: this.rule.widget_access_level_id,
-                                    activity_status_id: rowData.activity_status_id,
-                                    activity_status_name: rowData.activity_status_name
-                                };
-                                //array2.push(rowData.activity_status_id);
+                                        intermediateData = _.merge(intermediateData, data);
 
-                                //console.log("Distribution: WidgetId: " + this.rule.widget_id + " : StatusId: " + rowData.activity_status_id + " : StatusName: " + rowData.activity_status_name + " : " + aggr_value);
+                                        this.services.activityListService.insertUpdate(intermediateData)
+                                            .then((statuses) => {
+                                                /*
+                                                forEachAsync(statuses, (next2, rowData2) => {
+                                                    array2.push(rowData2.activity_status_id);
+                                                    next2();
+                                                }).then(() => {
+                                                    var diffArray = [];
+                                                    forEachAsync(array, (n, x) => {
+                                                    global.logger.write('debug', 'Distribution: WidgetId : ' + this.rule.widget_id + " : " + x + " includes" + array2.includes(x), {}, data);
+                                                    if (array2.includes(x) == false) {
+                                                        diffArray.push(x);
+                                                        var obj = {};
+                                                        obj.aggr_value = 0;
+                                                        obj.activity_status_id = x;
+                                                        obj.activity_status_name = '';
+                                                        statuses.push(obj);
+                                                        n();
+                                                    } else {
+                                                        n();
+                                                    }
 
-                                widgetData = _.merge(widgetData, data);
+                                                }).then(() => {
+                                                    //global.logger.write('debug', 'Distribution: WidgetId : ' + this.rule.widget_id + " StatusJsonData: " + JSON.stringify(result), {}, data);
+                                                    forEachAsync(statuses, (next, rowData) => {
+                                                        console.log(rowData)
+                                                        const aggr_value = rowData ? rowData.aggr_value : 0;
+                                                        let widgetData = {
+                                                            date: formSubmissionDate.valueInRuleTimeZone,
+                                                            count: aggr_value,
+                                                            widget_id: this.rule.widget_id,
+                                                            period_flag: this.getPeriodFlag(),
+                                                            widget_access_level_id: this.rule.widget_access_level_id,
+                                                            activity_status_id: rowData.activity_status_id,
+                                                            activity_status_name: rowData.activity_status_name
+                                                        };
+                                                        //array2.push(rowData.activity_status_id);
 
-                                var msg = {};
-                                msg.type = "file_status_show_widget_count";
-                                msg.form_id = data.form_id;
-                                msg.widget_id = widgetData.widget_id;
+                                                        //console.log("Distribution: WidgetId: " + this.rule.widget_id + " : StatusId: " + rowData.activity_status_id + " : StatusName: " + rowData.activity_status_name + " : " + aggr_value);
 
-                                console.log(' aggr_value '+aggr_value);
+                                                        widgetData = _.merge(widgetData, data);
 
-                                if (aggr_value >= 0) {
-                                    return this.createOrUpdateWidgetTransaction(widgetData, msg, data.organization_id).then(() => {
-                                        next();
-                                    })
-                                } else {
-                                    next();
-                                }
-                            }).then(() => {
+                                                        var msg = {};
+                                                        msg.type = "file_status_show_widget_count";
+                                                        msg.form_id = data.form_id;
+                                                        msg.widget_id = widgetData.widget_id;
 
-                                global.logger.write('debug', 'Distribution: WidgetId : ' + this.rule.widget_id + ' Done', {}, data);
-                            });
+                                                        console.log(' aggr_value '+aggr_value);
 
-                        })*/
-                    });  
-                  }else{
-                    global.logger.write('debug', 'NO DATA FOR : ' + this.rule.widget_id + ' Done', {}, data);
-                    }
-                })
-            })
-           // })
-        } // end of data_source_id == 2
+                                                        if (aggr_value >= 0) {
+                                                            return this.createOrUpdateWidgetTransaction(widgetData, msg, data.organization_id).then(() => {
+                                                                next();
+                                                            })
+                                                        } else {
+                                                            next();
+                                                        }
+                                                    }).then(() => {
 
-}
-}
+                                                        global.logger.write('debug', 'Distribution: WidgetId : ' + this.rule.widget_id + ' Done', {}, data);
+                                                    });
+
+                                                })*/
+                                            });
+                                    } else {
+                                        global.logger.write('debug', 'NO DATA FOR : ' + this.rule.widget_id + ' Done', {}, data);
+                                    }
+                                })
+                        })
+
+                });
+                // })
+            } // end of data_source_id == 2
+
+        }
+    }
 
 
     createOrUpdateWidgetTransaction(widgetData, msg, organizationId) {
