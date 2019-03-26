@@ -4126,7 +4126,7 @@ function VodafoneService(objectCollection) {
             request.hasOwnProperty("non_dedicated_file") &&
             Number(request.non_dedicated_file) === 1
         ) {
-            request.form_id = Number(request.activity_form_id);
+            request.form_id = Number(request.form_id || request.activity_form_id);
             console.log("TargetFormExists", targetFormExists);
             await self.regenerateAndSubmitTargetForm(request);
             return [new Error("TargetFormExists"), []];
