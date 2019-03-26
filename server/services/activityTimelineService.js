@@ -117,24 +117,31 @@ function ActivityTimelineService(objectCollection) {
             request.non_dedicated_file = 1;
             
             setTimeout(() => {
-                getActivityIdBasedOnTransId(request).then((data) => {
-                    if (data.length > 0) {
-                        request.data_activity_id = Number(data[0].activity_id);
-                    }
-                    timelineStandardCalls(request).then(() => {}).catch((err) => {
-                        global.logger.write('debug', 'Error in timelineStandardCalls' + err, {}, request);
+                getActivityIdBasedOnTransId(request)
+                    .then(async (data) => {
+                        if (data.length > 0) {
+                            request.data_activity_id = Number(data[0].activity_id);
+                        }
+                        await timelineStandardCalls(request)
+                            .then(() => {})
+                            .catch((err) => {
+                                global.logger.write('debug', 'Error in timelineStandardCalls' + err, {}, request);
+                            });
+                        
+                        // [VODAFONE]
+                        if (activityStreamTypeId === 705) {
+                            try {
+                                let targetFormGenerationRequest = Object.assign({}, request);
+                                targetFormGenerationRequest.workflow_activity_id = Number(request.activity_id)
+                                initiateTargetFormGeneration(targetFormGenerationRequest);
+                            } catch (error) {
+                                console.log("Error firing initiateTargetFormGeneration: ", error);
+                            }
+                        }
+                        // 
                     });
-                });
             }, 1000);
 
-            // getActivityIdBasedOnTransId(request).then((data)=>{
-            //     if(data.length > 0) {
-            //         request.data_activity_id = Number(data[0].activity_id);
-            //     }
-            //     timelineStandardCalls(request).then(() => {}).catch((err) => {
-            //         global.logger.write('debug', 'Error in timelineStandardCalls' + err, {}, request);
-            //     });
-            // });
         } else {
             
             request.form_id = 0;            
@@ -150,6 +157,33 @@ function ActivityTimelineService(objectCollection) {
         });
         //callback(false, {}, 200);
     };
+
+    // [VODAFONE]
+    function initiateTargetFormGeneration(request) {
+        // Process/Workflow ROMS Target Form Generation Trigger
+        if (
+            Number(request.activity_stream_type_id) === 705 &&
+            request.hasOwnProperty("workflow_activity_id") &&
+            Number(request.workflow_activity_id) !== 0
+        ) {
+            console.log('CALLING buildAndSubmitCafFormV1');
+            const romsTargetFormGenerationEvent = {
+                name: "vodafoneService",
+                service: "vodafoneService",
+                method: "buildAndSubmitCafFormV1",
+                payload: request
+            };
+            queueWrapper.raiseActivityEvent(romsTargetFormGenerationEvent, request.activity_id, (err, resp) => {
+                if (err) {
+                    global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                    global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                } else {
+                    global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                    global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                }
+            });
+        }
+    }
     
     function retrievingFormIdandProcess(request, data) {
         return new Promise((resolve, reject)=>{
@@ -353,28 +387,28 @@ function ActivityTimelineService(objectCollection) {
             }
 
             // Process/Workflow ROMS Target Form Generation Trigger
-            if (
-                activityStreamTypeId === 705 &&
-                request.hasOwnProperty("workflow_activity_id") &&
-                Number(request.workflow_activity_id) !== 0
-            ) {
-                console.log('CALLING buildAndSubmitCafFormV1');
-                const romsTargetFormGenerationEvent = {
-                    name: "vodafoneService",
-                    service: "vodafoneService",
-                    method: "buildAndSubmitCafFormV1",
-                    payload: request
-                };
-                queueWrapper.raiseActivityEvent(romsTargetFormGenerationEvent, request.activity_id, (err, resp) => {
-                    if (err) {
-                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
-                    } else {
-                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
-                    }
-                });
-            }
+            // if (
+            //     activityStreamTypeId === 705 &&
+            //     request.hasOwnProperty("workflow_activity_id") &&
+            //     Number(request.workflow_activity_id) !== 0
+            // ) {
+            //     console.log('CALLING buildAndSubmitCafFormV1');
+            //     const romsTargetFormGenerationEvent = {
+            //         name: "vodafoneService",
+            //         service: "vodafoneService",
+            //         method: "buildAndSubmitCafFormV1",
+            //         payload: request
+            //     };
+            //     queueWrapper.raiseActivityEvent(romsTargetFormGenerationEvent, request.activity_id, (err, resp) => {
+            //         if (err) {
+            //             global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+            //             global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+            //         } else {
+            //             global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+            //             global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+            //         }
+            //     });
+            // }
             
             timelineStandardCalls(request).then(() => {}).catch((err) => {
                 global.logger.write('debug', 'Error in timelineStandardCalls' + err, {}, request);
