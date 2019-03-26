@@ -30,7 +30,8 @@ function ActivityTimelineService(objectCollection) {
         if (activityTypeCategoryId === 9 && activityStreamTypeId === 705) {   // add form case
             
             setTimeout(()=>{
-                getActivityIdBasedOnTransId(request).then((data)=>{
+                getActivityIdBasedOnTransId(request)
+                .then(async (data)=>{
                 if(data.length > 0) {
                     
                     //act id in request is different from retrieved one
@@ -48,9 +49,27 @@ function ActivityTimelineService(objectCollection) {
                         //retrievingFormIdandProcess(request, data).then(()=>{});                   
                         if(Number(request.organization_id) === 860 || Number(request.organization_id) === 858 ||
                             Number(request.organization_id) === 868) { 
-                            retrievingFormIdandProcess(request, data).then(()=>{});
+                            await retrievingFormIdandProcess(request, data).then(()=>{});
+                            
+                            // [VODAFONE] Patch | Needs to be removed eventually
+                            if (
+                                Number(request.activity_stream_type_id) === 705 &&
+                                request.hasOwnProperty("workflow_activity_id") &&
+                                Number(request.workflow_activity_id) !== 0 &&
+                                Number(request.workflow_activity_id) === Number(request.activity_id)
+                            ) {
+                                try {
+                                    let targetFormGenerationRequest = Object.assign({}, request);
+                                    targetFormGenerationRequest.workflow_activity_id = Number(request.activity_id)
+                                    initiateTargetFormGeneration(targetFormGenerationRequest);
+                                } catch (error) {
+                                    console.log("[VODAFONE] Patch | Error firing initiateTargetFormGeneration: ", error);
+                                }
+                            }
                         } else {
-                            timelineStandardCalls(request).then(()=>{}).catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
+                            timelineStandardCalls(request)
+                            .then(()=>{})
+                            .catch((err)=>{ global.logger.write('debug', 'Error in timelineStandardCalls' + err,{}, request);});
                         }
                         
                     } else {
