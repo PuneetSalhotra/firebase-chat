@@ -1966,7 +1966,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
             var paramsArr = new Array(
                 request.activity_type_id,
                 request.organization_id,
-                0, //update type id
+                request.update_type_id || 0, //update type id
                 request.datetime_log
                 );
             var queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_history_insert', paramsArr);
@@ -3457,7 +3457,8 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
 								final_price:final_price,
 								log_datetime:request.datetime_log,
 								log_asset_id:rowData1.log_asset_id,
-								log_asset_first_name:rowData1.log_asset_first_name
+                                log_asset_first_name:rowData1.log_asset_first_name,
+                                option_id: JSON.parse(rowData1.activity_inline_data).option_id
 							};
 						
 						pamOrderInsert(request, attributeArray).then(()=>{
@@ -3522,7 +3523,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
 								attributeArray.tax_percent=choice_tax;
 								attributeArray.tax=choice_tax_amount;
 								attributeArray.final_price=choice_final_price;
-								
+								attributeArray.option_id=1;
 								pamOrderInsert(request, attributeArray).then(()=>{
 									global.logger.write('conLog', 'OrderId ' + rowData1.activity_id + '-' + choiceData.activity_id + ' : ' + choice_final_price, {}, request);
 									next2();
@@ -3585,7 +3586,16 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
    function pamOrderInsert(request, attributeArray){
     	return new Promise((resolve, reject)=>{
 	    	if(request.hasOwnProperty('is_insert')){
-	    		pamOrderListInsert(request, attributeArray).then(()=>{resolve();})
+	    		pamOrderListInsert(request, attributeArray).then(() => {
+	    		    if (attributeArray.order_status_type_id != 126 && attributeArray.order_status_type_id != 139) {
+	    		        insertOrderIngredients(request, attributeArray, attributeArray.menu_id).then(() => {
+	    		            resolve();
+	    		        });
+	    		    } else {
+	    		        resolve();
+	    		    }
+
+	    		})
 	    	}else{
 	    		resolve();
 	    	}
@@ -3671,6 +3681,89 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
         }
     };
 
+    function getActivityParticipantsCategory(request, activityId, assetTypeCategoryId, optionId) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array();
+            var queryString = '';
+            paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                activityId,
+                assetTypeCategoryId,
+                optionId
+            );
+
+            queryString = 'pm_v1_activity_asset_mapping_select_participants_category';
+            db.executeRecursiveQuery(1, 0, 10, queryString, paramsArr, function (err, data) {
+                //console.log("err "+err);
+                if (err === false) {
+                    resolve(data);
+                } else {
+                    reject(err);
+                }
+            });
+        })
+
+    }
+
+    function insertOrderIngredients(request, attributeArray, menuActivityId) {
+        return new Promise((resolve, reject) => {
+            getActivityParticipantsCategory(request, menuActivityId, 41, attributeArray.option_id).then((ingredientObjectList) => { // ArrayofArrays
+                forEachAsync(ingredientObjectList, (Objectnext, ingredientList) => {
+                    forEachAsync(ingredientList, (Listnext, ingredientData) => {
+                            console.log('OrderId: ' + attributeArray.order_id + '; menuActivityId : ' + menuActivityId + '; ingredientData:' + ingredientData.asset_id + ' : ' + ingredientData.asset_first_name);
+                            pamOrderIngredientInsert(request, attributeArray, ingredientData).then(() => {
+                                console.log('ingredientData: Captured');
+                            }).then(() => {
+                                Listnext();
+                            });
+                        })
+                        .then(() => {
+                            Objectnext();
+                        });
+                }).then(() => {
+                    resolve();
+                });
+            });
+        });
+    }
+
+    function pamOrderIngredientInsert(request, attributeArray, ingredientData) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                attributeArray.event_id,
+                '',
+                null,
+                attributeArray.order_id,
+                attributeArray.menu_id,
+                attributeArray.order_name,
+                attributeArray.order_type_id,
+                attributeArray.order_type_name,
+                attributeArray.order_status_type_id,
+                attributeArray.order_status_type_name,
+                attributeArray.choices,
+                attributeArray.order_quantity,
+                ingredientData.asset_id,
+                ingredientData.activity_sub_type_id,
+                ingredientData.activity_sub_type_name,
+                (attributeArray.order_quantity * ingredientData.activity_sub_type_id),
+                request.datetime_log
+            )
+
+            var queryString = util.getQueryString("pm_v1_pam_order_ingredient_mapping_insert", paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    if (err === false) {
+                        resolve();
+                    } else {
+                        reject(err);
+                    }
+                });
+            }
+        });
+    }
 }
 ;
 
