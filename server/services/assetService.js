@@ -993,7 +993,7 @@ function AssetService(objectCollection) {
                             //console.log('Text: ' + text);
                             global.logger.write('debug', 'Text: ' + text, {}, request);
 
-                            util.makeCallNexmo(text, request.passcode, countryCode, phoneNumber, function (error, data) {
+                            util.makeCallNexmoV1(text, request.passcode, countryCode, phoneNumber, function (error, data) {
                                 if (error)
                                     console.log(error);
                                 console.log(data);

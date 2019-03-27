@@ -411,6 +411,68 @@ function Util() {
         });
     };
 
+    // No EFS in Mumbai region, so no shared file system between the two servers. Therefore, using s3 for storing
+    // and retrieving the JSON files
+    this.makeCallNexmoV1 = async function (messageString, passcode, countryCode, phoneNumber, callback) {
+        const nexmo = new Nexmo({
+            apiKey: global.config.nexmoAPIKey,
+            apiSecret: global.config.nexmoSecretKey,
+            applicationId: global.config.nexmpAppliationId,
+            privateKey: `${__dirname}/private.key`
+        });
+        const jsonText = [{
+            action: "talk",
+            voiceName: "Russell",
+            text: messageString
+        }];
+
+        global.logger.write('conLog', 'jsonText : ' + jsonText, {}, {});
+        // let answerUrl = 'http://f0ef1a18.ngrok.io/r1' + '/account/nexmo/v1/voice_' + passcode + '.json?file=voice_' + passcode + '.json';
+        let answerUrl = global.config.mobileBaseUrl + global.config.version + '/account/nexmo/v1/voice_' + passcode + '.json?file=voice_' + passcode + '.json';
+        global.logger.write('conLog', 'Answer Url : ' + answerUrl, {}, {});
+
+        await uploadJsonToS3({}, jsonText, 'nexmo', `voice_${passcode}`);
+
+        nexmo.calls.create({
+            from: {
+                type: 'phone',
+                number: 123456789
+            },
+            to: [{
+                type: 'phone',
+                number: countryCode + "" + phoneNumber,
+            }],
+            answer_url: [answerUrl]
+        }, (error, response) => {
+            if (error) {
+                console.error(error)
+                callback(true, error, -3502);
+            } else {
+                //console.log('makeCallNexmo response: ', response);
+                global.logger.write('debug', 'makeCallNexmo response: ' + JSON.stringify(response), {}, request);
+                callback(false, response, 200);
+            }
+        });
+        callback(false, "response Ben", 200);
+    };
+    async function uploadJsonToS3(request, jsonObject, folderName, jsonFileName) {
+        const s3 = new AWS.S3();
+        const uploadParams = {
+            Body: JSON.stringify(jsonObject),
+            Bucket: "worlddesk-passcode-voice",
+            Key: `${folderName}/${jsonFileName}.json`,
+            ContentType: 'application/json',
+            ACL: 'public-read'
+        };
+        const s3UploadPromise = s3.putObject(uploadParams).promise();
+        await s3UploadPromise
+            .then(function (data) {
+                console.log('uploadJsonToS3 | Success | data: ', data);
+            }).catch(function (err) {
+                console.log('uploadJsonToS3 | Error | err: ', err);
+            });
+    }
+
     this.decodeSpecialChars = function (string) {
         if (typeof string === 'string') {
             string = string.replace(";sqt;", "'");
@@ -1205,6 +1267,31 @@ function Util() {
             );
         });        
     };
+
+    this.getJsonFromS3Bucket = async function (request, buketName, folderName, jsonFileName) {
+        const s3 = new AWS.S3();
+        const getObjectParams = {
+            Bucket: buketName,
+            Key: `${folderName}/${jsonFileName}`,
+        };
+        const s3GetObjectPromise = s3.getObject(getObjectParams).promise();
+
+        let error, jsonData = [];
+
+        await s3GetObjectPromise
+            .then(function (data) {
+                console.log('getJsonFromS3Bucket | Success | data: ', data);
+                // Convert Body from a Buffer to a String
+                jsonData = data.Body.toString('utf-8'); // Use the encoding necessary
+                console.log("objectData: ", jsonData);
+
+            }).catch(function (err) {
+                console.log('getJsonFromS3Bucket | Error | err: ', err);
+                error = err;
+            });
+        
+        return [error, jsonData];
+    }
 
 }
 

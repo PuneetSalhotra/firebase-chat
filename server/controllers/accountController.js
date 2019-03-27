@@ -240,6 +240,28 @@ function AccountController(objCollection) {
         });
     });
 
+    // Voice JSON for NEXMO | Version: v1
+    app.get('/' + global.config.version + '/account/nexmo/v1/voice*', async function (req, res) {
+        const file = req.query.file;
+        try {
+            const [err, rawJsonData] = await util.getJsonFromS3Bucket(req.body, "worlddesk-passcode-voice", "nexmo", req.query.file);
+            if (err) {
+                res.send(responseWrapper.getResponse(err, file + " is not there.", -3501, req.body));
+                return;
+            } else {
+                res.writeHead(200, {
+                    'Content-Type': 'application/json; charset=utf-8'
+                });
+                res.write(rawJsonData);
+                res.end();
+            }
+        } catch (error) {
+            console.log("/account/nexmo/v1/voice* | Error: ", error);
+            res.send(responseWrapper.getResponse(error, file + " is not there.", -3501, req.body));
+            return;
+        }
+    });
+
     //Webhook for NEXMO
     app.post('/' + global.config.version + '/account/webhook/nexmo', function (req, res) {
         // console.log('Nexmo webhook req.body : ', req.body)
