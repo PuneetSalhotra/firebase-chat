@@ -3126,6 +3126,36 @@ function FormConfigService(objCollection) {
         return [error, formFieldData];
     }
 
+    this.formEntityAccessCheck = async function (request) {
+
+        let fieldData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_id,
+            request.target_asset_id,
+            request.form_id,
+            request.flag
+        );
+        const queryString = util.getQueryString('ds_p1_form_entity_mapping_select_check', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    fieldData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, fieldData];
+    }
+
 }
 
 module.exports = FormConfigService;
