@@ -1268,6 +1268,31 @@ function Util() {
         });        
     };
 
+    this.getJsonFromS3Bucket = async function (request, buketName, folderName, jsonFileName) {
+        const s3 = new AWS.S3();
+        const getObjectParams = {
+            Bucket: buketName,
+            Key: `${folderName}/${jsonFileName}`,
+        };
+        const s3GetObjectPromise = s3.getObject(getObjectParams).promise();
+
+        let error, jsonData = [];
+
+        await s3GetObjectPromise
+            .then(function (data) {
+                console.log('getJsonFromS3Bucket | Success | data: ', data);
+                // Convert Body from a Buffer to a String
+                jsonData = data.Body.toString('utf-8'); // Use the encoding necessary
+                console.log("objectData: ", jsonData);
+
+            }).catch(function (err) {
+                console.log('getJsonFromS3Bucket | Error | err: ', err);
+                error = err;
+            });
+        
+        return [error, jsonData];
+    }
+
 }
 
 module.exports = Util;
