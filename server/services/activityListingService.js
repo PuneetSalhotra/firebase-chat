@@ -1976,12 +1976,11 @@ function ActivityListingService(objCollection) {
 	
 	this.getMyQueueActivitiesV2 = function (request) {
 		return new Promise((resolve, reject) => {
-
 			// IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
 			// IN p_workforce_id BIGINT(20), IN p_asset_id BIGINT(20), 
 			// IN p_flag TINYINT(4), IN p_sort_flag TINYINT(4), 
 			// IN p_start_from INT(11), IN p_limit_value TINYINT(4)
-			var paramsArr = new Array(
+			const paramsArr = new Array(
 				request.organization_id,
 				request.account_id,
 				request.workforce_id,
@@ -1991,16 +1990,17 @@ function ActivityListingService(objCollection) {
 				request.page_start,
 				request.page_limit
 			);
-			// ds_v1_1_activity_asset_mapping_select_myqueue
-			var queryString = util.getQueryString('ds_v1_1_activity_asset_mapping_select_myqueue', paramsArr);
-			if (queryString != '') {
-				db.executeQuery(1, queryString, request, function (err, data) {
-					//console.log('queryString : '+queryString+ "err "+err+ ": data.length "+data.length);
+			const queryString = util.getQueryString('ds_v1_1_activity_asset_mapping_select_myqueue', paramsArr);
+			if (queryString !== '') {
+				db.executeQuery(1, queryString, request, async function (err, data) {
 					if (err === false) {
-						// processMyQueueData(request, data).then((queueData) => {
-						// 	resolve(queueData);
-						// });
-						resolve(data);
+						try {
+							let dataWithParticipant = await appendParticipantList(request, data);
+							resolve(dataWithParticipant);
+						} catch (error) {
+							console.log("getMyQueueActivitiesV2 | Error", error);
+							resolve(data);
+						}
 					} else {
 						reject(err);
 					}
@@ -2008,6 +2008,88 @@ function ActivityListingService(objCollection) {
 			}
 		});
 	};
+
+	this.fetchActivitiesMappedToQueueWithParticipants = function (request) {
+		return new Promise((resolve, reject) => {
+			activityCommonService
+				.fetchActivitiesMappedToQueue(request)
+				.then(async (data) => {
+					try {
+						let dataWithParticipant = await appendParticipantList(request, data);
+						resolve(dataWithParticipant);
+					} catch (error) {
+						console.log("fetchActivitiesMappedToQueueWithParticipants | resolve | Error", error);
+						resolve(data);
+					}
+				})
+				.catch((err) => {
+					console.log("fetchActivitiesMappedToQueueWithParticipants | reject | Error", error);
+					reject(err);
+				});
+		});
+	};
+
+	async function appendParticipantList(request, activityList) {
+		// Inits!
+		let participantMap = new Map();
+		// Build the promises array for concurrent processing
+		let fetchParticipantListPromises = [];
+
+		// Iterate through each entry
+		for (const activity of activityList) {
+			participantMap.set(Number(activity.activity_id), activity);
+			// participantMap.set(Number(activity.activity_id), {});
+			
+			fetchParticipantListPromises.push(
+				activityCommonService
+				.getAllParticipantsPromise({
+					organization_id: request.organization_id,
+					activity_id: activity.activity_id
+				})
+				.then((participantData) => {
+					// Iterate through each participant and filter out the data you need
+					if (participantData.length > 0) {
+						let formattedParticipantList = [];
+						for (const participant of participantData) {
+							formattedParticipantList.push({
+								'asset_id': participant.asset_id,
+								'asset_first_name': participant.asset_first_name,
+								'asset_last_name': participant.asset_last_name,
+								'asset_phone_number': participant.asset_phone_number,
+								'asset_phone_number_code': participant.asset_phone_country_code,
+								'operating_asset_phone_number': participant.operating_asset_phone_number,
+								'operating_asset_phone_country_code': participant.operating_asset_phone_country_code,
+								'operating_asset_id': participant.operating_asset_id,
+								'operating_asset_first_name': participant.operating_asset_first_name,
+								'operating_asset_last_name': participant.operating_asset_last_name,
+								'activity_creator_operating_asset_first_name': participant.activity_creator_operating_asset_first_name,
+								'asset_datetime_last_seen': participant.asset_datetime_last_seen
+							});
+						}
+						activity.participant_list = formattedParticipantList;
+						participantMap.set(Number(activity.activity_id), activity);
+						// participantMap.set(Number(activity.activity_id), formattedParticipantList);
+					}
+					return {
+						success: true,
+						activity_id: Number(activity.activity_id)
+					};
+				})
+				.catch((error) => {
+					console.log(`appendParticipantList | Error fetching participants for ${activity.activity_id}: `, error)
+				})
+			);
+		}
+		await Promise.all(fetchParticipantListPromises)
+			.then((result) => {
+				console.log("appendParticipantList | Promise.all | Result: ", result);
+			})
+			.catch((error) => {
+				console.log("appendParticipantList | Promise.all | Error: ", error);
+			});
+		
+		return [...participantMap.values()];
+	}
 	
 	this.getMyQueueActivitiesDifferential = function (request) {
 		return new Promise((resolve, reject) => {

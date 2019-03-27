@@ -661,14 +661,15 @@ function ActivityListingController(objCollection) {
     });
     
     app.post('/' + global.config.version + '/activity/my_queue/list', function (req, res) {
-    	activityListingService.getMyQueueActivitiesV2(req.body).then((data)=>{   
-    		
-    		res.send(responseWrapper.getResponse({}, data, 200, req.body));
-    	}).catch((err) => { 
-    		data = {};
-    		res.send(responseWrapper.getResponse(err, data, -9998, req.body));
-        	});
-    }); 
+        activityListingService
+            .getMyQueueActivitiesV2(req.body)
+            .then((data) => {
+                res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            }).catch((err) => {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, -9998, req.body));
+            });
+    });
     
     app.post('/' + global.config.version + '/activity/my_queue/list/differential', function (req, res) {
         activityListingService.getMyQueueActivitiesDifferential(req.body).then((data) => {
@@ -727,6 +728,32 @@ function ActivityListingController(objCollection) {
         } catch(err) {
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
+    });
+
+    // Fetch all queues
+    // A queue can be at organization, workforce or account level
+    app.post('/' + global.config.version + '/asset/queue/activity/list', function (req, res) {
+        // 
+        // Check if a form transaction with a specific form_id has already 
+        // been submitted on a form file
+        // activityCommonService
+        //     .fetchActivitiesMappedToQueue(req.body)
+        //     .then((data) => {
+        //         res.send(responseWrapper.getResponse(false, data, 200, req.body));
+        //     })
+        //     .catch((err) => {
+        //         let data = {};
+        //         res.send(responseWrapper.getResponse(err, data, -9998, req.body));
+        //     });
+        activityListingService
+            .fetchActivitiesMappedToQueueWithParticipants(req.body)
+            .then((data) => {
+                res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            }).catch((err) => {
+                console.log(err);
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, -9998, req.body));
+            });
     });
 }
 
