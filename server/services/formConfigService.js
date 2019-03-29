@@ -808,7 +808,7 @@ function FormConfigService(objCollection) {
                         params[13] = row.field_value;
                         break;
                     case 50: // Reference - File
-                        params[13] = Number(JSON.parse(row.field_value).activity_id); // p_entity_bigint_1
+                        // params[13] = Number(JSON.parse(row.field_value).activity_id); // p_entity_bigint_1
                         params[18] = row.field_value; // p_entity_text_1
                         break;
                     case 52: // Excel Document
@@ -2838,7 +2838,7 @@ function FormConfigService(objCollection) {
         try {
             activityData = await activityCommonService.getActivityByFormTransaction(request, request.activity_id);
         } catch (error) {
-            console
+            console.log("alterFormActivityFieldValues | getActivityByFormTransaction | Error", error)
             return [error, []];
         }
         // If the activity exists, retrieve and parse the inline data
