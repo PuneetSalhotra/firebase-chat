@@ -379,7 +379,7 @@ function FormConfigService(objCollection) {
                 "form_flag_workflow_origin": util.replaceDefaultNumber(rowData['form_flag_workflow_origin'])
             };
 
-            if (Number(device_os_id) === 5 && Number(index) === 0 && Number(rowData['field_sequence_id']) === 0)
+            /*if (Number(device_os_id) === 5 && Number(index) === 0 && Number(rowData['field_sequence_id']) === 0)
             {
                 //Dont push the row data to array
                 //For device OS ID 5, do not send the form name stored in the label as per the requirement presented by the web team
@@ -387,7 +387,8 @@ function FormConfigService(objCollection) {
             else
             {
                 responseData.push(rowDataArr);
-            }
+            }*/
+            responseData.push(rowDataArr);
         }, this);
         callback(false, responseData);
     };
