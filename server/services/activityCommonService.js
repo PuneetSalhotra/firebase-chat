@@ -1722,7 +1722,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         );
         var queryString = util.getQueryString("ds_v1_activity_asset_mapping_select_participant_count", paramsArr);
         if (queryString != '') {
-            db.executeQuery(1, queryString, request, function (err, data) {
+            db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
                     var participantCount = data[0].participant_count;
                     //console.log('participant count retrieved from query is: ' + participantCount);
