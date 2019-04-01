@@ -280,7 +280,7 @@ function ActivityService(objectCollection) {
                             // Workflow Trigger
                             if (activityTypeCategroyId === 9 && request.device_os_id !== 9) {
 
-                                if (Number(request.device_os_id) === 5) {
+                                /*if (Number(request.device_os_id) === 5) {
                                     let workflowEngineRequest = Object.assign({}, request);
 
                                     let workflowEngineEvent = {
@@ -296,7 +296,7 @@ function ActivityService(objectCollection) {
                                             global.logger.write('conLog', '\x1b[35m Queue activity raised for workflow engine. \x1b[0m', {}, {});
 
                                     });
-                                }
+                                }*/
                             }
 
                             // Bot Engine Trigger
