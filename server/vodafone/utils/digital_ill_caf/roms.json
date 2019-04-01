@@ -264,17 +264,6 @@
     },
     {
         "form_id": 1119,
-        "field_id": 8823,
-        "field_name": "Place",
-        "field_data_type_id": 19,
-        "field_data_type_category_id": 7,
-        "data_type_combo_id": 0,
-        "data_type_combo_value": "",
-        "field_value": "",
-        "message_unique_id": 3333444455556666
-    },
-    {
-        "form_id": 1119,
         "field_id": 8833,
         "field_name": "Customer would be required to provide following for site readiness",
         "field_data_type_id": 19,
@@ -407,17 +396,6 @@
     },
     {
         "form_id": 1119,
-        "field_id": 8849,
-        "field_name": "Place",
-        "field_data_type_id": 19,
-        "field_data_type_category_id": 7,
-        "data_type_combo_id": 0,
-        "data_type_combo_value": "",
-        "field_value": "",
-        "message_unique_id": 3333444455556666
-    },
-    {
-        "form_id": 1119,
         "field_id": 8850,
         "field_name": "Date",
         "field_data_type_id": 1,
@@ -508,17 +486,6 @@
         "form_id": 1119,
         "field_id": 8858,
         "field_name": "Name",
-        "field_data_type_id": 19,
-        "field_data_type_category_id": 7,
-        "data_type_combo_id": 0,
-        "data_type_combo_value": "",
-        "field_value": "",
-        "message_unique_id": 3333444455556666
-    },
-    {
-        "form_id": 1119,
-        "field_id": 8859,
-        "field_name": "Place",
         "field_data_type_id": 19,
         "field_data_type_category_id": 7,
         "data_type_combo_id": 0,
