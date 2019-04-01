@@ -40,7 +40,7 @@
             "TARGET_FIELD_ID": 12609,
             "VALUE": 0
         }, {
-            "SOURCE_FIELD_IDS": [12597, 12600, 12603, 12606, 12609],
+            "SOURCE_FIELD_IDS": [12597, 12600, 12603, 12606],
             "TARGET_FIELD_ID": 12610,
             "VALUE": 0
         }]
