@@ -20,6 +20,10 @@
                 "TARGET_FIELD_ID": 10213,
                 "VALUE": 0
             }, {
+                "SOURCE_FIELD_IDS": [10214, 10215],
+                "TARGET_FIELD_ID": 10216,
+                "VALUE": 0
+            }, {
                 "SOURCE_FIELD_IDS": [10217, 10218],
                 "TARGET_FIELD_ID": 10219,
                 "VALUE": 0
@@ -32,7 +36,7 @@
                 "TARGET_FIELD_ID": 10246,
                 "VALUE": 0
             }, {
-                "SOURCE_FIELD_IDS": [10247],
+                "SOURCE_FIELD_IDS": [10247, 10248],
                 "TARGET_FIELD_ID": 10249,
                 "VALUE": 0
             }, {
@@ -101,6 +105,11 @@
             "SOURCE_FIELD_ID": 11748,
             "CHECK_FIELD_ID": 10102,
             "BATCH": [{
+                "COMBO_VALUE": "Company Name Change",
+                "TARGET_FIELD_IDS": [
+                    10104, 10105
+                ]
+            }, {
                 "COMBO_VALUE": "Customer contact Change",
                 "TARGET_FIELD_IDS": [
                     10107, 10108, 10109, 10110,
