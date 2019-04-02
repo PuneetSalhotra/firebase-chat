@@ -647,7 +647,7 @@ function WidgetService(objCollection) {
 
     this.getOrgLevelWorkflowStatusWiseCount = async (request) => {
         try {
-            let responseData = [],
+            let responseData = {},
                 error = true;
 
             let paramsArray;
@@ -667,9 +667,24 @@ function WidgetService(objCollection) {
             // results = db.callDBProcedure(request, 'ds_p1_activity_list_select_count_workflow_status_date', paramsArray, 1);
             var queryString = util.getQueryString('ds_p1_activity_list_select_count_workflow_status_date', paramsArray);
             if (queryString !== '') {
-                await db.executeQueryPromise(0, queryString, request)
-                    .then((data) => {
-                        responseData = data;
+                await db.executeQueryPromise(1, queryString, request)
+                    .then((data) => {   
+                    //responseData = data;
+                       responseData.date_wise = data;
+                        console.log('responseData :: ',responseData);
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    })
+            }
+            paramsArray[4]=1;
+            var queryString1 = util.getQueryString('ds_p1_activity_list_select_count_workflow_status_date', paramsArray);
+            if (queryString !== '') {
+                await db.executeQueryPromise(1, queryString1, request)
+                    .then((monthlyData) => {
+                       // responseData[0] = monthlyData[0].widget_axis_y_value_integer;
+                        responseData.total = monthlyData[0];
                         error = false;
                     })
                     .catch((err) => {
@@ -685,7 +700,7 @@ function WidgetService(objCollection) {
 
     this.getOrgLevelWorkflowStatusWiseAggr = async (request) => {
         try {
-            let responseData = [],
+            let responseData = {},
                 error = true;
 
             let paramsArray;
@@ -704,8 +719,21 @@ function WidgetService(objCollection) {
             var queryString = util.getQueryString('ds_p1_widget_activity_field_transaction_select_sum_status_date', paramsArray);
             if (queryString !== '') {
                 await db.executeQueryPromise(0, queryString, request)
-                    .then((data) => {
-                        responseData = data;
+                    .then((data) => {                       
+                        //responseData = data;
+                        responseData.date_wise = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    })
+            }
+            paramsArray[4]=1;
+            var queryString1 = util.getQueryString('ds_p1_widget_activity_field_transaction_select_sum_status_date', paramsArray);
+            if (queryString !== '') {
+                await db.executeQueryPromise(1, queryString1, request)
+                    .then((monthlyData) => {
+                         responseData.total = monthlyData[0];
                         error = false;
                     })
                     .catch((err) => {
