@@ -89,11 +89,16 @@
     {
         "ACTION": "sum",
         "BATCH": [{
-            "SOURCE_FIELD_IDS": [12066, 12067],
+            "SOURCE_FIELD_IDS": [
+                12021, 12024, 12027, 12030,
+                12033, 12037, 12041, 12045,
+                12049, 12053, 12057, 12061,
+                12064
+            ],
             "TARGET_FIELD_ID": 12068,
             "VALUE": 0
         }, {
-            "SOURCE_FIELD_IDS": [12066, 12067],
+            "SOURCE_FIELD_IDS": [12068],
             "TARGET_FIELD_ID": 12069,
             "VALUE": 0
         }]
