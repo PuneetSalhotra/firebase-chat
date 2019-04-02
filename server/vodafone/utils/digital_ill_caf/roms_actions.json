@@ -111,11 +111,17 @@
     }, {
         "ACTION": "sum",
         "BATCH": [{
-            "SOURCE_FIELD_IDS": [8814, 8815],
+            "SOURCE_FIELD_IDS": [
+                8750, 8753, 8756, 8759,
+                8763, 8767, 8777, 8783,
+                8789, 8793, 8797, 8801,
+                8805, 8808, 8811, 8813,
+                8771, 8774, 8780, 8786
+            ],
             "TARGET_FIELD_ID": 8816,
             "VALUE": 0
         }, {
-            "SOURCE_FIELD_IDS": [8814, 8815],
+            "SOURCE_FIELD_IDS": [8816],
             "TARGET_FIELD_ID": 8817,
             "VALUE": 0
         }]
