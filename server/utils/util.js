@@ -47,7 +47,7 @@ const mysql = require('mysql');
 function Util() {
 
     this.getSMSString = function (verificationCode) {
-        var msg_body = "Desker : Use " + verificationCode + " as verification code for registering the Desker App .";
+        var msg_body = "MyTony : Use " + verificationCode + " as verification code for registering the MyTony App .";
         return (msg_body);
     };
 
@@ -84,7 +84,7 @@ function Util() {
     this.sendSmsMvaayoo = function (messageString, countryCode, phoneNumber, callback) {
         //        console.log("inside sendSmsMvaayoo");
         messageString = encodeURI(messageString);
-        var url = "http://api.mvaayoo.com/mvaayooapi/MessageCompose?user=junaid.m@grene.in:greneapple&senderID=DESKER&receipientno=" + countryCode + "" + phoneNumber + "&dcs=0&msgtxt=" + messageString + "&state=4";
+        var url = "http://api.mvaayoo.com/mvaayooapi/MessageCompose?user=junaid.m@grene.in:greneapple&senderID=MYTONY&receipientno=" + countryCode + "" + phoneNumber + "&dcs=0&msgtxt=" + messageString + "&state=4";
 
         request(url, function (error, response, body) {
             var res = {};
@@ -145,7 +145,35 @@ function Util() {
     this.sendSmsSinfini = function (messageString, countryCode, phoneNumber, callback) {
         messageString = encodeURI(messageString);
         //var url = "http://api-alerts.solutionsinfini.com/v3/?method=sms&api_key=A85da7898dc8bd4d79fdd62cd6f5cc4ec&to=" + countryCode + "" + phoneNumber + "&sender=BLUFLK&format=json&message=" + messageString;
-        var url = "http://api-alerts.solutionsinfini.com/v3/?method=sms&api_key=A9113d0c40f299b66cdf5cf654bfc61b8&to=" + countryCode + "" + phoneNumber + "&sender=DESKER&format=json&message=" + messageString;
+        var url = "http://api-alerts.solutionsinfini.com/v3/?method=sms&api_key=A9113d0c40f299b66cdf5cf654bfc61b8&to=" + countryCode + "" + phoneNumber + "&sender=MYTONY&format=json&message=" + messageString;
+        //console.log(url);
+        global.logger.write('debug', url, {}, {});
+        request(url, function (error, response, body) {
+            var foo = JSON.parse(body);
+
+            //console.log('error : ', error);
+            //console.log('body : ' , body);
+            global.logger.write('debug', 'error : ' + JSON.stringify(error), {}, {});
+            global.logger.write('debug', 'body : ' + JSON.stringify(body), {}, {});
+
+            var res = {};
+            if (typeof foo != 'undefined' && foo.status === 1) {
+                res['status'] = 1;
+                res['message'] = "Message sent";
+            } else {
+                res['status'] = 0;
+                res['message'] = "Message not sent";
+            }
+            if (error)
+                callback(error, false);
+            callback(false, res);
+        });
+    };
+
+    //Handling the Sender ID
+    this.sendSmsSinfiniV1 = function (messageString, countryCode, phoneNumber, senderId, callback) {
+        messageString = encodeURI(messageString);        
+        var url = "http://api-alerts.solutionsinfini.com/v3/?method=sms&api_key=A9113d0c40f299b66cdf5cf654bfc61b8&to=" + countryCode + "" + phoneNumber + "&sender="+senderId+"&format=json&message=" + messageString;
         //console.log(url);
         global.logger.write('debug', url, {}, {});
         request(url, function (error, response, body) {
@@ -382,6 +410,68 @@ function Util() {
             }
         });
     };
+
+    // No EFS in Mumbai region, so no shared file system between the two servers. Therefore, using s3 for storing
+    // and retrieving the JSON files
+    this.makeCallNexmoV1 = async function (messageString, passcode, countryCode, phoneNumber, callback) {
+        const nexmo = new Nexmo({
+            apiKey: global.config.nexmoAPIKey,
+            apiSecret: global.config.nexmoSecretKey,
+            applicationId: global.config.nexmpAppliationId,
+            privateKey: `${__dirname}/private.key`
+        });
+        const jsonText = [{
+            action: "talk",
+            voiceName: "Russell",
+            text: messageString
+        }];
+
+        global.logger.write('conLog', 'jsonText : ' + jsonText, {}, {});
+        // let answerUrl = 'http://f0ef1a18.ngrok.io/r1' + '/account/nexmo/v1/voice_' + passcode + '.json?file=voice_' + passcode + '.json';
+        let answerUrl = global.config.mobileBaseUrl + global.config.version + '/account/nexmo/v1/voice_' + passcode + '.json?file=voice_' + passcode + '.json';
+        global.logger.write('conLog', 'Answer Url : ' + answerUrl, {}, {});
+
+        await uploadJsonToS3({}, jsonText, 'nexmo', `voice_${passcode}`);
+
+        nexmo.calls.create({
+            from: {
+                type: 'phone',
+                number: 123456789
+            },
+            to: [{
+                type: 'phone',
+                number: countryCode + "" + phoneNumber,
+            }],
+            answer_url: [answerUrl]
+        }, (error, response) => {
+            if (error) {
+                console.error(error)
+                callback(true, error, -3502);
+            } else {
+                //console.log('makeCallNexmo response: ', response);
+                global.logger.write('debug', 'makeCallNexmo response: ' + JSON.stringify(response), {}, request);
+                callback(false, response, 200);
+            }
+        });
+        callback(false, "response Ben", 200);
+    };
+    async function uploadJsonToS3(request, jsonObject, folderName, jsonFileName) {
+        const s3 = new AWS.S3();
+        const uploadParams = {
+            Body: JSON.stringify(jsonObject),
+            Bucket: "worlddesk-passcode-voice",
+            Key: `${folderName}/${jsonFileName}.json`,
+            ContentType: 'application/json',
+            ACL: 'public-read'
+        };
+        const s3UploadPromise = s3.putObject(uploadParams).promise();
+        await s3UploadPromise
+            .then(function (data) {
+                console.log('uploadJsonToS3 | Success | data: ', data);
+            }).catch(function (err) {
+                console.log('uploadJsonToS3 | Error | err: ', err);
+            });
+    }
 
     this.decodeSpecialChars = function (string) {
         if (typeof string === 'string') {
@@ -972,6 +1062,42 @@ function Util() {
             });
     };
 
+    // SendInBlue, htmlTemplate is sent as base64 encoded
+    this.sendEmailV4 = function (request, email, subject, text, base64EncodedHtmlTemplate, callback) {
+        console.log('email : ', email);
+        console.log('subject : ', subject);
+        console.log('text : ', text);
+
+        let buff = new Buffer(base64EncodedHtmlTemplate, 'base64');
+        let htmlTemplate = buff.toString('ascii');
+
+        // SendSmtpEmail | Values to send a transactional email
+        var sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+        sendSmtpEmail.to = [{
+            "name": request.email_receiver_name || undefined,
+            "email": email
+        }];
+        sendSmtpEmail.sender = {
+            "name": request.email_sender_name || undefined,
+            "email": request.email_sender
+        };
+        sendSmtpEmail.textContent = text;
+        sendSmtpEmail.htmlContent = htmlTemplate;
+        sendSmtpEmail.subject = subject;
+        sendSmtpEmail.headers = {
+            "x-mailin-custom": "Grene Robotics"
+        };
+        sendSmtpEmail.tags = ["live"];
+
+        apiInstance.sendTransacEmail(sendSmtpEmail)
+            .then(function (data) {
+                console.log('API called successfully. Returned data: ', data);
+                return callback(false, data);
+            }, function (error) {
+                return callback(true, error);
+            });
+    };
+
     this.getRedableFormatLogDate = function (timeString, type) {
         if (typeof type == 'undefined' || type == '' || type == null)
             type = 0;
@@ -1141,6 +1267,31 @@ function Util() {
             );
         });        
     };
+
+    this.getJsonFromS3Bucket = async function (request, buketName, folderName, jsonFileName) {
+        const s3 = new AWS.S3();
+        const getObjectParams = {
+            Bucket: buketName,
+            Key: `${folderName}/${jsonFileName}`,
+        };
+        const s3GetObjectPromise = s3.getObject(getObjectParams).promise();
+
+        let error, jsonData = [];
+
+        await s3GetObjectPromise
+            .then(function (data) {
+                console.log('getJsonFromS3Bucket | Success | data: ', data);
+                // Convert Body from a Buffer to a String
+                jsonData = data.Body.toString('utf-8'); // Use the encoding necessary
+                console.log("objectData: ", jsonData);
+
+            }).catch(function (err) {
+                console.log('getJsonFromS3Bucket | Error | err: ', err);
+                error = err;
+            });
+        
+        return [error, jsonData];
+    }
 
 }
 

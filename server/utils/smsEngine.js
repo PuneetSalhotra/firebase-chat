@@ -290,7 +290,8 @@ function sendNexmoSms(options) {
     }
 
     // Nexmo params
-    let from = 'DESKER';
+    //let from = 'DESKER';
+    let from = 'MYTONY';
     let to = '+' + options.countryCode + options.phoneNumber;
     let callbackQs = `ph=${to}&vcode=${options.verificationCode}&type=${options.type}`;
 
@@ -316,10 +317,9 @@ function sendNexmoSms(options) {
 
 ////////////////////////////////////////////////////////////
 // Utility functions
-function getOTPString(verificationCode) {
-    //var msg_body = "Desker : Use " + verificationCode + " as verification code for registering the Desker App .";
+function getOTPString(verificationCode) {    
     var msg_body = verificationCode + " is the OTP to verify your mobile number - TONY";
     return msg_body;
-};
+}
 
 module.exports = smsEngine;

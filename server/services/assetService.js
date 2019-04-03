@@ -984,16 +984,16 @@ function AssetService(objectCollection) {
                             passcode = passcode.toString();
                             passcode = passcode.replace(/,/g, " ");
 
-                            //var text = "Your passcode for Desker App is, " + passcode + ". I repeat, your passcode for Desker App is, " + passcode + ". Thank you.";
-                            var text = "Your passcode for Desker App is, " + passcode;
-                            text += ". I repeat, your passcode for Desker App is, " + passcode;
-                            text += ". I repeat, your passcode for Desker App is, " + passcode;
-                            text += ". I repeat, your passcode for Desker App is, " + passcode;
-                            text += ". I repeat, your passcode for Desker App is, " + passcode;
+                            //var text = "Your passcode for Mytony App is, " + passcode + ". I repeat, your passcode for Mytony App is, " + passcode + ". Thank you.";
+                            var text = "Your passcode for Mytony App is, " + passcode;
+                            text += ". I repeat, your passcode for Mytony App is, " + passcode;
+                            text += ". I repeat, your passcode for Mytony App is, " + passcode;
+                            text += ". I repeat, your passcode for Mytony App is, " + passcode;
+                            text += ". I repeat, your passcode for Mytony App is, " + passcode;
                             //console.log('Text: ' + text);
                             global.logger.write('debug', 'Text: ' + text, {}, request);
 
-                            util.makeCallNexmo(text, request.passcode, countryCode, phoneNumber, function (error, data) {
+                            util.makeCallNexmoV1(text, request.passcode, countryCode, phoneNumber, function (error, data) {
                                 if (error)
                                     console.log(error);
                                 console.log(data);
@@ -1008,12 +1008,12 @@ function AssetService(objectCollection) {
                             passcode = passcode.split("");
 
                             //var text = "Your passcode is " + passcode + " I repeat," + passcode + " Thank you.";
-                            //var text = "Your passcode for Desker App is, " + passcode + ". I repeat, your passcode for Desker App is, " + passcode + ". Thank you.";
-                            var text = "Your passcode for Desker App is, " + passcode;
-                            text += ". I repeat, your passcode for Desker App is, " + passcode;
-                            text += ". I repeat, your passcode for Desker App is, " + passcode;
-                            text += ". I repeat, your passcode for Desker App is, " + passcode;
-                            text += ". I repeat, your passcode for Desker App is, " + passcode;
+                            //var text = "Your passcode for Mytony App is, " + passcode + ". I repeat, your passcode for Mytony App is, " + passcode + ". Thank you.";
+                            var text = "Your passcode for Mytony App is, " + passcode;
+                            text += ". I repeat, your passcode for Mytony App is, " + passcode;
+                            text += ". I repeat, your passcode for Mytony App is, " + passcode;
+                            text += ". I repeat, your passcode for Mytony App is, " + passcode;
+                            text += ". I repeat, your passcode for Mytony App is, " + passcode;
                             //console.log('Text: ' + text);
                             global.logger.write('debug', 'Text: ' + text, {}, request);
                             util.MakeCallTwilio(text, request.passcode, countryCode, phoneNumber, function (error, data) {

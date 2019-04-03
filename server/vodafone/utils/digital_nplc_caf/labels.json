@@ -134,12 +134,12 @@
         "form_id": 1230,
         "field_id": 9847,
         "field_name": "If Channelized Bandwidth",
-        "field_data_type_id": "",
-        "field_data_type_category_id": 21,
-        "data_type_combo_id": 8,
-        "data_type_combo_value": 0,
-        "field_value": "",
-        "message_unique_id": "If Channelized Bandwidth"
+        "field_data_type_id": 21,
+        "field_data_type_category_id": 8,
+        "data_type_combo_id": 0,
+        "data_type_combo_value": "",
+        "field_value": "If Channelized Bandwidth",
+        "message_unique_id": 1111222233334444
     },
     {
         "form_id": 1230,

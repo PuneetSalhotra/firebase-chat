@@ -369,12 +369,12 @@ if (mode === 'staging') {
     
     //staging-desker-form-widgets-v2 - 1 partition
     config.WIDGET_TOPIC_NAME = 'staging-desker-form-widgets-v2';    
-    config.WIDGET_CONSUMER_GROUP_ID = 'staging-desker-form-widgets-v2-cg';
+    config.WIDGET_CONSUMER_GROUP_ID = 'staging-desker-form-widgets-v2-cg-new';
     
     //LOGS
     //staging-desker-logs-v2 1 partition
-    config.LOGS_TOPIC_NAME = 'staging-desker-logs-v2';
-    config.LOGS_CONSUMER_GROUP_ID = 'staging-desker-logs-v2-cg';
+    config.LOGS_TOPIC_NAME = 'staging-desker-logs-v3';
+    config.LOGS_CONSUMER_GROUP_ID = 'staging-desker-logs-v3-cg';
     
     config.CONSUMER_AUTO_COMMIT = true;
     config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;

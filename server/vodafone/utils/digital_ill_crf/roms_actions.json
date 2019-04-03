@@ -126,6 +126,11 @@
             "SOURCE_FIELD_ID": 12891,
             "CHECK_FIELD_ID": 9458,
             "BATCH": [{
+                "COMBO_VALUE": "Company Name Change",
+                "TARGET_FIELD_IDS": [
+                    9460, 9461
+                ]
+            }, {
                 "COMBO_VALUE": "Customer Contact Change",
                 "TARGET_FIELD_IDS": [
                     9463, 9464, 9465, 9466,

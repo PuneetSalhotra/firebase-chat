@@ -1,5 +1,4 @@
-[
-  {
+[{
     "form_id": 1337,
     "field_id": 11882,
     "field_name": "Vodafone Idea Business Services Kindly fill the form in BLOCK letters",
@@ -135,12 +134,12 @@
     "form_id": 1337,
     "field_id": 11973,
     "field_name": "If Channelized Bandwidth",
-    "field_data_type_id": "",
-    "field_data_type_category_id": 21,
-    "data_type_combo_id": 8,
-    "data_type_combo_value": 0,
-    "field_value": "",
-    "message_unique_id": "If Channelized Bandwidth"
+    "field_data_type_id": 21,
+    "field_data_type_category_id": 8,
+    "data_type_combo_id": 0,
+    "data_type_combo_value": "",
+    "field_value": "If Channelized Bandwidth",
+    "message_unique_id": 1111222233334444
   },
   {
     "form_id": 1337,
@@ -266,13 +265,13 @@
   {
     "form_id": 1337,
     "field_id": 12094,
-    "field_name": "Link Acceptance: Customer is expected to provide acceptance of the link(s) in 5 days post testing after which VIL will start billing the customer for the link(s). In absence of any shortcomings on the link(s) performance or acceptance communication from the customer within 5 days",
-    "field_data_type_id": "VIL will deem the links as accepted by the customer.",
-    "field_data_type_category_id": 21,
-    "data_type_combo_id": 8,
-    "data_type_combo_value": 0,
-    "field_value": "",
-    "message_unique_id": "Link Acceptance: Customer is expected to provide acceptance of the link(s) in 5 days post testing after which VIL will start billing the customer for the link(s). In absence of any shortcomings on the link(s) performance or acceptance communication from the customer within 5 days"
+    "field_name": "Link Acceptance: Customer is expected to provide acceptance of the link(s) in 5 days post testing after which VIL will start billing the customer for the link(s). In absence of any shortcomings on the link(s) performance or acceptance communication from the customer within 5 days, VIL will deem the links as accepted by the customer.",
+    "field_data_type_id": 21,
+    "field_data_type_category_id": 8,
+    "data_type_combo_id": 0,
+    "data_type_combo_value": "",
+    "field_value": "Link Acceptance: Customer is expected to provide acceptance of the link(s) in 5 days post testing after which VIL will start billing the customer for the link(s). In absence of any shortcomings on the link(s) performance or acceptance communication from the customer within 5 days, VIL will deem the links as accepted by the customer.",
+    "message_unique_id": 1111222233334444
   },
   {
     "form_id": 1337,

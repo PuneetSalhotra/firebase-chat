@@ -495,6 +495,39 @@ function FormConfigController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/form/entity/list', async function (req, res) {
+
+        const [err, formEntityData] = await formConfigService.formEntityMappingSelect(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, formEntityData, 200, req.body));
+        } else {
+            console.log("Error: ", err);
+            res.send(responseWrapper.getResponse(err, formEntityData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/form/definition/list', async function (req, res) {
+
+        const [err, formFieldData] = await formConfigService.workforceFormFieldMappingSelectForm(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, formFieldData, 200, req.body));
+        } else {
+            console.log("Error: ", err);
+            res.send(responseWrapper.getResponse(err, formFieldData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/form/entity/access/check', async function (req, res) {
+
+        const [err, formFieldData] = await formConfigService.formEntityAccessCheck(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, formFieldData, 200, req.body));
+        } else {
+            console.log("Error: ", err);
+            res.send(responseWrapper.getResponse(err, formFieldData, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = FormConfigController;
