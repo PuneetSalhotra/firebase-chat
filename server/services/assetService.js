@@ -3513,6 +3513,109 @@ function AssetService(objectCollection) {
         }
     };
 
+    this.assetAccessMappingSelectUserFlag = async function (request) {
+        let responseData = [],
+            error = true;
+
+        // IN p_organization_id BIGINT(20), IN p_asset_id BIGINT(20), 
+        // IN p_flag SMALLINT(6), IN p_start_from BIGINT(20), IN p_limit_value TINYINT(4)
+
+        // Flags:
+        // IF p_flag = 0 then return all level mappings
+        // IF p_flag = 1 then return organization level mappings
+        // IF p_flag = 2 then return account level mappings
+        // IF p_flag = 3 then return workforce level mappings
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.asset_id,
+            request.flag || 1,
+            request.page_start || 0,
+            request.page_limit || 50
+        );
+        const queryString = util.getQueryString('ds_p1_asset_access_mapping_select_user_flag', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
+
+    this.assetListSelectFlag = async function (request) {
+        let responseData = [],
+            error = true;
+
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
+        // IN p_workforce_type_id BIGINT(20), IN p_workforce_id BIGINT(20), 
+        // IN p_flag SMALLINT(6), IN p_sort_flag TINYINT(4), 
+        // IN p_start_from INT(11), IN p_limit_value TINYINT(4)
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_type_id,
+            request.workforce_id,
+            request.flag,
+            request.sort_flag,
+            request.page_start,
+            request.page_limit
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_select_flag', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
+
+    this.workforceActivityTypeMappingSelectFlag = async function (request) {
+        let responseData = [],
+            error = true;
+
+        // IN p_organization_id bigint(20), IN p_account_id bigint(20), 
+        // IN p_workforce_id bigint(20), IN p_activity_type_category_id SMALLINT(6), 
+        // IN p_flag SMALLINT(6), IN p_sort_flag SMALLINT(6), 
+        // IN p_start_from SMALLINT(6), IN p_limit_value TINYINT(4)
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_category_id,
+            request.flag,
+            request.sort_flag,
+            request.page_start,
+            request.page_limit
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_select_flag', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
+
 }
 
 module.exports = AssetService;
