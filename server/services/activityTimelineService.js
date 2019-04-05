@@ -134,7 +134,8 @@ function ActivityTimelineService(objectCollection) {
                 global.logger.write('debug', 'Error in timelineStandardCalls' + err, {}, request);
             });
 
-        } else if (activityTypeCategoryId === 48 && (activityStreamTypeId === 713 || activityStreamTypeId === 705 ||
+        } else if ((activityTypeCategoryId === 48 || activityTypeCategoryId === 50 || activityTypeCategoryId === 51) 
+                    && (activityStreamTypeId === 713 || activityStreamTypeId === 705 ||
                 activityStreamTypeId === 715 || activityStreamTypeId === 716)) {
 
             request.non_dedicated_file = 1;

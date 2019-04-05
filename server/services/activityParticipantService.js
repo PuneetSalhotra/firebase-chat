@@ -167,6 +167,12 @@ function ActivityParticipantService(objectCollection) {
                     activityStreamTypeId = 1703;
                     break;
                     //////////////////////////////
+                case 50: 
+                    activityStreamTypeId = 2202;
+                    break;
+                case 51: 
+                    activityStreamTypeId = 2302;
+                    break;
                 case 48:
                 case 9: //form
                     activityStreamTypeId = 702;
@@ -367,6 +373,12 @@ function ActivityParticipantService(objectCollection) {
                     activityStreamTypeId = 1505;
                     break;
                     ////////////////////////////////////////
+                case 50: //Support
+                    activityStreamTypeId = 2207;
+                    break;
+                case 51: //Feedback
+                    activityStreamTypeId = 2307;
+                    break;
                 default:
                     activityStreamTypeId = 3; //by default so that we know
                     //console.log('adding streamtype id 3');
@@ -449,6 +461,12 @@ function ActivityParticipantService(objectCollection) {
                     break;
                 case 6: //  External Contact Card - Customer
                     activityStreamTypeId = 4; // adding a default value
+                    break;
+                case 50: 
+                    activityStreamTypeId = 2203;
+                    break;
+                case 51: 
+                    activityStreamTypeId = 2303;
                     break;
                 case 9: //form
                     activityStreamTypeId = 703;

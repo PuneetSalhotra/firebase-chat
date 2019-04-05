@@ -672,6 +672,12 @@ function ActivityUpdateService(objectCollection) {
                             case 8: // Mail
                                 activityStreamTypeId = 1705;
                                 break;
+                            case 50: 
+                                activityStreamTypeId = 2210;
+                                break;
+                            case 51: 
+                                activityStreamTypeId = 2310;
+                                break;
                             case 48:
                             case 9: //Form edit
                                 // activityStreamTypeId = 710;
@@ -816,7 +822,7 @@ function ActivityUpdateService(objectCollection) {
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         var activityTypeCategoryId = Number(request.activity_type_category_id);
-        //var activityStreamTypeId;
+        let activityStreamTypeId;
         //let parsedActivityCoverData = JSON.parse(request.activity_cover_data);
         activityCommonService.updateAssetLocation(request, function (err, data) {});
         activityListUpdateCover(request, function (err, data) {
@@ -871,12 +877,18 @@ function ActivityUpdateService(objectCollection) {
                         case 41: //Event
                             activityStreamTypeId = 17003;
                             break;
+                        case 50:
+                            activityStreamTypeId = 2211;
+                            break;
+                        case 51:
+                            activityStreamTypeId = 2311;
+                            break;
                         default:
                             activityStreamTypeId = 1506; //by default so that we know
                             //console.log('adding streamtype id 1506');
                             global.logger.write('conLog', 'adding streamtype id 1506', {}, request)
                             break;
-                    };
+                    }
 
                     activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {});
                     activityCommonService.activityTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {});
@@ -1518,6 +1530,7 @@ function ActivityUpdateService(objectCollection) {
 
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
+        let activityStreamTypeId;
         var activityTypeCategoryId = Number(request.activity_type_category_id);
         activityCommonService.updateAssetLocation(request, function (err, data) {});
         activityListUpdateChannel(request, function (err, data) {
@@ -1552,7 +1565,7 @@ function ActivityUpdateService(objectCollection) {
                 callback(err, {}, -9999);
             }
         });
-    }
+    };
 
     //PAM
     this.alterCoverSubTypeActivity = function (request, callback) {
@@ -1725,7 +1738,7 @@ function ActivityUpdateService(objectCollection) {
                 break;
             default:
                 break;
-        };
+        }
         activityCommonService.updateAssetLocation(request, function (err, data) {});
         if (activityTypeCategoryId === 6 || activityTypeCategoryId === 29) { //altering parent for a contact card
             assetActivityListUpdateParent(request, request.asset_id, function (err, data) {
@@ -1940,7 +1953,7 @@ function ActivityUpdateService(objectCollection) {
             });
 
         }); //closing the promise        
-    };
+    }
 
     function getResponseRateForFiles(request, flag) { ////flag = 1 means monthly and flag = 2 means weekly
         return new Promise((resolve, reject) => {
@@ -1967,7 +1980,7 @@ function ActivityUpdateService(objectCollection) {
                 });
             }
         });
-    };
+    }
 
     //To calculate New Productivity Score inMails
     function updateInmailPS(request) {
@@ -2061,7 +2074,7 @@ function ActivityUpdateService(objectCollection) {
                 }
             }); //getActivityDetails
         }); // updateInmailPS Promise
-    };
+    }
 
     this.alterActivityFlagFileEnabled = function (request, callback) {
         var paramsArr = new Array(
