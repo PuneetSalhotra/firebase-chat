@@ -3575,8 +3575,12 @@ function AssetService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_asset_list_select_flag', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
-                .then((data) => {
-                    responseData = data;
+                .then((data) => {                    
+                    let zerothElement = Object.assign({}, data[0]);
+                        zerothElement.asset_id = 0;
+                        zerothElement.operating_asset_first_name = "All";
+                    data.unshift(zerothElement);
+                    responseData = data;                    
                     error = false;
                 })
                 .catch((err) => {
