@@ -660,12 +660,15 @@ function WidgetService(objCollection) {
                     Number(request.target_asset_id),
                     request.flag,
                     request.start_datetime,
-                    request.end_datetime
-
+                    request.end_datetime,
+                    request.activity_type_id || 0,
+                    request.activity_type_tag_id || 0,
+                    request.tag_type_id || 0,
+                    request.workforce_type_id || 0
                 );
 
             // results = db.callDBProcedure(request, 'ds_p1_activity_list_select_count_workflow_status_date', paramsArray, 1);
-            var queryString = util.getQueryString('ds_p1_activity_list_select_count_workflow_status_date', paramsArray);
+            var queryString = util.getQueryString('ds_p1_1_activity_list_select_count_workflow_status_date', paramsArray);
             if (queryString !== '') {
                 await db.executeQueryPromise(1, queryString, request)
                     .then((data) => {   
@@ -678,8 +681,9 @@ function WidgetService(objCollection) {
                         error = err;
                     })
             }
+            
             paramsArray[4]=1;
-            var queryString1 = util.getQueryString('ds_p1_activity_list_select_count_workflow_status_date', paramsArray);
+            var queryString1 = util.getQueryString('ds_p1_1_activity_list_select_count_workflow_status_date', paramsArray);
             if (queryString !== '') {
                 await db.executeQueryPromise(1, queryString1, request)
                     .then((monthlyData) => {
@@ -690,7 +694,7 @@ function WidgetService(objCollection) {
                     .catch((err) => {
                         error = err;
                     })
-            }
+            }  
             return responseData;
         } catch (error) {
             return Promise.reject(error);
@@ -698,7 +702,7 @@ function WidgetService(objCollection) {
     };
 
 
-    this.getOrgLevelWorkflowStatusWiseAggr = async (request) => {
+ this.getOrgLevelWorkflowStatusWiseAggr = async (request) => {
         try {
             let responseData = {},
                 error = true;
@@ -713,10 +717,14 @@ function WidgetService(objCollection) {
                     Number(request.target_asset_id),
                     request.flag,
                     request.start_datetime,
-                    request.end_datetime
+                    request.end_datetime,
+                    request.activity_type_id || 0,
+                    request.activity_type_tag_id || 0,
+                    request.tag_type_id || 0,
+                    request.workforce_type_id || 0
                 );
 
-            var queryString = util.getQueryString('ds_p1_widget_activity_field_transaction_select_sum_status_date', paramsArray);
+            var queryString = util.getQueryString('ds_p1_1_widget_activity_field_transaction_select_sum_status_date', paramsArray);
             if (queryString !== '') {
                 await db.executeQueryPromise(0, queryString, request)
                     .then((data) => {                       
@@ -728,8 +736,9 @@ function WidgetService(objCollection) {
                         error = err;
                     })
             }
+            
             paramsArray[4]=1;
-            var queryString1 = util.getQueryString('ds_p1_widget_activity_field_transaction_select_sum_status_date', paramsArray);
+            var queryString1 = util.getQueryString('ds_p1_1_widget_activity_field_transaction_select_sum_status_date', paramsArray);
             if (queryString !== '') {
                 await db.executeQueryPromise(1, queryString1, request)
                     .then((monthlyData) => {
@@ -739,7 +748,7 @@ function WidgetService(objCollection) {
                     .catch((err) => {
                         error = err;
                     })
-            }
+            } 
             return responseData;
 
         } catch (error) {
