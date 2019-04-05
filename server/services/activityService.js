@@ -79,6 +79,12 @@ function ActivityService(objectCollection) {
                         case 8: //  Mail
                             activityStreamTypeId = 1701;
                             break;
+                        case 50: //Support
+                            activityStreamTypeId = 2201;
+                            break;
+                        case 51: //Feedback
+                            activityStreamTypeId = 2301;
+                            break;
                         case 48:
                         case 9: //form
                             activityStreamTypeId = 701;
@@ -332,7 +338,8 @@ function ActivityService(objectCollection) {
                             }
 
                             // Trigger Bot Engine
-                            if (activityTypeCategroyId === 48 && request.device_os_id !== 9) {
+                            if ((activityTypeCategroyId === 48 || activityTypeCategroyId === 50 
+                                 || activityTypeCategroyId === 51) && request.device_os_id !== 9) {
                                 try {
                                     let botEngineRequest = Object.assign({}, request);
                                     botEngineRequest.form_id = request.activity_form_id;
@@ -1791,6 +1798,12 @@ function ActivityService(objectCollection) {
                     activityStreamTypeId = 1702;
                     break;
                     ////////////////////////////////
+                case 50: 
+                    activityStreamTypeId = 2204;
+                    break;
+                case 51: 
+                    activityStreamTypeId = 2304;
+                    break;
                 case 48:
                 case 9: //form
                     activityStreamTypeId = 704;
