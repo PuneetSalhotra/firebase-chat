@@ -3517,8 +3517,10 @@ function AssetService(objectCollection) {
         let responseData = [],
             error = true;
 
-        // IN p_organization_id BIGINT(20), IN p_asset_id BIGINT(20), 
-        // IN p_flag SMALLINT(6), IN p_start_from BIGINT(20), IN p_limit_value TINYINT(4)
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
+        // IN p_workforce_id BIGINT(20), IN p_workforce_type_id BIGINT(20), 
+        // IN p_asset_id BIGINT(20), IN p_flag SMALLINT(6), IN p_start_from BIGINT(20), 
+        // IN p_limit_value TINYINT(4)
 
         // Flags:
         // IF p_flag = 0 then return all level mappings
@@ -3528,6 +3530,9 @@ function AssetService(objectCollection) {
 
         const paramsArr = new Array(
             request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.workforce_type_id,
             request.asset_id,
             request.flag || 1,
             request.page_start || 0,
@@ -3605,7 +3610,7 @@ function AssetService(objectCollection) {
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
-                    responseData = data;
+                    responseData = append0thActivityTypeId(data);
                     error = false;
                 })
                 .catch((err) => {
@@ -3615,6 +3620,15 @@ function AssetService(objectCollection) {
 
         return [error, responseData];
     };
+
+    function append0thActivityTypeId(data) {
+        let zerothElement = data[0];
+        zerothElement.activity_type_id = 0;
+        zerothElement.activity_type_name = "All";
+        // console.log(zerothElement);
+        data.unshift(zerothElement)
+        return data;
+    }
 
 }
 
