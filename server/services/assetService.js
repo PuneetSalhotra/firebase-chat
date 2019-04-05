@@ -3610,7 +3610,7 @@ function AssetService(objectCollection) {
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
-                    responseData = append0thActivityTypeId(data);
+                    responseData = append0thActivityTypeId(data);                    
                     error = false;
                 })
                 .catch((err) => {
@@ -3622,11 +3622,12 @@ function AssetService(objectCollection) {
     };
 
     function append0thActivityTypeId(data) {
-        let zerothElement = data[0];
+        let zerothElement = Object.assign({}, data[0]);
         zerothElement.activity_type_id = 0;
         zerothElement.activity_type_name = "All";
-        // console.log(zerothElement);
-        data.unshift(zerothElement)
+        //console.log(zerothElement);
+        //data.push(zerothElement);
+        data.unshift(zerothElement);
         return data;
     }
 
