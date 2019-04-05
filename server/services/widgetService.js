@@ -726,7 +726,7 @@ function WidgetService(objCollection) {
 
             var queryString = util.getQueryString('ds_p1_1_widget_activity_field_transaction_select_sum_status_date', paramsArray);
             if (queryString !== '') {
-                await db.executeQueryPromise(0, queryString, request)
+                await db.executeQueryPromise(1, queryString, request)
                     .then((data) => {                       
                         //responseData = data;
                         responseData.date_wise = data;
