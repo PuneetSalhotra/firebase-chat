@@ -1,16 +1,5 @@
 [{
         "form_id": 1119,
-        "field_id": 8616,
-        "field_name": "CAF NO",
-        "field_data_type_id": 19,
-        "field_data_type_category_id": 7,
-        "data_type_combo_id": 0,
-        "data_type_combo_value": "",
-        "field_value": 0,
-        "message_unique_id": 2222333344445555
-    },
-    {
-        "form_id": 1119,
         "field_id": 8713,
         "field_name": "Parallel Bandwidth in Mbps/Kbps (To be filled only if the second link used on load sharing basis )",
         "field_data_type_id": 19,
@@ -28,7 +17,7 @@
         "field_data_type_category_id": 2,
         "data_type_combo_id": 0,
         "data_type_combo_value": "",
-        "field_value": 0,
+        "field_value": "",
         "message_unique_id": 2222333344445555
     },
     {
@@ -39,7 +28,7 @@
         "field_data_type_category_id": 2,
         "data_type_combo_id": 0,
         "data_type_combo_value": "",
-        "field_value": 0,
+        "field_value": "",
         "message_unique_id": 2222333344445555
     },
     {
@@ -50,7 +39,7 @@
         "field_data_type_category_id": 2,
         "data_type_combo_id": 0,
         "data_type_combo_value": "",
-        "field_value": 0,
+        "field_value": "",
         "message_unique_id": 2222333344445555
     },
     {
@@ -61,7 +50,7 @@
         "field_data_type_category_id": 2,
         "data_type_combo_id": 0,
         "data_type_combo_value": "",
-        "field_value": 0,
+        "field_value": "",
         "message_unique_id": 2222333344445555
     },
     {
@@ -72,7 +61,7 @@
         "field_data_type_category_id": 2,
         "data_type_combo_id": 0,
         "data_type_combo_value": "",
-        "field_value": 0,
+        "field_value": "",
         "message_unique_id": 2222333344445555
     },
     {
@@ -83,7 +72,7 @@
         "field_data_type_category_id": 2,
         "data_type_combo_id": 0,
         "data_type_combo_value": "",
-        "field_value": 0,
+        "field_value": "",
         "message_unique_id": 2222333344445555
     },
     {
@@ -94,7 +83,7 @@
         "field_data_type_category_id": 2,
         "data_type_combo_id": 0,
         "data_type_combo_value": "",
-        "field_value": 0,
+        "field_value": "",
         "message_unique_id": 2222333344445555
     },
     {
@@ -105,7 +94,7 @@
         "field_data_type_category_id": 2,
         "data_type_combo_id": 0,
         "data_type_combo_value": "",
-        "field_value": 0,
+        "field_value": "",
         "message_unique_id": 2222333344445555
     },
     {
@@ -116,7 +105,7 @@
         "field_data_type_category_id": 2,
         "data_type_combo_id": 0,
         "data_type_combo_value": "",
-        "field_value": 0,
+        "field_value": "",
         "message_unique_id": 2222333344445555
     },
     {
@@ -127,7 +116,7 @@
         "field_data_type_category_id": 2,
         "data_type_combo_id": 0,
         "data_type_combo_value": "",
-        "field_value": 0,
+        "field_value": "",
         "message_unique_id": 2222333344445555
     },
     {
@@ -138,7 +127,7 @@
         "field_data_type_category_id": 2,
         "data_type_combo_id": 0,
         "data_type_combo_value": "",
-        "field_value": 0,
+        "field_value": "",
         "message_unique_id": 2222333344445555
     },
     {
@@ -149,7 +138,7 @@
         "field_data_type_category_id": 2,
         "data_type_combo_id": 0,
         "data_type_combo_value": "",
-        "field_value": 0,
+        "field_value": "",
         "message_unique_id": 2222333344445555
     },
     {
@@ -160,7 +149,7 @@
         "field_data_type_category_id": 2,
         "data_type_combo_id": 0,
         "data_type_combo_value": "",
-        "field_value": 0,
+        "field_value": "",
         "message_unique_id": 2222333344445555
     },
     {
@@ -171,7 +160,7 @@
         "field_data_type_category_id": 2,
         "data_type_combo_id": 0,
         "data_type_combo_value": "",
-        "field_value": 0,
+        "field_value": "",
         "message_unique_id": 2222333344445555
     },
     {
@@ -182,7 +171,7 @@
         "field_data_type_category_id": 2,
         "data_type_combo_id": 0,
         "data_type_combo_value": "",
-        "field_value": 0,
+        "field_value": "",
         "message_unique_id": 2222333344445555
     },
     {
@@ -193,7 +182,7 @@
         "field_data_type_category_id": 2,
         "data_type_combo_id": 0,
         "data_type_combo_value": "",
-        "field_value": 0,
+        "field_value": "",
         "message_unique_id": 2222333344445555
     },
     {
@@ -204,7 +193,7 @@
         "field_data_type_category_id": 2,
         "data_type_combo_id": 0,
         "data_type_combo_value": "",
-        "field_value": 0,
+        "field_value": "",
         "message_unique_id": 2222333344445555
     },
     {
@@ -215,7 +204,7 @@
         "field_data_type_category_id": 2,
         "data_type_combo_id": 0,
         "data_type_combo_value": "",
-        "field_value": 0,
+        "field_value": "",
         "message_unique_id": 2222333344445555
     },
     {
@@ -226,7 +215,7 @@
         "field_data_type_category_id": 2,
         "data_type_combo_id": 0,
         "data_type_combo_value": "",
-        "field_value": 0,
+        "field_value": "",
         "message_unique_id": 2222333344445555
     },
     {
@@ -237,7 +226,7 @@
         "field_data_type_category_id": 2,
         "data_type_combo_id": 0,
         "data_type_combo_value": "",
-        "field_value": 0,
+        "field_value": "",
         "message_unique_id": 2222333344445555
     },
     {
@@ -272,17 +261,6 @@
         "data_type_combo_value": "",
         "field_value": 0,
         "message_unique_id": 2222333344445555
-    },
-    {
-        "form_id": 1119,
-        "field_id": 8823,
-        "field_name": "Place",
-        "field_data_type_id": 19,
-        "field_data_type_category_id": 7,
-        "data_type_combo_id": 0,
-        "data_type_combo_value": "",
-        "field_value": "",
-        "message_unique_id": 3333444455556666
     },
     {
         "form_id": 1119,
@@ -418,17 +396,6 @@
     },
     {
         "form_id": 1119,
-        "field_id": 8849,
-        "field_name": "Place",
-        "field_data_type_id": 19,
-        "field_data_type_category_id": 7,
-        "data_type_combo_id": 0,
-        "data_type_combo_value": "",
-        "field_value": "",
-        "message_unique_id": 3333444455556666
-    },
-    {
-        "form_id": 1119,
         "field_id": 8850,
         "field_name": "Date",
         "field_data_type_id": 1,
@@ -528,17 +495,6 @@
     },
     {
         "form_id": 1119,
-        "field_id": 8859,
-        "field_name": "Place",
-        "field_data_type_id": 19,
-        "field_data_type_category_id": 7,
-        "data_type_combo_id": 0,
-        "data_type_combo_value": "",
-        "field_value": "",
-        "message_unique_id": 3333444455556666
-    },
-    {
-        "form_id": 1119,
         "field_id": 8860,
         "field_name": "Date",
         "field_data_type_id": 1,
@@ -600,7 +556,7 @@
         "field_data_type_category_id": 2,
         "data_type_combo_id": 0,
         "data_type_combo_value": "",
-        "field_value": 0,
+        "field_value": "",
         "message_unique_id": 2222333344445555
     },
     {
@@ -611,7 +567,7 @@
         "field_data_type_category_id": 2,
         "data_type_combo_id": 0,
         "data_type_combo_value": "",
-        "field_value": 0,
+        "field_value": "",
         "message_unique_id": 2222333344445555
     },
     {
@@ -622,7 +578,7 @@
         "field_data_type_category_id": 2,
         "data_type_combo_id": 0,
         "data_type_combo_value": "",
-        "field_value": 0,
+        "field_value": "",
         "message_unique_id": 2222333344445555
     },
     {
@@ -633,7 +589,7 @@
         "field_data_type_category_id": 2,
         "data_type_combo_id": 0,
         "data_type_combo_value": "",
-        "field_value": 0,
+        "field_value": "",
         "message_unique_id": 2222333344445555
     }
 ]

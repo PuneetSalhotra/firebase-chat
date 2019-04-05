@@ -485,23 +485,6 @@ function AssetController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, -9998, req.body));
             });
     });
-
-    // Fetch all queues
-    // A queue can be at organization, workforce or account level
-    app.post('/' + global.config.version + '/asset/queue/activity/list', function (req, res) {
-        // 
-        // Check if a form transaction with a specific form_id has already 
-        // been submitted on a form file
-        activityCommonService
-            .fetchActivitiesMappedToQueue(req.body)
-            .then((data) => {
-                res.send(responseWrapper.getResponse(false, data, 200, req.body));
-            })
-            .catch((err) => {
-                let data = {};
-                res.send(responseWrapper.getResponse(err, data, -9998, req.body));
-            });
-    });
     
    app.post('/' + global.config.version + '/pam/asset/passcode/alter/v1', function (req, res) {
 
@@ -561,5 +544,33 @@ function AssetController(objCollection) {
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/asset/access/levels/list', async function (req, res) {
+        const [err, data] = await assetService.assetAccessMappingSelectUserFlag(req.body);
+        if (err) {
+            return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        } else {
+            return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/workforce/workforce_type/asset/list', async function (req, res) {
+        const [err, data] = await assetService.assetListSelectFlag(req.body);
+        if (err) {
+            return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        } else {
+            return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/workforce/activity_type/mapping/list', async function (req, res) {
+        const [err, data] = await assetService.workforceActivityTypeMappingSelectFlag(req.body);
+        if (err) {
+            return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        } else {
+            return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        }
+    });
+
 }
 module.exports = AssetController;

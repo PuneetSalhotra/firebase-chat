@@ -1,9 +1,6 @@
 [{
         "ACTION": "set_static_value",
         "BATCH": [{
-            "TARGET_FIELD_ID": 11883,
-            "VALUE": "----"
-        }, {
             "TARGET_FIELD_ID": 12078,
             "VALUE": "Mumbai Circle - Account Managers"
         }]
@@ -92,12 +89,17 @@
     {
         "ACTION": "sum",
         "BATCH": [{
-            "SOURCE_FIELD_IDS": [12066, 12067],
+            "SOURCE_FIELD_IDS": [
+                12021, 12024, 12027, 12030,
+                12033, 12037, 12041, 12045,
+                12049, 12053, 12057, 12061,
+                12064
+            ],
             "TARGET_FIELD_ID": 12068,
             "VALUE": 0
         }, {
-            "SOURCE_FIELD_IDS": [12066, 12067],
-            "TARGET_FIELD_ID": 12068,
+            "SOURCE_FIELD_IDS": [12068],
+            "TARGET_FIELD_ID": 12069,
             "VALUE": 0
         }]
     }, {
@@ -129,7 +131,8 @@
                 11953, 11954, 11958, 11959,
                 11961, 11976, 11989, 11990,
                 11992, 12005, 12006, 12018,
-                12019, 12021
+                12019, 12021, 12066, 12067,
+                12068, 12069
             ],
             "VALUE": "As Per CAF Annexure"
         }]
