@@ -379,7 +379,7 @@ function FormConfigService(objCollection) {
                 "form_flag_workflow_origin": util.replaceDefaultNumber(rowData['form_flag_workflow_origin'])
             };
 
-            if (Number(device_os_id) === 5 && Number(index) === 0 && Number(rowData['field_sequence_id']) === 0)
+            /*if (Number(device_os_id) === 5 && Number(index) === 0 && Number(rowData['field_sequence_id']) === 0)
             {
                 //Dont push the row data to array
                 //For device OS ID 5, do not send the form name stored in the label as per the requirement presented by the web team
@@ -387,7 +387,8 @@ function FormConfigService(objCollection) {
             else
             {
                 responseData.push(rowDataArr);
-            }
+            }*/
+            responseData.push(rowDataArr);
         }, this);
         callback(false, responseData);
     };
@@ -613,20 +614,20 @@ function FormConfigService(objCollection) {
 
                             // console.log("[regenerateAndSubmitCAF] Calling regenerateAndSubmitCAF");
 
-                            queueWrapper.raiseActivityEvent(rebuildCafEvent, request.activity_id, (err, resp) => {
-                                if (err) {
-                                    global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                                    throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
-                                } else {
-                                    global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                                    global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                            // queueWrapper.raiseActivityEvent(rebuildCafEvent, request.activity_id, (err, resp) => {
+                            //     if (err) {
+                            //         global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                            //         throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+                            //     } else {
+                            //         global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                            //         global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
 
-                                    // Fire 713 addTimelineTransaction entry for the incoming dedicated form
-                                    // ...
-                                    fire713OnNewOrderFileForDedicatedFile(request).then(() => {});
+                            //         // Fire 713 addTimelineTransaction entry for the incoming dedicated form
+                            //         // ...
+                            //         fire713OnNewOrderFileForDedicatedFile(request).then(() => {});
 
-                                }
-                            });
+                            //     }
+                            // });
                         }
 
                         // [Vodafone] New order 713 entry trigger point for non-CAF-impacting forms 
@@ -808,7 +809,7 @@ function FormConfigService(objCollection) {
                         params[13] = row.field_value;
                         break;
                     case 50: // Reference - File
-                        params[13] = Number(JSON.parse(row.field_value).activity_id); // p_entity_bigint_1
+                        // params[13] = Number(JSON.parse(row.field_value).activity_id); // p_entity_bigint_1
                         params[18] = row.field_value; // p_entity_text_1
                         break;
                     case 52: // Excel Document
@@ -1131,11 +1132,11 @@ function FormConfigService(objCollection) {
 
                     formFields = JSON.parse(request.form_fields);
 
-                    formFields.unshift({
+                    /*formFields.unshift({
                         label: request.form_name,
                         description: 'Form Name',
                         datatypeid: 19
-                    });
+                    });*/
 
                     for (const formField of formFields) {
                         let fieldName = (typeof formField.label == 'undefined') ? formField.title : formField.label;
@@ -1907,7 +1908,7 @@ function FormConfigService(objCollection) {
             formWorkflowActivityTypeId = formConfigData[0].form_workflow_activity_type_id;
             console.log("formWorkflowActivityTypeId: ", formWorkflowActivityTypeId);
 
-            if (Number(formWorkflowActivityTypeId) !== 134562) {
+            if (Number(formWorkflowActivityTypeId) !== 0) {
                 // 713 timeline entry on the workflow file
                 try {
                     const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
@@ -2838,7 +2839,7 @@ function FormConfigService(objCollection) {
         try {
             activityData = await activityCommonService.getActivityByFormTransaction(request, request.activity_id);
         } catch (error) {
-            console
+            console.log("alterFormActivityFieldValues | getActivityByFormTransaction | Error", error)
             return [error, []];
         }
         // If the activity exists, retrieve and parse the inline data
@@ -3124,6 +3125,36 @@ function FormConfigService(objCollection) {
         }
 
         return [error, formFieldData];
+    }
+
+    this.formEntityAccessCheck = async function (request) {
+
+        let fieldData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_id,
+            request.target_asset_id,
+            request.form_id,
+            request.flag
+        );
+        const queryString = util.getQueryString('ds_p1_form_entity_mapping_select_check', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    fieldData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, fieldData];
     }
 
 }

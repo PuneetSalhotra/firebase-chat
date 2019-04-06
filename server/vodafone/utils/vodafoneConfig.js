@@ -51,6 +51,12 @@ const digitalSuperWiFiCafLabels = require("./digital_super_wifi_caf/labels.json"
 const digitalSuperWiFiCafRoms = require("./digital_super_wifi_caf/roms.json");
 const digitalSuperWiFiCafRomsActions = require("./digital_super_wifi_caf/roms_actions.json");
 
+// New FLD - MPLS CAF - 134562
+const digitalMplsCafMappings = require("./digital_mpls_caf/mappings.json");
+const digitalMplsCafLabels = require("./digital_mpls_caf/labels.json");
+const digitalMplsCafRoms = require("./digital_mpls_caf/roms.json");
+const digitalMplsCafRomsActions = require("./digital_mpls_caf/roms_actions.json");
+
 vodafoneConfig = {
     "860": {
         "NAME": "Vodafone Idea | Production | BETA",
@@ -241,7 +247,7 @@ vodafoneConfig = {
         }
     },
     "134564": {
-        "REQUIRED_FORMS": [1142],
+        "REQUIRED_FORMS": [1073],
         "TARGET_FORM_ID": 1109,
         "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
         "FORM_FIELD_MAPPING_DATA": digitalMplsCrfMappings,
@@ -250,7 +256,7 @@ vodafoneConfig = {
         "ROMS_ACTIONS": digitalMplsCrfRomsActions
     },
     "134565": {
-        "REQUIRED_FORMS": [1108],
+        "REQUIRED_FORMS": [1104],
         "TARGET_FORM_ID": 1119,
         "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
         "FORM_FIELD_MAPPING_DATA": digitalIllCafMappings,
@@ -259,7 +265,7 @@ vodafoneConfig = {
         "ROMS_ACTIONS": digitalIllCafRomsActions
     },
     "134566": {
-        "REQUIRED_FORMS": [1307],
+        "REQUIRED_FORMS": [1136],
         "TARGET_FORM_ID": 1229,
         "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
         "FORM_FIELD_MAPPING_DATA": digitalIllCrfMappings,
@@ -268,7 +274,7 @@ vodafoneConfig = {
         "ROMS_ACTIONS": digitalIllCrfRomsActions
     },
     "134576": {
-        "REQUIRED_FORMS": [1327],
+        "REQUIRED_FORMS": [1317],
         "TARGET_FORM_ID": 1316,
         "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
         "FORM_FIELD_MAPPING_DATA": digitalPriCafMappings,
@@ -277,7 +283,7 @@ vodafoneConfig = {
         "ROMS_ACTIONS": digitalPriCafRomsActions
     },
     "134569": {
-        "REQUIRED_FORMS": [1335],
+        "REQUIRED_FORMS": [1144],
         "TARGET_FORM_ID": 1230,
         "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
         "FORM_FIELD_MAPPING_DATA": digitalNplcCafMappings,
@@ -286,7 +292,7 @@ vodafoneConfig = {
         "ROMS_ACTIONS": digitalNplcCafRomsActions
     },
     "134573": {
-        "REQUIRED_FORMS": [1268],
+        "REQUIRED_FORMS": [1264],
         "TARGET_FORM_ID": 1234,
         "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
         "FORM_FIELD_MAPPING_DATA": digitalNplcCrfMappings,
@@ -295,7 +301,7 @@ vodafoneConfig = {
         "ROMS_ACTIONS": digitalNplcCrfRomsActions
     },
     "134574": {
-        "REQUIRED_FORMS": [1336],
+        "REQUIRED_FORMS": [1270],
         "TARGET_FORM_ID": 1337,
         "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
         "FORM_FIELD_MAPPING_DATA": digitalIplcCafMappings,
@@ -304,7 +310,7 @@ vodafoneConfig = {
         "ROMS_ACTIONS": digitalIplcCafRomsActions
     },
     "134575": {
-        "REQUIRED_FORMS": [1349],
+        "REQUIRED_FORMS": [1281],
         "TARGET_FORM_ID": 1277,
         "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
         "FORM_FIELD_MAPPING_DATA": digitalFlvCrfMappings,
@@ -313,12 +319,21 @@ vodafoneConfig = {
         "ROMS_ACTIONS": digitalFlvCrfRomsActions
     },
     "134583": {
-        "REQUIRED_FORMS": [1357],
+        "REQUIRED_FORMS": [1351],
         "TARGET_FORM_ID": 1347,
         "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
         "FORM_FIELD_MAPPING_DATA": digitalSuperWiFiCafMappings,
         "LABELS": digitalSuperWiFiCafLabels,
         "ROMS": digitalSuperWiFiCafRoms,
         "ROMS_ACTIONS": digitalSuperWiFiCafRomsActions
+    },
+    "134562": {
+        "REQUIRED_FORMS": [1059],
+        "TARGET_FORM_ID": 1058,
+        "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
+        "FORM_FIELD_MAPPING_DATA": digitalMplsCafMappings,
+        "LABELS": digitalMplsCafLabels,
+        "ROMS": digitalMplsCafRoms,
+        "ROMS_ACTIONS": digitalMplsCafRomsActions
     }
 };

@@ -389,8 +389,8 @@ if (mode === 'staging') {
     
     //LOGS
     //staging-desker-logs-v2 1 partition
-    config.LOGS_TOPIC_NAME = 'staging-desker-logs-v2';
-    config.LOGS_CONSUMER_GROUP_ID = 'staging-desker-logs-v2-cg';
+    config.LOGS_TOPIC_NAME = 'staging-desker-logs-v3';
+    config.LOGS_CONSUMER_GROUP_ID = 'staging-desker-logs-v3-cg';
     
     config.CONSUMER_AUTO_COMMIT = true;
     config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
@@ -427,13 +427,13 @@ if (mode === 'preprod') {
     config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
     
     config.dbUser = 'apiuser';
-    config.database = 'desker';
+    config.database = 'desker_staging';
     config.dbPassword = 'apidbuser';
 
     config.conLimit = 2;
 
     //Redis Config
-    config.redisIp = 'cache-production.7otgcu.ng.0001.aps1.cache.amazonaws.com';
+    config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';
     config.redisPort = 6379;
 
     //IOS Push
