@@ -1,0 +1,28 @@
+#Author: V Nani Kalyan
+#Date: 02-Aug-2018
+#Description: yml file to build the Mobile API Services
+
+version: 0.1
+          
+phases:
+  install:
+    commands: 
+      - npm install pm2 -g
+      - npm install
+  pre_build:
+    commands:      
+  build:
+    commands:
+      - pm2 start preProdProcesses.yml
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - sleep 10
+      - pm2 ls
+      - sleep 10
+      - pm2 stop all      
+      - pm2 delete all
+artifacts:
+  files:
+    - '**/*'
+  discard-paths: no
