@@ -1,5 +1,5 @@
 /*
- * author: Nani Kalyan V
+ * author: Nani Kalyan V and Ben Sooraj
  */
 
 function VodafoneService(objectCollection) {
