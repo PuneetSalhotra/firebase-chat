@@ -544,5 +544,32 @@ function AssetController(objCollection) {
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/asset/access/levels/list', async function (req, res) {
+        const [err, data] = await assetService.assetAccessMappingSelectUserFlag(req.body);
+        if (err) {
+            return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        } else {
+            return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/workforce/workforce_type/asset/list', async function (req, res) {
+        const [err, data] = await assetService.assetListSelectFlag(req.body);
+        if (err) {
+            return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        } else {
+            return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/workforce/activity_type/mapping/list', async function (req, res) {
+        const [err, data] = await assetService.workforceActivityTypeMappingSelectFlag(req.body);
+        if (err) {
+            return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        } else {
+            return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        }
+    });
 }
 module.exports = AssetController;

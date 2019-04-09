@@ -1,5 +1,6 @@
 /*
- * author: Nani Kalyan V
+ * author: Nani Kalyan V and Ben Sooraj
+ * Upate: PreProd Test 1
  */
 
 function VodafoneService(objectCollection) {
@@ -4725,7 +4726,17 @@ function VodafoneService(objectCollection) {
         let sourceFieldsUpdated = [],
             sourceFieldsUpdatedMap = new Map();
         try {
-            sourceFieldsUpdated = JSON.parse(request.activity_inline_data);
+            if (!request.hasOwnProperty('activity_inline_data')) {
+                // Usually mobile apps send only activity_timeline_collection parameter in
+                // the "/activity/timeline/entry/add" call
+                const activityTimelineCollection = JSON.parse(request.activity_timeline_collection);
+                sourceFieldsUpdated = activityTimelineCollection.form_submitted;
+            } else {
+                // The web app has been sending activity_inline_data, which contains the form
+                // data, directly along with the activity_timeline_collection parameter
+                sourceFieldsUpdated = JSON.parse(request.activity_inline_data);
+            }
+            // sourceFieldsUpdated = JSON.parse(request.activity_inline_data);
             // console.log("regenerateAndSubmitTargetForm | sourceFieldsUpdated: ", sourceFieldsUpdated);
             for (const field of sourceFieldsUpdated) {
                 sourceFieldsUpdatedMap.set(Number(field.field_id), field);
