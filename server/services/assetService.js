@@ -3512,7 +3512,7 @@ function AssetService(objectCollection) {
             return await (db.executeQueryPromise(1, queryString, request));
         }
     };
-
+/*
     this.assetAccessMappingSelectUserFlag = async function (request) {
         let responseData = [],
             error = true;
@@ -3546,14 +3546,45 @@ function AssetService(objectCollection) {
                 .then((data) => {
                     responseData = data;
                     error = false;
+                    console.log("DATA LENGTH ", data.length);
+                    if(data.length === 1)
+                    {   console.log("request.flag ", request.flag);
+                        if(request.flag == 2){  
+                            if(data[0].account_id == 0){
+                             responseData = accountListSelect(request);
+                            }                        
+                        }else if(request.flag == 19){
+                            if(data[0].workforce_type_id == 0){
+                              responseData = workforceTypeMasterSelect(request);
+                            }
+                        }else if(request.flag == 20){
+                            if(data[0].tag_type_id == 0){
+                               responseData = tagTypeMasterSelect(request);
+                            }
+                        }else if(request.flag == 21){
+                            if(data[0].tag_id == 0){
+                               responseData = tagListSelect(request);
+                            }
+                        }else if(request.flag == 8){
+                            console.log("data[0].activity_type_id ", data[0].activity_type_id);
+                            if(data[0].activity_type_id == 0){
+                                activityTypeTagMappingSelect(request).then((resData)=>{
+                                    console.log("data[0].activity_type_id ", resData.length);
+                                });                               
+                            }
+                        }
+                    }
+                    
                 })
                 .catch((err) => {
                     error = err;
                 });
         }
 
-        return [error, responseData];
+        return [error, responseData];   
     };
+
+*/
 
     this.assetListSelectFlag = async function (request) {
         let responseData = [],
@@ -3636,6 +3667,269 @@ function AssetService(objectCollection) {
         data.unshift(zerothElement);
         return data;
     }
+
+    this.assetAccessMappingSelectUserFlag = function (request) {
+        return new Promise((resolve, reject) => {
+        let responseData = [];
+        let singleData = {};
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.workforce_type_id || 0,
+            request.target_asset_id,
+            request.tag_type_id || 0,
+            request.tag_id || 0,
+            request.flag || 1,
+            request.page_start || 0,
+            request.page_limit || 50
+        );
+        const queryString = util.getQueryString('ds_p1_asset_access_mapping_select_user_flag', paramsArr);
+        if (queryString !== '') {
+            db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    //responseData = data;
+                    error = false;
+                    console.log("DATA LENGTH ", data.length);
+                    if(data.length === 1)
+                    {    console.log("request.flag ", request.flag);
+                        if(request.flag == 2){  
+
+                            if(data[0].account_id == 0){
+                             
+                                accountListSelect(request).then((resData)=>{
+                                    singleData.query_status = 0;
+                                    singleData.account_id = 0;
+                                    singleData.account_name = "All";
+
+                                    resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                    responseData[0] = "";
+                                    responseData[1] = resData;
+                                    //console.log("responseData ", responseData);
+                                    resolve(responseData);
+
+                                });                         
+                            }                        
+                        }else if(request.flag == 19){
+
+                            if(data[0].workforce_type_id == 0){
+                              
+                                workforceTypeMasterSelect(request).then((resData)=>{
+                                    singleData.query_status = 0;
+                                    singleData.workforce_type_id = 0;
+                                    singleData.workforce_type_name = "All";
+
+                                    resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                    responseData[0] = "";
+                                    responseData[1] = resData;
+                                    //console.log("responseData ", responseData);
+                                    resolve(responseData);
+
+                                });                        
+                            }
+                        }else if(request.flag == 6){
+
+                            if(data[0].asset_id == 0){ 
+
+                                request.workforce_type_id =  data[0].workforce_type_id;  
+                                request.account_id =  data[0].account_id;     
+
+                                assetListSelect(request).then((resData)=>{
+
+                                    singleData.query_status = 0;
+                                    singleData.asset_id = 0;
+                                    singleData.asset_first_name = "All";
+                                    singleData.operating_asset_id = 0;
+                                    singleData.operating_asset_first_name = "All";
+
+                                    resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                    responseData[0] = "";
+                                    responseData[1] = resData;
+                                    //console.log("responseData ", responseData);
+                                    resolve(responseData);
+
+                                });
+                            }
+                        }else if(request.flag == 20){
+
+                            if(data[0].tag_type_id == 0){   
+
+                                tagTypeMasterSelect(request).then((resData)=>{
+
+                                    singleData.query_status = 0;
+                                    singleData.tag_type_id = 0;
+                                    singleData.tag_type_name = "All";
+
+                                    resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                    responseData[0] = "";
+                                    responseData[1] = resData;
+                                    //console.log("responseData ", responseData);
+                                    resolve(responseData);
+                                });
+                            }
+                        }else if(request.flag == 21){
+
+                            if(data[0].tag_id == 0){        
+
+                               tagListSelect(request).then((resData)=>{
+
+                                    singleData.query_status = 0;
+                                    singleData.tag_id = 0;
+                                    singleData.tag_name = "All";
+
+                                    resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                    responseData[0] = "";
+                                    responseData[1] = resData;
+                                    //console.log("responseData ", responseData);
+                                    resolve(responseData);
+
+                                });
+                            }
+                        }else if(request.flag == 8){   
+
+                            if(data[0].activity_type_id == 0){
+
+                                activityTypeTagMappingSelect(request).then((resData)=>{
+
+                                    singleData.query_status = 0;
+                                    singleData.activity_type_id = 0;
+                                    singleData.activity_type_name = "All";
+
+                                    resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                    responseData[0] = "";
+                                    responseData[1] = resData;
+                                    //console.log("responseData ", responseData);
+                                    resolve(responseData);
+
+                                });                               
+                            }
+                        }
+                    }else{
+                        responseData[0] = "";
+                        responseData[1] = data;
+                        resolve(responseData);
+                    }
+                    
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }        
+        });
+    };
+
+    function accountListSelect(request) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                request.organization_id,
+                request.page_start,
+                request.page_limit
+            );
+
+            var queryString = util.getQueryString('ds_p1_account_list_select_organization', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data): reject(err);
+                });
+            }
+        });
+    };
+
+    function workforceTypeMasterSelect(request) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                request.organization_id,
+                request.page_start,
+                request.page_limit
+            );
+
+            var queryString = util.getQueryString('ds_p1_workforce_type_master_select_organization', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data): reject(err);
+                });
+            }
+        });
+    };
+
+    function assetListSelect(request) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_type_id,
+                request.workforce_id,
+                request._flag||0,
+                request.sort_flag||0,
+                0,
+                1000
+            );
+
+            var queryString = util.getQueryString('ds_p1_asset_list_select_flag', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data): reject(err);
+                });
+            }
+        });
+    };
+
+    function tagTypeMasterSelect(request) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                request.organization_id,
+                request.page_start,
+                request.page_limit
+            );
+
+            var queryString = util.getQueryString('ds_p1_tag_type_master_select', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data): reject(err);
+                });
+            }
+        });
+    };
+
+    function tagListSelect(request) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                request.organization_id,
+                request.page_start,
+                request.page_limit
+            );
+
+            var queryString = util.getQueryString('ds_p1_tag_list_select_organization', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data): reject(err);
+                });
+            }
+        });
+    };
+
+   async function activityTypeTagMappingSelect(request) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                request.organization_id,
+                request.tag_type_id,
+                request.tag_id,
+                request._flag||0,
+                request.sort_flag||0,
+                request.page_start,
+                request.page_limit
+            );
+
+            var queryString = util.getQueryString('ds_p1_activity_type_tag_mapping_select_flag', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data): reject(err);
+                });
+            }
+        });
+    };
+
 }
 
 module.exports = AssetService;
