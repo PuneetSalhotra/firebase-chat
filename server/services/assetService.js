@@ -3532,8 +3532,10 @@ function AssetService(objectCollection) {
             request.organization_id,
             request.account_id,
             request.workforce_id,
-            request.workforce_type_id,
-            request.asset_id,
+            request.workforce_type_id || 0,
+            request.target_asset_id,
+            request.tag_type_id || 0,
+            request.tag_id || 0,
             request.flag || 1,
             request.page_start || 0,
             request.page_limit || 50
@@ -3634,36 +3636,6 @@ function AssetService(objectCollection) {
         data.unshift(zerothElement);
         return data;
     }
-
-    this.userAccessMappingSelectFlag = async function (request) {
-        let responseData = {},
-            error = true;
-
-        const paramsArr = new Array(
-            request.organization_id,
-            request.account_id,
-            request.workforce_id,
-            request.workforce_type_id,
-            request.target_asset_id,
-            request.tag_type_id,
-            request.tag_id,
-            request.flag,
-            request.page_start,
-            request.page_limit
-        );
-        const queryString = util.getQueryString('ds_p1_asset_access_mapping_select_user_flag', paramsArr);
-        if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
-                .then((data) => {
-                    responseData = data;                    
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                });
-        }
-        return responseData;
-    };
 }
 
 module.exports = AssetService;

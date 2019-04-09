@@ -571,17 +571,5 @@ function AssetController(objCollection) {
             return res.send(responseWrapper.getResponse({}, data, 200, req.body));
         }
     });
-
-    app.post(
-        '/' + global.config.version + '/user/access/level/mappings',
-        async (req, res) => {
-            try {
-                let result = await assetService.userAccessMappingSelectFlag(req.body);
-                res.send(responseWrapper.getResponse(false, result, 200, req.body));
-            } catch (err) {
-                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
-            }
-        }
-    );
 }
 module.exports = AssetController;
