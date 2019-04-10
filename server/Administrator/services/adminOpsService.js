@@ -204,8 +204,19 @@ function AdminOpsService(objectCollection) {
             if (activityTypeMappingData.length > 0) {
                 request.activity_type_id = activityTypeMappingData[0].activity_type_id;
             }
+
             let activityInlineData = JSON.parse(request.activity_inline_data);
-            activityInlineData.contact_asset_id = assetID;
+            if (Number(request.activity_type_category_id) === 5) {
+                // Co-Worker Contact Card
+                activityInlineData.contact_asset_id = assetID;
+
+            } else if (Number(request.activity_type_category_id) === 4) {
+                // ID Card
+                // QR Code
+                const qrCode = organizationID + "|" + accountID + "|0|" + assetID + "|" + request.desk_asset_first_name + "|" + request.asset_first_name;
+                activityInlineData.employee_qr_code = qrCode;
+                activityInlineData.employee_asset_id = assetID;
+            }
             request.activity_inline_data = JSON.stringify(activityInlineData);
 
             const [errFour, activityData] = await createActivity(request, workforceID, organizationID, accountID);
@@ -734,7 +745,7 @@ function AdminOpsService(objectCollection) {
         // Append some essential data
         request.stream_type_id = request.stream_type_id || 11018;
         request.log_asset_id = request.log_asset_id || request.asset_id;
-        request.activity_type_category_id = 5;
+        request.activity_type_category_id = 5; // Co-Worker Contact Card
         request.activity_title = request.asset_first_name;
         request.activity_description = request.asset_first_name;
         request.activity_access_role_id = 10;
@@ -815,7 +826,7 @@ function AdminOpsService(objectCollection) {
                 assetTimelineTxnRequest.asset_id = assetData.asset_id;
                 assetTimelineTxnRequest.stream_type_id = 11023;
 
-                await assetTimelineTransactionInsert(request, workforceID, organizationID, accountID);
+                await assetTimelineTransactionInsert(assetTimelineTxnRequest, workforceID, organizationID, accountID);
 
             } catch (error) {
                 console.log("createAssetBundle | assetListUpdateAssetDeskPositionIndex | Error: ", error);
@@ -869,6 +880,700 @@ function AdminOpsService(objectCollection) {
             util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_asset_list_update_asset_desk_position_index', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.addNewEmployeeToExistingDesk = async function (request) {
+        const organizationID = Number(request.organization_id),
+            accountID = Number(request.account_id),
+            workforceID = Number(request.workforce_id);
+
+        // Append some essential data
+        request.stream_type_id = request.stream_type_id || 11006;
+        request.log_asset_id = request.log_asset_id || request.asset_id;
+        request.activity_type_category_id = 4; // ID Card
+        request.activity_title = request.asset_first_name;
+        request.activity_description = request.asset_first_name;
+        request.activity_access_role_id = 8;
+        request.activity_parent_id = 0;
+
+        request.activity_inline_data = JSON.stringify({
+            employee_profile_picture: "",
+            employee_first_name: request.asset_first_name,
+            employee_last_name: request.asset_last_name,
+            employee_id: request.customer_unique_id,
+            employee_designation: request.desk_asset_first_name || '',
+            employee_department: request.workforce_name,
+            employee_location: (request.account_city) ? request.account_city : '',
+            employee_organization: request.organization_name,
+            employee_qr_code: '',
+            employee_date_joining: util.getCurrentUTCTime(),
+            employee_id_card_date_expiry: util.getCurrentUTCTime(),
+            employee_asset_id: '',
+            employee_account_id: request.account_id,
+            employee_workforce_id: request.workforce_id,
+            employee_organization_id: request.organization_id,
+            employee_home_city: '',
+            employee_office_city: (request.account_city) ? request.account_city : '',
+            employee_phone_number: request.phone_number,
+            employee_phone_country_code: request.country_code,
+            employee_email_id: request.email_id
+        });
+
+        // Create the asset
+        const [errOne, assetData] = await createAssetBundle(request, workforceID, organizationID, accountID);
+        if (errOne) {
+            console.log("addNewEmployeeToExistingDesk | createAssetBundle | Error: ", errOne);
+            return [true, {
+                message: "Error creating a new employee in the workforce"
+            }]
+        }
+
+
+        const deskAssetID = Number(request.desk_asset_id),
+            operatingAssetID = Number(assetData.asset_id),
+            idCardActivityID = Number(assetData.activity_id);
+
+        request.operating_asset_id = Number(assetData.asset_id);
+        // Add a new access mapping for employee asset to the desk asset 
+        // if the desk type is employee desk
+        try {
+            await updateInsertEmployeeToDeskAccessMapping(
+                request, deskAssetID,
+                operatingAssetID, idCardActivityID,
+                workforceID, organizationID, accountID
+            );
+        } catch (error) {
+            console.log("addNewEmployeeToExistingDesk | updateInsertEmployeeToDeskAccessMapping | Error: ", error);
+        }
+
+        // Update ID Card of the Employee
+        const [errTwo, deskAssetDataFromDB] = await adminListingService.assetListSelect({
+            organization_id: organizationID,
+            asset_id: deskAssetID
+        });
+        if (!errTwo && Number(deskAssetDataFromDB.length) > 0) {
+            // Update Inline Data
+            let activityInlineData = JSON.parse(request.activity_inline_data);
+            activityInlineData.employee_designation = deskAssetDataFromDB[0].asset_first_name;
+            request.activity_inline_data = JSON.stringify(activityInlineData);
+
+            // Activity List
+            try {
+                await activityListUpdateInlineData({
+                    activity_id: idCardActivityID,
+                    activity_inline_data: request.activity_inline_data
+                }, organizationID);
+            } catch (error) {
+                console.log("addNewEmployeeToExistingDesk | activityListUpdateInlineData | Error: ", error);
+            }
+
+            // Activity Asset Mapping
+            try {
+                await activityAssetMappingUpdateInlineData({
+                    activity_id: idCardActivityID,
+                    asset_id: operatingAssetID,
+                    activity_inline_data: request.activity_inline_data,
+                    pipe_separated_string: '',
+                    log_asset_id: request.log_asset_id
+                }, organizationID);
+            } catch (error) {
+                console.log("addNewEmployeeToExistingDesk | activityAssetMappingUpdateInlineData | Error: ", error);
+            }
+        }
+
+        // Update ID Card status
+        const [errThree, workforceActivityStatusMappingData] = await adminListingService.workforceActivityStatusMappingSelectStatus({
+            organization_id: organizationID,
+            account_id: accountID,
+            workforce_id: workforceID,
+            activity_status_type_id: 8
+        });
+        if (!errThree && Number(workforceActivityStatusMappingData.length) > 0) {
+            // Update in Activity List
+            try {
+                await activityListUpdateStatus({
+                    activity_id: idCardActivityID,
+                    activity_status_id: workforceActivityStatusMappingData[0].activity_status_id,
+                    activity_status_type_id: 8
+                }, workforceID, organizationID, accountID);
+            } catch (error) {
+                console.log("addNewEmployeeToExistingDesk | activityListUpdateStatus | Error: ", error);
+            }
+
+            // Update Activity Asset Mapping
+            try {
+                await activityAssetMappingUpdateStatus({
+                    activity_id: idCardActivityID,
+                    asset_id: operatingAssetID,
+                    activity_status_id: workforceActivityStatusMappingData[0].activity_status_id,
+                    activity_status_type_id: 8
+                }, workforceID, organizationID, accountID);
+            } catch (error) {
+                console.log("addNewEmployeeToExistingDesk | activityAssetMappingUpdateStatus | Error: ", error);
+            }
+        }
+
+        // Fetch and update Co-Worker Contact Card of the asset
+        let coWorkerContactCardActivityID = 0;
+        const [errFour, coWorkerContactCardData] = await adminListingService.activityListSelectCategoryAsset({
+            asset_id: deskAssetID,
+            organization_id: organizationID,
+            activity_type_category_id: 5
+        });
+        if (!errFour && Number(coWorkerContactCardData.length) > 0) {
+            coWorkerContactCardActivityID = coWorkerContactCardData[0].activity_id;
+            let contactCardInlineData = JSON.parse(coWorkerContactCardData[0].activity_inline_data);
+
+            contactCardInlineData.contact_phone_country_code = request.country_code;
+            contactCardInlineData.contact_phone_number = request.phone_number;
+            contactCardInlineData.contact_operating_asset_name = request.asset_first_name;
+            contactCardInlineData.contact_operating_asset_id = operatingAssetID;
+            // 
+            try {
+                await activityListUpdateOperatingAssetData({
+                    activity_id: coWorkerContactCardActivityID,
+                    activity_inline_data: JSON.stringify(contactCardInlineData),
+                    asset_id: deskAssetID,
+                    operating_asset_id: operatingAssetID
+                }, organizationID);
+            } catch (error) {
+                console.log("addNewEmployeeToExistingDesk | activityListUpdateOperatingAssetData | Error: ", error);
+            }
+            // History Insert
+            try {
+                await activityListHistoryInsert({
+                    activity_id: coWorkerContactCardActivityID,
+                    update_type_id: 405
+                }, organizationID);
+            } catch (error) {
+                console.log("addNewEmployeeToExistingDesk | activityListUpdateOperatingAssetData | activityListHistoryInsert | Error: ", error);
+            }
+            // Activity Asset Mapping Update
+            try {
+                await activityAssetMappingUpdateInlineData({
+                    activity_id: coWorkerContactCardActivityID,
+                    asset_id: operatingAssetID,
+                    activity_inline_data: JSON.stringify(contactCardInlineData),
+                    pipe_separated_string: '',
+                    log_asset_id: request.log_asset_id
+                }, organizationID);
+            } catch (error) {
+                console.log("addNewEmployeeToExistingDesk | Co-Worker | activityAssetMappingUpdateInlineData | Error: ", error);
+            }
+            // Activity Asset Mapping Update Operating Asset Data
+            try {
+                await activityAssetMappingUpdateOperationAssetData({
+                    activity_id: coWorkerContactCardActivityID,
+                    activity_inline_data: JSON.stringify(contactCardInlineData),
+                    asset_id: deskAssetID,
+                    operating_asset_id: operatingAssetID
+                }, organizationID);
+            } catch (error) {
+                console.log("addNewEmployeeToExistingDesk | Co-Worker | activityAssetMappingUpdateOperationAssetData | Error: ", error);
+            }
+            // History Insert
+            try {
+                await activityListHistoryInsert({
+                    activity_id: coWorkerContactCardActivityID,
+                    update_type_id: 407
+                }, organizationID);
+            } catch (error) {
+                console.log("addNewEmployeeToExistingDesk | activityAssetMappingUpdateOperationAssetData | activityListHistoryInsert | Error: ", error);
+            }
+        }
+
+        return [false, {
+            desk_asset_id: deskAssetID,
+            coworker_contact_card_activity_id: coWorkerContactCardActivityID,
+            operating_asset_id: operatingAssetID,
+            id_card_activity_id: idCardActivityID
+        }];
+
+    }
+
+    async function updateInsertEmployeeToDeskAccessMapping(request, deskAssetID, operatingAssetID, idCardActivityID, workforceID, organizationID, accountID) {
+        // Fetch desk asset details
+        const [errOne, deskAssetData] = await adminListingService.assetListSelect({
+            organization_id: organizationID,
+            asset_id: deskAssetID
+        });
+        if (errOne || Number(deskAssetData.length) === 0) {
+            console.log("updateInsertEmployeeToDeskAccessMapping | assetListSelect | Error: ", errOne);
+            return [true, {
+                message: "Error fetching desk asset details"
+            }];
+        }
+        try {
+            await assetListUpdateDesk({
+                asset_id: deskAssetData[0].asset_id,
+                asset_first_name: deskAssetData[0].asset_first_name,
+                asset_last_name: deskAssetData[0].asset_last_name,
+                asset_type_id: deskAssetData[0].asset_type_id,
+                operating_asset_id: operatingAssetID,
+                manager_asset_id: 0,
+                log_asset_id: request.log_asset_id
+            }, workforceID, organizationID, accountID);
+        } catch (error) {
+            console.log("updateInsertEmployeeToDeskAccessMapping | assetListUpdateDesk | Error: ", error);
+        }
+        // Update employee and desk asset statuses
+        try {
+            // Update desk asset status to employee assigned
+            await assetListUpdateAssignedStatus({
+                asset_id: deskAssetID,
+                assigned_status_id: 6,
+                log_asset_id: request.log_asset_id
+            }, organizationID);
+
+            // Update employee asset status to employee assigned
+            await assetListUpdateAssignedStatus({
+                asset_id: operatingAssetID,
+                assigned_status_id: 6,
+                log_asset_id: request.log_asset_id
+            }, organizationID);
+
+        } catch (error) {
+            console.log("updateInsertEmployeeToDeskAccessMapping | assetListUpdateAssignedStatus | Error: ", error);
+        }
+        // Update relevant records
+        // Asset List History Insert
+        try {
+            await assetListHistoryInsert({
+                asset_id: deskAssetID,
+                update_type_id: 210
+            }, organizationID);
+        } catch (error) {
+            console.log("updateInsertEmployeeToDeskAccessMapping | Asset List History Insert | Error: ", error);
+        }
+        // Asset Timeline Transaction Insert
+        try {
+            let assetTimelineTxnRequest = Object.assign({}, request);
+            assetTimelineTxnRequest.asset_id = deskAssetID;
+            assetTimelineTxnRequest.stream_type_id = 11006;
+
+            await assetTimelineTransactionInsert(assetTimelineTxnRequest, workforceID, organizationID, accountID);
+        } catch (error) {
+            console.log("updateInsertEmployeeToDeskAccessMapping | assetTimelineTransactionInsert | Error: ", error);
+        }
+
+        // Check for existing employee <==> desk asset access mappings
+        const [errTwo, assetAccessMapData] = await adminListingService.assetAccessMappingSelectA2aMapping({
+            organization_id: organizationID,
+            account_id: accountID,
+            workforce_id: workforceID,
+            asset_id: deskAssetID,
+            user_asset_id: operatingAssetID
+        });
+        if (errTwo) {
+            console.log("updateInsertEmployeeToDeskAccessMapping | assetAccessMappingSelectA2aMapping | Error: ", errTwo);
+            // return [true, {
+            //     message: "Error fetching asset access mapping data"
+            // }];
+        }
+        if (Number(assetAccessMapData.length) > 0 && Number(assetAccessMapData[0].log_state) === 3) {
+            // Un-archive the archived record
+            const userMappingID = assetAccessMapData[0].user_mapping_id;
+            try {
+                await assetAccessMappingUpdateLogState({
+                    user_mapping_id: userMappingID,
+                    log_state: 2,
+                    user_asset_id: operatingAssetID,
+                    workforce_id: workforceID,
+                    organization_id: organizationID,
+                    asset_id: deskAssetID
+                });
+            } catch (error) {
+                console.log("updateInsertEmployeeToDeskAccessMapping | assetAccessMappingUpdateLogState | Error: ", error);
+            }
+            // History Insert
+            try {
+                await assetAccessMappingHistoryInsert({
+                    user_mapping_id: userMappingID,
+                    organization_id: organizationID,
+                    update_type_id: 303
+                });
+            } catch (error) {
+                console.log("updateInsertEmployeeToDeskAccessMapping | assetAccessMappingHistoryInsert | Error: ", error);
+            }
+
+        } else {
+            // Make a new entry
+            const [errThree, newAssetAccessMappingEntry] = await assetAccessMappingInsert({
+                login_asset_id: operatingAssetID,
+                asset_email_id: request.asset_email_id,
+                asset_access_role_id: request.asset_access_role_id,
+                asset_access_level_id: request.asset_access_level_id,
+                asset_id: deskAssetID,
+                asset_type_id: request.asset_type_id,
+                activity_id: 0,
+                activity_type_id: 0,
+                log_asset_id: request.log_asset_id
+            }, workforceID, organizationID, accountID);
+
+            // History Insert
+            try {
+                await assetAccessMappingHistoryInsert({
+                    user_mapping_id: newAssetAccessMappingEntry[0].user_mapping_id,
+                    organization_id: organizationID,
+                    update_type_id: 0
+                });
+            } catch (error) {
+                console.log("updateInsertEmployeeToDeskAccessMapping | assetAccessMappingHistoryInsert | Error: ", error);
+            }
+        }
+    }
+
+    // Asset List Update Desk
+    async function assetListUpdateDesk(request, workforceID, organizationID, accountID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_id,
+            workforceID,
+            accountID,
+            organizationID,
+            request.asset_first_name,
+            request.asset_last_name,
+            request.asset_type_id,
+            request.operating_asset_id,
+            request.manager_asset_id,
+            request.log_asset_id || request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_update_desk', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Asset List Update the Asset Status
+    async function assetListUpdateAssignedStatus(request, organizationID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_id,
+            organizationID,
+            request.assigned_status_id,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_update_assigned_status', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // If the asset mapping is currently archived (log_state = 3), then reactivate the asset mapping (log_state < 3)
+    async function assetAccessMappingUpdateLogState(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.user_mapping_id,
+            request.log_state,
+            request.user_asset_id,
+            request.workforce_id,
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_asset_access_mapping_update_log_state', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // User Access Mapping History Insert
+    async function assetAccessMappingHistoryInsert(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.user_mapping_id || 0,
+            request.organization_id,
+            request.update_type_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_asset_access_mapping_history_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // User Access Mapping History Insert
+    async function assetAccessMappingInsert(request, workforceID, organizationID, accountID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.login_asset_id,
+            request.asset_email_id,
+            request.asset_access_role_id,
+            request.asset_access_level_id,
+            request.asset_id, // Desk Asset ID
+            request.asset_type_id,
+            request.activity_id,
+            request.activity_type_id,
+            workforceID,
+            accountID,
+            organizationID,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_asset_access_mapping_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Update the desk details in the inline data of the co-worker contact card or ID card 
+    // activity of the operating employee
+    async function activityListUpdateInlineData(request, organizationID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.activity_id,
+            organizationID,
+            request.activity_inline_data,
+            request.pipe_separated_string || '',
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_activity_list_update_inline_data', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Update the desk details in the inline data of the co-worker contact card 
+    // or ID Card activity of the operating employee in all the collaborator mappings
+    async function activityAssetMappingUpdateInlineData(request, organizationID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.activity_id,
+            request.asset_id,
+            organizationID,
+            request.activity_inline_data,
+            request.pipe_separated_string,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_inline_data', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Update the desk details in the inline data of the co-worker contact card 
+    // or ID Card activity of the operating employee in all the collaborator mappings
+    async function activityListUpdateStatus(request, workforceID, organizationID, accountID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            organizationID,
+            accountID,
+            workforceID,
+            request.activity_id,
+            request.activity_status_id,
+            request.activity_status_type_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_activity_list_update_status', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Update the status of the co-worker contact card and ID Card activity of the 
+    // employee asset to archived for all the collaborator mappings
+    async function activityAssetMappingUpdateStatus(request, workforceID, organizationID, accountID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            organizationID,
+            accountID,
+            workforceID,
+            request.activity_id,
+            request.asset_id,
+            request.activity_status_id,
+            request.activity_status_type_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_status', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Update operating asset information
+    async function activityListUpdateOperatingAssetData(request, organizationID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.activity_id,
+            organizationID,
+            request.activity_inline_data,
+            request.pipe_separated_string || '',
+            util.getCurrentUTCTime(),
+            request.asset_id,
+            request.operating_asset_id
+        );
+        const queryString = util.getQueryString('ds_p1_activity_list_update_operating_asset_data', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Update operating asset information
+    async function activityListHistoryInsert(request, organizationID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            organizationID,
+            request.activity_id,
+            request.update_type_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_activity_list_history_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Update operating asset information in activity
+    async function activityAssetMappingUpdateOperationAssetData(request, organizationID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.activity_id,
+            organizationID,
+            request.activity_inline_data,
+            request.pipe_separated_string || '',
+            util.getCurrentUTCTime(),
+            request.asset_id,
+            request.operating_asset_id
+        );
+        const queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_operation_asset_data', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
