@@ -18,12 +18,24 @@ function AdminOpsController(objCollection) {
         }
     });
 
+    // Add a desk to floor
     app.post('/' + global.config.version + '/admin/workforce/desk/add', async function (req, res) {
         const [err, orgData] = await adminOpsService.addNewDeskToWorkforce(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
         } else {
-            console.log("/admin/organization/setup | Error: ", err);
+            console.log("/admin/workforce/desk/add | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });
+
+    // Add an employee to an existing desk on a floor
+    app.post('/' + global.config.version + '/admin/workforce/desk/employee/add', async function (req, res) {
+        const [err, orgData] = await adminOpsService.addNewEmployeeToExistingDesk(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/admin/workforce/desk/employee/add | Error: ", err);
             res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
         }
     });
