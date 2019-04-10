@@ -742,6 +742,9 @@ function FormConfigService(objCollection) {
     function putLatestUpdateSeqId(request, activityInlineData) {
         return new Promise((resolve, reject) => {
 
+            const widgetFieldsStatusesData = util.widgetFieldsStatusesData();
+            let poFields = widgetFieldsStatusesData.PO_FIELDS; //new Array(13263, 13269, 13265, 13268, 13271);
+
             forEachAsync(activityInlineData, (next, row) => {
                 var params = new Array(
                     request.form_transaction_id, //0
@@ -918,7 +921,19 @@ function FormConfigService(objCollection) {
 
                 let queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
                 if (queryString != '') {
-                    db.executeQuery(0, queryString, request, function (err, data) {
+                    db.executeQuery(0, queryString, request, function (err, data) {                        
+                         global.logger.write('conLog', '*****Update: update po_date in widget1 *******'+Object.keys(poFields) +' '+row.field_id , {}, request);
+                         if(Object.keys(poFields).includes(String(row.field_id))){
+                                global.logger.write('conLog', '*****Update: update po_date in widget2 *******', {}, request);
+                                activityCommonService.getActivityDetailsPromise(request,0).then((activityData)=>{ 
+                                    global.logger.write('conLog', '*****Update: update po_date in widget3 *******'+activityData[0].channel_activity_id , {}, request);                                       
+                                    request['workflow_activity_id'] = activityData[0].channel_activity_id;                            
+                                    request['order_po_date'] = row.field_value;
+                                    request['flag'] = 1;
+                                    request['datetime_log'] = util.getCurrentUTCTime();
+                                    activityCommonService.widgetActivityFieldTxnUpdateDatetime(request); 
+                                })          
+                            }
                         next();
                         //(err === false) ?  resolve() : reject();
                     });

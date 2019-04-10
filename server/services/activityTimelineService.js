@@ -1698,6 +1698,7 @@ function ActivityTimelineService(objectCollection) {
         global.logger.write('debug', '\x1b[32m In ActivtiyTimelineService - Inside the addFormEntries() function. \x1b[0m', {}, request);
 
         let formDataJson;
+        let poFields = widgetFieldsStatusesData.PO_FIELDS;// new Array(13263, 13269, 13265, 13268, 13271);
 
         if (request.hasOwnProperty('form_id')) {
 
@@ -1938,6 +1939,15 @@ function ActivityTimelineService(objectCollection) {
             var queryString = util.getQueryString('ds_v1_2_activity_form_transaction_insert', params); //BETA
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
+                    if(Object.keys(poFields).includes(String(row.field_id))){
+                        activityCommonService.getActivityDetailsPromise(request,0).then((activityData)=>{    
+                            request['workflow_activity_id'] = activityData[0].channel_activity_id;                            
+                            request['order_po_date'] = row.field_value;
+                            request['flag'] = 1;
+                            request['datetime_log'] = util.getCurrentUTCTime();
+                            activityCommonService.widgetActivityFieldTxnUpdateDatetime(request); 
+                        })                           
+                    }
                     next();
                     if (err === false) {
                         //Success
@@ -1988,7 +1998,7 @@ function ActivityTimelineService(objectCollection) {
 
     function sendRequesttoWidgetEngine(request) {
 
-        global.logger.write('conLog', '*********************************88BEFORE FORM WIDGET *********************************************88 : ', {}, request);
+        global.logger.write('conLog', '*********************************BEFORE FORM WIDGET *********************************************88 : ', {}, request);
         if (request.activity_type_category_id == 9) { //form and submitted state                    
             activityCommonService.getActivityDetails(request, 0, function (err, activityData) { // get activity form_id and form_transaction id
                 activityCommonService.getWorkflowOfForm(request)
