@@ -155,6 +155,82 @@ function AdminListingService(objectCollection) {
         return [error, responseData];
     }
 
+    this.assetAccessMappingSelectA2aMapping = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.asset_id, // Desk Asset ID
+            request.user_asset_id // Employee Desk Asset ID
+        );
+        const queryString = util.getQueryString('ds_p1_asset_access_mapping_select_a2a_mapping', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.workforceActivityStatusMappingSelectStatus = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_status_type_id
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_select_status', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Get activity list of an asset
+    this.activityListSelectCategoryAsset = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_id,
+            request.organization_id,
+            request.activity_type_category_id
+        );
+        const queryString = util.getQueryString('ds_p1_activity_list_select_category_asset', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
 }
 
 
