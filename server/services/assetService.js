@@ -3710,6 +3710,10 @@ function AssetService(objectCollection) {
                                     resolve(responseData);
 
                                 });                         
+                            }else{
+                                responseData[0] = "";
+                                responseData[1] = data;
+                                resolve(responseData);
                             }                        
                         }else if(request.flag == 19){
 
@@ -3727,6 +3731,10 @@ function AssetService(objectCollection) {
                                     resolve(responseData);
 
                                 });                        
+                            }else{
+                                responseData[0] = "";
+                                responseData[1] = data;
+                                resolve(responseData);
                             }
                         }else if(request.flag == 6){
 
@@ -3750,6 +3758,10 @@ function AssetService(objectCollection) {
                                     resolve(responseData);
 
                                 });
+                            }else{
+                                responseData[0] = "";
+                                responseData[1] = data;
+                                resolve(responseData);
                             }
                         }else if(request.flag == 20){
 
@@ -3767,6 +3779,10 @@ function AssetService(objectCollection) {
                                     //console.log("responseData ", responseData);
                                     resolve(responseData);
                                 });
+                            }else{
+                                responseData[0] = "";
+                                responseData[1] = data;
+                                resolve(responseData);
                             }
                         }else if(request.flag == 21){
 
@@ -3785,6 +3801,10 @@ function AssetService(objectCollection) {
                                     resolve(responseData);
 
                                 });
+                            }else{
+                                responseData[0] = "";
+                                responseData[1] = data;
+                                resolve(responseData);
                             }
                         }else if(request.flag == 8){   
 
@@ -3803,6 +3823,10 @@ function AssetService(objectCollection) {
                                     resolve(responseData);
 
                                 });                               
+                            }else{
+                                responseData[0] = "";
+                                responseData[1] = data;
+                                resolve(responseData);
                             }
                         }
                     }else{
