@@ -1698,6 +1698,7 @@ function ActivityTimelineService(objectCollection) {
         global.logger.write('debug', '\x1b[32m In ActivtiyTimelineService - Inside the addFormEntries() function. \x1b[0m', {}, request);
 
         let formDataJson;
+        const widgetFieldsStatusesData = util.widgetFieldsStatusesData();
         let poFields = widgetFieldsStatusesData.PO_FIELDS;// new Array(13263, 13269, 13265, 13268, 13271);
 
         if (request.hasOwnProperty('form_id')) {
