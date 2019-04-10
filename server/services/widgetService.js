@@ -755,6 +755,26 @@ function WidgetService(objCollection) {
             return Promise.reject(error);
         }
     };
+    
+    this.fieldTrxAvgTime = async (request) => {            
+        let paramsArr = new Array(
+            request.organization_id, 
+            request.account_id, 
+            request.workforce_id, 
+            request.asset_id,            
+            request.flag || 1, 
+            request.start_datetime,
+            request.end_datetime,
+            request.activity_type_id, 
+            request.activity_type_tag_id,
+            request.tag_type_id, 
+            request.workforce_type_id
+        );
+        let queryString = util.getQueryString('ds_p1_widget_activity_field_transaction_select_avg_time', paramsArr);
+        if (queryString != '') {                
+            return await (db.executeQueryPromise(1, queryString, request));
+        }
+    };
 
 }
 
