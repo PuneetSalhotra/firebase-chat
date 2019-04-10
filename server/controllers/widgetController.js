@@ -255,6 +255,16 @@ function WidgetController(objCollection) {
             }
         }
     );
+
+    app.post('/' + global.config.version + '/widget/activity/field_transaction/average_time',async (req, res) => {
+            try {
+                let result = await widgetService.fieldTrxAvgTime(req.body);
+                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            } catch (err) {
+                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            }
+        }
+    );
     
 }
 
