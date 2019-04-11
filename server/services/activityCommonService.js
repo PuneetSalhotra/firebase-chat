@@ -3157,7 +3157,35 @@ function ActivityCommonService(db, util, forEachAsync) {
             return await (db.executeQueryPromise(1, queryString, request));
         }
     };
-    
+
+    this.widgetActivityFieldTxnUpdateDatetime = function (request) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.workflow_activity_id,
+                request.order_po_date || null,
+                request.order_caf_approval_datetime || null,
+                request.order_logged_datetime || null,
+                request.order_po_trigger_diff || 0,
+                request.order_trigger_log_diff || 0,
+                request.order_caf_approval_log_diff || 0,
+                request.flag,  
+                request.datetime_log
+            );
+            var queryString = util.getQueryString("ds_p1_widget_activity_field_transaction_update_datetime", paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    if (err === false) {
+                        resolve();
+                    } else {
+                        reject(err);
+                    }
+                });
+            }
+        });
+    }; 
 };
 
 
