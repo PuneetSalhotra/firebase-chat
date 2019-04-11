@@ -674,7 +674,7 @@ function WidgetService(objCollection) {
                     .then((data) => {   
                     //responseData = data;
                        responseData.date_wise = data;
-                        console.log('responseData :: ',responseData);
+                        //console.log('responseData :: ',responseData);
                         error = false;
                     })
                     .catch((err) => {
@@ -761,7 +761,7 @@ function WidgetService(objCollection) {
             request.organization_id, 
             request.account_id, 
             request.workforce_id, 
-            request.asset_id,            
+            request.target_asset_id,            
             request.flag || 1, 
             request.start_datetime,
             request.end_datetime,
