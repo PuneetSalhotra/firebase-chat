@@ -2005,6 +2005,160 @@ function AdminOpsService(objectCollection) {
         }
         return [error, responseData];
     }
+
+    // 
+    this.archiveDeskIfEmployeeNotMapped = async function (request) {
+        const organizationID = Number(request.organization_id),
+            accountID = Number(request.account_id),
+            workforceID = Number(request.workforce_id),
+            deskAssetID = Number(request.desk_asset_id),
+            operatingAssetID = Number(request.operating_asset_id);
+        
+        // Fetch desk asset details
+        const [errOne, deskAssetDataFromDB] = await adminListingService.assetListSelect({
+            organization_id: organizationID,
+            asset_id: deskAssetID
+        });
+        if (errOne && Number(deskAssetDataFromDB.length) === 0) {
+            console.log("archiveDeskIfEmployeeNotMapped | assetListSelect | Error: ", errOne);
+            console.log("archiveDeskIfEmployeeNotMapped | assetListSelect | deskAssetDataFromDB | Length: ", deskAssetDataFromDB.length);
+
+            return [true, {
+                message: "Error fetching desk asset details"
+            }];
+        }
+
+        // Delete/archive the desk asset
+        const [errTwo, _] = await assetListDelete({
+            asset_id: deskAssetID,
+            log_asset_id: request.log_asset_id
+        }, organizationID);
+        if (errTwo) {
+            console.log("archiveDeskIfEmployeeNotMapped | assetListDelete | Error: ", error);
+            return [true, {
+                message: "Error archiving desk asset"
+            }];
+        }
+
+        // Asset List History Insert
+        try {
+            await assetListHistoryInsert({
+                asset_id: deskAssetID,
+                update_type_id: 204
+            }, organizationID);
+        } catch (error) {
+            console.log("archiveDeskIfEmployeeNotMapped | Desk Asset List History Insert | Error: ", error);
+        }
+
+        // Desk Asset Timeline Transaction Insert
+        try {
+            let assetTimelineTxnRequest = Object.assign({}, request);
+            assetTimelineTxnRequest.asset_id = deskAssetID;
+            assetTimelineTxnRequest.stream_type_id = 11020;
+
+            await assetTimelineTransactionInsert(assetTimelineTxnRequest, workforceID, organizationID, accountID);
+        } catch (error) {
+            console.log("archiveDeskIfEmployeeNotMapped | assetTimelineTransactionInsert | Error: ", error);
+        }
+
+        // Fetch and archive Co-Worker Contact Card of the desk asset
+        let coWorkerContactCardActivityID = 0,
+            contactCardActivityStatusID = 0;
+        const [errThree, coWorkerContactCardData] = await adminListingService.activityListSelectCategoryAsset({
+            asset_id: deskAssetID,
+            organization_id: organizationID,
+            activity_type_category_id: 5
+        });
+        if (!errThree && Number(coWorkerContactCardData.length) > 0) {
+            coWorkerContactCardActivityID = coWorkerContactCardData[0].activity_id;
+        }
+
+        // Fetch the relevant archive activity status
+        const [errFour, workforceActivityStatusMappingData] = await adminListingService.workforceActivityStatusMappingSelectStatus({
+            organization_id: organizationID,
+            account_id: accountID,
+            workforce_id: workforceID,
+            activity_status_type_id: 11
+        });
+        if (!errFour && Number(workforceActivityStatusMappingData.length) > 0) {
+            contactCardActivityStatusID = workforceActivityStatusMappingData[0].activity_status_id;
+
+            // Update in Activity List
+            try {
+                await activityListUpdateStatus({
+                    activity_id: coWorkerContactCardActivityID,
+                    activity_status_id: contactCardActivityStatusID,
+                    activity_status_type_id: 11
+                }, workforceID, organizationID, accountID);
+            } catch (error) {
+                console.log("archiveDeskIfEmployeeNotMapped | activityListUpdateStatus | Error: ", error);
+            }
+
+            // Update Activity Asset Mapping
+            try {
+                await activityAssetMappingUpdateStatus({
+                    activity_id: coWorkerContactCardActivityID,
+                    asset_id: deskAssetID,
+                    activity_status_id: contactCardActivityStatusID,
+                    activity_status_type_id: 11
+                }, workforceID, organizationID, accountID);
+            } catch (error) {
+                console.log("archiveDeskIfEmployeeNotMapped | activityAssetMappingUpdateStatus | Error: ", error);
+            }
+
+            // History Insert
+            try {
+                await activityListHistoryInsert({
+                    activity_id: coWorkerContactCardActivityID,
+                    update_type_id: 402
+                }, organizationID);
+            } catch (error) {
+                console.log("archiveDeskIfEmployeeNotMapped | activityListHistoryInsert | Error: ", error);
+            }
+            // Activity Timeline Transaction Insert
+            try {
+                let activityTimelineTxnRequest = Object.assign({}, request);
+                activityTimelineTxnRequest.activity_id = coWorkerContactCardActivityID;
+                activityTimelineTxnRequest.asset_id = deskAssetID;
+                activityTimelineTxnRequest.stream_type_id = 11020;
+
+                await activityTimelineTransactionInsert(activityTimelineTxnRequest, workforceID, organizationID, accountID);
+            } catch (error) {
+                console.log("archiveDeskIfEmployeeNotMapped | Co-Worker | activityTimelineTransactionInsert | Error: ", error);
+            }
+        }
+
+        return [false, {
+            desk_asset_id: deskAssetID,
+            coworker_contact_card_activity_id: coWorkerContactCardActivityID
+        }];
+    }
+
+    // Archive the asset
+    async function assetListDelete(request, organizationID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_id,
+            organizationID,
+            request.log_asset_id,
+            util.getCurrentUTCTime() // Updated datetime
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_delete', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = AdminOpsService;
