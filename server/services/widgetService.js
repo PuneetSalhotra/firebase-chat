@@ -760,16 +760,26 @@ function WidgetService(objCollection) {
         if(Number(request.flag) === 0) {            
             let i;
             let result;
-            let finalResult = 0;
+            //let finalResult = 0;
             let response = {};
             for(i=1;i<5;i++) {
                 result = await retrievefieldTrxAvgTime(request, i);
                 if(result.length > 0) {
                     //console.log(result[0].widget_axis_y_value_decimal);
-                    finalResult += result[0].widget_axis_y_value_decimal || 0;
-                }  
-            }            
-            response.widget_axis_y_value_decimal = finalResult;
+                    //finalResult += result[0].widget_axis_y_value_decimal || 0;
+                    //response.widget_axis_y_value_decimal_1 = result[0].widget_axis_y_value_decimal;
+                    switch(i) {
+                        case 1: response.po_order_submission_tat = result[0].widget_axis_y_value_decimal || 0;
+                                break;
+                        case 2: response.order_submission_logged_tat = result[0].widget_axis_y_value_decimal || 0;
+                                break;
+                        case 3: response.caf_approval_logged_tat = result[0].widget_axis_y_value_decimal || 0;
+                                break;
+                        case 4: response.order_po_logged_tat = result[0].widget_axis_y_value_decimal || 0;
+                                break;
+                    }
+                }
+            }             
             return response;
         } else {
             let paramsArr = new Array(
