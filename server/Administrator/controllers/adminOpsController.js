@@ -40,6 +40,28 @@ function AdminOpsController(objCollection) {
         }
     });
 
+    // Add an employee to an existing desk on a floor
+    app.post('/' + global.config.version + '/admin/workforce/desk/employee/remove', async function (req, res) {
+        const [err, orgData] = await adminOpsService.removeEmployeeMappedToDesk(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/admin/workforce/desk/employee/remove | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });
+
+    // Archive the desk asset from the floor/workforce provided no employee is mapped to it
+    app.post('/' + global.config.version + '/admin/workforce/desk/archive', async function (req, res) {
+        const [err, orgData] = await adminOpsService.archiveDeskIfEmployeeNotMapped(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/admin/workforce/desk/archive | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });
+
 };
 
 module.exports = AdminOpsController;
