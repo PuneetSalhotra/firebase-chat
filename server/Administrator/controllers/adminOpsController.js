@@ -62,6 +62,18 @@ function AdminOpsController(objCollection) {
         }
     });
 
+    // Relocate a employee desk from one floor/workforce to another. If an employee is operating 
+    // on the desk, then shift the employee asset to the target floor workforce
+    app.post('/' + global.config.version + '/admin/workforce/desk/update_workforce', async function (req, res) {
+        const [err, orgData] = await adminOpsService.moveEmployeeDeskToAnotherWorkforce(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/admin/workforce/desk/update_workforce | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });
+
 };
 
 module.exports = AdminOpsController;
