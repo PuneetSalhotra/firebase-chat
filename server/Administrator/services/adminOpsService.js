@@ -2246,12 +2246,12 @@ function AdminOpsService(objectCollection) {
         // Update workforce data in co-worker contact card activity associated with the employee asset
         // Fetch and update Co-Worker Contact Card of the asset
         let coWorkerContactCardActivityID = 0;
-        const [errFour, coWorkerContactCardData] = await adminListingService.activityListSelectCategoryAsset({
+        const [errZero, coWorkerContactCardData] = await adminListingService.activityListSelectCategoryAsset({
             asset_id: deskAssetID,
             organization_id: organizationID,
             activity_type_category_id: 5
         });
-        if (!errFour && Number(coWorkerContactCardData.length) > 0) {
+        if (!errZero && Number(coWorkerContactCardData.length) > 0) {
             coWorkerContactCardActivityID = coWorkerContactCardData[0].activity_id;
             let contactCardInlineData = JSON.parse(coWorkerContactCardData[0].activity_inline_data);
 
@@ -2340,7 +2340,7 @@ function AdminOpsService(objectCollection) {
                 log_asset_id: request.log_asset_id
             }, newWorkforceID, organizationID, accountID);
             if (!errSix) {
-                console.log("moveEmployeeDeskToAnotherWorkforce | Employee | assetListUpdateWorkforce | Error: ", errFour);
+                console.log("moveEmployeeDeskToAnotherWorkforce | Employee | assetListUpdateWorkforce | Error: ", errSix);
 
                 // Employee Asset List History Insert
                 try {
