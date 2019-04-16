@@ -4613,10 +4613,10 @@ function VodafoneService(objectCollection) {
                                         console.log(` ${targetFieldEntry.field_name} | field_id: \x1b[31m${targetFieldID}\x1b[0m current value: ${currentValue} previous value: ${previousValue}`);
                                         targetFieldEntry.field_value = previousValue;
                                         updatedRomsFields.push(targetFieldEntry);
+                                        // Set the updated object as value for the target field ID
+                                        targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
                                     }
                                 }
-                                // Set the updated object as value for the target field ID
-                                targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
                             }
                         }
                     }
@@ -4681,6 +4681,42 @@ function VodafoneService(objectCollection) {
                                 }
                             }
                         }
+                    } else {
+                        for (const selectBatch of batch.BATCH) {
+                            for (const targetFieldID of selectBatch.TARGET_FIELD_IDS) {
+                                if (targetFormDataMap.has(Number(targetFieldID))) {
+                                    console.log("\x1b[31m targetFieldID: \x1b[0m", targetFieldID)
+                                    // Get the entire object
+                                    let targetFieldEntry = targetFormDataMap.get(Number(targetFieldID));
+                                    // Set the value
+                                    let currentValue = targetFieldEntry.field_value;
+                                    if (currentValue === batch.VALUE) {
+                                        let previousValue = undefined;
+                                        try {
+                                            let previousFieldEntry = await getVersionedFieldValue({
+                                                form_transaction_id: TARGET_FORM_TRANSACTION_ID,
+                                                form_id: TARGET_FORM_ID,
+                                                field_id: targetFieldID,
+                                                organization_id: request.organization_id
+                                            }, 1);
+                                            if (Number(previousFieldEntry.length) > 0) {
+                                                const fieldDataTypeID = Number(previousFieldEntry[0].data_type_id);
+                                                previousValue = previousFieldEntry[0][getFielDataValueColumnName(fieldDataTypeID)];
+                                            }
+                                        } catch (error) {
+                                            console.log("performRomsCalculations | check_multiselect_and_set_annexure_defaults | getVersionedFieldValue: ", error);
+                                        }
+                                        if (previousValue !== undefined) {
+                                            console.log(` ${targetFieldEntry.field_name} | field_id: \x1b[31m${targetFieldID}\x1b[0m current value: ${currentValue} previous value: \x1b[31m${previousValue}\x1b[0m`);
+                                            targetFieldEntry.field_value = previousValue;
+                                            updatedRomsFields.push(targetFieldEntry);
+                                            // Set the updated object as value for the target field ID
+                                            targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                     console.log("isAnnexureUploaded: ", isAnnexureUploaded);
                 }
@@ -4707,6 +4743,9 @@ function VodafoneService(objectCollection) {
             case 6: // Decimal
                 return 'data_entity_double_1';
             case 19: // Short Text
+            case 20: // Long Text
+            case 21: // Label
+            case 22: // Email ID
             case 27: // General Signature with asset reference
             case 33: // Single Selection List
                 return 'data_entity_text_1';
