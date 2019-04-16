@@ -538,11 +538,7 @@ function FormConfigService(objCollection) {
 
                         await putLatestUpdateSeqId(request, activityInlineData).then(() => {
 
-                            try{
-                                widgetAggrFieldValueUpdate(request);
-                            }catch(err){
-                                console.log('Error in updating Intermediate Table : ', err);
-                            }
+                            
 
                             var event = {
                                 name: "alterActivityInline",
@@ -921,7 +917,14 @@ function FormConfigService(objCollection) {
 
                 let queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
                 if (queryString != '') {
-                    db.executeQuery(0, queryString, request, function (err, data) {                        
+                    db.executeQuery(0, queryString, request, function (err, data) {  
+                        global.logger.write('conLog', '*****Update: update field_value in widget *******'+row.field_id +' '+row.field_value , {}, request);
+                        try{
+                                widgetAggrFieldValueUpdate(request);
+                            }catch(err){
+                                console.log('Error in updating Intermediate Table : ', err);
+                            }      
+
                          global.logger.write('conLog', '*****Update: update po_date in widget1 *******'+Object.keys(poFields) +' '+row.field_id , {}, request);
                          if(Object.keys(poFields).includes(String(row.field_id))){
                                 global.logger.write('conLog', '*****Update: update po_date in widget2 *******', {}, request);
