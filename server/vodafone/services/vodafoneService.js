@@ -2313,6 +2313,25 @@ function VodafoneService(objectCollection) {
         }
     }
 
+    // Get versioned field value based on form id and form_transaction_id
+    async function getVersionedFieldValue(request, version) {
+        // IN p_form_transaction_id BIGINT(20), IN p_form_id BIGINT(20), 
+        // IN p_field_id BIGINT(20), IN p_organization_id BIGINT(20), 
+        // IN p_version TINYINT(4)
+
+        let paramsArr = new Array(
+            request.form_transaction_id || 0,
+            request.form_id,
+            request.field_id,
+            request.organization_id,
+            version || 0
+        );
+        let queryString = util.getQueryString('ds_p1_activity_form_transaction_select_field_seq_id_version', paramsArr);
+        if (queryString != '') {
+            return await (db.executeQueryPromise(1, queryString, request));
+        }
+    }
+
     function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
@@ -4395,6 +4414,16 @@ function VodafoneService(objectCollection) {
 
     // performRomsCalculations
     async function performRomsCalculations(request, targetFormData, ROMS_ACTIONS) {
+        // Inits
+        let TARGET_FORM_ID = 0,
+            TARGET_FORM_TRANSACTION_ID = 0;
+        if (request.hasOwnProperty("target_form_id")) {
+            TARGET_FORM_ID = Number(request.target_form_id);
+        }
+        if (request.hasOwnProperty("target_form_transaction_id")) {
+            TARGET_FORM_TRANSACTION_ID = request.target_form_transaction_id;
+        }
+
         // Convert targetFormData to an ES6 Map
         let targetFormDataMap = new Map();
         for (const field of targetFormData) {
@@ -4556,6 +4585,40 @@ function VodafoneService(objectCollection) {
                                 targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
                             }
                         }
+                    } else {
+                        for (const targetFieldID of batch.TARGET_FIELD_IDS) {
+                            if (targetFormDataMap.has(Number(targetFieldID))) {
+                                // console.log("\x1b[31m targetFieldID: \x1b[0m", targetFieldID)
+                                // Get the entire object
+                                let targetFieldEntry = targetFormDataMap.get(Number(targetFieldID));
+                                // Set the value
+                                let currentValue = targetFieldEntry.field_value;
+                                if (currentValue === batch.VALUE) {
+                                    let previousValue = undefined;
+                                    try {
+                                        let previousFieldEntry = await getVersionedFieldValue({
+                                            form_transaction_id: TARGET_FORM_TRANSACTION_ID,
+                                            form_id: TARGET_FORM_ID,
+                                            field_id: targetFieldID,
+                                            organization_id: request.organization_id
+                                        }, 1);
+                                        if (Number(previousFieldEntry.length) > 0) {
+                                            const fieldDataTypeID = Number(previousFieldEntry[0].data_type_id);
+                                            previousValue = previousFieldEntry[0][getFielDataValueColumnName(fieldDataTypeID)];
+                                        }
+                                    } catch (error) {
+                                        console.log("performRomsCalculations | check_and_set_annexure_defaults | getVersionedFieldValue: ", error);
+                                    }
+                                    if (previousValue !== undefined) {
+                                        console.log(` ${targetFieldEntry.field_name} | field_id: \x1b[31m${targetFieldID}\x1b[0m current value: ${currentValue} previous value: ${previousValue}`);
+                                        targetFieldEntry.field_value = previousValue;
+                                        updatedRomsFields.push(targetFieldEntry);
+                                    }
+                                }
+                                // Set the updated object as value for the target field ID
+                                targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
+                            }
+                        }
                     }
                     console.log("isAnnexureUploaded: ", isAnnexureUploaded);
                 }
@@ -4633,6 +4696,21 @@ function VodafoneService(objectCollection) {
             TARGET_FORM_DATA: targetFormData,
             UPDATED_ROMS_FIELDS: updatedRomsFields
         };
+    }
+
+    function getFielDataValueColumnName(fieldDataTypeID) {
+        switch (fieldDataTypeID) {
+            case 1: // Date
+                return 'data_entity_datetime_2';
+            case 5: // Number
+                return 'data_entity_bigint_1';
+            case 6: // Decimal
+                return 'data_entity_double_1';
+            case 19: // Short Text
+            case 27: // General Signature with asset reference
+            case 33: // Single Selection List
+                return 'data_entity_text_1';
+        }
     }
 
     this.regenerateAndSubmitTargetForm = async function (request) {
@@ -4800,6 +4878,8 @@ function VodafoneService(objectCollection) {
 
         // ROMS Recalculation
         const ROMS_ACTIONS = global.vodafoneConfig[workflowActivityTypeId].ROMS_ACTIONS;
+        request.target_form_id = TARGET_FORM_ID;
+        request.target_form_transaction_id = targetFormTransactionId;
         let {TARGET_FORM_DATA, UPDATED_ROMS_FIELDS} = await performRomsCalculations(request, [...targetFormDataMap.values()], ROMS_ACTIONS);
         // updatedRomsFields
         for (let i = 0; i < UPDATED_ROMS_FIELDS.length; i++) {
@@ -4820,6 +4900,13 @@ function VodafoneService(objectCollection) {
         if (targetFieldsUpdated.length === 0) {
             return [new Error("NoTargetFormFieldsUpdated"), []];
         }
+
+        // const fs = require("fs");
+        // fs.writeFileSync('/Users/Bensooraj/Desktop/desker_api/server/vodafone/utils/data.json', JSON.stringify(TARGET_FORM_DATA, null, 2) , 'utf-8');
+
+        // return [false, {
+        //     UPDATED_ROMS_FIELDS
+        // }];
 
         // Fire field alter
         let fieldsAlterRequest = Object.assign({}, request);
