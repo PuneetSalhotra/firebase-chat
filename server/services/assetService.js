@@ -3753,13 +3753,13 @@ function AssetService(objectCollection) {
                                                     if(IntermediateData[0].workforce_type_id == 0){
 
                                                         workforceTypeMasterSelect(request).then((resData)=>{
-                                                            /*
+                                                            
                                                             singleData.query_status = 0;
                                                             singleData.workforce_type_id = 0;
                                                             singleData.workforce_type_name = "All";
 
                                                             resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
-                                                            */
+                                                            
                                                             responseData[0] = "";
                                                             responseData[1] = resData;
                                                             //console.log("responseData ", responseData);
@@ -3793,13 +3793,13 @@ function AssetService(objectCollection) {
                                 if(data[0].workforce_type_id == 0){
                               
                                     workforceTypeMasterSelect(request).then((resData)=>{
-                                        /*
+                                        
                                         singleData.query_status = 0;
                                         singleData.workforce_type_id = 0;
                                         singleData.workforce_type_name = "All";
 
                                         resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
-                                        */
+                                        
                                         responseData[0] = "";
                                         responseData[1] = resData;
                                         //console.log("responseData ", responseData);
@@ -3887,12 +3887,13 @@ function AssetService(objectCollection) {
                             if(data.length == 0)
                             {
                                 tagTypeMasterSelect(request).then((resData)=>{
-
+/*
                                     singleData.query_status = 0;
                                     singleData.tag_type_id = 0;
                                     singleData.tag_type_name = "All";
-
+                                       
                                     resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                     */
                                     responseData[0] = "";
                                     responseData[1] = resData;
                                     //console.log("responseData ", responseData);
