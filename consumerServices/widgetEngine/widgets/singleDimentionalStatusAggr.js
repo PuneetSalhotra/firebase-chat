@@ -40,7 +40,7 @@ class SingleDimensionalStatusAggrWidget extends WidgetBase {
                 activityQueryData = _.merge(activityQueryData, data);
 
 
-                this.services.activityListService.wait(30000).then(() => {
+                this.services.activityListService.wait(10000).then(() => {
                     console.log(' WAIT :: ', this.rule.widget_id);
 
                     this.services.activityFormTransactionAnalytics.getWorkflowActivityId(data)

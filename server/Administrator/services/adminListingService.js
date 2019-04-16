@@ -231,6 +231,34 @@ function AdminListingService(objectCollection) {
         return [error, responseData];
     }
 
+    // Get the list of assets having access to the floor admin desk asset
+    this.assetAccessMappingSelectAssetLevelAll = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.asset_id,
+            request.start_from,
+            request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_asset_access_mapping_select_asset_level_all', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
 }
 
 

@@ -1897,7 +1897,7 @@ function ActivityService(objectCollection) {
 
                         global.logger.write('conLog', '*****ALTER CAF APPROVAL STATUS DATETIME*******', {}, request);
                         request['workflow_activity_id'] = request.activity_id;
-                        request['order_caf_approval_datetime'] = util.getCurrentUTCTime();
+                        request['order_caf_approval_datetime'] = util.addUnitsToDateTime(util.replaceDefaultDatetime(util.getCurrentUTCTime()), 5.5, 'hours');
                         request['order_caf_approval_log_diff'] = 0;
                         request['flag'] = 2;
                         request['datetime_log'] = util.getCurrentUTCTime();
@@ -1907,9 +1907,10 @@ function ActivityService(objectCollection) {
 
                         global.logger.write('conLog', '*****ALTER ORDER LOGGED STATUS DATETIME*******', {}, request);
                         request['workflow_activity_id'] = request.activity_id;
-                        request['order_logged_datetime'] = util.getCurrentUTCTime();
+                        request['order_logged_datetime'] = util.addUnitsToDateTime(util.replaceDefaultDatetime(util.getCurrentUTCTime()), 5.5, 'hours');
                         request['order_trigger_log_diff'] = 0;
                         request['order_caf_approval_log_diff'] = 0;
+                        request['order_po_log_diff'] = 0;
                         request['flag'] = 3;
                         request['datetime_log'] = util.getCurrentUTCTime();
                         activityCommonService.widgetActivityFieldTxnUpdateDatetime(request);
