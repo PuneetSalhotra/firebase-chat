@@ -3160,32 +3160,107 @@ function ActivityCommonService(db, util, forEachAsync) {
 
     this.widgetActivityFieldTxnUpdateDatetime = function (request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+
+        try{
+                const flag = request.flag;
+
+                let activityDatetimeCreatedIST = '';
+                let order_po_trigger_diff = 0;
+                let order_trigger_log_diff = 0;
+                let order_caf_approval_log_diff = 0;
+                let order_po_log_diff = 0;
+
+                //global.logger.write('conLog', '*****Update: update po_date in widget5 *******'+request.flag +' '+flag, {}, request);    
+                //global.logger.write('conLog', 'request.flag :: '+request.flag, {}, request);
+                //global.logger.write('conLog', 'request.order_logged_datetime :: '+request.order_logged_datetime, {}, request);
+                getWorkflowData(request).then((data)=>{ 
+                global.logger.write('conLog', 'In the workflow data length:: '+request.flag+' '+JSON.stringify(data), {}, request);
+
+                if(data.length > 0){
+
+                //global.logger.write('conLog', 'data[0].activity_caf_approval_datetime :: '+data[0].activity_caf_approval_datetime, {}, request);
+                //global.logger.write('conLog', 'data[0].activity_po_datetime :: '+data[0].activity_po_datetime, {}, request);
+
+                   activityDatetimeCreatedIST  = util.addUnitsToDateTime(util.replaceDefaultDatetime(data[0].activity_datetime_created), 5.5, 'hours');
+                   // console.log('activityDatetimeCreatedIST :: ',activityDatetimeCreatedIST);
+                    global.logger.write('conLog', '*****Update: activityDatetimeCreatedIST widget6 ',request.order_logged_datetime,' ',request.flag,'*******'+activityDatetimeCreatedIST, {}, request);   
+                    if(flag == 1){
+                        order_po_trigger_diff = util.differenceDatetimes(activityDatetimeCreatedIST, request.order_po_date)/1000;
+                    }else if(flag == 2){
+                        
+                    }else if(flag == 3){
+
+                        order_trigger_log_diff = util.differenceDatetimes(request.order_logged_datetime, activityDatetimeCreatedIST)/1000;
+                        //global.logger.write('conLog', 'request.order_trigger_log_diff :: '+order_trigger_log_diff, {}, request);
+
+                        if(data[0].activity_caf_approval_datetime != null)
+                        order_caf_approval_log_diff = util.differenceDatetimes(request.order_logged_datetime, data[0].activity_caf_approval_datetime)/1000;
+
+                        if(data[0].activity_po_datetime != null)
+                        order_po_log_diff = util.differenceDatetimes(request.order_logged_datetime, data[0].activity_po_datetime)/1000;
+                    } 
+                }
+
+                    //  global.logger.write('conLog', 'request.order_po_trigger_diff :: '+order_po_trigger_diff, {}, request);
+                    //  global.logger.write('conLog', 'request.order_trigger_log_diff :: '+order_trigger_log_diff, {}, request);
+                    //  global.logger.write('conLog', 'request.order_caf_approval_log_diff :: '+order_caf_approval_log_diff, {}, request);
+                    //  global.logger.write('conLog', 'request.order_po_log_diff :: '+order_po_log_diff, {}, request);
+                    var paramsArr = new Array(
+                        request.organization_id,
+                        request.account_id,
+                        request.workforce_id,
+                        request.workflow_activity_id,
+                        request.order_po_date || null,
+                        request.order_caf_approval_datetime || null,
+                        request.order_logged_datetime || null,
+                        order_po_trigger_diff,
+                        order_trigger_log_diff,
+                        order_caf_approval_log_diff,
+                        order_po_log_diff,
+                        flag,  
+                        request.datetime_log
+                    );
+                    var queryString = util.getQueryString("ds_p1_1_widget_activity_field_transaction_update_datetime", paramsArr);
+                    if (queryString != '') {
+                        db.executeQuery(0, queryString, request, function (err, data) {
+                            if (err === false) {
+                                resolve();
+                            } else {
+                                reject(err);
+                            }
+                        });
+                    }
+                
+            });
+        } catch (error) {
+                    global.logger.write('error', error, error, request);
+                }
+
+        });
+    }; 
+
+   function getWorkflowData (request) { 
+        return new Promise((resolve, reject) => {       
+            var paramsArr = new Array(            
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
-                request.workflow_activity_id,
-                request.order_po_date || null,
-                request.order_caf_approval_datetime || null,
-                request.order_logged_datetime || null,
-                request.order_po_trigger_diff || 0,
-                request.order_trigger_log_diff || 0,
-                request.order_caf_approval_log_diff || 0,
-                request.flag,  
-                request.datetime_log
+                request.workflow_activity_id
             );
-            var queryString = util.getQueryString("ds_p1_widget_activity_field_transaction_update_datetime", paramsArr);
+
+            let queryString = util.getQueryString('ds_p1_widget_activity_field_transaction_select_wokflow', paramsArr);
+               
             if (queryString != '') {
-                db.executeQuery(0, queryString, request, function (err, data) {
+                db.executeQuery(1, queryString, request, function (err, data) {
                     if (err === false) {
-                        resolve();
+                        resolve(data);
                     } else {
                         reject(err);
                     }
                 });
             }
         });
-    }; 
+    }
 };
 
 
