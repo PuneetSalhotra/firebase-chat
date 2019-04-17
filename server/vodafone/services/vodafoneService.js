@@ -4507,7 +4507,7 @@ function VodafoneService(objectCollection) {
                 let workflowParticipantsData = [];
                 // Fetch participants data
                 await activityCommonService
-                    .getAllParticipantsPromise(newRequest)
+                    .getActivityDetailsPromise(newRequest)
                     .then((participantData) => {
                         if (participantData.length > 0) {
                             workflowParticipantsData = participantData;
@@ -4520,18 +4520,21 @@ function VodafoneService(objectCollection) {
                         // Update the value of the target field ID
                         let targetFieldID = batch.TARGET_FIELD_ID;
                         for (const participant of workflowParticipantsData) {
-                            if (Number(participant.asset_type_id) === batch.ASSET_TYPE_ID) {
+                            // Earlier Logic: Number(participant.asset_type_id) === batch.ASSET_TYPE_ID
+                            // 
+                            const PASS_THROUGH = true;
+                            if (PASS_THROUGH) {
                                 // Get the entire object
                                 let targetFieldEntry = targetFormDataMap.get(Number(targetFieldID));
                                 // Set the value
                                 let oldValue = Number(targetFieldEntry.field_value);
-                                targetFieldEntry.field_value = participant.operating_asset_first_name;
-                                if (oldValue !== participant.operating_asset_first_name) {
+                                targetFieldEntry.field_value = participant.activity_creator_operating_asset_first_name;
+                                if (oldValue !== participant.activity_creator_operating_asset_first_name) {
                                     updatedRomsFields.push(targetFieldEntry);
+                                    // Set the updated object as value for the target field ID
+                                    targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
                                 }
-                                // Set the updated object as value for the target field ID
-                                targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
-                                console.log("participant.operating_asset_first_name: ", participant.operating_asset_first_name);
+                                console.log("participant.activity_creator_operating_asset_first_name: ", participant.activity_creator_operating_asset_first_name);
                             }
                         }
                     }
