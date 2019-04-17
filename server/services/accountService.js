@@ -657,18 +657,24 @@ function AccountService(objectCollection) {
     this.workforceActivityTypeMappingSelectSearch = async function (request) {       
 
         let responseData = [],
-            error = true;
+            error = false;
 
-        let i;
+        let i,j;
         let result;                
         for(i=1;i<4;i++) {
             try {
                 result = await getActivityTypeMappingSelectSearch(request, i);
+                if(result.length > 0) {
+                    for(j=0;j<result.length;j++) {
+                        responseData.push(result[j]);
+                        //console.log(result[j].form_workflow_activity_type_name);
+                    }                    
+                }
             } catch(err) {
                 error = err;
             }            
-            console.log(result);
-            console.log('  ');
+            //console.log(result);
+            //console.log('  ');
         }       
         
         return [error, responseData];
@@ -680,8 +686,8 @@ function AccountService(objectCollection) {
             request.organization_id,
             request.account_id,
             request.workforce_id,            
-            flag,
             request.search_string || '',
+            flag,            
             request.page_start || 0,
             util.replaceQueryLimit(request.page_limit)
         );        
