@@ -620,7 +620,7 @@ function AccountService(objectCollection) {
     };
 
     // Call to search processes
-    this.workforceActivityTypeMappingSelectSearch = async function (request) {
+    /*this.workforceActivityTypeMappingSelectSearch = async function (request) {
         // IN p_organization_id bigint(20), IN p_account_id bigint(20), 
         // IN p_workforce_id bigint(20), IN p_search_string VARCHAR(50), 
         // IN p_start_from SMALLINT(6), IN p_limit_value TINYINT(4)
@@ -637,10 +637,12 @@ function AccountService(objectCollection) {
             util.replaceQueryLimit(request.page_limit)
         );
 
-        var queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_select_search', paramsArr);
+        //var queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_select_search', paramsArr);
+        //var queryString = util.getQueryString('ds_p1_form_entity_mapping_select_search', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
+                    console.log(data.length);
                     responseData = data;
                     error = false;
                 })
@@ -649,7 +651,46 @@ function AccountService(objectCollection) {
                 })
         }
         return [error, responseData];
+    };*/
+
+    // Call to search processes
+    this.workforceActivityTypeMappingSelectSearch = async function (request) {       
+
+        let responseData = [],
+            error = true;
+
+        let i;
+        let result;                
+        for(i=1;i<4;i++) {
+            try {
+                result = await getActivityTypeMappingSelectSearch(request, i);
+            } catch(err) {
+                error = err;
+            }            
+            console.log(result);
+            console.log('  ');
+        }       
+        
+        return [error, responseData];
     };
+
+    async function getActivityTypeMappingSelectSearch(request, flag) {
+        //flag 1,2,3 organization, account, workforce respectively
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,            
+            flag,
+            request.search_string || '',
+            request.page_start || 0,
+            util.replaceQueryLimit(request.page_limit)
+        );        
+        
+        var queryString = util.getQueryString('ds_p1_form_entity_mapping_select_search', paramsArr);
+        if (queryString !== '') {
+            return await (db.executeQueryPromise(1, queryString, request));
+        }
+    }
 
     // Service to fetch S3 User Credentials
     this.fetchS3UserCredentials = async function (request) {
