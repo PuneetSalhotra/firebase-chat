@@ -538,11 +538,7 @@ function FormConfigService(objCollection) {
 
                         await putLatestUpdateSeqId(request, activityInlineData).then(() => {
 
-                            try{
-                                widgetAggrFieldValueUpdate(request);
-                            }catch(err){
-                                console.log('Error in updating Intermediate Table : ', err);
-                            }
+                            
 
                             var event = {
                                 name: "alterActivityInline",
@@ -742,6 +738,9 @@ function FormConfigService(objCollection) {
     function putLatestUpdateSeqId(request, activityInlineData) {
         return new Promise((resolve, reject) => {
 
+            const widgetFieldsStatusesData = util.widgetFieldsStatusesData();
+            let poFields = widgetFieldsStatusesData.PO_FIELDS; //new Array(13263, 13269, 13265, 13268, 13271);
+
             forEachAsync(activityInlineData, (next, row) => {
                 var params = new Array(
                     request.form_transaction_id, //0
@@ -918,7 +917,26 @@ function FormConfigService(objCollection) {
 
                 let queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
                 if (queryString != '') {
-                    db.executeQuery(0, queryString, request, function (err, data) {
+                    db.executeQuery(0, queryString, request, function (err, data) {  
+                        global.logger.write('conLog', '*****Update: update field_value in widget *******'+row.field_id +' '+row.field_value , {}, request);
+                        try{
+                                widgetAggrFieldValueUpdate(request);
+                            }catch(err){
+                                console.log('Error in updating Intermediate Table : ', err);
+                            }      
+
+                         global.logger.write('conLog', '*****Update: update po_date in widget1 *******'+Object.keys(poFields) +' '+row.field_id , {}, request);
+                         if(Object.keys(poFields).includes(String(row.field_id))){
+                                global.logger.write('conLog', '*****Update: update po_date in widget2 *******', {}, request);
+                                activityCommonService.getActivityDetailsPromise(request,0).then((activityData)=>{ 
+                                    global.logger.write('conLog', '*****Update: update po_date in widget3 *******'+activityData[0].channel_activity_id , {}, request);                                       
+                                    request['workflow_activity_id'] = activityData[0].channel_activity_id;                            
+                                    request['order_po_date'] = row.field_value;
+                                    request['flag'] = 1;
+                                    request['datetime_log'] = util.getCurrentUTCTime();
+                                    activityCommonService.widgetActivityFieldTxnUpdateDatetime(request); 
+                                })          
+                            }
                         next();
                         //(err === false) ?  resolve() : reject();
                     });
@@ -1398,13 +1416,22 @@ function FormConfigService(objCollection) {
         request.datetime_log = util.getCurrentUTCTime();
         activityCommonService.updateAssetLocation(request, () => {});
 
-        const [error, workflowFormsData] = await workforceFormMappingSelectWorkflowForms(request);
+        if (
+            request.hasOwnProperty("add_process") &&
+            Number(request.add_process) === 1
+        ) {
+            const [error, workflowFormsData] = await formEntityMappingSelectWorkflowForms(request);
+            return [error, workflowFormsData];
+            
+        } else {
+            const [error, workflowFormsData] = await workforceFormMappingSelectWorkflowForms(request);
+            return [error, workflowFormsData];
+
+        }
         // Process the data if needed
         // ...
         // ...
         // 
-        return [error, workflowFormsData];
-
     };
 
     async function workforceFormMappingSelectWorkflowForms(request) {
@@ -1462,6 +1489,36 @@ function FormConfigService(objCollection) {
         return [error, workflowFormsData];
     }
 
+    async function formEntityMappingSelectWorkflowForms(request) {
+        let workflowFormsData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_id || 0,
+            request.flag || 0,
+            request.log_datetime || '1970-01-01 00:00:00',
+            request.start_from,
+            request.limit_value || 50
+        );
+        const queryString = util.getQueryString('ds_p1_form_entity_mapping_select_workflow_forms', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    workflowFormsData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, workflowFormsData];
+    }
+    
     this.fetchWorkflowFormSubmittedStatusList = async function (request) {
         // Update asset's GPS data
         request.datetime_log = util.getCurrentUTCTime();

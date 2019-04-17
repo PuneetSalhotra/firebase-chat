@@ -33,17 +33,21 @@ const WorkflowQueueController = require('../workflowQueue/controllers/workflowQu
 const CommnTemplateController = require('../commnTemplate/controllers/commnTemplateController.js');
 ///////////////////////////////////////////////////////////////////////
 
+// Administrator Services UI
+const AdminListingController = require('../Administrator/controllers/adminListingController');
+const AdminOpsController = require('../Administrator/controllers/adminOpsController');
+
 // Stats
 var StatsController = require('../controllers/statsController');
 
 function ControlInterceptor(objCollection) {
-    
-    new UtilityController(objCollection);    
+
+    new UtilityController(objCollection);
     new ActivityConfigController(objCollection);
     new ActivityController(objCollection);
     new ActivityParticipantController(objCollection);
     new ActivityUpdateController(objCollection);
-    new ActivityListingController(objCollection);    
+    new ActivityListingController(objCollection);
     new AssetController(objCollection);
     new AssetConfigController(objCollection);
     new ActivityTimelineController(objCollection);
@@ -64,14 +68,16 @@ function ControlInterceptor(objCollection) {
 
     // Stats
     new StatsController(objCollection);
-    
-    //Vodafone
+
+    // Vodafone
     new VodafoneController(objCollection);
     new BotController(objCollection);
     new WorkflowQueueController(objCollection);
     new CommnTemplateController(objCollection);
     ////////////////////////////////
 
-}
-;
+    // Administrator Services UI
+    new AdminListingController(objCollection);
+    new AdminOpsController(objCollection);
+};
 module.exports = ControlInterceptor;
