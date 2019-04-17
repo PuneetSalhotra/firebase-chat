@@ -1416,16 +1416,25 @@ function FormConfigService(objCollection) {
         request.datetime_log = util.getCurrentUTCTime();
         activityCommonService.updateAssetLocation(request, () => {});
 
-        const [error, workflowFormsData] = await workforceFormMappingSelectWorkflowForms(request);
+        if (
+            request.hasOwnProperty("add_process") &&
+            Number(request.add_process) === 1
+        ) {
+            const [error, workflowFormsData] = await formEntityMappingSelectWorkflowForms(request);
+            return [error, workflowFormsData];
+            
+        } else {
+            const [error, workflowFormsData] = await workforceFormMappingSelectWorkflowForms(request);
+            return [error, workflowFormsData];
+
+        }
         // Process the data if needed
         // ...
         // ...
         // 
-        return [error, workflowFormsData];
-
     };
 
-    /*async function workforceFormMappingSelectWorkflowForms(request) {
+    async function workforceFormMappingSelectWorkflowForms(request) {
         // IN p_flag SMALLINT(6), IN p_organization_id BIGINT(20), IN p_account_id bigint(20), 
         // IN p_workforce_id bigint(20), IN p_activity_type_id BIGINT(20), IN p_access_level_id SMALLINT(6), 
         // IN p_log_datetime DATETIME, IN p_start_from INT(11), IN p_limit_value TINYINT(4)
@@ -1478,9 +1487,9 @@ function FormConfigService(objCollection) {
         }
 
         return [error, workflowFormsData];
-    }*/
+    }
 
-    async function workforceFormMappingSelectWorkflowForms(request) {        
+    async function formEntityMappingSelectWorkflowForms(request) {
         let workflowFormsData = [],
             error = true;
 
@@ -1508,7 +1517,7 @@ function FormConfigService(objCollection) {
         }
 
         return [error, workflowFormsData];
-    }    
+    }
     
     this.fetchWorkflowFormSubmittedStatusList = async function (request) {
         // Update asset's GPS data
