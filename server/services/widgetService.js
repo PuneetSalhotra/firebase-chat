@@ -773,12 +773,12 @@ function WidgetService(objCollection) {
                     switch(i) {
                         case 1: resp.key = 'po_order_submission_tat';
                                 resp.value = result[0].widget_axis_y_value_decimal || 0;
-                                resp.label = 'P.O To order Logged';                                
+                                resp.label = 'P.O to order submission';                                
                                 response.push(resp);
                                 break;
                         case 2: resp.key = 'order_submission_logged_tat';
                                 resp.value = result[0].widget_axis_y_value_decimal || 0;
-                                resp.label = 'P.O to order submission';                                
+                                resp.label = 'Order Submission to order logged';                                
                                 response.push(resp);
                                 break;
                         /*case 3: resp.key = 'caf_approval_logged_tat';
@@ -787,7 +787,7 @@ function WidgetService(objCollection) {
                                 break;*/
                         case 4: resp.key = 'order_po_logged_tat';
                                 resp.value = result[0].widget_axis_y_value_decimal || 0;
-                                resp.label = 'Order Submission to order logged';
+                                resp.label = 'P.O To order Logged';
                                 response.push(resp);
                                 break;
                     }
