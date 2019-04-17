@@ -3848,8 +3848,9 @@ function AssetService(objectCollection) {
                                     });
                                 }
                             }else if(data.length == 1){
+                                console.log("CASE 6, DATA LENGTH 1, request.account_id :: ",request.account_id+' '+data[0].asset_id);
                                 if(request.account_id == 0){
-                                    
+                                    console.log("CASE 6, DATA LENGTH 1, request.account_id = 0 :: ",request.account_id+' '+data[0].asset_id);
                                     singleData.query_status = 0;
                                     singleData.asset_id = 0;
                                     singleData.asset_first_name = "All";
@@ -3861,21 +3862,31 @@ function AssetService(objectCollection) {
                                     resolve(responseData);
                                     
                                 }else{
-                                    assetListSelect(request).then((resData)=>{
+                                    console.log("CASE 6, DATA LENGTH 1, request.account_id > 0:: ",request.account_id+' '+data[0].asset_id);
+                                    if(data[0].asset_id == 0){
+                                        assetListSelect(request).then((resData)=>{
+                                            
+                                            singleData.query_status = 0;
+                                            singleData.asset_id = 0;
+                                            singleData.asset_first_name = "All";
+                                            singleData.operating_asset_id = 0;
+                                            singleData.operating_asset_first_name = "All";
 
-                                        singleData.query_status = 0;
-                                        singleData.asset_id = 0;
-                                        singleData.asset_first_name = "All";
-                                        singleData.operating_asset_id = 0;
-                                        singleData.operating_asset_first_name = "All";
+                                            resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                            
+                                            responseData[0] = "";
+                                            responseData[1] = resData;
+                                            //console.log("responseData ", responseData);
+                                            resolve(responseData);
 
-                                        resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                        });
+                                    }else{
+                                        console.log('CASE 6, DATA LENGTH 1, request.account_id > 0 data[0].asset_id > 0 :: ',+' '+JSON.stringify(data));
                                         responseData[0] = "";
-                                        responseData[1] = resData;
-                                        //console.log("responseData ", responseData);
+                                        responseData[1] = data;
+                                        console.log('CASE 6, DATA LENGTH 1, request.account_id > 0 data[0].asset_id > 0 responseData :: ',+' '+JSON.stringify(responseData));
                                         resolve(responseData);
-
-                                    });
+                                    }
                                 }
                             
                             }else{
@@ -3905,8 +3916,9 @@ function AssetService(objectCollection) {
                                 resolve(responseData);
                             }
                         }else if(request.flag == 21){
-                            if(data.length == 0)
-                            {
+                             console.log('CASE 21 request.tag_type_id :: ',+' '+request.tag_type_id);
+                             if(data.length == 0)
+                            {console.log('CASE 21, request.tag_type_id DATA LENGTH 0, :: ');
                                 tagListSelect(request).then((resData)=>{
 
                                     singleData.query_status = 0;
@@ -3920,8 +3932,9 @@ function AssetService(objectCollection) {
                                     //console.log("responseData ", responseData);
                                     resolve(responseData);
                                 });
-                            }else{
-                                if(data[0].tag_id == 0){        
+
+                             }else{
+                                if(data[0].tag_id == 0){
 
                                    tagListSelect(request).then((resData)=>{
 
