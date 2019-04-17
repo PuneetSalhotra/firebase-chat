@@ -4580,9 +4580,9 @@ function VodafoneService(objectCollection) {
                                 targetFieldEntry.field_value = batch.VALUE;
                                 if (oldValue !== batch.VALUE) {
                                     updatedRomsFields.push(targetFieldEntry);
+                                    // Set the updated object as value for the target field ID
+                                    targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
                                 }
-                                // Set the updated object as value for the target field ID
-                                targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
                             }
                         }
                     } else {
@@ -4621,6 +4621,8 @@ function VodafoneService(objectCollection) {
                         }
                     }
                     console.log("isAnnexureUploaded: ", isAnnexureUploaded);
+                    // Remove the dummy field mapping between -10001
+                    
                 }
             }
 
@@ -4673,9 +4675,9 @@ function VodafoneService(objectCollection) {
                                             targetFieldEntry.field_value = batch.VALUE;
                                             if (oldValue !== batch.VALUE) {
                                                 updatedRomsFields.push(targetFieldEntry);
+                                                // Set the updated object as value for the target field ID
+                                                targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
                                             }
-                                            // Set the updated object as value for the target field ID
-                                            targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
                                         }
                                     }
                                 }
@@ -4877,7 +4879,11 @@ function VodafoneService(objectCollection) {
 
                 let targetFieldID = Number(SOURCE_FORM_FIELD_MAPPING_DATA[sourceFieldID]);
                 REQUEST_FIELD_ID = targetFieldID;
-                if (targetFormDataMap.has(targetFieldID)) {
+                if (targetFieldID === -10001) {
+                    // Do nothing
+                    console.log("IGNORE THE DUMMY MAPPING");
+
+                } else if (targetFormDataMap.has(targetFieldID)) {
                     console.log(targetFormDataMap.get(targetFieldID));
                     // Get the entire object
                     let targetFieldEntry = targetFormDataMap.get(Number(targetFieldID));
