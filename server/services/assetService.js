@@ -3512,79 +3512,6 @@ function AssetService(objectCollection) {
             return await (db.executeQueryPromise(1, queryString, request));
         }
     };
-/*
-    this.assetAccessMappingSelectUserFlag = async function (request) {
-        let responseData = [],
-            error = true;
-
-        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
-        // IN p_workforce_id BIGINT(20), IN p_workforce_type_id BIGINT(20), 
-        // IN p_asset_id BIGINT(20), IN p_flag SMALLINT(6), IN p_start_from BIGINT(20), 
-        // IN p_limit_value TINYINT(4)
-
-        // Flags:
-        // IF p_flag = 0 then return all level mappings
-        // IF p_flag = 1 then return organization level mappings
-        // IF p_flag = 2 then return account level mappings
-        // IF p_flag = 3 then return workforce level mappings
-
-        const paramsArr = new Array(
-            request.organization_id,
-            request.account_id,
-            request.workforce_id,
-            request.workforce_type_id || 0,
-            request.target_asset_id,
-            request.tag_type_id || 0,
-            request.tag_id || 0,
-            request.flag || 1,
-            request.page_start || 0,
-            request.page_limit || 50
-        );
-        const queryString = util.getQueryString('ds_p1_asset_access_mapping_select_user_flag', paramsArr);
-        if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
-                .then((data) => {
-                    responseData = data;
-                    error = false;
-                    console.log("DATA LENGTH ", data.length);
-                    if(data.length === 1)
-                    {   console.log("request.flag ", request.flag);
-                        if(request.flag == 2){  
-                            if(data[0].account_id == 0){
-                             responseData = accountListSelect(request);
-                            }                        
-                        }else if(request.flag == 19){
-                            if(data[0].workforce_type_id == 0){
-                              responseData = workforceTypeMasterSelect(request);
-                            }
-                        }else if(request.flag == 20){
-                            if(data[0].tag_type_id == 0){
-                               responseData = tagTypeMasterSelect(request);
-                            }
-                        }else if(request.flag == 21){
-                            if(data[0].tag_id == 0){
-                               responseData = tagListSelect(request);
-                            }
-                        }else if(request.flag == 8){
-                            console.log("data[0].activity_type_id ", data[0].activity_type_id);
-                            if(data[0].activity_type_id == 0){
-                                activityTypeTagMappingSelect(request).then((resData)=>{
-                                    console.log("data[0].activity_type_id ", resData.length);
-                                });                               
-                            }
-                        }
-                    }
-                    
-                })
-                .catch((err) => {
-                    error = err;
-                });
-        }
-
-        return [error, responseData];   
-    };
-
-*/
 
     this.assetListSelectFlag = async function (request) {
         let responseData = [],
@@ -3848,8 +3775,9 @@ function AssetService(objectCollection) {
                                     });
                                 }
                             }else if(data.length == 1){
+                                console.log("CASE 6, DATA LENGTH 1, request.account_id :: ",request.account_id+' '+data[0].asset_id);
                                 if(request.account_id == 0){
-                                    
+                                    console.log("CASE 6, DATA LENGTH 1, request.account_id = 0 :: ",request.account_id+' '+data[0].asset_id);
                                     singleData.query_status = 0;
                                     singleData.asset_id = 0;
                                     singleData.asset_first_name = "All";
@@ -3861,21 +3789,31 @@ function AssetService(objectCollection) {
                                     resolve(responseData);
                                     
                                 }else{
-                                    assetListSelect(request).then((resData)=>{
+                                    console.log("CASE 6, DATA LENGTH 1, request.account_id > 0:: ",request.account_id+' '+data[0].asset_id);
+                                    if(data[0].asset_id == 0){
+                                        assetListSelect(request).then((resData)=>{
+                                            
+                                            singleData.query_status = 0;
+                                            singleData.asset_id = 0;
+                                            singleData.asset_first_name = "All";
+                                            singleData.operating_asset_id = 0;
+                                            singleData.operating_asset_first_name = "All";
 
-                                        singleData.query_status = 0;
-                                        singleData.asset_id = 0;
-                                        singleData.asset_first_name = "All";
-                                        singleData.operating_asset_id = 0;
-                                        singleData.operating_asset_first_name = "All";
+                                            resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                            
+                                            responseData[0] = "";
+                                            responseData[1] = resData;
+                                            //console.log("responseData ", responseData);
+                                            resolve(responseData);
 
-                                        resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                        });
+                                    }else{
+                                        console.log('CASE 6, DATA LENGTH 1, request.account_id > 0 data[0].asset_id > 0 :: ',+' '+JSON.stringify(data));
                                         responseData[0] = "";
-                                        responseData[1] = resData;
-                                        //console.log("responseData ", responseData);
+                                        responseData[1] = data;
+                                        console.log('CASE 6, DATA LENGTH 1, request.account_id > 0 data[0].asset_id > 0 responseData :: ',+' '+JSON.stringify(responseData));
                                         resolve(responseData);
-
-                                    });
+                                    }
                                 }
                             
                             }else{
@@ -3905,8 +3843,9 @@ function AssetService(objectCollection) {
                                 resolve(responseData);
                             }
                         }else if(request.flag == 21){
-                            if(data.length == 0)
-                            {
+                             console.log('CASE 21 request.tag_type_id :: ',+' '+request.tag_type_id);
+                             if(data.length == 0)
+                            {console.log('CASE 21, request.tag_type_id DATA LENGTH 0, :: ');
                                 tagListSelect(request).then((resData)=>{
 
                                     singleData.query_status = 0;
@@ -3920,8 +3859,9 @@ function AssetService(objectCollection) {
                                     //console.log("responseData ", responseData);
                                     resolve(responseData);
                                 });
-                            }else{
-                                if(data[0].tag_id == 0){        
+
+                             }else{
+                                if(data[0].tag_id == 0){
 
                                    tagListSelect(request).then((resData)=>{
 
