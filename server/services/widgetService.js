@@ -674,7 +674,7 @@ function WidgetService(objCollection) {
                     .then((data) => {   
                     //responseData = data;
                        responseData.date_wise = data;
-                        console.log('responseData :: ',responseData);
+                        //console.log('responseData :: ',responseData);
                         error = false;
                     })
                     .catch((err) => {
@@ -755,6 +755,86 @@ function WidgetService(objCollection) {
             return Promise.reject(error);
         }
     };
+    
+    this.fieldTrxAvgTime = async (request) => {            
+        if(Number(request.flag) === 0) {            
+            let i;
+            let result;
+            //let finalResult = 0;
+            let response = [];
+            //let resp = {};
+            for(i=1;i<5;i++) {
+                result = await retrievefieldTrxAvgTime(request, i);
+                if(result.length > 0) {
+                    //console.log(result[0].widget_axis_y_value_decimal);
+                    //finalResult += result[0].widget_axis_y_value_decimal || 0;
+                    //response.widget_axis_y_value_decimal_1 = result[0].widget_axis_y_value_decimal;
+                    let resp = {};
+                    switch(i) {
+                        case 1: resp.key = 'po_order_submission_tat';
+                                resp.value = result[0].widget_axis_y_value_decimal || 0;
+                                resp.label = 'P.O to order submission';                                
+                                response.push(resp);
+                                break;
+                        case 2: resp.key = 'order_submission_logged_tat';
+                                resp.value = result[0].widget_axis_y_value_decimal || 0;
+                                resp.label = 'Order Submission to order logged';                                
+                                response.push(resp);
+                                break;
+                        /*case 3: resp.key = 'caf_approval_logged_tat';
+                                resp.value = result[0].widget_axis_y_value_decimal || 0;
+                                resp.label = 'CAF Approval Logged';
+                                break;*/
+                        case 4: resp.key = 'order_po_logged_tat';
+                                resp.value = result[0].widget_axis_y_value_decimal || 0;
+                                resp.label = 'P.O To order Logged';
+                                response.push(resp);
+                                break;
+                    }
+                    
+                }
+            }             
+            return response;
+        } else {
+            let paramsArr = new Array(
+                request.organization_id, 
+                request.account_id, 
+                request.workforce_id, 
+                request.target_asset_id,            
+                request.flag || 1, 
+                request.start_datetime,
+                request.end_datetime,
+                request.activity_type_id, 
+                request.activity_type_tag_id,
+                request.tag_type_id, 
+                request.workforce_type_id
+            );
+            let queryString = util.getQueryString('ds_p1_widget_activity_field_transaction_select_avg_time', paramsArr);
+            if (queryString != '') {                
+                return await (db.executeQueryPromise(1, queryString, request));
+            }
+        }        
+    };
+
+    async function retrievefieldTrxAvgTime(request, flag){
+        let paramsArr = new Array(
+            request.organization_id, 
+            request.account_id, 
+            request.workforce_id, 
+            request.target_asset_id,            
+            flag, 
+            request.start_datetime,
+            request.end_datetime,
+            request.activity_type_id, 
+            request.activity_type_tag_id,
+            request.tag_type_id, 
+            request.workforce_type_id
+        );
+        let queryString = util.getQueryString('ds_p1_widget_activity_field_transaction_select_avg_time', paramsArr);
+        if (queryString != '') {                
+            return await (db.executeQueryPromise(1, queryString, request));
+        }
+    }
 
 }
 
