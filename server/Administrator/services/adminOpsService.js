@@ -401,7 +401,7 @@ function AdminOpsService(objectCollection) {
         };
         try {
             // global.config.mobileBaseUrl + global.config.version
-            const response = await addActivityAsync('https://stagingapi.worlddesk.cloud/r0' + '/activity/add/v1', makeRequestOptions);
+            const response = await addActivityAsync(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', makeRequestOptions);
             const body = JSON.parse(response.body);
             if (Number(body.status) === 200) {
                 console.log("createActivity | addActivityAsync | Body: ", body);
@@ -1908,7 +1908,7 @@ function AdminOpsService(objectCollection) {
         };
         try {
             // global.config.mobileBaseUrl + global.config.version
-            const response = await assetLinkResetAsync('https://stagingapi.worlddesk.cloud/r0' + '/asset/link/reset', makeRequestOptions);
+            const response = await assetLinkResetAsync(global.config.mobileBaseUrl + global.config.version + '/asset/link/reset', makeRequestOptions);
             const body = JSON.parse(response.body);
             if (Number(body.status) === 200) {
                 console.log("assetLinkReset | assetLinkResetAsync | Body: ", body);
