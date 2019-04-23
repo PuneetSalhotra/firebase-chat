@@ -401,7 +401,7 @@ function AdminOpsService(objectCollection) {
         };
         try {
             // global.config.mobileBaseUrl + global.config.version
-            const response = await addActivityAsync('https://stagingapi.worlddesk.cloud/r0' + '/activity/add/v1', makeRequestOptions);
+            const response = await addActivityAsync(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', makeRequestOptions);
             const body = JSON.parse(response.body);
             if (Number(body.status) === 200) {
                 console.log("createActivity | addActivityAsync | Body: ", body);
@@ -1908,7 +1908,7 @@ function AdminOpsService(objectCollection) {
         };
         try {
             // global.config.mobileBaseUrl + global.config.version
-            const response = await assetLinkResetAsync('https://stagingapi.worlddesk.cloud/r0' + '/asset/link/reset', makeRequestOptions);
+            const response = await assetLinkResetAsync(global.config.mobileBaseUrl + global.config.version + '/asset/link/reset', makeRequestOptions);
             const body = JSON.parse(response.body);
             if (Number(body.status) === 200) {
                 console.log("assetLinkReset | assetLinkResetAsync | Body: ", body);
@@ -2246,12 +2246,12 @@ function AdminOpsService(objectCollection) {
         // Update workforce data in co-worker contact card activity associated with the employee asset
         // Fetch and update Co-Worker Contact Card of the asset
         let coWorkerContactCardActivityID = 0;
-        const [errFour, coWorkerContactCardData] = await adminListingService.activityListSelectCategoryAsset({
+        const [errZero, coWorkerContactCardData] = await adminListingService.activityListSelectCategoryAsset({
             asset_id: deskAssetID,
             organization_id: organizationID,
             activity_type_category_id: 5
         });
-        if (!errFour && Number(coWorkerContactCardData.length) > 0) {
+        if (!errZero && Number(coWorkerContactCardData.length) > 0) {
             coWorkerContactCardActivityID = coWorkerContactCardData[0].activity_id;
             let contactCardInlineData = JSON.parse(coWorkerContactCardData[0].activity_inline_data);
 
@@ -2340,7 +2340,7 @@ function AdminOpsService(objectCollection) {
                 log_asset_id: request.log_asset_id
             }, newWorkforceID, organizationID, accountID);
             if (!errSix) {
-                console.log("moveEmployeeDeskToAnotherWorkforce | Employee | assetListUpdateWorkforce | Error: ", errFour);
+                console.log("moveEmployeeDeskToAnotherWorkforce | Employee | assetListUpdateWorkforce | Error: ", errSix);
 
                 // Employee Asset List History Insert
                 try {
