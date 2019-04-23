@@ -661,6 +661,32 @@ function AccountService(objectCollection) {
         }];
     };
 
+    this.fetchOrganizationLabels = async function (request) {
+
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id || 0,
+            request.account_id || 0,
+            request.workforce_id || 0
+        );
+
+        var queryString = util.getQueryString('ds_p1_organization_labels_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = JSON.parse(data[0].labels);
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+
+    };
+
 };
 
 module.exports = AccountService;

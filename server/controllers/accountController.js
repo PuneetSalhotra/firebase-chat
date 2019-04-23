@@ -457,6 +457,15 @@ function AccountController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/organization/labels/fetch', async function (req, res) {
+        const [err, data] = await accountService.fetchOrganizationLabels(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
 };
 
 module.exports = AccountController;
