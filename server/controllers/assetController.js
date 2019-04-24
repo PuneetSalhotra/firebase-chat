@@ -571,6 +571,5 @@ function AssetController(objCollection) {
             return res.send(responseWrapper.getResponse({}, data, 200, req.body));
         }
     });
-
 }
 module.exports = AssetController;

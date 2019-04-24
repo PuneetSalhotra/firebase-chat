@@ -29,6 +29,7 @@ sgMail.setApiKey('SG.ljKh3vhMT_i9nNJXEX6pjA.kjLdNrVL4t0uxXKxmzYKiLKH9wFekARZp1g6
 const vodafoneFormFieldIdMapping = require(`${__dirname}/formFieldIdMapping`);
 // [Vodafone ROMS] CAF Fields Data
 const vodafoneRomsCafFieldsData = require(`${__dirname}/vodafoneRomsCafFieldsData`);
+const widgetFieldsStatusesData = require(`${__dirname}/widgetFieldsStatusesData`);
 // 
 // SendInBlue
 const SibApiV3Sdk = require('sib-api-v3-sdk');
@@ -1292,6 +1293,10 @@ function Util() {
         
         return [error, jsonData];
     }
+
+    this.widgetFieldsStatusesData = function () {
+        return widgetFieldsStatusesData;
+    };
 
 }
 

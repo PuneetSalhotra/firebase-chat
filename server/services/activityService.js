@@ -281,6 +281,7 @@ function ActivityService(objectCollection) {
                                 global.logger.write('conLog', '*****ADD ACTIVITY :HITTING WIDGET ENGINE*******', {}, request);
                                 request['source_id'] = 1;
                                 sendRequesttoWidgetEngine(request);
+                                updateChannelActivity(request, 9, request.activity_id, 48)
                             }
 
                             // Workflow Trigger
@@ -865,6 +866,8 @@ function ActivityService(objectCollection) {
             activityStatusId = request.activity_status_id;
         if (request.hasOwnProperty('activity_form_id'))
             activityFormId = request.activity_form_id;
+        if (request.hasOwnProperty('workflow_activity_id') && activityTypeCategoryId === 9)
+            activityChannelId = request.workflow_activity_id;
         //BETA
         var activitySubTypeId = (request.hasOwnProperty('activity_sub_type_id')) ? request.activity_sub_type_id : 0;
         //PAM
@@ -1773,6 +1776,8 @@ function ActivityService(objectCollection) {
         var activityStatusTypeId = Number(request.activity_status_type_id);
         var activityTypeCategoryId = Number(request.activity_type_category_id);
         var assetParticipantAccessId = Number(request.asset_participant_access_id);
+        const widgetFieldsStatusesData = util.widgetFieldsStatusesData();
+
         if (request.hasOwnProperty('activity_type_category_id')) {
             var activityTypeCategroyId = Number(request.activity_type_category_id);
             switch (activityTypeCategroyId) {
@@ -1878,6 +1883,40 @@ function ActivityService(objectCollection) {
 
                 console.log("*****STATUS CHANGE | activityTypeCategroyId: ", activityTypeCategroyId)
                 updateWidgetAggrStatus(request);
+
+                if(activityTypeCategoryId === 48){
+
+                    let order_caf_approval_statuses, order_logged_statuses;
+                    order_caf_approval_statuses = widgetFieldsStatusesData.ORDER_CAF_APPROVAL_STATUSES; //new Array(282556, 282586, 282640, 282622, 282669); //
+                    order_logged_statuses = widgetFieldsStatusesData.ORDER_LOGGED_STATUSES;//new Array(282624, 282642, 282671, 282557, 282588);//
+
+                    global.logger.write('conLog', '*****order_caf_approval_statuses*******'+Object.keys(order_caf_approval_statuses)+' '+String(request.activity_status_id), {}, request);
+                    global.logger.write('conLog', '*****order_logged_statuses*******'+Object.keys(order_logged_statuses)+' '+String(request.activity_status_id), {}, request);
+
+                    if(Object.keys(order_caf_approval_statuses).includes(String(request.activity_status_id))) {
+
+                        global.logger.write('conLog', '*****ALTER CAF APPROVAL STATUS DATETIME*******', {}, request);
+                        request['workflow_activity_id'] = request.activity_id;
+                        request['order_caf_approval_datetime'] = util.addUnitsToDateTime(util.replaceDefaultDatetime(util.getCurrentUTCTime()), 5.5, 'hours');
+                        request['order_caf_approval_log_diff'] = 0;
+                        request['flag'] = 2;
+                        request['datetime_log'] = util.getCurrentUTCTime();
+                        activityCommonService.widgetActivityFieldTxnUpdateDatetime(request);
+
+                    }else if(Object.keys(order_logged_statuses).includes(String(request.activity_status_id))){
+
+                        global.logger.write('conLog', '*****ALTER ORDER LOGGED STATUS DATETIME*******', {}, request);
+                        request['workflow_activity_id'] = request.activity_id;
+                        request['order_logged_datetime'] = util.addUnitsToDateTime(util.replaceDefaultDatetime(util.getCurrentUTCTime()), 5.5, 'hours');
+                        request['order_trigger_log_diff'] = 0;
+                        request['order_caf_approval_log_diff'] = 0;
+                        request['order_po_log_diff'] = 0;
+                        request['flag'] = 3;
+                        request['datetime_log'] = util.getCurrentUTCTime();
+                        activityCommonService.widgetActivityFieldTxnUpdateDatetime(request);
+                    }
+
+                 }
                 
                 if (Number(request.device_os_id) === 9) {
                     global.logger.write('conLog', '*****ALTER STATUS : HITTING WIDGET ENGINE*******', {}, request);
@@ -3553,6 +3592,33 @@ function ActivityService(objectCollection) {
                 util.getCurrentUTCTime()
             );
             let queryString = util.getQueryString('ds_p1_widget_activity_field_transaction_update', paramsArr);
+            if (queryString != '') {
+               db.executeQuery(0, queryString, request, function (err, data) {
+                    if (err === false) {
+                        resolve();
+                    } else {
+                        reject(err);
+                    }
+                });
+            }
+        })
+    }
+
+    function updateChannelActivity(request, idActivityTypeCategory, idChannelActivity, idChannelActivityCategory) {
+        return new Promise((resolve, reject) => {
+            global.logger.write('DEBUG', '::: UPDATING WORKFLOW OF FORM  :::', {}, request);
+            let paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.form_transaction_id,
+                idActivityTypeCategory,
+                idChannelActivity,
+                idChannelActivityCategory,
+                request.asset_id,
+                util.getCurrentUTCTime()
+            );
+            let queryString = util.getQueryString('ds_v1_activity_list_update_channel_form_txn', paramsArr);
             if (queryString != '') {
                db.executeQuery(0, queryString, request, function (err, data) {
                     if (err === false) {
