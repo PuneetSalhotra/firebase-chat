@@ -426,16 +426,14 @@ if (mode === 'preprod') {
     config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
     config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
     
-    config.dbUser = 'apiuser';
-    // config.database = 'desker_staging';
-    config.database = 'desker';
+    config.dbUser = 'apiuser';    
+    config.database = 'desker_preprod';
     config.dbPassword = 'apidbuser';
 
     config.conLimit = 2;
 
-    //Redis Config
-    // config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';
-    config.redisIp = 'cache-production.7otgcu.ng.0001.aps1.cache.amazonaws.com';
+    //Redis Config    
+    config.redisIp = 'cache-preprod.7otgcu.0001.aps1.cache.amazonaws.com';
     config.redisPort = 6379;
 
     //IOS Push

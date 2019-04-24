@@ -4583,9 +4583,9 @@ function VodafoneService(objectCollection) {
                                 targetFieldEntry.field_value = batch.VALUE;
                                 if (oldValue !== batch.VALUE) {
                                     updatedRomsFields.push(targetFieldEntry);
+                                    // Set the updated object as value for the target field ID
+                                    targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
                                 }
-                                // Set the updated object as value for the target field ID
-                                targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
                             }
                         }
                     } else {
@@ -4598,20 +4598,36 @@ function VodafoneService(objectCollection) {
                                 let currentValue = targetFieldEntry.field_value;
                                 if (currentValue === batch.VALUE) {
                                     let previousValue = undefined;
-                                    try {
-                                        let previousFieldEntry = await getVersionedFieldValue({
-                                            form_transaction_id: TARGET_FORM_TRANSACTION_ID,
-                                            form_id: TARGET_FORM_ID,
-                                            field_id: targetFieldID,
-                                            organization_id: request.organization_id
-                                        }, 1);
-                                        if (Number(previousFieldEntry.length) > 0) {
-                                            const fieldDataTypeID = Number(previousFieldEntry[0].data_type_id);
-                                            previousValue = previousFieldEntry[0][getFielDataValueColumnName(fieldDataTypeID)];
+                                    let FIELD_VALUE_VERSION = 1;
+                                    do {
+                                        try {
+                                            let previousFieldEntry = await getVersionedFieldValue({
+                                                form_transaction_id: TARGET_FORM_TRANSACTION_ID,
+                                                form_id: TARGET_FORM_ID,
+                                                field_id: targetFieldID,
+                                                organization_id: request.organization_id
+                                            }, FIELD_VALUE_VERSION);
+                                            if (Number(previousFieldEntry.length) > 0) {
+                                                const fieldDataTypeID = Number(previousFieldEntry[0].data_type_id);
+                                                previousValue = previousFieldEntry[0][getFielDataValueColumnName(fieldDataTypeID)];
+
+                                                console.log(`field_id: \x1b[31m${targetFieldID}\x1b[0m | previous value: \x1b[31m${previousValue}\x1b[0m`);
+
+                                            } else {
+                                                // If no more records exist, break out of the do...while loop
+                                                break;
+                                            }
+                                        } catch (error) {
+                                            console.log("performRomsCalculations | check_and_set_annexure_defaults | getVersionedFieldValue: ", error);
                                         }
-                                    } catch (error) {
-                                        console.log("performRomsCalculations | check_and_set_annexure_defaults | getVersionedFieldValue: ", error);
-                                    }
+
+                                        // Go back one more version
+                                        ++FIELD_VALUE_VERSION;
+
+                                    } while (
+                                        currentValue === previousValue
+                                    );
+
                                     if (previousValue !== undefined) {
                                         console.log(` ${targetFieldEntry.field_name} | field_id: \x1b[31m${targetFieldID}\x1b[0m current value: ${currentValue} previous value: ${previousValue}`);
                                         targetFieldEntry.field_value = previousValue;
@@ -4624,6 +4640,8 @@ function VodafoneService(objectCollection) {
                         }
                     }
                     console.log("isAnnexureUploaded: ", isAnnexureUploaded);
+                    // Remove the dummy field mapping between -10001
+                    
                 }
             }
 
@@ -4676,9 +4694,9 @@ function VodafoneService(objectCollection) {
                                             targetFieldEntry.field_value = batch.VALUE;
                                             if (oldValue !== batch.VALUE) {
                                                 updatedRomsFields.push(targetFieldEntry);
+                                                // Set the updated object as value for the target field ID
+                                                targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
                                             }
-                                            // Set the updated object as value for the target field ID
-                                            targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
                                         }
                                     }
                                 }
@@ -4695,20 +4713,36 @@ function VodafoneService(objectCollection) {
                                     let currentValue = targetFieldEntry.field_value;
                                     if (currentValue === batch.VALUE) {
                                         let previousValue = undefined;
-                                        try {
-                                            let previousFieldEntry = await getVersionedFieldValue({
-                                                form_transaction_id: TARGET_FORM_TRANSACTION_ID,
-                                                form_id: TARGET_FORM_ID,
-                                                field_id: targetFieldID,
-                                                organization_id: request.organization_id
-                                            }, 1);
-                                            if (Number(previousFieldEntry.length) > 0) {
-                                                const fieldDataTypeID = Number(previousFieldEntry[0].data_type_id);
-                                                previousValue = previousFieldEntry[0][getFielDataValueColumnName(fieldDataTypeID)];
+                                        let FIELD_VALUE_VERSION = 1;
+                                        do {
+                                            try {
+                                                let previousFieldEntry = await getVersionedFieldValue({
+                                                    form_transaction_id: TARGET_FORM_TRANSACTION_ID,
+                                                    form_id: TARGET_FORM_ID,
+                                                    field_id: targetFieldID,
+                                                    organization_id: request.organization_id
+                                                }, FIELD_VALUE_VERSION);
+                                                if (Number(previousFieldEntry.length) > 0) {
+                                                    const fieldDataTypeID = Number(previousFieldEntry[0].data_type_id);
+                                                    previousValue = previousFieldEntry[0][getFielDataValueColumnName(fieldDataTypeID)];
+
+                                                    console.log(`field_id: \x1b[31m${targetFieldID}\x1b[0m | previous value: \x1b[31m${previousValue}\x1b[0m`);
+
+                                                } else {
+                                                    // If no more records exist, break out of the do...while loop
+                                                    break;
+                                                }
+                                            } catch (error) {
+                                                console.log("performRomsCalculations | check_multiselect_and_set_annexure_defaults | getVersionedFieldValue: ", error);
                                             }
-                                        } catch (error) {
-                                            console.log("performRomsCalculations | check_multiselect_and_set_annexure_defaults | getVersionedFieldValue: ", error);
-                                        }
+                                            
+                                            // Go back one more version
+                                            ++FIELD_VALUE_VERSION;
+
+                                        } while (
+                                            currentValue === previousValue
+                                        );
+                                        
                                         if (previousValue !== undefined) {
                                             console.log(` ${targetFieldEntry.field_name} | field_id: \x1b[31m${targetFieldID}\x1b[0m current value: ${currentValue} previous value: \x1b[31m${previousValue}\x1b[0m`);
                                             targetFieldEntry.field_value = previousValue;
@@ -4880,7 +4914,11 @@ function VodafoneService(objectCollection) {
 
                 let targetFieldID = Number(SOURCE_FORM_FIELD_MAPPING_DATA[sourceFieldID]);
                 REQUEST_FIELD_ID = targetFieldID;
-                if (targetFormDataMap.has(targetFieldID)) {
+                if (targetFieldID === -10001) {
+                    // Do nothing
+                    console.log("IGNORE THE DUMMY MAPPING");
+
+                } else if (targetFormDataMap.has(targetFieldID)) {
                     console.log(targetFormDataMap.get(targetFieldID));
                     // Get the entire object
                     let targetFieldEntry = targetFormDataMap.get(Number(targetFieldID));
