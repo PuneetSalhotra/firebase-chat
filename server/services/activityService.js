@@ -324,13 +324,28 @@ function ActivityService(objectCollection) {
                                         // Proceeding because there was no error found, there were records returned
                                         // and form_flag_workflow_enabled is set to 1
                                         let botsListData = await activityCommonService.getBotsMappedToActType(botEngineRequest);
-                                        if (botsListData.length > 0) {
+                                        if (botsListData.length > 0) {                                            
                                             botEngineRequest.bot_id = botsListData[0].bot_id;
+                                            botEngineRequest.bot_inline_data = botsListData[0].bot_inline_data;
+                                            botEngineRequest.flag_check = 1;
+                                            botEngineRequest.flag_defined = 1;
+                                            
+                                            let result = await activityCommonService.botOperationInsert(botEngineRequest);
+                                            //console.log('RESULT : ', result);
+                                            if(result.length > 0) {
+                                                botEngineRequest.bot_transaction_id = result[0].bot_transaction_id;
+                                            }
+                                            
+                                            //Bot log - Bot is defined
+                                                activityCommonService.botOperationFlagUpdateBotDefined(botEngineRequest, 1);
 
                                             await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
                                                 .then((resp) => {
                                                     global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
                                                 });
+                                        } else {
+                                            //Bot is not defined
+                                                activityCommonService.botOperationFlagUpdateBotDefined(botEngineRequest, 0);
                                         }
                                     }
                                 } catch (botInitError) {
@@ -358,13 +373,34 @@ function ActivityService(objectCollection) {
                                         // Proceeding because there was no error found, there were records returned
                                         // and form_flag_workflow_enabled is set to 1
                                         let botsListData = await activityCommonService.getBotsMappedToActType(botEngineRequest);
-                                        if (botsListData.length > 0) {
+                                        if (botsListData.length > 0) {                            
                                             botEngineRequest.bot_id = botsListData[0].bot_id;
+                                            botEngineRequest.bot_inline_data = botsListData[0].bot_inline_data;
+                                            botEngineRequest.flag_check = 1;
+                                            botEngineRequest.flag_defined = 1;
+                                            
+                                            let result = await activityCommonService.botOperationInsert(botEngineRequest);
+                                            //console.log('RESULT : ', result);
+                                            if(result.length > 0) {
+                                                botEngineRequest.bot_transaction_id = result[0].bot_transaction_id;
+                                            }
 
+                                            //Bot log - Bot is defined
+                                                activityCommonService.botOperationFlagUpdateBotDefined(botEngineRequest, 1);
+                                            
                                             await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
                                                 .then((resp) => {
                                                     global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
+                                                    //Bot log - Update Bot status
+                                                    //1.SUCCESS; 2.INTERNAL ERROR; 3.EXTERNAL ERROR; 4.COMMUNICATION ERROR
+                                                        activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 1); 
+                                                }).catch((err)=>{
+                                                    //Bot log - Update Bot status with Error
+                                                        activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 2);
                                                 });
+                                        } else {
+                                            //Bot is not defined
+                                                activityCommonService.botOperationFlagUpdateBotDefined(botEngineRequest, 0);
                                         }
                                     }
                                 } catch (botInitError) {
