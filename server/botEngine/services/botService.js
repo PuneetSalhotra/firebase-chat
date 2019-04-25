@@ -560,6 +560,9 @@ function BotService(objectCollection) {
 
     this.initBotEngine = async (request) =>{         
         
+        //Bot Log - Bot engine Triggered
+            activityCommonService.botOperationFlagUpdateTrigger(request, 1);
+
         global.logger.write('conLog', ' ', {}, {});
         global.logger.write('conLog', '#############################################################################', {}, {});
         global.logger.write('conLog', ' ', {}, {});
@@ -593,8 +596,8 @@ function BotService(objectCollection) {
         let botOperationsJson,
             botSteps;
 
-        for(let i of wfSteps) {
-            global.logger.write('conLog', i.bot_operation_type_id, {}, {});            
+        for(let i of wfSteps) {            
+            global.logger.write('conLog', i.bot_operation_type_id, {}, {});
 
             botOperationsJson = JSON.parse(i.bot_operation_inline_data);
             botSteps = Object.keys(botOperationsJson.bot_operations);
@@ -728,7 +731,8 @@ function BotService(objectCollection) {
                     break;                
         }
         
-        botOperationTxnInsert(request, i);
+        //botOperationTxnInsert(request, i);
+        botOperationTxnInsertV1(request, i);
         await new Promise((resolve, reject)=>{
             setTimeout(()=>{
                 resolve();
@@ -752,6 +756,31 @@ function BotService(objectCollection) {
             request.datetime_log            
         );
         let queryString = util.getQueryString('ds_p1_bot_operation_transaction_insert', paramsArr);
+        if (queryString != '') {
+            return await (db.executeQueryPromise(0, queryString, request));                
+        }        
+    }
+
+    async function botOperationTxnInsertV1(request, botData) {        
+        let paramsArr = new Array(                
+            request.bot_transaction_id || 0, 
+            botData.bot_operation_transaction_status_id || 0, 
+            botData.bot_operation_transaction_inline_data || '{}', 
+            request.workflow_activity_id || 0, 
+            request.form_activity_id || 0, 
+            request.form_transaction_id || 0, 
+            ///////////////////////////
+            botData.bot_operation_type_id, 
+            botData.bot_id, 
+            botData.bot_operation_inline_data, 
+            botData.bot_operation_status_id || 1, 
+            request.workforce_id, 
+            request.account_id, 
+            request.organization_id, 
+            request.asset_id, 
+            request.datetime_log
+        );
+        let queryString = util.getQueryString('ds_p1_1_bot_operation_log_transaction_insert', paramsArr);
         if (queryString != '') {
             return await (db.executeQueryPromise(0, queryString, request));                
         }        
