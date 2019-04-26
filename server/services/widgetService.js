@@ -836,6 +836,46 @@ function WidgetService(objCollection) {
         }
     }
 
+ this.getOrgLevelWorkflowStatusWiseAggrDrilldown = async (request) => {
+        try {
+            let responseData = {},
+                error = true;
+
+            let paramsArray;
+
+            paramsArray =
+                new Array(
+                    Number(request.organization_id),
+                    Number(request.account_id),
+                    Number(request.workforce_id),
+                    Number(request.target_asset_id),
+                    request.flag,
+                    request.start_datetime,
+                    request.end_datetime,
+                    request.activity_type_id || 0,
+                    request.activity_type_tag_id || 0,
+                    request.tag_type_id || 0,
+                    request.workforce_type_id || 0,
+                    request.activity_status_type_id
+                );
+
+            var queryString = util.getQueryString('ds_p1_widget_activity_field_transaction_select_status_drilldown', paramsArray);
+            if (queryString !== '') {
+                await db.executeQueryPromise(1, queryString, request)
+                    .then((data) => {                       
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    })
+            }
+            return responseData;
+
+        } catch (error) {
+            return Promise.reject(error);
+        }
+    };
 }
 
 module.exports = WidgetService;
