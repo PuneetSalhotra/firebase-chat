@@ -3180,12 +3180,26 @@ function ActivityCommonService(db, util, forEachAsync) {
 
                 //global.logger.write('conLog', 'data[0].activity_caf_approval_datetime :: '+data[0].activity_caf_approval_datetime, {}, request);
                 //global.logger.write('conLog', 'data[0].activity_po_datetime :: '+data[0].activity_po_datetime, {}, request);
-
                    activityDatetimeCreatedIST  = util.addUnitsToDateTime(util.replaceDefaultDatetime(data[0].activity_datetime_created), 5.5, 'hours');
+                   
                    // console.log('activityDatetimeCreatedIST :: ',activityDatetimeCreatedIST);
-                    global.logger.write('conLog', '*****Update: activityDatetimeCreatedIST widget6 ',request.order_logged_datetime,' ',request.flag,'*******'+activityDatetimeCreatedIST, {}, request);   
+                    global.logger.write('conLog', '*****Update: activityDatetimeCreatedIST widget '+request.order_po_date+', '+request.flag+',*******'+activityDatetimeCreatedIST, {}, request);   
                     if(flag == 1){
-                        order_po_trigger_diff = util.differenceDatetimes(activityDatetimeCreatedIST, request.order_po_date)/1000;
+                        if(request.order_po_date == null || request.order_po_date == ''){
+                            order_po_trigger_diff = 0;
+                            order_po_log_diff = 0;
+                        }else{                            
+                            global.logger.write('conLog', '*****Update: activityDatetimeCreatedIST ELSE '+data[0].activity_logged_datetime+', '+request.flag+', *******'+activityDatetimeCreatedIST, {}, request);   
+                            if(data[0].activity_logged_datetime != null ){
+                                order_po_log_diff = util.differenceDatetimes(data[0].activity_logged_datetime, request.order_po_date)/1000;
+                                order_po_trigger_diff = util.differenceDatetimes(activityDatetimeCreatedIST, request.order_po_date)/1000;
+                            }
+                            else{
+                                order_po_log_diff = 0;
+                                order_po_trigger_diff = util.differenceDatetimes(activityDatetimeCreatedIST, request.order_po_date)/1000;
+                            }
+                        }
+                        
                     }else if(flag == 2){
                         
                     }else if(flag == 3){
@@ -3201,10 +3215,10 @@ function ActivityCommonService(db, util, forEachAsync) {
                     } 
                 }
 
-                    //  global.logger.write('conLog', 'request.order_po_trigger_diff :: '+order_po_trigger_diff, {}, request);
-                    //  global.logger.write('conLog', 'request.order_trigger_log_diff :: '+order_trigger_log_diff, {}, request);
-                    //  global.logger.write('conLog', 'request.order_caf_approval_log_diff :: '+order_caf_approval_log_diff, {}, request);
-                    //  global.logger.write('conLog', 'request.order_po_log_diff :: '+order_po_log_diff, {}, request);
+                      global.logger.write('conLog', 'request.order_po_trigger_diff :: '+order_po_trigger_diff, {}, request);
+                      global.logger.write('conLog', 'request.order_trigger_log_diff :: '+order_trigger_log_diff, {}, request);
+                      global.logger.write('conLog', 'request.order_caf_approval_log_diff :: '+order_caf_approval_log_diff, {}, request);
+                      global.logger.write('conLog', 'request.order_po_log_diff :: '+order_po_log_diff, {}, request);
                     var paramsArr = new Array(
                         request.organization_id,
                         request.account_id,
