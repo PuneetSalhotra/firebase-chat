@@ -4545,6 +4545,44 @@ function VodafoneService(objectCollection) {
                 }
             }
 
+            // set_circle_office_name
+            if (action.ACTION === "set_circle_office_name") {
+                const newRequest = Object.assign({}, request);
+                newRequest.activity_id = request.workflow_activity_id;
+
+                let workflowActivityData = [];
+                // Fetch participants data
+                await activityCommonService
+                    .getActivityDetailsPromise(newRequest)
+                    .then((data) => {
+                        if (data.length > 0) {
+                            workflowActivityData = data;
+                        }
+                    });
+                
+                if (workflowActivityData.length > 0) {
+                    for (const batch of action.BATCH) {
+                        // Update the value of the target field ID
+                        let targetFieldID = batch.TARGET_FIELD_ID;
+                        // Get the entire object
+                        let targetFieldEntry = targetFormDataMap.get(Number(targetFieldID));
+                        // Set the value
+                        let oldValue = String(targetFieldEntry.field_value);
+                        const newValue = `${workflowActivityData[0].account_name} - Account Managers`;
+                        targetFieldEntry.field_value = `${workflowActivityData[0].account_name} - Account Managers`;
+
+                        if (oldValue !== newValue) {
+                            updatedRomsFields.push(targetFieldEntry);
+                            updatedRomsFieldsMap.set(Number(targetFieldID), targetFieldEntry)
+                            // Set the updated object as value for the target field ID
+                            targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
+                        }
+
+                        console.log("set_circle_office_name | workflowActivityData[0].account_name: ", workflowActivityData[0].account_name);
+                    }
+                }
+            }
+
             // check_and_set_annexure_defaults
             if (action.ACTION === "check_and_set_annexure_defaults") {
                 for (const batch of action.BATCH) {
@@ -4989,7 +5027,7 @@ function VodafoneService(objectCollection) {
         }
 
         // const fs = require("fs");
-        // fs.writeFileSync('/Users/Bensooraj/Desktop/desker_api/server/vodafone/utils/data.json', JSON.stringify(TARGET_FORM_DATA, null, 2) , 'utf-8');
+        // fs.writeFileSync('/Users/Bensooraj/Desktop/desker_api/server/vodafone/utils/data.json', JSON.stringify(targetFieldsUpdated, null, 2) , 'utf-8');
 
         // return [false, {
         //     UPDATED_ROMS_FIELDS

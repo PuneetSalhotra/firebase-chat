@@ -1,11 +1,4 @@
 [{
-        "ACTION": "set_static_value",
-        "BATCH": [{
-            "TARGET_FIELD_ID": 8560,
-            "VALUE": "Mumbai Circle - Account Managers"
-        }]
-
-    }, {
         "ACTION": "sum",
         "BATCH": [{
             "SOURCE_FIELD_IDS": [8513, 8514, 8515],
@@ -85,6 +78,12 @@
         "BATCH": [{
             "TARGET_FIELD_ID": 8559,
             "ASSET_TYPE_ID": 127254
+        }]
+    },
+    {
+        "ACTION": "set_circle_office_name",
+        "BATCH": [{
+            "TARGET_FIELD_ID": 8560
         }]
     },
     {
