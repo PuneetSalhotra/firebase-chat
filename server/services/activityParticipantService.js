@@ -572,7 +572,11 @@ function ActivityParticipantService(objectCollection) {
                     if (activityTypeCategoryId !== 10 && activityTypeCategoryId !== 11) {
                         if (activityTypeCategoryId !== 9) {
                             activityCommonService.activityTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
-
+                                if (!err) {
+                                    if (activityTypeCategoryId === 48) {
+                                        activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {});
+                                    }
+                                }
                             });
                         } else if (activityTypeCategoryId === 9 && fieldId > 0) {
                             activityCommonService.activityTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
