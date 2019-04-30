@@ -4568,8 +4568,8 @@ function VodafoneService(objectCollection) {
                         let targetFieldEntry = targetFormDataMap.get(Number(targetFieldID));
                         // Set the value
                         let oldValue = String(targetFieldEntry.field_value);
-                        const newValue = `${workflowActivityData[0].account_name} - Account Managers`;
-                        targetFieldEntry.field_value = `${workflowActivityData[0].account_name} - Account Managers`;
+                        const newValue = `${workflowActivityData[0].account_name}`;
+                        targetFieldEntry.field_value = `${workflowActivityData[0].account_name}`;
 
                         if (oldValue !== newValue) {
                             updatedRomsFields.push(targetFieldEntry);
