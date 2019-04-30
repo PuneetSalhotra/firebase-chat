@@ -3076,11 +3076,11 @@ function ActivityCommonService(db, util, forEachAsync) {
                 })
                 .catch((err) => {
                     error = err;
-                })
+                });
         }
 
         return [error, formData];
-    }
+    };
 
     this.getBotsMappedToActType = async (request) => {
         let paramsArr = new Array(
@@ -3091,7 +3091,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             request.activity_type_id,
             request.field_id,
             request.form_id,
-            request.page_start,
+            request.page_start ||0,
             util.replaceQueryLimit(request.page_limit)
         );
         let queryString = util.getQueryString('ds_p1_bot_list_select', paramsArr);
@@ -3275,7 +3275,102 @@ function ActivityCommonService(db, util, forEachAsync) {
             }
         });
     }
-};
+
+    //Bot transaction - 
+    this.botOperationInsert = async function(request) {
+        let paramsArr = new Array(                
+            request.request_data,
+            request.flag_check,
+            request.flag_defined,
+            request.trigger || 0,
+            request.bot_transaction_inline_data || '{}',            
+            request.workflow_activity_id,
+            request.form_activity_id,
+            request.form_transaction_id,
+            request.bot_id,
+            request.bot_inline_data,
+            request.bot_operation_status_id,
+            request.workforce_id,
+            request.account_id,
+            request.organization_id,
+            request.asset_id,
+            request.datetime_log
+        );
+        let queryString = util.getQueryString('ds_p1_1_bot_log_transaction_insert', paramsArr);
+        if (queryString != '') {
+            return await (db.executeQueryPromise(0, queryString, request));                
+        }
+    };
+
+    //Bot transaction - Update flag bot defined
+    this.botOperationFlagUpdateBotDefined = async function(request, flag) {
+        let paramsArr = new Array(                
+            request.organization_id, 
+            request.bot_transaction_id || 0, 
+            flag, 
+            request.bot_id || 0, 
+            request.datetime_log
+        );
+        let queryString = util.getQueryString('ds_p1_bot_log_transaction_update_flag_defined', paramsArr);
+        if (queryString != '') {
+            return await (db.executeQueryPromise(0, queryString, request));                
+        }
+    };
+
+    //Bot transaction - Update flag bot trigger
+    this.botOperationFlagUpdateTrigger = async function(request, flag) {
+        let paramsArr = new Array(                
+            request.organization_id, 
+            request.bot_transaction_id || 0, 
+            flag, 
+            //request.bot_id, 
+            request.datetime_log            
+        );
+        let queryString = util.getQueryString('ds_p1_bot_log_transaction_update_flag_trigger', paramsArr);
+        if (queryString != '') {
+            return await (db.executeQueryPromise(0, queryString, request));                
+        }
+    };
+
+    //Bot transaction - Update bot status
+    this.botOperationFlagUpdateBotSts = async function(request, botStatusId) {
+        let paramsArr = new Array(                
+            request.organization_id, 
+            request.bot_transaction_id || 0, 
+            botStatusId, 
+            //request.bot_id, 
+            request.datetime_log          
+        );
+        let queryString = util.getQueryString('ds_p1_bot_log_transaction_update_status', paramsArr);
+        if (queryString != '') {
+            return await (db.executeQueryPromise(0, queryString, request));                
+        }
+    };
+
+    //Widget Log transaction
+    this.widgetLogTrx = async function(request) {
+        let paramsArr = new Array(                
+            request.request_data, 
+            request.inline_data, 
+            request.workflow_activity_id, 
+            request.form_activity_id, 
+            request.form_transaction_id, 
+            request.activity_status_id, 
+            request.widget_id, 
+            request.status_id, 
+            request.workforce_id, 
+            request.account_id, 
+            request.organization_id, 
+            request.asset_id, 
+            request.datetime_log  
+        );
+        let queryString = util.getQueryString('ds_p1_1_widget_log_transaction_insert', paramsArr);
+        if (queryString != '') {
+            return await (db.executeQueryPromise(0, queryString, request));                
+        }
+    };
+
+}
 
 
 module.exports = ActivityCommonService;
