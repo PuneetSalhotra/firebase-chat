@@ -9,9 +9,6 @@
         }, {
             "TARGET_FIELD_ID": 8862,
             "VALUE": "Placeholder text - Default Witness"
-        }, {
-            "TARGET_FIELD_ID": 8827,
-            "VALUE": "Mumbai Circle - Account Managers"
         }]
     },
     {
@@ -150,6 +147,12 @@
         "BATCH": [{
             "TARGET_FIELD_ID": 8826,
             "ASSET_TYPE_ID": 127254
+        }]
+    },
+    {
+        "ACTION": "set_circle_office_name",
+        "BATCH": [{
+            "TARGET_FIELD_ID": 8827
         }]
     },
     {
