@@ -20,8 +20,13 @@ function PubnubPush() {
             };
             
              pubnub.publish(publishConfig, function(status, response) {               
-                global.logger.write('conLog', status, {}, {});                
-                global.logger.write('conLog', response, {}, {});
+                // global.logger.write('conLog', status, {}, {});                
+                // global.logger.write('conLog', response, {}, {});
+
+                console.log("PubnubPush: publish | message: ", message)
+                console.log("PubnubPush: publish | status: ", status);
+                console.log("PubnubPush: publish | response: ", response);
+
             });
         };
         
