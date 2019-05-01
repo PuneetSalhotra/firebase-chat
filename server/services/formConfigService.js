@@ -1774,7 +1774,7 @@ function FormConfigService(objCollection) {
 
                 // Trigger Bot Engine
                 // Bot Engine Trigger
-                try {
+                try {                    
                     let botEngineRequest = Object.assign({}, request);
                     botEngineRequest.form_id = request.activity_form_id;
                     botEngineRequest.field_id = 0;
@@ -1790,13 +1790,34 @@ function FormConfigService(objCollection) {
                         // Proceeding because there was no error found, there were records returned
                         // and form_flag_workflow_enabled is set to 1
                         let botsListData = await activityCommonService.getBotsMappedToActType(botEngineRequest);
-                        if (botsListData.length > 0) {
+                        if (botsListData.length > 0) {                            
                             botEngineRequest.bot_id = botsListData[0].bot_id;
+                            botEngineRequest.bot_inline_data = botsListData[0].bot_inline_data;
+                            botEngineRequest.flag_check = 1;
+                            botEngineRequest.flag_defined = 1;
 
+                            let result = await activityCommonService.botOperationInsert(botEngineRequest);
+                            //console.log('RESULT : ', result);
+                            if(result.length > 0) {
+                                botEngineRequest.bot_transaction_id = result[0].bot_transaction_id;
+                            }
+                            
+                            //Bot log - Bot is defined
+                                activityCommonService.botOperationFlagUpdateBotDefined(botEngineRequest, 1);
+                            
                             await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
                                 .then((resp) => {
                                     global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
+                                    //Bot log - Update Bot status
+                                    //1.SUCCESS; 2.INTERNAL ERROR; 3.EXTERNAL ERROR; 4.COMMUNICATION ERROR
+                                        activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 1); 
+                                }).catch((err)=>{
+                                    //Bot log - Update Bot status with Error
+                                        activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 2);
                                 });
+                        } else {
+                            //Bot is not defined
+                                activityCommonService.botOperationFlagUpdateBotDefined(botEngineRequest, 0);
                         }
                     }
                 } catch (botInitError) {
@@ -2941,6 +2962,7 @@ function FormConfigService(objCollection) {
 
                     newRequest.field_id = fieldID;
                     newRequest.data_type_combo_id = fieldsNewValuesMap.get(fieldID).data_type_combo_id;
+                    newRequest.new_field_value = fieldsNewValuesMap.get(fieldID).field_value;
                     newRequest.datetime_log = util.getCurrentUTCTime();
                     newFieldData.push(fieldsNewValuesMap.get(fieldID));
                     // Update the field entry
