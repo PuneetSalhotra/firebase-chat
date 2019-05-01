@@ -3,20 +3,23 @@ apps:
     env: {mode: prod}
     script   : ./main.js
     instances: max    
-    out_file: '/dev/null'
+    out_file: '/api-data/pm2/logs/main.log'
+    error_file: '/api-data/pm2/logs/main_err.log'
     exec_mode: cluster
     
   - name : "ConsumerZero"
     env: {mode: prod, partition: 0}
     script   : ./consumer.js
-    out_file: '/dev/null'
+    out_file: '/api-data/pm2/logs/consumer_zero.log'
+    error_file: '/api-data/pm2/logs/consumer_zero_error.log'
     instances: 1
     exec_mode: fork
   
   - name : "Widget_ConsumerZero"
     env: {mode: prod, partition: 0}
     script   : ./consumerServices/widgetEngine/server.js
-    out_file: '/dev/null'
+    out_file: '/api-data/pm2/logs/widget_consumer_zero.log'
+    error_file: '/api-data/pm2/logs/widget_consumer_zero_error.log'
     instances: 1
     exec_mode: fork
 
