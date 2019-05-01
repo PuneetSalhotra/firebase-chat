@@ -1,10 +1,15 @@
 #Pass arguments from command line
 if [ "$DEPLOYMENT_GROUP_NAME" == "codeDeployOnStagingGroup" ]
 then
-  cd /staging_desker_api/
-  pm2 delete /^Staging_Consumer/
+  cd /staging_desker_api/  
   pm2 delete /^Staging_Main/
-  mode=staging pm2 reload startStagProcesses.yml
+  pm2 delete /^Staging_Consumer/
+  pm2 delete /^Staging_Widget/
+  pm2 delete /^Staging_Log/
+  pm2 start stagingProcesses.yml
+  pm2 stop Staging_ConsumerZero
+  pm2 stop Staging_WidgetZero
+  pm2 stop Staging_LogConsumerZero
 else    
   echo "Unknown deployment Group"
 fi
