@@ -4432,6 +4432,7 @@ function VodafoneService(objectCollection) {
 
         // To keep track updated ROMS fields
         let updatedRomsFields = [];
+        let updatedRomsFieldsMap = new Map();
         
         for (const action of ROMS_ACTIONS) {
             // sum
@@ -4459,6 +4460,7 @@ function VodafoneService(objectCollection) {
                         targetFieldEntry.field_value = sum;
                         if (oldValue !== sum) {
                             updatedRomsFields.push(targetFieldEntry);
+                            updatedRomsFieldsMap.set(Number(targetFieldID), targetFieldEntry)
                         }
                         // Set the updated object as value for the target field ID
                         targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
@@ -4527,10 +4529,11 @@ function VodafoneService(objectCollection) {
                                 // Get the entire object
                                 let targetFieldEntry = targetFormDataMap.get(Number(targetFieldID));
                                 // Set the value
-                                let oldValue = Number(targetFieldEntry.field_value);
+                                let oldValue = String(targetFieldEntry.field_value);
                                 targetFieldEntry.field_value = participant.activity_creator_operating_asset_first_name;
                                 if (oldValue !== participant.activity_creator_operating_asset_first_name) {
                                     updatedRomsFields.push(targetFieldEntry);
+                                    updatedRomsFieldsMap.set(Number(targetFieldID), targetFieldEntry)
                                     // Set the updated object as value for the target field ID
                                     targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
                                 }
@@ -4539,6 +4542,44 @@ function VodafoneService(objectCollection) {
                         }
                     }
 
+                }
+            }
+
+            // set_circle_office_name
+            if (action.ACTION === "set_circle_office_name") {
+                const newRequest = Object.assign({}, request);
+                newRequest.activity_id = request.workflow_activity_id;
+
+                let workflowActivityData = [];
+                // Fetch participants data
+                await activityCommonService
+                    .getActivityDetailsPromise(newRequest)
+                    .then((data) => {
+                        if (data.length > 0) {
+                            workflowActivityData = data;
+                        }
+                    });
+                
+                if (workflowActivityData.length > 0) {
+                    for (const batch of action.BATCH) {
+                        // Update the value of the target field ID
+                        let targetFieldID = batch.TARGET_FIELD_ID;
+                        // Get the entire object
+                        let targetFieldEntry = targetFormDataMap.get(Number(targetFieldID));
+                        // Set the value
+                        let oldValue = String(targetFieldEntry.field_value);
+                        const newValue = `${workflowActivityData[0].account_name}`;
+                        targetFieldEntry.field_value = `${workflowActivityData[0].account_name}`;
+
+                        if (oldValue !== newValue) {
+                            updatedRomsFields.push(targetFieldEntry);
+                            updatedRomsFieldsMap.set(Number(targetFieldID), targetFieldEntry)
+                            // Set the updated object as value for the target field ID
+                            targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
+                        }
+
+                        console.log("set_circle_office_name | workflowActivityData[0].account_name: ", workflowActivityData[0].account_name);
+                    }
                 }
             }
 
@@ -4579,10 +4620,11 @@ function VodafoneService(objectCollection) {
                                 // Get the entire object
                                 let targetFieldEntry = targetFormDataMap.get(Number(targetFieldID));
                                 // Set the value
-                                let oldValue = Number(targetFieldEntry.field_value);
+                                let oldValue = String(targetFieldEntry.field_value);
                                 targetFieldEntry.field_value = batch.VALUE;
                                 if (oldValue !== batch.VALUE) {
                                     updatedRomsFields.push(targetFieldEntry);
+                                    updatedRomsFieldsMap.set(Number(targetFieldID), targetFieldEntry);
                                     // Set the updated object as value for the target field ID
                                     targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
                                 }
@@ -4632,6 +4674,7 @@ function VodafoneService(objectCollection) {
                                         console.log(` ${targetFieldEntry.field_name} | field_id: \x1b[31m${targetFieldID}\x1b[0m current value: ${currentValue} previous value: ${previousValue}`);
                                         targetFieldEntry.field_value = previousValue;
                                         updatedRomsFields.push(targetFieldEntry);
+                                        updatedRomsFieldsMap.set(Number(targetFieldID), targetFieldEntry);
                                         // Set the updated object as value for the target field ID
                                         targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
                                     }
@@ -4690,10 +4733,11 @@ function VodafoneService(objectCollection) {
                                             // Get the entire object
                                             let targetFieldEntry = targetFormDataMap.get(Number(targetFieldID));
                                             // Set the value
-                                            let oldValue = Number(targetFieldEntry.field_value);
+                                            let oldValue = String(targetFieldEntry.field_value);
                                             targetFieldEntry.field_value = batch.VALUE;
                                             if (oldValue !== batch.VALUE) {
                                                 updatedRomsFields.push(targetFieldEntry);
+                                                updatedRomsFieldsMap.set(Number(targetFieldID), targetFieldEntry);
                                                 // Set the updated object as value for the target field ID
                                                 targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
                                             }
@@ -4747,6 +4791,7 @@ function VodafoneService(objectCollection) {
                                             console.log(` ${targetFieldEntry.field_name} | field_id: \x1b[31m${targetFieldID}\x1b[0m current value: ${currentValue} previous value: \x1b[31m${previousValue}\x1b[0m`);
                                             targetFieldEntry.field_value = previousValue;
                                             updatedRomsFields.push(targetFieldEntry);
+                                            updatedRomsFieldsMap.set(Number(targetFieldID), targetFieldEntry);
                                             // Set the updated object as value for the target field ID
                                             targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
                                         }
@@ -4767,7 +4812,7 @@ function VodafoneService(objectCollection) {
         
         return {
             TARGET_FORM_DATA: targetFormData,
-            UPDATED_ROMS_FIELDS: updatedRomsFields
+            UPDATED_ROMS_FIELDS: [...updatedRomsFieldsMap.values()]
         };
     }
 
@@ -4982,7 +5027,7 @@ function VodafoneService(objectCollection) {
         }
 
         // const fs = require("fs");
-        // fs.writeFileSync('/Users/Bensooraj/Desktop/desker_api/server/vodafone/utils/data.json', JSON.stringify(TARGET_FORM_DATA, null, 2) , 'utf-8');
+        // fs.writeFileSync('/Users/Bensooraj/Desktop/desker_api/server/vodafone/utils/data.json', JSON.stringify(targetFieldsUpdated, null, 2) , 'utf-8');
 
         // return [false, {
         //     UPDATED_ROMS_FIELDS

@@ -572,9 +572,21 @@ function ActivityParticipantService(objectCollection) {
                     if (activityTypeCategoryId !== 10 && activityTypeCategoryId !== 11) {
                         if (activityTypeCategoryId !== 9) {
                             activityCommonService.activityTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
-                                if(!err) {
-                                    if(activityTypeCategoryId === 48) {
+                                if (!err) {
+                                    if (activityTypeCategoryId === 48) {
                                         activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {});
+                                        // ######################################################################################
+                                        let pubnubMsg = {};
+                                        pubnubMsg.type = 'activity_unread';
+                                        pubnubMsg.organization_id = request.organization_id;
+                                        pubnubMsg.desk_asset_id = participantData.asset_id;
+                                        pubnubMsg.activity_type_category_id = request.activity_type_category_id || 0;
+                                        console.log('Participant Add | PubNub Message : ', pubnubMsg);
+                                        activityPushService.pubNubPush({
+                                            asset_id: participantData.asset_id,
+                                            organization_id: request.organization_id
+                                        }, pubnubMsg, function (err, data) {});
+                                        // ######################################################################################
                                     }
                                 }
                             });
@@ -613,9 +625,23 @@ function ActivityParticipantService(objectCollection) {
                             });
 
                             console.log('BEFORE ACTIVITY TIMELINE INSERT activityTypeCategoryId :: '+activityTypeCategoryId);
-                            if (activityTypeCategoryId === 48 || activityTypeCategoryId === 9){
+                            if (activityTypeCategoryId === 48 || activityTypeCategoryId === 9) {
                                 activityCommonService.activityTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
-
+                                    // ######################################################################################
+                                    if (activityTypeCategoryId === 48) {
+                                        activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {});
+                                        let pubnubMsg = {};
+                                        pubnubMsg.type = 'activity_unread';
+                                        pubnubMsg.organization_id = request.organization_id;
+                                        pubnubMsg.desk_asset_id = participantData.asset_id;
+                                        pubnubMsg.activity_type_category_id = request.activity_type_category_id || 0;
+                                        console.log('Participant Add | PubNub Message : ', pubnubMsg);
+                                        activityPushService.pubNubPush({
+                                            asset_id: participantData.asset_id,
+                                            organization_id: request.organization_id
+                                        }, pubnubMsg, function (err, data) {});
+                                    }
+                                    // ######################################################################################
                                 });
                             }
                             

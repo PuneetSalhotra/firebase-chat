@@ -2962,6 +2962,7 @@ function FormConfigService(objCollection) {
 
                     newRequest.field_id = fieldID;
                     newRequest.data_type_combo_id = fieldsNewValuesMap.get(fieldID).data_type_combo_id;
+                    newRequest.new_field_value = fieldsNewValuesMap.get(fieldID).field_value;
                     newRequest.datetime_log = util.getCurrentUTCTime();
                     newFieldData.push(fieldsNewValuesMap.get(fieldID));
                     // Update the field entry
