@@ -265,6 +265,19 @@ function WidgetController(objCollection) {
             }
         }
     );
+
+
+    app.post(
+        '/' + global.config.version + '/widget/organization/level/status/drilldown',
+        async (req, res) => {
+            try {
+                let result = await widgetService.getOrgLevelWorkflowStatusWiseAggrDrilldown(req.body);
+                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            } catch (err) {
+                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            }
+        }
+    );
     
 }
 
