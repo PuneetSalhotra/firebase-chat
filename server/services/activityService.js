@@ -1807,7 +1807,7 @@ function ActivityService(objectCollection) {
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         var activityStreamTypeId = 11;
-        var activityStatusTypeCategoryId = Number(request.activity_status_type_category_id);
+        //var activityStatusTypeCategoryId = Number(request.activity_status_type_category_id);
         var activityStatusId = Number(request.activity_status_id);
         var activityStatusTypeId = Number(request.activity_status_type_id);
         var activityTypeCategoryId = Number(request.activity_type_category_id);
@@ -3601,7 +3601,7 @@ function ActivityService(objectCollection) {
         } else {
             responseObject = [{
                 workflow_completion_percentage: 0
-            }]
+            }];
         }
 
         return responseObject;
@@ -3627,17 +3627,33 @@ function ActivityService(objectCollection) {
                 request.organization_id,
                 util.getCurrentUTCTime()
             );
+            
+            let temp = {};
+            let newReq = Object.assign({}, request);
+            newReq.workflow_activity_id = request.activity_id;
+            
             let queryString = util.getQueryString('ds_p1_widget_activity_field_transaction_update', paramsArr);
             if (queryString != '') {
-               db.executeQuery(0, queryString, request, function (err, data) {
+               db.executeQuery(0, queryString, request, function (err, data) {                    
+                    console.log('AS ERRRRRRRRRRRRRRROR : ', err);
+                    console.log('AS DAAAAAAAAAAAAAAATA : ', data);
                     if (err === false) {
+                        if(data.length>0) {
+                            newReq.widget_id = data[0].widget_id;
+                        }            
+                        temp.data = data;
+                        newReq.inline_data = temp;
+                        activityCommonService.widgetLogTrx(newReq, 1);
                         resolve();
-                    } else {
+                    } else {                        
+                        temp.err = err;
+                        newReq.inline_data = temp;
+                        activityCommonService.widgetLogTrx(newReq, 2);
                         reject(err);
                     }
                 });
             }
-        })
+        });
     }
 
     function updateChannelActivity(request, idActivityTypeCategory, idChannelActivity, idChannelActivityCategory) {

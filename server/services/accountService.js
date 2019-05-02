@@ -614,7 +614,7 @@ function AccountService(objectCollection) {
                 })
                 .catch((err) => {
                     error = err;
-                })
+                });
         }
         return [error, responseData];
     };
