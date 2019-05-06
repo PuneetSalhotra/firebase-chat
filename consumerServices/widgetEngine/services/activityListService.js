@@ -77,17 +77,61 @@ insertUpdate(data){
                 data.organization_id,
                 this.objCollection.util.getCurrentUTCTime()
                 );
+        
+        let temp ={};
+        let newReq = Object.assign({}, data);
+
         var queryString = this.objCollection.util.getQueryString('ds_p1_widget_activity_field_transaction_insert', paramsArr);
         if (queryString === '')
             return reject();
         this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
-            if (err)
-                return reject(err);
-            return resolve(data);
+            if (err){                                
+                temp.err = err;
+                newReq.inline_data = temp;
+                this.objCollection.activityCommonService.widgetLogTrx(newReq, 1);
+                reject(err);
+            } else {
+                temp.data = data;                
+                newReq.inline_data = temp;
+                this.objCollection.activityCommonService.widgetLogTrx(newReq, 2);
+                resolve(data);
+            }
         });
 
     });
 }
+
+/*//Widget Log transaction
+widgetLogTrx(request, statusId) {
+    return new Promise((resolve, reject)=>{
+        let paramsArr = new Array(                
+            request, 
+            request.inline_data || '{}', 
+            request.workflow_activity_id, 
+            request.form_activity_id, 
+            request.form_transaction_id, 
+            request.activity_status_id || 0, 
+            request.widget_id, 
+            statusId, 
+            request.workforce_id, 
+            request.account_id, 
+            request.organization_id, 
+            request.asset_id, 
+            this.objCollection.util.getCurrentUTCTime()  
+        );
+        let queryString = this.objCollection.util.getQueryString('ds_p1_1_widget_log_transaction_insert', paramsArr);
+        if (queryString != '') {
+            this.objCollection.db.executeQuery(0, queryString, {}, function(err, data){
+                if(err) {
+                    reject(err);
+                } else {
+                    resolve(data);
+                }
+            });
+        }
+    });    
+}*/
+
 }
 
 module.exports = ActivityListService;
