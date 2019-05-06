@@ -18,6 +18,30 @@ function AdminListingController(objCollection) {
         }
     });
 
+    // Portal: workforceActivityTypeMappingSelect
+    // DB Call: ds_p1_workforce_activity_type_mapping_select
+    app.post('/' + global.config.version + '/admin/workforce/activity_type/list', async function (req, res) {
+        const [err, orgData] = await adminListingService.workforceActivityTypeMappingSelect(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/admin/workforce/activity_type/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });
+
+    // Portal: workforceActivityStatusMappingSelect
+    // DB Call: ds_p1_workforce_activity_status_mapping_select
+    app.post('/' + global.config.version + '/admin/workforce/activity_status/list', async function (req, res) {
+        const [err, orgData] = await adminListingService.workforceActivityStatusMappingSelect(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/admin/workforce/activity_status/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });
+
 };
 
 module.exports = AdminListingController;
