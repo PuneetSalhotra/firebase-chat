@@ -770,7 +770,7 @@ function BotService(objectCollection) {
             request.form_activity_id || 0, 
             request.form_transaction_id || 0, 
             ///////////////////////////
-            botData.bot_operation_type_id, 
+            botData.bot_operation_id, 
             botData.bot_id, 
             botData.bot_operation_inline_data, 
             botData.bot_operation_status_id || 1, 
