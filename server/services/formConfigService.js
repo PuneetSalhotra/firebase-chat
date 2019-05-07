@@ -740,6 +740,7 @@ function FormConfigService(objCollection) {
 
             const widgetFieldsStatusesData = util.widgetFieldsStatusesData();
             let poFields = widgetFieldsStatusesData.PO_FIELDS; //new Array(13263, 13269, 13265, 13268, 13271);
+            let orderValueFields = widgetFieldsStatusesData.TOTAL_ORDER_VALUE_IDS; //new Array(7200, 8565, 8817, 9667, 9941, 10207, 12069, 12610)
 
             forEachAsync(activityInlineData, (next, row) => {
                 var params = new Array(
@@ -920,10 +921,18 @@ function FormConfigService(objCollection) {
                     db.executeQuery(0, queryString, request, function (err, data) {  
                         global.logger.write('conLog', '*****Update: update field_value in widget *******'+row.field_id +' '+row.field_value , {}, request);
                         try{
-                                widgetAggrFieldValueUpdate(request);
+                            if(Object.keys(orderValueFields).includes(String(row.field_id))){
+                                if((typeof row.field_value) === 'number')
+                                    widgetAggrFieldValueUpdate(request);
+                                else
+                                    console.log("Field Value is not a number || not Total Order Value Field "+row.field_value);
+                                }else{
+                                    console.log("This field is not configured to update in intermediate table "+row.field_id);
+                                }
                             }catch(err){
                                 console.log('Error in updating Intermediate Table : ', err);
-                            }      
+                            }  
+
 
                          global.logger.write('conLog', '*****Update: update po_date in widget1 *******'+Object.keys(poFields) +' '+row.field_id , {}, request);
                          if(Object.keys(poFields).includes(String(row.field_id))){
