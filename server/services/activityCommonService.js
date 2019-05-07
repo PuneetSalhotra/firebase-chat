@@ -3286,9 +3286,9 @@ function ActivityCommonService(db, util, forEachAsync) {
             request.flag_defined,
             request.trigger || 0,
             request.bot_transaction_inline_data || '{}',            
-            request.workflow_activity_id,
-            request.form_activity_id,
-            request.form_transaction_id,
+            request.workflow_activity_id || 0,
+            request.form_activity_id || 0,
+            request.form_transaction_id || 0,
             request.bot_id,
             request.bot_inline_data,
             request.bot_operation_status_id,
@@ -3340,7 +3340,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             request.organization_id, 
             request.bot_transaction_id || 0, 
             botStatusId, 
-            //request.bot_id, 
+            request.bot_transaction_inline_data,
             request.datetime_log          
         );
         let queryString = util.getQueryString('ds_p1_bot_log_transaction_update_status', paramsArr);
