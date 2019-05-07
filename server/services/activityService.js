@@ -359,6 +359,10 @@ function ActivityService(objectCollection) {
                                             //Bot is not defined
                                                 activityCommonService.botOperationFlagUpdateBotDefined(botEngineRequest, 0);
                                         }
+                                    } else {
+                                        global.logger.write('debug', "formConfigError: " + formConfigError, {}, request);
+                                        global.logger.write('debug', "formConfigData: ", {}, request);
+                                        global.logger.write('debug', formConfigData, {}, request);
                                     }
                                 } catch (botInitError) {
                                     global.logger.write('error', botInitError, botInitError, botEngineRequest);
@@ -423,6 +427,10 @@ function ActivityService(objectCollection) {
                                             //Bot is not defined
                                                 activityCommonService.botOperationFlagUpdateBotDefined(botEngineRequest, 0);
                                         }
+                                    } else {
+                                        global.logger.write('debug', "formConfigError: " + formConfigError, {}, request);
+                                        global.logger.write('debug', "formConfigData: ", {}, request);
+                                        global.logger.write('debug', formConfigData, {}, request);
                                     }
                                 } catch (botInitError) {
                                     global.logger.write('error', botInitError, botInitError, botEngineRequest);
