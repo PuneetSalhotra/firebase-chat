@@ -342,11 +342,27 @@ function ActivityService(objectCollection) {
                                             await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
                                                 .then((resp) => {
                                                     global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
+                                                    let temp = JSON.parse(resp);
+                                                    
+                                                    (Number(temp.status) === 200) ? 
+                                                        botEngineRequest.bot_operation_status_id = 1 :
+                                                        botEngineRequest.bot_operation_status_id = 2;
+                                                    
+                                                    botEngineRequest.bot_transaction_inline_data = JSON.stringify(resp);                                                    
+                                                    activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 1);
+                                                }).catch((err)=>{
+                                                    //Bot log - Update Bot status with Error
+                                                    botEngineRequest.bot_transaction_inline_data = JSON.stringify(err);
+                                                    activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 2);
                                                 });
                                         } else {
                                             //Bot is not defined
                                                 activityCommonService.botOperationFlagUpdateBotDefined(botEngineRequest, 0);
                                         }
+                                    } else {
+                                        global.logger.write('debug', "formConfigError: " + formConfigError, {}, request);
+                                        global.logger.write('debug', "formConfigData: ", {}, request);
+                                        global.logger.write('debug', formConfigData, {}, request);
                                     }
                                 } catch (botInitError) {
                                     global.logger.write('error', botInitError, botInitError, botEngineRequest);
@@ -393,15 +409,28 @@ function ActivityService(objectCollection) {
                                                     global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
                                                     //Bot log - Update Bot status
                                                     //1.SUCCESS; 2.INTERNAL ERROR; 3.EXTERNAL ERROR; 4.COMMUNICATION ERROR
-                                                        activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 1); 
+                                                        //activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 1); 
+                                                    let temp = JSON.parse(resp);
+                                                    
+                                                    (Number(temp.status) === 200) ? 
+                                                        botEngineRequest.bot_operation_status_id = 1 :
+                                                        botEngineRequest.bot_operation_status_id = 2;
+                                                    
+                                                    botEngineRequest.bot_transaction_inline_data = JSON.stringify(resp);
+                                                    activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 1);
                                                 }).catch((err)=>{
                                                     //Bot log - Update Bot status with Error
-                                                        activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 2);
+                                                    botEngineRequest.bot_transaction_inline_data = JSON.stringify(err);
+                                                    activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 2);
                                                 });
                                         } else {
                                             //Bot is not defined
                                                 activityCommonService.botOperationFlagUpdateBotDefined(botEngineRequest, 0);
                                         }
+                                    } else {
+                                        global.logger.write('debug', "formConfigError: " + formConfigError, {}, request);
+                                        global.logger.write('debug', "formConfigData: ", {}, request);
+                                        global.logger.write('debug', formConfigData, {}, request);
                                     }
                                 } catch (botInitError) {
                                     global.logger.write('error', botInitError, botInitError, botEngineRequest);
