@@ -5220,7 +5220,7 @@ function VodafoneService(objectCollection) {
             'P': 'lm'
         };
         let bulkOrderContentMap = new Map();
-        for (let row = 10; row < 12; row++) {
+        for (let row = 10; row < 16; row++) {
             // Break at the first emtpy row at column A
             if (!workbook.Sheets[sheet_names[0]][`A${row}`]) {
                 break;
