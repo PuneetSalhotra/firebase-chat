@@ -11,6 +11,7 @@ const Nexmo = require('nexmo');
 var fs = require('fs');
 var os = require('os');
 const excelToJson = require('convert-excel-to-json');
+const XLSX = require('xlsx');
 const AWS = require('aws-sdk');
 
 AWS.config.update(
@@ -1298,6 +1299,43 @@ function Util() {
         return widgetFieldsStatusesData;
     };
 
+    this.getXlsxWorkbookFromS3Url = async function (request, S3Url) {
+        const s3 = new AWS.S3();
+
+        const bucketName = S3Url.slice(8, 25);
+        const keyName = S3Url.slice(43);
+
+        const getObjectParams = {
+            Bucket: bucketName,
+            Key: keyName,
+        };
+        const s3GetObjectPromise = s3.getObject(getObjectParams).promise();
+        // const s3GetObjectPromise = s3.getObject(getObjectParams).createReadStream().pipe();
+
+        let error, workbook;
+
+        await s3GetObjectPromise
+            .then(function (data) {
+                console.log('getXlsxWorkbookFromS3Url | Success | data: ', data);
+                // Convert Body from a Buffer to a String
+                // console.log(Object.keys(data))
+                // for (const property of Object.keys(data)) {
+                //     console.log(`property ${property}: `, data[property], "type: ", typeof data[property])
+                // }
+
+                workbook = XLSX.read(data.Body, {
+                    type: "buffer"
+                });
+                const sheet_names = workbook.SheetNames;
+                console.log("sheet_names: ", sheet_names)
+
+            }).catch(function (err) {
+                console.log('getXlsxWorkbookFromS3Url | Error | err: ', err);
+                error = err;
+            });
+
+        return [error, workbook];
+    }
 }
 
 module.exports = Util;
