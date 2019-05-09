@@ -4834,6 +4834,73 @@ function VodafoneService(objectCollection) {
         }
     }
 
+    async function activityListUpdateSubType(request, parentOrderActivityID) {
+        // IN p_organization_id BIGINT(20), IN p_account_id bigint(20), 
+        // IN p_workforce_id BIGINT(20), IN p_activity_id BIGINT(20), 
+        // IN p_activity_sub_type_id BIGINT(20), IN p_activity_sub_type_name VARCHAR(100), 
+        // IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+
+        let formData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            parentOrderActivityID,
+            request.activity_sub_type_id || 1,
+            request.activity_sub_type_name || "Bulk Order",
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_activity_list_update_sub_type', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    formData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, formData];
+    }
+
+    async function activityAssetMappingUpdateSubType(request, parentOrderActivityID) {
+        // IN p_organization_id BIGINT(20), IN p_account_id bigint(20), IN p_workforce_id BIGINT(20), 
+        // IN p_activity_id BIGINT(20), IN p_activity_sub_type_id BIGINT(20), IN p_activity_sub_type_name VARCHAR(100), 
+        // IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+
+        let formData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            parentOrderActivityID,
+            request.activity_sub_type_id || 1,
+            request.activity_sub_type_name || "Bulk Order",
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_sub_type', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    formData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, formData];
+    }
+
     this.regenerateAndSubmitTargetForm = async function (request) {
         // Fetch form's config data
         request.page_start = 0;
