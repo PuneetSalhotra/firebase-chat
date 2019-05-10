@@ -4,6 +4,7 @@
 
 function ActivityCommonService(db, util, forEachAsync) {
     var makingRequest = require('request');
+    const self = this;
 
     this.getAllParticipants = function (request, callback) {
         var paramsArr = new Array(
@@ -3248,12 +3249,12 @@ function ActivityCommonService(db, util, forEachAsync) {
                                 }
                                 temp.data = data;
                                 newReq.inline_data = temp;
-                                this.widgetLogTrx(newReq, 1);
+                                self.widgetLogTrx(newReq, 1);
                                 resolve();                                
                             } else {
                                 temp.err = err;
                                 newReq.inline_data = temp;
-                                this.widgetLogTrx(newReq, 2);
+                                self.widgetLogTrx(newReq, 2);
                                 reject(err);
                             }
                         });
@@ -3263,7 +3264,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         } catch (error) {
             temp.err = error;
             newReq.inline_data = temp;
-            this.widgetLogTrx(newReq, 2);
+            self.widgetLogTrx(newReq, 2);
             global.logger.write('error', error, error, request);
           }
         });
@@ -3353,8 +3354,8 @@ function ActivityCommonService(db, util, forEachAsync) {
         let paramsArr = new Array(                
             request.organization_id, 
             request.bot_transaction_id || 0, 
-            botStatusId, 
-            request.bot_transaction_inline_data,
+            botStatusId,
+            request.bot_transaction_inline_data || '{}',
             request.datetime_log          
         );
         let queryString = util.getQueryString('ds_p1_bot_log_transaction_update_status', paramsArr);
