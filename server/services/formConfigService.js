@@ -1796,6 +1796,7 @@ function FormConfigService(objCollection) {
                 //createWorkflowRequest.activity_description = workflowActivityTypeName;
                 createWorkflowRequest.activity_form_id = Number(request.activity_form_id);
                 createWorkflowRequest.form_transaction_id = Number(request.form_transaction_id);
+                createWorkflowRequest.activity_parent_id = Number(request.child_order_activity_parent_id) || 0;
 
                 const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
                 await addActivityAsync(createWorkflowRequest);

@@ -766,7 +766,22 @@ function ActivityListingController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, -9998, req.body));
             });
     });
-    
+
+
+    // Flag=0: Get the count of child orders which are open in a given bulk order
+    // Flag=1: Get the list of child orders in a given bulk order
+    // ....... sort_flag=0: sorted by activity_datetime_created
+    // ....... sort_flag=1: sorted by activity_datetime_end_deferred
+    app.post('/' + global.config.version + '/activity/workflow/child_orders/list', async function (req, res) {
+        const [err, childOrderData] = await activityListingService.activityListSelectChildOrders(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, childOrderData, 200, req.body));
+        } else {
+            console.log("/activity/workflow/child_orders/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, childOrderData, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = ActivityListingController;
