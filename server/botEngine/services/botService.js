@@ -754,6 +754,21 @@ function BotService(objectCollection) {
         newReq.message_unique_id = util.getMessageUniqueId(request.asset_id);
         newReq.device_os_id = 9;
 
+        const statusName = await getStatusName(newReq, inlineData.activity_status_id);
+        if (Number(statusName.length) > 0) {
+            newReq.activity_timeline_collection = JSON.stringify({
+                "activity_reference": [{
+                    "activity_id": newReq.activity_id,
+                    "activity_title": ""
+                }],
+                "asset_reference": [{}],
+                "attachments": [],
+                "content": `Status updated to ${statusName[0].activity_status_name || ""}`,
+                "mail_body": `Status updated to ${statusName[0].activity_status_name || ""}`,
+                "subject": `Status updated to ${statusName[0].activity_status_name || ""}`
+            });
+        }
+
         try {
             await new Promise((resolve, reject) => {
                 activityService.alterActivityStatus(newReq, (err, resp) => {
@@ -771,7 +786,7 @@ function BotService(objectCollection) {
 
         if (resp.length > 0) {
 
-            let statusName = await getStatusName(newReq, inlineData.activity_status_id);
+            // let statusName = await getStatusName(newReq, inlineData.activity_status_id);
             global.logger.write('conLog', 'Status Alter BOT Step - status Name : ', statusName, {});
 
             let queuesData = await getAllQueuesBasedOnActId(newReq, request.workflow_activity_id);
