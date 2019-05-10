@@ -1947,7 +1947,7 @@ function ActivityTimelineService(objectCollection) {
                             request['flag'] = 1;
                             request['datetime_log'] = util.getCurrentUTCTime();
                             activityCommonService.widgetActivityFieldTxnUpdateDatetime(request); 
-                        })                           
+                        });
                     }
                     next();
                     if (err === false) {

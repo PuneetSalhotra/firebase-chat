@@ -965,7 +965,7 @@ function FormConfigService(objCollection) {
                                     request['flag'] = 1;
                                     request['datetime_log'] = util.getCurrentUTCTime();
                                     activityCommonService.widgetActivityFieldTxnUpdateDatetime(request); 
-                                })          
+                                });          
                             }
                         next();
                         //(err === false) ?  resolve() : reject();
@@ -1142,14 +1142,14 @@ function FormConfigService(objCollection) {
                     next1();
                 }).then(() => {
                     next();
-                })
+                });
             }).then(() => {
                 console.log(formData.length);
                 resolve(formData);
-            })
+            });
 
         });
-    };
+    }
 
     this.formAdd = async function (request) {
 
@@ -3131,7 +3131,7 @@ function FormConfigService(objCollection) {
         }
 
         return [false, activityData];
-    }
+    };
 
 
    async function widgetAggrFieldValueUpdate(request) {
@@ -3151,16 +3151,33 @@ function FormConfigService(objCollection) {
             util.getCurrentUTCTime(),
             request.flag
         );
+
+        let temp = {};
+        let newReq = Object.assign({}, request);
+        newReq.form_activity_id = request.activity_id;
         const queryString = util.getQueryString('ds_p1_1_widget_activity_field_transaction_update_field_value', paramsArr);
+
         if (queryString !== '') {
             // console.log(queryString)
             await db.executeQueryPromise(0, queryString, request)
-                .then((data) => {
+                .then((data) => {                    
+                    console.log('FCS DAAAAAAAAAAAAAAATA : ', data);
                     fieldUpdateStatus = data;
                     error = false;
+                    
+                    if(data.length > 0) {
+                        newReq.widget_id = data[0].widget_id;
+                    }
+                    temp.data = data;
+                    newReq.inline_data = temp;
+                    activityCommonService.widgetLogTrx(newReq, 1);
                 })
                 .catch((err) => {
+                    console.log('FCS ERRRRRRRRRRRRRRROR : ', err);                    
+                    temp.err = err;
+                    newReq.inline_data = temp;
                     error = err;
+                    activityCommonService.widgetLogTrx(newReq, 2);
                 });
         }
 

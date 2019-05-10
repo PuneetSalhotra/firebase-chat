@@ -3161,7 +3161,10 @@ function ActivityCommonService(db, util, forEachAsync) {
     this.widgetActivityFieldTxnUpdateDatetime = function (request) {
         return new Promise((resolve, reject) => {
 
-        try{
+            let temp = {};
+            let newReq = Object.assign({}, request);
+
+            try{
                 const flag = request.flag;
 
                 let activityDatetimeCreatedIST = '';
@@ -3201,7 +3204,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                         }
                         
                     }else if(flag == 2){
-                        
+                        //
                     }else if(flag == 3){
 
                         order_trigger_log_diff = util.differenceDatetimes(request.order_logged_datetime, activityDatetimeCreatedIST)/1000;
@@ -3233,13 +3236,24 @@ function ActivityCommonService(db, util, forEachAsync) {
                         order_po_log_diff,
                         flag,  
                         request.datetime_log
-                    );
+                    );                   
                     var queryString = util.getQueryString("ds_p1_1_widget_activity_field_transaction_update_datetime", paramsArr);
                     if (queryString != '') {
                         db.executeQuery(0, queryString, request, function (err, data) {
                             if (err === false) {
-                                resolve();
+                                console.log('ACS ERRRRRRRRRRRRRRROR : ', err);
+                                console.log('ACS DAAAAAAAAAAAAAAATA : ', data);
+                                if(data.length > 0) {
+                                    newReq.widget_id = data[0].widget_id;
+                                }
+                                temp.data = data;
+                                newReq.inline_data = temp;
+                                this.widgetLogTrx(newReq, 1);
+                                resolve();                                
                             } else {
+                                temp.err = err;
+                                newReq.inline_data = temp;
+                                this.widgetLogTrx(newReq, 2);
                                 reject(err);
                             }
                         });
@@ -3247,9 +3261,11 @@ function ActivityCommonService(db, util, forEachAsync) {
                 
             });
         } catch (error) {
-                    global.logger.write('error', error, error, request);
-                }
-
+            temp.err = error;
+            newReq.inline_data = temp;
+            this.widgetLogTrx(newReq, 2);
+            global.logger.write('error', error, error, request);
+          }
         });
     }; 
 
@@ -3284,9 +3300,9 @@ function ActivityCommonService(db, util, forEachAsync) {
             request.flag_defined,
             request.trigger || 0,
             request.bot_transaction_inline_data || '{}',            
-            request.workflow_activity_id,
-            request.form_activity_id,
-            request.form_transaction_id,
+            request.workflow_activity_id || 0,
+            request.form_activity_id || 0,
+            request.form_transaction_id || 0,
             request.bot_id,
             request.bot_inline_data,
             request.bot_operation_status_id,
@@ -3338,7 +3354,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             request.organization_id, 
             request.bot_transaction_id || 0, 
             botStatusId, 
-            //request.bot_id, 
+            request.bot_transaction_inline_data,
             request.datetime_log          
         );
         let queryString = util.getQueryString('ds_p1_bot_log_transaction_update_status', paramsArr);
@@ -3348,21 +3364,22 @@ function ActivityCommonService(db, util, forEachAsync) {
     };
 
     //Widget Log transaction
-    this.widgetLogTrx = async function(request) {
+    this.widgetLogTrx = async function(request, statusId) {        
         let paramsArr = new Array(                
-            request.request_data, 
-            request.inline_data, 
+            JSON.stringify(request),            
+            //request.inline_data || '{}', 
+            '{}',
             request.workflow_activity_id, 
-            request.form_activity_id, 
-            request.form_transaction_id, 
-            request.activity_status_id, 
-            request.widget_id, 
-            request.status_id, 
+            request.form_activity_id || 0, 
+            request.form_transaction_id || 0, 
+            request.activity_status_id || 0, 
+            request.widget_id || 0, 
+            statusId, 
             request.workforce_id, 
             request.account_id, 
             request.organization_id, 
             request.asset_id, 
-            request.datetime_log  
+            util.getCurrentUTCTime()  
         );
         let queryString = util.getQueryString('ds_p1_1_widget_log_transaction_insert', paramsArr);
         if (queryString != '') {
