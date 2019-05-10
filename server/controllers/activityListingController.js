@@ -756,6 +756,18 @@ function ActivityListingController(objCollection) {
             });
     });
 
+    app.post('/' + global.config.version + '/activity/queue/list/all', function (req, res) {
+        activityListingService
+            .getQueueActivitiesAllFilters(req.body)
+            .then((data) => {
+                res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            }).catch((err) => {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, -9998, req.body));
+            });
+    });
+
+
     // Flag=0: Get the count of child orders which are open in a given bulk order
     // Flag=1: Get the list of child orders in a given bulk order
     // ....... sort_flag=0: sorted by activity_datetime_created
@@ -769,6 +781,7 @@ function ActivityListingController(objCollection) {
             res.send(responseWrapper.getResponse(err, childOrderData, -9999, req.body));
         }
     });
+
 }
 
 module.exports = ActivityListingController;

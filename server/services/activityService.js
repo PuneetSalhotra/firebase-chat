@@ -289,38 +289,42 @@ function ActivityService(objectCollection) {
                                     let requestFormData = JSON.parse(request.activity_inline_data);
                                     let otc_1 = 0, arc_1 = 0, otc_2= 0, arc_2 = 0;
                                     activityCommonService.getWidgetByActivityType(request).then((widgetRow)=>{
+                                        console.log('WIDGET ROW ::'+widgetRow.length);
+                                    if(widgetRow.length > 0){
+                                        console.log('WIDGET ROW EXISTIS ::'+widgetRow[0].widget_id);
                                         request['widget_id'] = widgetRow[0].widget_id;
-                                        if(widgetRow[0].widget_entity2_id > 0){
-                                            forEachAsync(requestFormData, function (next, fieldObj) {
+                                            if(widgetRow[0].widget_entity2_id > 0){
+                                                forEachAsync(requestFormData, function (next, fieldObj) {
 
-                                                console.log('LOOP ::'+request.activity_type_id+' '+fieldObj.field_id);
-                                                if(widgetRow[0].widget_entity2_id == fieldObj.field_id){                                               
-                                                        otc_1 = fieldObj.field_value;
-                                                        request['otc_1'] = fieldObj.field_value;
-                                                }else if(widgetRow[0].widget_entity3_id == fieldObj.field_id){
-                                                        arc_1 = fieldObj.field_value;
-                                                        request['arc_1'] = fieldObj.field_value;
-                                                }else if(widgetRow[0].widget_entity4_id == fieldObj.field_id){
-                                                         otc_2 = fieldObj.field_value;
-                                                         request['otc_2'] = fieldObj.field_value;
-                                                }else if(widgetRow[0].widget_entity5_id == fieldObj.field_id){
-                                                         arc_2 = fieldObj.field_value;
-                                                         request['arc_2'] = fieldObj.field_value;
-                                                }
-                                                totalvalue = Number(otc_1) + Number(arc_1) + Number(otc_2) + Number(arc_2);
+                                                    console.log('LOOP ::'+request.activity_type_id+' '+fieldObj.field_id);
+                                                    if(widgetRow[0].widget_entity2_id == fieldObj.field_id){                                               
+                                                            otc_1 = fieldObj.field_value;
+                                                            request['otc_1'] = fieldObj.field_value;
+                                                    }else if(widgetRow[0].widget_entity3_id == fieldObj.field_id){
+                                                            arc_1 = fieldObj.field_value;
+                                                            request['arc_1'] = fieldObj.field_value;
+                                                    }else if(widgetRow[0].widget_entity4_id == fieldObj.field_id){
+                                                             otc_2 = fieldObj.field_value;
+                                                             request['otc_2'] = fieldObj.field_value;
+                                                    }else if(widgetRow[0].widget_entity5_id == fieldObj.field_id){
+                                                             arc_2 = fieldObj.field_value;
+                                                             request['arc_2'] = fieldObj.field_value;
+                                                    }
+                                                    totalvalue = Number(otc_1) + Number(arc_1) + Number(otc_2) + Number(arc_2);
 
-                                                console.log('Intermediate values ::'+otc_1+' : '+arc_1+' : '+otc_2+' : '+arc_2);
-                                                next();
-                                            }).then(()=>{
-                                                console.log('totalvalue :: '+totalvalue);
-                                                 request['field_id'] = 0;
-                                                request['field_value'] = totalvalue;
-                                                widgetActivityFieldTransactionInsert(request);
-                                            })
-                                        }else{
-                                             request['field_value'] = -1;
-                                             request['field_id'] = -1;
-                                             widgetActivityFieldTransactionInsert(request);
+                                                    console.log('Intermediate values ::'+otc_1+' : '+arc_1+' : '+otc_2+' : '+arc_2);
+                                                    next();
+                                                }).then(()=>{
+                                                    console.log('totalvalue :: '+totalvalue);
+                                                     request['field_id'] = 0;
+                                                    request['field_value'] = totalvalue;
+                                                    widgetActivityFieldTransactionInsert(request);
+                                                })
+                                            }else{
+                                                 request['field_value'] = -1;
+                                                 request['field_id'] = -1;
+                                                 widgetActivityFieldTransactionInsert(request);
+                                            }
                                         }
                                     })
 
