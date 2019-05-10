@@ -755,6 +755,18 @@ function ActivityListingController(objCollection) {
                 res.send(responseWrapper.getResponse(err, data, -9998, req.body));
             });
     });
+
+    app.post('/' + global.config.version + '/activity/queue/list/all', function (req, res) {
+        activityListingService
+            .getQueueActivitiesAllFilters(req.body)
+            .then((data) => {
+                res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            }).catch((err) => {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, -9998, req.body));
+            });
+    });
+    
 }
 
 module.exports = ActivityListingController;
