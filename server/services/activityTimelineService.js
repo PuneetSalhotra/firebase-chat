@@ -1992,15 +1992,15 @@ function ActivityTimelineService(objectCollection) {
         }).then(function () {
             global.logger.write('conLog', '*********************************AFTER FORM DATA ENTRY *********************************************88 : ', {}, request);
             request['source_id'] = 2;
-            sendRequesttoWidgetEngine(request);
+            //sendRequesttoWidgetEngine(request);
 
             const widgetFieldsStatusesData = util.widgetFieldsStatusesData();
             let order_caf_approval_form_ids, order_logged_form_ids;
             order_caf_approval_form_ids = widgetFieldsStatusesData.AUTH_SIGNATORY_FORM_IDS; //new Array(282556, 282586, 282640, 282622, 282669); //
             order_logged_form_ids = widgetFieldsStatusesData.ORDER_CLOSURE_FORM_IDS;//new Array(282624, 282642, 282671, 282557, 282588);//
 
-            global.logger.write('conLog', '*****order_caf_approval_form_ids*******'+Object.keys(order_caf_approval_form_ids)+' '+String(request.activity_status_id), {}, request);
-            global.logger.write('conLog', '*****order_logged_form_ids*******'+Object.keys(order_logged_form_ids)+' '+String(request.activity_status_id), {}, request);
+            global.logger.write('conLog', '*****order_caf_approval_form_ids*******'+Object.keys(order_caf_approval_form_ids)+' '+String(request.form_id), {}, request);
+            global.logger.write('conLog', '*****order_logged_form_ids*******'+Object.keys(order_logged_form_ids)+' '+String(request.form_id), {}, request);
             
             if(Object.keys(order_caf_approval_form_ids).includes(String(request.form_id))) {
                 activityCommonService.getActivityDetailsPromise(request,0).then((activityData)=>{ 

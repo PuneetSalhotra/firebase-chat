@@ -741,6 +741,11 @@ function FormConfigService(objCollection) {
             const widgetFieldsStatusesData = util.widgetFieldsStatusesData();
             let poFields = widgetFieldsStatusesData.PO_FIELDS; //new Array(13263, 13269, 13265, 13268, 13271);
             let orderValueFields = widgetFieldsStatusesData.TOTAL_ORDER_VALUE_IDS; //new Array(7200, 8565, 8817, 9667, 9941, 10207, 12069, 12610)
+            let OTC_1_ValueFields = widgetFieldsStatusesData.OTC_1;
+            let ARC_1_ValueFields = widgetFieldsStatusesData.ARC_1;
+            let OTC_2_ValueFields = widgetFieldsStatusesData.OTC_2;
+            let ARC_2_ValueFields = widgetFieldsStatusesData.ARC_2;
+            let valueflag = 0;
 
             forEachAsync(activityInlineData, (next, row) => {
                 var params = new Array(
@@ -921,11 +926,27 @@ function FormConfigService(objCollection) {
                     db.executeQuery(0, queryString, request, function (err, data) {  
                         global.logger.write('conLog', '*****Update: update field_value in widget *******'+row.field_id +' '+row.field_value , {}, request);
                         try{
-                            if(Object.keys(orderValueFields).includes(String(row.field_id))){
-                                if((typeof row.field_value) === 'number')
+
+                            if(Object.keys(OTC_1_ValueFields).includes(String(row.field_id))){
+                                    valueflag = 1;
+                            }else if(Object.keys(ARC_1_ValueFields).includes(String(row.field_id))){
+                                     valueflag = 2;
+                            }else if(Object.keys(OTC_2_ValueFields).includes(String(row.field_id))){
+                                     valueflag = 3;
+                            }else if(Object.keys(ARC_2_ValueFields).includes(String(row.field_id))){
+                                     valueflag = 4;
+                            }
+                            console.log('valueflag :: '+valueflag);
+                            request['flag'] = valueflag;
+                            console.log('row.field_value ::'+row.field_value+' : '+Number(row.field_value));
+                            //console.log('typeof row.field_value :: '+(typeof row.field_value));
+                            //console.log('typeof row.field_value :: '+(typeof(Number("drft")))+' :: '+Number("drft"));
+                            //console.log('typeof row.field_value :: '+(typeof(Number(row.field_value))));
+                            if(valueflag > 0){
+                                if(Number(row.field_value) >= 0)
                                     widgetAggrFieldValueUpdate(request);
                                 else
-                                    console.log("Field Value is not a number || not Total Order Value Field "+row.field_value);
+                                    console.log("Field Value is not a number || (not OTC || not ARC) Field "+row.field_value);
                                 }else{
                                     console.log("This field is not configured to update in intermediate table "+row.field_id);
                                 }
@@ -3128,8 +3149,9 @@ function FormConfigService(objCollection) {
             request.account_id,
             request.organization_id,
             util.getCurrentUTCTime(),
+            request.flag
         );
-        const queryString = util.getQueryString('ds_p1_widget_activity_field_transaction_update_field_value', paramsArr);
+        const queryString = util.getQueryString('ds_p1_1_widget_activity_field_transaction_update_field_value', paramsArr);
         if (queryString !== '') {
             // console.log(queryString)
             await db.executeQueryPromise(0, queryString, request)
