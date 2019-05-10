@@ -507,7 +507,7 @@ function BotService(objectCollection) {
         global.logger.write('conLog', ' ', {}, {});
 
         request['datetime_log'] = util.getCurrentUTCTime();
-        console.log("initBotEngine | request: ", request);
+        // console.log("initBotEngine | request: ", request);
 
         let wfSteps;
 
@@ -1715,6 +1715,27 @@ function BotService(objectCollection) {
                 await activityAssetMappingUpdateWorkflowPercent(newrequest, wfCompletionPercentage);
             } catch (error) {
                 console.log("Bot Engine | alterWFCompletionPercentage | activityAssetMappingUpdateWorkflowPercent | Error: ", error)
+            }
+            // [Last Step] Update the workflow's timeline as well
+            if (Number(wfCompletionPercentage) !== 0) {
+                try {
+                    let workflowTimelineUpdateRequest = Object.assign({}, newrequest);
+                    workflowTimelineUpdateRequest.activity_id = newrequest.workflow_activity_id;
+                    workflowTimelineUpdateRequest.activity_timeline_collection = JSON.stringify({
+                        "activity_reference": [{
+                            "activity_id": newrequest.workflow_activity_id,
+                            "activity_title": ""
+                        }],
+                        "asset_reference": [{}],
+                        "attachments": [],
+                        "content": `Workflow percentage updated to ${wfCompletionPercentage}`,
+                        "mail_body": `Workflow percentage updated to ${wfCompletionPercentage}`,
+                        "subject": `Workflow percentage updated to ${wfCompletionPercentage}`
+                    });
+                    await activityCommonService.asyncActivityTimelineTransactionInsert(workflowTimelineUpdateRequest, {}, 717);
+                } catch (error) {
+                    console.log("Bot Engine | alterWFCompletionPercentage | asyncActivityTimelineTransactionInsert | Error: ", error)
+                }
             }
             return [false, {}];
         } else {
