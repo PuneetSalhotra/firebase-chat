@@ -2,18 +2,21 @@ const digitalMplsCrfMappings = require("./digital_mpls_crf/digital_mpls_crf_mapp
 const digitalMplsCrfLabels = require("./digital_mpls_crf/labels.json");
 const digitalMplsCrfRoms = require("./digital_mpls_crf/roms.json");
 const digitalMplsCrfRomsActions = require("./digital_mpls_crf/roms_actions.json");
+const digitalMplsCrfBulkOrderToOriginFormMappings = require("./digital_mpls_crf/bulk_order_to_origin_form_mappings.json");
 
 // Digital ILL CAF
 const digitalIllCafMappings = require("./digital_ill_caf/digital_ill_caf_mappings.json");
 const digitalIllCafLabels = require("./digital_ill_caf/labels.json");
 const digitalIllCafRoms = require("./digital_ill_caf/roms.json");
 const digitalIllCafRomsActions = require("./digital_ill_caf/roms_actions.json");
+const digitalIllCafBulkOrderToOriginFormMappings = require("./digital_ill_caf/bulk_order_to_origin_form_mappings.json");
 
 // Digital ILL CRF
 const digitalIllCrfMappings = require("./digital_ill_crf/digital_ill_crf_mappings.json");
 const digitalIllCrfLabels = require("./digital_ill_crf/labels.json");
 const digitalIllCrfRoms = require("./digital_ill_crf/roms.json");
 const digitalIllCrfRomsActions = require("./digital_ill_crf/roms_actions.json");
+const digitalIllCrfBulkOrderToOriginFormMappings = require("./digital_ill_crf/bulk_order_to_origin_form_mappings.json");
 
 // Digital PRI CAF - 134576
 const digitalPriCafMappings = require("./digital_pri_caf/digital_pri_caf_mappings.json");
@@ -26,18 +29,21 @@ const digitalNplcCafMappings = require("./digital_nplc_caf/digital_nplc_caf_mapp
 const digitalNplcCafLabels = require("./digital_nplc_caf/labels.json");
 const digitalNplcCafRoms = require("./digital_nplc_caf/roms.json");
 const digitalNplcCafRomsActions = require("./digital_nplc_caf/roms_actions.json");
+const digitalNplcCafBulkOrderToOriginFormMappings = require("./digital_nplc_caf/bulk_order_to_origin_form_mappings.json");
 
 // Digital NPLC CRF - 134573
 const digitalNplcCrfMappings = require("./digital_nplc_crf/digital_nplc_crf_mappings.json");
 const digitalNplcCrfLabels = require("./digital_nplc_crf/labels.json");
 const digitalNplcCrfRoms = require("./digital_nplc_crf/roms.json");
 const digitalNplcCrfRomsActions = require("./digital_nplc_crf/roms_actions.json");
+const digitalNplcCrfBulkOrderToOriginFormMappings = require("./digital_nplc_crf/bulk_order_to_origin_form_mappings.json");
 
 // Digital IPLC CAF - 134574
 const digitalIplcCafMappings = require("./digital_iplc_caf/digital_iplc_caf_mappings.json");
 const digitalIplcCafLabels = require("./digital_iplc_caf/labels.json");
 const digitalIplcCafRoms = require("./digital_iplc_caf/roms.json");
 const digitalIplcCafRomsActions = require("./digital_iplc_caf/roms_actions.json");
+const digitalIplcCafBulkOrderToOriginFormMappings = require("./digital_iplc_caf/bulk_order_to_origin_form_mappings.json");
 
 // Modify FLV - PRI/SIP/IP CRF - Digital FLV - CRF - 134575
 const digitalFlvCrfMappings = require("./digital_flv_pri_sip_ip_crf/mappings.json");
@@ -50,6 +56,7 @@ const digitalSuperWiFiCafMappings = require("./digital_super_wifi_caf/mappings.j
 const digitalSuperWiFiCafLabels = require("./digital_super_wifi_caf/labels.json");
 const digitalSuperWiFiCafRoms = require("./digital_super_wifi_caf/roms.json");
 const digitalSuperWiFiCafRomsActions = require("./digital_super_wifi_caf/roms_actions.json");
+const digitalSuperWiFiCafBulkOrderToOriginFormMappings = require("./digital_super_wifi_caf/bulk_order_to_origin_form_mappings.json");
 
 // New FLD - MPLS CAF - 134562
 const digitalMplsCafMappings = require("./digital_mpls_caf/mappings.json");
@@ -254,7 +261,9 @@ vodafoneConfig = {
         "FORM_FIELD_MAPPING_DATA": digitalMplsCrfMappings,
         "LABELS": digitalMplsCrfLabels,
         "ROMS": digitalMplsCrfRoms,
-        "ROMS_ACTIONS": digitalMplsCrfRomsActions
+        "ROMS_ACTIONS": digitalMplsCrfRomsActions,
+        "ORIGIN_FORM_ID": 1073,
+        "BULK_ORDER_ORIGIN_FORM_MAPPING_DATA": digitalMplsCrfBulkOrderToOriginFormMappings
     },
     "134565": {
         "REQUIRED_FORMS": [1104],
@@ -263,7 +272,9 @@ vodafoneConfig = {
         "FORM_FIELD_MAPPING_DATA": digitalIllCafMappings,
         "LABELS": digitalIllCafLabels,
         "ROMS": digitalIllCafRoms,
-        "ROMS_ACTIONS": digitalIllCafRomsActions
+        "ROMS_ACTIONS": digitalIllCafRomsActions,
+        "ORIGIN_FORM_ID": 1104,
+        "BULK_ORDER_ORIGIN_FORM_MAPPING_DATA": digitalIllCafBulkOrderToOriginFormMappings
     },
     "134566": {
         "REQUIRED_FORMS": [1136],
@@ -272,7 +283,9 @@ vodafoneConfig = {
         "FORM_FIELD_MAPPING_DATA": digitalIllCrfMappings,
         "LABELS": digitalIllCrfLabels,
         "ROMS": digitalIllCrfRoms,
-        "ROMS_ACTIONS": digitalIllCrfRomsActions
+        "ROMS_ACTIONS": digitalIllCrfRomsActions,
+        "ORIGIN_FORM_ID": 1136,
+        "BULK_ORDER_ORIGIN_FORM_MAPPING_DATA": digitalIllCrfBulkOrderToOriginFormMappings
     },
     "134576": {
         "REQUIRED_FORMS": [1317],
@@ -290,7 +303,9 @@ vodafoneConfig = {
         "FORM_FIELD_MAPPING_DATA": digitalNplcCafMappings,
         "LABELS": digitalNplcCafLabels,
         "ROMS": digitalNplcCafRoms,
-        "ROMS_ACTIONS": digitalNplcCafRomsActions
+        "ROMS_ACTIONS": digitalNplcCafRomsActions,
+        "ORIGIN_FORM_ID": 1144,
+        "BULK_ORDER_ORIGIN_FORM_MAPPING_DATA": digitalNplcCafBulkOrderToOriginFormMappings
     },
     "134573": {
         "REQUIRED_FORMS": [1264],
@@ -299,7 +314,9 @@ vodafoneConfig = {
         "FORM_FIELD_MAPPING_DATA": digitalNplcCrfMappings,
         "LABELS": digitalNplcCrfLabels,
         "ROMS": digitalNplcCrfRoms,
-        "ROMS_ACTIONS": digitalNplcCrfRomsActions
+        "ROMS_ACTIONS": digitalNplcCrfRomsActions,
+        "ORIGIN_FORM_ID": 1264,
+        "BULK_ORDER_ORIGIN_FORM_MAPPING_DATA": digitalNplcCrfBulkOrderToOriginFormMappings
     },
     "134574": {
         "REQUIRED_FORMS": [1270],
@@ -308,7 +325,9 @@ vodafoneConfig = {
         "FORM_FIELD_MAPPING_DATA": digitalIplcCafMappings,
         "LABELS": digitalIplcCafLabels,
         "ROMS": digitalIplcCafRoms,
-        "ROMS_ACTIONS": digitalIplcCafRomsActions
+        "ROMS_ACTIONS": digitalIplcCafRomsActions,
+        "ORIGIN_FORM_ID": 1270,
+        "BULK_ORDER_ORIGIN_FORM_MAPPING_DATA": digitalIplcCafBulkOrderToOriginFormMappings
     },
     "134575": {
         "REQUIRED_FORMS": [1281],
@@ -326,7 +345,9 @@ vodafoneConfig = {
         "FORM_FIELD_MAPPING_DATA": digitalSuperWiFiCafMappings,
         "LABELS": digitalSuperWiFiCafLabels,
         "ROMS": digitalSuperWiFiCafRoms,
-        "ROMS_ACTIONS": digitalSuperWiFiCafRomsActions
+        "ROMS_ACTIONS": digitalSuperWiFiCafRomsActions,
+        "ORIGIN_FORM_ID": 1351,
+        "BULK_ORDER_ORIGIN_FORM_MAPPING_DATA": digitalSuperWiFiCafBulkOrderToOriginFormMappings
     },
     "134562": {
         "REQUIRED_FORMS": [1059],

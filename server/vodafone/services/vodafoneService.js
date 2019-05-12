@@ -5173,6 +5173,7 @@ function VodafoneService(objectCollection) {
 
     this.vodafoneCreateChildOrdersFromBulkOrder = async function (request, parentWorkflowActivityID, bulkOrderExcelS3BucketURL) {
         let formWorkflowActivityTypeID = 0;
+        const MAX_CHILD_ORDERS_TO_BE_PARSED = 500;
 
         try {
             const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, parentWorkflowActivityID);
@@ -5220,7 +5221,7 @@ function VodafoneService(objectCollection) {
             'P': 'lm'
         };
         let bulkOrderContentMap = new Map();
-        for (let row = 10; row < 16; row++) {
+        for (let row = 10; row < MAX_CHILD_ORDERS_TO_BE_PARSED; row++) {
             // Break at the first emtpy row at column A
             if (!workbook.Sheets[sheet_names[0]][`A${row}`]) {
                 break;
