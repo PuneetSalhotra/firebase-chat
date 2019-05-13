@@ -3401,7 +3401,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
-                request.activity_form_id || request.form_id,
+                request.activity_form_id,
                 request.activity_type_id,
                 request.access_level_id || 8,
                 request.page_start||0,
