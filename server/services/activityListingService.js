@@ -2069,6 +2069,8 @@ function ActivityListingService(objCollection) {
 						activity.participant_list = formattedParticipantList;
 						participantMap.set(Number(activity.activity_id), activity);
 						// participantMap.set(Number(activity.activity_id), formattedParticipantList);
+					} else {
+						activity.participant_list = [];
 					}
 					return {
 						success: true,
