@@ -4768,50 +4768,50 @@ function VodafoneService(objectCollection) {
             }
 
             // set_workflow_as_bulk_order
-            if (action.ACTION === "set_workflow_as_bulk_order") {
-                for (const batch of action.BATCH) {
-                    // If the bulk order annexure is uploaded in the Order Documents form 
-                    // and the workflow is not YET marked as a parent/bulk order, set the workflow
-                    // as a parent/bulk order (activity_sub_type_id=1) and generate the child orders.
-                    if (isAnnexureUploaded && !isParentOrder) {
-                        try {
-                            // Set activity_sub_type_id=1 in Activity List
-                            await activityListUpdateSubType({
-                                organization_id: request.organization_id,
-                                account_id: request.account_id,
-                                workforce_id: request.workforce_id,
-                                activity_sub_type_id: 1,
-                                asset_id: request.asset_id
-                            }, workflowActivityID);
+            // if (action.ACTION === "set_workflow_as_bulk_order") {
+            //     for (const batch of action.BATCH) {
+            //         // If the bulk order annexure is uploaded in the Order Documents form 
+            //         // and the workflow is not YET marked as a parent/bulk order, set the workflow
+            //         // as a parent/bulk order (activity_sub_type_id=1) and generate the child orders.
+            //         if (isAnnexureUploaded && !isParentOrder) {
+            //             try {
+            //                 // Set activity_sub_type_id=1 in Activity List
+            //                 await activityListUpdateSubType({
+            //                     organization_id: request.organization_id,
+            //                     account_id: request.account_id,
+            //                     workforce_id: request.workforce_id,
+            //                     activity_sub_type_id: 1,
+            //                     asset_id: request.asset_id
+            //                 }, workflowActivityID);
 
-                            // Set activity_sub_type_id=1 in Activity Asset Mapping
-                            await activityAssetMappingUpdateSubType({
-                                organization_id: request.organization_id,
-                                account_id: request.account_id,
-                                workforce_id: request.workforce_id,
-                                activity_sub_type_id: 1,
-                                asset_id: request.asset_id
-                            }, workflowActivityID);
-                        } catch (error) {
-                            console.log("performRomsCalculations | set_workflow_as_bulk_order | Set activity_sub_type_id | Error: ", error);
-                            // If there's an error setting the activity_sub_type_id break out of the
-                            // for..of loop.
-                            break;
-                        }
-                        // If activity_sub_type_id is successfully set, proceed to parse the bulk order excel file
-                        // and generate child orders
-                        try {
-                            await self.vodafoneCreateChildOrdersFromBulkOrder(
-                                request,
-                                workflowActivityID,
-                                annexureExcelS3Url
-                            );
-                        } catch (error) {
-                            console.log("performRomsCalculations | set_workflow_as_bulk_order | vodafoneCreateChildOrdersFromBulkOrder | Error: ", error);
-                        }
-                    }
-                }
-            }
+            //                 // Set activity_sub_type_id=1 in Activity Asset Mapping
+            //                 await activityAssetMappingUpdateSubType({
+            //                     organization_id: request.organization_id,
+            //                     account_id: request.account_id,
+            //                     workforce_id: request.workforce_id,
+            //                     activity_sub_type_id: 1,
+            //                     asset_id: request.asset_id
+            //                 }, workflowActivityID);
+            //             } catch (error) {
+            //                 console.log("performRomsCalculations | set_workflow_as_bulk_order | Set activity_sub_type_id | Error: ", error);
+            //                 // If there's an error setting the activity_sub_type_id break out of the
+            //                 // for..of loop.
+            //                 break;
+            //             }
+            //             // If activity_sub_type_id is successfully set, proceed to parse the bulk order excel file
+            //             // and generate child orders
+            //             try {
+            //                 await self.vodafoneCreateChildOrdersFromBulkOrder(
+            //                     request,
+            //                     workflowActivityID,
+            //                     annexureExcelS3Url
+            //                 );
+            //             } catch (error) {
+            //                 console.log("performRomsCalculations | set_workflow_as_bulk_order | vodafoneCreateChildOrdersFromBulkOrder | Error: ", error);
+            //             }
+            //         }
+            //     }
+            // }
         }
 
         // console.log("targetFormDataMap: ", targetFormDataMap);
