@@ -4,6 +4,7 @@
 
 function ActivityCommonService(db, util, forEachAsync) {
     var makingRequest = require('request');
+    const self = this;
 
     this.getAllParticipants = function (request, callback) {
         var paramsArr = new Array(
@@ -320,6 +321,11 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityText1 = request.form_transaction_id;
                 entityText2 = request.activity_timeline_collection;
                 break;
+            case 704: // form: status alter
+            case 717: // Workflow: Percentage alter
+                entityTypeId = 0;
+                entityText2 = request.activity_timeline_collection;
+                activityTimelineCollection = request.activity_timeline_collection || '{}';
             case 705: // form
             case 713:
             case 714:
@@ -530,6 +536,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityText2 = request.activity_timeline_collection;
                 break;
             case 704: // form: status alter
+            case 717: // Workflow: Percentage alter
                 entityTypeId = 0;
                 entityText2 = request.activity_timeline_collection;
                 activityTimelineCollection = request.activity_timeline_collection || '{}';
@@ -3248,12 +3255,12 @@ function ActivityCommonService(db, util, forEachAsync) {
                                 }
                                 temp.data = data;
                                 newReq.inline_data = temp;
-                                this.widgetLogTrx(newReq, 1);
+                                self.widgetLogTrx(newReq, 1);
                                 resolve();                                
                             } else {
                                 temp.err = err;
                                 newReq.inline_data = temp;
-                                this.widgetLogTrx(newReq, 2);
+                                self.widgetLogTrx(newReq, 2);
                                 reject(err);
                             }
                         });
@@ -3263,7 +3270,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         } catch (error) {
             temp.err = error;
             newReq.inline_data = temp;
-            this.widgetLogTrx(newReq, 2);
+            self.widgetLogTrx(newReq, 2);
             global.logger.write('error', error, error, request);
           }
         });
@@ -3353,8 +3360,8 @@ function ActivityCommonService(db, util, forEachAsync) {
         let paramsArr = new Array(                
             request.organization_id, 
             request.bot_transaction_id || 0, 
-            botStatusId, 
-            request.bot_transaction_inline_data,
+            botStatusId,
+            request.bot_transaction_inline_data || '{}',
             request.datetime_log          
         );
         let queryString = util.getQueryString('ds_p1_bot_log_transaction_update_status', paramsArr);
@@ -3385,6 +3392,52 @@ function ActivityCommonService(db, util, forEachAsync) {
         if (queryString != '') {
             return await (db.executeQueryPromise(0, queryString, request));                
         }
+    };
+
+
+    this.getWidgetByActivityType = function(request) { 
+        return new Promise((resolve, reject) => {       
+            var paramsArr = new Array(            
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.activity_form_id,
+                request.activity_type_id,
+                request.access_level_id || 8,
+                request.page_start||0,
+                request.page_limit ||1
+            );
+
+            let queryString = util.getQueryString('ds_p1_1_widget_list_select_form_activity_type', paramsArr);
+               
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    if (err === false) {
+                        resolve(data);
+                    } else {
+                        reject(err);
+                    }
+                });
+            }
+        });
+    }
+
+    this.getFormWorkflowDetails = function (request) {
+
+        return new Promise((resolve, reject) => {
+            var paramsArr;
+
+            paramsArr = new Array(
+                request.activity_id,
+                request.organization_id
+            );
+            const queryString = util.getQueryString('ds_v1_activity_list_select_form_workflow', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                });
+            }
+        });
     };
 
 }

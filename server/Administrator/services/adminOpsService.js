@@ -2166,8 +2166,8 @@ function AdminOpsService(objectCollection) {
             accountID = Number(request.account_id),
             workforceID = Number(request.workforce_id),
             newWorkforceID = Number(request.new_workforce_id),
-            deskAssetID = Number(request.desk_asset_id),
-            newWorkforceName = '';
+            deskAssetID = Number(request.desk_asset_id);
+        let newWorkforceName = '';
 
         let operatingAssetID = 0;
 
@@ -2251,6 +2251,8 @@ function AdminOpsService(objectCollection) {
             organization_id: organizationID,
             activity_type_category_id: 5
         });
+
+        let deskAssetDataFromDB_Copy = [];
         if (!errZero && Number(coWorkerContactCardData.length) > 0) {
             coWorkerContactCardActivityID = coWorkerContactCardData[0].activity_id;
             let contactCardInlineData = JSON.parse(coWorkerContactCardData[0].activity_inline_data);
@@ -2261,6 +2263,7 @@ function AdminOpsService(objectCollection) {
                 asset_id: deskAssetID
             });
             if (!errSeven && Number(deskAssetDataFromDB.length) > 0) {
+                deskAssetDataFromDB_Copy = deskAssetDataFromDB;
 
                 // Update workforce name
                 newWorkforceName = deskAssetDataFromDB[0].workforce_name;
@@ -2316,8 +2319,8 @@ function AdminOpsService(objectCollection) {
         }
 
         // Check if the desk has operating asset assigned
-        if (Number(deskAssetDataFromDB[0].operating_asset_id) > 0) {
-            operatingAssetID = Number(deskAssetDataFromDB[0].operating_asset_id);
+        if (Number(deskAssetDataFromDB_Copy[0].operating_asset_id) > 0) {
+            operatingAssetID = Number(deskAssetDataFromDB_Copy[0].operating_asset_id);
 
             // Fetch asset type for the new workforce
             const [errFive, newWorkforceEmpAssetTypeData] = await adminListingService.workforceAssetTypeMappingSelectCategory({

@@ -340,6 +340,63 @@ function AdminListingService(objectCollection) {
         }
         return [error, responseData];
     }
+
+    this.activityAssetMappingSelectCategoryContacts = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_id,
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_category_id,
+            request.is_search,
+            request.search_string || '',
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+        const queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_category_contacts', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.workforceDesksUnreadCount = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.workforce_id,
+            request.account_id,
+            request.organization_id,
+            request.sort_flag,
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+        const queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_unrd_cnt_team_floor', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 
