@@ -936,7 +936,8 @@ function FormConfigService(objCollection) {
                                 if(workflowData.length > 0){
 
                                     idWorkflow = workflowData[0].activity_id;
-                                    idWorkflowType = workflowData[0].activity_sub_type_id;
+                                    idWorkflowType = workflowData[0].activity_sub_type_id;                                    
+                                    request.workflow_activity_id = idWorkflow;
 
                                     if(idWorkflowType == 0){ 
                                         if(Number(row.field_value) >= 0)                                       
@@ -1000,15 +1001,6 @@ function FormConfigService(objCollection) {
                             }                             
 
                         }
-
-                      
-
-                            
-                            //console.log('typeof row.field_value :: '+(typeof row.field_value));
-                            //console.log('typeof row.field_value :: '+(typeof(Number("drft")))+' :: '+Number("drft"));
-                            //console.log('typeof row.field_value :: '+(typeof(Number(row.field_value))));
-                             
-
 
                          global.logger.write('conLog', '*****Update: update po_date in widget1 *******'+Object.keys(poFields) +' '+row.field_id , {}, request);
                          if(Object.keys(poFields).includes(String(row.field_id))){
@@ -3348,7 +3340,7 @@ function FormConfigService(objCollection) {
             error = false; // true;
 
         let paramsArr = new Array(
-            request.activity_id,
+            request.workflow_activity_id,
             request.form_id,
             request.field_id,
             request.field_value,
