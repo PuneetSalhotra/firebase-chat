@@ -3401,7 +3401,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
-                request.activity_form_id || request.form_id,
+                request.activity_form_id,
                 request.activity_type_id,
                 request.access_level_id || 8,
                 request.page_start||0,
@@ -3421,6 +3421,24 @@ function ActivityCommonService(db, util, forEachAsync) {
             }
         });
     }
+
+    this.getFormWorkflowDetails = function (request) {
+
+        return new Promise((resolve, reject) => {
+            var paramsArr;
+
+            paramsArr = new Array(
+                request.activity_id,
+                request.organization_id
+            );
+            const queryString = util.getQueryString('ds_v1_activity_list_select_form_workflow', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                });
+            }
+        });
+    };
 
 }
 

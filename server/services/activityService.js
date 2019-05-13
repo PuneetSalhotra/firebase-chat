@@ -3767,7 +3767,7 @@ function ActivityService(objectCollection) {
                 request.widget_id||0,
                 request.activity_id,
                 request.dedicated_activity_id||0,
-                request.activity_form_id || request.form_id,
+                request.activity_form_id,
                 request.form_transaction_id,
                 request.field_id||-1,
                 request.field_value||-1,

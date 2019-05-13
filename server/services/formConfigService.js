@@ -923,36 +923,91 @@ function FormConfigService(objCollection) {
 
                 let queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
                 if (queryString != '') {
-                    db.executeQuery(0, queryString, request, function (err, data) {  
-                        global.logger.write('conLog', '*****Update: update field_value in widget *******'+row.field_id +' '+row.field_value , {}, request);
-                        try{
+                    db.executeQuery(0, queryString, request, function (err, data) {
 
-                            if(Object.keys(OTC_1_ValueFields).includes(String(row.field_id))){
-                                    valueflag = 1;
-                            }else if(Object.keys(ARC_1_ValueFields).includes(String(row.field_id))){
-                                     valueflag = 2;
-                            }else if(Object.keys(OTC_2_ValueFields).includes(String(row.field_id))){
-                                     valueflag = 3;
-                            }else if(Object.keys(ARC_2_ValueFields).includes(String(row.field_id))){
-                                     valueflag = 4;
-                            }
-                            console.log('valueflag :: '+valueflag);
-                            request['flag'] = valueflag;
-                            console.log('row.field_value ::'+row.field_value+' : '+Number(row.field_value));
-                            //console.log('typeof row.field_value :: '+(typeof row.field_value));
-                            //console.log('typeof row.field_value :: '+(typeof(Number("drft")))+' :: '+Number("drft"));
-                            //console.log('typeof row.field_value :: '+(typeof(Number(row.field_value))));
-                            if(valueflag > 0){
-                                if(Number(row.field_value) >= 0)
-                                    widgetAggrFieldValueUpdate(request);
-                                else
-                                    console.log("Field Value is not a number || (not OTC || not ARC) Field "+row.field_value);
+                        global.logger.write('conLog', '\x1b[32m Update: update field_value in widget \x1b[0m'+row.field_id +' '+row.field_value , {}, request);
+
+                        let idWorkflow = 0;
+                        let idWorkflowType = 0;
+
+                        if(Object.keys(orderValueFields).includes(String(row.field_id))){
+
+                            activityCommonService.getFormWorkflowDetails(request).then((workflowData)=>{
+                                if(workflowData.length > 0){
+
+                                    idWorkflow = workflowData[0].activity_id;
+                                    idWorkflowType = workflowData[0].activity_sub_type_id;
+
+                                    if(idWorkflowType == 0){ 
+                                        if(Number(row.field_value) >= 0)                                       
+                                            widgetAggrFieldValueUpdateWorkflow(request);
+                                        else
+                                            console.log("Field Value is not a number || Total Order Value Field "+row.field_value);
+                                    }else{
+                                            console.log("This field is not configured to update in intermediate table "+row.field_id);
+                                    }                                        
+                                }                                
+                            });
+                        }else{
+
+                            try{
+                                if(Object.keys(OTC_1_ValueFields).includes(String(row.field_id))){
+                                         valueflag = 1;
+                                }else if(Object.keys(ARC_1_ValueFields).includes(String(row.field_id))){
+                                         valueflag = 2;
+                                }else if(Object.keys(OTC_2_ValueFields).includes(String(row.field_id))){
+                                         valueflag = 3;
+                                }else if(Object.keys(ARC_2_ValueFields).includes(String(row.field_id))){
+                                         valueflag = 4;
+                                }
+                                console.log('valueflag :: '+valueflag);
+                                request['flag'] = valueflag;
+
+                                console.log('row.field_value ::'+row.field_value+' : '+Number(row.field_value));
+
+                                if(valueflag > 0){
+                                    activityCommonService.getFormWorkflowDetails(request).then((workflowData)=>{
+                                    if(workflowData.length > 0){
+
+                                        idWorkflow = workflowData[0].activity_id;
+                                        idWorkflowType = workflowData[0].activity_sub_type_id;
+                                        request.is_bulk_order = idWorkflowType;
+                                        request.workflow_activity_id = idWorkflow;
+                                        if(idWorkflowType == 1){ 
+                                            if(Number(row.field_value) >= 0){
+                                                widgetAggrFieldValueUpdate(request);
+                                            }
+                                            else{
+                                                console.log("Field Value is not a number || (not OTC || not ARC) Field "+row.field_value);
+                                            }
+                                        }else{
+
+                                            if(Number(row.field_value) >= 0){
+                                                widgetAggrFieldValueUpdate(request);
+                                            }
+                                            else{
+                                                console.log("Field Value is not a number || (not OTC || not ARC) Field "+row.field_value);
+                                            }
+                                        }
+                                    }
+                                    });
+
                                 }else{
                                     console.log("This field is not configured to update in intermediate table "+row.field_id);
                                 }
                             }catch(err){
                                 console.log('Error in updating Intermediate Table : ', err);
-                            }  
+                            }                             
+
+                        }
+
+                      
+
+                            
+                            //console.log('typeof row.field_value :: '+(typeof row.field_value));
+                            //console.log('typeof row.field_value :: '+(typeof(Number("drft")))+' :: '+Number("drft"));
+                            //console.log('typeof row.field_value :: '+(typeof(Number(row.field_value))));
+                             
 
 
                          global.logger.write('conLog', '*****Update: update po_date in widget1 *******'+Object.keys(poFields) +' '+row.field_id , {}, request);
@@ -968,7 +1023,7 @@ function FormConfigService(objCollection) {
                                 });          
                             }
                         next();
-                        //(err === false) ?  resolve() : reject();
+                        
                     });
                 }
             }).then(() => {
@@ -3175,7 +3230,7 @@ function FormConfigService(objCollection) {
             error = false; // true;
 
         let paramsArr = new Array(
-            request.activity_id,
+            request.workflow_activity_id,
             request.form_id,
             request.field_id,
             request.field_value,
@@ -3184,13 +3239,14 @@ function FormConfigService(objCollection) {
             request.account_id,
             request.organization_id,
             util.getCurrentUTCTime(),
-            request.flag
+            request.flag,
+            request.is_bulk_order
         );
 
         let temp = {};
         let newReq = Object.assign({}, request);
         newReq.form_activity_id = request.activity_id;
-        const queryString = util.getQueryString('ds_p1_1_widget_activity_field_transaction_update_field_value', paramsArr);
+        const queryString = util.getQueryString('ds_p1_2_widget_activity_field_transaction_update_field_value', paramsArr);
 
         if (queryString !== '') {
             // console.log(queryString)
@@ -3218,6 +3274,7 @@ function FormConfigService(objCollection) {
 
         return [error, fieldUpdateStatus];
     }
+
 
     this.formEntityMappingSelect = async function (request) {
 
@@ -3317,6 +3374,56 @@ function FormConfigService(objCollection) {
         }
 
         return [error, fieldData];
+    }
+
+   async function widgetAggrFieldValueUpdateWorkflow(request) {
+
+        let fieldUpdateStatus = [],
+            error = false; // true;
+
+        let paramsArr = new Array(
+            request.activity_id,
+            request.form_id,
+            request.field_id,
+            request.field_value,
+            request.form_transaction_id,
+            request.workforce_id,
+            request.account_id,
+            request.organization_id,
+            util.getCurrentUTCTime(),
+            request.flag
+        );
+
+        let temp = {};
+        let newReq = Object.assign({}, request);
+        newReq.form_activity_id = request.activity_id;
+        const queryString = util.getQueryString('ds_p1_widget_activity_field_transaction_update_fld_workflow', paramsArr);
+
+        if (queryString !== '') {
+            // console.log(queryString)
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {                    
+                    console.log('FCS DAAAAAAAAAAAAAAATA : ', data);
+                    fieldUpdateStatus = data;
+                    error = false;
+                    
+                    if(data.length > 0) {
+                        newReq.widget_id = data[0].widget_id;
+                    }
+                    temp.data = data;
+                    newReq.inline_data = temp;
+                    activityCommonService.widgetLogTrx(newReq, 1);
+                })
+                .catch((err) => {
+                    console.log('FCS ERRRRRRRRRRRRRRROR : ', err);                    
+                    temp.err = err;
+                    newReq.inline_data = temp;
+                    error = err;
+                    activityCommonService.widgetLogTrx(newReq, 2);
+                });
+        }
+
+        return [error, fieldUpdateStatus];
     }
 
 }
