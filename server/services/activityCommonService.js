@@ -3422,6 +3422,24 @@ function ActivityCommonService(db, util, forEachAsync) {
         });
     }
 
+    this.getFormWorkflowDetails = function (request) {
+
+        return new Promise((resolve, reject) => {
+            var paramsArr;
+
+            paramsArr = new Array(
+                request.activity_id,
+                request.organization_id
+            );
+            const queryString = util.getQueryString('ds_v1_activity_list_select_form_workflow', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                });
+            }
+        });
+    };
+
 }
 
 
