@@ -1171,6 +1171,15 @@ function FormConfigService(objCollection) {
                     formId = newFormData[0].form_id;
                     request.form_id = Number(newFormData[0].form_id);
 
+                    // Make an entry in the form_entity_mapping table, for
+                    // permissions
+                    try {
+                        const entityLevelID = Number(request.entity_level_id) || 3;
+                        await formEntityMappingInsert(request, formId, entityLevelID);
+                    } catch (error) {
+                        console.log("formAdd | formEntityMappingInsert | Error: ", error);
+                    }
+
                     // History insert in the workforce_form_mapping_history_insert table
                     await workforceFormMappingHistoryInsert(request);
 
@@ -1306,6 +1315,31 @@ function FormConfigService(objCollection) {
             );
 
             const queryString = util.getQueryString('ds_p1_1_workforce_form_mapping_insert', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                });
+            }
+        });
+    }
+
+    function formEntityMappingInsert(request, formID, levelID) {
+        return new Promise((resolve, reject) => {
+            // IN p_form_id BIGINT(20), IN p_level_id TINYINT(4), IN p_workforce_id BIGINT(20), 
+            // IN p_account_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_log_asset_id BIGINT(20), 
+            // IN p_log_datetime DATETIME
+
+            let paramsArr = new Array(
+                formID,
+                levelID || 3,
+                request.workforce_id,
+                request.account_id,
+                request.organization_id,
+                request.asset_id,
+                util.getCurrentUTCTime()
+            );
+
+            const queryString = util.getQueryString('ds_p1_form_entity_mapping_insert', paramsArr);
             if (queryString !== '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err) ? reject(err): resolve(data);
