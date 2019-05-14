@@ -2079,7 +2079,9 @@ function FormConfigService(objCollection) {
             return [workflowError, workflowData];
         }
         workflowActivityId = Number(workflowData[0].activity_id);
+        const workflowActivityTypeID = Number(workflowData[0].activity_type_id);
         console.log("workflowActivityId: ", workflowActivityId);
+        console.log("workflowActivityTypeID: ", workflowActivityTypeID);
 
         // Make a 713 timeline transaction entry in the workflow file
         let workflowFile713Request = Object.assign({}, request);
@@ -2249,7 +2251,50 @@ function FormConfigService(objCollection) {
                 }
             }
         }
+        
+        // ############################## BOT ENGINE REQUEST START ##############################
+        console.log("workflowOnFormEdit | request | request", request);
+        // Fetch bot details
+        let initBotEngineRequestBotID = 0,
+            initBotEngineRequestBotInlineData = {};
 
+        try {
+            const botListData = await activityCommonService.getBotsMappedToActType({
+                flag: 3,
+                organization_id: request.organization_id,
+                account_id: request.account_id,
+                workforce_id: request.workforce_id,
+                activity_type_id: workflowActivityTypeID || 0,
+                field_id: 0,
+                form_id: request.form_id
+            });
+            if (Number(botListData.length) > 0) {
+                initBotEngineRequestBotID = botListData[0].bot_id;
+                initBotEngineRequestBotInlineData = botListData[0].bot_inline_data;
+            }
+        } catch (error) {
+            console.log("workflowOnFormEdit | botListData | Error: ", error);
+        }
+        let initBotEngineRequest = Object.assign({}, request);
+        initBotEngineRequest.workflow_activity_id = workflowActivityId;
+        initBotEngineRequest.activity_form_id = request.form_id;
+        initBotEngineRequest.flag_check = 1;
+        initBotEngineRequest.flag_defined = 1;
+        initBotEngineRequest.bot_id = initBotEngineRequestBotID;
+        initBotEngineRequest.bot_inline_data = initBotEngineRequestBotInlineData;
+        // Fire the Bot Engine
+        if (Number(initBotEngineRequestBotID) !== 0) {
+            await sleep(3000);
+            try {
+                botService.initBotEngine(initBotEngineRequest);
+            } catch (error) {
+                console.log("workflowOnFormEdit | botService | initBotEngine | Error: ", error);
+            }
+        } else {
+            console.log("workflowOnFormEdit | botService | initBotEngine | initBotEngineRequestBotID is 0");
+        }
+        // ############################## BOT ENGINE REQUEST START ##############################
+        
         console.log();
         console.log();
         console.log("targetFormActivityId: ", targetFormActivityId);
