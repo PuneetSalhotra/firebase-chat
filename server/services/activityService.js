@@ -3540,6 +3540,21 @@ function ActivityService(objectCollection) {
 
     this.updateWorkflowQueueMapping = async function name(request) {
         request.flag = 0;
+        let workflowActivityPercentage = 0;
+        try {
+            await activityCommonService
+                .getActivityDetailsPromise(request, request.activity_id)
+                .then((workflowActivityData) => {
+                    if (workflowActivityData.length > 0) {
+                        workflowActivityPercentage = Number(workflowActivityData[0].activity_workflow_completion_percentage);
+                    }
+                })
+                .catch((error) => {
+                    console.log("updateWorkflowQueueMapping | getActivityDetailsPromise | error: ", error);
+                });
+        } catch (error) {
+            console.log("updateWorkflowQueueMapping | Activity Details Fetch Error | error: ", error);
+        }
         try {
             const queueMap = await activityListingService.getEntityQueueMapping(request);
             if (queueMap.length > 0) {
@@ -3574,7 +3589,7 @@ function ActivityService(objectCollection) {
                                     await activityCommonService
                                         .unmapFileFromQueue(request, queueActivityMappingId)
                                         .then((queueActivityMappingData) => {
-                                            console.log("updateWorkflowQueueMapping | mapFileToQueue | queueActivityMapping: ", queueActivityMappingData);
+                                            console.log("updateWorkflowQueueMapping | unmapFileToQueue | queueActivityMapping: ", queueActivityMappingData);
                                         })
                                         .catch((error) => {
                                             console.log("updateWorkflowQueueMapping | Re-Enable | Error: ", error);
@@ -3589,7 +3604,7 @@ function ActivityService(objectCollection) {
                                                 "queue_mapping_time": moment().utc().format('YYYY-MM-DD HH:mm:ss'),
                                                 "current_status_name": "",
                                                 "last_status_alter_time": "",
-                                                "caf_completion_percentage": 0
+                                                "caf_completion_percentage": workflowActivityPercentage || 0
                                             }
                                         }))
                                         .then((queueActivityMappingData) => {
