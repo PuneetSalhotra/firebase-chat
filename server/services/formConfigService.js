@@ -1211,7 +1211,7 @@ function FormConfigService(objCollection) {
             .then(async (newFormData) => {
                 console.log("newFormData: ", newFormData);
 
-                let fieldSequenceId = 0;
+                let fieldSequenceId = 1;
 
                 if (Number(newFormData[0].query_status) === 0 && newFormData[0].form_id > 0) {
 
