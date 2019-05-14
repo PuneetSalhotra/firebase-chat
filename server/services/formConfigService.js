@@ -2254,6 +2254,11 @@ function FormConfigService(objCollection) {
         
         // ############################## BOT ENGINE REQUEST START ##############################
         // console.log("workflowOnFormEdit | request | request", request);
+        let initBotEngineRequest = Object.assign({}, request);
+        initBotEngineRequest.workflow_activity_id = workflowActivityId;
+        initBotEngineRequest.activity_form_id = request.form_id;
+        initBotEngineRequest.flag_check = 1;
+        initBotEngineRequest.flag_defined = 1;
         // Fetch bot details
         let initBotEngineRequestBotID = 0,
             initBotEngineRequestBotInlineData = {};
@@ -2271,24 +2276,43 @@ function FormConfigService(objCollection) {
             if (Number(botListData.length) > 0) {
                 initBotEngineRequestBotID = botListData[0].bot_id;
                 initBotEngineRequestBotInlineData = botListData[0].bot_inline_data;
+
+                initBotEngineRequest.bot_id = initBotEngineRequestBotID;
+                initBotEngineRequest.bot_inline_data = initBotEngineRequestBotInlineData;
+
+                // [LOGGING] Bot is defined for this form 
+                activityCommonService.botOperationFlagUpdateBotDefined(initBotEngineRequest, 1);
+            } else {
+                // [LOGGING] No bot found for this form 
+                activityCommonService.botOperationFlagUpdateBotDefined(initBotEngineRequest, 0);
             }
         } catch (error) {
+            // [LOGGING] Error fetching bots for this form 
+            activityCommonService.botOperationFlagUpdateBotDefined(initBotEngineRequest, 0);
             console.log("workflowOnFormEdit | botListData | Error: ", error);
         }
-        let initBotEngineRequest = Object.assign({}, request);
-        initBotEngineRequest.workflow_activity_id = workflowActivityId;
-        initBotEngineRequest.activity_form_id = request.form_id;
-        initBotEngineRequest.flag_check = 1;
-        initBotEngineRequest.flag_defined = 1;
-        initBotEngineRequest.bot_id = initBotEngineRequestBotID;
-        initBotEngineRequest.bot_inline_data = initBotEngineRequestBotInlineData;
+        
         // Fire the Bot Engine
         if (Number(initBotEngineRequestBotID) !== 0) {
+
+            // [LOGGING] Fetch a bot trasaction ID for this operation
+            let botTransactionInsertData = await activityCommonService.botOperationInsert(initBotEngineRequest);
+            if (Number(botTransactionInsertData.length) > 0) {
+                initBotEngineRequest.bot_transaction_id = botTransactionInsertData[0].bot_transaction_id;
+            }
+
             await sleep(3000);
             try {
                 botService.initBotEngine(initBotEngineRequest);
+
+                // [LOGGING] Bot Operation => 1. SUCCESS
+                initBotEngineRequest.bot_operation_status_id = 1;
+                initBotEngineRequest.bot_transaction_inline_data = '{}';
+                activityCommonService.botOperationFlagUpdateBotSts(initBotEngineRequest, 1);
             } catch (error) {
                 console.log("workflowOnFormEdit | botService | initBotEngine | Error: ", error);
+                // [LOGGING] Bot Operation => 2. INTERNAL ERROR
+                activityCommonService.botOperationFlagUpdateBotSts(initBotEngineRequest, 2);
             }
         } else {
             console.log("workflowOnFormEdit | botService | initBotEngine | initBotEngineRequestBotID is 0");
