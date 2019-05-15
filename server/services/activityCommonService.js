@@ -593,9 +593,27 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityText2 = request.activity_timeline_text;
                 break;
             case 325: // Add Participant Collection for taskList
+                let attachmentNames = '',
+                    isAttachment = 0;
+                try {
+                    const attachments = JSON.parse(request.activity_timeline_collection).attachments;
+                    if (Number(attachments.length) > 0) {
+                        let fileNames = [];
+                        for (const attachmentURL of attachments) {
+                            let fileName = String(attachmentURL).substring(String(attachmentURL).lastIndexOf('/')+1);
+                            fileNames.push(fileName);
+                        }
+                        attachmentNames = fileNames.join('|');
+                        isAttachment = 1;
+                    }
+                } catch (error) {
+                    console.log("activityTimelineTransactionInsert | 325 | Parsing and retrieving attachments | Error: ", error);
+                }
                 activityTimelineCollection = request.activity_timeline_collection;
                 entityText1 = "";
                 entityText2 = request.activity_timeline_text;
+                entityText3 = attachmentNames;
+                request.entity_tinyint_1 = isAttachment;
                 break;
             case 23002: // Telephone Module: Altered the status of the chat
             case 23003: // Telephone Module: Added an update to the chat
