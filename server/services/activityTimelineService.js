@@ -134,8 +134,8 @@ function ActivityTimelineService(objectCollection) {
                 global.logger.write('debug', 'Error in timelineStandardCalls' + err, {}, request);
             });
 
-        } else if ((activityTypeCategoryId === 48 || activityTypeCategoryId === 50 || activityTypeCategoryId === 51) 
-                    && (activityStreamTypeId === 713 || activityStreamTypeId === 705 ||
+        } else if ((activityTypeCategoryId === 48 || activityTypeCategoryId === 50 || activityTypeCategoryId === 51) &&
+            (activityStreamTypeId === 713 || activityStreamTypeId === 705 ||
                 activityStreamTypeId === 715 || activityStreamTypeId === 716)) {
 
             request.non_dedicated_file = 1;
@@ -1699,7 +1699,7 @@ function ActivityTimelineService(objectCollection) {
 
         let formDataJson;
         const widgetFieldsStatusesData = util.widgetFieldsStatusesData();
-        let poFields = widgetFieldsStatusesData.PO_FIELDS;// new Array(13263, 13269, 13265, 13268, 13271);
+        let poFields = widgetFieldsStatusesData.PO_FIELDS; // new Array(13263, 13269, 13265, 13268, 13271);
 
         if (request.hasOwnProperty('form_id')) {
 
@@ -1940,13 +1940,13 @@ function ActivityTimelineService(objectCollection) {
             var queryString = util.getQueryString('ds_v1_2_activity_form_transaction_insert', params); //BETA
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
-                    if(Object.keys(poFields).includes(String(row.field_id))){
-                        activityCommonService.getActivityDetailsPromise(request,0).then((activityData)=>{    
-                            request['workflow_activity_id'] = activityData[0].channel_activity_id;                            
+                    if (Object.keys(poFields).includes(String(row.field_id))) {
+                        activityCommonService.getActivityDetailsPromise(request, 0).then((activityData) => {
+                            request['workflow_activity_id'] = activityData[0].channel_activity_id;
                             request['order_po_date'] = row.field_value;
                             request['flag'] = 1;
                             request['datetime_log'] = util.getCurrentUTCTime();
-                            activityCommonService.widgetActivityFieldTxnUpdateDatetime(request); 
+                            activityCommonService.widgetActivityFieldTxnUpdateDatetime(request);
                         });
                     }
                     next();
@@ -1997,14 +1997,14 @@ function ActivityTimelineService(objectCollection) {
             const widgetFieldsStatusesData = util.widgetFieldsStatusesData();
             let order_caf_approval_form_ids, order_logged_form_ids;
             order_caf_approval_form_ids = widgetFieldsStatusesData.AUTH_SIGNATORY_FORM_IDS; //new Array(282556, 282586, 282640, 282622, 282669); //
-            order_logged_form_ids = widgetFieldsStatusesData.ORDER_CLOSURE_FORM_IDS;//new Array(282624, 282642, 282671, 282557, 282588);//
+            order_logged_form_ids = widgetFieldsStatusesData.ORDER_CLOSURE_FORM_IDS; //new Array(282624, 282642, 282671, 282557, 282588);//
 
-            global.logger.write('conLog', '*****order_caf_approval_form_ids*******'+Object.keys(order_caf_approval_form_ids)+' '+String(request.form_id), {}, request);
-            global.logger.write('conLog', '*****order_logged_form_ids*******'+Object.keys(order_logged_form_ids)+' '+String(request.form_id), {}, request);
-            
-            if(Object.keys(order_caf_approval_form_ids).includes(String(request.form_id))) {
-                activityCommonService.getActivityDetailsPromise(request,0).then((activityData)=>{ 
-                    
+            global.logger.write('conLog', '*****order_caf_approval_form_ids*******' + Object.keys(order_caf_approval_form_ids) + ' ' + String(request.form_id), {}, request);
+            global.logger.write('conLog', '*****order_logged_form_ids*******' + Object.keys(order_logged_form_ids) + ' ' + String(request.form_id), {}, request);
+
+            if (Object.keys(order_caf_approval_form_ids).includes(String(request.form_id))) {
+                activityCommonService.getActivityDetailsPromise(request, 0).then((activityData) => {
+
                     global.logger.write('conLog', '*****ALTER CAF APPROVAL STATUS DATETIME*******', {}, request);
                     request['workflow_activity_id'] = activityData[0].channel_activity_id;
                     request['order_caf_approval_datetime'] = util.addUnitsToDateTime(util.replaceDefaultDatetime(util.getCurrentUTCTime()), 5.5, 'hours');
@@ -2014,9 +2014,9 @@ function ActivityTimelineService(objectCollection) {
                     activityCommonService.widgetActivityFieldTxnUpdateDatetime(request);
                 })
 
-            }else if(Object.keys(order_logged_form_ids).includes(String(request.form_id))){
-                activityCommonService.getActivityDetailsPromise(request,0).then((activityData)=>{
-                    global.logger.write('conLog', '*****ALTER ORDER LOGGED STATUS DATETIME*******', {}, request);    
+            } else if (Object.keys(order_logged_form_ids).includes(String(request.form_id))) {
+                activityCommonService.getActivityDetailsPromise(request, 0).then((activityData) => {
+                    global.logger.write('conLog', '*****ALTER ORDER LOGGED STATUS DATETIME*******', {}, request);
                     request['workflow_activity_id'] = activityData[0].channel_activity_id;
                     request['order_logged_datetime'] = util.addUnitsToDateTime(util.replaceDefaultDatetime(util.getCurrentUTCTime()), 5.5, 'hours');
                     request['order_trigger_log_diff'] = 0;
@@ -2091,6 +2091,104 @@ function ActivityTimelineService(objectCollection) {
                 });
             }
         });
+    }
+
+    // Retrieve all attachments from the timeline entries, with a provision to search
+    this.retrieveSearchTimelineAttachments = async function (request) {
+        request.is_previous = -3;
+        const [error, timelineAttachmentsData] = await activityTimelineTransactionSearchDifferential(request);
+        if (error) {
+            console.log("retrieveSearchTimelineAttachments | Error: ", error);
+            return [true, []];
+        }
+
+        // Filter out the relevant data
+        let filteredAttachmentsList = [];
+        for (const timelineEntry of timelineAttachmentsData) {
+            let attachments = [];
+            try {
+                attachments = JSON.parse(timelineEntry.data_entity_inline).attachments;
+            } catch (error) {
+                console.log("retrieveSearchTimelineAttachments | Filter Logic: ", error);
+                // Do nothing
+            }
+
+            if (Number(attachments.length) > 0) {
+                for (const attachmentURL of attachments) {
+                    // When searching for specific files
+                    if (
+                        String(request.search_string) !== '' &&
+                        String(attachmentURL).includes(String(request.search_string))
+                    ) {
+                        filteredAttachmentsList.push(
+                            formatTimelineAttachmentsList(timelineEntry, attachmentURL)
+                        );
+                    }
+
+                    // When not search with a specific string
+                    if (String(request.search_string) === '') {
+                        filteredAttachmentsList.push(
+                            formatTimelineAttachmentsList(timelineEntry, attachmentURL)
+                        );
+                    }
+
+                }
+            }
+        }
+        return [false, filteredAttachmentsList];
+    }
+
+    function formatTimelineAttachmentsList(timelineEntry, attachmentURL) {
+        return {
+            timeline_transaction_id: timelineEntry.timeline_transaction_id,
+            attachment_name: String(attachmentURL).substring(String(attachmentURL).lastIndexOf('/') + 1),
+            attachment_url: attachmentURL,
+            timeline_transaction_datetime: timelineEntry.timeline_transaction_datetime,
+            timeline_stream_type_id: timelineEntry.timeline_stream_type_id,
+            activity_id: timelineEntry.activity_id,
+            activity_title: timelineEntry.activity_title,
+            activity_type_id: timelineEntry.activity_type_id,
+            activity_type_name: timelineEntry.activity_type_name,
+            activity_type_category_id: timelineEntry.activity_type_category_id,
+            activity_type_category_name: timelineEntry.activity_type_category_name,
+            asset_id: timelineEntry.asset_id,
+            asset_first_name: timelineEntry.asset_first_name,
+            operating_asset_id: timelineEntry.operating_asset_id,
+            operating_asset_first_name: timelineEntry.operating_asset_first_name,
+            data_entity_inline: timelineEntry.data_entity_inline
+        }
+    }
+
+    async function activityTimelineTransactionSearchDifferential(request) {
+        // IN p_organization_id BIGINT(20), IN p_activity_id bigint(20), 
+        // IN p_timeline_transaction_id BIGINT(20), IN p_is_previous tinyint(4), 
+        // IN p_search_string VARCHAR(50), IN p_start_from SMALLINT(6), IN p_limit_value smallint(6)
+
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.activity_id,
+            request.timeline_transaction_id || 0,
+            request.is_previous || -3,
+            request.search_string,
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+        const queryString = util.getQueryString('ds_v1_activity_timeline_transaction_search_differential', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
     }
 
 }
