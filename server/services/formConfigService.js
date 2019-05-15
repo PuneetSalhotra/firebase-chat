@@ -3393,11 +3393,11 @@ function FormConfigService(objCollection) {
                 })
                 .catch((err) => {
                     error = err;
-                })
+                });
         }
 
         return [error, formFieldData];
-    }
+    };
 
     this.formEntityAccessCheck = async function (request) {
 
@@ -3423,11 +3423,11 @@ function FormConfigService(objCollection) {
                 })
                 .catch((err) => {
                     error = err;
-                })
+                });
         }
 
         return [error, fieldData];
-    }
+    };
 
    async function widgetAggrFieldValueUpdateWorkflow(request) {
 
@@ -3479,6 +3479,26 @@ function FormConfigService(objCollection) {
         return [error, fieldUpdateStatus];
     }
 
+
+    this.formEntityAccessAssetCheck = async function(request) {        
+        let error = false;
+        let formsArr = JSON.parse(JSON.stringify(request.forms));
+        //let formsArr = JSON.parse(request.forms);
+        let refinedForms = [];          
+
+        for(let i of formsArr) {
+            //console.log(i.form_id);            
+            request.form_id = i.id;
+            let [err, formFieldData] = await self.formEntityAccessCheck(request);
+            if(!err) {
+                if(formFieldData.length > 0) {                    
+                    refinedForms.push(i);
+                }            
+            }            
+        }        
+
+        return [error, refinedForms];
+    };
 }
 
 module.exports = FormConfigService;
