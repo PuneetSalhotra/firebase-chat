@@ -785,6 +785,21 @@ function BotService(objectCollection) {
         global.logger.write('conLog', resp, {}, {});
 
         if (resp.length > 0) {
+            let workflowActivityPercentage = 0;
+            try {
+                await activityCommonService
+                    .getActivityDetailsPromise(request, request.workflow_activity_id)
+                    .then((workflowActivityData) => {
+                        if (workflowActivityData.length > 0) {
+                            workflowActivityPercentage = Number(workflowActivityData[0].activity_workflow_completion_percentage);
+                        }
+                    })
+                    .catch((error) => {
+                        console.log("BotEngine: changeStatus | getActivityDetailsPromise | error: ", error);
+                    });
+            } catch (error) {
+                console.log("BotEngine: changeStatus | Activity Details Fetch Error | error: ", error);
+            }
 
             // let statusName = await getStatusName(newReq, inlineData.activity_status_id);
             global.logger.write('conLog', 'Status Alter BOT Step - status Name : ', statusName, {});
@@ -801,6 +816,11 @@ function BotService(objectCollection) {
                 queueActMapInlineData.queue_sort.current_status_id = inlineData.activity_status_id;
                 queueActMapInlineData.queue_sort.current_status_name = statusName[0].activity_status_name || "";
                 queueActMapInlineData.queue_sort.last_status_alter_time = util.getCurrentUTCTime();
+                
+                // Bring the percentage up to the latest value
+                if (Number(workflowActivityPercentage) !== 0) {
+                    queueActMapInlineData.queue_sort.caf_completion_percentage = workflowActivityPercentage;
+                }
 
                 data = await (activityCommonService.queueActivityMappingUpdateInlineData(newReq, i.queue_activity_mapping_id, JSON.stringify(queueActMapInlineData)));
                 global.logger.write('conLog', 'Status Alter BOT Step - Updating the Queue Json : ', data, {});
