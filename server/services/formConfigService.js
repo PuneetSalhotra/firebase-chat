@@ -1849,7 +1849,8 @@ function FormConfigService(objCollection) {
             let originFlagSet = Number(formConfigData[0].form_flag_workflow_origin),
                 isWorkflowEnabled = Number(formConfigData[0].form_flag_workflow_enabled),
                 workflowActivityTypeId = Number(formConfigData[0].form_workflow_activity_type_id),
-                workflowActivityTypeName = formConfigData[0].form_workflow_activity_type_name;
+                workflowActivityTypeName = formConfigData[0].form_workflow_activity_type_name,
+                formName = String(formConfigData[0].form_name);
 
             if (isWorkflowEnabled && originFlagSet) {
                 // Fetch the next activity_id to be inserted
@@ -1988,18 +1989,9 @@ function FormConfigService(objCollection) {
                 workflowFile713Request.data_activity_id = Number(request.activity_id);
                 workflowFile713Request.form_transaction_id = Number(request.form_transaction_id);
                 workflowFile713Request.activity_timeline_collection = JSON.stringify({
-                    /*"mail_body": `Form Updated at ${moment().utcOffset('+05:30').format('LLLL')}`,
-                    "subject": "Form Name",
-                    "content": `Form Name`,
-                    "asset_reference": [],
-                    "activity_reference": [],
-                    "form_approval_field_reference": [],
-                    "form_submitted": JSON.parse(request.activity_inline_data),
-                    "attachments": []*/
-
                     "mail_body": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
-                    "subject": activityTitle,
-                    "content": 'Form Submitted',
+                    "subject": `${formName}`,
+                    "content": `${formName}`,
                     "asset_reference": [],
                     "activity_reference": [],
                     "form_approval_field_reference": [],
