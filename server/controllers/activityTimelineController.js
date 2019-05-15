@@ -516,6 +516,18 @@ function ActivityTimelineController(objCollection) {
         });
     });*/
 
+
+    // Retrieve all attachments from the timeline entries, with a provision to search
+    app.post('/' + global.config.version + '/activity/timeline/attachments/list', async function (req, res) {
+        const [err, orgData] = await activityTimelineService.retrieveSearchTimelineAttachments(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/activity/timeline/attachments/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });
+
 }
 ;
 

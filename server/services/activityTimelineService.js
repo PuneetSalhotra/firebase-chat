@@ -2093,6 +2093,104 @@ function ActivityTimelineService(objectCollection) {
         });
     }
 
+    // Retrieve all attachments from the timeline entries, with a provision to search
+    this.retrieveSearchTimelineAttachments = async function (request) {
+        request.is_previous = -3;
+        const [error, timelineAttachmentsData] = await activityTimelineTransactionSearchDifferential(request);
+        if (error) {
+            console.log("retrieveSearchTimelineAttachments | Error: ", error);
+            return [true, []];
+        }
+
+        // Filter out the relevant data
+        let filteredAttachmentsList = [];
+        for (const timelineEntry of timelineAttachmentsData) {
+            let attachments = [];
+            try {
+                attachments = JSON.parse(timelineEntry.data_entity_inline).attachments;
+            } catch (error) {
+                console.log("retrieveSearchTimelineAttachments | Filter Logic: ", error);
+                // Do nothing
+            }
+
+            if (Number(attachments.length) > 0) {
+                for (const attachmentURL of attachments) {
+                    // When searching for specific files
+                    if (
+                        String(request.search_string) !== '' &&
+                        String(attachmentURL).includes(String(request.search_string))
+                    ) {
+                        filteredAttachmentsList.push(
+                            formatTimelineAttachmentsList(timelineEntry, attachmentURL)
+                        );
+                    }
+
+                    // When not search with a specific string
+                    if (String(request.search_string) === '') {
+                        filteredAttachmentsList.push(
+                            formatTimelineAttachmentsList(timelineEntry, attachmentURL)
+                        );
+                    }
+
+                }
+            }
+        }
+        return [false, filteredAttachmentsList];
+    }
+
+    function formatTimelineAttachmentsList(timelineEntry, attachmentURL) {
+        return {
+            timeline_transaction_id: timelineEntry.timeline_transaction_id,
+            attachment_name: String(attachmentURL).substring(String(attachmentURL).lastIndexOf('/') + 1),
+            attachment_url: attachmentURL,
+            timeline_transaction_datetime: timelineEntry.timeline_transaction_datetime,
+            timeline_stream_type_id: timelineEntry.timeline_stream_type_id,
+            activity_id: timelineEntry.activity_id,
+            activity_title: timelineEntry.activity_title,
+            activity_type_id: timelineEntry.activity_type_id,
+            activity_type_name: timelineEntry.activity_type_name,
+            activity_type_category_id: timelineEntry.activity_type_category_id,
+            activity_type_category_name: timelineEntry.activity_type_category_name,
+            asset_id: timelineEntry.asset_id,
+            asset_first_name: timelineEntry.asset_first_name,
+            operating_asset_id: timelineEntry.operating_asset_id,
+            operating_asset_first_name: timelineEntry.operating_asset_first_name,
+            data_entity_inline: timelineEntry.data_entity_inline
+        }
+    }
+
+    async function activityTimelineTransactionSearchDifferential(request) {
+        // IN p_organization_id BIGINT(20), IN p_activity_id bigint(20), 
+        // IN p_timeline_transaction_id BIGINT(20), IN p_is_previous tinyint(4), 
+        // IN p_search_string VARCHAR(50), IN p_start_from SMALLINT(6), IN p_limit_value smallint(6)
+
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.activity_id,
+            request.timeline_transaction_id || 0,
+            request.is_previous || -3,
+            request.search_string,
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+        const queryString = util.getQueryString('ds_v1_activity_timeline_transaction_search_differential', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
 }
 
 module.exports = ActivityTimelineService;
