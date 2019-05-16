@@ -397,6 +397,60 @@ function AdminListingService(objectCollection) {
         }
         return [error, responseData];
     }
+
+    this.assetListSelectAllDesks = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_select_all_desks', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.getWorkforceAssetsPendingCount = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.sort_flag,
+            request.datetime_start || '1970-01-01 00:00:00',
+            request.start_from || 0,
+            request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_pending_count_team_floor', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 

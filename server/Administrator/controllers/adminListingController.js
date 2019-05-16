@@ -66,6 +66,42 @@ function AdminListingController(objCollection) {
         }
     });
 
+    // Portal: getAssetDetails
+    // DB Call: ds_p1_asset_list_select
+    app.post('/' + global.config.version + '/admin/asset/list', async function (req, res) {
+        const [err, assetData] = await adminListingService.assetListSelect(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, assetData, 200, req.body));
+        } else {
+            console.log("/admin/asset/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, assetData, -9999, req.body));
+        }
+    });
+
+    // Portal: assetListSelectAllDesks
+    // DB Call: ds_p1_asset_list_select_all_desks
+    app.post('/' + global.config.version + '/admin/workforce/desk_asset/list/all', async function (req, res) {
+        const [err, assetData] = await adminListingService.assetListSelectAllDesks(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, assetData, 200, req.body));
+        } else {
+            console.log("/admin/workforce/desk_asset/list/all | Error: ", err);
+            res.send(responseWrapper.getResponse(err, assetData, -9999, req.body));
+        }
+    });
+
+    // Portal: workforce/asset/pending/count
+    // DB Call: ds_p1_activity_asset_mapping_select_pending_count_team_floor
+    app.post('/' + global.config.version + '/admin/workforce/asset/pending/count', async function (req, res) {
+        const [err, assetData] = await adminListingService.getWorkforceAssetsPendingCount(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, assetData, 200, req.body));
+        } else {
+            console.log("/admin/workforce/asset/pending/count | Error: ", err);
+            res.send(responseWrapper.getResponse(err, assetData, -9999, req.body));
+        }
+    });
+
 };
 
 module.exports = AdminListingController;
