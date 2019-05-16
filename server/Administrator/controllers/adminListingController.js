@@ -126,6 +126,18 @@ function AdminListingController(objCollection) {
         }
     });
 
+    // Portal: workforceListSelectAccount1
+    // DB Call: ds_p1_1_workforce_list_select_account
+    app.post('/' + global.config.version + '/admin/account/workforce/list', async function (req, res) {
+        const [err, assetData] = await adminListingService.workforceListSelectAccount(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, assetData, 200, req.body));
+        } else {
+            console.log("/admin/account/workforce/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, assetData, -9999, req.body));
+        }
+    });
+
 };
 
 module.exports = AdminListingController;

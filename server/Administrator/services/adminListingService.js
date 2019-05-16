@@ -516,6 +516,32 @@ function AdminListingService(objectCollection) {
         return [error, responseData];
     }
 
+    // Get complete workforce list in the account
+    this.workforceListSelectAccount = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.start_from || 0,
+            request.limit_value || 15
+        );
+        const queryString = util.getQueryString('ds_p1_1_workforce_list_select_account', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
 }
 
 
