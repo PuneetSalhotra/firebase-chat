@@ -102,6 +102,18 @@ function AdminListingController(objCollection) {
         }
     });
 
+    // Portal: getSearchEmployeeRegisterData
+    // DB Call: ds_p1_asset_list_search_asset_type_category
+    app.post('/' + global.config.version + '/admin/asset/employee_desk/search', async function (req, res) {
+        const [err, assetData] = await adminListingService.employeeOrEmployeeDeskSearch(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, assetData, 200, req.body));
+        } else {
+            console.log("/admin/asset/employee_desk/search | Error: ", err);
+            res.send(responseWrapper.getResponse(err, assetData, -9999, req.body));
+        }
+    });
+
 };
 
 module.exports = AdminListingController;

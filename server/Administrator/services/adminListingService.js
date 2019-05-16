@@ -451,6 +451,49 @@ function AdminListingService(objectCollection) {
         }
         return [error, responseData];
     }
+
+    this.employeeOrEmployeeDeskSearch = async function (request) {
+        const [errOne, assetListSearchData] = await self.assetListSearchAssetTypeCategory(request);
+        if (errOne) {
+            return [true, {
+                message: "Error fetching data"
+            }];     
+        }
+        // for (const [assetIndex, asset] of Array.from(assetListSearchData).entries()) {
+        //     console.log(`${assetIndex} asset_id: ${asset.asset_id} | asset_first_name: ${asset.asset_first_name} | operating_asset_id: ${asset.operating_asset_id} | operating_asset_first_name: ${asset.operating_asset_first_name}`);
+        // }
+        return [false, assetListSearchData];
+    }
+
+
+    this.assetListSearchAssetTypeCategory = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.asset_type_category_id,
+            request.search_string || '',
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_search_asset_type_category', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
 }
 
 
