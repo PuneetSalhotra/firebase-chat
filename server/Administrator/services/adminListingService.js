@@ -595,6 +595,32 @@ function AdminListingService(objectCollection) {
         return [error, responseData];
     }
 
+    // To update Unread count and last Seen
+    this.activityAssetMappingUpdateUnreadUpdatesCountReset = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.activity_id,
+            request.asset_id,
+            request.organization_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_unread_updates_count_reset', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
 }
 
 
