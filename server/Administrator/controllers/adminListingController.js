@@ -138,6 +138,19 @@ function AdminListingController(objCollection) {
         }
     });
 
+    // Portal: workforceFormMappingSelectFormType
+    // DB Call: ds_p1_workforce_form_mapping_select_form_type
+    // Get forms list based on form type id
+    app.post('/' + global.config.version + '/admin/workforce/form_type/form/list', async function (req, res) {
+        const [err, assetData] = await adminListingService.workforceFormMappingSelectFormType(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, assetData, 200, req.body));
+        } else {
+            console.log("/admin/account/workforce/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, assetData, -9999, req.body));
+        }
+    });
+
 };
 
 module.exports = AdminListingController;
