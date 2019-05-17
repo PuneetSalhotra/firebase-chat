@@ -177,6 +177,19 @@ function AdminListingController(objCollection) {
         }
     });
 
+    // Portal: getWidgetsList
+    // DB Call: ds_p1_widget_list_select_level
+    // Get the list of widgets
+    app.post('/' + global.config.version + '/admin/widget/list', async function (req, res) {
+        const [err, widgetData] = await adminListingService.widgetListSelectLevel(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, widgetData, 200, req.body));
+        } else {
+            console.log("/admin/widget/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, widgetData, -9999, req.body));
+        }
+    });
+
 };
 
 module.exports = AdminListingController;
