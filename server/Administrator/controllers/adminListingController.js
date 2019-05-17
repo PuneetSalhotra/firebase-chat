@@ -146,7 +146,20 @@ function AdminListingController(objCollection) {
         if (!err) {
             res.send(responseWrapper.getResponse({}, assetData, 200, req.body));
         } else {
-            console.log("/admin/account/workforce/list | Error: ", err);
+            console.log("/admin/workforce/form_type/form/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, assetData, -9999, req.body));
+        }
+    });
+
+    // Portal: accountListSelectOrganization
+    // DB Call: ds_p1_account_list_select_organization
+    // Get accounts list in the organization
+    app.post('/' + global.config.version + '/admin/organization/account/list', async function (req, res) {
+        const [err, assetData] = await adminListingService.accountListSelectOrganization(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, assetData, 200, req.body));
+        } else {
+            console.log("/admin/organization/account/list | Error: ", err);
             res.send(responseWrapper.getResponse(err, assetData, -9999, req.body));
         }
     });
