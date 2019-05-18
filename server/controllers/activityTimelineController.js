@@ -466,6 +466,20 @@ function ActivityTimelineController(objCollection) {
         });
     });
 
+    // With a feature to sort
+    app.post('/' + global.config.version + '/activity/timeline/list/v1', function (req, res) {
+        activityTimelineService.retrieveTimelineListV1(req.body, function (err, data, statusCode) {
+            if (err === false) {
+                // got positive response    
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            } else {
+                console.log('did not get proper response');
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+            }
+        });
+    });
+
     app.post('/' + global.config.version + '/activity/timeline/entry/collection', function (req, res) {
         activityTimelineService.retrieveFormCollection(req.body, function (err, data, statusCode) {
             if (err === false) {
