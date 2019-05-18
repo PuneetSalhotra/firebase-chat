@@ -184,7 +184,7 @@ function FormConfigService(objCollection) {
             request.form_id,
             '1970-01-01 00:00:00',
             request.page_start,
-            util.replaceQueryLimit(request.page_limit)
+            request.page_limit
         );
         queryString = util.getQueryString('ds_v1_workforce_form_field_mapping_select', paramsArr);
         if (queryString != '') {
