@@ -1189,6 +1189,83 @@ function ActivityTimelineService(objectCollection) {
 
     };
 
+    this.retrieveTimelineListV1 = function (request, callback) {
+        var logDatetime = util.getCurrentUTCTime();
+        request['datetime_log'] = logDatetime;
+        if (Number(request.device_os_id) != 5) {
+            var pubnubMsg = {};
+            pubnubMsg.type = 'activity_unread';
+            pubnubMsg.organization_id = request.organization_id;
+            pubnubMsg.desk_asset_id = request.asset_id;
+            pubnubMsg.activity_type_category_id = (Number(request.activity_type_category_id)) === 16 ? 0 : request.activity_type_category_id;
+            //console.log('PubNub Message : ', pubnubMsg);
+            global.logger.write('debug', 'PubNub Message : ' + JSON.stringify(pubnubMsg, null, 2), {}, request);
+            pubnubWrapper.push(request.asset_id, pubnubMsg);
+            pubnubWrapper.push(request.organization_id, pubnubMsg);
+        }
+        /*if(Number(request.activity_type_category_id) !== 8) {
+            activityCommonService.resetAssetUnreadCount(request, 0, function (err, data) {});
+        }*/
+
+        switch (Number(request.activity_type_category_id)) {
+            case 8:
+                break;
+            case 9: // Form
+                break;
+            case 10:
+                break;
+            case 11:
+                break;
+            default:
+                activityCommonService.resetAssetUnreadCount(request, 0, function (err, data) {});
+                break;
+        }
+        activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) {});
+        var activityTypeCategoryId = util.replaceZero(request.activity_type_category_id);
+        if (activityTypeCategoryId > 0) {
+            // IN p_organization_id BIGINT(20), IN p_activity_id bigint(20), 
+            // IN p_timeline_transaction_id BIGINT(20), IN p_is_previous tinyint(4), 
+            // IN p_stream_type_id BIGINT(20), IN p_sort_flag SMALLINT(6), IN p_sort_order TINYINT(4), 
+            // IN p_start_from SMALLINT(6), IN p_limit_value smallint(6)
+            var paramsArr = new Array(
+                request.organization_id,
+                request.activity_id,
+                request.timeline_transaction_id || 0,
+                request.flag_previous,
+                request.stream_type_id || 0,
+                request.sort_flag || 1, // 1 => Created Datetime/Timeline transaction datetime
+                request.sort_order, // 0 => Ascending | 1 => Descending
+                request.page_start,
+                util.replaceQueryLimit(request.page_limit)
+            );
+            var queryString = util.getQueryString('ds_p1_activity_timeline_transaction_select_differential', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    if (err === false) {
+                        formatActivityTimelineList(data, activityTypeCategoryId, function (err, responseData) {
+                            if (err === false) {
+                                callback(false, {
+                                    data: responseData
+                                }, 200);
+                            } else {
+                                callback(false, {}, -9999);
+                            }
+                        });
+                        return;
+                    } else {
+                        // some thing is wrong and have to be dealt
+                        callback(err, false, -9999);
+                        return;
+                    }
+                });
+            }
+
+        } else {
+            callback(false, {}, -3303);
+        }
+
+    };
+
     //PAM
     this.retrieveTimelineListBasedOnAsset = function (request, callback) {
         var logDatetime = util.getCurrentUTCTime();
