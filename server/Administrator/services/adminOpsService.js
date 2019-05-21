@@ -2465,6 +2465,268 @@ function AdminOpsService(objectCollection) {
         }
         return [error, responseData];
     }
+
+    // Create a new workforce, department or a floor
+    this.createWorkforce = async function (request) {
+        const organizationID = Number(request.organization_id),
+            accountID = Number(request.account_id),
+            // workforceID = Number(request.workforce_id),
+            assetID = Number(request.asset_id),
+            workforceName = String(request.workforce_name),
+            workforceTypeID = (request.workforce_type_id) ? Number(request.workforce_type_id) : 1;
+
+        // Create the workforce
+        let [errOne, workforceData] = await workforceListInsert({
+            workforce_name: workforceName,
+            workforce_type_id: workforceTypeID
+        }, organizationID, accountID);
+        if (errOne) {
+            return [true, {
+                message: "Couldn't create the workforce."
+            }]
+        }
+
+        const workforceID = Number(workforceData[0].workforce_id);
+
+        // Workforce List History insert
+        try {
+            await workforceListHistoryInsert({
+                workforce_id: workforceData[0].workforce_id,
+                organization_id: organizationID
+            });
+        } catch (error) { }
+
+        // Fetch workforce asset types
+        const [errTwo, workforceAssetTypes] = await adminListingService.assetTypeCategoryMasterSelect({
+            product_id: 1,
+            start_from: 0,
+            limit_value: 50
+        });
+        if (errTwo || workforceAssetTypes.length === 0) {
+            return [true, {
+                message: `[createWorkforce] Error fetching workforceAssetTypes`
+            }]
+        }
+
+        // Create workforce asset types
+        for (const assetType of workforceAssetTypes) {
+
+            const [errThree, assetTypeData] = await workforceAssetTypeMappingInsert({
+                asset_type_name: assetType.asset_type_category_name,
+                asset_type_description: assetType.asset_type_category_description,
+                asset_type_category_id: assetType.asset_type_category_id
+            }, workforceID, organizationID, accountID);
+
+            if (errThree || assetTypeData.length === 0) {
+                console.log(`[createWorkforce] Error creating assetType ${assetType.asset_type_category_name} for workforce ${workforceID}`);
+            }
+
+            // Workforce asset types history insert
+            if (assetTypeData.length > 0) {
+                let assetTypeID = assetTypeData[0].asset_type_id;
+                try {
+                    await workforceAssetTypeMappingHistoryInsert({
+                        update_type_id: 0
+                    }, assetTypeID, organizationID);
+                } catch (error) { }
+                // 
+            }
+        }
+
+        // Fetch workforce activity types
+        const [errFour, workforceActivityTypes] = await adminListingService.activityTypeCategoryMasterSelect({
+            product_id: 1,
+            start_from: 0,
+            limit_value: 50
+        });
+        if (errFour || workforceActivityTypes.length === 0) {
+            return [true, {
+                message: `[createWorkforce] Error fetching workforceActivityTypes`
+            }]
+        }
+
+        // Create workforce activity types
+        for (const activityType of workforceActivityTypes) {
+
+            const [errFive, activityTypeData] = await workforceActivityTypeMappingInsert({
+                activity_type_name: activityType.activity_type_category_name,
+                activity_type_description: activityType.activity_type_category_description,
+                activity_type_category_id: activityType.activity_type_category_id
+            }, workforceID, organizationID, accountID);
+
+            if (errFive || activityTypeData.length === 0) {
+                console.log(`[createWorkforce] Error creating activityType ${activityType.asset_type_category_name} for workforce ${workforceID}`);
+            }
+
+            // Activity types history insert
+            let activityTypeID = activityTypeData[0].activity_type_id;
+            if (activityTypeData.length > 0) {
+                try {
+                    await workforceActivityTypeMappingHistoryInsert({
+                        update_type_id: 0
+                    }, activityTypeID, organizationID);
+                } catch (error) { }
+                // 
+            }
+
+            // Once the activity type for the workforce is created, the corresponding statuses
+            // need to be created as well. First, fetch the statuses for the activity_type_category_id
+            // Fetch workforce activity types
+            const [errSix, activityStatusTypes] = await adminListingService.activityStatusTypeMasterSelectCategory({
+                activity_type_category_id: activityType.activity_type_category_id,
+                start_from: 0,
+                limit_value: 50
+            });
+            if (errSix || activityStatusTypes.length === 0) {
+                // Do nothing, just skip
+                continue;
+            }
+
+            for (const activityStatusType of activityStatusTypes) {
+
+                const [errSeven, activityStatusTypeData] = await workforceActivityStatusMappingInsert({
+                    activity_status_name: activityStatusType.activity_status_type_name,
+                    activity_status_description: activityStatusType.activity_status_type_description,
+                    activity_status_sequence_id: 0,
+                    activity_status_type_id: activityStatusType.activity_status_type_id,
+                    log_asset_id: request.log_asset_id || request.asset_id
+                }, activityTypeID, workforceID, organizationID, accountID);
+
+                if (errSeven || activityStatusTypeData.length === 0) {
+                    console.log(`[createWorkforce] Error creating activityStatusType ${activityStatusType.activity_status_type_name} for the activity ${activityType.activity_type_category_name} workforce ${workforceID}`);
+                }
+
+                if (activityStatusTypeData.length > 0) {
+                    const activityStatusID = activityStatusTypeData[0].activity_status_id;
+                    try {
+                        await workforceActivityStatusMappingHistoryInsert({
+                            update_type_id: 0
+                        }, activityStatusID, organizationID);
+                    } catch (error) { }
+                    // 
+                }
+            }
+        }
+
+        return [false, {
+            message: `Workforce, asset types, activity types created with workforce_id: ${workforceID}`
+        }]
+
+    }
+
+    // Workforce Activity Types Insert
+    async function workforceActivityTypeMappingInsert(request, workforceID, organizationID, accountID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.activity_type_name,
+            request.activity_type_description,
+            request.activity_type_category_id, // Should be 1 when creating for the first time
+            workforceID,
+            accountID,
+            organizationID,
+            1, // log_asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Workforce Activity Types History Insert
+    async function workforceActivityTypeMappingHistoryInsert(request, activityTypeID, organizationID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            activityTypeID,
+            organizationID,
+            request.update_type_id || 0,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_history_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Create Workforce Activity Status Mapping
+    async function workforceActivityStatusMappingInsert(request, activityTypeID, workforceID, organizationID, accountID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.activity_status_name,
+            request.activity_status_description,
+            request.activity_status_sequence_id,
+            request.activity_status_type_id,
+            activityTypeID,
+            workforceID,
+            accountID,
+            organizationID,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Create Workforce Activity Status Mapping
+    async function workforceActivityStatusMappingHistoryInsert(request, activityStatusID, organizationID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            activityStatusID,
+            organizationID,
+            request.update_type_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_history_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = AdminOpsService;

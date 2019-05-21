@@ -74,6 +74,17 @@ function AdminOpsController(objCollection) {
         }
     });
 
+    // Create a new workforce, department or a floor
+    app.post('/' + global.config.version + '/admin/workforce/add', async function (req, res) {
+        const [err, workforceData] = await adminOpsService.createWorkforce(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, workforceData, 200, req.body));
+        } else {
+            console.log("/admin/workforce/add | Error: ", err);
+            res.send(responseWrapper.getResponse(err, workforceData, -9999, req.body));
+        }
+    });
+
 };
 
 module.exports = AdminOpsController;
