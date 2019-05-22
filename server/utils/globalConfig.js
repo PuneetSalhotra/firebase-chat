@@ -415,7 +415,7 @@ if (mode === 'preprod') {
     config.slave1Ip = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
     
     config.dbUser = 'apiuser';    
-    config.database = 'desker_preprod';
+    config.database = 'worlddesk_preprod';
     config.dbPassword = 'apidbuser';
 
     config.conLimit = 2;
