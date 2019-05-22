@@ -1415,6 +1415,7 @@ function ActivityTimelineService(objectCollection) {
             rowDataArr.data_form_name = util.replaceDefaultString(rowData['data_form_name']);
             rowDataArr.activity_title = util.replaceDefaultString(rowData['activity_title']);
             rowDataArr.log_asset_first_name = util.replaceDefaultString(rowData['log_asset_first_name']);
+            rowDataArr.log_asset_id = util.replaceDefaultNumber(rowData['log_asset_id']);
             //Added for Beta
             rowDataArr.activity_timeline_url_title = util.replaceDefaultString(rowData['data_entity_text_3']);
             rowDataArr.activity_timeline_url_preview = '';
