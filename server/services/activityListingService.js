@@ -1508,7 +1508,7 @@ function ActivityListingService(objCollection) {
 				"parent_activity_type_category_name": util.replaceDefaultString(rowData['parent_activity_type_category_name']),
 				"parent_activity_open_count": util.replaceDefaultNumber(rowData['parent_activity_open_count']),
 				"parent_activity_closed_count": util.replaceDefaultNumber(rowData['parent_activity_closed_count']),
-				"activity_participant_count": util.replaceZero(rowData['participant_count']),
+				"activity_participant_count": util.replaceZero(rowData['activity_participant_count']),
 				"account_id": util.replaceZero(rowData['account_id']),
 				"account_name": util.replaceDefaultString(rowData['account_name']),
 				"form_id": util.replaceZero(rowData['form_id']),
@@ -2069,6 +2069,8 @@ function ActivityListingService(objCollection) {
 						activity.participant_list = formattedParticipantList;
 						participantMap.set(Number(activity.activity_id), activity);
 						// participantMap.set(Number(activity.activity_id), formattedParticipantList);
+					} else {
+						activity.participant_list = [];
 					}
 					return {
 						success: true,
@@ -2223,6 +2225,84 @@ function ActivityListingService(objCollection) {
 			}
 		});
 	};
+
+	this.getQueueActivitiesAllFilters = function (request) {
+		//IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20),
+		// IN p_asset_id BIGINT(20),  IN p_sort_flag TINYINT(4), IN p_flag TINYINT(4), IN p_queue_id BIGINT(20),
+		// IN p_is_active TINYINT(4), IN p_is_due TINYINT(4), IN p_current_datetime DATETIME,
+		// IN p_is_unread TINYINT(4), IN p_is_search TINYINT(4), IN p_search_string VARCHAR(100),
+		// IN p_status_type_id SMALLINT(6), IN p_start_from INT(11), IN p_limit_value TINYINT(4)
+		return new Promise((resolve, reject) => {
+			const paramsArr = new Array(
+				request.organization_id,
+				request.account_id,
+				request.workforce_id,
+				request.target_asset_id,
+				request.sort_flag || 0, // 0 => Ascending | 1 => Descending
+				request.flag || 0, // 0 => Due date | 1 => Created date
+				request.queue_id || 0,
+				request.is_active,
+				request.is_due,
+				request.current_datetime,
+				request.is_unread,
+				request.is_search,
+				request.search_string,
+				request.status_type_id,
+				request.page_start,
+				request.page_limit
+			);
+			const queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_myqueue_all_filter', paramsArr);
+			if (queryString !== '') {
+				db.executeQuery(1, queryString, request, async function (err, data) {
+					if (err === false) {
+						try {
+							let dataWithParticipant = await appendParticipantList(request, data);
+							resolve(dataWithParticipant);
+						} catch (error) {
+							console.log("getQueueActivitiesAllFilters | Error", error);
+							resolve(data);
+						}
+					} else {
+						reject(err);
+					}
+				});
+			}
+		});
+	};
+
+
+	this.activityListSelectChildOrders = async function (request) {
+		// IN p_organization_id BIGINT(20), IN p_parent_activity_id BIGINT(20), 
+		// IN p_flag TINYINT(4), IN p_sort_flag TINYINT(4), IN p_datetime_start DATETIME, 
+		// IN p_datetime_end DATETIME, IN p_start_from SMALLINT(6), IN p_limit_value SMALLINT(6)
+		let responseData = [],
+			error = true;
+
+		const paramsArr = new Array(
+			request.organization_id,
+			request.parent_activity_id,
+			request.flag || 1,
+			request.sort_flag || 1,
+			request.datetime_start || '1970-01-01 00:00:00',
+			request.datetime_end || util.getCurrentUTCTime(),
+			request.start_from || 0,
+			request.limit_value || 50
+		);
+		const queryString = util.getQueryString('ds_p1_activity_list_select_child_orders', paramsArr);
+
+		if (queryString !== '') {
+			await db.executeQueryPromise(1, queryString, request)
+				.then((data) => {
+					responseData = data;
+					error = false;
+				})
+				.catch((err) => {
+					error = err;
+				})
+		}
+		return [error, responseData];
+	}
+
 	
 }
 

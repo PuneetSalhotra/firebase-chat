@@ -184,7 +184,7 @@ function FormConfigService(objCollection) {
             request.form_id,
             '1970-01-01 00:00:00',
             request.page_start,
-            util.replaceQueryLimit(request.page_limit)
+            request.page_limit
         );
         queryString = util.getQueryString('ds_v1_workforce_form_field_mapping_select', paramsArr);
         if (queryString != '') {
@@ -740,6 +740,12 @@ function FormConfigService(objCollection) {
 
             const widgetFieldsStatusesData = util.widgetFieldsStatusesData();
             let poFields = widgetFieldsStatusesData.PO_FIELDS; //new Array(13263, 13269, 13265, 13268, 13271);
+            let orderValueFields = widgetFieldsStatusesData.TOTAL_ORDER_VALUE_IDS; //new Array(7200, 8565, 8817, 9667, 9941, 10207, 12069, 12610)
+            let OTC_1_ValueFields = widgetFieldsStatusesData.OTC_1;
+            let ARC_1_ValueFields = widgetFieldsStatusesData.ARC_1;
+            let OTC_2_ValueFields = widgetFieldsStatusesData.OTC_2;
+            let ARC_2_ValueFields = widgetFieldsStatusesData.ARC_2;
+            let valueflag = 0;
 
             forEachAsync(activityInlineData, (next, row) => {
                 var params = new Array(
@@ -917,13 +923,84 @@ function FormConfigService(objCollection) {
 
                 let queryString = util.getQueryString('ds_p1_activity_form_transaction_insert_field_update', params);
                 if (queryString != '') {
-                    db.executeQuery(0, queryString, request, function (err, data) {  
-                        global.logger.write('conLog', '*****Update: update field_value in widget *******'+row.field_id +' '+row.field_value , {}, request);
-                        try{
-                                widgetAggrFieldValueUpdate(request);
+                    db.executeQuery(0, queryString, request, function (err, data) {
+
+                        global.logger.write('conLog', '\x1b[32m Update: update field_value in widget \x1b[0m'+row.field_id +' '+row.field_value , {}, request);
+
+                        let idWorkflow = 0;
+                        let idWorkflowType = 0;
+
+                        if(Object.keys(orderValueFields).includes(String(row.field_id))){
+
+                            activityCommonService.getFormWorkflowDetails(request).then((workflowData)=>{
+                                if(workflowData.length > 0){
+
+                                    idWorkflow = workflowData[0].activity_id;
+                                    idWorkflowType = workflowData[0].activity_sub_type_id;                                    
+                                    request.workflow_activity_id = idWorkflow;
+
+                                    if(idWorkflowType == 0){ 
+                                        if(Number(row.field_value) >= 0)                                       
+                                            widgetAggrFieldValueUpdateWorkflow(request);
+                                        else
+                                            console.log("Field Value is not a number || Total Order Value Field "+row.field_value);
+                                    }else{
+                                            console.log("This field is not configured to update in intermediate table "+row.field_id);
+                                    }                                        
+                                }                                
+                            });
+                        }else{
+
+                            try{
+                                if(Object.keys(OTC_1_ValueFields).includes(String(row.field_id))){
+                                         valueflag = 1;
+                                }else if(Object.keys(ARC_1_ValueFields).includes(String(row.field_id))){
+                                         valueflag = 2;
+                                }else if(Object.keys(OTC_2_ValueFields).includes(String(row.field_id))){
+                                         valueflag = 3;
+                                }else if(Object.keys(ARC_2_ValueFields).includes(String(row.field_id))){
+                                         valueflag = 4;
+                                }
+                                console.log('valueflag :: '+valueflag);
+                                request['flag'] = valueflag;
+
+                                console.log('row.field_value ::'+row.field_value+' : '+Number(row.field_value));
+
+                                if(valueflag > 0){
+                                    activityCommonService.getFormWorkflowDetails(request).then((workflowData)=>{
+                                    if(workflowData.length > 0){
+
+                                        idWorkflow = workflowData[0].activity_id;
+                                        idWorkflowType = workflowData[0].activity_sub_type_id;
+                                        request.is_bulk_order = idWorkflowType;
+                                        request.workflow_activity_id = idWorkflow;
+                                        if(idWorkflowType == 1){ 
+                                            if(Number(row.field_value) >= 0){
+                                                widgetAggrFieldValueUpdate(request);
+                                            }
+                                            else{
+                                                console.log("Field Value is not a number || (not OTC || not ARC) Field "+row.field_value);
+                                            }
+                                        }else{
+
+                                            if(Number(row.field_value) >= 0){
+                                                widgetAggrFieldValueUpdate(request);
+                                            }
+                                            else{
+                                                console.log("Field Value is not a number || (not OTC || not ARC) Field "+row.field_value);
+                                            }
+                                        }
+                                    }
+                                    });
+
+                                }else{
+                                    console.log("This field is not configured to update in intermediate table "+row.field_id);
+                                }
                             }catch(err){
                                 console.log('Error in updating Intermediate Table : ', err);
-                            }      
+                            }                             
+
+                        }
 
                          global.logger.write('conLog', '*****Update: update po_date in widget1 *******'+Object.keys(poFields) +' '+row.field_id , {}, request);
                          if(Object.keys(poFields).includes(String(row.field_id))){
@@ -935,10 +1012,10 @@ function FormConfigService(objCollection) {
                                     request['flag'] = 1;
                                     request['datetime_log'] = util.getCurrentUTCTime();
                                     activityCommonService.widgetActivityFieldTxnUpdateDatetime(request); 
-                                })          
+                                });          
                             }
                         next();
-                        //(err === false) ?  resolve() : reject();
+                        
                     });
                 }
             }).then(() => {
@@ -1112,14 +1189,14 @@ function FormConfigService(objCollection) {
                     next1();
                 }).then(() => {
                     next();
-                })
+                });
             }).then(() => {
                 console.log(formData.length);
                 resolve(formData);
-            })
+            });
 
         });
-    };
+    }
 
     this.formAdd = async function (request) {
 
@@ -1134,12 +1211,21 @@ function FormConfigService(objCollection) {
             .then(async (newFormData) => {
                 console.log("newFormData: ", newFormData);
 
-                let fieldSequenceId = 0;
+                let fieldSequenceId = 1;
 
                 if (Number(newFormData[0].query_status) === 0 && newFormData[0].form_id > 0) {
 
                     formId = newFormData[0].form_id;
                     request.form_id = Number(newFormData[0].form_id);
+
+                    // Make an entry in the form_entity_mapping table, for
+                    // permissions
+                    try {
+                        const entityLevelID = Number(request.entity_level_id) || 3;
+                        await formEntityMappingInsert(request, formId, entityLevelID);
+                    } catch (error) {
+                        console.log("formAdd | formEntityMappingInsert | Error: ", error);
+                    }
 
                     // History insert in the workforce_form_mapping_history_insert table
                     await workforceFormMappingHistoryInsert(request);
@@ -1276,6 +1362,31 @@ function FormConfigService(objCollection) {
             );
 
             const queryString = util.getQueryString('ds_p1_1_workforce_form_mapping_insert', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                });
+            }
+        });
+    }
+
+    function formEntityMappingInsert(request, formID, levelID) {
+        return new Promise((resolve, reject) => {
+            // IN p_form_id BIGINT(20), IN p_level_id TINYINT(4), IN p_workforce_id BIGINT(20), 
+            // IN p_account_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_log_asset_id BIGINT(20), 
+            // IN p_log_datetime DATETIME
+
+            let paramsArr = new Array(
+                formID,
+                levelID || 3,
+                request.workforce_id,
+                request.account_id,
+                request.organization_id,
+                request.asset_id,
+                util.getCurrentUTCTime()
+            );
+
+            const queryString = util.getQueryString('ds_p1_form_entity_mapping_insert', paramsArr);
             if (queryString !== '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err) ? reject(err): resolve(data);
@@ -1738,7 +1849,8 @@ function FormConfigService(objCollection) {
             let originFlagSet = Number(formConfigData[0].form_flag_workflow_origin),
                 isWorkflowEnabled = Number(formConfigData[0].form_flag_workflow_enabled),
                 workflowActivityTypeId = Number(formConfigData[0].form_workflow_activity_type_id),
-                workflowActivityTypeName = formConfigData[0].form_workflow_activity_type_name;
+                workflowActivityTypeName = formConfigData[0].form_workflow_activity_type_name,
+                formName = String(formConfigData[0].form_name);
 
             if (isWorkflowEnabled && originFlagSet) {
                 // Fetch the next activity_id to be inserted
@@ -1766,6 +1878,7 @@ function FormConfigService(objCollection) {
                 //createWorkflowRequest.activity_description = workflowActivityTypeName;
                 createWorkflowRequest.activity_form_id = Number(request.activity_form_id);
                 createWorkflowRequest.form_transaction_id = Number(request.form_transaction_id);
+                createWorkflowRequest.activity_parent_id = Number(request.child_order_activity_parent_id) || 0;
 
                 const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
                 await addActivityAsync(createWorkflowRequest);
@@ -1876,18 +1989,9 @@ function FormConfigService(objCollection) {
                 workflowFile713Request.data_activity_id = Number(request.activity_id);
                 workflowFile713Request.form_transaction_id = Number(request.form_transaction_id);
                 workflowFile713Request.activity_timeline_collection = JSON.stringify({
-                    /*"mail_body": `Form Updated at ${moment().utcOffset('+05:30').format('LLLL')}`,
-                    "subject": "Form Name",
-                    "content": `Form Name`,
-                    "asset_reference": [],
-                    "activity_reference": [],
-                    "form_approval_field_reference": [],
-                    "form_submitted": JSON.parse(request.activity_inline_data),
-                    "attachments": []*/
-
                     "mail_body": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
-                    "subject": activityTitle,
-                    "content": 'Form Submitted',
+                    "subject": `${formName}`,
+                    "content": `${formName}`,
                     "asset_reference": [],
                     "activity_reference": [],
                     "form_approval_field_reference": [],
@@ -1967,7 +2071,9 @@ function FormConfigService(objCollection) {
             return [workflowError, workflowData];
         }
         workflowActivityId = Number(workflowData[0].activity_id);
+        const workflowActivityTypeID = Number(workflowData[0].activity_type_id);
         console.log("workflowActivityId: ", workflowActivityId);
+        console.log("workflowActivityTypeID: ", workflowActivityTypeID);
 
         // Make a 713 timeline transaction entry in the workflow file
         let workflowFile713Request = Object.assign({}, request);
@@ -2137,7 +2243,74 @@ function FormConfigService(objCollection) {
                 }
             }
         }
+        
+        // ############################## BOT ENGINE REQUEST START ##############################
+        // console.log("workflowOnFormEdit | request | request", request);
+        let initBotEngineRequest = Object.assign({}, request);
+        initBotEngineRequest.workflow_activity_id = workflowActivityId;
+        initBotEngineRequest.activity_form_id = request.form_id;
+        initBotEngineRequest.flag_check = 1;
+        initBotEngineRequest.flag_defined = 1;
+        // Fetch bot details
+        let initBotEngineRequestBotID = 0,
+            initBotEngineRequestBotInlineData = {};
 
+        try {
+            const botListData = await activityCommonService.getBotsMappedToActType({
+                flag: 3,
+                organization_id: request.organization_id,
+                account_id: request.account_id,
+                workforce_id: request.workforce_id,
+                activity_type_id: workflowActivityTypeID || 0,
+                field_id: 0,
+                form_id: request.form_id
+            });
+            if (Number(botListData.length) > 0) {
+                initBotEngineRequestBotID = botListData[0].bot_id;
+                initBotEngineRequestBotInlineData = botListData[0].bot_inline_data;
+
+                initBotEngineRequest.bot_id = initBotEngineRequestBotID;
+                initBotEngineRequest.bot_inline_data = initBotEngineRequestBotInlineData;
+
+                // [LOGGING] Bot is defined for this form 
+                activityCommonService.botOperationFlagUpdateBotDefined(initBotEngineRequest, 1);
+            } else {
+                // [LOGGING] No bot found for this form 
+                activityCommonService.botOperationFlagUpdateBotDefined(initBotEngineRequest, 0);
+            }
+        } catch (error) {
+            // [LOGGING] Error fetching bots for this form 
+            activityCommonService.botOperationFlagUpdateBotDefined(initBotEngineRequest, 0);
+            console.log("workflowOnFormEdit | botListData | Error: ", error);
+        }
+        
+        // Fire the Bot Engine
+        if (Number(initBotEngineRequestBotID) !== 0) {
+
+            // [LOGGING] Fetch a bot trasaction ID for this operation
+            let botTransactionInsertData = await activityCommonService.botOperationInsert(initBotEngineRequest);
+            if (Number(botTransactionInsertData.length) > 0) {
+                initBotEngineRequest.bot_transaction_id = botTransactionInsertData[0].bot_transaction_id;
+            }
+
+            await sleep(3000);
+            try {
+                botService.initBotEngine(initBotEngineRequest);
+
+                // [LOGGING] Bot Operation => 1. SUCCESS
+                initBotEngineRequest.bot_operation_status_id = 1;
+                initBotEngineRequest.bot_transaction_inline_data = '{}';
+                activityCommonService.botOperationFlagUpdateBotSts(initBotEngineRequest, 1);
+            } catch (error) {
+                console.log("workflowOnFormEdit | botService | initBotEngine | Error: ", error);
+                // [LOGGING] Bot Operation => 2. INTERNAL ERROR
+                activityCommonService.botOperationFlagUpdateBotSts(initBotEngineRequest, 2);
+            }
+        } else {
+            console.log("workflowOnFormEdit | botService | initBotEngine | initBotEngineRequestBotID is 0");
+        }
+        // ############################## BOT ENGINE REQUEST START ##############################
+        
         console.log();
         console.log();
         console.log("targetFormActivityId: ", targetFormActivityId);
@@ -3101,7 +3274,7 @@ function FormConfigService(objCollection) {
         }
 
         return [false, activityData];
-    }
+    };
 
 
    async function widgetAggrFieldValueUpdate(request) {
@@ -3110,7 +3283,7 @@ function FormConfigService(objCollection) {
             error = false; // true;
 
         let paramsArr = new Array(
-            request.activity_id,
+            request.workflow_activity_id,
             request.form_id,
             request.field_id,
             request.field_value,
@@ -3119,22 +3292,42 @@ function FormConfigService(objCollection) {
             request.account_id,
             request.organization_id,
             util.getCurrentUTCTime(),
+            request.flag,
+            request.is_bulk_order
         );
-        const queryString = util.getQueryString('ds_p1_widget_activity_field_transaction_update_field_value', paramsArr);
+
+        let temp = {};
+        let newReq = Object.assign({}, request);
+        newReq.form_activity_id = request.activity_id;
+        const queryString = util.getQueryString('ds_p1_2_widget_activity_field_transaction_update_field_value', paramsArr);
+
         if (queryString !== '') {
             // console.log(queryString)
             await db.executeQueryPromise(0, queryString, request)
-                .then((data) => {
+                .then((data) => {                    
+                    console.log('FCS DAAAAAAAAAAAAAAATA : ', data);
                     fieldUpdateStatus = data;
                     error = false;
+                    
+                    if(data.length > 0) {
+                        newReq.widget_id = data[0].widget_id;
+                    }
+                    temp.data = data;
+                    newReq.inline_data = temp;
+                    activityCommonService.widgetLogTrx(newReq, 1);
                 })
                 .catch((err) => {
+                    console.log('FCS ERRRRRRRRRRRRRRROR : ', err);                    
+                    temp.err = err;
+                    newReq.inline_data = temp;
                     error = err;
+                    activityCommonService.widgetLogTrx(newReq, 2);
                 });
         }
 
         return [error, fieldUpdateStatus];
     }
+
 
     this.formEntityMappingSelect = async function (request) {
 
@@ -3200,11 +3393,11 @@ function FormConfigService(objCollection) {
                 })
                 .catch((err) => {
                     error = err;
-                })
+                });
         }
 
         return [error, formFieldData];
-    }
+    };
 
     this.formEntityAccessCheck = async function (request) {
 
@@ -3230,12 +3423,82 @@ function FormConfigService(objCollection) {
                 })
                 .catch((err) => {
                     error = err;
-                })
+                });
         }
 
         return [error, fieldData];
+    };
+
+   async function widgetAggrFieldValueUpdateWorkflow(request) {
+
+        let fieldUpdateStatus = [],
+            error = false; // true;
+
+        let paramsArr = new Array(
+            request.workflow_activity_id,
+            request.form_id,
+            request.field_id,
+            request.field_value,
+            request.form_transaction_id,
+            request.workforce_id,
+            request.account_id,
+            request.organization_id,
+            util.getCurrentUTCTime(),
+            request.flag
+        );
+
+        let temp = {};
+        let newReq = Object.assign({}, request);
+        newReq.form_activity_id = request.activity_id;
+        const queryString = util.getQueryString('ds_p1_widget_activity_field_transaction_update_fld_workflow', paramsArr);
+
+        if (queryString !== '') {
+            // console.log(queryString)
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {                    
+                    console.log('FCS DAAAAAAAAAAAAAAATA : ', data);
+                    fieldUpdateStatus = data;
+                    error = false;
+                    
+                    if(data.length > 0) {
+                        newReq.widget_id = data[0].widget_id;
+                    }
+                    temp.data = data;
+                    newReq.inline_data = temp;
+                    activityCommonService.widgetLogTrx(newReq, 1);
+                })
+                .catch((err) => {
+                    console.log('FCS ERRRRRRRRRRRRRRROR : ', err);                    
+                    temp.err = err;
+                    newReq.inline_data = temp;
+                    error = err;
+                    activityCommonService.widgetLogTrx(newReq, 2);
+                });
+        }
+
+        return [error, fieldUpdateStatus];
     }
 
+
+    this.formEntityAccessAssetCheck = async function(request) {        
+        let error = false;
+        let formsArr = JSON.parse(JSON.stringify(request.forms));
+        //let formsArr = JSON.parse(request.forms);
+        let refinedForms = [];          
+
+        for(let i of formsArr) {
+            //console.log(i.form_id);            
+            request.form_id = i.id;
+            let [err, formFieldData] = await self.formEntityAccessCheck(request);
+            if(!err) {
+                if(formFieldData.length > 0) {                    
+                    refinedForms.push(i);
+                }            
+            }            
+        }        
+
+        return [error, refinedForms];
+    };
 }
 
 module.exports = FormConfigService;
