@@ -8,16 +8,6 @@ function AdminOpsController(objCollection) {
     const adminOpsService = new AdminOpsService(objCollection);
     // const activityCommonService = objCollection.activityCommonService;
 
-    app.post('/' + global.config.version + '/admin/organization/setup', async function (req, res) {
-        const [err, orgData] = await adminOpsService.setupOrganization(req.body);
-        if (!err) {
-            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
-        } else {
-            console.log("/admin/organization/setup | Error: ", err);
-            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
-        }
-    });
-
     // Add a desk to floor
     app.post('/' + global.config.version + '/admin/workforce/desk/add', async function (req, res) {
         const [err, orgData] = await adminOpsService.addNewDeskToWorkforce(req.body);
@@ -81,6 +71,28 @@ function AdminOpsController(objCollection) {
             res.send(responseWrapper.getResponse({}, workforceData, 200, req.body));
         } else {
             console.log("/admin/workforce/add | Error: ", err);
+            res.send(responseWrapper.getResponse(err, workforceData, -9999, req.body));
+        }
+    });
+
+    // Create a new organization
+    app.post('/' + global.config.version + '/admin/organization/add', async function (req, res) {
+        const [err, workforceData] = await adminOpsService.createOrganization(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, workforceData, 200, req.body));
+        } else {
+            console.log("/admin/organization/add | Error: ", err);
+            res.send(responseWrapper.getResponse(err, workforceData, -9999, req.body));
+        }
+    });
+
+    // Create a new organization
+    app.post('/' + global.config.version + '/admin/account/add', async function (req, res) {
+        const [err, workforceData] = await adminOpsService.createAccount(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, workforceData, 200, req.body));
+        } else {
+            console.log("/admin/account/add | Error: ", err);
             res.send(responseWrapper.getResponse(err, workforceData, -9999, req.body));
         }
     });
