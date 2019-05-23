@@ -1415,9 +1415,19 @@ function ActivityTimelineService(objectCollection) {
             rowDataArr.data_form_name = util.replaceDefaultString(rowData['data_form_name']);
             rowDataArr.activity_title = util.replaceDefaultString(rowData['activity_title']);
             rowDataArr.log_asset_first_name = util.replaceDefaultString(rowData['log_asset_first_name']);
+            rowDataArr.log_asset_id = util.replaceDefaultNumber(rowData['log_asset_id']);
             //Added for Beta
             rowDataArr.activity_timeline_url_title = util.replaceDefaultString(rowData['data_entity_text_3']);
             rowDataArr.activity_timeline_url_preview = '';
+
+            // Address
+            // location_latitude, location_longitude, location_gps_accuracy, location_gps_enabled, location_address, location_datetime,
+            rowDataArr.location_latitude = util.replaceDefaultNumber(rowData['location_latitude']);
+            rowDataArr.location_longitude = util.replaceDefaultNumber(rowData['location_longitude']);
+            rowDataArr.location_gps_accuracy = util.replaceDefaultNumber(rowData['location_gps_accuracy']);
+            rowDataArr.location_gps_enabled = util.replaceDefaultNumber(rowData['location_gps_enabled']);
+            rowDataArr.location_address = util.replaceDefaultString(rowData['location_address']);
+            rowDataArr.location_datetime = util.replaceDefaultDatetime(rowData['location_datetime']);
 
             switch (activityTypeCategoryId) {
                 case 1: //To do

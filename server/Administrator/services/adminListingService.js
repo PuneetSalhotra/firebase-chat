@@ -80,6 +80,54 @@ function AdminListingService(objectCollection) {
         return [error, responseData];
     }
 
+    this.activityTypeCategoryMasterSelect = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.product_id || 1,
+            request.start_from,
+            request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_1_activity_type_category_master_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.activityStatusTypeMasterSelectCategory = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.activity_type_category_id,
+            request.start_from,
+            request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_activity_status_type_master_select_category', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
     this.assetListSelect = async function (request) {
         let responseData = [],
             error = true;
