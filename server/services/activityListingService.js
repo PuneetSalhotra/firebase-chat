@@ -1975,6 +1975,14 @@ function ActivityListingService(objCollection) {
 	};
 	
 	this.getMyQueueActivitiesV2 = function (request) {
+		//flag - 0 && activity_status_id = 0
+		// -->you will get all orders
+
+		//flag - 0 && activity_status_id = some value
+		// -->you will get the orders based on the status id value
+
+		//flag - 3 && activity_status_id = 0
+		// -->you will get all the statuses		
 		return new Promise((resolve, reject) => {
 			// IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
 			// IN p_workforce_id BIGINT(20), IN p_asset_id BIGINT(20), 
@@ -1985,18 +1993,28 @@ function ActivityListingService(objCollection) {
 				request.account_id,
 				request.workforce_id,
 				request.target_asset_id,
+
+				request.activity_type_id || 0,
+				request.activity_status_id || 0,
+				request.activity_status_type_id || 0,
+
 				request.sort_flag || 0, // 0 => Ascending | 1 => Descending
 				request.flag || 0, // 0 => Due date | 1 => Created date
 				request.page_start,
 				request.page_limit
 			);
-			const queryString = util.getQueryString('ds_v1_1_activity_asset_mapping_select_myqueue', paramsArr);
+			//const queryString = util.getQueryString('ds_v1_1_activity_asset_mapping_select_myqueue', paramsArr);
+			const queryString = util.getQueryString('ds_v1_2_activity_asset_mapping_select_myqueue', paramsArr);
 			if (queryString !== '') {
 				db.executeQuery(1, queryString, request, async function (err, data) {
 					if (err === false) {
-						try {
-							let dataWithParticipant = await appendParticipantList(request, data);
-							resolve(dataWithParticipant);
+						try{
+							if(Number(request.flag) === 3) {
+								resolve(data);
+							} else {
+								let dataWithParticipant = await appendParticipantList(request, data);
+								resolve(dataWithParticipant);
+							}						
 						} catch (error) {
 							console.log("getMyQueueActivitiesV2 | Error", error);
 							resolve(data);
