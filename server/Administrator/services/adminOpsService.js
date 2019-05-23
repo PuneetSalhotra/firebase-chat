@@ -463,71 +463,6 @@ function AdminOpsService(objectCollection) {
         return [error, responseData];
     }
 
-    // Account List Insert
-    async function accountListInsert(request, organizationID) {
-        let responseData = [],
-            error = true;
-
-        const paramsArr = new Array(
-            request.organization_name, // account_name
-            request.organization_image_path || '', // account_image_path
-            request.organization_phone_country_code || 0, // account_phone_country_code
-            request.organization_phone_number || 0, // account_phone_number
-            request.contact_email || '', // account_email
-            request.organization_address || '', // account_address
-            request.account_location_latitide || 0, // account_location_latitide
-            request.account_location_longitude || 0, // account_location_longitude
-            request.contact_person || 'Admin',
-            request.contact_phone_country_code || 0,
-            request.contact_phone_number || 0,
-            request.contact_email || '',
-            request.account_type_id || 1,
-            request.manager_asset_id || 0,
-            organizationID,
-            1, // log_asset_id
-            util.getCurrentUTCTime()
-        );
-        const queryString = util.getQueryString('ds_p1_account_list_insert', paramsArr);
-
-        if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
-                .then((data) => {
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                })
-        }
-        return [error, responseData];
-    }
-
-    // Account List History Insert
-    async function accountListHistoryInsert(request) {
-        let responseData = [],
-            error = true;
-
-        const paramsArr = new Array(
-            request.account_id,
-            request.organization_id,
-            request.update_type_id || 0, // Update Type ID => 0
-            util.getCurrentUTCTime()
-        );
-        const queryString = util.getQueryString('ds_p1_account_list_history_insert', paramsArr);
-
-        if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
-                .then((data) => {
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                })
-        }
-        return [error, responseData];
-    }
-
     // Workforce Insert
     async function workforceListInsert(request, organizationID, accountID) {
         let responseData = [],
@@ -2512,6 +2447,7 @@ function AdminOpsService(objectCollection) {
         }
 
         return [false, {
+            workforce_id: workforceID,
             message: `Workforce, asset types, activity types created with workforce_id: ${workforceID}`
         }]
 
@@ -2617,6 +2553,163 @@ function AdminOpsService(objectCollection) {
             util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_history_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.createAccount = async function (request) {
+        const organizationID = Number(request.organization_id);
+
+        let departmentsList = String(request.departments) || "Floor 1";
+        departmentsList = departmentsList.split(',');
+
+        // Create the account
+        let accountID = 0;
+        const [errOne, accountData] = await accountListInsert(request, organizationID);
+        if (errOne || accountData.length === 0) {
+            return [true, {
+                message: "Error creating account"
+            }]
+
+        } else if (accountData.length > 0) {
+            accountID = accountData[0].account_id;
+
+            // History insert
+            accountListHistoryInsert({
+                account_id: accountID,
+                organization_id: organizationID,
+                update_type_id: 1
+            });
+        }
+
+        // Create Workforces
+        let workforces = [];
+        if (Number(organizationID) !== 0 && Number(accountID) !== 0) {
+            // Fetch generic workforces
+            const [errTwo, workforceTypes] = await adminListingService.workforceTypeMasterSelect({
+                start_from: 0,
+                limit_value: 3
+            });
+            if (errTwo || workforceTypes.length === 0) {
+                return [true, {
+                    message: "Error fetching workforceTypes"
+                }]
+            }
+
+            // Create Generic/Default Workforces
+            for (const workforceType of workforceTypes) {
+                if (Number(workforceType.workforce_type_id) !== 2) {
+                    continue;
+                }
+                // Lobby is the only workforce to be created as of now
+                const [errThree, newWorkforceResponse] = await self.createWorkforce({
+                    workforce_name: workforceType.workforce_type_name,
+                    workforce_type_id: workforceType.workforce_type_id,
+                    log_asset_id: request.asset_id || request.auth_asset_id,
+                    asset_id: request.asset_id,
+                    account_id: accountID,
+                    organization_id: organizationID
+                })
+                if (errThree || Number(newWorkforceResponse.workforce_id) === 0) {
+                    console.log("[createAccount | newWorkforceResponse] Error creating workforce: ", errThree);
+                    continue;
+                }
+                workforces.push({
+                    workforce_id: newWorkforceResponse.workforce_id,
+                    workforce_name: workforceType.workforce_type_name
+                });
+            }
+
+            // Create user-defined workforces
+            for (const userDefinedWorkforceName of departmentsList) {
+                const [errFour, newUserDefinedWorkforceResponse] = await self.createWorkforce({
+                    workforce_name: userDefinedWorkforceName,
+                    workforce_type_id: 1,
+                    log_asset_id: request.asset_id || request.auth_asset_id,
+                    asset_id: request.asset_id,
+                    account_id: accountID,
+                    organization_id: organizationID
+                })
+                if (errFour || Number(newUserDefinedWorkforceResponse.workforce_id) === 0) {
+                    console.log("[createAccount | newUserDefinedWorkforceResponse] Error creating workforce: ", errFour);
+                    continue;
+                }
+                workforces.push({
+                    workforce_id: newUserDefinedWorkforceResponse.workforce_id,
+                    workforce_name: userDefinedWorkforceName
+                });
+            }
+        }
+
+        return [false, {
+            message: "Created account and workforces.",
+            account_id: accountID,
+            workforces
+        }]
+    }
+
+
+    // Account List Insert
+    async function accountListInsert(request, organizationID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_name, // account_name
+            request.organization_image_path || '', // account_image_path
+            request.organization_phone_country_code || 0, // account_phone_country_code
+            request.organization_phone_number || 0, // account_phone_number
+            request.contact_email || '', // account_email
+            request.organization_address || '', // account_address
+            request.account_location_latitide || 0, // account_location_latitide
+            request.account_location_longitude || 0, // account_location_longitude
+            request.contact_person || 'Admin',
+            request.contact_phone_country_code || 0,
+            request.contact_phone_number || 0,
+            request.contact_email || '',
+            request.account_type_id || 1,
+            request.manager_asset_id || 0,
+            organizationID,
+            1, // log_asset_id
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_account_list_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Account List History Insert
+    async function accountListHistoryInsert(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.account_id,
+            request.organization_id,
+            request.update_type_id || 0, // Update Type ID => 0
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_account_list_history_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)

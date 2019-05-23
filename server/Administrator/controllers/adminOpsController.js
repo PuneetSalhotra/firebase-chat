@@ -75,7 +75,6 @@ function AdminOpsController(objCollection) {
         }
     });
 
-
     // Create a new organization
     app.post('/' + global.config.version + '/admin/organization/add', async function (req, res) {
         const [err, workforceData] = await adminOpsService.createOrganization(req.body);
@@ -83,6 +82,17 @@ function AdminOpsController(objCollection) {
             res.send(responseWrapper.getResponse({}, workforceData, 200, req.body));
         } else {
             console.log("/admin/organization/add | Error: ", err);
+            res.send(responseWrapper.getResponse(err, workforceData, -9999, req.body));
+        }
+    });
+
+    // Create a new organization
+    app.post('/' + global.config.version + '/admin/account/add', async function (req, res) {
+        const [err, workforceData] = await adminOpsService.createAccount(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, workforceData, 200, req.body));
+        } else {
+            console.log("/admin/account/add | Error: ", err);
             res.send(responseWrapper.getResponse(err, workforceData, -9999, req.body));
         }
     });
