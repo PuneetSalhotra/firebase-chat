@@ -15,7 +15,7 @@ function AdminOpsService(objectCollection) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    this.setupOrganization = async function (request) {
+    this.createOrganization = async function (request) {
 
         // Check if an organization exists with the same name
         const [errOne, orgCheck] = await adminListingService.organizationListSelectName(request);
@@ -26,8 +26,7 @@ function AdminOpsService(objectCollection) {
             }]
         }
 
-        let organizationID = 0,
-            accountID = 0;
+        let organizationID = 0;
         // Create the organization
         const [errTwo, orgData] = await organizationListInsert(request);
         if (errTwo || orgData.length === 0) {
@@ -45,112 +44,16 @@ function AdminOpsService(objectCollection) {
             });
         }
 
+        // Response
         if (Number(organizationID) !== 0) {
-
-            if (request.organization_domain_name == '') {
-                const domain = request.organization_email.split('@');
-                request.organization_domain_name = domain[1];
-            }
-            const departments = request.departments || "Floor 1,Floor 2,Floor 3,Floor 4,Floor 5";
-            const departments_list = departments.split(',');
-
-            // Create the account
-            const [errThree, accountData] = await accountListInsert(request, organizationID);
-            if (errThree || accountData.length === 0) {
-                return [true, {
-                    message: "Error creating account"
-                }]
-
-            } else if (accountData.length > 0) {
-                accountID = accountData[0].account_id;
-
-                // History insert
-                accountListHistoryInsert({
-                    account_id: accountID,
-                    organization_id: organizationID,
-                    update_type_id: 1
-                });
-            }
+            return [false, {
+                message: `Organization ${request.organization_name} with ID ${organizationID}.`
+            }];
+        } else {
+            return [false, {
+                message: `Error creating organization ${request.organization_name}.`
+            }];
         }
-
-        if (Number(organizationID) !== 0 && Number(accountID) !== 0) {
-            // Fetch generic workforces
-            const [errFour, workforceTypes] = await adminListingService.workforceTypeMasterSelect({
-                start_from: 0,
-                limit_value: 3
-            });
-            if (errFour || workforceTypes.length === 0) {
-                return [true, {
-                    message: "Error fetching workforceTypes"
-                }]
-            }
-
-            // Create Generic Workforces
-            for (const workforceType of workforceTypes) {
-                // Create the workforce
-                let [errFive, workforceData] = await workforceListInsert({
-                    workforce_name: workforceType.workforce_type_name,
-                    workforce_type_id: workforceType.workforce_type_id
-                }, organizationID, accountID);
-
-                if (errFive || workforceTypes.length === 0) {
-                    return [true, {
-                        message: `Error creating workforce ${workforceType.workforce_type_name}`
-                    }]
-                }
-                try {
-                    // History insert
-                    await workforceListHistoryInsert({
-                        workforce_id: workforceData[0].workforce_id,
-                        organization_id: organizationID
-                    });
-                } catch (error) {}
-
-                let workforceID = workforceData[0].workforce_id;
-                // Fetch workforce asset types
-                const [errSix, assetTypes] = await adminListingService.assetTypeCategoryMasterSelect({
-                    product_id: 1,
-                    start_from: 0,
-                    limit_value: 14
-                });
-                if (errSix || assetTypes.length === 0) {
-                    return [true, {
-                        message: `Error fetching assetTypes`
-                    }]
-                }
-                // Create workforce asset types
-                for (const assetType of assetTypes) {
-                    const [errSeven, assetTypeData] = await workforceAssetTypeMappingInsert({
-                        asset_type_name: assetType.asset_type_category_name,
-                        asset_type_description: assetType.asset_type_category_description,
-                        asset_type_category_id: assetType.asset_type_category_id
-                    }, workforceID, organizationID, accountID);
-
-                    if (errSeven || assetTypeData.length === 0) {
-                        console.log(`Error creating assetType ${assetType.asset_type_category_name} for workforce ${workforceID}`);
-                    }
-
-                    if (assetTypeData.length > 0) {
-                        let assetTypeID = assetTypeData[0].asset_type_id;
-                        try {
-                            // History insert
-                            await workforceAssetTypeMappingHistoryInsert({
-                                update_type_id: 0
-                            }, assetTypeID, organizationID);
-                        } catch (error) {}
-                        // 
-                    }
-
-                    // Populate asset types to the new workflow created
-                    workforceData = appendAssetTypesToWorkforceData(workforceData, assetType, assetTypeData);
-
-                }
-            }
-
-        }
-
-        // 
-        return [false, {}];
     }
 
     // Create Asset Bundle
@@ -545,7 +448,7 @@ function AdminOpsService(objectCollection) {
             request.update_type_id || 0, // Update Type ID => 0
             util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_p1_organization_list_insert', paramsArr);
+        const queryString = util.getQueryString('ds_p1_organization_list_history_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
