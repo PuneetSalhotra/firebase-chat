@@ -2628,10 +2628,59 @@ function AdminOpsService(objectCollection) {
                     workforce_id: newWorkforceResponse.workforce_id,
                     workforce_name: workforceType.workforce_type_name
                 });
+
+                // Create default desks in the lobby
+                // Access Management
+                // Building Management
+                let genericWorkforceAssetTypeIDs = [];
+                if (Number(workforceType.workforce_type_id) === 2) {
+                    genericWorkforceAssetTypeIDs = [
+                        7, // Access Management Desk
+                        23 // Building Management Desk
+                    ];
+                }
+                for (const genericWorkforceAssetTypeID of genericWorkforceAssetTypeIDs) {
+                    // Fetch workforce asset type ID
+                    const [errNine, workforceGenericAssetTypeData] = await adminListingService.workforceAssetTypeMappingSelectCategory({
+                        organization_id: organizationID,
+                        account_id: accountID,
+                        workforce_id: newWorkforceResponse.workforce_id,
+                        asset_type_category_id: genericWorkforceAssetTypeID
+                    });
+                    if (errNine || Number(workforceGenericAssetTypeData.length) === 0) {
+                        console.log("createAccount | Create Generic Desks | workforceAssetTypeMappingSelectCategory | Error: ", errNine);
+                        continue;
+                    }
+                    const workforceGenericAssetTypeID = workforceGenericAssetTypeData[0].asset_type_id;
+                    const workforceGenericAssetTypeName = workforceGenericAssetTypeData[0].asset_type_name;
+
+                    try {
+                        // Create the Generic Desks
+                        const [errTen, deskAssetID, contactCardActivityID] = await fireDeskAssetCreationService(
+                            request,
+                            { emp_designation: workforceGenericAssetTypeName },
+                            workforceGenericAssetTypeID,
+                            newWorkforceResponse.workforce_id,
+                            workforceGenericAssetTypeName,
+                            accountID,
+                            organizationID
+                        );
+                        if (errTen !== false) {
+                            throw new Error(errTen);
+                        }
+                        console.log("Generic Desk Asset ID: ", deskAssetID);
+                        console.log("Generic Contact Card Activity ID: ", contactCardActivityID);
+                    } catch (error) {
+                        console.log("Create the Generic Desk Asset Error: ", error);
+                        continue;
+                    }
+                }
+
             }
 
             // Create user-defined workforces
-            for (const userDefinedWorkforceName of departmentsList) {
+            for (const [index, userDefinedWorkforceName] of Array.from(departmentsList).entries()) {
+                // continue;
                 const [errFour, newUserDefinedWorkforceResponse] = await self.createWorkforce({
                     workforce_name: userDefinedWorkforceName,
                     workforce_type_id: 1,
@@ -2648,6 +2697,81 @@ function AdminOpsService(objectCollection) {
                     workforce_id: newUserDefinedWorkforceResponse.workforce_id,
                     workforce_name: userDefinedWorkforceName
                 });
+                // Create the employees/administrator only on the frist floor
+                if (Number(index) == 0) {
+                    const employeeList = JSON.parse(request.employee_list);
+                    
+                    for (const employee of employeeList) {
+                        // check if + is appended to string
+                        if (String(employee.emp_coutry_code).indexOf('+') > -1) {
+                            employee.emp_coutry_code = employee.emp_coutry_code.substring(1);
+                        }
+
+                        // Fetch workforce desk asset type ID
+                        const [errFive, workforceAssetTypeData] = await adminListingService.workforceAssetTypeMappingSelectCategory({
+                            organization_id: organizationID,
+                            account_id: accountID,
+                            workforce_id: newUserDefinedWorkforceResponse.workforce_id,
+                            asset_type_category_id: 3
+                        });
+                        if (errFive || Number(workforceAssetTypeData.length) === 0) {
+                            console.log("createAccount | Create Desk | workforceAssetTypeMappingSelectCategory | Error: ", errFive);
+                            continue;
+                        }
+                        const workforceDeskAssetTypeID = workforceAssetTypeData[0].asset_type_id;
+                        
+                        // Fetch workforce desk asset type ID
+                        const [errSeven, workforceEmployeeAssetTypeData] = await adminListingService.workforceAssetTypeMappingSelectCategory({
+                            organization_id: organizationID,
+                            account_id: accountID,
+                            workforce_id: newUserDefinedWorkforceResponse.workforce_id,
+                            asset_type_category_id: 2
+                        });
+                        if (errSeven || Number(workforceEmployeeAssetTypeData.length) === 0) {
+                            console.log("createAccount | Create Employee | workforceAssetTypeMappingSelectCategory | Error: ", errSeven);
+                            continue;
+                        }
+                        const workforceEmployeeAssetTypeID = workforceEmployeeAssetTypeData[0].asset_type_id;
+
+                        try {
+                            // Create the Desk Asset
+                            const [errSix, deskAssetID, contactCardActivityID] = await fireDeskAssetCreationService(
+                                request,
+                                employee,
+                                workforceEmployeeAssetTypeID,
+                                newUserDefinedWorkforceResponse.workforce_id,
+                                userDefinedWorkforceName,
+                                accountID,
+                                organizationID
+                            );
+                            if (errSix !== false) {
+                                throw new Error(errSix);
+                            }
+                            console.log("Desk Asset ID: ", deskAssetID);
+                            console.log("Contact Card Activity ID: ", contactCardActivityID);
+
+                            // Create the Desk Asset
+                            const [errEight, employeeAssetID, idCardActivityID] = await fireEmployeeAssetCreationService(
+                                request,
+                                employee,
+                                workforceDeskAssetTypeID,
+                                newUserDefinedWorkforceResponse.workforce_id,
+                                userDefinedWorkforceName,
+                                accountID,
+                                organizationID,
+                                deskAssetID
+                            );
+                            if (errEight !== false) {
+                                throw new Error(errEight);
+                            }
+                            console.log("Employee Asset ID: ", employeeAssetID);
+                            console.log("ID Card Activity ID: ", idCardActivityID);
+                        } catch (error) {
+                            console.log("Create the Desk/Employee Asset Error: ", error);
+                            continue;
+                        }
+                    }
+                }
             }
         }
 
@@ -2658,6 +2782,106 @@ function AdminOpsService(objectCollection) {
         }]
     }
 
+    async function fireDeskAssetCreationService(request, employee, workforceDeskAssetTypeID, workforceID, workforceName, accountID, organizationID) {
+        const addDeskAssetRequest = {
+            asset_id: request.auth_asset_id,
+            asset_token_auth: request.asset_token_auth,
+            asset_first_name: employee.emp_designation,
+            asset_last_name: "",
+            asset_description: employee.emp_designation,
+            customer_unique_id: 0,
+            asset_image_path: "",
+            id_card_json: JSON.stringify({}),
+            country_code: Number(request.contact_phone_country_code),
+            phone_number: Number(request.contact_phone_number),
+            email_id: request.contact_email || "",
+            timezone_id: 0,
+            asset_type_id: workforceDeskAssetTypeID || 0,
+            operating_asset_id: 0,
+            manager_asset_id: 0,
+            workforce_id: workforceID,
+            workforce_name: workforceName,
+            account_id: accountID,
+            organization_name: request.organization_name,
+            organization_id: organizationID,
+            log_asset_id: 31981,
+            stream_type_id: 11018,
+            asset_type_category_id: 3,
+            asset_status_id: 3
+        };
+        const addDeskAssetAsync = nodeUtil.promisify(makeRequest.post);
+        const makeRequestOptions = {
+            form: addDeskAssetRequest
+        };
+        let deskAssetID = 0, contactCardActivityID = 0;
+        try {
+            // global.config.mobileBaseUrl + global.config.version
+            const response = await addDeskAssetAsync('https://stagingapi.worlddesk.cloud/r0' + '/admin/workforce/desk/add', makeRequestOptions);
+            const body = JSON.parse(response.body);
+            if (Number(body.status) === 200) {
+                console.log("createAccount | createWorkforce | fireDeskAssetCreationService | Body: ", body);
+                deskAssetID = body.response.asset_id;
+                contactCardActivityID = body.response.activity_id;
+            }
+        } catch (error) {
+            console.log("createAccount | createWorkforce | fireDeskAssetCreationService | Error: ", error);
+            return [error, deskAssetID, contactCardActivityID];
+        }
+
+        return [false, deskAssetID, contactCardActivityID];
+    }
+
+    async function fireEmployeeAssetCreationService(request, employee, workforceEmployeeAssetTypeID, workforceID, workforceName, accountID, organizationID, deskAssetID) {
+        const addEmployeeAssetRequest = {
+            asset_id: request.auth_asset_id,
+            asset_token_auth: request.asset_token_auth,
+            asset_first_name: employee.emp_first_name,
+            asset_last_name: employee.emp_last_name,
+            customer_unique_id: employee.emp_id,
+            gender_id: 4,
+            asset_image_path: "",
+            id_card_json: JSON.stringify({}),
+            country_code: employee.emp_coutry_code,
+            phone_number: employee.emp_coutry_code,
+            email_id: employee.emp_email,
+            timezone_id: 0,
+            asset_type_id: workforceEmployeeAssetTypeID,
+            operating_asset_id: 0,
+            manager_asset_id: 0,
+            workforce_id: workforceID,
+            account_id: accountID,
+            organization_id: organizationID,
+            log_asset_id: request.auth_asset_id,
+            stream_type_id: 11006,
+            workforce_name: workforceName,
+            account_city: request.account_city,
+            organization_name: request.organization_name,
+            joined_datetime: util.getCurrentUTCTime(),
+            desk_asset_id: deskAssetID,
+            asset_access_role_id: 1,
+            asset_access_level_id: 5
+        };
+        const addEmployeeAssetAsync = nodeUtil.promisify(makeRequest.post);
+        const makeRequestOptions = {
+            form: addEmployeeAssetRequest
+        };
+        let employeeAssetID = 0, idCardActivityID = 0;
+        try {
+            // global.config.mobileBaseUrl + global.config.version
+            const response = await addEmployeeAssetAsync('https://stagingapi.worlddesk.cloud/r0' + '/admin/workforce/desk/employee/add', makeRequestOptions);
+            const body = JSON.parse(response.body);
+            if (Number(body.status) === 200) {
+                console.log("createAccount | createWorkforce | fireEmployeeAssetCreationService | Body: ", body);
+                employeeAssetID = body.response.operating_asset_id;
+                idCardActivityID = body.response.id_card_activity_id;
+            }
+        } catch (error) {
+            console.log("createAccount | createWorkforce | fireEmployeeAssetCreationService | Error: ", error);
+            return [error, employeeAssetID, idCardActivityID];
+        }
+
+        return [false, employeeAssetID, idCardActivityID];
+    }
 
     // Account List Insert
     async function accountListInsert(request, organizationID) {
