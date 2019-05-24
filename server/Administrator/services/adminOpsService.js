@@ -2738,7 +2738,7 @@ function AdminOpsService(objectCollection) {
                             const [errSix, deskAssetID, contactCardActivityID] = await fireDeskAssetCreationService(
                                 request,
                                 employee,
-                                workforceEmployeeAssetTypeID,
+                                workforceDeskAssetTypeID,
                                 newUserDefinedWorkforceResponse.workforce_id,
                                 userDefinedWorkforceName,
                                 accountID,
@@ -2754,7 +2754,7 @@ function AdminOpsService(objectCollection) {
                             const [errEight, employeeAssetID, idCardActivityID] = await fireEmployeeAssetCreationService(
                                 request,
                                 employee,
-                                workforceDeskAssetTypeID,
+                                workforceEmployeeAssetTypeID,
                                 newUserDefinedWorkforceResponse.workforce_id,
                                 userDefinedWorkforceName,
                                 accountID,
@@ -2816,7 +2816,8 @@ function AdminOpsService(objectCollection) {
         let deskAssetID = 0, contactCardActivityID = 0;
         try {
             // global.config.mobileBaseUrl + global.config.version
-            const response = await addDeskAssetAsync('https://stagingapi.worlddesk.cloud/r0' + '/admin/workforce/desk/add', makeRequestOptions);
+            // https://stagingapi.worlddesk.cloud/r0
+            const response = await addDeskAssetAsync(global.config.mobileBaseUrl + global.config.version + '/admin/workforce/desk/add', makeRequestOptions);
             const body = JSON.parse(response.body);
             if (Number(body.status) === 200) {
                 console.log("createAccount | createWorkforce | fireDeskAssetCreationService | Body: ", body);
@@ -2868,7 +2869,8 @@ function AdminOpsService(objectCollection) {
         let employeeAssetID = 0, idCardActivityID = 0;
         try {
             // global.config.mobileBaseUrl + global.config.version
-            const response = await addEmployeeAssetAsync('https://stagingapi.worlddesk.cloud/r0' + '/admin/workforce/desk/employee/add', makeRequestOptions);
+            // https://stagingapi.worlddesk.cloud/r0
+            const response = await addEmployeeAssetAsync(global.config.mobileBaseUrl + global.config.version + '/admin/workforce/desk/employee/add', makeRequestOptions);
             const body = JSON.parse(response.body);
             if (Number(body.status) === 200) {
                 console.log("createAccount | createWorkforce | fireEmployeeAssetCreationService | Body: ", body);
