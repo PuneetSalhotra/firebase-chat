@@ -862,7 +862,7 @@ function WidgetService(objCollection) {
                     request.activity_status_type_id
                 );
 
-            var queryString = util.getQueryString('ds_p1_widget_activity_field_transaction_select_drilldown', paramsArray);
+            var queryString = util.getQueryString('ds_p1_3_widget_activity_field_transaction_select_drilldown', paramsArray);
             if (queryString !== '') {
                 await db.executeQueryPromise(1, queryString, request)
                     .then((data) => {                       
