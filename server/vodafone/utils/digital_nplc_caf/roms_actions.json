@@ -140,5 +140,12 @@
             ],
             "VALUE": "As Per CAF Annexure"
         }]
+    },
+    {
+        "ACTION": "set_workflow_as_bulk_order",
+        "BATCH": [{
+            "SOURCE_FORM_ID": 1261,
+            "SOURCE_FIELD_ID": 10489
+        }]
     }
 ]
