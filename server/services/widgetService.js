@@ -724,7 +724,7 @@ function WidgetService(objCollection) {
                     request.workforce_type_id || 0
                 );
 
-            var queryString = util.getQueryString('ds_p1_1_widget_activity_field_transaction_select_sum_status_date', paramsArray);
+            var queryString = util.getQueryString('ds_p1_3_widget_activity_field_transaction_select_sum_status_date', paramsArray);
             if (queryString !== '') {
                 await db.executeQueryPromise(1, queryString, request)
                     .then((data) => {                       
@@ -741,7 +741,7 @@ function WidgetService(objCollection) {
             if(request.flag == 6 || request.flag == 7){
                 paramsArray[4]=10;
             }
-            var queryString1 = util.getQueryString('ds_p1_1_widget_activity_field_transaction_select_sum_status_date', paramsArray);
+            var queryString1 = util.getQueryString('ds_p1_3_widget_activity_field_transaction_select_sum_status_date', paramsArray);
             if (queryString !== '') {
                 await db.executeQueryPromise(1, queryString1, request)
                     .then((monthlyData) => {
@@ -812,7 +812,7 @@ function WidgetService(objCollection) {
                 request.tag_type_id, 
                 request.workforce_type_id
             );
-            let queryString = util.getQueryString('ds_p1_widget_activity_field_transaction_select_avg_time', paramsArr);
+            let queryString = util.getQueryString('ds_p1_3_widget_activity_field_transaction_select_avg_time', paramsArr);
             if (queryString != '') {                
                 return await (db.executeQueryPromise(1, queryString, request));
             }
@@ -833,7 +833,7 @@ function WidgetService(objCollection) {
             request.tag_type_id, 
             request.workforce_type_id
         );
-        let queryString = util.getQueryString('ds_p1_widget_activity_field_transaction_select_avg_time', paramsArr);
+        let queryString = util.getQueryString('ds_p1_3_widget_activity_field_transaction_select_avg_time', paramsArr);
         if (queryString != '') {                
             return await (db.executeQueryPromise(1, queryString, request));
         }
