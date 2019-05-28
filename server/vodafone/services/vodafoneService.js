@@ -714,7 +714,6 @@ function VodafoneService(objectCollection) {
 
     }
 
-
     function changeStatusToHLDPending(request) {
         return new Promise((resolve, reject) => {
 
@@ -743,110 +742,6 @@ function VodafoneService(objectCollection) {
             resolve();
         });
     }
-
-    /*function frFormApiIntegration(request) {
-        return new Promise((resolve, reject)=>{
-            var requestOptionsForFrPull = Object.assign(request);
-            requestOptionsForFrPull.api_secret = global.config.frApiSecret;
-            requestOptionsForFrPull.url = 'vodafone/fr/pull';
-
-            activityCommonService.makeRequest(requestOptionsForFrPull, requestOptionsForFrPull.url, 1).then((resp)=>{
-                global.logger.write('debug', resp, {}, request);
-                let frResponse = JSON.parse(resp);             
-                
-                var frPulledRespAsTlReq = Object.assign(request);
-                frPulledRespAsTlReq.activity_timeline_collection = JSON.stringify(frResponse.response);
-                frPulledRespAsTlReq.activity_form_id = global.config.frFormId;
-
-                if (Number(frResponse.status) === 200) {
-                    //Timeline Entry
-                    var event = {
-                        name: "vodafone",
-                        service: "vodafoneService",
-                        method: "addTimelineTransactionVodafone",
-                        payload: frPulledRespAsTlReq
-                    }
-
-                    queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
-                        if (err) {
-                            global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent : ' + JSON.stringify(resp, null, 2), err, request);
-                            throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
-                        } else {
-                            global.logger.write('debug', 'Successfullly FR form timeline entry done', {}, request);
-                        }
-                     });
-                 resolve();
-              } else {
-                  reject('Status is ' + Number(frResponse.status) +' while doing FR Pull Request');
-              }
-            });
-      });
-    };
-    
-    
-    function crmFormApiIntegration(request, customerData) {
-        return new Promise((resolve, reject)=>{
-            
-            var requestOptionsForCrmPull = Object.assign(request);            
-            requestOptionsForCrmPull.api_secret = global.config.crmApiSecret;
-            requestOptionsForCrmPull.url = 'vodafone/crm_portal/pull';
-
-            activityCommonService.makeRequest(requestOptionsForCrmPull, requestOptionsForCrmPull.url, 1).then((resp)=>{
-                global.logger.write('debug', resp, {}, request);
-                let crmResponse = JSON.parse(resp);
-                crmResponse.activity_timeline_collection = crmResponse.response;
-                crmResponse.activity_form_id = global.config.crmFormId;
-                
-                if (Number(crmResponse.status) === 200) {
-                    request.authorised_signatory_contact_number = crmResponse.response.authorised_signatory_contact_number || 'undefined';
-                    request.authorised_signatory_email = crmResponse.response.authorised_signatory_email || 'undefined';
-                    
-                    if(request.authorised_signatory_contact_number == 'undefined' || request.authorised_signatory_email == 'undefined') {
-                        reject('Authorised Signatory phone number or email is missing from CRM Pull');
-                    } else {
-                        
-                        customerData.first_name = crmResponse.response.authorised_signatory_name || "";
-                        customerData.contact_company = crmResponse.response.company_name || "";
-                        customerData.contact_phone_country_code = "";
-                        customerData.contact_phone_number = request.authorised_signatory_contact_number;
-                        customerData.contact_email_id = request.authorised_signatory_email;
-                        customerData.contact_designation = crmResponse.response.ba_contact_designation || "";
-                        
-                        console.log("firstName: ", customerData.first_name);
-                        console.log("contactCompany: ", customerData.contact_company);
-                        console.log("contactPhoneCountryCode: ", customerData.contact_phone_country_code);
-                        console.log("contactPhoneNumber: ", customerData.contact_phone_number);
-                        console.log("contactEmailId: ", customerData.contact_email_id);
-                        console.log("contactDesignation: ", customerData.contact_designation);
-                        
-                        var crmPulledRespAsTlReq = Object.assign(request);
-                        crmPulledRespAsTlReq.activity_timeline_collection = JSON.stringify(crmResponse.response);
-                        crmPulledRespAsTlReq.activity_form_id = global.config.crmFormId;
-                        
-                        //Timeline Entry
-                        var event = {
-                            name: "vodafone",
-                            service: "vodafoneService",
-                            method: "addTimelineTransactionVodafone",
-                            payload: crmPulledRespAsTlReq
-                        }
-
-                        queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
-                            if (err) {
-                                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent : ' + JSON.stringify(resp, null, 2), err, request);
-                                throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
-                            } else {
-                                global.logger.write('debug', 'Successfullly FR form timeline entry done', {}, request);
-                           }
-                        });
-                        resolve();
-                    }
-                } else {
-                    reject('Status is ' + Number(crmResponse.status) +' while doing CRM Pull Request');
-                }
-        });
-      });
-    };*/
 
     function createAssetContactDesk(request, customerData) {
         return new Promise((resolve, reject) => {
@@ -1014,41 +909,6 @@ function VodafoneService(objectCollection) {
         });
     }
 
-    /*function createContactFile(newRequest, operatingAssetId) {
-        return new Promise((resolve, reject)=>{
-           var contactJson = eval('(' + newRequest.activity_inline_data + ')');
-           contactJson['contact_asset_id'] = operatingAssetId;
-           newRequest.activity_inline_data = JSON.stringify(contactJson);
-           newRequest.message_unique_id = util.getMessageUniqueId(newRequest.asset_id);
-                                  
-           cacheWrapper.getActivityId(function (err, activityId) {
-            if (err) {
-                console.log(err);
-                global.logger.write('debug', err, err, newRequest);
-                reject(err);
-            } else {
-                newRequest['activity_id'] = activityId;
-                var event = {
-                    name: "addActivity",
-                    service: "activityService",
-                    method: "addActivity",
-                    payload: newRequest
-                };
-                
-            queueWrapper.raiseActivityEvent(event, newRequest.activity_id, (err, resp) => {
-                if (err) {
-                    console.log("\x1b[35m [ERROR] Raising queue activity raised for creating Contact File. \x1b[0m")
-                } else {
-                    console.log("\x1b[35m Queue activity raised for creating Contact File. \x1b[0m");
-                    resolve(activityId);
-               }
-            });            
-            }
-          });       
-        });
-    };*/
-
-
     function addCustomerAsParticipantToContFile(request, contactFileActId, customerData, operatingAssetId) {
         return new Promise((resolve, reject) => {
 
@@ -1142,28 +1002,6 @@ function VodafoneService(objectCollection) {
             global.logger.write('debug', err, {}, request);
             callback(true, {}, -9998);
         });
-        /*fetchReferredFormActivityId(request, request.activity_id, request.form_transaction_id, request.form_id).then((data)=>{               
-               global.logger.write('debug', data,{}, request);
-                                    
-               if (data.length > 0) {
-                    request.new_order_activity_id = Number(data[0].activity_id);
-               }
-               
-               vodafoneSendEmail(request, {
-                    firstName,
-                    contactPhoneCountryCode,
-                    contactPhoneNumber,
-                    contactEmailId,
-                    customerServiceDeskAssetID: deskAssetId
-                    }).then(()=>{
-                        callback(false,{},200);
-                    }).catch((err)=>{
-                        console.log('err : ' , err);
-                        global.logger.write('debug', err, {}, request);
-                        callback(true,{},-9998);
-                    });
-        });*/
-
     };
 
     function vodafoneSendEmail(request, customerCollection) {
@@ -1747,27 +1585,6 @@ function VodafoneService(objectCollection) {
             CAF_ACTIVITY_TYPE_ID,
             CAF_BOT_ASSET_ID,
             CAF_BOT_ENC_TOKEN;
-
-        /*if (Number(request.organization_id) === 860) {
-            // CAF
-            CAF_ORGANIZATION_ID = 860; // Vodafone Idea Beta
-            CAF_ACCOUNT_ID = 975; // Central OMT Beta
-            CAF_WORKFORCE_ID = 5355; // Lobby
-            CAF_ACTIVITY_TYPE_ID = 133250;
-            // CAF BOT
-            CAF_BOT_ASSET_ID = 31347;
-            CAF_BOT_ENC_TOKEN = "05986bb0-e364-11e8-a1c0-0b6831833754";
-
-        } else if (Number(request.organization_id) === 858) {
-            // CAF
-            CAF_ORGANIZATION_ID = 858; // Vodafone Idea Beta
-            CAF_ACCOUNT_ID = 973; // Central OMT Beta
-            CAF_WORKFORCE_ID = 5345; // Lobby
-            CAF_ACTIVITY_TYPE_ID = 133000;
-            // CAF BOT
-            CAF_BOT_ASSET_ID = 31298;
-            CAF_BOT_ENC_TOKEN = "3dc16b80-e338-11e8-a779-5b17182fa0f6";
-        } */
 
         switch (Number(request.organization_id)) {
             case 860: // CAF
@@ -3943,44 +3760,6 @@ function VodafoneService(objectCollection) {
                 } else {
                     console.log("[Failure] alterFormActivity: ", alterFormActivitySuccess);
                 }
-
-
-                //713 Entry onto the Workflow File
-                /*let fire713OnWFFileRequest = Object.assign({}, request);
-                    fire713OnWFFileRequest.activity_id = Number(newOrderFormActivityId); //newOrderFormActivityId is workflow activity id
-                    fire713OnWFFileRequest.data_activity_id = Number(cafFormActivityId);
-                    fire713OnWFFileRequest.form_transaction_id = Number(cafFormTransactionId);
-                    fire713OnWFFileRequest.activity_timeline_collection = JSON.stringify(cafActivityTimelineCollectionData);                    
-                    fire713OnWFFileRequest.activity_type_category_id = 9;
-                    fire713OnWFFileRequest.activity_stream_type_id = 713;
-                    fire713OnWFFileRequest.form_id = Number(CAF_FORM_ID);
-                    fire713OnWFFileRequest.asset_message_counter = 0;
-                    fire713OnWFFileRequest.message_unique_id = util.getMessageUniqueId(request.asset_id);
-                    fire713OnWFFileRequest.activity_timeline_text = '';
-                    fire713OnWFFileRequest.activity_timeline_url = '';
-                    fire713OnWFFileRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
-                    fire713OnWFFileRequest.flag_timeline_entry = 1;
-                    fire713OnWFFileRequest.service_version = '1.0';
-                    fire713OnWFFileRequest.app_version = '2.8.16';
-                    fire713OnWFFileRequest.device_os_id = 7;                    
-
-                    let fire713OnWFFileRequestEvent = {
-                        name: "addTimelineTransaction",
-                        service: "activityTimelineService",
-                        method: "addTimelineTransaction",
-                        location: "456456456456456456456",
-                        payload: fire713OnWFFileRequestEvent
-                    };
-
-                    queueWrapper.raiseActivityEvent(fire713OnWFFileRequestEvent, request.activity_id, (err, resp) => {
-                        if (err) {
-                            global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                            global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
-                        } else {
-                            global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                            global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
-                        }
-                    });*/
 
             })
             .catch((error) => {
