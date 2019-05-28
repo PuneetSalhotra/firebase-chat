@@ -5465,6 +5465,7 @@ function VodafoneService(objectCollection) {
         // const fs = require("fs");
         // fs.writeFileSync('/Users/Bensooraj/Desktop/desker_api/server/vodafone/utils/originFormTemplate.json', JSON.stringify(originFormTemplate, null, 2), 'utf-8');
 
+        let childOrderOriginFormActivityDetails = [];
         // Iterate through each row entry in the Bulk Order excel sheet and
         // create child workflows
         const BULK_ORDER_ORIGIN_FORM_MAPPING_DATA = global.vodafoneConfig[formWorkflowActivityTypeID].BULK_ORDER_ORIGIN_FORM_MAPPING_DATA;
@@ -5573,6 +5574,12 @@ function VodafoneService(objectCollection) {
                 if (Number(body.status) === 200) {
                     childOrderOriginFormActivityId = body.response.activity_id;
                     childOrderOriginFormTransactionId = body.response.form_transaction_id;
+
+                    childOrderOriginFormActivityDetails.push({
+                        origin_form_name: `${parentWorkflowOriginFormActivityTitle}-${childOrderNameSuffix}`,
+                        origin_form_activity_id: childOrderOriginFormActivityId,
+                        origin_form_transaction_id: childOrderOriginFormTransactionId,
+                    });
                 }
             } catch (error) {
                 console.log("addActivityAsync | Error: ", error);
@@ -5587,7 +5594,8 @@ function VodafoneService(objectCollection) {
         }
 
         return [false, {
-            message: "All went well!"
+            message: "All went well!",
+            child_orders: childOrderOriginFormActivityDetails
         }];
     }
 }
