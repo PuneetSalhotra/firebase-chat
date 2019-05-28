@@ -5356,7 +5356,41 @@ function VodafoneService(objectCollection) {
     const XLSX = require('xlsx');
 
     this.vodafoneCreateChildOrdersFromExcelUpload = async function (request, parentWorkflowActivityID, bulkOrderExcelFile) {
-        
+
+        try {
+            // Set activity_sub_type_id=1 in Activity List
+            await activityListUpdateSubType({
+                organization_id: request.organization_id,
+                account_id: request.account_id,
+                workforce_id: request.workforce_id,
+                activity_sub_type_id: 1,
+                asset_id: request.asset_id
+            }, parentWorkflowActivityID);
+
+            // Set activity_sub_type_id=1 in Activity Asset Mapping
+            await activityAssetMappingUpdateSubType({
+                organization_id: request.organization_id,
+                account_id: request.account_id,
+                workforce_id: request.workforce_id,
+                activity_sub_type_id: 1,
+                asset_id: request.asset_id
+            }, parentWorkflowActivityID);
+
+            // Set activity_sub_type_id=1 in Queue Activity Mapping
+            await queueActivityMappingUpdateSubType({
+                organization_id: request.organization_id,
+                activity_sub_type_id: 1,
+                asset_id: request.asset_id
+            }, parentWorkflowActivityID);
+
+        } catch (error) {
+            console.log("performRomsCalculations | set_workflow_as_bulk_order | Set activity_sub_type_id | Error: ", error);
+            // If there's an error setting the activity_sub_type_id, return
+            return [true, {
+                message: "Unable to activity_sub_type_id for the workflow. Please try again."
+            }];
+        }
+
         let formWorkflowActivityTypeID = 0;
         const MAX_CHILD_ORDERS_TO_BE_PARSED = 500;
 
@@ -5378,12 +5412,6 @@ function VodafoneService(objectCollection) {
 
         const childOrderOriginFormID = global.vodafoneConfig[formWorkflowActivityTypeID].ORIGIN_FORM_ID;
 
-        // const [errOne, workbook] = await util.getXlsxWorkbookFromS3Url(request, bulkOrderExcelS3BucketURL);
-        // if (errOne) {
-        //     console.log("Error fetching excel sheet S3 and parsing it: ", errOne);
-        //     return [true, {}];
-        // }
-        // const sheet_names = workbook.SheetNames;
         const workbook = XLSX.readFile(`${bulkOrderExcelFile.path}`, {
             type: "buffer"
         });
@@ -5486,7 +5514,7 @@ function VodafoneService(objectCollection) {
             // childOrderFormDataMap
             const childOrderFormData = [...childOrderFormDataMap.values()];
             // fs.writeFileSync(`/Users/Bensooraj/Desktop/desker_api/server/vodafone/utils/childOrderFormData-${key}.json`, JSON.stringify(childOrderFormData, null, 2), 'utf-8');
-            
+
             let childOrderOriginFormName = '',
                 originFormActivityTypeID = 0;
             const [originFormConfigError, originFormConfigData] = await activityCommonService.workforceFormMappingSelect({
