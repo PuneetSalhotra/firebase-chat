@@ -5356,7 +5356,41 @@ function VodafoneService(objectCollection) {
     const XLSX = require('xlsx');
 
     this.vodafoneCreateChildOrdersFromExcelUpload = async function (request, parentWorkflowActivityID, bulkOrderExcelFile) {
-        
+
+        try {
+            // Set activity_sub_type_id=1 in Activity List
+            await activityListUpdateSubType({
+                organization_id: request.organization_id,
+                account_id: request.account_id,
+                workforce_id: request.workforce_id,
+                activity_sub_type_id: 1,
+                asset_id: request.asset_id
+            }, parentWorkflowActivityID);
+
+            // Set activity_sub_type_id=1 in Activity Asset Mapping
+            await activityAssetMappingUpdateSubType({
+                organization_id: request.organization_id,
+                account_id: request.account_id,
+                workforce_id: request.workforce_id,
+                activity_sub_type_id: 1,
+                asset_id: request.asset_id
+            }, parentWorkflowActivityID);
+
+            // Set activity_sub_type_id=1 in Queue Activity Mapping
+            await queueActivityMappingUpdateSubType({
+                organization_id: request.organization_id,
+                activity_sub_type_id: 1,
+                asset_id: request.asset_id
+            }, parentWorkflowActivityID);
+
+        } catch (error) {
+            console.log("performRomsCalculations | set_workflow_as_bulk_order | Set activity_sub_type_id | Error: ", error);
+            // If there's an error setting the activity_sub_type_id, return
+            return [true, {
+                message: "Unable to activity_sub_type_id for the workflow. Please try again."
+            }];
+        }
+
         let formWorkflowActivityTypeID = 0;
         const MAX_CHILD_ORDERS_TO_BE_PARSED = 500;
 
@@ -5378,12 +5412,6 @@ function VodafoneService(objectCollection) {
 
         const childOrderOriginFormID = global.vodafoneConfig[formWorkflowActivityTypeID].ORIGIN_FORM_ID;
 
-        // const [errOne, workbook] = await util.getXlsxWorkbookFromS3Url(request, bulkOrderExcelS3BucketURL);
-        // if (errOne) {
-        //     console.log("Error fetching excel sheet S3 and parsing it: ", errOne);
-        //     return [true, {}];
-        // }
-        // const sheet_names = workbook.SheetNames;
         const workbook = XLSX.readFile(`${bulkOrderExcelFile.path}`, {
             type: "buffer"
         });
@@ -5465,6 +5493,7 @@ function VodafoneService(objectCollection) {
         // const fs = require("fs");
         // fs.writeFileSync('/Users/Bensooraj/Desktop/desker_api/server/vodafone/utils/originFormTemplate.json', JSON.stringify(originFormTemplate, null, 2), 'utf-8');
 
+        let childOrderOriginFormActivityDetails = [];
         // Iterate through each row entry in the Bulk Order excel sheet and
         // create child workflows
         const BULK_ORDER_ORIGIN_FORM_MAPPING_DATA = global.vodafoneConfig[formWorkflowActivityTypeID].BULK_ORDER_ORIGIN_FORM_MAPPING_DATA;
@@ -5485,7 +5514,7 @@ function VodafoneService(objectCollection) {
             // childOrderFormDataMap
             const childOrderFormData = [...childOrderFormDataMap.values()];
             // fs.writeFileSync(`/Users/Bensooraj/Desktop/desker_api/server/vodafone/utils/childOrderFormData-${key}.json`, JSON.stringify(childOrderFormData, null, 2), 'utf-8');
-            
+
             let childOrderOriginFormName = '',
                 originFormActivityTypeID = 0;
             const [originFormConfigError, originFormConfigData] = await activityCommonService.workforceFormMappingSelect({
@@ -5567,12 +5596,18 @@ function VodafoneService(objectCollection) {
             try {
                 // 'https://stagingapi.worlddesk.cloud/r0'
                 // global.config.mobileBaseUrl + global.config.version
-                const response = await addActivityAsync(global.config.mobileBaseUrl + global.config.version, makeRequestOptions);
+                const response = await addActivityAsync(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', makeRequestOptions);
                 // console.log("addActivityAsync | response: ", Object.keys(response));
                 const body = JSON.parse(response.body);
                 if (Number(body.status) === 200) {
                     childOrderOriginFormActivityId = body.response.activity_id;
                     childOrderOriginFormTransactionId = body.response.form_transaction_id;
+
+                    childOrderOriginFormActivityDetails.push({
+                        origin_form_name: `${parentWorkflowOriginFormActivityTitle}-${childOrderNameSuffix}`,
+                        origin_form_activity_id: childOrderOriginFormActivityId,
+                        origin_form_transaction_id: childOrderOriginFormTransactionId,
+                    });
                 }
             } catch (error) {
                 console.log("addActivityAsync | Error: ", error);
@@ -5587,7 +5622,8 @@ function VodafoneService(objectCollection) {
         }
 
         return [false, {
-            message: "All went well!"
+            message: "All went well!",
+            child_orders: childOrderOriginFormActivityDetails
         }];
     }
 }
