@@ -2310,8 +2310,15 @@ function ActivityListingService(objCollection) {
 
 		if (queryString !== '') {
 			await db.executeQueryPromise(1, queryString, request)
-				.then((data) => {
+				.then(async (data) => {
 					responseData = data;
+					try {
+						let dataWithParticipant = await appendParticipantList(request, data);
+						responseData = dataWithParticipant;
+					} catch (error) {
+						console.log("activityListSelectChildOrders | appendParticipantList | Error: ", error);
+						// Do nothing
+					}
 					error = false;
 				})
 				.catch((err) => {
