@@ -5337,7 +5337,7 @@ function VodafoneService(objectCollection) {
         for (const [key, bulkOrderRow] of bulkOrderContentMap) {
             // console.log(key, "childOrder: ", childOrder);
             let childOrderFormDataMap = new Map(originFormTemplateMap);
-            const childOrderNameSuffix = bulkOrderRow['caf_no'];
+            const childOrderNameSuffix = bulkOrderRow['feasibility_id'];
             for (const property of Object.keys(bulkOrderRow)) {
 
                 const fieldID = Number(BULK_ORDER_ORIGIN_FORM_MAPPING_DATA[property]);
@@ -5384,7 +5384,7 @@ function VodafoneService(objectCollection) {
                 asset_id: 31993,
                 asset_token_auth: "c15f6fb0-14c9-11e9-8b81-4dbdf2702f95",
                 asset_message_counter: 0,
-                activity_title: `${parentWorkflowOriginFormActivityTitle}-${childOrderOriginFormName}-${childOrderNameSuffix}`,
+                activity_title: `${parentWorkflowOriginFormActivityTitle}-${childOrderNameSuffix}`,
                 activity_description: "",
                 activity_inline_data: JSON.stringify(childOrderFormData),
                 activity_datetime_start: util.getCurrentUTCTime(),
