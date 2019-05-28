@@ -3738,7 +3738,7 @@ function ActivityService(objectCollection) {
                 request.otc_2 || 0,
                 request.arc_2 || 0
             );
-            let queryString = util.getQueryString('ds_p1_2_widget_activity_field_transaction_insert', paramsArr);
+            let queryString = util.getQueryString('ds_p1_3_widget_activity_field_transaction_insert', paramsArr);
             if (queryString != '') {
                db.executeQuery(0, queryString, request, function (err, data) {
                     if (err === false) {
