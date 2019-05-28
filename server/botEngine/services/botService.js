@@ -753,6 +753,7 @@ function BotService(objectCollection) {
         newReq.activity_type_category_id = 48;
         newReq.message_unique_id = util.getMessageUniqueId(request.asset_id);
         newReq.device_os_id = 9;
+        newReq.log_asset_id = 100; // Tony
 
         const statusName = await getStatusName(newReq, inlineData.activity_status_id);
         if (Number(statusName.length) > 0) {
@@ -1752,6 +1753,7 @@ function BotService(objectCollection) {
                         "mail_body": `Workflow percentage updated to ${wfCompletionPercentage}`,
                         "subject": `Workflow percentage updated to ${wfCompletionPercentage}`
                     });
+                    workflowTimelineUpdateRequest.log_asset_id = 100; // Tony
                     await activityCommonService.asyncActivityTimelineTransactionInsert(workflowTimelineUpdateRequest, {}, 717);
                 } catch (error) {
                     console.log("Bot Engine | alterWFCompletionPercentage | asyncActivityTimelineTransactionInsert | Error: ", error)
