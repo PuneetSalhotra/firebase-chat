@@ -5568,7 +5568,7 @@ function VodafoneService(objectCollection) {
             try {
                 // 'https://stagingapi.worlddesk.cloud/r0'
                 // global.config.mobileBaseUrl + global.config.version
-                const response = await addActivityAsync(global.config.mobileBaseUrl + global.config.version, makeRequestOptions);
+                const response = await addActivityAsync(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', makeRequestOptions);
                 // console.log("addActivityAsync | response: ", Object.keys(response));
                 const body = JSON.parse(response.body);
                 if (Number(body.status) === 200) {
