@@ -668,7 +668,7 @@ function WidgetService(objCollection) {
                 );
 
             // results = db.callDBProcedure(request, 'ds_p1_activity_list_select_count_workflow_status_date', paramsArray, 1);
-            var queryString = util.getQueryString('ds_p1_1_activity_list_select_count_workflow_status_date', paramsArray);
+            var queryString = util.getQueryString('ds_p1_3_activity_list_select_count_workflow_status_date', paramsArray);
             if (queryString !== '') {
                 await db.executeQueryPromise(1, queryString, request)
                     .then((data) => {   
@@ -683,7 +683,7 @@ function WidgetService(objCollection) {
             }
             
             paramsArray[4]=1;
-            var queryString1 = util.getQueryString('ds_p1_1_activity_list_select_count_workflow_status_date', paramsArray);
+            var queryString1 = util.getQueryString('ds_p1_3_activity_list_select_count_workflow_status_date', paramsArray);
             if (queryString !== '') {
                 await db.executeQueryPromise(1, queryString1, request)
                     .then((monthlyData) => {
@@ -862,7 +862,7 @@ function WidgetService(objCollection) {
                     request.activity_status_type_id
                 );
 
-            var queryString = util.getQueryString('ds_p1_widget_activity_field_transaction_select_status_drilldown', paramsArray);
+            var queryString = util.getQueryString('ds_p1_widget_activity_field_transaction_select_drilldown', paramsArray);
             if (queryString !== '') {
                 await db.executeQueryPromise(1, queryString, request)
                     .then((data) => {                       
