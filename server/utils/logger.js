@@ -37,8 +37,12 @@ function Logger(queueWrapper) {
             log: 'log'
         };
 
-        if ((typeof request === 'object') && request.hasOwnProperty('isTargeted') && request.isTargeted) {
-            isTargeted = true;
+        try {
+            if ((typeof request === 'object') && request.hasOwnProperty('isTargeted') && request.isTargeted) {
+                isTargeted = true;
+            }
+        } catch (error) {
+            // 
         }
 
         //Textual Logs
