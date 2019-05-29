@@ -4989,13 +4989,28 @@ function VodafoneService(objectCollection) {
 
 
     this.vodafoneCreateChildOrdersFromBulkOrder = async function (request, parentWorkflowActivityID, bulkOrderExcelS3BucketURL) {
-        let formWorkflowActivityTypeID = 0;
+        let formWorkflowActivityTypeID = 0,
+            formWorkflowActivityCreatorAssetID = 0,
+            formWorkflowActivityDueDate = '',
+            formWorkflowActivityStartDate = '',
+            formWorkflowActivityOrganizationID = 0,
+            formWorkflowActivityAccountID = 0,
+            formWorkflowActivityWorkforceID = 0,
+            parentWorkflowOriginFormActivityTitle = '';
+
         const MAX_CHILD_ORDERS_TO_BE_PARSED = 500;
 
         try {
             const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, parentWorkflowActivityID);
             if (workflowActivityData.length > 0) {
                 formWorkflowActivityTypeID = workflowActivityData[0].activity_type_id;
+                formWorkflowActivityCreatorAssetID = workflowActivityData[0].activity_creator_asset_id;
+                formWorkflowActivityStartDate = workflowActivityData[0].activity_datetime_start_expected;
+                formWorkflowActivityDueDate = workflowActivityData[0].activity_datetime_end_deferred;
+                formWorkflowActivityOrganizationID = workflowActivityData[0].organization_id;
+                formWorkflowActivityAccountID = workflowActivityData[0].account_id;
+                formWorkflowActivityWorkforceID = workflowActivityData[0].workforce_id;
+                parentWorkflowOriginFormActivityTitle = workflowActivityData[0].activity_title;
             } else {
                 return [true, {
                     message: `Parent Workflow ${parentWorkflowActivityID} Not Found`
@@ -5085,27 +5100,35 @@ function VodafoneService(objectCollection) {
         }
 
         // Fetch form definitions
-        let originFormTemplate = [],
-            parentWorkflowOriginFormActivityTitle = '';
+        let originFormTemplate = [];
+        let originFormTemplateMap = new Map();
         await activityCommonService
-            .getActivityTimelineTransactionByFormId713(request, parentWorkflowActivityID, childOrderOriginFormID)
+            .getFormFieldMappings({
+                organization_id: formWorkflowActivityOrganizationID,
+                account_id: formWorkflowActivityAccountID,
+                workforce_id: formWorkflowActivityWorkforceID
+            }, childOrderOriginFormID, 0, 100)
             .then((formData) => {
                 if (formData.length > 0) {
-                    let formDataCollection = JSON.parse(formData[0].data_entity_inline);
-                    if (Array.isArray(formDataCollection.form_submitted) === true || typeof formDataCollection.form_submitted === 'object') {
-                        originFormTemplate = formDataCollection.form_submitted;
-                    } else {
-                        originFormTemplate = JSON.parse(formDataCollection.form_submitted);
+                    for (const formField of formData) {
+                        if (!originFormTemplateMap.has(Number(formField.field_id))) {
+                            // 
+                            originFormTemplateMap.set(Number(formField.field_id), {
+                                form_id: formField.data_form_id,
+                                field_id: formField.field_id,
+                                field_name: formField.field_name,
+                                field_value: getFielDataValueDefaultValue(Number(formField.data_type_id), formField),
+                                data_type_combo_id: formField.data_type_combo_id,
+                                data_type_combo_value: formField.data_type_combo_value,
+                                field_data_type_id: formField.data_type_id,
+                                field_data_type_category_id: formField.data_type_category_id,
+                                message_unique_id: "1234567890987654321"
+                            });
+                        }
                     }
-                    console.log("formData[0].data_form_id: ", formData[0].data_form_id);
-                    parentWorkflowOriginFormActivityTitle = formData[0].activity_title;
+                    // console.log("formData[0].data_form_id: ", formData[0].data_form_id);
                 }
             })
-
-        let originFormTemplateMap = new Map();
-        for (const field of originFormTemplate) {
-            originFormTemplateMap.set(Number(field.field_id), field);
-        }
 
         // const fs = require("fs");
         // fs.writeFileSync('/Users/Bensooraj/Desktop/desker_api/server/vodafone/utils/originFormTemplate.json', JSON.stringify(originFormTemplate, null, 2), 'utf-8');
@@ -5157,17 +5180,18 @@ function VodafoneService(objectCollection) {
             }
 
             const originFormSubmissionRequest = {
-                organization_id: request.organization_id,
-                account_id: request.account_id,
-                workforce_id: request.workforce_id,
-                asset_id: 31993,
+                organization_id: formWorkflowActivityOrganizationID,
+                account_id: formWorkflowActivityAccountID,
+                workforce_id: formWorkflowActivityWorkforceID,
+                asset_id: formWorkflowActivityCreatorAssetID,
+                auth_asset_id: 31993,
                 asset_token_auth: "c15f6fb0-14c9-11e9-8b81-4dbdf2702f95",
                 asset_message_counter: 0,
                 activity_title: `${parentWorkflowOriginFormActivityTitle}-${childOrderNameSuffix}`,
                 activity_description: "",
                 activity_inline_data: JSON.stringify(childOrderFormData),
                 activity_datetime_start: util.getCurrentUTCTime(),
-                activity_datetime_end: util.getCurrentUTCTime(),
+                activity_datetime_end: formWorkflowActivityDueDate,
                 activity_type_category_id: 9,
                 activity_sub_type_id: 0,
                 activity_type_id: originFormActivityTypeID,
@@ -5391,13 +5415,28 @@ function VodafoneService(objectCollection) {
             }];
         }
 
-        let formWorkflowActivityTypeID = 0;
+        let formWorkflowActivityTypeID = 0,
+        formWorkflowActivityCreatorAssetID = 0,
+        formWorkflowActivityDueDate = '',
+        formWorkflowActivityStartDate = '',
+        formWorkflowActivityOrganizationID = 0,
+        formWorkflowActivityAccountID = 0,
+        formWorkflowActivityWorkforceID = 0,
+        parentWorkflowOriginFormActivityTitle = '';
+
         const MAX_CHILD_ORDERS_TO_BE_PARSED = 500;
 
         try {
             const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, parentWorkflowActivityID);
             if (workflowActivityData.length > 0) {
                 formWorkflowActivityTypeID = workflowActivityData[0].activity_type_id;
+                formWorkflowActivityCreatorAssetID = workflowActivityData[0].activity_creator_asset_id;
+                formWorkflowActivityStartDate = workflowActivityData[0].activity_datetime_start_expected;
+                formWorkflowActivityDueDate = workflowActivityData[0].activity_datetime_end_deferred;
+                formWorkflowActivityOrganizationID = workflowActivityData[0].organization_id;
+                formWorkflowActivityAccountID = workflowActivityData[0].account_id;
+                formWorkflowActivityWorkforceID = workflowActivityData[0].workforce_id;
+                parentWorkflowOriginFormActivityTitle = workflowActivityData[0].activity_title;
             } else {
                 return [true, {
                     message: `Parent Workflow ${parentWorkflowActivityID} Not Found`
@@ -5468,27 +5507,35 @@ function VodafoneService(objectCollection) {
         // }];
 
         // Fetch form definitions
-        let originFormTemplate = [],
-            parentWorkflowOriginFormActivityTitle = '';
+        let originFormTemplate = [];
+        let originFormTemplateMap = new Map();
         await activityCommonService
-            .getActivityTimelineTransactionByFormId713(request, parentWorkflowActivityID, childOrderOriginFormID)
+            .getFormFieldMappings({
+                organization_id: formWorkflowActivityOrganizationID,
+                account_id: formWorkflowActivityAccountID,
+                workforce_id: formWorkflowActivityWorkforceID
+            }, childOrderOriginFormID, 0, 100)
             .then((formData) => {
                 if (formData.length > 0) {
-                    let formDataCollection = JSON.parse(formData[0].data_entity_inline);
-                    if (Array.isArray(formDataCollection.form_submitted) === true || typeof formDataCollection.form_submitted === 'object') {
-                        originFormTemplate = formDataCollection.form_submitted;
-                    } else {
-                        originFormTemplate = JSON.parse(formDataCollection.form_submitted);
+                    for (const formField of formData) {
+                        if (!originFormTemplateMap.has(Number(formField.field_id))) {
+                            // 
+                            originFormTemplateMap.set(Number(formField.field_id), {
+                                form_id: formField.data_form_id,
+                                field_id: formField.field_id,
+                                field_name: formField.field_name,
+                                field_value: getFielDataValueDefaultValue(Number(formField.data_type_id), formField),
+                                data_type_combo_id: formField.data_type_combo_id,
+                                data_type_combo_value: formField.data_type_combo_value,
+                                field_data_type_id: formField.data_type_id,
+                                field_data_type_category_id: formField.data_type_category_id,
+                                message_unique_id: "1234567890987654321"
+                            });
+                        }
                     }
-                    console.log("formData[0].data_form_id: ", formData[0].data_form_id);
-                    parentWorkflowOriginFormActivityTitle = formData[0].activity_title;
+                    // console.log("formData[0].data_form_id: ", formData[0].data_form_id);
                 }
             })
-
-        let originFormTemplateMap = new Map();
-        for (const field of originFormTemplate) {
-            originFormTemplateMap.set(Number(field.field_id), field);
-        }
 
         // const fs = require("fs");
         // fs.writeFileSync('/Users/Bensooraj/Desktop/desker_api/server/vodafone/utils/originFormTemplate.json', JSON.stringify(originFormTemplate, null, 2), 'utf-8');
@@ -5543,17 +5590,18 @@ function VodafoneService(objectCollection) {
             // continue;
 
             const originFormSubmissionRequest = {
-                organization_id: request.organization_id,
-                account_id: request.account_id,
-                workforce_id: request.workforce_id,
-                asset_id: 31993,
+                organization_id: formWorkflowActivityOrganizationID,
+                account_id: formWorkflowActivityAccountID,
+                workforce_id: formWorkflowActivityWorkforceID,
+                asset_id: formWorkflowActivityCreatorAssetID,
+                auth_asset_id: 31993,
                 asset_token_auth: "c15f6fb0-14c9-11e9-8b81-4dbdf2702f95",
                 asset_message_counter: 0,
                 activity_title: `${parentWorkflowOriginFormActivityTitle}-${childOrderNameSuffix}`,
                 activity_description: "",
                 activity_inline_data: JSON.stringify(childOrderFormData),
                 activity_datetime_start: util.getCurrentUTCTime(),
-                activity_datetime_end: util.getCurrentUTCTime(),
+                activity_datetime_end: formWorkflowActivityDueDate,
                 activity_type_category_id: 9,
                 activity_sub_type_id: 0,
                 activity_type_id: originFormActivityTypeID,
