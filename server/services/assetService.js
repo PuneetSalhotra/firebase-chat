@@ -4058,7 +4058,7 @@ function AssetService(objectCollection) {
         var xlData = xlsx.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]]);
         console.log('xlData :: '+xlData.length);
         
-        for (let row = 10; row < xlData.length; row++) {
+        for (let row = 3; row < xlData.length; row++) {
              for (const col of 'EF') {
                 try {
                     let val = workbook.Sheets[sheet_name_list[0]][`${col}${row}`].t;
