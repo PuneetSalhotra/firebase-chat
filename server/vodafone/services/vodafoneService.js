@@ -839,75 +839,75 @@ function VodafoneService(objectCollection) {
         });
     }
 
-    function addDeskAsParticipant(request, customerData, deskAssetId) {
-        return new Promise((resolve, reject) => {
+    // function addDeskAsParticipant(request, customerData, deskAssetId) {
+    //     return new Promise((resolve, reject) => {
 
-            let addParticipantRequest = {
-                organization_id: request.organization_id,
-                account_id: global.vodafoneConfig[request.organization_id].CUSTOMER.ACCOUNT_ID,
-                workforce_id: global.vodafoneConfig[request.organization_id].CUSTOMER.WORKFORCE_ID,
-                asset_id: global.vodafoneConfig[request.organization_id].BOT.ASSET_ID,
-                asset_token_auth: global.vodafoneConfig[request.organization_id].BOT.ENC_TOKEN,
-                asset_message_counter: 0,
-                activity_id: Number(request.form_order_activity_id),
-                activity_access_role_id: 29,
-                activity_type_category_id: 9,
-                activity_type_id: 0,
-                activity_participant_collection: JSON.stringify([{
-                    "access_role_id": 29,
-                    "account_id": global.vodafoneConfig[request.organization_id].CUSTOMER.ACCOUNT_ID,
-                    "activity_id": Number(request.form_order_activity_id),
-                    "asset_datetime_last_seen": "1970-01-01 00:00:00",
-                    "asset_first_name": customerData.first_name,
-                    "asset_id": Number(deskAssetId),
-                    "asset_image_path": "",
-                    "asset_last_name": "",
-                    "asset_phone_number": customerData.contact_phone_number,
-                    "asset_phone_number_code": customerData.contact_phone_country_code,
-                    "asset_type_category_id": 45,
-                    "asset_type_id": global.vodafoneConfig[request.organization_id].CUSTOMER.DESK_ASSET_TYPE_ID,
-                    "field_id": 0,
-                    "log_asset_id": request.asset_id,
-                    "message_unique_id": util.getMessageUniqueId(Number(request.asset_id)),
-                    "operating_asset_first_name": customerData.first_name,
-                    "organization_id": request.organization_id,
-                    "workforce_id": global.vodafoneConfig[request.organization_id].CUSTOMER.WORKFORCE_ID
-                }]),
-                flag_pin: 0,
-                flag_priority: 0,
-                flag_offline: 0,
-                flag_retry: 0,
-                message_unique_id: util.getMessageUniqueId(Number(request.asset_id)),
-                track_latitude: 0.0,
-                track_longitude: 0.0,
-                track_altitude: 0,
-                track_gps_datetime: util.getCurrentUTCTime(),
-                track_gps_accuracy: 0,
-                track_gps_status: 0,
-                service_version: 1.0,
-                app_version: "2.5.5",
-                device_os_id: 5
-            };
+    //         let addParticipantRequest = {
+    //             organization_id: request.organization_id,
+    //             account_id: global.vodafoneConfig[request.organization_id].CUSTOMER.ACCOUNT_ID,
+    //             workforce_id: global.vodafoneConfig[request.organization_id].CUSTOMER.WORKFORCE_ID,
+    //             asset_id: global.vodafoneConfig[request.organization_id].BOT.ASSET_ID,
+    //             asset_token_auth: global.vodafoneConfig[request.organization_id].BOT.ENC_TOKEN,
+    //             asset_message_counter: 0,
+    //             activity_id: Number(request.form_order_activity_id),
+    //             activity_access_role_id: 29,
+    //             activity_type_category_id: 9,
+    //             activity_type_id: 0,
+    //             activity_participant_collection: JSON.stringify([{
+    //                 "access_role_id": 29,
+    //                 "account_id": global.vodafoneConfig[request.organization_id].CUSTOMER.ACCOUNT_ID,
+    //                 "activity_id": Number(request.form_order_activity_id),
+    //                 "asset_datetime_last_seen": "1970-01-01 00:00:00",
+    //                 "asset_first_name": customerData.first_name,
+    //                 "asset_id": Number(deskAssetId),
+    //                 "asset_image_path": "",
+    //                 "asset_last_name": "",
+    //                 "asset_phone_number": customerData.contact_phone_number,
+    //                 "asset_phone_number_code": customerData.contact_phone_country_code,
+    //                 "asset_type_category_id": 45,
+    //                 "asset_type_id": global.vodafoneConfig[request.organization_id].CUSTOMER.DESK_ASSET_TYPE_ID,
+    //                 "field_id": 0,
+    //                 "log_asset_id": request.asset_id,
+    //                 "message_unique_id": util.getMessageUniqueId(Number(request.asset_id)),
+    //                 "operating_asset_first_name": customerData.first_name,
+    //                 "organization_id": request.organization_id,
+    //                 "workforce_id": global.vodafoneConfig[request.organization_id].CUSTOMER.WORKFORCE_ID
+    //             }]),
+    //             flag_pin: 0,
+    //             flag_priority: 0,
+    //             flag_offline: 0,
+    //             flag_retry: 0,
+    //             message_unique_id: util.getMessageUniqueId(Number(request.asset_id)),
+    //             track_latitude: 0.0,
+    //             track_longitude: 0.0,
+    //             track_altitude: 0,
+    //             track_gps_datetime: util.getCurrentUTCTime(),
+    //             track_gps_accuracy: 0,
+    //             track_gps_status: 0,
+    //             service_version: 1.0,
+    //             app_version: "2.5.5",
+    //             device_os_id: 5
+    //         };
 
-            const addParticipantEvent = {
-                name: "assignParticipnt",
-                service: "activityParticipantService",
-                method: "assignCoworker",
-                payload: addParticipantRequest
-            };
+    //         const addParticipantEvent = {
+    //             name: "assignParticipnt",
+    //             service: "activityParticipantService",
+    //             method: "assignCoworker",
+    //             payload: addParticipantRequest
+    //         };
 
-            queueWrapper.raiseActivityEvent(addParticipantEvent, request.activity_id, (err, resp) => {
-                if (err) {
-                    global.logger.write('conLog', "\x1b[35m [ERROR] Raising queue activity raised for adding Service Desk as a participant. \x1b[0m", {}, request);
-                    reject('Error while raising queue activity for adding service desk as a participant');
-                } else {
-                    global.logger.write('conLog', "\x1b[35m Queue activity raised for adding Service Desk as a participant. \x1b[0m", {}, request);
-                    resolve();
-                }
-            });
+    //         queueWrapper.raiseActivityEvent(addParticipantEvent, request.activity_id, (err, resp) => {
+    //             if (err) {
+    //                 global.logger.write('conLog', "\x1b[35m [ERROR] Raising queue activity raised for adding Service Desk as a participant. \x1b[0m", {}, request);
+    //                 reject('Error while raising queue activity for adding service desk as a participant');
+    //             } else {
+    //                 global.logger.write('conLog', "\x1b[35m Queue activity raised for adding Service Desk as a participant. \x1b[0m", {}, request);
+    //                 resolve();
+    //             }
+    //         });
 
-        });
-    }
+    //     });
+    // }
 
     function addCustomerAsParticipantToContFile(request, contactFileActId, customerData, operatingAssetId) {
         return new Promise((resolve, reject) => {
@@ -5053,7 +5053,41 @@ function VodafoneService(objectCollection) {
             'P': 'lm'
         };
         let bulkOrderContentMap = new Map();
-        for (let row = 10; row < MAX_CHILD_ORDERS_TO_BE_PARSED; row++) {
+        for (let row = 3; row < MAX_CHILD_ORDERS_TO_BE_PARSED; row++) {
+            
+            // If the number of rows crosses 100 TERMINATE LOGIC FLOW [ABORT MISSION]
+            if (Number(row) > 103) {
+                // Add Paramesh OMT as participant
+                const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
+                    organization_id: request.organization_id,
+                    asset_id: 32037
+                });
+                if (!error && Number(assetData.length) > 0) {
+                    try {
+                        await addDeskAsParticipant({
+                            organization_id: formWorkflowActivityOrganizationID,
+                            account_id: formWorkflowActivityAccountID,
+                            workforce_id: formWorkflowActivityWorkforceID,
+                            workflow_activity_id: parentWorkflowActivityID,
+                            asset_id: 100
+                        }, {
+                            first_name: assetData[0].asset_first_name,
+                            desk_asset_id: assetData[0].asset_id,
+                            contact_phone_number: assetData[0].operating_asset_phone_number,
+                            contact_phone_country_code: assetData[0].operating_asset_phone_country_code,
+                            asset_type_id: assetData[0].asset_type_id,
+                        });
+                    } catch (error) {
+                        console.log("vodafoneCreateChildOrdersFromExcelUpload | addDeskAsParticipant | Error: ", error);
+                    }
+                    console.log("[ABORT] More than 100 child order rows found. Adding Paramesh as participant.");
+                }
+                // Abort logic flow
+                return [false, {
+                    message: "[ABORT] More than 100 child order rows found. Adding Paramesh as participant."
+                }]
+            }
+
             // Break at the first emtpy row at column A
             if (!workbook.Sheets[sheet_names[0]][`A${row}`]) {
                 break;
@@ -5152,7 +5186,8 @@ function VodafoneService(objectCollection) {
             }
             // childOrderFormDataMap
             const childOrderFormData = [...childOrderFormDataMap.values()];
-            // fs.writeFileSync('/Users/Bensooraj/Desktop/desker_api/server/vodafone/utils/childOrderFormData.json', JSON.stringify(childOrderFormData, null, 2), 'utf-8');
+            // fs.writeFileSync(`/Users/Bensooraj/Desktop/desker_api/server/vodafone/utils/childOrderFormData-${key}.json`, JSON.stringify(childOrderFormData, null, 2), 'utf-8');
+            // continue;
 
             let childOrderOriginFormName = '',
                 originFormActivityTypeID = 0;
@@ -5673,6 +5708,76 @@ function VodafoneService(objectCollection) {
             message: "All went well!",
             child_orders: childOrderOriginFormActivityDetails
         }];
+    }
+
+    async function addDeskAsParticipant(request, assetData) {
+        let addParticipantRequest = {
+            organization_id: request.organization_id,
+            account_id: request.account_id,
+            workforce_id: request.workforce_id,
+            asset_id: 100,
+            asset_message_counter: 0,
+            activity_id: Number(request.workflow_activity_id),
+            activity_access_role_id: 29,
+            activity_type_category_id: 48,
+            activity_type_id: 0,
+            activity_participant_collection: JSON.stringify([{
+                "access_role_id": 29,
+                "account_id": request.account_id,
+                "activity_id": Number(request.workflow_activity_id),
+                "asset_datetime_last_seen": "1970-01-01 00:00:00",
+                "asset_first_name": assetData.first_name,
+                "asset_id": Number(assetData.desk_asset_id),
+                "asset_image_path": "",
+                "asset_last_name": "",
+                "asset_phone_number": assetData.contact_phone_number,
+                "asset_phone_number_code": assetData.contact_phone_country_code,
+                "asset_type_category_id": 45,
+                "asset_type_id": assetData.asset_type_id,
+                "field_id": 0,
+                "log_asset_id": request.asset_id,
+                "message_unique_id": util.getMessageUniqueId(Number(request.asset_id)),
+                "operating_asset_first_name": assetData.first_name,
+                "organization_id": request.organization_id,
+                "workforce_id": request.workforce_id
+            }]),
+            flag_pin: 0,
+            flag_priority: 0,
+            flag_offline: 0,
+            flag_retry: 0,
+            message_unique_id: util.getMessageUniqueId(Number(request.asset_id)),
+            track_latitude: 0.0,
+            track_longitude: 0.0,
+            track_altitude: 0,
+            track_gps_datetime: util.getCurrentUTCTime(),
+            track_gps_accuracy: 0,
+            track_gps_status: 0,
+            service_version: "3.X",
+            app_version: "3.X.X",
+            device_os_id: 9
+        };
+
+        // return await new Promise((resolve, reject) => {
+        //     activityParticipantService.assignCoworker(addParticipantRequest, (err, resp) => {
+        //         (err === false) ? resolve() : reject(err);
+        //     });
+        // });
+        const addParticipantEvent = {
+            name: "assignParticipnt",
+            service: "activityParticipantService",
+            method: "assignCoworker",
+            payload: addParticipantRequest
+        };
+
+        queueWrapper.raiseActivityEvent(addParticipantEvent, request.workflow_activity_id, (err, resp) => {
+            if (err) {
+                global.logger.write('conLog', "\x1b[35m [ERROR] Raising queue activity raised for adding Service Desk as a participant. \x1b[0m", {}, request);
+                reject('Error while raising queue activity for adding service desk as a participant');
+            } else {
+                global.logger.write('conLog', "\x1b[35m Queue activity raised for adding Service Desk as a participant. \x1b[0m", {}, request);
+                resolve();
+            }
+        });
     }
 }
 
