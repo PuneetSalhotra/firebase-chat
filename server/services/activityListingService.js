@@ -2299,8 +2299,8 @@ function ActivityListingService(objCollection) {
 		const paramsArr = new Array(
 			request.organization_id,
 			request.parent_activity_id,
-			request.flag || 1,
-			request.sort_flag || 1,
+			request.flag,
+			request.sort_flag,
 			request.datetime_start || '1970-01-01 00:00:00',
 			request.datetime_end || util.getCurrentUTCTime(),
 			request.start_from || 0,
