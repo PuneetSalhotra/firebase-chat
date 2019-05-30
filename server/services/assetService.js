@@ -7,6 +7,7 @@ var AwsSns = require('../utils/snsWrapper');
 var AwsSss = require('../utils/s3Wrapper');
 var fs = require('fs');
 const moment = require('moment');
+const xlsx = require('xlsx');
 
 function AssetService(objectCollection) {
 
@@ -4047,6 +4048,35 @@ function AssetService(objectCollection) {
         });
     };
 
+    this.processExcel = async function (request){
+
+        const [errOne, workbook] = await util.getXlsxWorkbookFromS3Url(request, request.bucket_url);
+        const sheet_name_list = workbook.SheetNames;
+        console.log("EXCEL WORKBOOK :: "+sheet_name_list); 
+        
+        console.log('xlData :: '+ workbook.Sheets[sheet_name_list[0]]);
+        var xlData = xlsx.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]]);
+        console.log('xlData :: '+xlData.length);
+        
+        for (let row = 10; row < xlData.length; row++) {
+             for (const col of 'EF') {
+                try {
+                    let val = workbook.Sheets[sheet_name_list[0]][`${col}${row}`].t;
+                    if(val === 'n'){
+                        console.log(col +""+row +" : "+ workbook.Sheets[sheet_name_list[0]][`${col}${row}`].v);
+                    }else{
+                        console.log("Not a Number at "+ col +""+row +" : "+ workbook.Sheets[sheet_name_list[0]][`${col}${row}`].v);
+                        return ["error", "Not a Number at "+ col +""+row +" :: value : "+ workbook.Sheets[sheet_name_list[0]][`${col}${row}`].v];
+                    }
+                    
+                } catch (error) {
+                    return [error,""];
+                }
+            }
+        }
+        console.log('No Strings in Excel :: '+xlData.length); 
+        return ["", "Annexure is Valid"];      
+     }
 }
 
 module.exports = AssetService;

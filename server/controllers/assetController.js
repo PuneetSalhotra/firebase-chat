@@ -571,5 +571,15 @@ function AssetController(objCollection) {
             return res.send(responseWrapper.getResponse({}, data, 200, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/process/annexure', async function (req, res) {
+        const [err, data] = await assetService.processExcel(req.body);
+        if (err) {
+            return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        } else {
+            return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        }
+    });
+    
 }
 module.exports = AssetController;
