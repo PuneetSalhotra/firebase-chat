@@ -4066,11 +4066,11 @@ function AssetService(objectCollection) {
                         console.log(col +""+row +" : "+ workbook.Sheets[sheet_name_list[0]][`${col}${row}`].v);
                     }else{
                         console.log("Not a Number at "+ col +""+row +" : "+ workbook.Sheets[sheet_name_list[0]][`${col}${row}`].v);
-                        return ["error", "Not a Number at "+ col +""+row +" :: value : "+ workbook.Sheets[sheet_name_list[0]][`${col}${row}`].v];
+                        return ["error", "Please upload the predefined format for CAF Annexure"];
                     }
                     
                 } catch (error) {
-                    return [error,""];
+                    return [error, "Please upload the predefined format for CAF Annexure."];
                 }
             }
         }
