@@ -4176,6 +4176,8 @@ function VodafoneService(objectCollection) {
         let isAnnexureUploaded = false,
             annexureExcelS3Url = '';
         
+        await sleep(2000);
+
         for (const action of ROMS_ACTIONS) {
             // sum
             if (action.ACTION === "sum") {
@@ -4587,15 +4589,15 @@ function VodafoneService(objectCollection) {
                         }
                         // If activity_sub_type_id is successfully set, proceed to parse the bulk order excel file
                         // and generate child orders
-                        try {
-                            await self.vodafoneCreateChildOrdersFromBulkOrder(
-                                request,
-                                workflowActivityID,
-                                annexureExcelS3Url
-                            );
-                        } catch (error) {
-                            console.log("performRomsCalculations | set_workflow_as_bulk_order | vodafoneCreateChildOrdersFromBulkOrder | Error: ", error);
-                        }
+                        // try {
+                        //     await self.vodafoneCreateChildOrdersFromBulkOrder(
+                        //         request,
+                        //         workflowActivityID,
+                        //         annexureExcelS3Url
+                        //     );
+                        // } catch (error) {
+                        //     console.log("performRomsCalculations | set_workflow_as_bulk_order | vodafoneCreateChildOrdersFromBulkOrder | Error: ", error);
+                        // }
                     }
                 }
             }
@@ -5053,10 +5055,11 @@ function VodafoneService(objectCollection) {
             'P': 'lm'
         };
         let bulkOrderContentMap = new Map();
-        for (let row = 3; row < MAX_CHILD_ORDERS_TO_BE_PARSED; row++) {
-            
+        for (let row = 2; row < MAX_CHILD_ORDERS_TO_BE_PARSED; row++) {
+            console.log("vodafoneCreateChildOrdersFromBulkOrder | HERE 1");
             // If the number of rows crosses 100 TERMINATE LOGIC FLOW [ABORT MISSION]
-            if (Number(row) > 103) {
+            if (Number(row) > 1) {
+                console.log("vodafoneCreateChildOrdersFromBulkOrder | HERE 2");
                 // Add Paramesh OMT as participant
                 const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
                     organization_id: request.organization_id,
