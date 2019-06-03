@@ -4104,8 +4104,10 @@ function VodafoneService(objectCollection) {
             workflowFile713Request.form_transaction_id = Number(targetFormTransactionId);
             workflowFile713Request.activity_timeline_collection = JSON.stringify({
                 "mail_body": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
-                "subject": `${targetFormName} Form Submitted` || "Digital CAF/CRF Form Submitted",
-                "content": 'Form Submitted',
+                //"subject": `${targetFormName} Form Submitted` || "Digital CAF/CRF Form Submitted",                
+                //"content": 'Form Submitted',
+                "subject": `${targetFormName}` || "Digital CAF/CRF",
+                "content": `${targetFormName}` || "Digital CAF/CRF",
                 "asset_reference": [],
                 "activity_reference": [],
                 "form_approval_field_reference": [],
