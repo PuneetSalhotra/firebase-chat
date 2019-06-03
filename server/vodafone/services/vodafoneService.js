@@ -4104,8 +4104,10 @@ function VodafoneService(objectCollection) {
             workflowFile713Request.form_transaction_id = Number(targetFormTransactionId);
             workflowFile713Request.activity_timeline_collection = JSON.stringify({
                 "mail_body": `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
-                "subject": `${targetFormName} Form Submitted` || "Digital CAF/CRF Form Submitted",
-                "content": 'Form Submitted',
+                //"subject": `${targetFormName} Form Submitted` || "Digital CAF/CRF Form Submitted",                
+                //"content": 'Form Submitted',
+                "subject": `${targetFormName}` || "Digital CAF/CRF",
+                "content": `${targetFormName}` || "Digital CAF/CRF",
                 "asset_reference": [],
                 "activity_reference": [],
                 "form_approval_field_reference": [],
@@ -4176,6 +4178,8 @@ function VodafoneService(objectCollection) {
         let isAnnexureUploaded = false,
             annexureExcelS3Url = '';
         
+        await sleep(2000);
+
         for (const action of ROMS_ACTIONS) {
             // sum
             if (action.ACTION === "sum") {
@@ -5053,10 +5057,15 @@ function VodafoneService(objectCollection) {
             'P': 'lm'
         };
         let bulkOrderContentMap = new Map();
-        for (let row = 3; row < MAX_CHILD_ORDERS_TO_BE_PARSED; row++) {
-            
+        for (let row = 2; row < MAX_CHILD_ORDERS_TO_BE_PARSED; row++) {
+            console.log("vodafoneCreateChildOrdersFromBulkOrder | HERE 1");
             // If the number of rows crosses 100 TERMINATE LOGIC FLOW [ABORT MISSION]
-            if (Number(row) > 103) {
+            // [UPDATE] 3rd June 2019 11:17 AM => Now, even if the annexure is uploaded in the
+            // Order Documents form, child orders should not be automatically generated. So, I am
+            // setting the minimum read rows to be at least 1 to just add Paramesh as the participant
+            // and break out of the loop. - BEN
+            if (Number(row) > 1) {
+                console.log("vodafoneCreateChildOrdersFromBulkOrder | HERE 2");
                 // Add Paramesh OMT as participant
                 const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
                     organization_id: request.organization_id,
