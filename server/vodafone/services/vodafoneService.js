@@ -4591,15 +4591,15 @@ function VodafoneService(objectCollection) {
                         }
                         // If activity_sub_type_id is successfully set, proceed to parse the bulk order excel file
                         // and generate child orders
-                        // try {
-                        //     await self.vodafoneCreateChildOrdersFromBulkOrder(
-                        //         request,
-                        //         workflowActivityID,
-                        //         annexureExcelS3Url
-                        //     );
-                        // } catch (error) {
-                        //     console.log("performRomsCalculations | set_workflow_as_bulk_order | vodafoneCreateChildOrdersFromBulkOrder | Error: ", error);
-                        // }
+                        try {
+                            await self.vodafoneCreateChildOrdersFromBulkOrder(
+                                request,
+                                workflowActivityID,
+                                annexureExcelS3Url
+                            );
+                        } catch (error) {
+                            console.log("performRomsCalculations | set_workflow_as_bulk_order | vodafoneCreateChildOrdersFromBulkOrder | Error: ", error);
+                        }
                     }
                 }
             }
@@ -5060,6 +5060,10 @@ function VodafoneService(objectCollection) {
         for (let row = 2; row < MAX_CHILD_ORDERS_TO_BE_PARSED; row++) {
             console.log("vodafoneCreateChildOrdersFromBulkOrder | HERE 1");
             // If the number of rows crosses 100 TERMINATE LOGIC FLOW [ABORT MISSION]
+            // [UPDATE] 3rd June 2019 11:17 AM => Now, even if the annexure is uploaded in the
+            // Order Documents form, child orders should not be automatically generated. So, I am
+            // setting the minimum read rows to be at least 1 to just add Paramesh as the participant
+            // and break out of the loop. - BEN
             if (Number(row) > 1) {
                 console.log("vodafoneCreateChildOrdersFromBulkOrder | HERE 2");
                 // Add Paramesh OMT as participant
