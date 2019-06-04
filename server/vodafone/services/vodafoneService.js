@@ -5565,7 +5565,7 @@ function VodafoneService(objectCollection) {
                         if (!originFormTemplateMap.has(Number(formField.field_id))) {
                             // 
                             originFormTemplateMap.set(Number(formField.field_id), {
-                                form_id: formField.data_form_id,
+                                form_id: formField.form_id,
                                 field_id: formField.field_id,
                                 field_name: formField.field_name,
                                 field_value: getFielDataValueDefaultValue(Number(formField.data_type_id), formField),
@@ -5675,6 +5675,7 @@ function VodafoneService(objectCollection) {
                 device_os_id: 5,
                 create_workflow: 1,
                 // workflow_activity_id: Number(request.workflow_activity_id),
+                is_child_order: true,
                 child_order_activity_parent_id: Number(request.workflow_activity_id)
             };
 
