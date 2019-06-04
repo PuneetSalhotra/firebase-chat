@@ -5675,6 +5675,7 @@ function VodafoneService(objectCollection) {
                 device_os_id: 5,
                 create_workflow: 1,
                 // workflow_activity_id: Number(request.workflow_activity_id),
+                is_child_order: true,
                 child_order_activity_parent_id: Number(request.workflow_activity_id)
             };
 
