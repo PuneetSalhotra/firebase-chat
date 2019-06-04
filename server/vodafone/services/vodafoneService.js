@@ -5565,7 +5565,7 @@ function VodafoneService(objectCollection) {
                         if (!originFormTemplateMap.has(Number(formField.field_id))) {
                             // 
                             originFormTemplateMap.set(Number(formField.field_id), {
-                                form_id: formField.data_form_id,
+                                form_id: formField.form_id,
                                 field_id: formField.field_id,
                                 field_name: formField.field_name,
                                 field_value: getFielDataValueDefaultValue(Number(formField.data_type_id), formField),
