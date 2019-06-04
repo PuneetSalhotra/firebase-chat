@@ -4559,29 +4559,29 @@ function VodafoneService(objectCollection) {
                     if (isAnnexureUploaded && !isParentOrder) {
                         try {
                             // Set activity_sub_type_id=1 in Activity List
-                            await activityListUpdateSubType({
-                                organization_id: request.organization_id,
-                                account_id: request.account_id,
-                                workforce_id: request.workforce_id,
-                                activity_sub_type_id: 1,
-                                asset_id: request.asset_id
-                            }, workflowActivityID);
+                            // await activityListUpdateSubType({
+                            //     organization_id: request.organization_id,
+                            //     account_id: request.account_id,
+                            //     workforce_id: request.workforce_id,
+                            //     activity_sub_type_id: 1,
+                            //     asset_id: request.asset_id
+                            // }, workflowActivityID);
 
                             // Set activity_sub_type_id=1 in Activity Asset Mapping
-                            await activityAssetMappingUpdateSubType({
-                                organization_id: request.organization_id,
-                                account_id: request.account_id,
-                                workforce_id: request.workforce_id,
-                                activity_sub_type_id: 1,
-                                asset_id: request.asset_id
-                            }, workflowActivityID);
+                            // await activityAssetMappingUpdateSubType({
+                            //     organization_id: request.organization_id,
+                            //     account_id: request.account_id,
+                            //     workforce_id: request.workforce_id,
+                            //     activity_sub_type_id: 1,
+                            //     asset_id: request.asset_id
+                            // }, workflowActivityID);
 
                             // Set activity_sub_type_id=1 in Queue Activity Mapping
-                            await queueActivityMappingUpdateSubType({
-                                organization_id: request.organization_id,
-                                activity_sub_type_id: 1,
-                                asset_id: request.asset_id
-                            }, workflowActivityID);
+                            // await queueActivityMappingUpdateSubType({
+                            //     organization_id: request.organization_id,
+                            //     activity_sub_type_id: 1,
+                            //     asset_id: request.asset_id
+                            // }, workflowActivityID);
 
                         } catch (error) {
                             console.log("performRomsCalculations | set_workflow_as_bulk_order | Set activity_sub_type_id | Error: ", error);
