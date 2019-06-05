@@ -5468,7 +5468,7 @@ function VodafoneService(objectCollection) {
         formWorkflowActivityWorkforceID = 0,
         parentWorkflowOriginFormActivityTitle = '';
 
-        const MAX_CHILD_ORDERS_TO_BE_PARSED = 500;
+        const MAX_CHILD_ORDERS_TO_BE_PARSED = 150;
 
         try {
             const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, parentWorkflowActivityID);
