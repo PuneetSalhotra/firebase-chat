@@ -859,7 +859,9 @@ function WidgetService(objCollection) {
                     request.activity_type_tag_id || 0,
                     request.tag_type_id || 0,
                     request.workforce_type_id || 0,
-                    request.activity_status_type_id
+                    request.activity_status_type_id,
+                    request.page_start,
+                    request.page_limit
                 );
 
             var queryString = util.getQueryString('ds_p1_3_widget_activity_field_transaction_select_drilldown', paramsArray);
