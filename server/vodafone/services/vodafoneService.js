@@ -4559,29 +4559,29 @@ function VodafoneService(objectCollection) {
                     if (isAnnexureUploaded && !isParentOrder) {
                         try {
                             // Set activity_sub_type_id=1 in Activity List
-                            await activityListUpdateSubType({
-                                organization_id: request.organization_id,
-                                account_id: request.account_id,
-                                workforce_id: request.workforce_id,
-                                activity_sub_type_id: 1,
-                                asset_id: request.asset_id
-                            }, workflowActivityID);
+                            // await activityListUpdateSubType({
+                            //     organization_id: request.organization_id,
+                            //     account_id: request.account_id,
+                            //     workforce_id: request.workforce_id,
+                            //     activity_sub_type_id: 1,
+                            //     asset_id: request.asset_id
+                            // }, workflowActivityID);
 
                             // Set activity_sub_type_id=1 in Activity Asset Mapping
-                            await activityAssetMappingUpdateSubType({
-                                organization_id: request.organization_id,
-                                account_id: request.account_id,
-                                workforce_id: request.workforce_id,
-                                activity_sub_type_id: 1,
-                                asset_id: request.asset_id
-                            }, workflowActivityID);
+                            // await activityAssetMappingUpdateSubType({
+                            //     organization_id: request.organization_id,
+                            //     account_id: request.account_id,
+                            //     workforce_id: request.workforce_id,
+                            //     activity_sub_type_id: 1,
+                            //     asset_id: request.asset_id
+                            // }, workflowActivityID);
 
                             // Set activity_sub_type_id=1 in Queue Activity Mapping
-                            await queueActivityMappingUpdateSubType({
-                                organization_id: request.organization_id,
-                                activity_sub_type_id: 1,
-                                asset_id: request.asset_id
-                            }, workflowActivityID);
+                            // await queueActivityMappingUpdateSubType({
+                            //     organization_id: request.organization_id,
+                            //     activity_sub_type_id: 1,
+                            //     asset_id: request.asset_id
+                            // }, workflowActivityID);
 
                         } catch (error) {
                             console.log("performRomsCalculations | set_workflow_as_bulk_order | Set activity_sub_type_id | Error: ", error);
@@ -5468,7 +5468,7 @@ function VodafoneService(objectCollection) {
         formWorkflowActivityWorkforceID = 0,
         parentWorkflowOriginFormActivityTitle = '';
 
-        const MAX_CHILD_ORDERS_TO_BE_PARSED = 500;
+        const MAX_CHILD_ORDERS_TO_BE_PARSED = 150;
 
         try {
             const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, parentWorkflowActivityID);
@@ -5565,7 +5565,7 @@ function VodafoneService(objectCollection) {
                         if (!originFormTemplateMap.has(Number(formField.field_id))) {
                             // 
                             originFormTemplateMap.set(Number(formField.field_id), {
-                                form_id: formField.data_form_id,
+                                form_id: formField.form_id,
                                 field_id: formField.field_id,
                                 field_name: formField.field_name,
                                 field_value: getFielDataValueDefaultValue(Number(formField.data_type_id), formField),
@@ -5675,6 +5675,7 @@ function VodafoneService(objectCollection) {
                 device_os_id: 5,
                 create_workflow: 1,
                 // workflow_activity_id: Number(request.workflow_activity_id),
+                is_child_order: true,
                 child_order_activity_parent_id: Number(request.workflow_activity_id)
             };
 
