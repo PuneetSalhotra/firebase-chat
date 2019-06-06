@@ -18,8 +18,8 @@ var corsOptions = {
 };
 app.use(cors());
 var bodyParser = require('body-parser');
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.json({ limit: '500kb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '500kb' }));
 
 var Util = require('./server/utils/util');
 var db = require("./server/utils/dbWrapper");

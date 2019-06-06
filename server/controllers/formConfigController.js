@@ -528,6 +528,17 @@ function FormConfigController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/form/entity/access/asset/check', async function (req, res) {
+
+        const [err, formFieldData] = await formConfigService.formEntityAccessAssetCheck(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, formFieldData, 200, req.body));
+        } else {
+            console.log("Error: ", err);
+            res.send(responseWrapper.getResponse(err, formFieldData, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = FormConfigController;

@@ -280,8 +280,56 @@ function ActivityService(objectCollection) {
                             if (request.activity_type_category_id == 48) {
                                 global.logger.write('conLog', '*****ADD ACTIVITY :HITTING WIDGET ENGINE*******', {}, request);
                                 request['source_id'] = 1;
-                                sendRequesttoWidgetEngine(request);
-                                updateChannelActivity(request, 9, request.activity_id, 48)
+                                //sendRequesttoWidgetEngine(request);
+
+                                updateChannelActivity(request, 9, request.activity_id, 48).then((result)=>{                        // get the widget against the workflow type                                    
+
+                                    let totalvalue = 0;
+                                    request['dedicated_activity_id'] = result[0].activity_id;
+                                    let requestFormData = JSON.parse(request.activity_inline_data);
+                                    let otc_1 = 0, arc_1 = 0, otc_2= 0, arc_2 = 0;
+                                    activityCommonService.getWidgetByActivityType(request).then((widgetRow)=>{
+                                        console.log('WIDGET ROW ::'+widgetRow.length);
+                                    if(widgetRow.length > 0){
+                                        console.log('WIDGET ROW EXISTIS ::'+widgetRow[0].widget_id);
+                                        request['widget_id'] = widgetRow[0].widget_id;
+                                            if(widgetRow[0].widget_entity2_id > 0){
+                                                forEachAsync(requestFormData, function (next, fieldObj) {
+
+                                                    console.log('LOOP ::'+request.activity_type_id+' '+fieldObj.field_id);
+                                                    if(widgetRow[0].widget_entity2_id == fieldObj.field_id){                                               
+                                                            otc_1 = fieldObj.field_value;
+                                                            request['otc_1'] = fieldObj.field_value;
+                                                    }else if(widgetRow[0].widget_entity3_id == fieldObj.field_id){
+                                                            arc_1 = fieldObj.field_value;
+                                                            request['arc_1'] = fieldObj.field_value;
+                                                    }else if(widgetRow[0].widget_entity4_id == fieldObj.field_id){
+                                                             otc_2 = fieldObj.field_value;
+                                                             request['otc_2'] = fieldObj.field_value;
+                                                    }else if(widgetRow[0].widget_entity5_id == fieldObj.field_id){
+                                                             arc_2 = fieldObj.field_value;
+                                                             request['arc_2'] = fieldObj.field_value;
+                                                    }
+                                                    totalvalue = Number(otc_1) + Number(arc_1) + Number(otc_2) + Number(arc_2);
+
+                                                    console.log('Intermediate values ::'+otc_1+' : '+arc_1+' : '+otc_2+' : '+arc_2);
+                                                    next();
+                                                }).then(()=>{
+                                                    console.log('totalvalue :: '+totalvalue);
+                                                     request['field_id'] = 0;
+                                                    request['field_value'] = totalvalue;
+                                                    widgetActivityFieldTransactionInsert(request);
+                                                })
+                                            }else{
+                                                 request['field_value'] = -1;
+                                                 request['field_id'] = -1;
+                                                 widgetActivityFieldTransactionInsert(request);
+                                            }
+                                        }
+                                    })
+
+                                   
+                                });
                             }
 
                             // Workflow Trigger
@@ -342,11 +390,27 @@ function ActivityService(objectCollection) {
                                             await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
                                                 .then((resp) => {
                                                     global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
+                                                    let temp = JSON.parse(resp);
+                                                    
+                                                    (Number(temp.status) === 200) ? 
+                                                        botEngineRequest.bot_operation_status_id = 1 :
+                                                        botEngineRequest.bot_operation_status_id = 2;
+                                                    
+                                                    botEngineRequest.bot_transaction_inline_data = JSON.stringify(resp);                                                    
+                                                    activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 1);
+                                                }).catch((err)=>{
+                                                    //Bot log - Update Bot status with Error
+                                                    botEngineRequest.bot_transaction_inline_data = JSON.stringify(err);
+                                                    activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 2);
                                                 });
                                         } else {
                                             //Bot is not defined
                                                 activityCommonService.botOperationFlagUpdateBotDefined(botEngineRequest, 0);
                                         }
+                                    } else {
+                                        global.logger.write('debug', "formConfigError: " + formConfigError, {}, request);
+                                        global.logger.write('debug', "formConfigData: ", {}, request);
+                                        global.logger.write('debug', formConfigData, {}, request);
                                     }
                                 } catch (botInitError) {
                                     global.logger.write('error', botInitError, botInitError, botEngineRequest);
@@ -393,15 +457,28 @@ function ActivityService(objectCollection) {
                                                     global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
                                                     //Bot log - Update Bot status
                                                     //1.SUCCESS; 2.INTERNAL ERROR; 3.EXTERNAL ERROR; 4.COMMUNICATION ERROR
-                                                        activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 1); 
+                                                        //activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 1); 
+                                                    let temp = JSON.parse(resp);
+                                                    
+                                                    (Number(temp.status) === 200) ? 
+                                                        botEngineRequest.bot_operation_status_id = 1 :
+                                                        botEngineRequest.bot_operation_status_id = 2;
+                                                    
+                                                    botEngineRequest.bot_transaction_inline_data = JSON.stringify(resp);
+                                                    activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 1);
                                                 }).catch((err)=>{
                                                     //Bot log - Update Bot status with Error
-                                                        activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 2);
+                                                    botEngineRequest.bot_transaction_inline_data = JSON.stringify(err);
+                                                    activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 2);
                                                 });
                                         } else {
                                             //Bot is not defined
                                                 activityCommonService.botOperationFlagUpdateBotDefined(botEngineRequest, 0);
                                         }
+                                    } else {
+                                        global.logger.write('debug', "formConfigError: " + formConfigError, {}, request);
+                                        global.logger.write('debug', "formConfigData: ", {}, request);
+                                        global.logger.write('debug', formConfigData, {}, request);
                                     }
                                 } catch (botInitError) {
                                     global.logger.write('error', botInitError, botInitError, botEngineRequest);
@@ -1807,7 +1884,7 @@ function ActivityService(objectCollection) {
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         var activityStreamTypeId = 11;
-        var activityStatusTypeCategoryId = Number(request.activity_status_type_category_id);
+        //var activityStatusTypeCategoryId = Number(request.activity_status_type_category_id);
         var activityStatusId = Number(request.activity_status_id);
         var activityStatusTypeId = Number(request.activity_status_type_id);
         var activityTypeCategoryId = Number(request.activity_type_category_id);
@@ -1957,7 +2034,7 @@ function ActivityService(objectCollection) {
                 if (Number(request.device_os_id) === 9) {
                     global.logger.write('conLog', '*****ALTER STATUS : HITTING WIDGET ENGINE*******', {}, request);
                     request['source_id'] = 3;
-                    sendRequesttoWidgetEngine(request);
+                    //sendRequesttoWidgetEngine(request);
                 }
 
                 if ((activityTypeCategroyId === 9 || activityTypeCategroyId === 48) && Number(request.device_os_id) !== 9) {
@@ -2010,7 +2087,7 @@ function ActivityService(objectCollection) {
                         }).then(() => {
                             global.logger.write('conLog', '*****ALTER STATUS : HITTING WIDGET ENGINE*******', {}, request);
                             request['source_id'] = 3;
-                            sendRequesttoWidgetEngine(request);
+                            //sendRequesttoWidgetEngine(request);
                         });
                     }
                 }
@@ -3463,6 +3540,21 @@ function ActivityService(objectCollection) {
 
     this.updateWorkflowQueueMapping = async function name(request) {
         request.flag = 0;
+        let workflowActivityPercentage = 0;
+        try {
+            await activityCommonService
+                .getActivityDetailsPromise(request, request.activity_id)
+                .then((workflowActivityData) => {
+                    if (workflowActivityData.length > 0) {
+                        workflowActivityPercentage = Number(workflowActivityData[0].activity_workflow_completion_percentage);
+                    }
+                })
+                .catch((error) => {
+                    console.log("updateWorkflowQueueMapping | getActivityDetailsPromise | error: ", error);
+                });
+        } catch (error) {
+            console.log("updateWorkflowQueueMapping | Activity Details Fetch Error | error: ", error);
+        }
         try {
             const queueMap = await activityListingService.getEntityQueueMapping(request);
             if (queueMap.length > 0) {
@@ -3497,7 +3589,7 @@ function ActivityService(objectCollection) {
                                     await activityCommonService
                                         .unmapFileFromQueue(request, queueActivityMappingId)
                                         .then((queueActivityMappingData) => {
-                                            console.log("updateWorkflowQueueMapping | mapFileToQueue | queueActivityMapping: ", queueActivityMappingData);
+                                            console.log("updateWorkflowQueueMapping | unmapFileToQueue | queueActivityMapping: ", queueActivityMappingData);
                                         })
                                         .catch((error) => {
                                             console.log("updateWorkflowQueueMapping | Re-Enable | Error: ", error);
@@ -3512,7 +3604,7 @@ function ActivityService(objectCollection) {
                                                 "queue_mapping_time": moment().utc().format('YYYY-MM-DD HH:mm:ss'),
                                                 "current_status_name": "",
                                                 "last_status_alter_time": "",
-                                                "caf_completion_percentage": 0
+                                                "caf_completion_percentage": workflowActivityPercentage || 0
                                             }
                                         }))
                                         .then((queueActivityMappingData) => {
@@ -3601,7 +3693,7 @@ function ActivityService(objectCollection) {
         } else {
             responseObject = [{
                 workflow_completion_percentage: 0
-            }]
+            }];
         }
 
         return responseObject;
@@ -3627,17 +3719,33 @@ function ActivityService(objectCollection) {
                 request.organization_id,
                 util.getCurrentUTCTime()
             );
+            
+            let temp = {};
+            let newReq = Object.assign({}, request);
+            newReq.workflow_activity_id = request.activity_id;
+            
             let queryString = util.getQueryString('ds_p1_widget_activity_field_transaction_update', paramsArr);
             if (queryString != '') {
-               db.executeQuery(0, queryString, request, function (err, data) {
+               db.executeQuery(0, queryString, request, function (err, data) {                    
+                    console.log('AS ERRRRRRRRRRRRRRROR : ', err);
+                    console.log('AS DAAAAAAAAAAAAAAATA : ', data);
                     if (err === false) {
+                        if(data.length>0) {
+                            newReq.widget_id = data[0].widget_id;
+                        }            
+                        temp.data = data;
+                        newReq.inline_data = temp;
+                        activityCommonService.widgetLogTrx(newReq, 1);
                         resolve();
-                    } else {
+                    } else {                        
+                        temp.err = err;
+                        newReq.inline_data = temp;
+                        activityCommonService.widgetLogTrx(newReq, 2);
                         reject(err);
                     }
                 });
             }
-        })
+        });
     }
 
     function updateChannelActivity(request, idActivityTypeCategory, idChannelActivity, idChannelActivityCategory) {
@@ -3658,13 +3766,46 @@ function ActivityService(objectCollection) {
             if (queryString != '') {
                db.executeQuery(0, queryString, request, function (err, data) {
                     if (err === false) {
-                        resolve();
+                        resolve(data);
                     } else {
                         reject(err);
                     }
                 });
             }
         })
+    }
+
+    function widgetActivityFieldTransactionInsert(request) {
+        return new Promise((resolve, reject) => {
+            global.logger.write('DEBUG', '::: widgetActivityFieldTransactionInsert  :::', {}, request);
+            let paramsArr = new Array(
+                request.widget_id||0,
+                request.activity_id,
+                request.dedicated_activity_id||0,
+                request.activity_form_id,
+                request.form_transaction_id,
+                request.field_id||-1,
+                request.field_value||-1,
+                request.workforce_id,
+                request.account_id,
+                request.organization_id,
+                util.getCurrentUTCTime(),
+                request.otc_1 || 0,
+                request.arc_1 || 0,
+                request.otc_2 || 0,
+                request.arc_2 || 0
+            );
+            let queryString = util.getQueryString('ds_p1_2_widget_activity_field_transaction_insert', paramsArr);
+            if (queryString != '') {
+               db.executeQuery(0, queryString, request, function (err, data) {
+                    if (err === false) {
+                        resolve();
+                    } else {
+                        reject(err);
+                    }
+                });
+            }
+        });
     }
 
 }

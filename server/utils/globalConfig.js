@@ -12,7 +12,8 @@ config.domestic_sms_mode = 3; //  Domestic - 1: Mvaayo | 2: bulkSMS  |   3: Sinf
 config.international_sms_mode = 1; //  1: Twilio | 2: Nexmo
 config.phone_call = 1; // both Domestic and International 1: Nexmo | 2: Twilio
 
-config.whitelist = ['http://mydesk.desker.co', 'https://mydesk.desker.co', 'http://127.0.0.1', 'http://localhost'];
+//config.whitelist = ['http://mydesk.desker.co', 'https://mydesk.desker.co', 'http://127.0.0.1', 'http://localhost'];
+config.whitelist = ['http://officedesk.app', 'http://preprod.officedesk.app', 'http://staging.officedesk.app', 'http://127.0.0.1', 'http://localhost'];
 
 if (mode === 'masimukku') {
 
@@ -124,10 +125,13 @@ if (mode === 'local') {
     //Mysql Config
     config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
     config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';       
+    //config.masterIp = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    //config.slave1Ip = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
     
     config.dbUser = 'apiuser';
     //config.database = 'desker';// desker_staging
     config.database = 'desker_staging';
+    //config.database = 'worlddesk_staging';
     config.dbPassword = 'apidbuser';
     config.conLimit = 5;
     
@@ -141,7 +145,7 @@ if (mode === 'local') {
     //config.redisIp = '127.0.0.1';
     //config.redisPort = 6379;  
     
-    config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';
+    config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';    
     config.redisPort = 6379;
     
     //IOS Push
@@ -427,7 +431,7 @@ if (mode === 'preprod') {
     config.slave1Ip = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
     
     config.dbUser = 'apiuser';    
-    config.database = 'desker_preprod';
+    config.database = 'worlddesk_preprod';
     config.dbPassword = 'apidbuser';
 
     config.conLimit = 2;

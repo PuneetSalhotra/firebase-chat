@@ -369,6 +369,20 @@ function VodafoneController(objCollection) {
     		res.send(responseWrapper.getResponse(err, data, -999, req.body));
         	});
     }); 
+
+    app.post('/' + global.config.version + '/vodafone/manual_trigger/child_workflows_create', async function (req, res) {
+        const [err, orgData] = await vodafoneService.vodafoneCreateChildOrdersFromBulkOrder(
+            req.body,
+            req.body.workflow_activity_id,
+            request.s3_bucket_url
+        );
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/vodafone/manual_trigger/child_workflows_create | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });
     
 };
 

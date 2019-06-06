@@ -1,0 +1,17 @@
+{
+    "caf_no": 0,
+    "feasibility_id": 7252,
+    "bandwidth_mbps": 7255,
+    "one_time_charges": 7258,
+    "recurring_charges": 7259,
+    "billing_frequency": 7254,
+    "site_address": 0,
+    "city": 0,
+    "state": 0,
+    "contact_person": 0,
+    "contact_number": 0,
+    "gst_no": 7527,
+    "cgst_no": 13092,
+    "type_hub_spoke_mesh": 0,
+    "lm": 13089
+}
