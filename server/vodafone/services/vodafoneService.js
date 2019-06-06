@@ -25,8 +25,15 @@ function VodafoneService(objectCollection) {
     // const formConfigService = new FormConfigService(objectCollection);
     // console.log(`global.vodafoneConfig["134564"].FORM_FIELD_MAPPING_DATA: `, global.vodafoneConfig["134564"].FORM_FIELD_MAPPING_DATA)
 
-    // const ActivityTimelineService = require('../../services/activityTimelineService');
-    // const activityTimelineService = new ActivityTimelineService(objectCollection);
+    let servicesLoadPathPrefix = '';
+    if (!__dirname.includes('queue')) {
+        servicesLoadPathPrefix = '../..';
+    } else {
+        servicesLoadPathPrefix = `${__dirname}/..`;
+    }
+    const ActivityService = require(`${servicesLoadPathPrefix}/services/activityService`);
+    const activityService = new ActivityService(objectCollection);
+    // console.log("VodafoneService | activityService: ", activityService)
 
     this.newOrderFormAddToQueues = function (request, callback) {
 
