@@ -5011,6 +5011,8 @@ function VodafoneService(objectCollection) {
 
         const MAX_CHILD_ORDERS_TO_BE_PARSED = 500;
 
+        const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
+
         try {
             const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, parentWorkflowActivityID);
             if (workflowActivityData.length > 0) {
@@ -5271,6 +5273,7 @@ function VodafoneService(objectCollection) {
                 service_version: "2.0",
                 app_version: "2.5.7",
                 device_os_id: 5,
+                url: 'v1',
                 create_workflow: 1,
                 // workflow_activity_id: Number(request.workflow_activity_id),
                 child_order_activity_parent_id: Number(request.workflow_activity_id)
@@ -5279,30 +5282,42 @@ function VodafoneService(objectCollection) {
             let childOrderOriginFormActivityId = 0,
                 childOrderOriginFormTransactionId = 0;
 
-            const addActivityAsync = nodeUtil.promisify(makeRequest.post);
-            const makeRequestOptions = {
-                form: originFormSubmissionRequest
-            };
+            // const addActivityAsync = nodeUtil.promisify(makeRequest.post);
+            // const makeRequestOptions = {
+            //     form: originFormSubmissionRequest
+            // };
             try {
                 // 'https://stagingapi.worlddesk.cloud/r0'
                 // global.config.mobileBaseUrl + global.config.version
-                const response = await addActivityAsync(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', makeRequestOptions);
+                // const response = await addActivityAsync(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', makeRequestOptions);
                 // console.log("addActivityAsync | response: ", Object.keys(response));
-                const body = JSON.parse(response.body);
-                if (Number(body.status) === 200) {
-                    childOrderOriginFormActivityId = body.response.activity_id;
-                    childOrderOriginFormTransactionId = body.response.form_transaction_id;
+                // const body = JSON.parse(response.body);
+                // if (Number(body.status) === 200) {
+                //     childOrderOriginFormActivityId = body.response.activity_id;
+                //     childOrderOriginFormTransactionId = body.response.form_transaction_id;
+                // }
+                // 
+                // Fetch the next activity_id to and the form be inserted
+                childOrderOriginFormActivityId = await cacheWrapper.getActivityIdPromise();
+                childOrderOriginFormTransactionId = await cacheWrapper.getFormTransactionIdPromise();
+
+                // Append
+                if (
+                    Number(childOrderOriginFormActivityId) !== 0 &&
+                    Number(childOrderOriginFormTransactionId) !== 0
+                ) {
+                    console.log("childOrderOriginFormActivityId: ", childOrderOriginFormActivityId)
+                    console.log("childOrderOriginFormTransactionId: ", childOrderOriginFormTransactionId)
+
+                    originFormSubmissionRequest.activity_id = childOrderOriginFormActivityId;
+                    originFormSubmissionRequest.form_transaction_id = childOrderOriginFormTransactionId;
+
+                    await addActivityAsync(originFormSubmissionRequest);
                 }
+
             } catch (error) {
                 console.log("addActivityAsync | Error: ", error);
-            }
-            if (
-                Number(childOrderOriginFormActivityId) !== 0 &&
-                Number(childOrderOriginFormTransactionId) !== 0
-            ) {
-                console.log("childOrderOriginFormActivityId: ", childOrderOriginFormActivityId)
-                console.log("childOrderOriginFormTransactionId: ", childOrderOriginFormTransactionId)
-            }
+            }            
         }
 
         return [false, {
