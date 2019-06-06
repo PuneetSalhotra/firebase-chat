@@ -24,7 +24,7 @@
     "moment": "^2.22.2",
     "moment-timezone": "^0.5.21",
     "mysql": "^2.16.0",
-    "newrelic": "^5.5.0",
+    "newrelic": "^5.9.1",
     "nexmo": "~2.3.2",
     "nodemailer": "~4.6.8",
     "pdfmake": "^0.1.38",
