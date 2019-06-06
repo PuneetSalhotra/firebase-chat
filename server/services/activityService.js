@@ -284,8 +284,10 @@ function ActivityService(objectCollection) {
 
                                 updateChannelActivity(request, 9, request.activity_id, 48).then((result)=>{                        // get the widget against the workflow type                                    
 
+                                });
+                                
                                     let totalvalue = 0;
-                                    request['dedicated_activity_id'] = result[0].activity_id;
+                                    request['dedicated_activity_id'] = 0; //result[0].activity_id;
                                     let requestFormData = JSON.parse(request.activity_inline_data);
                                     let otc_1 = 0, arc_1 = 0, otc_2= 0, arc_2 = 0;
                                     activityCommonService.getWidgetByActivityType(request).then((widgetRow)=>{
@@ -327,9 +329,6 @@ function ActivityService(objectCollection) {
                                             }
                                         }
                                     })
-
-                                   
-                                });
                             }
 
                             // Workflow Trigger
@@ -356,65 +355,8 @@ function ActivityService(objectCollection) {
 
                             // Bot Engine Trigger
                             if (activityTypeCategroyId === 9 && request.device_os_id !== 9) {
-                                try {
-                                    let botEngineRequest = Object.assign({}, request);
-                                    botEngineRequest.form_id = request.activity_form_id;
-                                    botEngineRequest.field_id = 0;
-                                    botEngineRequest.flag = 3;
-
-                                    const [formConfigError, formConfigData] = await activityCommonService.workforceFormMappingSelect(botEngineRequest);
-                                    if (
-                                        (formConfigError === false) &&
-                                        (Number(formConfigData.length) > 0) &&
-                                        (Number(formConfigData[0].form_flag_workflow_enabled) === 1) &&
-                                        (Number(formConfigData[0].form_flag_workflow_origin) === 0)
-                                    ) {
-                                        // Proceeding because there was no error found, there were records returned
-                                        // and form_flag_workflow_enabled is set to 1
-                                        let botsListData = await activityCommonService.getBotsMappedToActType(botEngineRequest);
-                                        if (botsListData.length > 0) {                                            
-                                            botEngineRequest.bot_id = botsListData[0].bot_id;
-                                            botEngineRequest.bot_inline_data = botsListData[0].bot_inline_data;
-                                            botEngineRequest.flag_check = 1;
-                                            botEngineRequest.flag_defined = 1;
-                                            
-                                            let result = await activityCommonService.botOperationInsert(botEngineRequest);
-                                            //console.log('RESULT : ', result);
-                                            if(result.length > 0) {
-                                                botEngineRequest.bot_transaction_id = result[0].bot_transaction_id;
-                                            }
-                                            
-                                            //Bot log - Bot is defined
-                                                activityCommonService.botOperationFlagUpdateBotDefined(botEngineRequest, 1);
-
-                                            await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
-                                                .then((resp) => {
-                                                    global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
-                                                    let temp = JSON.parse(resp);
-                                                    
-                                                    (Number(temp.status) === 200) ? 
-                                                        botEngineRequest.bot_operation_status_id = 1 :
-                                                        botEngineRequest.bot_operation_status_id = 2;
-                                                    
-                                                    botEngineRequest.bot_transaction_inline_data = JSON.stringify(resp);                                                    
-                                                    activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 1);
-                                                }).catch((err)=>{
-                                                    //Bot log - Update Bot status with Error
-                                                    botEngineRequest.bot_transaction_inline_data = JSON.stringify(err);
-                                                    activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 2);
-                                                });
-                                        } else {
-                                            //Bot is not defined
-                                                activityCommonService.botOperationFlagUpdateBotDefined(botEngineRequest, 0);
-                                        }
-                                    } else {
-                                        global.logger.write('debug', "formConfigError: " + formConfigError, {}, request);
-                                        global.logger.write('debug', "formConfigData: ", {}, request);
-                                        global.logger.write('debug', formConfigData, {}, request);
-                                    }
-                                } catch (botInitError) {
-                                    global.logger.write('error', botInitError, botInitError, botEngineRequest);
-                                }
+                                // Moved to ActivityTimelineService => addTimelineTransaction => fireBotEngineInitForm
+                                // Do nothing
                             }
 
                             // Trigger Bot Engine
@@ -2356,10 +2298,20 @@ function ActivityService(objectCollection) {
                 // 
                 // 
                 updateProjectStatusCounts(request).then(() => {});
+                // activityPushService.sendPush(request, objectCollection, 0, function () {});
                 try {
+                    if (
+                        (request.hasOwnProperty("is_child_order") && Boolean(request.is_child_order) === true) &&
+                        (
+                            Number(request.activity_type_category_id) === 9 ||
+                            Number(request.activity_type_category_id) === 48
+                        )
+                    ) {
+                        throw new Error("ChildOrder::NoPush")
+                    }
                     activityPushService.sendPush(request, objectCollection, 0, function () {});
-                } catch (err) {
-                    console.log(err);
+                } catch (error) {
+                    console.log("[WARNING] No Push Sent: ", error);
                 }
 
                 /*               if (activityTypeCategoryId === 9 && activityStatusTypeId === 23) { //form and submitted state                    
@@ -3784,8 +3736,8 @@ function ActivityService(objectCollection) {
                 request.dedicated_activity_id||0,
                 request.activity_form_id,
                 request.form_transaction_id,
-                request.field_id||-1,
-                request.field_value||-1,
+                request.field_id,
+                request.field_value,
                 request.workforce_id,
                 request.account_id,
                 request.organization_id,
@@ -3795,7 +3747,7 @@ function ActivityService(objectCollection) {
                 request.otc_2 || 0,
                 request.arc_2 || 0
             );
-            let queryString = util.getQueryString('ds_p1_2_widget_activity_field_transaction_insert', paramsArr);
+            let queryString = util.getQueryString('ds_p1_3_widget_activity_field_transaction_insert', paramsArr);
             if (queryString != '') {
                db.executeQuery(0, queryString, request, function (err, data) {
                     if (err === false) {

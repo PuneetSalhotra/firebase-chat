@@ -123,15 +123,15 @@ if (mode === 'local') {
     config.sqsConsumer = 7300;
 
     //Mysql Config
-    config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';       
-    //config.masterIp = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    //config.slave1Ip = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    // config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    // config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';       
+    config.masterIp = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.slave1Ip = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
     
     config.dbUser = 'apiuser';
     //config.database = 'desker';// desker_staging
-    config.database = 'desker_staging';
-    //config.database = 'worlddesk_staging';
+    // config.database = 'desker_staging';
+    config.database = 'worlddesk_staging';
     config.dbPassword = 'apidbuser';
     config.conLimit = 5;
     
@@ -329,11 +329,14 @@ if (mode === 'staging') {
     config.sqsConsumer = 4300;
 
     //Mysql Config
-    config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
+    // config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    // config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
+    config.masterIp = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.slave1Ip = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
 
     config.dbUser = 'apiuser';
-    config.database = 'desker_staging';
+    // config.database = 'desker_staging';
+    config.database = 'worlddesk_staging';
     config.dbPassword = 'apidbuser';
 
     config.conLimit = 2;

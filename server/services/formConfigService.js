@@ -3299,7 +3299,7 @@ function FormConfigService(objCollection) {
         let temp = {};
         let newReq = Object.assign({}, request);
         newReq.form_activity_id = request.activity_id;
-        const queryString = util.getQueryString('ds_p1_2_widget_activity_field_transaction_update_field_value', paramsArr);
+        const queryString = util.getQueryString('ds_p1_3_widget_activity_field_transaction_update_field_value', paramsArr);
 
         if (queryString !== '') {
             // console.log(queryString)

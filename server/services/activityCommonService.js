@@ -1112,6 +1112,29 @@ function ActivityCommonService(db, util, forEachAsync) {
 
     };
 
+    this.getAssetDetailsAsync = async function (request) {
+        let assetData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.asset_id
+        );
+        const queryString = util.getQueryString('ds_v1_asset_list_select', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    assetData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, assetData];
+    }
+
     //PAM
     this.inventoryCheck = function (request, activityId, callback) {
         var paramsArr = new Array();
@@ -3284,7 +3307,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                         flag,  
                         request.datetime_log
                     );                   
-                    var queryString = util.getQueryString("ds_p1_1_widget_activity_field_transaction_update_datetime", paramsArr);
+                    var queryString = util.getQueryString("ds_p1_3_widget_activity_field_transaction_update_datetime", paramsArr);
                     if (queryString != '') {
                         db.executeQuery(0, queryString, request, function (err, data) {
                             if (err === false) {

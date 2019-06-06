@@ -14,6 +14,19 @@ function VodafoneController(objCollection) {
     const queueWrapper = objCollection.queueWrapper;
     var vodafoneService = new VodafoneService(objCollection);
     const activityCommonService = objCollection.activityCommonService;
+
+    const moment = require('moment');
+    const multer = require('multer');
+    const upload = multer({
+        storage: multer.diskStorage({
+            destination: function (req, file, cb) {
+                cb(null, 'bulk_order_excel_uploads/')
+            },
+            filename: function (req, file, cb) {
+                cb(null, req.body.workflow_activity_id + '-' + moment().utcOffset('+05:30').format('YYYY-MM-DD_HH-mm-ss') + '.xlsx')
+            }
+        })
+    });
   
     
     //BOT 2
@@ -374,12 +387,28 @@ function VodafoneController(objCollection) {
         const [err, orgData] = await vodafoneService.vodafoneCreateChildOrdersFromBulkOrder(
             req.body,
             req.body.workflow_activity_id,
-            request.s3_bucket_url
+            req.s3_bucket_url
         );
         if (!err) {
             res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
         } else {
             console.log("/vodafone/manual_trigger/child_workflows_create | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });
+    
+
+    app.post('/' + global.config.version + '/vodafone/manual_trigger/excel_upload/child_workflows_create', upload.single('bulk_order_file'), async function (req, res) {
+        const [err, orgData] = await vodafoneService.vodafoneCreateChildOrdersFromExcelUpload(
+            req.body,
+            req.body.workflow_activity_id,
+            req.file
+        );
+        console.log("req.file: ", req.file);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/vodafone/manual_trigger/excel_upload/child_workflows_create | Error: ", err);
             res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
         }
     });

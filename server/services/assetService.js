@@ -7,6 +7,7 @@ var AwsSns = require('../utils/snsWrapper');
 var AwsSss = require('../utils/s3Wrapper');
 var fs = require('fs');
 const moment = require('moment');
+const xlsx = require('xlsx');
 
 function AssetService(objectCollection) {
 
@@ -709,7 +710,8 @@ function AssetService(objectCollection) {
             'asset_count_invite': util.replaceDefaultNumber(rowArray[0]['asset_count_invite']),
             'asset_count_signup': util.replaceDefaultNumber(rowArray[0]['asset_count_signup']),
             'asset_count_task_created': util.replaceDefaultNumber(rowArray[0]['asset_count_task_created']),
-            'operating_asset_image_path': util.replaceDefaultString(rowArray[0]['operating_asset_image_path'])
+            'operating_asset_image_path': util.replaceDefaultString(rowArray[0]['operating_asset_image_path']),
+            'workforce_type_id': util.replaceDefaultNumber(rowArray[0]['workforce_type_id'])
         };
 
         callback(false, rowData);
@@ -4046,6 +4048,35 @@ function AssetService(objectCollection) {
         });
     };
 
+    this.processExcel = async function (request){
+
+        const [errOne, workbook] = await util.getXlsxWorkbookFromS3Url(request, request.bucket_url);
+        const sheet_name_list = workbook.SheetNames;
+        console.log("EXCEL WORKBOOK :: "+sheet_name_list); 
+        
+        console.log('xlData :: '+ workbook.Sheets[sheet_name_list[0]]);
+        var xlData = xlsx.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]]);
+        console.log('xlData :: '+xlData.length);
+        
+        for (let row = 3; row < xlData.length; row++) {
+             for (const col of 'EF') {
+                try {
+                    let val = workbook.Sheets[sheet_name_list[0]][`${col}${row}`].t;
+                    if(val === 'n'){
+                        console.log(col +""+row +" : "+ workbook.Sheets[sheet_name_list[0]][`${col}${row}`].v);
+                    }else{
+                        console.log("Not a Number at "+ col +""+row +" : "+ workbook.Sheets[sheet_name_list[0]][`${col}${row}`].v);
+                        return ["error", "The CAF annexure is not filled in the required format, please check and resubmit"];
+                    }
+                    
+                } catch (error) {
+                    return [error, "The CAF annexure is not filled in the required format, please check and resubmit."];
+                }
+            }
+        }
+        console.log('No Strings in Excel :: '+xlData.length); 
+        return ["", "Annexure is Valid"];      
+     }
 }
 
 module.exports = AssetService;
