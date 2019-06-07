@@ -16,8 +16,13 @@ function ActivityPushService(objectCollection) {
         var activityTypeCategoryId = Number(request.activity_type_category_id);
         objectCollection.activityCommonService.getActivityDetails(request, 0, async function (err, activityData) {
             if (err === false) {
-                var activityTitle = activityData[0]['activity_title'];
+                var activityTitle = activityData[0]['activity_title'];                
                 var activityInlineJson = JSON.parse(activityData[0]['activity_inline_data']);
+                
+                var activityId = activityData[0]['activity_id'];
+                pushString.activity_id = activityId;
+                pushString.activity_inline_data = activityInlineJson;
+                
                 switch (activityTypeCategoryId) {
                     case 1: //Task List                        
                         break;
@@ -40,7 +45,7 @@ function ActivityPushService(objectCollection) {
                                 pushString.title = senderName;
                                 pushString.description = contactName + ' ' + 'has beed shared as a Contact';
                                 break;
-                        };
+                        }
                         break;
                     case 8: // Mail
                         switch (request.url) {
@@ -70,7 +75,7 @@ function ActivityPushService(objectCollection) {
                                 msg.type = 'activity_read';
                                 break;
                                 //////////////////////////////
-                        };
+                        }
                         break;
                     case 9: // Form
                         switch (request.url) {
@@ -149,7 +154,7 @@ function ActivityPushService(objectCollection) {
                                 pushString.title = senderName;
                                 pushString.description = 'Form has been shared';
                                 break;
-                        };
+                        }
                         break;
                     case 10: // Folders                        
                         switch (request.url) {
@@ -212,7 +217,7 @@ function ActivityPushService(objectCollection) {
                                 break;
                                 //////////////////////////
 
-                        };
+                        }
                         break;
                     case 11: // Project
                         switch (request.url) {
@@ -233,7 +238,7 @@ function ActivityPushService(objectCollection) {
                                 msg.type = 'activity_duedate';
                                 break;
                                 ////////////////////////////
-                        };
+                        }
                         break;
                     case 14: // Voice Call
                         switch (request.url) {
@@ -253,7 +258,7 @@ function ActivityPushService(objectCollection) {
                                 };
                                 pushString.extra_data = extraData;
                                 break;
-                        };
+                        }
                         break;
                     case 15: // Video Conference
                         switch (request.url) {
@@ -277,7 +282,7 @@ function ActivityPushService(objectCollection) {
                                 };
                                 pushString.extra_data = extraData;
                                 break;
-                        };
+                        }
                         break;
                     case 16:   // Telephone module: Chat
                         switch (request.url) {
@@ -296,7 +301,7 @@ function ActivityPushService(objectCollection) {
                                 
                                 break;
                             
-                            };
+                            }
                         break;
                     case 28: // Remainder
                         switch (request.url) {
@@ -312,7 +317,7 @@ function ActivityPushService(objectCollection) {
                                 pushString.description = 'sent a sticky note';
                                 smsString = ' ' + senderName + ' has posted a sticky note on your desk. You can respond by logging into the WorldDesk app. Download Link: https://worlddesk.desker.co';
                                 break;
-                        };
+                        }
                         break;
                     case 31: //Calendar Event
                         switch (request.url) {
@@ -328,7 +333,7 @@ function ActivityPushService(objectCollection) {
                                 pushString.title = senderName;
                                 pushString.description = 'has added you to the meeting - ' + activityTitle + '.';
                                 break;
-                        };
+                        }
                         break;
                     case 32: //Customer Request
                         break;
@@ -340,8 +345,27 @@ function ActivityPushService(objectCollection) {
                         switch (request.url) {
                             case '/' + global.config.version + '/activity/timeline/entry/add':
                             case '/' + global.config.version + '/activity/timeline/entry/add/v1':
+                                let attachments = [];
+                                try {
+                                    attachments = JSON.parse(request.activity_timeline_collection).attachments;
+                                } catch (error) { }
+                                // if (Number(attachments.length) > 0) {
+                                // Text comment
+                                if (Number(request.activity_stream_type_id) === 325) {
+                                    msg.activity_type_category_id = 48;
+                                    msg.type = 'activity_unread';
+                                    msg.description = `Added text in ${activityTitle}.`;
+                                    pushString.description = `Added text in ${activityTitle}.`;
+                                    pushString.title = senderName;
+
+                                    if (Number(attachments.length) > 0) {
+                                        msg.description = `Added attachment in ${activityTitle}.`;
+                                        pushString.description = `Added attachment in ${activityTitle}.`;
+                                    }
+                                }
+                                break;
                             case '/' + global.config.version + '/activity/status/alter':
-                            case '/' + global.config.version + '/activity/participant/access/set':
+                                // case '/' + global.config.version + '/activity/participant/access/set':
                                 msg.activity_type_category_id = 48;
                                 msg.type = 'activity_unread';
                                 pushString.title = senderName;
@@ -352,9 +376,9 @@ function ActivityPushService(objectCollection) {
                                 msg.activity_type_category_id = 48;
                                 msg.type = 'activity_read';
                                 break;
-                        };
-                    break;
-                };
+                        }
+                        break;
+                }
                 
                 // Include activity_id and its category id in the push message, if there is a
                 // push notification intended for a specific servie. So, the client can redirect

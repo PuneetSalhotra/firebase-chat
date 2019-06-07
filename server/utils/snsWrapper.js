@@ -14,19 +14,24 @@ var AwsSns = function () {
             data: {
                 title: "",
                 message: "",
-                timestamp: ""
+                timestamp: "",
+                activity_id: 0,
+                activity_inline_data: ""
             }
-        }
+        };
         GCMjson.data.title = "'" + message.title + "'";
         GCMjson.data.message = "'" + message.description + "'";
         GCMjson.data.timestamp = "''";
+        GCMjson.data.activity_id = Number(message.activity_id) || 0;
+        GCMjson.data.activity_inline_data = message.activity_inline_data;
 
         var aps = {
             'badge': badgeCount,
             'sound': 'default',
             'alert': message.title + message.description,
+            'activity_id': Number(message.activity_id) || 0,
             'content-available': 1
-        }
+        };
 
         if (message.hasOwnProperty('extra_data')) {
             GCMjson.data.type = message.extra_data.type;
@@ -198,20 +203,30 @@ var AwsSns = function () {
                     }
                 } else if (flagAppAccount == 7) { //flagAppAccount == 7 i.e. TONY App normal IOS Push
                     if (flag == 0) {
-                        //console.log('Flag is 0. Creating IOS Dev for Grene Robotics Account Office Desk Plain Push');
+                        //console.log('Flag is 0. Creating IOS Dev for Tony');
                         global.logger.write('conLog', 'Flag is 0. Creating IOS Dev for Tony App Plain Push', {}, {});
                         platformApplicationArn = global.config.platformApplicationIosTonyPushDev;
                     } else {
-                        //console.log('Flag is 1. Creating IOS Prod for Grene Robotics Account Office Desk Plain Push');
+                        //console.log('Flag is 1. Creating IOS Prod for Tony');
                         global.logger.write('conLog', 'Flag is 1. Creating IOS Prod for Tony App Plain Push', {}, {});
                         platformApplicationArn = global.config.platformApplicationIosTonyPushProd;
+                    }
+                } else if (flagAppAccount == 8) { //flagAppAccount == 8 i.e. TONY App normal IOS Push
+                    if (flag == 0) {
+                        //console.log('Flag is 0. Creating IOS Dev for iTony');
+                        global.logger.write('conLog', 'Flag is 0. Creating IOS Dev for iTony App Plain Push', {}, {});
+                        platformApplicationArn = global.config.platformApplicationIosiTonyPushDev;
+                    } else {
+                        //console.log('Flag is 1. Creating IOS Prod for iTony');
+                        global.logger.write('conLog', 'Flag is 1. Creating IOS Prod for iTony App Plain Push', {}, {});
+                        platformApplicationArn = global.config.platformApplicationIosiTonyPushDev;
                     }
                 }
                 break;
             case 3: // windows
                 platformApplicationArn = global.config.platformApplicationWindows;
                 break;
-        };
+        }
         var params = {
             PlatformApplicationArn: platformApplicationArn,
             /* required */

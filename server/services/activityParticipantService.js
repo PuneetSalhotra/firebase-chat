@@ -88,10 +88,29 @@ function ActivityParticipantService(objectCollection) {
         callback(false, responseData);
     };
 
-    this.assignCoworker = function (request, callback) { //Addparticipant Request
+    this.assignCoworker = async function (request, callback) { //Addparticipant Request
 
         request.flag_retry = request.flag_retry || 0;
         request.flag_offline = request.flag_offline || 0;
+
+        let activityTitle = '';
+        try {
+            await activityCommonService
+                .getActivityDetailsPromise(request, request.activity_id)
+                .then((workflowActivityData) => {
+                    if (workflowActivityData.length > 0) {
+                        // 
+                        activityTitle = workflowActivityData[0].activity_title;
+                        // 
+                        request.activity_title = activityTitle;
+                    }
+                })
+                .catch((error) => {
+                    console.log("BotEngine: changeStatus | getActivityDetailsPromise | error: ", error);
+                });
+        } catch (error) {
+            console.log("BotEngine: changeStatus | Activity Details Fetch Error | error: ", error);
+        }
 
         var loopAddParticipant = function (participantCollection, index, maxIndex) {
             iterateAddParticipant(participantCollection, index, maxIndex, function (err, data) {
@@ -584,7 +603,8 @@ function ActivityParticipantService(objectCollection) {
                                         pubnubMsg.organization_id = request.organization_id;
                                         pubnubMsg.desk_asset_id = participantData.asset_id;
                                         pubnubMsg.activity_type_category_id = request.activity_type_category_id || 0;
-                                        console.log('Participant Add | PubNub Message : ', pubnubMsg);
+                                        pubnubMsg.description = `Added you as a participant in ${request.activity_title}.`;
+                                        console.log('Participant Add | PubNub Message: ', pubnubMsg);
                                         activityPushService.pubNubPush({
                                             asset_id: participantData.asset_id,
                                             organization_id: request.organization_id
@@ -638,7 +658,8 @@ function ActivityParticipantService(objectCollection) {
                                         pubnubMsg.organization_id = request.organization_id;
                                         pubnubMsg.desk_asset_id = participantData.asset_id;
                                         pubnubMsg.activity_type_category_id = request.activity_type_category_id || 0;
-                                        console.log('Participant Add | PubNub Message : ', pubnubMsg);
+                                        pubnubMsg.description = `Added you as a participant in ${request.activity_title}.`;
+                                        console.log('Participant Add | PubNub Message: ', pubnubMsg);
                                         activityPushService.pubNubPush({
                                             asset_id: participantData.asset_id,
                                             organization_id: request.organization_id

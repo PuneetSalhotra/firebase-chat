@@ -470,7 +470,21 @@ function ActivityTimelineService(objectCollection) {
 
                     } else {
 
-                        activityPushService.sendPush(request, objectCollection, 0, function () {});
+                        // activityPushService.sendPush(request, objectCollection, 0, function () {});
+                        try {
+                            if (
+                                (request.hasOwnProperty("is_child_order") && Boolean(request.is_child_order) === true) &&
+                                (
+                                    Number(request.activity_type_category_id) === 9 ||
+                                    Number(request.activity_type_category_id) === 48
+                                )
+                            ) {
+                                throw new Error("ChildOrder::NoPush")
+                            }
+                            activityPushService.sendPush(request, objectCollection, 0, function () {});
+                        } catch (error) {
+                            console.log("[WARNING] No Push Sent: ", error);
+                        }
                         activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {});
 
                         //updating log differential datetime for only this asset
