@@ -14,19 +14,24 @@ var AwsSns = function () {
             data: {
                 title: "",
                 message: "",
-                timestamp: ""
+                timestamp: "",
+                activity_id: 0,
+                activity_inline_data: ""
             }
-        }
+        };
         GCMjson.data.title = "'" + message.title + "'";
         GCMjson.data.message = "'" + message.description + "'";
         GCMjson.data.timestamp = "''";
+        GCMjson.data.activity_id = Number(message.activity_id) || 0;
+        GCMjson.data.activity_inline_data = message.activity_inline_data;
 
         var aps = {
             'badge': badgeCount,
             'sound': 'default',
             'alert': message.title + message.description,
+            'activity_id': Number(message.activity_id) || 0,
             'content-available': 1
-        }
+        };
 
         if (message.hasOwnProperty('extra_data')) {
             GCMjson.data.type = message.extra_data.type;
