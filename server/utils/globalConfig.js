@@ -609,6 +609,9 @@ config.platformApplicationIosPamPushProd = 'arn:aws:sns:ap-south-1:430506864995:
 config.platformApplicationIosTonyPushDev = 'arn:aws:sns:ap-south-1:430506864995:app/APNS_SANDBOX/TonyIOSDevPush';
 config.platformApplicationIosTonyPushProd = 'arn:aws:sns:ap-south-1:430506864995:app/APNS/TonyIOSProdPush';
 
+//iTONY IOS normal Push platform endpoints
+config.platformApplicationIosiTonyPushDev = 'arn:aws:sns:ap-south-1:430506864995:app/APNS_SANDBOX/iTonyDevPush';
+
 config.twilioAccountSid = "AC66cabb9ae7db92bbf7e6113ff2eeabad";
 config.twilioAuthToken = "7d4f9ee9f8122d2a7129e13fdaefd919";
 config.nexmoAPIKey = "533696c3";
