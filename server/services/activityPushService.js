@@ -3,8 +3,11 @@
  */
 const pubnubWrapper = new(require('../utils/pubnubWrapper'))(); //BETA
 //const smsEngine = require('../utils/smsEngine');
+const moment = require('moment');
 
 function ActivityPushService(objectCollection) {
+    const cacheWrapper = objectCollection.cacheWrapper;
+
     var getPushString = function (request, objectCollection, senderName, callback) {
         var pushString = {};
         var extraData = {};
@@ -431,13 +434,52 @@ function ActivityPushService(objectCollection) {
         });
     };
 
-    this.pubNubPush = function (request, message, callback) {
+    async function orgRateLimitCheckAndSet(organizationID) {
+        let isOrgRateLimitExceeded = false;
+        try {
+            const pushTimestamp = await cacheWrapper.getOrgLastPubnubPushTimestamp(organizationID);
+            const timeDiff = moment.utc().diff(moment.utc(pushTimestamp));
+            if (moment.duration(timeDiff).asSeconds() <= 120) {
+                console.log("sendPush | timeDiff Duration: ", moment.duration(timeDiff).asSeconds())
+                // It's still less than 2 minutes since the last org level push was sent.
+                isOrgRateLimitExceeded = true;
+            } else {
+                const timestampSet = await cacheWrapper.setOrgLastPubnubPushTimestamp(organizationID, moment().utc().format('YYYY-MM-DD HH:mm:ss'));
+                console.log("sendPush | timestampSet: ", timestampSet)
+            }
+        } catch (error) {
+            console.log("ActivityPushService | sendPush | isOrgRateLimitExceeded: ", error);
+        }
+        return isOrgRateLimitExceeded;
+    }
+
+    this.pubNubPush = async function (request, message, callback) {
+        // 
+        let isOrgRateLimitExceeded = false;
+        let organizationID = Number(request.organization_id);
+        try {
+            isOrgRateLimitExceeded = await orgRateLimitCheckAndSet(organizationID);
+        } catch (error) {
+            console.log("pubNubPush | orgRateLimitCheckAndSet | Error: ", error);
+        }
+        //
         pubnubWrapper.push(request.asset_id, message);
-        pubnubWrapper.push(request.organization_id, message);
+        pubnubWrapper.push(request.organization_id, message, isOrgRateLimitExceeded);
         callback(false, true);
     };
 
-    this.sendPush = function (request, objectCollection, pushAssetId, callback) {
+    this.sendPush = async function (request, objectCollection, pushAssetId, callback) {
+
+        // 
+        let isOrgRateLimitExceeded = false;
+        let organizationID = Number(request.organization_id);
+        try {
+            isOrgRateLimitExceeded = await orgRateLimitCheckAndSet(organizationID);
+        } catch (error) {
+            console.log("sendPush | orgRateLimitCheckAndSet | Error: ", error);
+        }
+        //
+
         var proceedSendPush = function (pushReceivers, senderName) {
             //console.log('pushReceivers.length : ', pushReceivers.length);
             global.logger.write('debug', 'pushReceivers.length : ' + pushReceivers.length, {}, {});
@@ -495,7 +537,7 @@ function ActivityPushService(objectCollection) {
                                                     pubnubMsg.desk_asset_id = rowData.assetId;
                                                     //console.log('PubNub Message : ', pubnubMsg);
                                                     global.logger.write('debug', 'pubnubMsg: ' + JSON.stringify(pubnubMsg), {}, {});
-                                                    pubnubWrapper.push(rowData.organizationId, pubnubMsg);
+                                                    pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
                                                     pubnubWrapper.push(rowData.assetId, pubnubMsg);
                                                 }
                                                 //PUB
@@ -506,7 +548,7 @@ function ActivityPushService(objectCollection) {
                                                     pubnubMsg.desk_asset_id = rowData.assetId;
                                                     //console.log('PubNub Message : ', pubnubMsg);
                                                     global.logger.write('debug', 'pubnubMsg: ' + JSON.stringify(pubnubMsg), {}, {});
-                                                    pubnubWrapper.push(rowData.organizationId, pubnubMsg);
+                                                    pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
                                                     pubnubWrapper.push(rowData.assetId, pubnubMsg);
                                                 }
                                                 break;
@@ -518,7 +560,7 @@ function ActivityPushService(objectCollection) {
                                         pubnubMsg.desk_asset_id = rowData.assetId;
                                         //console.log('PubNub Message : ', pubnubMsg);
                                         global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg), {}, {});
-                                        pubnubWrapper.push(rowData.organizationId, pubnubMsg);
+                                        pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
                                         pubnubWrapper.push(rowData.assetId, pubnubMsg);
                                     }
                                 }
@@ -548,7 +590,7 @@ function ActivityPushService(objectCollection) {
                                                 pubnubMsg.desk_asset_id = rowData.assetId;
                                                 //console.log('PubNub Message : ', pubnubMsg);
                                                 global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg), {}, {});
-                                                pubnubWrapper.push(rowData.organizationId, pubnubMsg);
+                                                pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
                                                 pubnubWrapper.push(rowData.assetId, pubnubMsg);
                                             }
                                             break;
@@ -560,7 +602,7 @@ function ActivityPushService(objectCollection) {
                                                 pubnubMsg.desk_asset_id = rowData.assetId;
                                                 //console.log('PubNub Message : ', pubnubMsg);
                                                 global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg, null, 2), {}, {});
-                                                pubnubWrapper.push(rowData.organizationId, pubnubMsg);
+                                                pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
                                                 pubnubWrapper.push(rowData.assetId, pubnubMsg);
                                             }
                                             break;
