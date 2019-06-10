@@ -120,11 +120,11 @@ class SingleDimensionalStatusAggrWidget extends WidgetBase {
                 if (widgetData.count != result[0].valueInteger) {
                     if (widgetTransId > 0) {
                         //Pubnub PUSH
-                        this.objCollection.pubnubWrapper.push(organizationId, msg);
+                        // this.objCollection.pubnubWrapper.push(organizationId, msg);
                         return widgetTransactionSvc.updateFileStatusDistribution(widgetData);
                     } else {
                         //Pubnub PUSH
-                        this.objCollection.pubnubWrapper.push(organizationId, msg);
+                        // this.objCollection.pubnubWrapper.push(organizationId, msg);
                         return widgetTransactionSvc.createFileStatusDistribution(widgetData);
                     }
                 }
