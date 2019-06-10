@@ -489,7 +489,11 @@ function ActivityPushService(objectCollection) {
                                             //     break;
                                             default:
                                                 //SNS
-                                                objectCollection.sns.publish(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn);
+                                                try {
+                                                    objectCollection.sns.publish(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn);
+                                                } catch (error) {
+                                                    console.log("activityPushService.js | sendPush | objectCollection.sns.publish | Error: ", error);
+                                                }
                                                 if (pubnubMsg.activity_type_category_id != 0) {
                                                     pubnubMsg.organization_id = rowData.organizationId;
                                                     pubnubMsg.desk_asset_id = rowData.assetId;
