@@ -347,6 +347,46 @@ function CacheWrapper(client) {
         });
     };
 
+    this.setOrgLastPubnubPushTimestamp = (organizationID, timestamp) => {
+        const reqBodyObject = {
+            organization_id: organizationID,
+            module: 'asset'
+        };
+        return new Promise((resolve, reject) => {
+            client.hset('org_pubnub_push_rate_limit', organizationID, timestamp, function (err, reply) {
+                if (err) {
+                    console.log(err);
+                    global.logger.write('cacheResponse', `HSET org_pubnub_push_rate_limit ${JSON.stringify(organizationID)} ${JSON.stringify(timestamp)}`, err, reqBodyObject);
+                    reject(0);
+                } else {
+                    console.log(reply);
+                    global.logger.write('cacheResponse', `HSET org_pubnub_push_rate_limit ${JSON.stringify(organizationID)} ${JSON.stringify(timestamp)}`, reply, reqBodyObject);
+                    resolve(reply);
+                }
+            });
+        });
+    };
+
+    this.getOrgLastPubnubPushTimestamp = (organizationID) => {
+        const reqBodyObject = {
+            organization_id: organizationID,
+            module: 'asset'
+        };
+        return new Promise((resolve, reject) => {
+            client.hget('org_pubnub_push_rate_limit', organizationID, function (err, reply) {
+                if (err) {
+                    console.log(err);
+                    global.logger.write('cacheResponse', `HGET org_pubnub_push_rate_limit ${JSON.stringify(organizationID)}`, err, reqBodyObject);
+                    reject(0);
+                } else {
+                    console.log(reply);
+                    global.logger.write('cacheResponse', `HGET org_pubnub_push_rate_limit ${JSON.stringify(organizationID)}`, reply, reqBodyObject);
+                    resolve(reply);
+                }
+            });
+        });
+    };
+
 }
 
 module.exports = CacheWrapper;
