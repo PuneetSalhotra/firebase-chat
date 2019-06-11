@@ -1171,9 +1171,14 @@ function BotService(objectCollection) {
             }
         }
 
-        if (newReq.phone_number !== -1) {
+        if (
+            (newReq.phone_number !== -1) &&
+            (Number(newReq.phone_number) !== 0)
+        ) {
+            console.log("BotService | addParticipant | Message: ", newReq.phone_number, " | ", typeof newReq.phone_number);
             return await addParticipantStep(newReq);
         } else {
+            console.log("BotService | addParticipant | Error: ", `Phone number: ${newReq.phone_number}, has got problems!`);
             return [true, "Phone Number is Undefined"];
         }
 
