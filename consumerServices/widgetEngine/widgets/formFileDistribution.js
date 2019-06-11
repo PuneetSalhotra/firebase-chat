@@ -44,7 +44,7 @@ class FormFileDistributionWidget extends WidgetBase {
                     return this.createOrUpdateWidgetTransaction(widgetData, msg, data.organization_id)
                 } else {
                     //Pubnub PUSH
-                    this.objCollection.pubnubWrapper.push(data.organization_id, msg);
+                    // this.objCollection.pubnubWrapper.push(data.organization_id, msg);
                     return false;
                 }
             });
@@ -60,11 +60,11 @@ class FormFileDistributionWidget extends WidgetBase {
                 if (widgetData.count != result[0].valueInteger) {
                     if (widgetTransId > 0) {
                         //Pubnub PUSH
-                        this.objCollection.pubnubWrapper.push(organizationId, msg);
+                        // this.objCollection.pubnubWrapper.push(organizationId, msg);
                         return widgetTransactionSvc.updateFileDistribution(widgetData);
                     } else {
                         //Pubnub PUSH
-                        this.objCollection.pubnubWrapper.push(organizationId, msg);
+                        // this.objCollection.pubnubWrapper.push(organizationId, msg);
                         return widgetTransactionSvc.createFileDistribution(widgetData);
                     }
                 }
