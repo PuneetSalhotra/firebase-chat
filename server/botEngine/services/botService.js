@@ -590,7 +590,8 @@ function BotService(objectCollection) {
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'FORM FIELD', {}, {});
                     try {
-                        global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
+                        // global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
+                        console.log('form_field_copy | Request Params received by BOT ENGINE', request);
                         await copyFields(request, botOperationsJson.bot_operations.form_field_copy);
                     } catch (err) {
                         global.logger.write('conLog', 'Error in executing copyFields Step', {}, {});
@@ -917,6 +918,8 @@ function BotService(objectCollection) {
 
             const sourceFieldDataTypeID = Number(sourceFieldData[0].data_type_id);
             const sourceFieldValue = sourceFieldData[0][getFielDataValueColumnName(sourceFieldDataTypeID)];
+
+            console.log(`sourceFieldData | sourceFieldDataTypeID: ${sourceFieldDataTypeID} |  getFielDataValueColumnName(sourceFieldDataTypeID): ${getFielDataValueColumnName(sourceFieldDataTypeID)} | sourceFieldValue: ${sourceFieldValue}`);
             console.log("sourceFieldData | activityInlineDataMap: ", sourceFieldData);
 
             activityInlineDataMap.set(sourceFieldID, {
@@ -926,7 +929,7 @@ function BotService(objectCollection) {
                 "field_data_type_category_id": Number(sourceFieldData[0].data_type_category_id),
                 "field_data_type_id": Number(sourceFieldData[0].data_type_id),
                 "field_id": targetFieldID,
-                "field_name": Number(sourceFieldData[0].field_name),
+                "field_name": String(sourceFieldData[0].field_name),
                 "field_value": sourceFieldValue,
                 "form_id": targetFormID,
                 "message_unique_id": 123123123123123123
@@ -949,8 +952,161 @@ function BotService(objectCollection) {
             } catch (error) {
                 console.log("copyFields | alterFormActivityFieldValues | Error: ", error);
             }
+        
+        } else if (targetFormTransactionID === 0 || targetFormActivityID === 0) {
+            // If the target form has not been submitted yet, create one
+            let createTargetFormRequest = Object.assign({}, request);
+            createTargetFormRequest.activity_form_id = targetFormID;
+            createTargetFormRequest.form_id = targetFormID;
+            createTargetFormRequest.activity_inline_data = JSON.stringify(activityInlineData);
+            createTargetFormRequest.workflow_activity_id = workflowActivityID;
+
+            try {
+                await createTargetFormActivity(createTargetFormRequest);
+            } catch (error) {
+                console.log("copyFields | createTargetFormActivity | Error: ", error);
+            }
+        }
+        return;
+    }
+
+    async function createTargetFormActivity(createTargetFormRequest) {
+        // Get the activity_id and form_trasanction_id
+        const targetFormActivityID = await cacheWrapper.getActivityIdPromise();
+        const targetFormTransactionID = await cacheWrapper.getFormTransactionIdPromise();
+        
+        if (
+            Number(targetFormActivityID) === 0 ||
+            Number(targetFormTransactionID) === 0
+        ) {
+            throw new Error("Error Fetching Activity ID or Form Transaction ID");
         }
 
+        createTargetFormRequest.activity_id = targetFormActivityID;
+        createTargetFormRequest.form_transaction_id = targetFormTransactionID;
+
+        // Fetch the activity_type_id
+        let targetFormctivityTypeID = 0;
+        const [workforceActivityTypeMappingError, workforceActivityTypeMappingData] = await workforceActivityTypeMappingSelect({
+            organization_id: createTargetFormRequest.organization_id,
+            account_id: createTargetFormRequest.account_id,
+            workforce_id: createTargetFormRequest.workforce_id,
+            activity_type_category_id: 9
+        });
+        if (
+            (workforceActivityTypeMappingError === false) &&
+            (Number(workforceActivityTypeMappingData.length) > 0)
+        ) {
+            targetFormctivityTypeID = Number(workforceActivityTypeMappingData[0].activity_type_id) || 134492;
+        }
+
+        if (targetFormctivityTypeID === 0) {
+            throw new Error("createTargetFormActivity | Error Fetching targetFormctivityTypeID");
+        }
+        createTargetFormRequest.activity_type_id = targetFormctivityTypeID;
+
+        // Get the target form's name:
+        let targetFormName = '';
+        const [targetFormConfigError, targetFormConfigData] = await activityCommonService.workforceFormMappingSelect({
+            organization_id: createTargetFormRequest.organization_id,
+            account_id: createTargetFormRequest.account_id,
+            workforce_id: createTargetFormRequest.workforce_id,
+            form_id: createTargetFormRequest.form_id
+        });
+        if (targetFormConfigData.length > 0) {
+            targetFormName = targetFormConfigData[0].form_name;
+        }
+        createTargetFormRequest.activity_title = `${util.getCurrentUTCTime()} - ${targetFormName || ''}`;
+        createTargetFormRequest.activity_description = `${util.getCurrentUTCTime()} - ${targetFormName || ''}`;
+
+        // Other miscellaneous parameters
+        createTargetFormRequest.activity_datetime_start = util.getCurrentUTCTime();
+        createTargetFormRequest.activity_datetime_end = util.getCurrentUTCTime();
+        createTargetFormRequest.activity_type_category_id = 9;
+        createTargetFormRequest.activity_sub_type_id = 0;
+        createTargetFormRequest.activity_access_role_id = 21;
+        createTargetFormRequest.activity_status_type_category_id = 1;
+        createTargetFormRequest.activity_status_type_id = 22;
+        createTargetFormRequest.asset_participant_access_id = 21;
+        createTargetFormRequest.activity_flag_file_enabled = -1;
+        createTargetFormRequest.activity_parent_id = 0;
+        createTargetFormRequest.flag_pin = 0;
+        createTargetFormRequest.flag_offline = 0;
+        createTargetFormRequest.flag_retry = 0;
+        createTargetFormRequest.device_os_id = 5;
+        createTargetFormRequest.activity_stream_type_id = 705;
+        createTargetFormRequest.flag_timeline_entry = 1;
+        createTargetFormRequest.url = "/r1/activity/add/v1";
+        createTargetFormRequest.create_workflow= 1;
+
+        const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
+        await addActivityAsync(createTargetFormRequest);
+
+        // Make a 705 timeline transaction entry in the workflow file
+        if (createTargetFormRequest.hasOwnProperty("workflow_activity_id")) {
+            let workflowFile705Request = Object.assign({}, createTargetFormRequest);
+            workflowFile705Request.activity_id = createTargetFormRequest.workflow_activity_id;
+            workflowFile705Request.data_activity_id = Number(createTargetFormRequest.activity_id);
+            workflowFile705Request.form_transaction_id = Number(createTargetFormRequest.form_transaction_id);
+            workflowFile705Request.activity_type_category_id = 48;
+            workflowFile705Request.activity_stream_type_id = 705;
+            workflowFile705Request.flag_timeline_entry = 1;
+            workflowFile705Request.message_unique_id = util.getMessageUniqueId(createTargetFormRequest.asset_id);
+            workflowFile705Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+            workflowFile705Request.device_os_id = 8;
+
+            workflowFile705Request.activity_timeline_collection = JSON.stringify({
+                "mail_body": `${targetFormName} Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+                "subject": `${targetFormName}`,
+                "content": `${targetFormName}`,
+                "asset_reference": [],
+                "activity_reference": [],
+                "form_approval_field_reference": [],
+                "form_submitted": JSON.parse(createTargetFormRequest.activity_inline_data),
+                "attachments": []
+            });
+
+            const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
+            try {
+                await addTimelineTransactionAsync(workflowFile705Request);
+            } catch (error) {
+                console.log("createTargetFormActivity | workflowFile705Request | addTimelineTransactionAsync | Error: ", error);
+                throw new Error(error);
+            }
+        }
+        return;
+    }
+
+    async function workforceActivityTypeMappingSelect(request) {
+        // IN p_organization_id BIGINT(20), IN p_account_id bigint(20), 
+        // IN p_workforce_id bigint(20), IN p_form_id BIGINT(20)
+
+        let formData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.access_level_id || 0,
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_category_id,
+            request.page_start || 0,
+            request.page_limit || 50
+        );
+        const queryString = util.getQueryString('ds_p1_1_workforce_activity_type_mapping_select', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    formData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, formData];
     }
 
     function getFielDataValueColumnName(fieldDataTypeID) {
@@ -962,12 +1118,13 @@ function BotService(objectCollection) {
             case 6: // Decimal
                 return 'data_entity_double_1';
             case 19: // Short Text
-            case 20: // Long Text
             case 21: // Label
             case 22: // Email ID
             case 27: // General Signature with asset reference
             case 33: // Single Selection List
                 return 'data_entity_text_1';
+            case 20: // Long Text
+                return 'data_entity_text_2';
         }
     }
 
