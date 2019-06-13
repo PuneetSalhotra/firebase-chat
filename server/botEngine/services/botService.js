@@ -919,9 +919,6 @@ function BotService(objectCollection) {
             const sourceFieldDataTypeID = Number(sourceFieldData[0].data_type_id);
             const sourceFieldValue = sourceFieldData[0][getFielDataValueColumnName(sourceFieldDataTypeID)];
 
-            console.log(`sourceFieldData | sourceFieldDataTypeID: ${sourceFieldDataTypeID} |  getFielDataValueColumnName(sourceFieldDataTypeID): ${getFielDataValueColumnName(sourceFieldDataTypeID)} | sourceFieldValue: ${sourceFieldValue}`);
-            console.log("sourceFieldData | activityInlineDataMap: ", sourceFieldData);
-
             activityInlineDataMap.set(sourceFieldID, {
                 // "form_name": Number(sourceFieldData[0].form_name),
                 "data_type_combo_id": Number(sourceFieldData[0].data_type_combo_id),
