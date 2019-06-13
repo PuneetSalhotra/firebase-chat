@@ -559,7 +559,7 @@ function BotService(objectCollection) {
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     break;
 
-                    //case 'status_alter': 
+                //case 'status_alter': 
                 case 2: // Alter Status
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'STATUS ALTER', {}, {});
@@ -585,7 +585,7 @@ function BotService(objectCollection) {
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     break;
 
-                    //case 'form_field_copy':
+                //case 'form_field_copy':
                 case 3: //Copy Form field
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'FORM FIELD', {}, {});
@@ -605,7 +605,7 @@ function BotService(objectCollection) {
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     break;
 
-                    //case 'workflow_percentage_alter': 
+                //case 'workflow_percentage_alter': 
                 case 4: //Update Workflow Percentage
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'WF PERCENTAGE ALTER', {}, {});
@@ -631,7 +631,7 @@ function BotService(objectCollection) {
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     break;
 
-                    //case 'fire_api': 
+                //case 'fire_api': 
                 case 5: // External System Integration
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'FIRE API', {}, {});
@@ -649,7 +649,7 @@ function BotService(objectCollection) {
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     break;
 
-                    //case 'fire_text': 
+                //case 'fire_text': 
                 case 6: // Send Text Message
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'FIRE TEXT', {}, {});
@@ -667,7 +667,7 @@ function BotService(objectCollection) {
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     break;
 
-                    //case 'fire_email':           
+                //case 'fire_email':           
                 case 7: // Send email
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'FIRE EMAIL', {}, {});
@@ -775,7 +775,7 @@ function BotService(objectCollection) {
         try {
             await new Promise((resolve, reject) => {
                 activityService.alterActivityStatus(newReq, (err, resp) => {
-                    (err === false) ? resolve(): reject(err);
+                    (err === false) ? resolve() : reject(err);
                 });
             });
 
@@ -819,7 +819,7 @@ function BotService(objectCollection) {
                 queueActMapInlineData.queue_sort.current_status_id = inlineData.activity_status_id;
                 queueActMapInlineData.queue_sort.current_status_name = statusName[0].activity_status_name || "";
                 queueActMapInlineData.queue_sort.last_status_alter_time = util.getCurrentUTCTime();
-                
+
                 // Bring the percentage up to the latest value
                 if (Number(workflowActivityPercentage) !== 0) {
                     queueActMapInlineData.queue_sort.caf_completion_percentage = workflowActivityPercentage;
@@ -828,7 +828,7 @@ function BotService(objectCollection) {
                 data = await (activityCommonService.queueActivityMappingUpdateInlineData(newReq, i.queue_activity_mapping_id, JSON.stringify(queueActMapInlineData)));
                 global.logger.write('conLog', 'Status Alter BOT Step - Updating the Queue Json : ', data, {});
 
-                activityCommonService.queueHistoryInsert(newReq, 1402, i.queue_activity_mapping_id).then(() => {});
+                activityCommonService.queueHistoryInsert(newReq, 1402, i.queue_activity_mapping_id).then(() => { });
             }
 
 
@@ -881,14 +881,14 @@ function BotService(objectCollection) {
             targetFormTransactionData = [],
             targetFormActivityID = 0,
             targetFormTransactionID = 0;
-        
+
         // Check if the target form already exists for the given workflow
         try {
             targetFormTransactionData = await activityCommonService.getActivityTimelineTransactionByFormId713({
                 organization_id: request.organization_id,
                 account_id: request.account_id
             }, workflowActivityID, targetFormID);
-            
+
             if (Number(targetFormTransactionData.length) > 0) {
                 targetFormTransactionID = targetFormTransactionData[0].data_form_transaction_id;
                 targetFormActivityID = targetFormTransactionData[0].data_activity_id;
@@ -949,7 +949,7 @@ function BotService(objectCollection) {
             } catch (error) {
                 console.log("copyFields | alterFormActivityFieldValues | Error: ", error);
             }
-        
+
         } else if (targetFormTransactionID === 0 || targetFormActivityID === 0) {
             // If the target form has not been submitted yet, create one
             let createTargetFormRequest = Object.assign({}, request);
@@ -971,7 +971,7 @@ function BotService(objectCollection) {
         // Get the activity_id and form_trasanction_id
         const targetFormActivityID = await cacheWrapper.getActivityIdPromise();
         const targetFormTransactionID = await cacheWrapper.getFormTransactionIdPromise();
-        
+
         if (
             Number(targetFormActivityID) === 0 ||
             Number(targetFormTransactionID) === 0
@@ -1034,7 +1034,7 @@ function BotService(objectCollection) {
         createTargetFormRequest.activity_stream_type_id = 705;
         createTargetFormRequest.flag_timeline_entry = 1;
         createTargetFormRequest.url = "/r1/activity/add/v1";
-        createTargetFormRequest.create_workflow= 1;
+        createTargetFormRequest.create_workflow = 1;
 
         const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
         await addActivityAsync(createTargetFormRequest);
@@ -1148,7 +1148,7 @@ function BotService(objectCollection) {
                 let phoneNumber = inlineData[type[0]].phone_number;
                 let phone;
                 (phoneNumber.includes('||')) ?
-                phone = phoneNumber.split('||'):
+                    phone = phoneNumber.split('||') :
                     phone = phoneNumber.split('|');
 
                 newReq.country_code = phone[0]; //country code
@@ -1182,7 +1182,7 @@ function BotService(objectCollection) {
                         let phone;
 
                         (phoneNumber.includes('||')) ?
-                        phone = phoneNumber.split('||'):
+                            phone = phoneNumber.split('||') :
                             phone = phoneNumber.split('|');
 
                         newReq.country_code = phone[0]; //country code
@@ -1456,7 +1456,7 @@ function BotService(objectCollection) {
         // global.logger.write('conLog', 'fire715OnWFOrderFileRequest : ', fire715OnWFOrderFileRequest, {});
         return new Promise((resolve, reject) => {
             activityTimelineService.addTimelineTransaction(fire715OnWFOrderFileRequest, (err, resp) => {
-                (err === false) ? resolve(): reject(err);
+                (err === false) ? resolve() : reject(err);
             });
             // resolve();
         });
@@ -1645,7 +1645,7 @@ function BotService(objectCollection) {
         global.logger.write('conLog', 'fire716OnWFOrderFileRequest :', fire716OnWFOrderFileRequest, {});
         return new Promise((resolve, reject) => {
             activityTimelineService.addTimelineTransaction(fire716OnWFOrderFileRequest, (err, resp) => {
-                (err === false) ? resolve(): reject(err);
+                (err === false) ? resolve() : reject(err);
             });
         });
     }
@@ -1714,7 +1714,7 @@ function BotService(objectCollection) {
 
         return new Promise((resolve, reject) => {
             activityTimelineService.addTimelineTransaction(fire714OnNewOrderFileRequest, (err, resp) => {
-                (err === false) ? resolve(): reject(err);
+                (err === false) ? resolve() : reject(err);
             });
         });
     }
@@ -1746,9 +1746,9 @@ function BotService(objectCollection) {
 
                 //Checking the queuemappingid
                 queueActivityMappingData = await (activityCommonService.fetchQueueActivityMappingId({
-                        activity_id: newrequest.workflow_activity_id,
-                        organization_id: newrequest.organization_id
-                    },
+                    activity_id: newrequest.workflow_activity_id,
+                    organization_id: newrequest.organization_id
+                },
                     i.queue_id));
                 global.logger.write('conLog', 'queueActivityMappingData : ', {}, {});
                 global.logger.write('conLog', queueActivityMappingData, {}, {});
@@ -1772,7 +1772,7 @@ function BotService(objectCollection) {
                     data = await (activityCommonService.queueActivityMappingUpdateInlineData(newrequest, queueActivityMappingId, JSON.stringify(queueActMapInlineData)));
                     global.logger.write('conLog', 'Updating the Queue Json : ', data, {});
 
-                    activityCommonService.queueHistoryInsert(newrequest, 1402, queueActivityMappingId).then(() => {});
+                    activityCommonService.queueHistoryInsert(newrequest, 1402, queueActivityMappingId).then(() => { });
                     //return [false, {}];
                 }
             }
@@ -2202,7 +2202,7 @@ function BotService(objectCollection) {
 
         return await new Promise((resolve, reject) => {
             activityParticipantService.assignCoworker(addParticipantRequest, (err, resp) => {
-                (err === false) ? resolve(): reject(err);
+                (err === false) ? resolve() : reject(err);
             });
         });
 
@@ -2238,7 +2238,7 @@ function BotService(objectCollection) {
                     global.logger.write('conLog', err, {}, {});
                     global.logger.write('conLog', body, {}, {});
 
-                    (err === null) ? resolve(body): reject(err);
+                    (err === null) ? resolve(body) : reject(err);
                 });
             });
         }
@@ -2562,65 +2562,65 @@ function BotService(objectCollection) {
                     field_id: fieldID,
                     organization_id: request.organization_id
                 })
-                .then(async (data) => {
-                    let newRequest = Object.assign({}, request);
-                    let newFieldData = [];
+                    .then(async (data) => {
+                        let newRequest = Object.assign({}, request);
+                        let newFieldData = [];
 
-                    if (data.length > 0) {
-                        newRequest.update_sequence_id = Number(data[0].update_sequence_id) + 1;
-                    } else {
-                        newRequest.update_sequence_id = 1;
-                    }
+                        if (data.length > 0) {
+                            newRequest.update_sequence_id = Number(data[0].update_sequence_id) + 1;
+                        } else {
+                            newRequest.update_sequence_id = 1;
+                        }
 
-                    newRequest.field_id = fieldID;
-                    newRequest.data_type_combo_id = fieldsNewValuesMap.get(fieldID).data_type_combo_id;
-                    newRequest.new_field_value = fieldsNewValuesMap.get(fieldID).field_value;
-                    newRequest.datetime_log = util.getCurrentUTCTime();
-                    newFieldData.push(fieldsNewValuesMap.get(fieldID));
-                    // Update the field entry
-                    await putLatestUpdateSeqId(newRequest, newFieldData);
+                        newRequest.field_id = fieldID;
+                        newRequest.data_type_combo_id = fieldsNewValuesMap.get(fieldID).data_type_combo_id;
+                        newRequest.new_field_value = fieldsNewValuesMap.get(fieldID).field_value;
+                        newRequest.datetime_log = util.getCurrentUTCTime();
+                        newFieldData.push(fieldsNewValuesMap.get(fieldID));
+                        // Update the field entry
+                        await putLatestUpdateSeqId(newRequest, newFieldData);
 
-                    formName = fieldsNewValuesMap.get(fieldID).form_name;
-                    let fieldName = fieldsNewValuesMap.get(fieldID).field_name;
-                    // Update the activity inline data as well
-                    if (activityInlineDataMap.has(fieldID)) {
-                        let oldFieldEntry = activityInlineDataMap.get(fieldID);
-                        let newFieldEntry = Object.assign({}, oldFieldEntry);
-                        newFieldEntry.field_value = fieldsNewValuesMap.get(fieldID).field_value;
-                        // Set the new value in the inline data map
-                        activityInlineDataMap.set(fieldID, newFieldEntry);
+                        formName = fieldsNewValuesMap.get(fieldID).form_name;
+                        let fieldName = fieldsNewValuesMap.get(fieldID).field_name;
+                        // Update the activity inline data as well
+                        if (activityInlineDataMap.has(fieldID)) {
+                            let oldFieldEntry = activityInlineDataMap.get(fieldID);
+                            let newFieldEntry = Object.assign({}, oldFieldEntry);
+                            newFieldEntry.field_value = fieldsNewValuesMap.get(fieldID).field_value;
+                            // Set the new value in the inline data map
+                            activityInlineDataMap.set(fieldID, newFieldEntry);
 
-                        // Form the content string
-                        content += `In the ${formName}, the field ${fieldName} was updated from ${oldFieldEntry.field_value} to ${newFieldEntry.field_value} <br />`;;
-                    } else {
-                        // If it doesn't already exist, make a fresh entry!
-                        let newFieldEntry = fieldsNewValuesMap.get(fieldID);
-                        activityInlineDataMap.set(fieldID, {
-                            "data_type_combo_id": newFieldEntry.data_type_combo_id,
-                            "data_type_combo_value": newFieldEntry.data_type_combo_value,
-                            "field_data_type_category_id": newFieldEntry.field_data_type_category_id,
-                            "field_data_type_id": newFieldEntry.field_data_type_id,
-                            "field_id": fieldID,
-                            "field_name": fieldName,
-                            "field_value": newFieldEntry.field_value,
-                            "form_id": newRequest.form_id,
-                            "message_unique_id": 12345678910
-                        });
+                            // Form the content string
+                            content += `In the ${formName}, the field ${fieldName} was updated from ${oldFieldEntry.field_value} to ${newFieldEntry.field_value} <br />`;;
+                        } else {
+                            // If it doesn't already exist, make a fresh entry!
+                            let newFieldEntry = fieldsNewValuesMap.get(fieldID);
+                            activityInlineDataMap.set(fieldID, {
+                                "data_type_combo_id": newFieldEntry.data_type_combo_id,
+                                "data_type_combo_value": newFieldEntry.data_type_combo_value,
+                                "field_data_type_category_id": newFieldEntry.field_data_type_category_id,
+                                "field_data_type_id": newFieldEntry.field_data_type_id,
+                                "field_id": fieldID,
+                                "field_name": fieldName,
+                                "field_value": newFieldEntry.field_value,
+                                "form_id": newRequest.form_id,
+                                "message_unique_id": 12345678910
+                            });
 
-                        // Form the content string
-                        content += `In the ${formName}, the field ${fieldName} was updated to ${newFieldEntry.field_value} <br />`;;
-                    }
+                            // Form the content string
+                            content += `In the ${formName}, the field ${fieldName} was updated to ${newFieldEntry.field_value} <br />`;;
+                        }
 
-                    return {
-                        field_id: fieldID,
-                        success: true,
-                        update_sequence_id: newRequest.update_sequence_id
-                    };
-                })
-                .catch((error) => {
-                    console.log("fetchUpdateSeqIdPromises | getLatestUpdateSeqId | Error: ", error);
-                    return 'Ghotala';
-                })
+                        return {
+                            field_id: fieldID,
+                            success: true,
+                            update_sequence_id: newRequest.update_sequence_id
+                        };
+                    })
+                    .catch((error) => {
+                        console.log("fetchUpdateSeqIdPromises | getLatestUpdateSeqId | Error: ", error);
+                        return 'Ghotala';
+                    })
             );
         }
 
@@ -2636,7 +2636,7 @@ function BotService(objectCollection) {
         console.log("content: ", content);
         // update the activity's inline data as well
         activityInlineData = [...activityInlineDataMap.values()];
-        
+
         // [REORDER | SORT] Fetch the target form's field sequence data
         let fieldSequenceIdMap = {};
         await activityCommonService
@@ -2659,7 +2659,7 @@ function BotService(objectCollection) {
             if (keyA > keyB) return 1;
             return 0;
         });
-        
+
         request.activity_inline_data = JSON.stringify(activityInlineData);
 
         let activityTimelineCollection = {
