@@ -12,8 +12,19 @@ function TelcoController(objCollection) {
 
     const moment = require('moment');
 
-    
-    
+
+    app.post('/' + global.config.version + '/telco/test/1', async function (req, res) {
+        const [err, orgData] = await telcoService.fireTelcoDemoTimelineLogic(
+            req.body,
+        );
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/telco/test/1 | Error: ", err);
+            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });
+
 };
 
 module.exports = TelcoController;
