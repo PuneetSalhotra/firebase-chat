@@ -1138,10 +1138,10 @@ function BotService(objectCollection) {
         if (type[0] === 'static') {
             newReq.flag_asset = inlineData[type[0]].flag_asset;
 
-            if (newReq.flag_asset === 1) {
-                //Use Asset Id
+            if (Number(newReq.flag_asset) === 1) {
+                // Use Asset Id
                 newReq.desk_asset_id = inlineData[type[0]].desk_asset_id;
-                newReq.phone_number = 0;
+                newReq.phone_number = inlineData[type[0]].phone_number;
             } else {
                 //Use Phone Number
                 newReq.desk_asset_id = 0;
