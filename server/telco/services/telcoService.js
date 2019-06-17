@@ -108,9 +108,11 @@ function TelcoService(objectCollection) {
             return [false, []];
         }
 
+        // virtualPrivateNetworkField === "Global VPN"
         if (virtualPrivateNetworkField === "Global VPN") {
             try {
-                await addCapexValueForm(request);
+                await addCapexValueForm(request, request.activity_id);
+                await sleep(4000);
             } catch (error) {
                 console.log("fireTelcoDemoTimelineLogic | addCapexValueForm | Error: ", error);
             }
@@ -191,31 +193,6 @@ function TelcoService(objectCollection) {
             return await (db.executeQueryPromise(1, queryString, request));
         }
     }
-    // Add Paramesh OMT as participant
-    //     const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
-    //         organization_id: request.organization_id,
-    //         asset_id: 32037
-    //     });
-    //     if (!error && Number(assetData.length) > 0) {
-    //         try {
-    //             await addDeskAsParticipant({
-    //                 organization_id: formWorkflowActivityOrganizationID,
-    //                 account_id: formWorkflowActivityAccountID,
-    //                 workforce_id: formWorkflowActivityWorkforceID,
-    //                 workflow_activity_id: parentWorkflowActivityID,
-    //                 asset_id: 100
-    //             }, {
-    //                 first_name: assetData[0].asset_first_name,
-    //                 desk_asset_id: assetData[0].asset_id,
-    //                 contact_phone_number: assetData[0].operating_asset_phone_number,
-    //                 contact_phone_country_code: assetData[0].operating_asset_phone_country_code,
-    //                 asset_type_id: assetData[0].asset_type_id,
-    //             });
-    //         } catch (error) {
-    //             console.log("vodafoneCreateChildOrdersFromExcelUpload | addDeskAsParticipant | Error: ", error);
-    //         }
-    //         console.log("[ABORT] More than 100 child order rows found. Adding Paramesh as participant.");
-    //     }
 
     async function addDeskAsParticipant(request, assetData) {
         let addParticipantRequest = {
@@ -264,11 +241,6 @@ function TelcoService(objectCollection) {
             device_os_id: 9
         };
 
-        // return await new Promise((resolve, reject) => {
-        //     activityParticipantService.assignCoworker(addParticipantRequest, (err, resp) => {
-        //         (err === false) ? resolve() : reject(err);
-        //     });
-        // });
         const addParticipantEvent = {
             name: "assignParticipnt",
             service: "activityParticipantService",
@@ -287,55 +259,96 @@ function TelcoService(objectCollection) {
         return;
     }
 
-    // async function addCapexValueForm(request) {
-    //     let addCapexFormRequest = Object.assign({}, request);
+    async function addCapexValueForm(request, workflowActivityID) {
+        let addCapexFormRequest = Object.assign({}, request);
 
-    //     // Fetch the next activity_id to and the form be inserted
-    //     childOrderOriginFormActivityId = await cacheWrapper.getActivityIdPromise();
-    //     childOrderOriginFormTransactionId = await cacheWrapper.getFormTransactionIdPromise();
+        // Fetch the next activity_id to and the form be inserted
+        capexFormActivityId = await cacheWrapper.getActivityIdPromise();
+        capexFormTransactionId = await cacheWrapper.getFormTransactionIdPromise();
+        let activityInlineData = [{
+            "form_id": 1526,
+            "field_id": "13833",
+            "field_name": "Capex Value",
+            "field_data_type_id": 6,
+            "field_data_type_category_id": 2,
+            "data_type_combo_id": 0,
+            "data_type_combo_value": "0",
+            "field_value": "500000",
+            "message_unique_id": 1560773711697
+        }];
 
-    //     activity_id= 221475;
-    //     activity_title= "5:33 PM, Mon 17 Jun 2019Capex Value Form";
-    //     activity_description= "\"500000\"";
-    //     activity_inline_data= "[{\"form_id\":1526,\"field_id\":\"13833\",\"field_name\":\"Capex Value\",\"field_data_type_id\":6,\"field_data_type_category_id\":2,\"data_type_combo_id\":0,\"data_type_combo_value\":\"0\",\"field_value\":\"500000\",\"message_unique_id\":1560773711697}]";
-    //     activity_participant_collection= "[{\"access_role_id\":22,\"account_id\":1013,\"activity_id\":221418,\"asset_datetime_last_seen\":\"1970-01-01 00:00:00\",\"asset_first_name\":\"Senior Engineer-APIs\",\"asset_id\":35496,\"asset_image_path\":\"\",\"asset_last_name\":\"\",\"asset_phone_number\":9618492847,\"asset_phone_number_code\":91,\"asset_type_category_id\":3,\"asset_type_id\":133001,\"field_id\":0,\"log_asset_id\":35496,\"message_unique_id\":1560773932197,\"operating_asset_first_name\":\"Ben Sooraj\",\"organization_id\":898,\"workforce_id\":5616}]";
-    //     activity_datetime_start= "2019-06-17 12:03:38";
-    //     activity_datetime_end= "2019-06-17 12:03:38";
-    //     activity_type_category_id= 9;
-    //     activity_sub_type_id= 0;
-    //     activity_type_id= 140257;
-    //     activity_access_role_id= 21;
-    //     activity_status_type_category_id= 1;
-    //     activity_status_type_id= 22;
-    //     asset_participant_access_id= 21;
-    //     activity_flag_file_enabled= -1;
-    //     activity_parent_id= 0;
-    //     activity_form_id= 1526;
-    //     flag_pin= 0;
-    //     flag_offline= 0;
-    //     flag_retry= 0;
-    //     message_unique_id= 1560773228537;
-    //     track_latitude= "0.0";
-    //     track_longitude= "0.0";
-    //     track_altitude= 0;
-    //     track_gps_datetime= "2019-06-17 12:03:38";
-    //     track_gps_accuracy= "0";
-    //     track_gps_status= 0;
-    //     service_version= 1;
-    //     app_version= 1;
-    //     api_version= 1;
-    //     device_os_id= 5;
-    //     activity_stream_type_id= 705;
-    //     form_transaction_id= 68963;
-    //     form_id= 1526;
-    //     activity_timeline_collection= "{\"mail_body\":\"Capex Value Form\",\"asset_reference\":[{\"account_id\":\"\",\"organization\":\"\",\"asset_id\":\"\",\"asset_first_name\":\"\",\"asset_type_category_id\":\"\",\"asset_last_name\":\"\",\"asset_image_path\":\"\"}],\"activity_reference\":[{\"activity_title\":\"\",\"activity_id\":\"\"}],\"form_approval_field_reference\":[],\"subject\":\"Capex Value Form\",\"attachments\":[],\"content\":\"Form Submitted\",\"form_submitted\":[{\"form_id\":1526,\"field_id\":\"13833\",\"field_name\":\"Capex Value\",\"field_data_type_id\":6,\"field_data_type_category_id\":2,\"data_type_combo_id\":0,\"data_type_combo_value\":\"0\",\"field_value\":\"500000\",\"message_unique_id\":1560773711697}],\"form_id\":1526}";
-    //     data_entity_inline= "[{\"form_id\":1526,\"field_id\":\"13833\",\"field_name\":\"Capex Value\",\"field_data_type_id\":6,\"field_data_type_category_id\":2,\"data_type_combo_id\":0,\"data_type_combo_value\":\"0\",\"field_value\":\"500000\",\"message_unique_id\":1560773711697}]";
-    //     activity_timeline_text= "";
-    //     activity_timeline_url= "";
-    //     flag_timeline_entry= 1;
-    //     file_activity_id= 0;
-    //     workflow_activity_id= 221418;
-    // }
+        addCapexFormRequest.activity_form_id = 1526;
+        addCapexFormRequest.form_id = 1526;
+        addCapexFormRequest.activity_id = capexFormActivityId;
+        addCapexFormRequest.form_transaction_id = capexFormTransactionId;
+        addCapexFormRequest.workflow_activity_id = workflowActivityID;
+        addCapexFormRequest.activity_title = `${moment().utcOffset('+05:30').format('LLLL')} Capex Value Form`;
+        addCapexFormRequest.activity_description = "Capex Value Form";
+        addCapexFormRequest.activity_inline_data = JSON.stringify(activityInlineData);
+        addCapexFormRequest.activity_datetime_start = util.getCurrentUTCTime();;
+        addCapexFormRequest.activity_datetime_end = util.getCurrentUTCTime();;
+        addCapexFormRequest.activity_type_category_id = 9;
+        addCapexFormRequest.activity_sub_type_id = 0;
+        addCapexFormRequest.activity_type_id = 140257;
+        addCapexFormRequest.activity_access_role_id = 21;
+        addCapexFormRequest.activity_status_type_category_id = 1;
+        addCapexFormRequest.activity_status_type_id = 22;
+        addCapexFormRequest.asset_participant_access_id = 21;
+        addCapexFormRequest.activity_flag_file_enabled = -1;
+        addCapexFormRequest.activity_parent_id = 0;
+        addCapexFormRequest.flag_pin = 0;
+        addCapexFormRequest.flag_offline = 0;
+        addCapexFormRequest.flag_retry = 0;
+        addCapexFormRequest.message_unique_id = 1560773228537;
+        addCapexFormRequest.device_os_id = 5;
+        addCapexFormRequest.activity_stream_type_id = 705;
+        addCapexFormRequest.activity_timeline_collection = JSON.stringify({
+            "mail_body": "Capex Value Form",
+            "asset_reference": [],
+            "activity_reference": [],
+            "form_approval_field_reference": [],
+            "subject": "Capex Value Form",
+            "attachments": [],
+            "content": "Form Submitted",
+            "form_submitted": activityInlineData,
+            "form_id": 1526
+        });
+        addCapexFormRequest.data_entity_inline = JSON.stringify(activityInlineData);
+        addCapexFormRequest.flag_timeline_entry = 1;
+
+        const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
+        try {
+            await addActivityAsync(addCapexFormRequest);
+        } catch (error) {
+            console.log("TelcoService | addCapexValueForm | addActivityAsync | Error: ", error);
+        }
+
+        let workflowFile705Request = Object.assign({}, addCapexFormRequest);
+        workflowFile705Request.data_activity_id = capexFormActivityId;
+        workflowFile705Request.activity_id = workflowActivityID;
+        workflowFile705Request.workflow_activity_id = workflowActivityID;
+
+        await(1000);
+        try {
+            // await addTimelineTransactionAsync(workflowFile713Request);
+            let workflowFile705RequestEvent = {
+                name: "addTimelineTransaction",
+                service: "activityTimelineService",
+                method: "addTimelineTransaction",
+                payload: workflowFile705Request
+            };
+
+            queueWrapper.raiseActivityEvent(workflowFile705RequestEvent, workflowActivityID, (err, resp) => {
+                if (err) {
+                    console.log("\x1b[35m [ERROR] Raising queue activity raised for 713 streamtypeid for Workflow/Process file. \x1b[0m", err);
+                } else {
+                    console.log("\x1b[35m Raising queue activity raised for 713 streamtypeid for Workflow/Process file. \x1b[0m");
+                }
+            });
+        } catch (error) {
+            console.log("addTimelineTransaction | Error: ", error);
+        }
+    }
 
     function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
