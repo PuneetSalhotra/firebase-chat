@@ -13,9 +13,12 @@ function ActivityTimelineService(objectCollection) {
     var forEachAsync = objectCollection.forEachAsync;
     // var activityPushService = objectCollection.activityPushService;
     var queueWrapper = objectCollection.queueWrapper;
+    const cacheWrapper = objectCollection.cacheWrapper;
 
     const ActivityPushService = require('../services/activityPushService');
     const activityPushService = new ActivityPushService(objectCollection);
+
+    const moment = require('moment');
 
     this.addTimelineTransaction = function (request, callback) {
 
@@ -171,7 +174,19 @@ function ActivityTimelineService(objectCollection) {
                             }
                         }
                         // 
-                    });
+                    }).then(async () => {
+                        try {
+                            if ((
+                                activityTypeCategoryId === 48 ||
+                                activityTypeCategoryId === 50 ||
+                                activityTypeCategoryId === 51
+                            ) && request.device_os_id !== 9) {
+                                await fireBotEngineInitWorkflow(request);
+                            }
+                        } catch (error) {
+                            console.log("addTimelineTransaction | fireBotEngineInitWorkflow | Error: ", error);
+                        }
+                    }).catch(() => {});;
             }, 1000);
 
         } else {
@@ -727,6 +742,72 @@ function ActivityTimelineService(objectCollection) {
         }
     }
 
+    async function fireBotEngineInitWorkflow(request) {
+        try {
+            let botEngineRequest = Object.assign({}, request);
+            botEngineRequest.form_id = request.activity_form_id;
+            botEngineRequest.field_id = 0;
+            botEngineRequest.flag = 3;
+            botEngineRequest.workflow_activity_id = request.activity_id;
+
+            const [formConfigError, formConfigData] = await activityCommonService.workforceFormMappingSelect(botEngineRequest);
+            if (
+                (formConfigError === false) &&
+                (Number(formConfigData.length) > 0) &&
+                (Number(formConfigData[0].form_flag_workflow_enabled) === 1) &&
+                (Number(formConfigData[0].form_flag_workflow_origin) === 1)
+            ) {
+                // Proceeding because there was no error found, there were records returned
+                // and form_flag_workflow_enabled is set to 1
+                let botsListData = await activityCommonService.getBotsMappedToActType(botEngineRequest);
+                if (botsListData.length > 0) {
+                    botEngineRequest.bot_id = botsListData[0].bot_id;
+                    botEngineRequest.bot_inline_data = botsListData[0].bot_inline_data;
+                    botEngineRequest.flag_check = 1;
+                    botEngineRequest.flag_defined = 1;
+
+                    let result = await activityCommonService.botOperationInsert(botEngineRequest);
+                    //console.log('RESULT : ', result);
+                    if (result.length > 0) {
+                        botEngineRequest.bot_transaction_id = result[0].bot_transaction_id;
+                    }
+
+                    //Bot log - Bot is defined
+                    activityCommonService.botOperationFlagUpdateBotDefined(botEngineRequest, 1);
+
+                    await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
+                        .then((resp) => {
+                            global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
+                            //Bot log - Update Bot status
+                            //1.SUCCESS; 2.INTERNAL ERROR; 3.EXTERNAL ERROR; 4.COMMUNICATION ERROR
+                            //activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 1); 
+                            let temp = JSON.parse(resp);
+
+                            (Number(temp.status) === 200) ?
+                                botEngineRequest.bot_operation_status_id = 1 :
+                                botEngineRequest.bot_operation_status_id = 2;
+
+                            botEngineRequest.bot_transaction_inline_data = JSON.stringify(resp);
+                            activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 1);
+                        }).catch((err) => {
+                            //Bot log - Update Bot status with Error
+                            botEngineRequest.bot_transaction_inline_data = JSON.stringify(err);
+                            activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 2);
+                        });
+                } else {
+                    //Bot is not defined
+                    activityCommonService.botOperationFlagUpdateBotDefined(botEngineRequest, 0);
+                }
+            } else {
+                global.logger.write('debug', "formConfigError: " + formConfigError, {}, request);
+                global.logger.write('debug', "formConfigData: ", {}, request);
+                global.logger.write('debug', formConfigData, {}, request);
+            }
+        } catch (botInitError) {
+            global.logger.write('error', botInitError, botInitError, botEngineRequest);
+        }
+    }
+
     //This is to support the feature - Not to increase unread count during timeline entry
     this.addTimelineTransactionV1 = function (request, callback) {
         //console.log('In addTimelineTransactionV1');
@@ -1203,10 +1284,40 @@ function ActivityTimelineService(objectCollection) {
         }
     };
 
-    this.retrieveTimelineList = function (request, callback) {
+    async function orgRateLimitCheckAndSet(organizationID) {
+        let isOrgRateLimitExceeded = false;
+        try {
+            const pushTimestamp = await cacheWrapper.getOrgLastPubnubPushTimestamp(organizationID);
+            const timeDiff = moment.utc().diff(moment.utc(pushTimestamp));
+            if (moment.duration(timeDiff).asSeconds() <= 120) {
+                console.log("ActivityTimelineService | sendPush | timeDiff Duration: ", moment.duration(timeDiff).asSeconds())
+                // It's still less than 2 minutes since the last org level push was sent.
+                isOrgRateLimitExceeded = true;
+            } else {
+                const timestampSet = await cacheWrapper.setOrgLastPubnubPushTimestamp(organizationID, moment().utc().format('YYYY-MM-DD HH:mm:ss'));
+                console.log("ActivityTimelineService | sendPush | timestampSet: ", timestampSet)
+            }
+        } catch (error) {
+            console.log("ActivityTimelineService | sendPush | isOrgRateLimitExceeded: ", error);
+        }
+        return isOrgRateLimitExceeded;
+    }
+
+    this.retrieveTimelineList = async function (request, callback) {
+        // 
+        let isOrgRateLimitExceeded = false;
+        try {
+            isOrgRateLimitExceeded = await orgRateLimitCheckAndSet(Number(request.organization_id));
+        } catch (error) {
+            console.log("ActivityTimelineService | retrieveTimelineList | orgRateLimitCheckAndSet | Error: ", error);
+        }
+        // 
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
-        if (Number(request.device_os_id) != 5) {
+        if (
+            (Number(request.device_os_id) !== 5) &&
+            (Number(request.auth_asset_id) === Number(request.asset_id))
+        ) {
             var pubnubMsg = {};
             pubnubMsg.type = 'activity_unread';
             pubnubMsg.organization_id = request.organization_id;
@@ -1215,7 +1326,7 @@ function ActivityTimelineService(objectCollection) {
             //console.log('PubNub Message : ', pubnubMsg);
             global.logger.write('debug', 'PubNub Message : ' + JSON.stringify(pubnubMsg, null, 2), {}, request);
             pubnubWrapper.push(request.asset_id, pubnubMsg);
-            pubnubWrapper.push(request.organization_id, pubnubMsg);
+            pubnubWrapper.push(request.organization_id, pubnubMsg, isOrgRateLimitExceeded);
         }
         /*if(Number(request.activity_type_category_id) !== 8) {
             activityCommonService.resetAssetUnreadCount(request, 0, function (err, data) {});
@@ -1273,10 +1384,21 @@ function ActivityTimelineService(objectCollection) {
 
     };
 
-    this.retrieveTimelineListV1 = function (request, callback) {
+    this.retrieveTimelineListV1 = async function (request, callback) {
+        // 
+        let isOrgRateLimitExceeded = false;
+        try {
+            isOrgRateLimitExceeded = await orgRateLimitCheckAndSet(Number(request.organization_id));
+        } catch (error) {
+            console.log("ActivityTimelineService | retrieveTimelineListV1 | orgRateLimitCheckAndSet | Error: ", error);
+        }
+        // 
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
-        if (Number(request.device_os_id) != 5) {
+        if (
+            (Number(request.device_os_id) !== 5) &&
+            (Number(request.auth_asset_id) === Number(request.asset_id))
+        ) {
             var pubnubMsg = {};
             pubnubMsg.type = 'activity_unread';
             pubnubMsg.organization_id = request.organization_id;
@@ -1285,7 +1407,7 @@ function ActivityTimelineService(objectCollection) {
             //console.log('PubNub Message : ', pubnubMsg);
             global.logger.write('debug', 'PubNub Message : ' + JSON.stringify(pubnubMsg, null, 2), {}, request);
             pubnubWrapper.push(request.asset_id, pubnubMsg);
-            pubnubWrapper.push(request.organization_id, pubnubMsg);
+            pubnubWrapper.push(request.organization_id, pubnubMsg, isOrgRateLimitExceeded);
         }
         /*if(Number(request.activity_type_category_id) !== 8) {
             activityCommonService.resetAssetUnreadCount(request, 0, function (err, data) {});

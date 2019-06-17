@@ -15,7 +15,7 @@ function BotService(objectCollection) {
     const TinyURL = require('tinyurl');
 
     const cacheWrapper = objectCollection.cacheWrapper;
-    //const queueWrapper = objectCollection.queueWrapper;
+    const queueWrapper = objectCollection.queueWrapper;
     //const activityPushService = objectCollection.activityPushService;
 
     const util = objectCollection.util;
@@ -29,6 +29,7 @@ function BotService(objectCollection) {
     //const activityListingService = new ActivityListingService(objectCollection);
     const activityTimelineService = new ActivityTimelineService(objectCollection);
 
+    const nodeUtil = require('util');
     /*
     //Generic function for firing stored procedures
     //Bharat Masimukku
@@ -558,7 +559,7 @@ function BotService(objectCollection) {
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     break;
 
-                    //case 'status_alter': 
+                //case 'status_alter': 
                 case 2: // Alter Status
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'STATUS ALTER', {}, {});
@@ -584,12 +585,13 @@ function BotService(objectCollection) {
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     break;
 
-                    //case 'form_field_copy':
+                //case 'form_field_copy':
                 case 3: //Copy Form field
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'FORM FIELD', {}, {});
                     try {
-                        global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
+                        // global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
+                        console.log('form_field_copy | Request Params received by BOT ENGINE', request);
                         await copyFields(request, botOperationsJson.bot_operations.form_field_copy);
                     } catch (err) {
                         global.logger.write('conLog', 'Error in executing copyFields Step', {}, {});
@@ -603,7 +605,7 @@ function BotService(objectCollection) {
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     break;
 
-                    //case 'workflow_percentage_alter': 
+                //case 'workflow_percentage_alter': 
                 case 4: //Update Workflow Percentage
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'WF PERCENTAGE ALTER', {}, {});
@@ -629,7 +631,7 @@ function BotService(objectCollection) {
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     break;
 
-                    //case 'fire_api': 
+                //case 'fire_api': 
                 case 5: // External System Integration
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'FIRE API', {}, {});
@@ -647,7 +649,7 @@ function BotService(objectCollection) {
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     break;
 
-                    //case 'fire_text': 
+                //case 'fire_text': 
                 case 6: // Send Text Message
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'FIRE TEXT', {}, {});
@@ -665,7 +667,7 @@ function BotService(objectCollection) {
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     break;
 
-                    //case 'fire_email':           
+                //case 'fire_email':           
                 case 7: // Send email
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'FIRE EMAIL', {}, {});
@@ -773,7 +775,7 @@ function BotService(objectCollection) {
         try {
             await new Promise((resolve, reject) => {
                 activityService.alterActivityStatus(newReq, (err, resp) => {
-                    (err === false) ? resolve(): reject(err);
+                    (err === false) ? resolve() : reject(err);
                 });
             });
 
@@ -817,7 +819,7 @@ function BotService(objectCollection) {
                 queueActMapInlineData.queue_sort.current_status_id = inlineData.activity_status_id;
                 queueActMapInlineData.queue_sort.current_status_name = statusName[0].activity_status_name || "";
                 queueActMapInlineData.queue_sort.last_status_alter_time = util.getCurrentUTCTime();
-                
+
                 // Bring the percentage up to the latest value
                 if (Number(workflowActivityPercentage) !== 0) {
                     queueActMapInlineData.queue_sort.caf_completion_percentage = workflowActivityPercentage;
@@ -826,7 +828,7 @@ function BotService(objectCollection) {
                 data = await (activityCommonService.queueActivityMappingUpdateInlineData(newReq, i.queue_activity_mapping_id, JSON.stringify(queueActMapInlineData)));
                 global.logger.write('conLog', 'Status Alter BOT Step - Updating the Queue Json : ', data, {});
 
-                activityCommonService.queueHistoryInsert(newReq, 1402, i.queue_activity_mapping_id).then(() => {});
+                activityCommonService.queueHistoryInsert(newReq, 1402, i.queue_activity_mapping_id).then(() => { });
             }
 
 
@@ -867,216 +869,260 @@ function BotService(objectCollection) {
     }
 
     //Bot Step Copying the fields
-    async function copyFields(request, inlineData) {
-        let newReq = Object.assign({}, request);
-        newReq.activity_id = request.workflow_activity_id;
-        //console.log(inlineData);
-        let resp,
-            fieldValue,
-            txn_id,
-            targetFormTxnId,
-            targetActId,
-            fieldDataTypeId;
+    async function copyFields(request, fieldCopyInlineData) {
 
-        let tempObj = {};
-        tempObj.organization_id = newReq.organization_id;
-        tempObj.form_transaction_id = newReq.form_transaction_id;
+        const workflowActivityID = Number(request.workflow_activity_id),
+            sourceFormActivityID = Number(request.activity_id),
+            sourceFormTransactionID = Number(request.form_transaction_id),
+            sourceFormID = Number(request.form_id),
+            targetFormID = Number(fieldCopyInlineData[0].target_form_id);
 
-        let finalArr = new Array();
+        let sourceFormTransactionData = [],
+            targetFormTransactionData = [],
+            targetFormActivityID = 0,
+            targetFormTransactionID = 0;
 
-        for (let i of inlineData) {
-            tempObj.form_id = i.source_form_id;
-            tempObj.field_id = i.source_field_id;
-            //console.log(tempObj);
+        // Check if the target form already exists for the given workflow
+        try {
+            targetFormTransactionData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                organization_id: request.organization_id,
+                account_id: request.account_id
+            }, workflowActivityID, targetFormID);
 
-            resp = await getFieldValue(tempObj);
-            fieldDataTypeId = resp[0].data_type_id;
-            fieldValue = resp[0].data_entity_text_1;
-
-            /*switch (fieldDataTypeId) {
-                case 1:     // Date
-                case 2:     // future Date
-                case 3:     // past Date
-                    params[9] = row.field_value;
-                    break;
-                case 4:     // Date and time
-                    params[10] = row.field_value;
-                    break;
-                case 5:     //Number
-                    //params[12] = row.field_value;
-                    params[13] = row.field_value;
-                    break;
-                case 6:     //Decimal
-                    //params[13] = row.field_value;
-                    params[14] = row.field_value;
-                    break;
-                case 7:     //Scale (0 to 100)
-                case 8:     //Scale (0 to 5)
-                    params[11] = row.field_value;
-                    break;
-                case 9:     // Reference - Organization
-                case 10:    // Reference - Building
-                case 11:    // Reference - Floor
-                case 12:    // Reference - Person
-                case 13:    // Reference - Vehicle
-                case 14:    // Reference - Room
-                case 15:    // Reference - Desk
-                case 16:    // Reference - Assistant
-                    //params[12] = row.field_value;
-                    params[13] = row.field_value;
-                    break;
-                case 50:    // Reference - File
-                    params[13] = Number(JSON.parse(row.field_value).activity_id); // p_entity_bigint_1
-                    params[18] = row.field_value; // p_entity_text_1
-                    break;
-                case 17:    //Location
-                    var location = row.field_value.split('|');
-                    params[16] = location[0];
-                    params[17] = location[1];
-                    break;
-                case 18:    //Money with currency name
-                    var money = row.field_value.split('|');
-                    params[15] = money[0];
-                    params[18] = money[1];
-                    break;
-                case 19:    //Short Text
-                    params[18] = row.field_value;
-                    break;
-                case 20:    //Long Text
-                    params[19] = row.field_value;
-                    break;
-                case 21:    //Label
-                    params[18] = row.field_value;
-                    break;
-                case 22:    //Email ID
-                    params[18] = row.field_value;
-                    break;
-                case 23:    //Phone Number with Country Code
-                    var phone;
-                    ((row.field_value).includes('||')) ?
-                        phone = row.field_value.split('||'):                        
-                        phone = row.field_value.split('|');
-                    params[13] = phone[0];  //country code
-                    params[18] = phone[1];  //phone number                     
-                    break;
-                case 24:    //Gallery Image
-                case 25:    //Camera Front Image
-                case 26:    //Video Attachment
-                    params[18] = row.field_value;
-                    break;
-                case 27:    //General Signature with asset reference
-                case 28:    //General Picnature with asset reference
-                    var signatureData = row.field_value.split('|');
-                    params[18] = signatureData[0];  //image path
-                    params[13] = signatureData[1];  // asset reference
-                    params[11] = signatureData[1];  // accepted /rejected flag
-                    break;
-                case 29:    //Coworker Signature with asset reference
-                case 30:    //Coworker Picnature with asset reference
-                    //approvalFields.push(row.field_id);
-                    var signatureData = row.field_value.split('|');
-                    params[18] = signatureData[0];  //image path
-                    params[13] = signatureData[1];  // asset reference
-                    params[11] = signatureData[1];  // accepted /rejected flag
-                    break;
-                case 31:    //Cloud Document Link
-                    params[18] = row.field_value;
-                    break;
-                case 32:    // PDF Document
-                case 51:    // PDF Scan
-                    params[18] = row.field_value;
-                    break;
-                case 33:    //Single Selection List
-                    params[18] = row.field_value;
-                    break;
-                case 34:    //Multi Selection List
-                    params[18] = row.field_value;
-                    break;
-                case 35:    //QR Code
-                case 36:    //Barcode
-                    params[18] = row.field_value;
-                    break;
-                case 38:    //Audio Attachment
-                    params[18] = row.field_value;
-                    break;
-                case 39:    //Flag
-                    params[11] = row.field_value;
-            }*/
-
-            txn_id = await activityCommonService.getActivityTimelineTransactionByFormId713(newReq, newReq.activity_id, i.target_form_id);
-            global.logger.write('conLog', txn_id, {}, {});
-
-            if (txn_id.length > 0) {
-                targetFormTxnId = txn_id[0].data_form_transaction_id;
-                targetActId = request.target_activity_id || txn_id[0].data_activity_id;
-            } else {
-                targetFormTxnId = 0;
+            if (Number(targetFormTransactionData.length) > 0) {
+                targetFormTransactionID = targetFormTransactionData[0].data_form_transaction_id;
+                targetFormActivityID = targetFormTransactionData[0].data_activity_id;
             }
-
-
-            //If txn id is not there then add activity and get the txn id
-            if (targetFormTxnId === 0) {
-                await new Promise(async (resolve, reject) => {
-                    let newReqForActCreation = Object.assign({}, newReq);
-                    targetActId = await cacheWrapper.getActivityIdPromise();
-                    targetFormTxnId = await cacheWrapper.getFormTransactionIdPromise();
-
-                    let arr = [];
-                    let rowDataArr = {
-                        form_id: i.target_form_id,
-                        field_id: i.target_field_id,
-                        field_value: fieldValue,
-                        form_transaction_id: targetFormTxnId,
-                        field_data_type_id: fieldDataTypeId
-                    };
-                    arr.push(rowDataArr);
-
-                    newReqForActCreation.activity_id = targetActId;
-                    newReqForActCreation.activity_title = "Bot created new activity Id";
-                    newReqForActCreation.activity_description = "Bot created new activity Id";
-                    newReqForActCreation.activity_datetime_start = util.getCurrentUTCTime();
-                    newReqForActCreation.activity_datetime_end = util.getCurrentUTCTime();
-                    newReqForActCreation.message_unique_id = util.getMessageUniqueId(request.asset_id);
-                    newReqForActCreation.form_transaction_id = targetFormTxnId;
-                    newReqForActCreation.activity_inline_data = JSON.stringify(arr);
-                    newReqForActCreation.activity_type_id = request.activity_type_id;
-                    newReqForActCreation.activity_form_id = i.target_form_id;
-                    newReqForActCreation.device_os_id = 9;
-
-                    activityService.addActivity(newReqForActCreation, async (err, resp) => {
-                        console.log('CAME FROM ADD ACTIVITY ################');
-                        if (err === false) {
-                            console.log('############# Calling timeline 713 after getting callback from add activity ################');
-                            await timeine713Entry(newReqForActCreation, i.target_form_id, targetFormTxnId, i.target_field_id, fieldValue, fieldDataTypeId);
-                            return resolve();
-                        } else {
-                            return reject();
-                        }
-                    });
-                });
-            } else {
-
-                //targetFormTxnId = request.target_form_transaction_id;
-                //targetActId = request.target_activity_id;
-
-                await timeine713Entry(newReq, i.target_form_id, targetFormTxnId, i.target_field_id, fieldValue, fieldDataTypeId);
-            }
-
-            //insert in new formId field id with the value retrieved i.e. resp[0].data_entity_text_1
-            let rowDataArr = {
-                form_id: i.target_form_id,
-                field_id: i.target_field_id,
-                field_value: fieldValue,
-                form_transaction_id: targetFormTxnId,
-                field_data_type_id: fieldDataTypeId
-            };
-            finalArr.push(rowDataArr);
+        } catch (error) {
+            console.log("copyFields | Fetch Target Form Transaction Data | Error: ", error);
+            throw new Error(error);
         }
-        global.logger.write('conLog', 'Final Json : ', finalArr, {});
-        newReq.target_form_transaction_id = targetFormTxnId;
-        newReq.target_activity_id = targetActId;
-        newReq.activity_inline_data = finalArr;
-        return await alterFormActivity(newReq);
+
+        let activityInlineData = [],
+            activityInlineDataMap = new Map(),
+            REQUEST_FIELD_ID = 0;
+
+        for (const batch of fieldCopyInlineData) {
+            const sourceFieldID = Number(batch.source_field_id);
+            const targetFieldID = Number(batch.target_field_id);
+
+            // This is purely for passing as a parameter to the field alter service
+            REQUEST_FIELD_ID = targetFieldID;
+
+            const sourceFieldData = await getFieldValue({
+                form_transaction_id: sourceFormTransactionID,
+                form_id: sourceFormID,
+                field_id: sourceFieldID,
+                organization_id: request.organization_id
+            });
+
+            const sourceFieldDataTypeID = Number(sourceFieldData[0].data_type_id);
+            const sourceFieldValue = sourceFieldData[0][getFielDataValueColumnName(sourceFieldDataTypeID)];
+
+            activityInlineDataMap.set(sourceFieldID, {
+                // "form_name": Number(sourceFieldData[0].form_name),
+                "data_type_combo_id": Number(sourceFieldData[0].data_type_combo_id),
+                "data_type_combo_value": Number(sourceFieldData[0].data_type_combo_value) || "",
+                "field_data_type_category_id": Number(sourceFieldData[0].data_type_category_id),
+                "field_data_type_id": Number(sourceFieldData[0].data_type_id),
+                "field_id": targetFieldID,
+                "field_name": String(sourceFieldData[0].field_name),
+                "field_value": sourceFieldValue,
+                "form_id": targetFormID,
+                "message_unique_id": 123123123123123123
+            });
+        }
+        activityInlineData = [...activityInlineDataMap.values()];
+        console.log("copyFields | activityInlineData: ", activityInlineData);
+
+        if (targetFormTransactionID !== 0) {
+            let fieldsAlterRequest = Object.assign({}, request);
+            fieldsAlterRequest.form_transaction_id = targetFormTransactionID;
+            fieldsAlterRequest.form_id = targetFormID;
+            fieldsAlterRequest.field_id = REQUEST_FIELD_ID;
+            fieldsAlterRequest.activity_inline_data = JSON.stringify(activityInlineData);
+            fieldsAlterRequest.activity_id = targetFormActivityID;
+            fieldsAlterRequest.workflow_activity_id = workflowActivityID;
+
+            try {
+                await alterFormActivityFieldValues(fieldsAlterRequest);
+            } catch (error) {
+                console.log("copyFields | alterFormActivityFieldValues | Error: ", error);
+            }
+
+        } else if (targetFormTransactionID === 0 || targetFormActivityID === 0) {
+            // If the target form has not been submitted yet, create one
+            let createTargetFormRequest = Object.assign({}, request);
+            createTargetFormRequest.activity_form_id = targetFormID;
+            createTargetFormRequest.form_id = targetFormID;
+            createTargetFormRequest.activity_inline_data = JSON.stringify(activityInlineData);
+            createTargetFormRequest.workflow_activity_id = workflowActivityID;
+
+            try {
+                await createTargetFormActivity(createTargetFormRequest);
+            } catch (error) {
+                console.log("copyFields | createTargetFormActivity | Error: ", error);
+            }
+        }
+        return;
+    }
+
+    async function createTargetFormActivity(createTargetFormRequest) {
+        // Get the activity_id and form_trasanction_id
+        const targetFormActivityID = await cacheWrapper.getActivityIdPromise();
+        const targetFormTransactionID = await cacheWrapper.getFormTransactionIdPromise();
+
+        if (
+            Number(targetFormActivityID) === 0 ||
+            Number(targetFormTransactionID) === 0
+        ) {
+            throw new Error("Error Fetching Activity ID or Form Transaction ID");
+        }
+
+        createTargetFormRequest.activity_id = targetFormActivityID;
+        createTargetFormRequest.form_transaction_id = targetFormTransactionID;
+
+        // Fetch the activity_type_id
+        let targetFormctivityTypeID = 0;
+        const [workforceActivityTypeMappingError, workforceActivityTypeMappingData] = await workforceActivityTypeMappingSelect({
+            organization_id: createTargetFormRequest.organization_id,
+            account_id: createTargetFormRequest.account_id,
+            workforce_id: createTargetFormRequest.workforce_id,
+            activity_type_category_id: 9
+        });
+        if (
+            (workforceActivityTypeMappingError === false) &&
+            (Number(workforceActivityTypeMappingData.length) > 0)
+        ) {
+            targetFormctivityTypeID = Number(workforceActivityTypeMappingData[0].activity_type_id) || 134492;
+        }
+
+        if (targetFormctivityTypeID === 0) {
+            throw new Error("createTargetFormActivity | Error Fetching targetFormctivityTypeID");
+        }
+        createTargetFormRequest.activity_type_id = targetFormctivityTypeID;
+
+        // Get the target form's name:
+        let targetFormName = '';
+        const [targetFormConfigError, targetFormConfigData] = await activityCommonService.workforceFormMappingSelect({
+            organization_id: createTargetFormRequest.organization_id,
+            account_id: createTargetFormRequest.account_id,
+            workforce_id: createTargetFormRequest.workforce_id,
+            form_id: createTargetFormRequest.form_id
+        });
+        if (targetFormConfigData.length > 0) {
+            targetFormName = targetFormConfigData[0].form_name;
+        }
+        createTargetFormRequest.activity_title = `${util.getCurrentUTCTime()} - ${targetFormName || ''}`;
+        createTargetFormRequest.activity_description = `${util.getCurrentUTCTime()} - ${targetFormName || ''}`;
+
+        // Other miscellaneous parameters
+        createTargetFormRequest.activity_datetime_start = util.getCurrentUTCTime();
+        createTargetFormRequest.activity_datetime_end = util.getCurrentUTCTime();
+        createTargetFormRequest.activity_type_category_id = 9;
+        createTargetFormRequest.activity_sub_type_id = 0;
+        createTargetFormRequest.activity_access_role_id = 21;
+        createTargetFormRequest.activity_status_type_category_id = 1;
+        createTargetFormRequest.activity_status_type_id = 22;
+        createTargetFormRequest.asset_participant_access_id = 21;
+        createTargetFormRequest.activity_flag_file_enabled = -1;
+        createTargetFormRequest.activity_parent_id = 0;
+        createTargetFormRequest.flag_pin = 0;
+        createTargetFormRequest.flag_offline = 0;
+        createTargetFormRequest.flag_retry = 0;
+        createTargetFormRequest.device_os_id = 5;
+        createTargetFormRequest.activity_stream_type_id = 705;
+        createTargetFormRequest.flag_timeline_entry = 1;
+        createTargetFormRequest.url = "/r1/activity/add/v1";
+        createTargetFormRequest.create_workflow = 1;
+
+        const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
+        await addActivityAsync(createTargetFormRequest);
+
+        // Make a 705 timeline transaction entry in the workflow file
+        if (createTargetFormRequest.hasOwnProperty("workflow_activity_id")) {
+            let workflowFile705Request = Object.assign({}, createTargetFormRequest);
+            workflowFile705Request.activity_id = createTargetFormRequest.workflow_activity_id;
+            workflowFile705Request.data_activity_id = Number(createTargetFormRequest.activity_id);
+            workflowFile705Request.form_transaction_id = Number(createTargetFormRequest.form_transaction_id);
+            workflowFile705Request.activity_type_category_id = 48;
+            workflowFile705Request.activity_stream_type_id = 705;
+            workflowFile705Request.flag_timeline_entry = 1;
+            workflowFile705Request.message_unique_id = util.getMessageUniqueId(createTargetFormRequest.asset_id);
+            workflowFile705Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+            workflowFile705Request.device_os_id = 8;
+
+            workflowFile705Request.activity_timeline_collection = JSON.stringify({
+                "mail_body": `${targetFormName} Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+                "subject": `${targetFormName}`,
+                "content": `${targetFormName}`,
+                "asset_reference": [],
+                "activity_reference": [],
+                "form_approval_field_reference": [],
+                "form_submitted": JSON.parse(createTargetFormRequest.activity_inline_data),
+                "attachments": []
+            });
+
+            const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
+            try {
+                await addTimelineTransactionAsync(workflowFile705Request);
+            } catch (error) {
+                console.log("createTargetFormActivity | workflowFile705Request | addTimelineTransactionAsync | Error: ", error);
+                throw new Error(error);
+            }
+        }
+        return;
+    }
+
+    async function workforceActivityTypeMappingSelect(request) {
+        // IN p_organization_id BIGINT(20), IN p_account_id bigint(20), 
+        // IN p_workforce_id bigint(20), IN p_form_id BIGINT(20)
+
+        let formData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.access_level_id || 0,
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_category_id,
+            request.page_start || 0,
+            request.page_limit || 50
+        );
+        const queryString = util.getQueryString('ds_p1_1_workforce_activity_type_mapping_select', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    formData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, formData];
+    }
+
+    function getFielDataValueColumnName(fieldDataTypeID) {
+        switch (fieldDataTypeID) {
+            case 1: // Date
+                return 'data_entity_datetime_2';
+            case 5: // Number
+                return 'data_entity_bigint_1';
+            case 6: // Decimal
+                return 'data_entity_double_1';
+            case 19: // Short Text
+            case 21: // Label
+            case 22: // Email ID
+            case 27: // General Signature with asset reference
+            case 33: // Single Selection List
+                return 'data_entity_text_1';
+            case 20: // Long Text
+                return 'data_entity_text_2';
+        }
     }
 
     // Bot Step Adding a participant
@@ -1102,7 +1148,7 @@ function BotService(objectCollection) {
                 let phoneNumber = inlineData[type[0]].phone_number;
                 let phone;
                 (phoneNumber.includes('||')) ?
-                phone = phoneNumber.split('||'):
+                    phone = phoneNumber.split('||') :
                     phone = phoneNumber.split('|');
 
                 newReq.country_code = phone[0]; //country code
@@ -1136,7 +1182,7 @@ function BotService(objectCollection) {
                         let phone;
 
                         (phoneNumber.includes('||')) ?
-                        phone = phoneNumber.split('||'):
+                            phone = phoneNumber.split('||') :
                             phone = phoneNumber.split('|');
 
                         newReq.country_code = phone[0]; //country code
@@ -1171,9 +1217,14 @@ function BotService(objectCollection) {
             }
         }
 
-        if (newReq.phone_number !== -1) {
+        if (
+            (newReq.phone_number !== -1) &&
+            (Number(newReq.phone_number) !== 0)
+        ) {
+            console.log("BotService | addParticipant | Message: ", newReq.phone_number, " | ", typeof newReq.phone_number);
             return await addParticipantStep(newReq);
         } else {
+            console.log("BotService | addParticipant | Error: ", `Phone number: ${newReq.phone_number}, has got problems!`);
             return [true, "Phone Number is Undefined"];
         }
 
@@ -1405,7 +1456,7 @@ function BotService(objectCollection) {
         // global.logger.write('conLog', 'fire715OnWFOrderFileRequest : ', fire715OnWFOrderFileRequest, {});
         return new Promise((resolve, reject) => {
             activityTimelineService.addTimelineTransaction(fire715OnWFOrderFileRequest, (err, resp) => {
-                (err === false) ? resolve(): reject(err);
+                (err === false) ? resolve() : reject(err);
             });
             // resolve();
         });
@@ -1594,7 +1645,7 @@ function BotService(objectCollection) {
         global.logger.write('conLog', 'fire716OnWFOrderFileRequest :', fire716OnWFOrderFileRequest, {});
         return new Promise((resolve, reject) => {
             activityTimelineService.addTimelineTransaction(fire716OnWFOrderFileRequest, (err, resp) => {
-                (err === false) ? resolve(): reject(err);
+                (err === false) ? resolve() : reject(err);
             });
         });
     }
@@ -1663,7 +1714,7 @@ function BotService(objectCollection) {
 
         return new Promise((resolve, reject) => {
             activityTimelineService.addTimelineTransaction(fire714OnNewOrderFileRequest, (err, resp) => {
-                (err === false) ? resolve(): reject(err);
+                (err === false) ? resolve() : reject(err);
             });
         });
     }
@@ -1695,9 +1746,9 @@ function BotService(objectCollection) {
 
                 //Checking the queuemappingid
                 queueActivityMappingData = await (activityCommonService.fetchQueueActivityMappingId({
-                        activity_id: newrequest.workflow_activity_id,
-                        organization_id: newrequest.organization_id
-                    },
+                    activity_id: newrequest.workflow_activity_id,
+                    organization_id: newrequest.organization_id
+                },
                     i.queue_id));
                 global.logger.write('conLog', 'queueActivityMappingData : ', {}, {});
                 global.logger.write('conLog', queueActivityMappingData, {}, {});
@@ -1721,7 +1772,7 @@ function BotService(objectCollection) {
                     data = await (activityCommonService.queueActivityMappingUpdateInlineData(newrequest, queueActivityMappingId, JSON.stringify(queueActMapInlineData)));
                     global.logger.write('conLog', 'Updating the Queue Json : ', data, {});
 
-                    activityCommonService.queueHistoryInsert(newrequest, 1402, queueActivityMappingId).then(() => {});
+                    activityCommonService.queueHistoryInsert(newrequest, 1402, queueActivityMappingId).then(() => { });
                     //return [false, {}];
                 }
             }
@@ -2151,7 +2202,7 @@ function BotService(objectCollection) {
 
         return await new Promise((resolve, reject) => {
             activityParticipantService.assignCoworker(addParticipantRequest, (err, resp) => {
-                (err === false) ? resolve(): reject(err);
+                (err === false) ? resolve() : reject(err);
             });
         });
 
@@ -2187,118 +2238,10 @@ function BotService(objectCollection) {
                     global.logger.write('conLog', err, {}, {});
                     global.logger.write('conLog', body, {}, {});
 
-                    (err === null) ? resolve(body): reject(err);
+                    (err === null) ? resolve(body) : reject(err);
                 });
             });
         }
-    }
-
-    async function alterFormActivity(request) {
-        var logDatetime = util.getCurrentUTCTime();
-        request['datetime_log'] = logDatetime;
-
-        let //newFieldValue,
-            oldFieldValue,
-            data,
-            inline_data_present = 1;
-
-        var activityInlineData = request.activity_inline_data;
-        var newData = activityInlineData;
-        global.logger.write('conLog', 'newData from Request: ', newData, {});
-
-        data = await activityCommonService.getActivityByFormTransaction({
-            "activity_id": 1,
-            "form_transaction_id": request.target_form_transaction_id,
-            "organization_id": request.organization_id
-        });
-
-        global.logger.write('conLog', 'Data from activity_list: ', data, {});
-        var retrievedInlineData = [];
-
-        if (data.length > 0) {
-            request['activity_id'] = data[0].activity_id;
-            retrievedInlineData = JSON.parse(data[0].activity_inline_data);
-
-            if (!retrievedInlineData.length > 0) {
-                inline_data_present = 0;
-            }
-        } else {
-            inline_data_present = 0;
-        }
-
-        //Iterating through all the target objects
-        for (let i of newData) {
-            //newFieldValue = i.field_value;            
-
-            if (inline_data_present === 1) {
-                for (let row of retrievedInlineData) {
-                    if (Number(row.field_id) === Number(i.field_id)) {
-                        oldFieldValue = row.field_value;
-                        row.field_value = i.field_value;
-                        //i.field_name = row.field_name;                        
-                    }
-                }
-            } else {
-                i.update_sequence_id = 1;
-                global.logger.write('conLog', 'VALUE of i : ', i, {});
-                global.logger.write('conLog', 'retrievedInlineData : ', retrievedInlineData, {});
-                Array.from(retrievedInlineData).push(i);
-                //retrievedInlineData.push(i);
-                oldFieldValue = i.field_value;
-            }
-
-            let respData = await getLatestUpdateSeqId({
-                "form_transaction_id": request.target_form_transaction_id,
-                "form_id": i.form_id,
-                "field_id": i.field_id,
-                "organization_id": request.organization_id
-            });
-
-            global.logger.write('conLog', 'respData : ', respData, {});
-
-            if (respData.length > 0) {
-                let x = respData[0];
-                global.logger.write('conLog', 'update_sequence_id : ', x.update_sequence_id, {});
-                request.update_sequence_id = ++x.update_sequence_id;
-            } else {
-                request.update_sequence_id = 1;
-            }
-
-            await putLatestUpdateSeqId(request, activityInlineData);
-        }
-
-        request.activity_inline_data = JSON.stringify(retrievedInlineData);
-        let content = '';
-        if (String(oldFieldValue).trim().length === 0) {
-            //content = `In the ${i.form_name}, the field ${i.field_name} was updated to ${newFieldValue}`;
-        } else {
-            //content = `In the ${i.form_name}, the field ${i.field_name} was updated from ${oldFieldValue} to ${newFieldValue}`;
-        }
-
-        let activityTimelineCollection = {
-            form_submitted: retrievedInlineData,
-            subject: 'Field Updated', //`Field Updated for ${i.form_name}`,
-            content: content,
-            mail_body: `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
-            attachments: [],
-            asset_reference: [],
-            activity_reference: [],
-            form_approval_field_reference: []
-        };
-
-        request.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
-        let reqForInlineAlter = Object.assign({}, request);
-        reqForInlineAlter.form_id = newData[0].form_id;
-        reqForInlineAlter.form_transaction_id = request.target_form_transaction_id;
-
-        return new Promise((resolve, reject) => {
-            /*activityUpdateService.alterActivityInline(reqForInlineAlter, (err, resp)=>{
-                console.log('In BOT Service - CAME from alterActivityInline');
-                return (err === false) ? resolve() : reject(err);
-            });*/
-            resolve();
-        });
-
     }
 
     async function getLatestUpdateSeqId(request) {
@@ -2315,14 +2258,13 @@ function BotService(objectCollection) {
     }
 
     async function putLatestUpdateSeqId(request, activityInlineData) {
-
         for (let row of activityInlineData) {
-            var params = new Array(
-                request.target_form_transaction_id, //0
-                row.form_id || 0, //1
-                row.field_id || 0, //2
-                request.data_type_combo_id || 0, //3
-                request.target_activity_id, //4
+            const params = new Array(
+                request.form_transaction_id, //0
+                row.form_id, //1
+                row.field_id, //2
+                row.data_type_combo_id || 0, //3
+                request.activity_id, //4
                 request.asset_id, //5
                 request.workforce_id, //6
                 request.account_id, //7
@@ -2344,11 +2286,12 @@ function BotService(objectCollection) {
                 '', //IN p_location_gps_accuracy DOUBLE(16,4)                   23
                 '', //IN p_location_gps_enabled TINYINT(1)                      24
                 '', //IN p_location_address VARCHAR(300)                        25
-                '', //IN p_location_datetime DATETIME                          26                    
+                '', //IN p_location_datetime DATETIME                          26
             );
 
-            var dataTypeId = Number(row.field_data_type_id);
-            global.logger.write('conLog', 'dataTypeId : ' + dataTypeId, {}, {});
+            const dataTypeId = Number(row.field_data_type_id);
+            request['field_value'] = row.field_value;
+            console.log('dataTypeId : ', dataTypeId);
             switch (dataTypeId) {
                 case 1: // Date
                 case 2: // future Date
@@ -2382,7 +2325,7 @@ function BotService(objectCollection) {
                     params[13] = row.field_value;
                     break;
                 case 50: // Reference - File
-                    params[13] = Number(JSON.parse(row.field_value).activity_id); // p_entity_bigint_1
+                    // params[13] = Number(JSON.parse(row.field_value).activity_id); // p_entity_bigint_1
                     params[18] = row.field_value; // p_entity_text_1
                     break;
                 case 52: // Excel Document
@@ -2411,7 +2354,7 @@ function BotService(objectCollection) {
                     params[18] = money[1];
                     break;
                 case 19: //Short Text
-                    params[18] = row.field_value;
+                    params[18] = request.new_field_value || row.field_value;
                     break;
                 case 20: //Long Text
                     params[19] = row.field_value;
@@ -2423,12 +2366,9 @@ function BotService(objectCollection) {
                     params[18] = row.field_value;
                     break;
                 case 23: //Phone Number with Country Code
-                    var phone;
-                    ((row.field_value).includes('||')) ?
-                    phone = row.field_value.split('||'):
-                        phone = row.field_value.split('|');
+                    var phone = row.field_value.split('|');
                     params[13] = phone[0]; //country code
-                    params[18] = phone[1]; //phone number                     
+                    params[18] = phone[1]; //phone number
                     break;
                 case 24: //Gallery Image
                 case 25: //Camera Front Image
@@ -2444,7 +2384,7 @@ function BotService(objectCollection) {
                     break;
                 case 29: //Coworker Signature with asset reference
                 case 30: //Coworker Picnature with asset reference
-                    //approvalFields.push(row.field_id);
+                    // approvalFields.push(row.field_id);
                     var signatureData = row.field_value.split('|');
                     params[18] = signatureData[0]; //image path
                     params[13] = signatureData[1]; // asset reference
@@ -2473,7 +2413,6 @@ function BotService(objectCollection) {
                 case 39: //Flag
                     params[11] = row.field_value;
             }
-
 
             params.push(''); //IN p_device_manufacturer_name VARCHAR(50)
             params.push(''); // IN p_device_model_name VARCHAR(50)
@@ -2541,63 +2480,6 @@ function BotService(objectCollection) {
         }
     }
 
-    async function timeine713Entry(request, formId, formTxnId, fieldId, fieldValue, fieldDataTypeId) {
-        let actDetails = await activityCommonService.getActivityDetailsPromise(request, request.target_activity_id);
-        //console.log('ACT DETAILS : ', actDetails);
-        let activityInlineData = JSON.parse(actDetails[0].activity_inline_data);
-
-        if (activityInlineData.length > 0) {
-            for (let x in activityInlineData) {
-                if (x.field_id === fieldId) {
-                    x.field_value = fieldValue;
-                }
-            }
-            activityInlineData = JSON.stringify(activityInlineData);
-        } else {
-            activityInlineData = JSON.stringify({
-                "form_id": formId,
-                "field_id": fieldId,
-                "field_value": fieldValue,
-                "form_transaction_id": formTxnId,
-                "field_data_type_id": fieldDataTypeId
-            });
-        }
-
-        let fire713OnWFOrderFileRequest = Object.assign({}, request);
-        fire713OnWFOrderFileRequest.activity_id = request.workflow_activity_id;
-        fire713OnWFOrderFileRequest.form_transaction_id = formTxnId;
-        fire713OnWFOrderFileRequest.activity_stream_type_id = 713;
-        fire713OnWFOrderFileRequest.form_id = formId;
-        fire713OnWFOrderFileRequest.asset_message_counter = 0;
-        fire713OnWFOrderFileRequest.message_unique_id = util.getMessageUniqueId(request.asset_id);
-        fire713OnWFOrderFileRequest.activity_timeline_text = '';
-        fire713OnWFOrderFileRequest.activity_timeline_url = '';
-        fire713OnWFOrderFileRequest.activity_timeline_collection = JSON.stringify({
-            "mail_body": `Form Updated at ${moment().utcOffset('+05:30').format('LLLL')}`,
-            "subject": "Form Name",
-            "content": `Form Name`,
-            "asset_reference": [],
-            "activity_reference": [],
-            "form_approval_field_reference": [],
-            "form_submitted": JSON.parse(activityInlineData),
-            "attachments": []
-        });
-        fire713OnWFOrderFileRequest.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
-        fire713OnWFOrderFileRequest.flag_timeline_entry = 1;
-        fire713OnWFOrderFileRequest.service_version = '1.0';
-        fire713OnWFOrderFileRequest.app_version = '2.8.16';
-        fire713OnWFOrderFileRequest.device_os_id = 9;
-        fire713OnWFOrderFileRequest.data_activity_id = request.activity_id;
-        fire713OnWFOrderFileRequest.log_asset_id = 100;
-
-        return new Promise((resolve, reject) => {
-            activityTimelineService.addTimelineTransaction(fire713OnWFOrderFileRequest, (err, resp) => {
-                console.log('################ CAME FROM 713 TimeLine Entry ################');
-                return (err === false) ? resolve() : reject(err);
-            });
-        });
-    }
-
     async function getStatusName(request, activityStatusId) {
         let paramsArr = new Array(
             request.organization_id,
@@ -2632,6 +2514,206 @@ function BotService(objectCollection) {
             return await (db.executeQueryPromise(1, queryString, request));
         }
     }
+
+    async function alterFormActivityFieldValues(request) {
+        let fieldsNewValues = [],
+            fieldsNewValuesMap = new Map();
+        fieldsNewValues = JSON.parse(request.activity_inline_data);
+        for (const field of fieldsNewValues) {
+            fieldsNewValuesMap.set(Number(field.field_id), field);
+        }
+        console.log("fieldsNewValuesMap: ", fieldsNewValuesMap);
+
+        let activityData = [];
+        // Fetch the activity data from the DB
+        try {
+            activityData = await activityCommonService.getActivityByFormTransaction(request, request.activity_id);
+        } catch (error) {
+            console.log("alterFormActivityFieldValues | getActivityByFormTransaction | Error", error)
+            return [error, []];
+        }
+        // If the activity exists, retrieve and parse the inline data
+        let activityInlineData = [];
+        if (activityData.length > 0) {
+            try {
+                activityInlineData = JSON.parse(activityData[0].activity_inline_data);
+            } catch (error) {
+                return [error, []];
+            }
+        } else {
+            return [new Error("ActivityNotFound"), []];
+        }
+        // Convert the inline data to a map, for easy processing
+        let activityInlineDataMap = new Map();
+        for (const field of activityInlineData) {
+            activityInlineDataMap.set(Number(field.field_id), field);
+        }
+        // Build the promises array for concurrent processing
+        let fetchUpdateSeqIdPromises = [];
+        // Content to be displayed on the UI
+        let content = '',
+            formName = '';
+        for (const fieldID of fieldsNewValuesMap.keys()) {
+            // Fetch the latest upate sequence ID
+            fetchUpdateSeqIdPromises.push(
+                getLatestUpdateSeqId({
+                    form_transaction_id: request.form_transaction_id,
+                    form_id: request.form_id,
+                    field_id: fieldID,
+                    organization_id: request.organization_id
+                })
+                    .then(async (data) => {
+                        let newRequest = Object.assign({}, request);
+                        let newFieldData = [];
+
+                        if (data.length > 0) {
+                            newRequest.update_sequence_id = Number(data[0].update_sequence_id) + 1;
+                        } else {
+                            newRequest.update_sequence_id = 1;
+                        }
+
+                        newRequest.field_id = fieldID;
+                        newRequest.data_type_combo_id = fieldsNewValuesMap.get(fieldID).data_type_combo_id;
+                        newRequest.new_field_value = fieldsNewValuesMap.get(fieldID).field_value;
+                        newRequest.datetime_log = util.getCurrentUTCTime();
+                        newFieldData.push(fieldsNewValuesMap.get(fieldID));
+                        // Update the field entry
+                        await putLatestUpdateSeqId(newRequest, newFieldData);
+
+                        formName = fieldsNewValuesMap.get(fieldID).form_name;
+                        let fieldName = fieldsNewValuesMap.get(fieldID).field_name;
+                        // Update the activity inline data as well
+                        if (activityInlineDataMap.has(fieldID)) {
+                            let oldFieldEntry = activityInlineDataMap.get(fieldID);
+                            let newFieldEntry = Object.assign({}, oldFieldEntry);
+                            newFieldEntry.field_value = fieldsNewValuesMap.get(fieldID).field_value;
+                            // Set the new value in the inline data map
+                            activityInlineDataMap.set(fieldID, newFieldEntry);
+
+                            // Form the content string
+                            content += `In the ${formName}, the field ${fieldName} was updated from ${oldFieldEntry.field_value} to ${newFieldEntry.field_value} <br />`;;
+                        } else {
+                            // If it doesn't already exist, make a fresh entry!
+                            let newFieldEntry = fieldsNewValuesMap.get(fieldID);
+                            activityInlineDataMap.set(fieldID, {
+                                "data_type_combo_id": newFieldEntry.data_type_combo_id,
+                                "data_type_combo_value": newFieldEntry.data_type_combo_value,
+                                "field_data_type_category_id": newFieldEntry.field_data_type_category_id,
+                                "field_data_type_id": newFieldEntry.field_data_type_id,
+                                "field_id": fieldID,
+                                "field_name": fieldName,
+                                "field_value": newFieldEntry.field_value,
+                                "form_id": newRequest.form_id,
+                                "message_unique_id": 12345678910
+                            });
+
+                            // Form the content string
+                            content += `In the ${formName}, the field ${fieldName} was updated to ${newFieldEntry.field_value} <br />`;;
+                        }
+
+                        return {
+                            field_id: fieldID,
+                            success: true,
+                            update_sequence_id: newRequest.update_sequence_id
+                        };
+                    })
+                    .catch((error) => {
+                        console.log("fetchUpdateSeqIdPromises | getLatestUpdateSeqId | Error: ", error);
+                        return 'Ghotala';
+                    })
+            );
+        }
+
+        await Promise.all(fetchUpdateSeqIdPromises)
+            .then((updateSequenceIDs) => {
+                console.log("updateSequenceIDs: ", updateSequenceIDs);
+            })
+            .catch((error) => {
+                console.log("Promise.all | fetchUpdateSeqIdPromises | error: ", error);
+                return [error, []];
+            });
+
+        console.log("content: ", content);
+        // update the activity's inline data as well
+        activityInlineData = [...activityInlineDataMap.values()];
+
+        // [REORDER | SORT] Fetch the target form's field sequence data
+        let fieldSequenceIdMap = {};
+        await activityCommonService
+            .getFormFieldMappings(request, Number(request.form_id), 0, 500)
+            .then((data) => {
+                if (data.length > 0) {
+
+                    data.forEach(formMappingEntry => {
+                        fieldSequenceIdMap[formMappingEntry.field_id] = Number(formMappingEntry.field_sequence_id);
+                    });
+                }
+            });
+
+        // S O R T Target Form entries based on the 
+        // field_id:field_seq_id data feteched above
+        activityInlineData.sort((a, b) => {
+            let keyA = Number(fieldSequenceIdMap[a.field_id]),
+                keyB = Number(fieldSequenceIdMap[b.field_id]);
+            if (keyA < keyB) return -1;
+            if (keyA > keyB) return 1;
+            return 0;
+        });
+
+        request.activity_inline_data = JSON.stringify(activityInlineData);
+
+        let activityTimelineCollection = {
+            form_submitted: activityInlineData,
+            subject: `Field Updated for ${formName}`,
+            content: content,
+            mail_body: `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+            attachments: [],
+            asset_reference: [],
+            activity_reference: [],
+            form_approval_field_reference: []
+
+        };
+        request.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
+
+        const event = {
+            name: "alterActivityInline",
+            service: "activityUpdateService",
+            method: "alterActivityInline",
+            payload: request
+        };
+
+        queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
+            if (err) {
+                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+            } else {
+                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+            }
+        });
+
+        if (request.hasOwnProperty("workflow_activity_id")) {
+            // Make a 713 timeline transaction entry in the workflow file
+            let workflowFile713Request = Object.assign({}, request);
+            workflowFile713Request.activity_id = request.workflow_activity_id;
+            workflowFile713Request.data_activity_id = Number(request.activity_id);
+            workflowFile713Request.form_transaction_id = Number(request.form_transaction_id);
+            workflowFile713Request.activity_type_category_id = 48;
+            workflowFile713Request.activity_stream_type_id = 713;
+            workflowFile713Request.flag_timeline_entry = 1;
+            workflowFile713Request.message_unique_id = util.getMessageUniqueId(request.asset_id);
+            workflowFile713Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+            workflowFile713Request.device_os_id = 8;
+            const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
+            try {
+                await addTimelineTransactionAsync(workflowFile713Request);
+            } catch (error) {
+                console.log("alterFormActivityFieldValues | workflowFile713Request | addTimelineTransactionAsync | Error: ", error);
+            }
+        }
+
+        return [false, activityData];
+    };
 }
 
 module.exports = BotService;

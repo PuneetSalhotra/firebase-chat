@@ -63,11 +63,11 @@ class FormFileStatusDurationWidget extends WidgetBase {
                 if (widgetData.aggregate != result[0].valueDecimal) {
                     if (widgetTransId > 0) {
                         //Pubnub PUSH
-                        this.objCollection.pubnubWrapper.push(organizationId, msg);
+                        // this.objCollection.pubnubWrapper.push(organizationId, msg);
                         return widgetTransactionSvc.updateFileStatusDuration(widgetData);
                     } else {
                         //Pubnub PUSH
-                        this.objCollection.pubnubWrapper.push(organizationId, msg);
+                        // this.objCollection.pubnubWrapper.push(organizationId, msg);
                         return widgetTransactionSvc.createFileStatusDuration(widgetData);
                     }
                 }
