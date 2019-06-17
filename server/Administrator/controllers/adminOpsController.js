@@ -97,6 +97,17 @@ function AdminOpsController(objCollection) {
         }
     });
 
+    // Create a new organization
+    app.post('/' + global.config.version + '/admin/asset/details/update', async function (req, res) {
+        const [err, assetData] = await adminOpsService.updateAssetDetails(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, assetData, 200, req.body));
+        } else {
+            console.log("/admin/asset/details/update | Error: ", err);
+            res.send(responseWrapper.getResponse(err, assetData, -9999, req.body));
+        }
+    });
+
 };
 
 module.exports = AdminOpsController;
