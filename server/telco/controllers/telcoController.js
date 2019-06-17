@@ -25,6 +25,16 @@ function TelcoController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/sendEmail/demoTelco', function (req, res) {
+        vodafoneService.demoTelcoSendEmail(req.body, 0).then((data) => {
+            //console.log(data);
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        }).catch((err) => {
+            data = {};
+            res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        });
+    }); 
+
 };
 
 module.exports = TelcoController;
