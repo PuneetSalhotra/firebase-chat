@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /*
  * author: Nani Kalyan V
  */
@@ -2727,7 +2728,7 @@ function BotService(objectCollection) {
         //console.log('ACT Details : ', activityDetails);
         let activityInlineData = JSON.parse(activityDetails[0].activity_inline_data);
 
-        console.log(activityInlineData);
+        //console.log(activityInlineData);
         let useTemplate = 0;
         let customerName = "";
         let location = "";
@@ -2979,48 +2980,48 @@ function BotService(objectCollection) {
                     "bottom": "0.5in",
                     "left": "0.25in"
                   }
-                };
-         
-        pdf.create(html, options).toFile(`${__dirname}/pdfs/${request.activity_id}.pdf`, async (err, res) => {
-          if (err){
-            console.log(err);
-          } 
-          else {
-            console.log('PDF file is generated! ', res);
-
-            let body = await new Promise((resolve, reject)=>{
-                fs.readFile(pdfFilePath, (err, data) => {
-                    if (err) throw err;
-    
-                    console.log('Reading pdf stream is done');
-                    return resolve(data);
-                });
-            });                       
-            
-            //console.log('Before Params...');
-            let params = {
-                Body: body,
-                Bucket: "demotelcoinc",
-                //Key: `${__dirname}/pdfs/${request.activity_id}.pdf`,
-                Key: `${request.activity_id}.pdf`,
-                ContentType: 'application/pdf',
-                //ContentEncoding: 'base64',
-                ACL: 'public-read'
-            };
-    
-            console.log('Uploading to S3...');
-            s3.putObject(params, function (err, data) {
-                console.log(err);
-                console.log(data);
-
-                await (this.addTimelineEntrywithAttachment(request));
-            });
-          }
-          
-        });
-
+                };         
         
-        return 'Success';
+        return await new Promise((resolve)=>{
+            pdf.create(html, options).toFile(`${__dirname}/pdfs/${request.activity_id}.pdf`, async (err, res) => {
+                if (err){
+                  console.log(err);
+                } 
+                else {
+                  console.log('PDF file is generated! ', res);
+      
+                  let body = await new Promise((resolve)=>{
+                      fs.readFile(pdfFilePath, (err, data) => {
+                          if (err) throw err;
+          
+                          console.log('Reading pdf stream is done');
+                          return resolve(data);
+                      });
+                  });                       
+                  
+                  //console.log('Before Params...');
+                  let params = {
+                      Body: body,
+                      Bucket: "demotelcoinc",                
+                      Key: `${request.activity_id}.pdf`,
+                      ContentType: 'application/pdf',
+                      //ContentEncoding: 'base64',
+                      ACL: 'public-read'
+                  };
+          
+                  console.log('Uploading to S3...');
+                  s3.putObject(params, async (err, data) =>{
+                      console.log(err);
+                      console.log(data);
+      
+                      await (this.addTimelineEntrywithAttachment(request));
+                      return resolve();
+                  });
+                }
+                
+              });
+        });
+        
     };
 
     this.addTimelineEntrywithAttachment = async (request) => {
@@ -3062,9 +3063,9 @@ function BotService(objectCollection) {
         timelineParams.operating_asset_first_name= "BOT";
         timelineParams.organization_id= 898;
         timelineParams.service_version= 1;
-        timelineParams.timelineParams.timeline_stream_type_id= 325;
+        timelineParams.timeline_stream_type_id= 325;
         //timelineParams.timeline_transaction_id= 1560767030826
-        timelineParams.timelineParams.track_altitude= 0;
+        timelineParams.track_altitude= 0;
         timelineParams.track_gps_accuracy= "0";
         timelineParams.track_gps_datetime= util.getCurrentUTCTime();
         timelineParams.track_gps_status= 0;
