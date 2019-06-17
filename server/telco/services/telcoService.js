@@ -144,6 +144,21 @@ function TelcoService(objectCollection) {
             } catch (error) {
                 console.log("fireTelcoDemoTimelineLogic | uploadPDFAndTimelineEntryAdd | Error: ", error);
             }
+
+            await sleep(1000);
+            // Send email to the customer
+            try {
+                let sendEmailRequest = Object.assign({}, request);
+                sendEmailRequest.activity_form_id = 1528;
+                sendEmailRequest.attachment_url = `https://demotelcoinc.s3.ap-south-1.amazonaws.com/${request.activity_id}.pdf`;
+                sendEmailRequest.attachment_name = "proposal.pdf";
+                sendEmailRequest.form_transaction_id = originFormTransactionID;
+                sendEmailRequest.activity_id = request.activity_id;
+                sendEmailRequest.activity_type_id = 140257;
+                await self.demoTelcoSendEmail(sendEmailRequest);
+            } catch (error) {
+                console.log("TelcoService | sendEmailRequest | demoTelcoSendEmail | Error: ", error);
+            }
         }
 
         try {
@@ -381,6 +396,147 @@ function TelcoService(objectCollection) {
 
     function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    this.demoTelcoSendEmail = async function (request) {
+        return new Promise((resolve, reject) => {
+            console.log("\x1b[35m [Log] Inside demoTelcoSendEmail \x1b[0m");
+
+            let customerName = "", customerEmail = "";
+
+            if (request.form_transaction_id > 0) {
+                request.form_id = 1524;
+                activityCommonService.getFormTransactionDataAll(request).then((workflowActivityData) => {
+                    //console.log('workflowActivityData ',workflowActivityData);
+                    //JSONArray ar = workflowActivityData.activity_inline_data;
+                    if (workflowActivityData.length >= 1) {
+                        forEachAsync(workflowActivityData, (next, row) => {
+                            if (row.field_id === 13836 || row.field_id === 13839 || row.field_id === 13777)
+                                customerName = row.data_entity_text_1;
+                            else if (row.field_id === 13838 || row.field_id === 13841 || row.field_id === 13779)
+                                customerEmail = row.data_entity_text_1;
+
+                            next();
+                        }).then(() => {
+                            console.log("Before Preparation of Template");
+                            prepareTemplateNsend(request, customerName, customerEmail);
+                        })
+                    } else {
+                        console.log("form Data <> 1 ", workflowActivityData.length);
+                        resolve();
+                    }
+                });
+            } else {
+                resolve();
+            }
+        });
+    }
+
+    function prepareTemplateNsend(request, customerName, customerEmail) {
+
+        return new Promise((resolve, reject) => {
+
+            let date = util.getFormatedSlashDate();
+            try {
+                const jsonString = {
+                    organization_id: request.organization_id,
+                    account_id: request.account_id,
+                    workforce_id: request.workforce_id,
+                    asset_id: 35505,
+                    asset_token_auth: "54188fa0-f904-11e6-b140-abfd0c7973d9",
+                    auth_asset_id: 100,
+                    activity_id: request.activity_id || 0,
+                    activity_type_category_id: 9,
+                    activity_type_id: 140138,
+                    activity_stream_type_id: 705,
+                    activity_type_id_form: 140138,
+                    form_id: Number(request.activity_form_id),
+                    type: 'approval'
+                };
+
+                console.log('customerEmail ::', customerEmail);
+                //customerEmail = 'sravan@grenerobotics.com';
+                /*  
+                if (String(customerCollection.contactEmailId).includes('%40')) {
+                    customerCollection.contactEmailId = String(customerCollection.contactEmailId).replace(/%40/g, "@");
+                } */
+
+                const encodedString = Buffer.from(JSON.stringify(jsonString)).toString('base64');
+
+                const baseUrlUpload = global.config.emailbaseUrlUpload + "/#/forms/entry/" + encodedString;
+
+                openingMessage = "Please verify the proposal form and upload the PO.";
+                callToction = "<a style='background: #ED212C; display: inline-block; color: #FFFFFF; border-top: 10px solid #ED212C; border-bottom: 10px solid #ED212C; border-left: 20px solid #ED212C; border-right: 20px solid #ED212C; text-decoration: none; font-size: 12px; margin-top: 1.0em; border-radius: 3px 3px 3px 3px; background-clip: padding-box;' target='_blank' class='blue-btn' href='" + baseUrlUpload + "'>UPLOAD DOCUMENTS</a>"
+
+                const Template = `
+ <table style='border-collapse: collapse !important;' width='100%' bgcolor='#ffffff' border='0' cellpadding='10' cellspacing='0'>
+    <tbody><tr> <td> 
+    <table bgcolor='#ffffff' style='width: 100%;max-width: 600px;' class='content' align='center' cellpadding='0' cellspacing='0' border='0'> 
+    <tbody><tr><td align='center' valign='top'><table style='border: 1px solid #e2e2e2; border-radius: 4px; background-clip: padding-box; border-spacing: 0;' border='0' cellpadding='0' cellspacing='0' width='100%' id='templateContainer'>
+    <tbody> <tr> <td align='left' style='float: right;' valign='top'>
+    <img style='width: 600px' src ='https://staging.officedesk.app/header_banner_generic.png'/> 
+    <table style='position: relative;top: -30px;left: 215px;font-size:12px;color: #fff;font-family: Helvetica;'>
+    <tbody><tr><td><strong>Team</strong></td></tr></tbody>
+    </table>
+    </td> 
+    </tr> 
+     <tr>
+    <td valign='top' style=' color: #505050; font-family: Helvetica; font-size: 14px; line-height: 150%; padding-top: 3.143em; padding-right: 3.5em; padding-left: 3.5em; padding-bottom: 1em; text-align: left;' class='bodyContent' mc:edit='body_content'> 
+     <p style='  display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>
+   Date: ${date}</p> 
+    <p style=' color: #f47920; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>
+    Dear <strong>${customerName},</strong></p> 
+   
+    <p style=' color: #545454; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>
+    Thank you very much for your interest in our services.</p> 
+
+    <p style=' color: #545454; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 30px; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>Based on the inputs provided by you, attached please find our proposal for your perusal. We hope you find the same to be in line with your requirements and look forward to your valued order.</p> 
+    <p style=' color: #545454; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 30px; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>To place your order, kindly upload the Purchase Order (PO) using the below link for us to proceed with the delivery of your order.</p> 
+   
+    <a style='background: #f47920;display: inline-block;color: #FFFFFF;text-decoration: none;font-size: 12px;margin-top: 1.0em;background-clip: padding-box;padding: 5px 15px;box-shadow: 4px 4px 6px 1px #cbcbcb;margin-left:10px' target='_blank' class='blue-btn' href='${baseUrlUpload}'>Upload PO</a> 
+    
+    <p style=' color: #545454; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 30px; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>
+    Should you have any queries or seek additional information, please feel free to reach us on 7032979378.</p> 
+    <p style=' color: #545454; display: block; font-family: Helvetica; font-size: 14px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'>
+    Thanking you and assuring you of our best services at all times.</p> 
+
+    <p style=' color: #545454; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 40px; margin-right: 0; margin-bottom: 15px; margin-left: 0; text-align: left;'> Regards, </p> 
+    <p style=' color: #f47920; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 0px; margin-left: 0; text-align: left;'>  </p> 
+    <p style=' color: #545454; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 20px; margin-right: 0; margin-bottom: 0; margin-left: 0; text-align: left;'> Sales Department</p> 
+    <p style=' color: #545454; display: block; font-family: Helvetica; font-size: 12px; line-height: 1.500em; font-style: normal; font-weight: normal; letter-spacing: normal; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; text-align: left;'> Grene Telco </p> </td></tr> 
+
+    <tr>
+        <td style='padding: 40px;color: #c8c8c8;'>
+            <p style='font-family: Helvetica;font-size: 9px;'>This E-Mail (including any attachments) may contain Confidential and/or legally privileged Information and is meant for the intended recipient(s) only. If you have received this e-mail in error and are not the intended recipient/s, kindly delete this e-mail immediately from your system. You are also hereby notified that any use, any form of reproduction, dissemination, copying, disclosure, modification, distribution and/or publication of this e-mail, its contents or its attachment/s other than by its intended recipient/s is strictly prohibited and may be construed unlawful. Internet Communications cannot be guaranteed to be secure or error-free as information could be delayed, intercepted, corrupted, lost, or may contain viruses. Vodafone Idea Limited does not accept any liability for any errors, omissions, viruses or computer shutdown (s) or any kind of disruption/denial of services if any experienced by any recipient as a result of this e-mail.</p>
+        </td>
+    </tr>
+
+  </tbody></table> </td> </tr></tbody></table>`;
+
+                //request.email_sender = 'vodafone_idea@grenerobotics.com';
+                //request.email_sender_name = 'vodafone_idea grenerobotics.com';
+                request.email_sender = 'support@grenerobotics.com';
+                request.email_sender_name = 'Grene Telco';
+
+                util.sendEmailDemoTelco(request,
+                    customerEmail,
+                    openingMessage,
+                    "IGNORE",
+                    Template,
+                    (err, data) => {
+                        if (err) {
+                            console.log("[Send Email On Form Submission | Error]: ", data);
+                        } else {
+                            console.log("[Send Email On Form Submission | Response]: ", "Email Sent");
+                        }
+
+                        resolve();
+                    });
+            } catch (err) {
+                console.log(err);
+            }
+
+        });
     }
 }
 
