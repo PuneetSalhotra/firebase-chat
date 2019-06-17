@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /*
  * author: Nani Kalyan V
  */
@@ -7,6 +8,11 @@ var ActivityParticipantService = require('../../services/activityParticipantServ
 //var ActivityUpdateService = require('../../services/activityUpdateService.js');
 var ActivityTimelineService = require('../../services/activityTimelineService.js');
 //var ActivityListingService = require('../../services/activityListingService.js');
+const aws = require('aws-sdk');
+var fs = require('fs');
+aws.config.loadFromPath(`${__dirname}/configS3.json`);
+const s3 = new aws.S3();
+var pdf = require('html-pdf');
 
 function BotService(objectCollection) {
 
@@ -2714,6 +2720,366 @@ function BotService(objectCollection) {
 
         return [false, activityData];
     };
+
+    //async function uploadHtmltoPDF () {
+    this.nanikalyan = async (request) => {
+
+        let activityDetails = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
+        //console.log('ACT Details : ', activityDetails);
+        let activityInlineData = JSON.parse(activityDetails[0].activity_inline_data);
+
+        //console.log(activityInlineData);
+        let useTemplate = 0;
+        let customerName = "";
+        let location = "";
+        let productType = "";
+        let productSubType = "";
+        let locations= "";
+        let locationA = "";
+        let locationB = "";
+        let bandWidth = "";
+
+        for(let i=0; i < activityInlineData.length;i++) {
+            //console.log(i.field_name);
+
+            if(activityInlineData[i].field_id === '13786') {
+                (activityInlineData[i].field_value === "Domestic VPN") ?
+                    useTemplate = 1 //Domestic
+                        :
+                    useTemplate = 2; //Global
+                
+            } else if(activityInlineData[i].field_id === '13777') {
+                customerName = activityInlineData[i].field_value;
+            } else if(activityInlineData[i].field_id === '13788') {
+                location = activityInlineData[i].field_value;
+            } else if(activityInlineData[i].field_id === '13771') { //Product Type
+                productType = activityInlineData[i].field_value;
+            } else if(activityInlineData[i].field_id === '13773') { //Product Sub Type
+                productSubType = activityInlineData[i].field_value;                
+            } else if(activityInlineData[i].field_id === '13787') {
+                locations = activityInlineData[i].field_value;
+            } else if(activityInlineData[i].field_id === '13783') {
+                locationA = activityInlineData[i].field_value;
+            } else if(activityInlineData[i].field_id === '13784') {
+                locationB = activityInlineData[i].field_value;
+            }else if(activityInlineData[i].field_id === '13780') {
+                bandWidth = activityInlineData[i].field_value;
+            }
+        }
+        
+        const domesticTemplate = `
+            <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+            <html xmlns="http://www.w3.org/1999/xhtml">
+            <head>
+            <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+            <title>Welcome</title>
+            </head>
+            <body style="margin:0; padding:0;">
+            <div style="margin:0 auto; width:650px; font-family:Georgia, 'Times New Roman', Times, serif; color:#555; font-size:14px;">
+            <div style="padding:10px 0; border-bottom:1px dashed #555;">
+                <p style="text-align:center; margin:0;"><span style="font-size:40px; border-bottom:1px solid #FF0000; color:#FF0000; font-weight:bold; line-height:30px; display:inline-block;">Demo Telco Inc.</span></p>
+                <p style="text-align:center; font-size:12px; margin:5px 0;">Plot No <span style="border-bottom:1px solid #FF0000; color:#FF0000;">123</span>, Road No. <span style="border-bottom:1px solid #FF0000; color:#FF0000;">25</span>, Jubilee Hills, Hyderabad- 500 062</p>
+            </div>
+            <div style=" text-align:right; padding-top:10px; padding-right:30px; font-weight:bold; font-size:15px; color:#FF0000;">Date:${util.getCurrentDate()}</div>
+            <div style="padding-top:10px; font-weight:bold; font-size:15px; color:#555;">To</div>
+            <div style=" padding-top:30px;font-weight:bold; font-size:15px; color:#FF0000;">${customerName},</div>
+            <div style=" padding-top:5px;font-weight:bold; font-size:15px; color:#FF0000;">${location}<span style="color:#555">.</span></div>
+            <div style=" padding-top:30px;">Subject: Quotation for <span style="color:#ff0000">${productType}</span></div>
+            <div style=" padding-top:20px; padding-bottom:20px;">Thank you for your interest in our services. With reference to your inquiry for <span style="color:#ff0000">${productType}</span>, we are
+                pleased to submit our proposal for your perusal. </div>
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border:1px solid #ccc; text-align:center;">
+                <tr>
+                <td width="5%" style="padding:5px; border:1px solid #ccc;"><strong>S.<br />
+                    No</strong></td>
+                <td width="40%" style="padding:5px; border:1px solid #ccc;"><strong>Description</strong></td>
+                <td width="10%" style="padding:5px; border:1px solid #ccc;">&nbsp;</td>
+                <td width="10%" style="padding:5px; border:1px solid #ccc;"><span style="color:#FF0000"><strong>Price</strong></span></td>
+                <td width="10%" style="padding:5px; border:1px solid #ccc;"><strong>Total</strong></td>
+                </tr>
+                <tr>
+                <td style="padding:5px;border:1px solid #ccc; text-align:left;">01</td>
+                <td style="padding:5px;border:1px solid #ccc; text-align:left;"><div style="color:#ff0000">${productType}:</div>
+                    For the <span style="color:#ff0000">&quot;${productSubType}&quot;</span> with <span style="color:#ff0000">&quot;${locations}&quot;</span>
+                    locations from <span style="color:#ff0000">${locationA}</span> to <span style="color:#ff0000">${locationB}</span> with <span style="color:#ff0000">&quot;${bandWidth}&quot;</span>
+                    Bandwidth<br />
+                <br /><br />
+                <br />
+
+                </td>
+                    <td style="padding:5px;border:1px solid #ccc; text-align:left;">&nbsp;</td>
+                    <td style="padding:5px;border:1px solid #ccc; text-align:center;"><span style="border-bottom:1px solid #ff0000; color:#ff0000;">Rs.50,000/-</span></td>
+                    <td style="padding:5px;border:1px solid #ccc; text-align:left;">Rs.50,000/-</td>
+                    </tr>
+                    <tr>
+                    <td style="padding:5px;border:1px solid #ccc; text-align:left;">02</td>
+                    <td style="padding:5px;border:1px solid #ccc;text-align:left;"><span style="color:#ff0000">Tax<br />
+                <br />
+                </span></td>
+                    <td style="padding:5px;border:1px solid #ccc;text-align:left;"><span style="color:#ff0000">18</span></td>
+                    <td style="padding:5px;border:1px solid #ccc;text-align:left;">9000</td>
+                    <td style="padding:5px;border:1px solid #ccc;text-align:left;">9000</td>
+                    </tr>
+                    <tr>
+                    <td style="padding:5px;border:1px solid #ccc;text-align:left;"> </td>
+                    <td style="padding:5px;border:1px solid #ccc;text-align:left;"><span style="color:#ff0000">Total<br />
+                <br />
+                </span></td>
+                    <td style="padding:5px;border:1px solid #ccc;text-align:left;"> </td>
+                    <td style="padding:5px;border:1px solid #ccc;text-align:left;"> </td>
+                    <td style="padding:5px;border:1px solid #ccc;text-align:left;">59000</td>
+                    </tr>
+                </table>
+                
+                <div style="padding:30px 0 0; color:#000;"><strong><span style="border-bottom:1px solid #555">Terms and Conditions:</span></strong></div>
+                
+                <div style="padding:20px 0; color:#555; line-height:25px;">1. Payment: 70% along with PO and balance against delivery.<br />
+
+                2. GST: @18% Added extra<br />
+
+                3. Installation <span style="color:#ff0000; border-bottom:1px solid #ff0000;">charges include in above price</span>.<br />
+
+                4. Delivery and installation as per your schedule.<br />
+
+                5. Validity – This quote is valid <span style="color:#ff0000; border-bottom:1px solid #ff0000;">for one</span> mont<span style="color:#ff0000; border-bottom:1px solid #ff0000;">h</span>.</div>
+                
+                <div style="padding:0;"><span style="color:#ff0000; border-bottom:1px solid #ff0000;">Looking forward to your order and assuring you of</span> our best services at all times.</div>
+                <div style="padding:30px 0 10px;">Thanking you<br />
+                <br />
+                Your’s faithfully</div>
+
+                <div style="padding:10px 0 30px;"><span style="color:#ff0000; border-bottom:1px solid #ff0000;">Parameshwar Reddy<br />
+
+                For Demo Telco Inc.</span></div>
+                </div>
+                </body>
+                </html>`;
+
+
+        const globalTemplate = `
+            <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+            <html xmlns="http://www.w3.org/1999/xhtml">
+            <head>
+            <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+            <title>Welcome</title>
+            </head>
+            <body style="margin:0; padding:0;">
+            <div style="margin:0 auto; width:650px; font-family:Georgia, 'Times New Roman', Times, serif; color:#555; font-size:14px;">
+            <div style="padding:10px 0; border-bottom:1px dashed #555;">
+                <p style="text-align:center; margin:0;"><span style="font-size:40px; border-bottom:1px solid #FF0000; color:#FF0000; font-weight:bold; line-height:30px; display:inline-block;">Demo Telco Inc.</span></p>
+                <p style="text-align:center; font-size:12px; margin:5px 0;">Plot No <span style="border-bottom:1px solid #FF0000; color:#FF0000;">123</span>, Road No. <span style="border-bottom:1px solid #FF0000; color:#FF0000;">25</span>, Jubilee Hills, Hyderabad- 500 062</p>
+            </div>
+            <div style=" text-align:right; padding-top:10px; padding-right:30px; font-weight:bold; font-size:15px; color:#FF0000;">Date:${util.getCurrentDate()}</div>
+            <div style="padding-top:10px; font-weight:bold; font-size:15px; color:#555;">To</div>
+            <div style=" padding-top:30px;font-weight:bold; font-size:15px; color:#FF0000;">${customerName},</div>
+            <div style=" padding-top:5px;font-weight:bold; font-size:15px; color:#FF0000;">${location}<span style="color:#555">.</span></div>
+            <div style=" padding-top:30px;">Subject: Quotation for <span style="color:#ff0000">${productType}</span></div>
+            <div style=" padding-top:20px; padding-bottom:20px;">Thank you for your interest in our services. With reference to your inquiry for <span style="color:#ff0000">${productType}</span>, we are
+                pleased to submit our proposal for your perusal. </div>
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border:1px solid #ccc; text-align:center;">
+                <tr>
+                <td width="5%" style="padding:5px; border:1px solid #ccc;"><strong>S.<br />
+                    No</strong></td>
+                <td width="40%" style="padding:5px; border:1px solid #ccc;"><strong>Description</strong></td>
+                <td width="10%" style="padding:5px; border:1px solid #ccc;">&nbsp;</td>
+                <td width="10%" style="padding:5px; border:1px solid #ccc;"><span style="color:#FF0000"><strong>Price</strong></span></td>
+                <td width="10%" style="padding:5px; border:1px solid #ccc;"><strong>Total</strong></td>
+                </tr>
+                <tr>
+                <td style="padding:5px;border:1px solid #ccc; text-align:left;">01</td>
+                <td style="padding:5px;border:1px solid #ccc; text-align:left;"><div style="color:#ff0000">${productType}:</div>
+                    For the <span style="color:#ff0000">&quot;${productSubType}&quot;</span> with <span style="color:#ff0000">&quot;${locations}&quot;</span>
+                    locations from <span style="color:#ff0000">${locationA}</span> to <span style="color:#ff0000">${locationB}</span> with <span style="color:#ff0000">&quot;${bandWidth}&quot;</span>
+                    Bandwidth<br />
+            <br /><br />
+            <br />
+
+            </td>
+                <td style="padding:5px;border:1px solid #ccc; text-align:left;">&nbsp;</td>
+                <td style="padding:5px;border:1px solid #ccc; text-align:center;"><span style="border-bottom:1px solid #ff0000; color:#ff0000;">Rs.50,000/-</span></td>
+                <td style="padding:5px;border:1px solid #ccc; text-align:left;">Rs.50,000/-</td>
+                </tr>
+                <tr>
+                <td style="padding:5px;border:1px solid #ccc; text-align:left;">02</td>
+                <td style="padding:5px;border:1px solid #ccc; text-align:left;"><div style="color:#ff0000">CAPEX:</div>
+
+
+            </td>
+                <td style="padding:5px;border:1px solid #ccc; text-align:left;">&nbsp;</td>
+                <td style="padding:5px;border:1px solid #ccc; text-align:center;"><span style="border-bottom:1px solid #ff0000; color:#ff0000;">Rs.200,000/-</span></td>
+                <td style="padding:5px;border:1px solid #ccc; text-align:left;">Rs.200,000/-</td>
+                </tr>
+                <tr>
+                <td style="padding:5px;border:1px solid #ccc; text-align:left;">03</td>
+                <td style="padding:5px;border:1px solid #ccc;text-align:left;"><span style="color:#ff0000">Tax<br />
+            <br />
+            </span></td>
+                <td style="padding:5px;border:1px solid #ccc;text-align:left;"><span style="color:#ff0000">18</span></td>
+                <td style="padding:5px;border:1px solid #ccc;text-align:left;">45000</td>
+                <td style="padding:5px;border:1px solid #ccc;text-align:left;">45000</td>
+                </tr>
+                <tr>
+                <td style="padding:5px;border:1px solid #ccc;text-align:left;"> </td>
+                <td style="padding:5px;border:1px solid #ccc;text-align:left;"><span style="color:#ff0000">Total<br />
+            <br />
+            </span></td>
+                <td style="padding:5px;border:1px solid #ccc;text-align:left;"> </td>
+                <td style="padding:5px;border:1px solid #ccc;text-align:left;"> </td>
+                <td style="padding:5px;border:1px solid #ccc;text-align:left;">295000</td>
+                </tr>
+            </table>
+            
+            <div style="padding:30px 0 0; color:#000;"><strong><span style="border-bottom:1px solid #555">Terms and Conditions:</span></strong></div>
+            
+            <div style="padding:20px 0; color:#555; line-height:25px;">1. Payment: 70% along with PO and balance against delivery.<br />
+
+            2. GST: @18% Added extra<br />
+
+            3. Installation <span style="color:#ff0000; border-bottom:1px solid #ff0000;">charges include in above price</span>.<br />
+
+            4. Delivery and installation as per your schedule.<br />
+
+            5. Validity – This quote is valid <span style="color:#ff0000; border-bottom:1px solid #ff0000;">for one</span> mont<span style="color:#ff0000; border-bottom:1px solid #ff0000;">h</span>.</div>
+            
+            <div style="padding:0;"><span style="color:#ff0000; border-bottom:1px solid #ff0000;">Looking forward to your order and assuring you of</span> our best services at all times.</div>
+            <div style="padding:30px 0 10px;">Thanking you<br />
+            <br />
+            Your’s faithfully</div>
+
+            <div style="padding:10px 0 30px;"><span style="color:#ff0000; border-bottom:1px solid #ff0000;">Parameshwar Reddy<br />
+
+            For Demo Telco Inc.</span></div>
+            </div>
+            </body>
+            </html>`;
+
+
+        const pdfFilePath = `${__dirname}/pdfs/${request.activity_id}.pdf`;        
+        await new Promise((resolve,)=>{
+            let template;
+            if(useTemplate === 1) {
+                template = domesticTemplate;
+            } else if(useTemplate === 2) {
+                template = globalTemplate;
+            }
+            fs.writeFile(`${__dirname}/pdfs/${request.activity_id}.html`, template, function (err) {
+                if (err) throw err;
+
+                console.log('HTML File is generated');
+                return resolve();
+            });
+        });        
+
+        let html = fs.readFileSync(`${__dirname}/pdfs/${request.activity_id}.html`, 'utf8');
+        var options = { 
+                "height": "10.5in", // allowed units: mm, cm, in, px
+                  "width": "9in", 
+                format: 'A4',
+                "border": {
+                    "top": "0.5in",            // default is 0, units: mm, cm, in, px
+                    //"right": "0.5in",
+                    "bottom": "0.5in",
+                    "left": "0.25in"
+                  }
+                };         
+        
+        return await new Promise((resolve)=>{
+            pdf.create(html, options).toFile(`${__dirname}/pdfs/${request.activity_id}.pdf`, async (err, res) => {
+                if (err){
+                  console.log(err);
+                } 
+                else {
+                  console.log('PDF file is generated! ', res);
+      
+                  let body = await new Promise((resolve)=>{
+                      fs.readFile(pdfFilePath, (err, data) => {
+                          if (err) throw err;
+          
+                          console.log('Reading pdf stream is done');
+                          return resolve(data);
+                      });
+                  });                       
+                  
+                  //console.log('Before Params...');
+                  let params = {
+                      Body: body,
+                      Bucket: "demotelcoinc",                
+                      Key: `${request.activity_id}.pdf`,
+                      ContentType: 'application/pdf',
+                      //ContentEncoding: 'base64',
+                      ACL: 'public-read'
+                  };
+          
+                  console.log('Uploading to S3...');
+                  s3.putObject(params, async (err, data) =>{
+                      console.log(err);
+                      console.log(data);
+      
+                      await (this.addTimelineEntrywithAttachment(request));
+                      return resolve();
+                  });
+                }
+                
+              });
+        });
+        
+    };
+
+    this.addTimelineEntrywithAttachment = async (request) => {
+
+        let activityTimelineCollection = {};
+        activityTimelineCollection.content = "File - " + util.getCurrentDate();
+        activityTimelineCollection.subject = "File - " + util.getCurrentDate();
+        activityTimelineCollection.mail_body = "File - " + util.getCurrentDate();
+        let url = "https://demotelcoinc.s3.ap-south-1.amazonaws.com/" +request.activity_id+".pdf";
+        activityTimelineCollection.attachments = [url];
+        activityTimelineCollection.asset_reference = [];
+        activityTimelineCollection.activity_reference = [];
+        activityTimelineCollection.form_approval_field_reference = [];
+
+        let timelineParams = {};
+        timelineParams.account_id= request.account_id;
+        timelineParams.activity_access_role_id= 27;
+        timelineParams.activity_channel_category_id= 0;
+        timelineParams.activity_channel_id= 0;
+        timelineParams.activity_id= request.activity_id;
+        timelineParams.activity_parent_id= 0;
+        timelineParams.activity_stream_type_id= 325;
+        timelineParams.activity_sub_type_id= -1;
+        timelineParams.activity_timeline_collection= JSON.stringify(activityTimelineCollection);
+        timelineParams.activity_timeline_text= "";
+        timelineParams.activity_timeline_url= "";
+        timelineParams.activity_type_category_id= 48;
+        timelineParams.activity_type_id= 140138;
+        timelineParams.app_version= 1;
+        timelineParams.asset_id= request.asset_id;
+        timelineParams.data_entity_inline= JSON.stringify(activityTimelineCollection);
+        timelineParams.datetime_log= util.getCurrentUTCTime();
+        timelineParams.device_os_id= 5;
+        timelineParams.flag_offline= 0;
+        timelineParams.flag_pin= 0;
+        timelineParams.flag_priority= 0;
+        timelineParams.flag_retry= 0;
+        timelineParams.message_unique_id= util.getMessageUniqueId(request.asset_id);
+        timelineParams.operating_asset_first_name= "BOT";
+        timelineParams.organization_id= 898;
+        timelineParams.service_version= 1;
+        timelineParams.timeline_stream_type_id= 325;
+        //timelineParams.timeline_transaction_id= 1560767030826
+        timelineParams.track_altitude= 0;
+        timelineParams.track_gps_accuracy= "0";
+        timelineParams.track_gps_datetime= util.getCurrentUTCTime();
+        timelineParams.track_gps_status= 0;
+        timelineParams.track_latitude= "0.0";
+        timelineParams.track_longitude= "0.0";
+        timelineParams.workforce_id= request.workforce_id;
+
+        await new Promise((resolve, reject) => {
+            activityTimelineService.addTimelineTransaction(timelineParams, (err) => {
+                (err === false) ? resolve() : reject(err);
+            });            
+        });
+    };
+
 }
 
 module.exports = BotService;
