@@ -2949,6 +2949,54 @@ function AdminOpsService(objectCollection) {
         }
         return [error, responseData];
     }
+
+    this.updateAssetDetails = async function (request) {
+        const [err, assetData] = await assetListUpdateDetails(request)
+        return [err, assetData]
+    }
+
+    // Account List History Insert
+    async function assetListUpdateDetails(request) {
+        // IN p_asset_id BIGINT(20), IN p_organization_id BIGINT(20), 
+        // IN p_asset_first_name VARCHAR(50), IN p_asset_last_name VARCHAR(50), 
+        // IN p_description VARCHAR(150), IN p_cuid VARCHAR(50), 
+        // IN p_old_phone_number VARCHAR(20), IN p_old_country_code SMALLINT(6), 
+        // IN p_phone_number VARCHAR(20), IN p_country_code SMALLINT(6), IN p_log_asset_id BIGINT(20), 
+        // IN p_log_datetime DATETIME, IN p_joining_datetime DATETIME, IN p_gender_id TINYINT(4)
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_id,
+            request.organization_id,
+            request.asset_first_name,
+            request.asset_last_name,
+            request.description,
+            request.cuid,
+            request.old_phone_number,
+            request.old_country_code,
+            request.phone_number,
+            request.country_code,
+            request.log_asset_id || request.asset_id,
+            util.getCurrentUTCTime(),
+            request.joining_datetime,
+            request.gender_id,
+            request.email_id
+        );
+        const queryString = util.getQueryString('ds_p1_2_asset_list_update_details', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = AdminOpsService;
