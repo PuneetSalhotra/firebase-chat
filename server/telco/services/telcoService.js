@@ -118,6 +118,34 @@ function TelcoService(objectCollection) {
             }
         }
 
+        // [Nani | Integration] Upload
+        if (
+            virtualPrivateNetworkField !== '' &&
+            formID === 1525
+        ) {
+            const uploadPDFAndTimelineEntryAdd = nodeUtil.promisify(makeRequest.post);
+            const makeRequestOptions = {
+                form: {
+                    organization_id: Number(request.organization_id),
+                    form_id: 1524,
+                    activity_id: request.activity_id,
+                    account_id: request.account_id,
+                    workforce_id: request.workforce_id,
+                    asset_id: 100
+                }
+            };
+            try {
+                // global.config.mobileBaseUrl + global.config.version
+                const response = await uploadPDFAndTimelineEntryAdd(global.config.mobileBaseUrl + global.config.version + '/account/timline/upload_pdf/add', makeRequestOptions);
+                const body = JSON.parse(response.body);
+                if (Number(body.status) === 200) {
+                    console.log("fireTelcoDemoTimelineLogic | uploadPDFAndTimelineEntryAdd | Body: ", body);
+                }
+            } catch (error) {
+                console.log("fireTelcoDemoTimelineLogic | uploadPDFAndTimelineEntryAdd | Error: ", error);
+            }
+        }
+
         try {
             await addDeskAsParticipant({
                 organization_id: request.organization_id,
@@ -273,7 +301,7 @@ function TelcoService(objectCollection) {
             "field_data_type_category_id": 2,
             "data_type_combo_id": 0,
             "data_type_combo_value": "0",
-            "field_value": "500000",
+            "field_value": "200000",
             "message_unique_id": 1560773711697
         }];
 
@@ -282,8 +310,8 @@ function TelcoService(objectCollection) {
         addCapexFormRequest.activity_id = capexFormActivityId;
         addCapexFormRequest.form_transaction_id = capexFormTransactionId;
         addCapexFormRequest.workflow_activity_id = workflowActivityID;
-        addCapexFormRequest.activity_title = `${moment().utcOffset('+05:30').format('LLLL')} Capex Value Form`;
-        addCapexFormRequest.activity_description = "Capex Value Form";
+        addCapexFormRequest.activity_title = `${moment().utcOffset('+05:30').format('LLLL')} Capex Value`;
+        addCapexFormRequest.activity_description = "Capex Value";
         addCapexFormRequest.activity_inline_data = JSON.stringify(activityInlineData);
         addCapexFormRequest.activity_datetime_start = util.getCurrentUTCTime();;
         addCapexFormRequest.activity_datetime_end = util.getCurrentUTCTime();;
@@ -315,6 +343,7 @@ function TelcoService(objectCollection) {
         });
         addCapexFormRequest.data_entity_inline = JSON.stringify(activityInlineData);
         addCapexFormRequest.flag_timeline_entry = 1;
+        addCapexFormRequest.asset_id = 100;
 
         const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
         try {
@@ -328,7 +357,7 @@ function TelcoService(objectCollection) {
         workflowFile705Request.activity_id = workflowActivityID;
         workflowFile705Request.workflow_activity_id = workflowActivityID;
 
-        await(1000);
+        await (1000);
         try {
             // await addTimelineTransactionAsync(workflowFile713Request);
             let workflowFile705RequestEvent = {

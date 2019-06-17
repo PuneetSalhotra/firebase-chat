@@ -2721,8 +2721,8 @@ function BotService(objectCollection) {
         return [false, activityData];
     };
 
-    //async function uploadHtmltoPDF () {
-    this.nanikalyan = async (request) => {
+    // async function uploadHtmltoPDF () {
+    this.uploadHtmltoPDF = async (request) => {
 
         let activityDetails = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
         //console.log('ACT Details : ', activityDetails);
