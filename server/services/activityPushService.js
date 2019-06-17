@@ -15,6 +15,7 @@ function ActivityPushService(objectCollection) {
         var smsString = '';
         //msg.type = 'activity_unread';
         msg.activity_type_category_id = 0;
+        msg.activity_id = request.activity_id;
 
         var activityTypeCategoryId = Number(request.activity_type_category_id);
         objectCollection.activityCommonService.getActivityDetails(request, 0, async function (err, activityData) {
@@ -547,14 +548,14 @@ function ActivityPushService(objectCollection) {
                                                 //PUB
                                                 //console.log('pubnubMsg :', pubnubMsg);
                                                 global.logger.write('debug', 'pubnubMsg: ' + JSON.stringify(pubnubMsg), {}, {});
-                                                if (pubnubMsg.activity_type_category_id != 0) {
+                                                /*if (pubnubMsg.activity_type_category_id != 0) {
                                                     pubnubMsg.organization_id = rowData.organizationId;
                                                     pubnubMsg.desk_asset_id = rowData.assetId;
                                                     //console.log('PubNub Message : ', pubnubMsg);
                                                     global.logger.write('debug', 'pubnubMsg: ' + JSON.stringify(pubnubMsg), {}, {});
                                                     pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
                                                     pubnubWrapper.push(rowData.assetId, pubnubMsg);
-                                                }
+                                                }*/
                                                 break;
                                         }
                                     }.bind(this));
