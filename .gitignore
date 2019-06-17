@@ -19,3 +19,7 @@ nbproject/private/private.properties
 nbproject/private/private.xml
 server/queue/consumerNani.js
 .gitignore
+.eslintrc.js
+newrelic_agent.log
+launch.json
+settings.json
