@@ -1336,6 +1336,48 @@ function Util() {
 
         return [error, workbook];
     }
+
+    this.sendEmailDemoTelco = function (request, email, subject, text, htmlTemplate, callback) {
+        console.log('email : ', email);
+        console.log('subject : ', subject);
+        console.log('text : ', text);
+
+        // SendSmtpEmail | Values to send a transactional email
+        var sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+        sendSmtpEmail.to = [{
+            "name": request.email_receiver_name || undefined,
+            "email": email
+        }];
+        sendSmtpEmail.sender = {
+            "name": request.email_sender_name || undefined,
+            "email": request.email_sender
+        };
+        sendSmtpEmail.textContent = text;
+        sendSmtpEmail.htmlContent = htmlTemplate;
+        sendSmtpEmail.subject = subject;
+        sendSmtpEmail.headers = {
+            "x-mailin-custom": "Grene Robotics"
+        };
+        sendSmtpEmail.tags = ["test"];
+        // sendSmtpEmail.attachment = [{
+        //   "url": request.attachment_url
+        //}]
+        //    sendSmtpEmail.url = request.attachment_url;
+        if (request.hasOwnProperty('attachment_url')) {
+            sendSmtpEmail.attachment = [{
+                // use URL as an attachment
+                name: request.attachment_name, // 'service_request_form.pdf',
+                url: request.attachment_url
+            }]
+        }
+        apiInstance.sendTransacEmail(sendSmtpEmail)
+            .then(function (data) {
+                console.log('API called successfully. Returned data: ', data);
+                return callback(false, data);
+            }, function (error) {
+                return callback(true, error);
+            });
+    };
 }
 
 module.exports = Util;

@@ -107,24 +107,24 @@ function CacheWrapper(client) {
         });
     };
 
-    this.getActivityIdPromise = ()=>{
-        return new Promise((resolve, reject)=>{
+    this.getActivityIdPromise = () => {
+        return new Promise((resolve, reject) => {
             const reqBodyObject = {
                 module: 'activity'
             };
-    
+
             client.incr('activity_id', function (err, id) {
                 if (err) {
                     console.log(err);
                     global.logger.write('cacheResponse', `INCR activity_id`, err, reqBodyObject);
                     resolve(0);
                 }
-    
+
                 reqBodyObject.activity_id = id;
                 global.logger.write('cacheResponse', `INCR activity_id`, id, reqBodyObject);
                 resolve(id);
             });
-        });        
+        });
     };
 
     this.getFormTransactionId = function (callback) {
@@ -147,23 +147,23 @@ function CacheWrapper(client) {
     };
 
     this.getFormTransactionIdPromise = () => {
-        return new Promise((resolve, reject)=>{
+        return new Promise((resolve, reject) => {
             const reqBodyObject = {
                 module: 'activity'
             };
-    
+
             client.incr('form_transaction_id', function (err, id) {
                 if (err) {
                     console.log(err);
                     global.logger.write('cacheResponse', `INCR form_transaction_id`, err, reqBodyObject);
                     resolve(0);
                 }
-    
+
                 reqBodyObject.activity_id = id;
-                global.logger.write('cacheResponse', `INCR form_transaction_id`, id, reqBodyObject);                
+                global.logger.write('cacheResponse', `INCR form_transaction_id`, id, reqBodyObject);
                 resolve(id);
             });
-        });        
+        });
     };
 
 
@@ -316,7 +316,7 @@ function CacheWrapper(client) {
             }
         });
     };
-    
+
     this.setCSDNumber = function (accountCode, mobileNumber, callback) {
 
         const reqBodyObject = {
@@ -336,7 +336,7 @@ function CacheWrapper(client) {
             }
         });
     };
-    
+
     this.getCSDNumber = function (accountCode, callback) {
         client.hget('CSDNumber', accountCode, function (err, reply) {
             if (err) {
@@ -344,6 +344,46 @@ function CacheWrapper(client) {
             } else {
                 callback(false, reply);
             }
+        });
+    };
+
+    this.setOrgLastPubnubPushTimestamp = (organizationID, timestamp) => {
+        const reqBodyObject = {
+            organization_id: organizationID,
+            module: 'asset'
+        };
+        return new Promise((resolve, reject) => {
+            client.hset('org_pubnub_push_rate_limit', organizationID, timestamp, function (err, reply) {
+                if (err) {
+                    console.log(err);
+                    global.logger.write('cacheResponse', `HSET org_pubnub_push_rate_limit ${JSON.stringify(organizationID)} ${JSON.stringify(timestamp)}`, err, reqBodyObject);
+                    reject(0);
+                } else {
+                    console.log(reply);
+                    global.logger.write('cacheResponse', `HSET org_pubnub_push_rate_limit ${JSON.stringify(organizationID)} ${JSON.stringify(timestamp)}`, reply, reqBodyObject);
+                    resolve(reply);
+                }
+            });
+        });
+    };
+
+    this.getOrgLastPubnubPushTimestamp = (organizationID) => {
+        const reqBodyObject = {
+            organization_id: organizationID,
+            module: 'asset'
+        };
+        return new Promise((resolve, reject) => {
+            client.hget('org_pubnub_push_rate_limit', organizationID, function (err, reply) {
+                if (err) {
+                    console.log(err);
+                    global.logger.write('cacheResponse', `HGET org_pubnub_push_rate_limit ${JSON.stringify(organizationID)}`, err, reqBodyObject);
+                    reject(0);
+                } else {
+                    console.log(reply);
+                    global.logger.write('cacheResponse', `HGET org_pubnub_push_rate_limit ${JSON.stringify(organizationID)}`, reply, reqBodyObject);
+                    resolve(reply);
+                }
+            });
         });
     };
 

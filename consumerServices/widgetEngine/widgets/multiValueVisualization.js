@@ -179,7 +179,7 @@ class MultiDimensionalAggrWidget extends WidgetBase {
                     msg.type = "form_submited_show_widget_count";
                     msg.form_id = widgetData[0].form_id;
                     msg.widget_id = widgetData[0].widget_id;
-                    this.objCollection.pubnubWrapper.push(widgetData[0].organization_id, msg);
+                    // this.objCollection.pubnubWrapper.push(widgetData[0].organization_id, msg);
                     ///////////////////////////////
                     return widgetTransactionSvc.updateMultiValueVisualization(widgetData);
                 } else {
@@ -188,7 +188,7 @@ class MultiDimensionalAggrWidget extends WidgetBase {
                     msg.type = "form_submited_show_widget_count";
                     msg.form_id = widgetData[0].form_id;
                     msg.widget_id = widgetData[0].widget_id;
-                    this.objCollection.pubnubWrapper.push(widgetData[0].organization_id, msg);
+                    // this.objCollection.pubnubWrapper.push(widgetData[0].organization_id, msg);
                     ///////////////////////////////
                     return widgetTransactionSvc.createMultiValueVisualization(widgetData);
                 }

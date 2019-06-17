@@ -25,8 +25,15 @@ function VodafoneService(objectCollection) {
     // const formConfigService = new FormConfigService(objectCollection);
     // console.log(`global.vodafoneConfig["134564"].FORM_FIELD_MAPPING_DATA: `, global.vodafoneConfig["134564"].FORM_FIELD_MAPPING_DATA)
 
-    // const ActivityTimelineService = require('../../services/activityTimelineService');
-    // const activityTimelineService = new ActivityTimelineService(objectCollection);
+    let servicesLoadPathPrefix = '';
+    if (!__dirname.includes('queue')) {
+        servicesLoadPathPrefix = '../..';
+    } else {
+        servicesLoadPathPrefix = `${__dirname}/..`;
+    }
+    const ActivityService = require(`${servicesLoadPathPrefix}/services/activityService`);
+    const activityService = new ActivityService(objectCollection);
+    // console.log("VodafoneService | activityService: ", activityService)
 
     this.newOrderFormAddToQueues = function (request, callback) {
 
@@ -4559,29 +4566,29 @@ function VodafoneService(objectCollection) {
                     if (isAnnexureUploaded && !isParentOrder) {
                         try {
                             // Set activity_sub_type_id=1 in Activity List
-                            // await activityListUpdateSubType({
-                            //     organization_id: request.organization_id,
-                            //     account_id: request.account_id,
-                            //     workforce_id: request.workforce_id,
-                            //     activity_sub_type_id: 1,
-                            //     asset_id: request.asset_id
-                            // }, workflowActivityID);
+                            await activityListUpdateSubType({
+                                organization_id: request.organization_id,
+                                account_id: request.account_id,
+                                workforce_id: request.workforce_id,
+                                activity_sub_type_id: 1,
+                                asset_id: request.asset_id
+                            }, workflowActivityID);
 
                             // Set activity_sub_type_id=1 in Activity Asset Mapping
-                            // await activityAssetMappingUpdateSubType({
-                            //     organization_id: request.organization_id,
-                            //     account_id: request.account_id,
-                            //     workforce_id: request.workforce_id,
-                            //     activity_sub_type_id: 1,
-                            //     asset_id: request.asset_id
-                            // }, workflowActivityID);
+                            await activityAssetMappingUpdateSubType({
+                                organization_id: request.organization_id,
+                                account_id: request.account_id,
+                                workforce_id: request.workforce_id,
+                                activity_sub_type_id: 1,
+                                asset_id: request.asset_id
+                            }, workflowActivityID);
 
                             // Set activity_sub_type_id=1 in Queue Activity Mapping
-                            // await queueActivityMappingUpdateSubType({
-                            //     organization_id: request.organization_id,
-                            //     activity_sub_type_id: 1,
-                            //     asset_id: request.asset_id
-                            // }, workflowActivityID);
+                            await queueActivityMappingUpdateSubType({
+                                organization_id: request.organization_id,
+                                activity_sub_type_id: 1,
+                                asset_id: request.asset_id
+                            }, workflowActivityID);
 
                         } catch (error) {
                             console.log("performRomsCalculations | set_workflow_as_bulk_order | Set activity_sub_type_id | Error: ", error);
@@ -5004,6 +5011,8 @@ function VodafoneService(objectCollection) {
 
         const MAX_CHILD_ORDERS_TO_BE_PARSED = 500;
 
+        const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
+
         try {
             const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, parentWorkflowActivityID);
             if (workflowActivityData.length > 0) {
@@ -5064,38 +5073,39 @@ function VodafoneService(objectCollection) {
             // Order Documents form, child orders should not be automatically generated. So, I am
             // setting the minimum read rows to be at least 1 to just add Paramesh as the participant
             // and break out of the loop. - BEN
-            if (Number(row) > 1) {
-                console.log("vodafoneCreateChildOrdersFromBulkOrder | HERE 2");
-                // Add Paramesh OMT as participant
-                const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
-                    organization_id: request.organization_id,
-                    asset_id: 32037
-                });
-                if (!error && Number(assetData.length) > 0) {
-                    try {
-                        await addDeskAsParticipant({
-                            organization_id: formWorkflowActivityOrganizationID,
-                            account_id: formWorkflowActivityAccountID,
-                            workforce_id: formWorkflowActivityWorkforceID,
-                            workflow_activity_id: parentWorkflowActivityID,
-                            asset_id: 100
-                        }, {
-                            first_name: assetData[0].asset_first_name,
-                            desk_asset_id: assetData[0].asset_id,
-                            contact_phone_number: assetData[0].operating_asset_phone_number,
-                            contact_phone_country_code: assetData[0].operating_asset_phone_country_code,
-                            asset_type_id: assetData[0].asset_type_id,
-                        });
-                    } catch (error) {
-                        console.log("vodafoneCreateChildOrdersFromExcelUpload | addDeskAsParticipant | Error: ", error);
-                    }
-                    console.log("[ABORT] More than 100 child order rows found. Adding Paramesh as participant.");
-                }
-                // Abort logic flow
-                return [false, {
-                    message: "[ABORT] More than 100 child order rows found. Adding Paramesh as participant."
-                }]
-            }
+            // [UPDATE] 6th June 2019 5:27 PM => Comment out the logic below
+            // if (Number(row) > 1) {
+            //     console.log("vodafoneCreateChildOrdersFromBulkOrder | HERE 2");
+            //     // Add Paramesh OMT as participant
+            //     const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
+            //         organization_id: request.organization_id,
+            //         asset_id: 32037
+            //     });
+            //     if (!error && Number(assetData.length) > 0) {
+            //         try {
+            //             await addDeskAsParticipant({
+            //                 organization_id: formWorkflowActivityOrganizationID,
+            //                 account_id: formWorkflowActivityAccountID,
+            //                 workforce_id: formWorkflowActivityWorkforceID,
+            //                 workflow_activity_id: parentWorkflowActivityID,
+            //                 asset_id: 100
+            //             }, {
+            //                 first_name: assetData[0].asset_first_name,
+            //                 desk_asset_id: assetData[0].asset_id,
+            //                 contact_phone_number: assetData[0].operating_asset_phone_number,
+            //                 contact_phone_country_code: assetData[0].operating_asset_phone_country_code,
+            //                 asset_type_id: assetData[0].asset_type_id,
+            //             });
+            //         } catch (error) {
+            //             console.log("vodafoneCreateChildOrdersFromExcelUpload | addDeskAsParticipant | Error: ", error);
+            //         }
+            //         console.log("[ABORT] More than 100 child order rows found. Adding Paramesh as participant.");
+            //     }
+            //     // Abort logic flow
+            //     return [false, {
+            //         message: "[ABORT] More than 100 child order rows found. Adding Paramesh as participant."
+            //     }]
+            // }
 
             // Break at the first emtpy row at column A
             if (!workbook.Sheets[sheet_names[0]][`A${row}`]) {
@@ -5157,7 +5167,7 @@ function VodafoneService(objectCollection) {
                         if (!originFormTemplateMap.has(Number(formField.field_id))) {
                             // 
                             originFormTemplateMap.set(Number(formField.field_id), {
-                                form_id: formField.data_form_id,
+                                form_id: formField.form_id,
                                 field_id: formField.field_id,
                                 field_name: formField.field_name,
                                 field_value: getFielDataValueDefaultValue(Number(formField.data_type_id), formField),
@@ -5263,6 +5273,7 @@ function VodafoneService(objectCollection) {
                 service_version: "2.0",
                 app_version: "2.5.7",
                 device_os_id: 5,
+                url: 'v1',
                 create_workflow: 1,
                 // workflow_activity_id: Number(request.workflow_activity_id),
                 child_order_activity_parent_id: Number(request.workflow_activity_id)
@@ -5271,30 +5282,42 @@ function VodafoneService(objectCollection) {
             let childOrderOriginFormActivityId = 0,
                 childOrderOriginFormTransactionId = 0;
 
-            const addActivityAsync = nodeUtil.promisify(makeRequest.post);
-            const makeRequestOptions = {
-                form: originFormSubmissionRequest
-            };
+            // const addActivityAsync = nodeUtil.promisify(makeRequest.post);
+            // const makeRequestOptions = {
+            //     form: originFormSubmissionRequest
+            // };
             try {
                 // 'https://stagingapi.worlddesk.cloud/r0'
                 // global.config.mobileBaseUrl + global.config.version
-                const response = await addActivityAsync(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', makeRequestOptions);
+                // const response = await addActivityAsync(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', makeRequestOptions);
                 // console.log("addActivityAsync | response: ", Object.keys(response));
-                const body = JSON.parse(response.body);
-                if (Number(body.status) === 200) {
-                    childOrderOriginFormActivityId = body.response.activity_id;
-                    childOrderOriginFormTransactionId = body.response.form_transaction_id;
+                // const body = JSON.parse(response.body);
+                // if (Number(body.status) === 200) {
+                //     childOrderOriginFormActivityId = body.response.activity_id;
+                //     childOrderOriginFormTransactionId = body.response.form_transaction_id;
+                // }
+                // 
+                // Fetch the next activity_id to and the form be inserted
+                childOrderOriginFormActivityId = await cacheWrapper.getActivityIdPromise();
+                childOrderOriginFormTransactionId = await cacheWrapper.getFormTransactionIdPromise();
+
+                // Append
+                if (
+                    Number(childOrderOriginFormActivityId) !== 0 &&
+                    Number(childOrderOriginFormTransactionId) !== 0
+                ) {
+                    console.log("childOrderOriginFormActivityId: ", childOrderOriginFormActivityId)
+                    console.log("childOrderOriginFormTransactionId: ", childOrderOriginFormTransactionId)
+
+                    originFormSubmissionRequest.activity_id = childOrderOriginFormActivityId;
+                    originFormSubmissionRequest.form_transaction_id = childOrderOriginFormTransactionId;
+
+                    await addActivityAsync(originFormSubmissionRequest);
                 }
+
             } catch (error) {
                 console.log("addActivityAsync | Error: ", error);
-            }
-            if (
-                Number(childOrderOriginFormActivityId) !== 0 &&
-                Number(childOrderOriginFormTransactionId) !== 0
-            ) {
-                console.log("childOrderOriginFormActivityId: ", childOrderOriginFormActivityId)
-                console.log("childOrderOriginFormTransactionId: ", childOrderOriginFormTransactionId)
-            }
+            }            
         }
 
         return [false, {

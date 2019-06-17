@@ -3,8 +3,11 @@
  */
 const pubnubWrapper = new(require('../utils/pubnubWrapper'))(); //BETA
 //const smsEngine = require('../utils/smsEngine');
+const moment = require('moment');
 
 function ActivityPushService(objectCollection) {
+    const cacheWrapper = objectCollection.cacheWrapper;
+
     var getPushString = function (request, objectCollection, senderName, callback) {
         var pushString = {};
         var extraData = {};
@@ -22,8 +25,13 @@ function ActivityPushService(objectCollection) {
         var activityTypeCategoryId = Number(request.activity_type_category_id);
         objectCollection.activityCommonService.getActivityDetails(request, 0, async function (err, activityData) {
             if (err === false) {
-                var activityTitle = activityData[0]['activity_title'];
+                var activityTitle = activityData[0]['activity_title'];                
                 var activityInlineJson = JSON.parse(activityData[0]['activity_inline_data']);
+                
+                var activityId = activityData[0]['activity_id'];
+                pushString.activity_id = activityId;
+                pushString.activity_inline_data = activityInlineJson;
+                
                 switch (activityTypeCategoryId) {
                     case 1: //Task List                        
                         break;
@@ -46,7 +54,7 @@ function ActivityPushService(objectCollection) {
                                 pushString.title = senderName;
                                 pushString.description = contactName + ' ' + 'has beed shared as a Contact';
                                 break;
-                        };
+                        }
                         break;
                     case 8: // Mail
                         switch (request.url) {
@@ -76,7 +84,7 @@ function ActivityPushService(objectCollection) {
                                 msg.type = 'activity_read';
                                 break;
                                 //////////////////////////////
-                        };
+                        }
                         break;
                     case 9: // Form
                         switch (request.url) {
@@ -155,7 +163,7 @@ function ActivityPushService(objectCollection) {
                                 pushString.title = senderName;
                                 pushString.description = 'Form has been shared';
                                 break;
-                        };
+                        }
                         break;
                     case 10: // Folders                        
                         switch (request.url) {
@@ -218,7 +226,7 @@ function ActivityPushService(objectCollection) {
                                 break;
                                 //////////////////////////
 
-                        };
+                        }
                         break;
                     case 11: // Project
                         switch (request.url) {
@@ -239,7 +247,7 @@ function ActivityPushService(objectCollection) {
                                 msg.type = 'activity_duedate';
                                 break;
                                 ////////////////////////////
-                        };
+                        }
                         break;
                     case 14: // Voice Call
                         switch (request.url) {
@@ -259,7 +267,7 @@ function ActivityPushService(objectCollection) {
                                 };
                                 pushString.extra_data = extraData;
                                 break;
-                        };
+                        }
                         break;
                     case 15: // Video Conference
                         switch (request.url) {
@@ -283,7 +291,7 @@ function ActivityPushService(objectCollection) {
                                 };
                                 pushString.extra_data = extraData;
                                 break;
-                        };
+                        }
                         break;
                     case 16:   // Telephone module: Chat
                         switch (request.url) {
@@ -302,7 +310,7 @@ function ActivityPushService(objectCollection) {
                                 
                                 break;
                             
-                            };
+                            }
                         break;
                     case 28: // Remainder
                         switch (request.url) {
@@ -318,7 +326,7 @@ function ActivityPushService(objectCollection) {
                                 pushString.description = 'sent a sticky note';
                                 smsString = ' ' + senderName + ' has posted a sticky note on your desk. You can respond by logging into the WorldDesk app. Download Link: https://worlddesk.desker.co';
                                 break;
-                        };
+                        }
                         break;
                     case 31: //Calendar Event
                         switch (request.url) {
@@ -334,7 +342,7 @@ function ActivityPushService(objectCollection) {
                                 pushString.title = senderName;
                                 pushString.description = 'has added you to the meeting - ' + activityTitle + '.';
                                 break;
-                        };
+                        }
                         break;
                     case 32: //Customer Request
                         break;
@@ -377,9 +385,9 @@ function ActivityPushService(objectCollection) {
                                 msg.activity_type_category_id = 48;
                                 msg.type = 'activity_read';
                                 break;
-                        };
+                        }
                         break;
-                };
+                }
                 
                 // Include activity_id and its category id in the push message, if there is a
                 // push notification intended for a specific servie. So, the client can redirect
@@ -432,13 +440,52 @@ function ActivityPushService(objectCollection) {
         });
     };
 
-    this.pubNubPush = function (request, message, callback) {
+    async function orgRateLimitCheckAndSet(organizationID) {
+        let isOrgRateLimitExceeded = false;
+        try {
+            const pushTimestamp = await cacheWrapper.getOrgLastPubnubPushTimestamp(organizationID);
+            const timeDiff = moment.utc().diff(moment.utc(pushTimestamp));
+            if (moment.duration(timeDiff).asSeconds() <= 120) {
+                console.log("sendPush | timeDiff Duration: ", moment.duration(timeDiff).asSeconds())
+                // It's still less than 2 minutes since the last org level push was sent.
+                isOrgRateLimitExceeded = true;
+            } else {
+                const timestampSet = await cacheWrapper.setOrgLastPubnubPushTimestamp(organizationID, moment().utc().format('YYYY-MM-DD HH:mm:ss'));
+                console.log("sendPush | timestampSet: ", timestampSet)
+            }
+        } catch (error) {
+            console.log("ActivityPushService | sendPush | isOrgRateLimitExceeded: ", error);
+        }
+        return isOrgRateLimitExceeded;
+    }
+
+    this.pubNubPush = async function (request, message, callback) {
+        // 
+        let isOrgRateLimitExceeded = false;
+        let organizationID = Number(request.organization_id);
+        try {
+            isOrgRateLimitExceeded = await orgRateLimitCheckAndSet(organizationID);
+        } catch (error) {
+            console.log("pubNubPush | orgRateLimitCheckAndSet | Error: ", error);
+        }
+        //
         pubnubWrapper.push(request.asset_id, message);
-        pubnubWrapper.push(request.organization_id, message);
+        pubnubWrapper.push(request.organization_id, message, isOrgRateLimitExceeded);
         callback(false, true);
     };
 
-    this.sendPush = function (request, objectCollection, pushAssetId, callback) {
+    this.sendPush = async function (request, objectCollection, pushAssetId, callback) {
+
+        // 
+        let isOrgRateLimitExceeded = false;
+        let organizationID = Number(request.organization_id);
+        try {
+            isOrgRateLimitExceeded = await orgRateLimitCheckAndSet(organizationID);
+        } catch (error) {
+            console.log("sendPush | orgRateLimitCheckAndSet | Error: ", error);
+        }
+        //
+
         var proceedSendPush = function (pushReceivers, senderName) {
             //console.log('pushReceivers.length : ', pushReceivers.length);
             global.logger.write('debug', 'pushReceivers.length : ' + pushReceivers.length, {}, {});
@@ -490,13 +537,17 @@ function ActivityPushService(objectCollection) {
                                             //     break;
                                             default:
                                                 //SNS
-                                                objectCollection.sns.publish(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn);
+                                                try {
+                                                    objectCollection.sns.publish(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn);
+                                                } catch (error) {
+                                                    console.log("activityPushService.js | sendPush | objectCollection.sns.publish | Error: ", error);
+                                                }
                                                 if (pubnubMsg.activity_type_category_id != 0) {
                                                     pubnubMsg.organization_id = rowData.organizationId;
                                                     pubnubMsg.desk_asset_id = rowData.assetId;
                                                     //console.log('PubNub Message : ', pubnubMsg);
                                                     global.logger.write('debug', 'pubnubMsg: ' + JSON.stringify(pubnubMsg), {}, {});
-                                                    pubnubWrapper.push(rowData.organizationId, pubnubMsg);
+                                                    pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
                                                     pubnubWrapper.push(rowData.assetId, pubnubMsg);
                                                 }
                                                 //PUB
@@ -507,7 +558,7 @@ function ActivityPushService(objectCollection) {
                                                     pubnubMsg.desk_asset_id = rowData.assetId;
                                                     //console.log('PubNub Message : ', pubnubMsg);
                                                     global.logger.write('debug', 'pubnubMsg: ' + JSON.stringify(pubnubMsg), {}, {});
-                                                    pubnubWrapper.push(rowData.organizationId, pubnubMsg);
+                                                    pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
                                                     pubnubWrapper.push(rowData.assetId, pubnubMsg);
                                                 }
                                                 break;
@@ -519,7 +570,7 @@ function ActivityPushService(objectCollection) {
                                         pubnubMsg.desk_asset_id = rowData.assetId;
                                         //console.log('PubNub Message : ', pubnubMsg);
                                         global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg), {}, {});
-                                        pubnubWrapper.push(rowData.organizationId, pubnubMsg);
+                                        pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
                                         pubnubWrapper.push(rowData.assetId, pubnubMsg);
                                     }
                                 }
@@ -549,7 +600,7 @@ function ActivityPushService(objectCollection) {
                                                 pubnubMsg.desk_asset_id = rowData.assetId;
                                                 //console.log('PubNub Message : ', pubnubMsg);
                                                 global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg), {}, {});
-                                                pubnubWrapper.push(rowData.organizationId, pubnubMsg);
+                                                pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
                                                 pubnubWrapper.push(rowData.assetId, pubnubMsg);
                                             }
                                             break;
@@ -561,7 +612,7 @@ function ActivityPushService(objectCollection) {
                                                 pubnubMsg.desk_asset_id = rowData.assetId;
                                                 //console.log('PubNub Message : ', pubnubMsg);
                                                 global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg, null, 2), {}, {});
-                                                pubnubWrapper.push(rowData.organizationId, pubnubMsg);
+                                                pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
                                                 pubnubWrapper.push(rowData.assetId, pubnubMsg);
                                             }
                                             break;

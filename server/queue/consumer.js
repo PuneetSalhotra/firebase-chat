@@ -28,7 +28,9 @@ var Consumer = function () {
     var cacheWrapper = new CacheWrapper(redisClient);
     var sns = new AwsSns();
     var activityCommonService = new ActivityCommonService(db, util, forEachAsync);
-    var activityPushService = new ActivityPushService();
+    var activityPushService = new ActivityPushService({
+        cacheWrapper,
+    });
 
     var kfkClient =
         new kafka.KafkaClient({
