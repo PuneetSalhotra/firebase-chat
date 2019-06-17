@@ -13,6 +13,17 @@ var fs = require('fs');
 aws.config.loadFromPath(`${__dirname}/configS3.json`);
 const s3 = new aws.S3();
 var pdf = require('html-pdf');
+var NodeGeocoder = require('node-geocoder');
+var geoCodeOptions = {
+    provider: 'google',
+   
+    // Optional depending on the providers
+    httpAdapter: 'https', // Default
+    apiKey: 'AIzaSyBv5PU4hlsQIlIaYByuatmjt171uN6lDSE', // for Mapquest, OpenCage, Google Premier
+    formatter: null         // 'gpx', 'string', ...
+  };
+   
+  var geocoder = NodeGeocoder(geoCodeOptions);
 
 function BotService(objectCollection) {
 
@@ -2743,25 +2754,52 @@ function BotService(objectCollection) {
             //console.log(i.field_name);
 
             if(activityInlineData[i].field_id === '13786') {
-                (activityInlineData[i].field_value === "Domestic VPN") ?
-                    useTemplate = 1 //Domestic
-                        :
+                productType = activityInlineData[i].field_name;
+                if(activityInlineData[i].field_value === "Domestic VPN"){                    
+                    productSubType = "Domestic VPN";
+                    useTemplate = 1; //Domestic
+                } else {                    
+                    productSubType = "Global VPN";
                     useTemplate = 2; //Global
-                
+                }
             } else if(activityInlineData[i].field_id === '13777') {
                 customerName = activityInlineData[i].field_value;
             } else if(activityInlineData[i].field_id === '13788') {
                 location = activityInlineData[i].field_value;
+                let resp = await this.getCitybasedOnLats(request, location);
+                //console.log('############################');
+                //console.log('RESP : ', resp);
+                //console.log('############################');
+                (resp === 'quotaexpired') ?
+                    location = "" 
+                    :                
+                    location = resp;
             } else if(activityInlineData[i].field_id === '13771') { //Product Type
-                productType = activityInlineData[i].field_value;
+                //productType = activityInlineData[i].field_value;
             } else if(activityInlineData[i].field_id === '13773') { //Product Sub Type
                 productSubType = activityInlineData[i].field_value;                
             } else if(activityInlineData[i].field_id === '13787') {
                 locations = activityInlineData[i].field_value;
             } else if(activityInlineData[i].field_id === '13783') {
                 locationA = activityInlineData[i].field_value;
+                let resp = await this.getCitybasedOnLats(request, locationA);
+                //console.log('############################');
+                //console.log('RESP LOCATION A: ', resp);
+                //console.log('############################');
+                (resp === 'quotaexpired') ?
+                    locationA = "" 
+                    :                
+                    locationA = resp;
             } else if(activityInlineData[i].field_id === '13784') {
                 locationB = activityInlineData[i].field_value;
+                let resp = await this.getCitybasedOnLats(request, locationB);
+                //console.log('############################');
+                //console.log('RESP LOCATION B: ', resp);
+                //console.log('############################');
+                (resp === 'quotaexpired') ?
+                    locationB = "" 
+                    :                
+                    locationB = resp;
             }else if(activityInlineData[i].field_id === '13780') {
                 bandWidth = activityInlineData[i].field_value;
             }
@@ -2777,15 +2815,15 @@ function BotService(objectCollection) {
             <body style="margin:0; padding:0;">
             <div style="margin:0 auto; width:650px; font-family:Georgia, 'Times New Roman', Times, serif; color:#555; font-size:14px;">
             <div style="padding:10px 0; border-bottom:1px dashed #555;">
-                <p style="text-align:center; margin:0;"><span style="font-size:40px; border-bottom:1px solid #FF0000; color:#FF0000; font-weight:bold; line-height:30px; display:inline-block;">Demo Telco Inc.</span></p>
-                <p style="text-align:center; font-size:12px; margin:5px 0;">Plot No <span style="border-bottom:1px solid #FF0000; color:#FF0000;">123</span>, Road No. <span style="border-bottom:1px solid #FF0000; color:#FF0000;">25</span>, Jubilee Hills, Hyderabad- 500 062</p>
+                <p style="text-align:center; margin:0;"><span style="font-size:40px; border-bottom:1px solid #555555; color:#555555; font-weight:bold; line-height:30px; display:inline-block;">Demo Telco Inc.</span></p>
+                <p style="text-align:center; font-size:12px; margin:5px 0;">Plot No <span>123</span>, Road No. <span>25</span>, Jubilee Hills, Hyderabad- 500 062</p>
             </div>
-            <div style=" text-align:right; padding-top:10px; padding-right:30px; font-weight:bold; font-size:15px; color:#FF0000;">Date:${util.getCurrentDate()}</div>
+            <div style=" text-align:right; padding-top:10px; padding-right:30px; font-weight:bold; font-size:15px; color:#555555;">Date:${util.getCurrentDate()}</div>
             <div style="padding-top:10px; font-weight:bold; font-size:15px; color:#555;">To</div>
-            <div style=" padding-top:30px;font-weight:bold; font-size:15px; color:#FF0000;">${customerName},</div>
-            <div style=" padding-top:5px;font-weight:bold; font-size:15px; color:#FF0000;">${location}<span style="color:#555">.</span></div>
-            <div style=" padding-top:30px;">Subject: Quotation for <span style="color:#ff0000">${productType}</span></div>
-            <div style=" padding-top:20px; padding-bottom:20px;">Thank you for your interest in our services. With reference to your inquiry for <span style="color:#ff0000">${productType}</span>, we are
+            <div style=" padding-top:30px;font-weight:bold; font-size:15px; color:#555555;">${customerName},</div>
+            <div style=" padding-top:5px;font-weight:bold; font-size:15px; color:#555555;">${location}<span style="color:#555">.</span></div>
+            <div style=" padding-top:30px;">Subject: Quotation for <span style="color:#555555">${productType}</span></div>
+            <div style=" padding-top:20px; padding-bottom:20px;">Thank you for your interest in our services. With reference to your inquiry for <span style="color:#555555">${productType}</span>, we are
                 pleased to submit our proposal for your perusal. </div>
             <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border:1px solid #ccc; text-align:center;">
                 <tr>
@@ -2793,35 +2831,35 @@ function BotService(objectCollection) {
                     No</strong></td>
                 <td width="40%" style="padding:5px; border:1px solid #ccc;"><strong>Description</strong></td>
                 <td width="10%" style="padding:5px; border:1px solid #ccc;">&nbsp;</td>
-                <td width="10%" style="padding:5px; border:1px solid #ccc;"><span style="color:#FF0000"><strong>Price</strong></span></td>
+                <td width="10%" style="padding:5px; border:1px solid #ccc;"><span style="color:#555555"><strong>Price</strong></span></td>
                 <td width="10%" style="padding:5px; border:1px solid #ccc;"><strong>Total</strong></td>
                 </tr>
                 <tr>
                 <td style="padding:5px;border:1px solid #ccc; text-align:left;">01</td>
-                <td style="padding:5px;border:1px solid #ccc; text-align:left;"><div style="color:#ff0000">${productType}:</div>
-                    For the <span style="color:#ff0000">&quot;${productSubType}&quot;</span> with <span style="color:#ff0000">&quot;${locations}&quot;</span>
-                    locations from <span style="color:#ff0000">${locationA}</span> to <span style="color:#ff0000">${locationB}</span> with <span style="color:#ff0000">&quot;${bandWidth}&quot;</span>
+                <td style="padding:5px;border:1px solid #ccc; text-align:left;"><div style="color:#555555">${productType}:</div>
+                    For the <span style="color:#555555">&quot;${productSubType}&quot;</span> with <span style="color:#555555">&quot;${locations}&quot;</span>
+                    locations from <span style="color:#555555">${locationA}</span> to <span style="color:#555555">${locationB}</span> with <span style="color:#555555">&quot;${bandWidth}&quot;</span>
                     Bandwidth<br />
                 <br /><br />
                 <br />
 
                 </td>
                     <td style="padding:5px;border:1px solid #ccc; text-align:left;">&nbsp;</td>
-                    <td style="padding:5px;border:1px solid #ccc; text-align:center;"><span style="border-bottom:1px solid #ff0000; color:#ff0000;">Rs.50,000/-</span></td>
+                    <td style="padding:5px;border:1px solid #ccc; text-align:center;"><span>Rs.50,000/-</span></td>
                     <td style="padding:5px;border:1px solid #ccc; text-align:left;">Rs.50,000/-</td>
                     </tr>
                     <tr>
                     <td style="padding:5px;border:1px solid #ccc; text-align:left;">02</td>
-                    <td style="padding:5px;border:1px solid #ccc;text-align:left;"><span style="color:#ff0000">Tax<br />
+                    <td style="padding:5px;border:1px solid #ccc;text-align:left;"><span style="color:#555555">Tax<br />
                 <br />
                 </span></td>
-                    <td style="padding:5px;border:1px solid #ccc;text-align:left;"><span style="color:#ff0000">18</span></td>
+                    <td style="padding:5px;border:1px solid #ccc;text-align:left;"><span style="color:#555555">18</span></td>
                     <td style="padding:5px;border:1px solid #ccc;text-align:left;">9000</td>
                     <td style="padding:5px;border:1px solid #ccc;text-align:left;">9000</td>
                     </tr>
                     <tr>
                     <td style="padding:5px;border:1px solid #ccc;text-align:left;"> </td>
-                    <td style="padding:5px;border:1px solid #ccc;text-align:left;"><span style="color:#ff0000">Total<br />
+                    <td style="padding:5px;border:1px solid #ccc;text-align:left;"><span style="color:#555555">Total<br />
                 <br />
                 </span></td>
                     <td style="padding:5px;border:1px solid #ccc;text-align:left;"> </td>
@@ -2836,18 +2874,18 @@ function BotService(objectCollection) {
 
                 2. GST: @18% Added extra<br />
 
-                3. Installation <span style="color:#ff0000; border-bottom:1px solid #ff0000;">charges include in above price</span>.<br />
+                3. Installation <span>charges include in above price</span>.<br />
 
                 4. Delivery and installation as per your schedule.<br />
 
-                5. Validity – This quote is valid <span style="color:#ff0000; border-bottom:1px solid #ff0000;">for one</span> mont<span style="color:#ff0000; border-bottom:1px solid #ff0000;">h</span>.</div>
+                5. Validity – This quote is valid <span>for one</span> month.</div>
                 
-                <div style="padding:0;"><span style="color:#ff0000; border-bottom:1px solid #ff0000;">Looking forward to your order and assuring you of</span> our best services at all times.</div>
+                <div style="padding:0;"><span>Looking forward to your order and assuring you of</span> our best services at all times.</div>
                 <div style="padding:30px 0 10px;">Thanking you<br />
                 <br />
                 Your’s faithfully</div>
 
-                <div style="padding:10px 0 30px;"><span style="color:#ff0000; border-bottom:1px solid #ff0000;">Parameshwar Reddy<br />
+                <div style="padding:10px 0 30px;"><span >Parameshwar Reddy<br />
 
                 For Demo Telco Inc.</span></div>
                 </div>
@@ -2865,15 +2903,15 @@ function BotService(objectCollection) {
             <body style="margin:0; padding:0;">
             <div style="margin:0 auto; width:650px; font-family:Georgia, 'Times New Roman', Times, serif; color:#555; font-size:14px;">
             <div style="padding:10px 0; border-bottom:1px dashed #555;">
-                <p style="text-align:center; margin:0;"><span style="font-size:40px; border-bottom:1px solid #FF0000; color:#FF0000; font-weight:bold; line-height:30px; display:inline-block;">Demo Telco Inc.</span></p>
-                <p style="text-align:center; font-size:12px; margin:5px 0;">Plot No <span style="border-bottom:1px solid #FF0000; color:#FF0000;">123</span>, Road No. <span style="border-bottom:1px solid #FF0000; color:#FF0000;">25</span>, Jubilee Hills, Hyderabad- 500 062</p>
+                <p style="text-align:center; margin:0;"><span style="font-size:40px; border-bottom:1px solid #555555; color:#555555; font-weight:bold; line-height:30px; display:inline-block;">Demo Telco Inc.</span></p>
+                <p style="text-align:center; font-size:12px; margin:5px 0;">Plot No <span>123</span>, Road No. <span>25</span>, Jubilee Hills, Hyderabad- 500 062</p>
             </div>
-            <div style=" text-align:right; padding-top:10px; padding-right:30px; font-weight:bold; font-size:15px; color:#FF0000;">Date:${util.getCurrentDate()}</div>
+            <div style=" text-align:right; padding-top:10px; padding-right:30px; font-weight:bold; font-size:15px; color:#555555;">Date:${util.getCurrentDate()}</div>
             <div style="padding-top:10px; font-weight:bold; font-size:15px; color:#555;">To</div>
-            <div style=" padding-top:30px;font-weight:bold; font-size:15px; color:#FF0000;">${customerName},</div>
-            <div style=" padding-top:5px;font-weight:bold; font-size:15px; color:#FF0000;">${location}<span style="color:#555">.</span></div>
-            <div style=" padding-top:30px;">Subject: Quotation for <span style="color:#ff0000">${productType}</span></div>
-            <div style=" padding-top:20px; padding-bottom:20px;">Thank you for your interest in our services. With reference to your inquiry for <span style="color:#ff0000">${productType}</span>, we are
+            <div style=" padding-top:30px;font-weight:bold; font-size:15px; color:#555555;">${customerName},</div>
+            <div style=" padding-top:5px;font-weight:bold; font-size:15px; color:#555555;">${location}<span style="color:#555">.</span></div>
+            <div style=" padding-top:30px;">Subject: Quotation for <span style="color:#555555">${productType}</span></div>
+            <div style=" padding-top:20px; padding-bottom:20px;">Thank you for your interest in our services. With reference to your inquiry for <span style="color:#555555">${productType}</span>, we are
                 pleased to submit our proposal for your perusal. </div>
             <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border:1px solid #ccc; text-align:center;">
                 <tr>
@@ -2881,45 +2919,45 @@ function BotService(objectCollection) {
                     No</strong></td>
                 <td width="40%" style="padding:5px; border:1px solid #ccc;"><strong>Description</strong></td>
                 <td width="10%" style="padding:5px; border:1px solid #ccc;">&nbsp;</td>
-                <td width="10%" style="padding:5px; border:1px solid #ccc;"><span style="color:#FF0000"><strong>Price</strong></span></td>
+                <td width="10%" style="padding:5px; border:1px solid #ccc;"><span style="color:#555555"><strong>Price</strong></span></td>
                 <td width="10%" style="padding:5px; border:1px solid #ccc;"><strong>Total</strong></td>
                 </tr>
                 <tr>
                 <td style="padding:5px;border:1px solid #ccc; text-align:left;">01</td>
-                <td style="padding:5px;border:1px solid #ccc; text-align:left;"><div style="color:#ff0000">${productType}:</div>
-                    For the <span style="color:#ff0000">&quot;${productSubType}&quot;</span> with <span style="color:#ff0000">&quot;${locations}&quot;</span>
-                    locations from <span style="color:#ff0000">${locationA}</span> to <span style="color:#ff0000">${locationB}</span> with <span style="color:#ff0000">&quot;${bandWidth}&quot;</span>
+                <td style="padding:5px;border:1px solid #ccc; text-align:left;"><div style="color:#555555">${productType}:</div>
+                    For the <span style="color:#555555">&quot;${productSubType}&quot;</span> with <span style="color:#555555">&quot;${locations}&quot;</span>
+                    locations from <span style="color:#555555">${locationA}</span> to <span style="color:#555555">${locationB}</span> with <span style="color:#555555">&quot;${bandWidth}&quot;</span>
                     Bandwidth<br />
             <br /><br />
             <br />
 
             </td>
                 <td style="padding:5px;border:1px solid #ccc; text-align:left;">&nbsp;</td>
-                <td style="padding:5px;border:1px solid #ccc; text-align:center;"><span style="border-bottom:1px solid #ff0000; color:#ff0000;">Rs.50,000/-</span></td>
+                <td style="padding:5px;border:1px solid #ccc; text-align:center;"><span>Rs.50,000/-</span></td>
                 <td style="padding:5px;border:1px solid #ccc; text-align:left;">Rs.50,000/-</td>
                 </tr>
                 <tr>
                 <td style="padding:5px;border:1px solid #ccc; text-align:left;">02</td>
-                <td style="padding:5px;border:1px solid #ccc; text-align:left;"><div style="color:#ff0000">CAPEX:</div>
+                <td style="padding:5px;border:1px solid #ccc; text-align:left;"><div style="color:#555555">CAPEX:</div>
 
 
             </td>
                 <td style="padding:5px;border:1px solid #ccc; text-align:left;">&nbsp;</td>
-                <td style="padding:5px;border:1px solid #ccc; text-align:center;"><span style="border-bottom:1px solid #ff0000; color:#ff0000;">Rs.200,000/-</span></td>
+                <td style="padding:5px;border:1px solid #ccc; text-align:center;"><span>Rs.200,000/-</span></td>
                 <td style="padding:5px;border:1px solid #ccc; text-align:left;">Rs.200,000/-</td>
                 </tr>
                 <tr>
                 <td style="padding:5px;border:1px solid #ccc; text-align:left;">03</td>
-                <td style="padding:5px;border:1px solid #ccc;text-align:left;"><span style="color:#ff0000">Tax<br />
+                <td style="padding:5px;border:1px solid #ccc;text-align:left;"><span style="color:#555555">Tax<br />
             <br />
             </span></td>
-                <td style="padding:5px;border:1px solid #ccc;text-align:left;"><span style="color:#ff0000">18</span></td>
+                <td style="padding:5px;border:1px solid #ccc;text-align:left;"><span style="color:#555555">18</span></td>
                 <td style="padding:5px;border:1px solid #ccc;text-align:left;">45000</td>
                 <td style="padding:5px;border:1px solid #ccc;text-align:left;">45000</td>
                 </tr>
                 <tr>
                 <td style="padding:5px;border:1px solid #ccc;text-align:left;"> </td>
-                <td style="padding:5px;border:1px solid #ccc;text-align:left;"><span style="color:#ff0000">Total<br />
+                <td style="padding:5px;border:1px solid #ccc;text-align:left;"><span style="color:#555555">Total<br />
             <br />
             </span></td>
                 <td style="padding:5px;border:1px solid #ccc;text-align:left;"> </td>
@@ -2934,18 +2972,18 @@ function BotService(objectCollection) {
 
             2. GST: @18% Added extra<br />
 
-            3. Installation <span style="color:#ff0000; border-bottom:1px solid #ff0000;">charges include in above price</span>.<br />
+            3. Installation <span>charges include in above price</span>.<br />
 
             4. Delivery and installation as per your schedule.<br />
 
-            5. Validity – This quote is valid <span style="color:#ff0000; border-bottom:1px solid #ff0000;">for one</span> mont<span style="color:#ff0000; border-bottom:1px solid #ff0000;">h</span>.</div>
+            5. Validity – This quote is valid <span>for one</span> month.</div>
             
-            <div style="padding:0;"><span style="color:#ff0000; border-bottom:1px solid #ff0000;">Looking forward to your order and assuring you of</span> our best services at all times.</div>
+            <div style="padding:0;"><span>Looking forward to your order and assuring you of</span> our best services at all times.</div>
             <div style="padding:30px 0 10px;">Thanking you<br />
             <br />
             Your’s faithfully</div>
 
-            <div style="padding:10px 0 30px;"><span style="color:#ff0000; border-bottom:1px solid #ff0000;">Parameshwar Reddy<br />
+            <div style="padding:10px 0 30px;"><span>Parameshwar Reddy<br />
 
             For Demo Telco Inc.</span></div>
             </div>
@@ -3078,6 +3116,29 @@ function BotService(objectCollection) {
                 (err === false) ? resolve() : reject(err);
             });            
         });
+    };
+
+
+    this.getCitybasedOnLats = async (request, location) =>{
+        let res = location.split(",");
+        let latitude = res[0];
+        let longitude = res[1];
+
+        return await new Promise((resolve)=>{
+            geocoder.reverse({lat:latitude, lon:longitude}, function(err, res) {            
+                console.log(err);
+                //console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
+                //console.log('RESP in the function : ', res);
+                //console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
+                if(res !== undefined) {
+                    //console.log('Above City in function');
+                    resolve('City');
+                } else {
+                    //console.log('Above quotaexpired in function');
+                    resolve('quotaexpired');
+                }
+              });
+        });        
     };
 
 }
