@@ -704,7 +704,7 @@ function ActivityTimelineService(objectCollection) {
     async function fireBotEngineInitForm(request) {
         try {
             let botEngineRequest = Object.assign({}, request);
-            botEngineRequest.form_id = request.activity_form_id;
+            botEngineRequest.form_id = request.activity_form_id || request.form_id;
             botEngineRequest.field_id = 0;
             botEngineRequest.flag = 3;
 
@@ -766,7 +766,7 @@ function ActivityTimelineService(objectCollection) {
     async function fireBotEngineInitWorkflow(request) {
         try {
             let botEngineRequest = Object.assign({}, request);
-            botEngineRequest.form_id = request.activity_form_id;
+            botEngineRequest.form_id = request.activity_form_id || request.form_id;
             botEngineRequest.field_id = 0;
             botEngineRequest.flag = 3;
             botEngineRequest.workflow_activity_id = request.activity_id;
