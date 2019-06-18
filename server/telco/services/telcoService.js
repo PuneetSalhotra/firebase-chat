@@ -124,8 +124,22 @@ function TelcoService(objectCollection) {
         // [Nani | Integration] Upload
         if (
             virtualPrivateNetworkField !== '' &&
-            formID === 1525
+            (formID === 1525 || formID === 1527)
         ) {
+
+            let is_signature_upload = false,
+                signature_url = '';
+            // [IF] Authorization Form
+            if (
+                formID === 1527 &&
+                formDataMap.has(13834) &&
+                formDataMap.get(13834).field_value !== ""
+            ) {
+                is_signature_upload = true;
+                signature_url = formDataMap.get(13834).field_value;
+            }
+
+
             const uploadPDFAndTimelineEntryAdd = nodeUtil.promisify(makeRequest.post);
             const makeRequestOptions = {
                 form: {
@@ -134,7 +148,9 @@ function TelcoService(objectCollection) {
                     activity_id: request.activity_id,
                     account_id: request.account_id,
                     workforce_id: request.workforce_id,
-                    asset_id: 100
+                    asset_id: 100,
+                    is_signature_upload,
+                    signature_url
                 }
             };
             try {
