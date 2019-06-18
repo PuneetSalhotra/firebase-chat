@@ -109,7 +109,10 @@ function TelcoService(objectCollection) {
         }
 
         // virtualPrivateNetworkField === "Global VPN"
-        if (virtualPrivateNetworkField === "Global VPN") {
+        if (
+            virtualPrivateNetworkField === "Global VPN" && 
+            formID === 1525
+        ) {
             try {
                 await addCapexValueForm(request, request.activity_id);
                 await sleep(4000);
@@ -188,7 +191,7 @@ function TelcoService(objectCollection) {
         let timelineTextRequest = Object.assign({}, request);
 
         timelineTextRequest.auth_asset_id = request.asset_id;
-        timelineTextRequest.asset_id = 100;
+        timelineTextRequest.asset_id = 35532;
         timelineTextRequest.activity_stream_type_id = 325;
         timelineTextRequest.timeline_stream_type_id = 325;
         timelineTextRequest.activity_timeline_collection = JSON.stringify({
@@ -358,7 +361,11 @@ function TelcoService(objectCollection) {
         });
         addCapexFormRequest.data_entity_inline = JSON.stringify(activityInlineData);
         addCapexFormRequest.flag_timeline_entry = 1;
-        addCapexFormRequest.asset_id = 100;
+        addCapexFormRequest.asset_id = 35532;
+        addCapexFormRequest.organization_id = 898;
+        addCapexFormRequest.account_id = 1013;
+        addCapexFormRequest.workforce_id = 5616;
+        console.log("addActivityAsync | Capex Value Add | Request: ", addCapexFormRequest);
 
         const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
         try {
@@ -371,6 +378,10 @@ function TelcoService(objectCollection) {
         workflowFile705Request.data_activity_id = capexFormActivityId;
         workflowFile705Request.activity_id = workflowActivityID;
         workflowFile705Request.workflow_activity_id = workflowActivityID;
+        workflowFile705Request.organization_id = 898;
+        workflowFile705Request.account_id = 1013;
+        workflowFile705Request.workforce_id = 5616;
+        console.log("addTimelineTransaction | Capex Value Add | Request: ", workflowFile705Request);
 
         await (1000);
         try {
