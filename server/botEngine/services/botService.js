@@ -2746,8 +2746,8 @@ function BotService(objectCollection) {
         let productType = "";
         let productSubType = "";
         let locations= "";
-        let locationA = "";
-        let locationB = "";
+        let locationA = "A-End";
+        let locationB = "B-End";
         let bandWidth = "";
 
         for(let i=0; i < activityInlineData.length;i++) {
@@ -2780,7 +2780,7 @@ function BotService(objectCollection) {
                 productSubType = activityInlineData[i].field_value;                
             } else if(activityInlineData[i].field_id === '13787') {
                 locations = activityInlineData[i].field_value;
-            } else if(activityInlineData[i].field_id === '13783') {
+            } /*else if(activityInlineData[i].field_id === '13783') {
                 locationA = activityInlineData[i].field_value;
                 let resp = await this.getCitybasedOnLats(request, locationA);
                 //console.log('############################');
@@ -2800,7 +2800,7 @@ function BotService(objectCollection) {
                     locationB = "" 
                     :                
                     locationB = resp;
-            }else if(activityInlineData[i].field_id === '13780') {
+            } */ else if(activityInlineData[i].field_id === '13780') {
                 bandWidth = activityInlineData[i].field_value;
             }
         }
@@ -2821,7 +2821,7 @@ function BotService(objectCollection) {
             <div style=" text-align:right; padding-top:10px; padding-right:30px; font-weight:bold; font-size:15px; color:#555555;">Date:${util.getCurrentDate()}</div>
             <div style="padding-top:10px; font-weight:bold; font-size:15px; color:#555;">To</div>
             <div style=" padding-top:30px;font-weight:bold; font-size:15px; color:#555555;">${customerName},</div>
-            <div style=" padding-top:5px;font-weight:bold; font-size:15px; color:#555555;">${location}<span style="color:#555">.</span></div>
+            <div style=" padding-top:5px;font-weight:bold; font-size:15px; color:#555555;">${location}<span style="color:#555"></span></div>
             <div style=" padding-top:30px;">Subject: Quotation for <span style="color:#555555">${productType}</span></div>
             <div style=" padding-top:20px; padding-bottom:20px;">Thank you for your interest in our services. With reference to your inquiry for <span style="color:#555555">${productType}</span>, we are
                 pleased to submit our proposal for your perusal. </div>
@@ -2867,8 +2867,12 @@ function BotService(objectCollection) {
                     <td style="padding:5px;border:1px solid #ccc;text-align:left;">59000</td>
                     </tr>
                 </table>
-                
-                <div style="padding:30px 0 0; color:#000;"><strong><span style="border-bottom:1px solid #555">Terms and Conditions:</span></strong></div>
+                ${ request.is_signature_upload ? 
+                    ['<div style="display:flex; flex-direction: row-reverse;"><img src="sign.jpg" alt="Signature" height="70px" width="70px"/></div>',
+                     '<div style="margin-top:-50px; color:#000;"><strong><span style="border-bottom:1px solid #555">Terms and Conditions:</span></strong></div>']
+                    :
+                    '<div style="padding:30px 0 0; color:#000;"><strong><span style="border-bottom:1px solid #555">Terms and Conditions:</span></strong></div>'
+                }                             
                 
                 <div style="padding:20px 0; color:#555; line-height:25px;">1. Payment: 70% along with PO and balance against delivery.<br />
 
@@ -2909,7 +2913,7 @@ function BotService(objectCollection) {
             <div style=" text-align:right; padding-top:10px; padding-right:30px; font-weight:bold; font-size:15px; color:#555555;">Date:${util.getCurrentDate()}</div>
             <div style="padding-top:10px; font-weight:bold; font-size:15px; color:#555;">To</div>
             <div style=" padding-top:30px;font-weight:bold; font-size:15px; color:#555555;">${customerName},</div>
-            <div style=" padding-top:5px;font-weight:bold; font-size:15px; color:#555555;">${location}<span style="color:#555">.</span></div>
+            <div style=" padding-top:5px;font-weight:bold; font-size:15px; color:#555555;">${location}<span style="color:#555"></span></div>
             <div style=" padding-top:30px;">Subject: Quotation for <span style="color:#555555">${productType}</span></div>
             <div style=" padding-top:20px; padding-bottom:20px;">Thank you for your interest in our services. With reference to your inquiry for <span style="color:#555555">${productType}</span>, we are
                 pleased to submit our proposal for your perusal. </div>
@@ -2965,8 +2969,12 @@ function BotService(objectCollection) {
                 <td style="padding:5px;border:1px solid #ccc;text-align:left;">295000</td>
                 </tr>
             </table>
-            
-            <div style="padding:30px 0 0; color:#000;"><strong><span style="border-bottom:1px solid #555">Terms and Conditions:</span></strong></div>
+            ${ request.is_signature_upload ? 
+                ['<div style="display:flex; flex-direction: row-reverse;"><img src="sign.jpg" alt="Signature" height="70px" width="70px"/></div>',
+                 '<div style="margin-top:-50px; color:#000;"><strong><span style="border-bottom:1px solid #555">Terms and Conditions:</span></strong></div>']
+                :
+                '<div style="padding:30px 0 0; color:#000;"><strong><span style="border-bottom:1px solid #555">Terms and Conditions:</span></strong></div>'
+            }
             
             <div style="padding:20px 0; color:#555; line-height:25px;">1. Payment: 70% along with PO and balance against delivery.<br />
 
