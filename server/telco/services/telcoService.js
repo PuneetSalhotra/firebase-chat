@@ -12,6 +12,7 @@ function TelcoService(objectCollection) {
     const moment = require('moment');
     const nodeUtil = require('util');
     const self = this;
+    // const fs = require("fs");
 
     let servicesLoadPathPrefix = '';
     if (!__dirname.includes('queue')) {
@@ -25,6 +26,11 @@ function TelcoService(objectCollection) {
 
     this.fireTelcoDemoTimelineLogic = async function (request) {
         console.log("fireTelcoDemoTimelineLogic | request: ", request);
+        try {
+            // fs.writeFileSync('/Users/Bensooraj/Desktop/desker_api/server/vodafone/utils/data.json', JSON.stringify(request, null, 2) , 'utf-8');
+        } catch (error) {
+            console.log("fireTelcoDemoTimelineLogic | writeFileSync | Error: ", error);
+        }
 
         const formID = Number(request.form_id) || Number(request.activity_form_id);
 
@@ -170,6 +176,24 @@ function TelcoService(objectCollection) {
 
             await sleep(1000);
             // Send email to the customer
+            // try {
+            //     let sendEmailRequest = Object.assign({}, request);
+            //     sendEmailRequest.activity_form_id = 1528;
+            //     sendEmailRequest.attachment_url = `https://demotelcoinc.s3.ap-south-1.amazonaws.com/${request.activity_id}.pdf`;
+            //     sendEmailRequest.attachment_name = "proposal.pdf";
+            //     sendEmailRequest.form_transaction_id = originFormTransactionID;
+            //     sendEmailRequest.activity_id = request.activity_id;
+            //     sendEmailRequest.activity_type_id = 140257;
+            //     await self.demoTelcoSendEmail(sendEmailRequest);
+            // } catch (error) {
+            //     console.log("TelcoService | sendEmailRequest | demoTelcoSendEmail | Error: ", error);
+            // }
+        }
+
+        if (
+            formID === 1527
+        ) {
+            // Send email to the customer
             try {
                 let sendEmailRequest = Object.assign({}, request);
                 sendEmailRequest.activity_form_id = 1528;
@@ -184,23 +208,23 @@ function TelcoService(objectCollection) {
             }
         }
 
-        try {
-            await addDeskAsParticipant({
-                organization_id: request.organization_id,
-                account_id: request.account_id,
-                workforce_id: request.workforce_id,
-                workflow_activity_id: request.activity_id,
-                asset_id: 35532
-            }, {
-                    first_name: "CEO",
-                    desk_asset_id: 35477,
-                    contact_phone_number: 9908000111,
-                    contact_phone_country_code: 91,
-                    asset_type_id: 133189,
-                });
-        } catch (error) {
-            console.log("TelcoService | addDeskAsParticipant | CEO | Error: ", error);
-        }
+        // try {
+        //     await addDeskAsParticipant({
+        //         organization_id: request.organization_id,
+        //         account_id: request.account_id,
+        //         workforce_id: request.workforce_id,
+        //         workflow_activity_id: request.activity_id,
+        //         asset_id: 35532
+        //     }, {
+        //             first_name: "CEO",
+        //             desk_asset_id: 35477,
+        //             contact_phone_number: 9908000111,
+        //             contact_phone_country_code: 91,
+        //             asset_type_id: 133189,
+        //         });
+        // } catch (error) {
+        //     console.log("TelcoService | addDeskAsParticipant | CEO | Error: ", error);
+        // }
         return [false, []];
     }
 
@@ -226,6 +250,7 @@ function TelcoService(objectCollection) {
         timelineTextRequest.device_os_id = 5;
         timelineTextRequest.flag_timeline_entry = 1;
         timelineTextRequest.asset_participant_access_id = 21;
+        timelineTextRequest.message_unique_id = util.getMessageUniqueId(35532);
 
         let timelineTextRequestEvent = {
             name: "addTimelineTransaction",
@@ -363,7 +388,7 @@ function TelcoService(objectCollection) {
         addCapexFormRequest.flag_pin = 0;
         addCapexFormRequest.flag_offline = 0;
         addCapexFormRequest.flag_retry = 0;
-        addCapexFormRequest.message_unique_id = 1560773228537;
+        addCapexFormRequest.message_unique_id = util.getMessageUniqueId(35532);
         addCapexFormRequest.device_os_id = 5;
         addCapexFormRequest.activity_stream_type_id = 705;
         addCapexFormRequest.activity_timeline_collection = JSON.stringify({
@@ -441,14 +466,15 @@ function TelcoService(objectCollection) {
                     if (workflowActivityData.length >= 1) {
                         forEachAsync(workflowActivityData, (next, row) => {
                             if (row.field_id === 13836 || row.field_id === 13839 || row.field_id === 13777)
-                                customerName = row.data_entity_text_1;
+                                customerName = customerName || row.data_entity_text_1;
                             else if (row.field_id === 13838 || row.field_id === 13841 || row.field_id === 13779)
-                                customerEmail = row.data_entity_text_1;
+                                customerEmail = customerEmail || row.data_entity_text_1;
 
                             next();
                         }).then(() => {
                             console.log("Before Preparation of Template");
                             prepareTemplateNsend(request, customerName, customerEmail);
+                            resolve();
                         })
                     } else {
                         console.log("form Data <> 1 ", workflowActivityData.length);
