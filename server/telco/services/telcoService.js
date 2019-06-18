@@ -133,7 +133,7 @@ function TelcoService(objectCollection) {
             (formID === 1525 || formID === 1527)
         ) {
 
-            let is_signature_upload = false,
+            let is_signature_upload = 0,
                 signature_url = '';
             // [IF] Authorization Form
             console.log("[Nani | Integration] Upload | formID: ", formID);
@@ -143,7 +143,7 @@ function TelcoService(objectCollection) {
                 formDataMap.has(13834) &&
                 formDataMap.get(13834).field_value !== ""
             ) {
-                is_signature_upload = true;
+                is_signature_upload = 1;
                 signature_url = formDataMap.get(13834).field_value;
             }
             console.log("[Nani | Integration] Upload | is_signature_upload: ", is_signature_upload);
