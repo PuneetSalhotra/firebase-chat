@@ -130,6 +130,8 @@ function TelcoService(objectCollection) {
             let is_signature_upload = false,
                 signature_url = '';
             // [IF] Authorization Form
+            console.log("[Nani | Integration] Upload | formID: ", formID);
+            console.log("[Nani | Integration] Upload | formDataMap.get(13834): ", formDataMap.get(13834));
             if (
                 formID === 1527 &&
                 formDataMap.has(13834) &&
@@ -138,6 +140,8 @@ function TelcoService(objectCollection) {
                 is_signature_upload = true;
                 signature_url = formDataMap.get(13834).field_value;
             }
+            console.log("[Nani | Integration] Upload | is_signature_upload: ", is_signature_upload);
+            console.log("[Nani | Integration] Upload | signature_url: ", signature_url);
 
 
             const uploadPDFAndTimelineEntryAdd = nodeUtil.promisify(makeRequest.post);
@@ -186,7 +190,7 @@ function TelcoService(objectCollection) {
                 account_id: request.account_id,
                 workforce_id: request.workforce_id,
                 workflow_activity_id: request.activity_id,
-                asset_id: 100
+                asset_id: 35532
             }, {
                     first_name: "CEO",
                     desk_asset_id: 35477,
@@ -195,9 +199,8 @@ function TelcoService(objectCollection) {
                     asset_type_id: 133189,
                 });
         } catch (error) {
-            console.log("vodafoneCreateChildOrdersFromExcelUpload | addDeskAsParticipant | Error: ", error);
+            console.log("TelcoService | addDeskAsParticipant | CEO | Error: ", error);
         }
-
         return [false, []];
     }
 
@@ -312,10 +315,9 @@ function TelcoService(objectCollection) {
 
         queueWrapper.raiseActivityEvent(addParticipantEvent, request.workflow_activity_id, (err, resp) => {
             if (err) {
-                global.logger.write('conLog', "\x1b[35m [ERROR] Raising queue activity raised for adding Service Desk as a participant. \x1b[0m", {}, request);
-                reject('Error while raising queue activity for adding service desk as a participant');
+                console.log("TelcoService | addDeskAsParticipant | Error: ", err);
             } else {
-                global.logger.write('conLog', "\x1b[35m Queue activity raised for adding Service Desk as a participant. \x1b[0m", {}, request);
+                console.log("TelcoService | addDeskAsParticipant | Response: ", resp);
             }
         });
         return;
@@ -490,7 +492,7 @@ function TelcoService(objectCollection) {
 
                 const encodedString = Buffer.from(JSON.stringify(jsonString)).toString('base64');
 
-                const baseUrlUpload = global.config.emailbaseUrlUpload + "/#/forms/entry/" + encodedString;
+                const baseUrlUpload = global.config.emailbaseUrlUpload + "/#/forms/edit/" + encodedString;
 
                 openingMessage = "Please verify the proposal form and upload the PO.";
                 callToction = "<a style='background: #ED212C; display: inline-block; color: #FFFFFF; border-top: 10px solid #ED212C; border-bottom: 10px solid #ED212C; border-left: 20px solid #ED212C; border-right: 20px solid #ED212C; text-decoration: none; font-size: 12px; margin-top: 1.0em; border-radius: 3px 3px 3px 3px; background-clip: padding-box;' target='_blank' class='blue-btn' href='" + baseUrlUpload + "'>UPLOAD DOCUMENTS</a>"
