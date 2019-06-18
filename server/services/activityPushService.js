@@ -546,7 +546,7 @@ function ActivityPushService(objectCollection) {
                                                 }
                                                 //PUB
                                                 //console.log('pubnubMsg :', pubnubMsg);
-                                                global.logger.write('debug', 'pubnubMsg: ' + JSON.stringify(pubnubMsg), {}, {});
+                                                /*global.logger.write('debug', 'pubnubMsg: ' + JSON.stringify(pubnubMsg), {}, {});
                                                 if (pubnubMsg.activity_type_category_id != 0) {
                                                     pubnubMsg.organization_id = rowData.organizationId;
                                                     pubnubMsg.desk_asset_id = rowData.assetId;
@@ -554,7 +554,7 @@ function ActivityPushService(objectCollection) {
                                                     global.logger.write('debug', 'pubnubMsg: ' + JSON.stringify(pubnubMsg), {}, {});
                                                     pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
                                                     pubnubWrapper.push(rowData.assetId, pubnubMsg);
-                                                }
+                                                }*/
                                                 break;
                                         }
                                     }.bind(this));
