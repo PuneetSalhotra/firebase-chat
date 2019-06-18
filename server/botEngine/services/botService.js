@@ -2735,6 +2735,15 @@ function BotService(objectCollection) {
     // async function uploadHtmltoPDF () {
     this.uploadHtmltoPDF = async (request) => {
 
+        let signatureUrl = "";
+        let imgSrc = "";       
+        
+        if(Number(request.is_signature_upload) === 1) {             
+            signatureUrl = request.signature_url;            
+            let binaryData = await this.downloadS3Object(request, signatureUrl);
+            imgSrc = 'data:image/jpeg;base64,' + Buffer.from(binaryData).toString('base64');
+        }
+
         let activityDetails = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
         //console.log('ACT Details : ', activityDetails);
         let activityInlineData = JSON.parse(activityDetails[0].activity_inline_data);
@@ -2746,8 +2755,8 @@ function BotService(objectCollection) {
         let productType = "";
         let productSubType = "";
         let locations= "";
-        let locationA = "";
-        let locationB = "";
+        let locationA = "A-End";
+        let locationB = "B-End";
         let bandWidth = "";
 
         for(let i=0; i < activityInlineData.length;i++) {
@@ -2780,7 +2789,7 @@ function BotService(objectCollection) {
                 productSubType = activityInlineData[i].field_value;                
             } else if(activityInlineData[i].field_id === '13787') {
                 locations = activityInlineData[i].field_value;
-            } else if(activityInlineData[i].field_id === '13783') {
+            } /*else if(activityInlineData[i].field_id === '13783') {
                 locationA = activityInlineData[i].field_value;
                 let resp = await this.getCitybasedOnLats(request, locationA);
                 //console.log('############################');
@@ -2800,7 +2809,7 @@ function BotService(objectCollection) {
                     locationB = "" 
                     :                
                     locationB = resp;
-            }else if(activityInlineData[i].field_id === '13780') {
+            } */ else if(activityInlineData[i].field_id === '13780') {
                 bandWidth = activityInlineData[i].field_value;
             }
         }
@@ -2821,7 +2830,7 @@ function BotService(objectCollection) {
             <div style=" text-align:right; padding-top:10px; padding-right:30px; font-weight:bold; font-size:15px; color:#555555;">Date:${util.getCurrentDate()}</div>
             <div style="padding-top:10px; font-weight:bold; font-size:15px; color:#555;">To</div>
             <div style=" padding-top:30px;font-weight:bold; font-size:15px; color:#555555;">${customerName},</div>
-            <div style=" padding-top:5px;font-weight:bold; font-size:15px; color:#555555;">${location}<span style="color:#555">.</span></div>
+            <div style=" padding-top:5px;font-weight:bold; font-size:15px; color:#555555;">${location}<span style="color:#555"></span></div>
             <div style=" padding-top:30px;">Subject: Quotation for <span style="color:#555555">${productType}</span></div>
             <div style=" padding-top:20px; padding-bottom:20px;">Thank you for your interest in our services. With reference to your inquiry for <span style="color:#555555">${productType}</span>, we are
                 pleased to submit our proposal for your perusal. </div>
@@ -2867,8 +2876,13 @@ function BotService(objectCollection) {
                     <td style="padding:5px;border:1px solid #ccc;text-align:left;">59000</td>
                     </tr>
                 </table>
-                
-                <div style="padding:30px 0 0; color:#000;"><strong><span style="border-bottom:1px solid #555">Terms and Conditions:</span></strong></div>
+                ${ Number(request.is_signature_upload) === 1 ? 
+                    ['<div style="display:flex; flex-direction: row-reverse;"><img src="'+imgSrc+'" alt="Signature" height="70px" width="70px"/></div>',
+                     '<br><br><br><br>',
+                     '<div style="margin-top:-50px; color:#000;"><strong><span style="border-bottom:1px solid #555">Terms and Conditions:</span></strong></div>']
+                    :
+                    '<div style="padding:30px 0 0; color:#000;"><strong><span style="border-bottom:1px solid #555">Terms and Conditions:</span></strong></div>'
+                }                             
                 
                 <div style="padding:20px 0; color:#555; line-height:25px;">1. Payment: 70% along with PO and balance against delivery.<br />
 
@@ -2909,7 +2923,7 @@ function BotService(objectCollection) {
             <div style=" text-align:right; padding-top:10px; padding-right:30px; font-weight:bold; font-size:15px; color:#555555;">Date:${util.getCurrentDate()}</div>
             <div style="padding-top:10px; font-weight:bold; font-size:15px; color:#555;">To</div>
             <div style=" padding-top:30px;font-weight:bold; font-size:15px; color:#555555;">${customerName},</div>
-            <div style=" padding-top:5px;font-weight:bold; font-size:15px; color:#555555;">${location}<span style="color:#555">.</span></div>
+            <div style=" padding-top:5px;font-weight:bold; font-size:15px; color:#555555;">${location}<span style="color:#555"></span></div>
             <div style=" padding-top:30px;">Subject: Quotation for <span style="color:#555555">${productType}</span></div>
             <div style=" padding-top:20px; padding-bottom:20px;">Thank you for your interest in our services. With reference to your inquiry for <span style="color:#555555">${productType}</span>, we are
                 pleased to submit our proposal for your perusal. </div>
@@ -2965,8 +2979,13 @@ function BotService(objectCollection) {
                 <td style="padding:5px;border:1px solid #ccc;text-align:left;">295000</td>
                 </tr>
             </table>
-            
-            <div style="padding:30px 0 0; color:#000;"><strong><span style="border-bottom:1px solid #555">Terms and Conditions:</span></strong></div>
+            ${ Number(request.is_signature_upload) === 1 ? 
+                ['<div style="display:flex; flex-direction: row-reverse;"><img src="'+imgSrc+'" alt="Signature" height="70px" width="70px"/></div>',
+                 '<br><br><br><br>',
+                 '<div style="margin-top:-50px; color:#000;"><strong><span style="border-bottom:1px solid #555">Terms and Conditions:</span></strong></div>']
+                :
+                '<div style="padding:30px 0 0; color:#000;"><strong><span style="border-bottom:1px solid #555">Terms and Conditions:</span></strong></div>'
+            }
             
             <div style="padding:20px 0; color:#555; line-height:25px;">1. Payment: 70% along with PO and balance against delivery.<br />
 
@@ -3036,12 +3055,19 @@ function BotService(objectCollection) {
                           return resolve(data);
                       });
                   });                       
+
+                  let key;
+                  if(Number(request.is_signature_upload)  === 1) {
+                      key = `${request.activity_id}` + '_with_appr_signature.pdf'; 
+                  } else {
+                      key = `${request.activity_id}.pdf`; 
+                  }
                   
                   //console.log('Before Params...');
                   let params = {
                       Body: body,
                       Bucket: "demotelcoinc",                
-                      Key: `${request.activity_id}.pdf`,
+                      Key: key,
                       ContentType: 'application/pdf',
                       //ContentEncoding: 'base64',
                       ACL: 'public-read'
@@ -3064,11 +3090,17 @@ function BotService(objectCollection) {
 
     this.addTimelineEntrywithAttachment = async (request) => {
 
+        let url = "https://demotelcoinc.s3.ap-south-1.amazonaws.com/" +request.activity_id+".pdf";
+        if(Number(request.is_signature_upload)  === 1) {
+            url = "https://demotelcoinc.s3.ap-south-1.amazonaws.com/" +request.activity_id+"_with_appr_signature.pdf";
+        }
+        
         let activityTimelineCollection = {};
         activityTimelineCollection.content = "File - " + util.getCurrentDate();
         activityTimelineCollection.subject = "File - " + util.getCurrentDate();
         activityTimelineCollection.mail_body = "File - " + util.getCurrentDate();
-        let url = "https://demotelcoinc.s3.ap-south-1.amazonaws.com/" +request.activity_id+".pdf";
+        
+        
         activityTimelineCollection.attachments = [url];
         activityTimelineCollection.asset_reference = [];
         activityTimelineCollection.activity_reference = [];
@@ -3139,6 +3171,31 @@ function BotService(objectCollection) {
                 }
               });
         });        
+    };
+
+
+    this.downloadS3Object = async (request, url) =>{       
+        return new Promise((resolve)=>{
+            console.log('URL : ', url);
+
+            const BucketName = url.slice(8, 25);
+            const KeyName = url.slice(43);        
+
+            let params = {
+                Bucket: BucketName, 
+                Key: KeyName
+            };
+            s3.getObject(params, function(err, data) {
+                if (err) {
+                    console.log(err, err.stack); // an error occurred
+                    resolve(err);
+                } 
+                else{
+                    console.log('DATA VNK : ', data.Body);           // successful response   
+                    resolve(data.Body);
+                }     
+            });
+        });
     };
 
 }

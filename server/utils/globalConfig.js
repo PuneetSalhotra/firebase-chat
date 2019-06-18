@@ -504,8 +504,8 @@ if (mode === 'preprod') {
     config.CONSUMER_KEY_ENCODING = "utf8";
     ///////////////////////////////
     
-    config.emailbaseUrlApprove = "https://preprod.officedesk.app"; 
-    config.emailbaseUrlUpload = "https://preprod.officedesk.app";
+    config.emailbaseUrlApprove = "https://preprodweb.officedesk.app"; 
+    config.emailbaseUrlUpload = "https://preprodweb.officedesk.app";
     
 }
 
