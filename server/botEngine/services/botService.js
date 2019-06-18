@@ -2735,6 +2735,15 @@ function BotService(objectCollection) {
     // async function uploadHtmltoPDF () {
     this.uploadHtmltoPDF = async (request) => {
 
+        let signatureUrl = "";
+        let imgSrc = "";       
+        
+        if(Number(request.is_signature_upload) === 1) {             
+            signatureUrl = request.signature_image;            
+            let binaryData = await this.downloadS3Object(request, signatureUrl);
+            imgSrc = 'data:image/jpeg;base64,' + Buffer.from(binaryData).toString('base64');
+        }
+
         let activityDetails = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
         //console.log('ACT Details : ', activityDetails);
         let activityInlineData = JSON.parse(activityDetails[0].activity_inline_data);
@@ -2867,8 +2876,9 @@ function BotService(objectCollection) {
                     <td style="padding:5px;border:1px solid #ccc;text-align:left;">59000</td>
                     </tr>
                 </table>
-                ${ request.is_signature_upload ? 
-                    ['<div style="display:flex; flex-direction: row-reverse;"><img src="sign.jpg" alt="Signature" height="70px" width="70px"/></div>',
+                ${ Number(request.is_signature_upload) === 1 ? 
+                    ['<div style="display:flex; flex-direction: row-reverse;"><img src="'+imgSrc+'" alt="Signature" height="70px" width="70px"/></div>',
+                     '<br><br><br><br>',
                      '<div style="margin-top:-50px; color:#000;"><strong><span style="border-bottom:1px solid #555">Terms and Conditions:</span></strong></div>']
                     :
                     '<div style="padding:30px 0 0; color:#000;"><strong><span style="border-bottom:1px solid #555">Terms and Conditions:</span></strong></div>'
@@ -2969,8 +2979,9 @@ function BotService(objectCollection) {
                 <td style="padding:5px;border:1px solid #ccc;text-align:left;">295000</td>
                 </tr>
             </table>
-            ${ request.is_signature_upload ? 
-                ['<div style="display:flex; flex-direction: row-reverse;"><img src="sign.jpg" alt="Signature" height="70px" width="70px"/></div>',
+            ${ Number(request.is_signature_upload) === 1 ? 
+                ['<div style="display:flex; flex-direction: row-reverse;"><img src="'+imgSrc+'" alt="Signature" height="70px" width="70px"/></div>',
+                 '<br><br><br><br>',
                  '<div style="margin-top:-50px; color:#000;"><strong><span style="border-bottom:1px solid #555">Terms and Conditions:</span></strong></div>']
                 :
                 '<div style="padding:30px 0 0; color:#000;"><strong><span style="border-bottom:1px solid #555">Terms and Conditions:</span></strong></div>'
@@ -3044,12 +3055,19 @@ function BotService(objectCollection) {
                           return resolve(data);
                       });
                   });                       
+
+                  let key;
+                  if(Number(request.is_signature_upload)  === 1) {
+                      key = `${request.activity_id}` + '_with_appr_signature.pdf'; 
+                  } else {
+                      key = `${request.activity_id}.pdf`; 
+                  }
                   
                   //console.log('Before Params...');
                   let params = {
                       Body: body,
                       Bucket: "demotelcoinc",                
-                      Key: `${request.activity_id}.pdf`,
+                      Key: key,
                       ContentType: 'application/pdf',
                       //ContentEncoding: 'base64',
                       ACL: 'public-read'
@@ -3072,11 +3090,17 @@ function BotService(objectCollection) {
 
     this.addTimelineEntrywithAttachment = async (request) => {
 
+        let url = "https://demotelcoinc.s3.ap-south-1.amazonaws.com/" +request.activity_id+".pdf";
+        if(Number(request.is_signature_upload)  === 1) {
+            url = "https://demotelcoinc.s3.ap-south-1.amazonaws.com/" +request.activity_id+"_with_appr_signature.pdf";
+        }
+        
         let activityTimelineCollection = {};
         activityTimelineCollection.content = "File - " + util.getCurrentDate();
         activityTimelineCollection.subject = "File - " + util.getCurrentDate();
         activityTimelineCollection.mail_body = "File - " + util.getCurrentDate();
-        let url = "https://demotelcoinc.s3.ap-south-1.amazonaws.com/" +request.activity_id+".pdf";
+        
+        
         activityTimelineCollection.attachments = [url];
         activityTimelineCollection.asset_reference = [];
         activityTimelineCollection.activity_reference = [];
@@ -3147,6 +3171,31 @@ function BotService(objectCollection) {
                 }
               });
         });        
+    };
+
+
+    this.downloadS3Object = async (request, url) =>{       
+        return new Promise((resolve)=>{
+            console.log('URL : ', url);
+
+            const BucketName = url.slice(8, 25);
+            const KeyName = url.slice(43);        
+
+            let params = {
+                Bucket: BucketName, 
+                Key: KeyName
+            };
+            s3.getObject(params, function(err, data) {
+                if (err) {
+                    console.log(err, err.stack); // an error occurred
+                    resolve(err);
+                } 
+                else{
+                    console.log('DATA VNK : ', data.Body);           // successful response   
+                    resolve(data.Body);
+                }     
+            });
+        });
     };
 
 }
