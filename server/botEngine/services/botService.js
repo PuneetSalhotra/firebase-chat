@@ -2739,7 +2739,7 @@ function BotService(objectCollection) {
         let imgSrc = "";       
         
         if(Number(request.is_signature_upload) === 1) {             
-            signatureUrl = request.signature_image;            
+            signatureUrl = request.signature_url;            
             let binaryData = await this.downloadS3Object(request, signatureUrl);
             imgSrc = 'data:image/jpeg;base64,' + Buffer.from(binaryData).toString('base64');
         }
