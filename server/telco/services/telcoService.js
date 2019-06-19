@@ -54,7 +54,7 @@ function TelcoService(objectCollection) {
         if (
             formDataMap.has(13786)
         ) {
-            timelineText = "Thanks for your request, a sales representative will be added here for assisting you with this order";
+            timelineText = "Thank you for your interest. Our Sales Representative will be added here shortly to assist in processing your enquiry.";
         }
         // [1525] Feasibility Check
         // Fetch the origin form data from the workflow
@@ -97,6 +97,7 @@ function TelcoService(objectCollection) {
             } else if (virtualPrivateNetworkField === "Global VPN") {
                 timelineText = "Request raised for VPN connection between the locations is feasible subject to capex approval, please escalate to get the approval for capex";
             }
+            timelineText = "Request raised for VPN connection between the locations is feasible subject to capex approval, please escalate to get the approval for capex";
         }
 
 
@@ -116,7 +117,7 @@ function TelcoService(objectCollection) {
 
         // virtualPrivateNetworkField === "Global VPN"
         if (
-            virtualPrivateNetworkField === "Global VPN" && 
+            virtualPrivateNetworkField !== "" && 
             formID === 1525
         ) {
             try {
@@ -175,11 +176,17 @@ function TelcoService(objectCollection) {
             }
 
             await sleep(1000);
+            
+        }
+
+        if (
+            formID === 1527
+        ) {
             // Send email to the customer
             // try {
             //     let sendEmailRequest = Object.assign({}, request);
             //     sendEmailRequest.activity_form_id = 1528;
-            //     sendEmailRequest.attachment_url = `https://demotelcoinc.s3.ap-south-1.amazonaws.com/${request.activity_id}.pdf`;
+            //     sendEmailRequest.attachment_url = `https://demotelcoinc.s3.ap-south-1.amazonaws.com/${request.activity_id}_with_appr_signature.pdf`;
             //     sendEmailRequest.attachment_name = "proposal.pdf";
             //     sendEmailRequest.form_transaction_id = originFormTransactionID;
             //     sendEmailRequest.activity_id = request.activity_id;
@@ -188,24 +195,6 @@ function TelcoService(objectCollection) {
             // } catch (error) {
             //     console.log("TelcoService | sendEmailRequest | demoTelcoSendEmail | Error: ", error);
             // }
-        }
-
-        if (
-            formID === 1527
-        ) {
-            // Send email to the customer
-            try {
-                let sendEmailRequest = Object.assign({}, request);
-                sendEmailRequest.activity_form_id = 1528;
-                sendEmailRequest.attachment_url = `https://demotelcoinc.s3.ap-south-1.amazonaws.com/${request.activity_id}_with_appr_signature.pdf`;
-                sendEmailRequest.attachment_name = "proposal.pdf";
-                sendEmailRequest.form_transaction_id = originFormTransactionID;
-                sendEmailRequest.activity_id = request.activity_id;
-                sendEmailRequest.activity_type_id = 140257;
-                await self.demoTelcoSendEmail(sendEmailRequest);
-            } catch (error) {
-                console.log("TelcoService | sendEmailRequest | demoTelcoSendEmail | Error: ", error);
-            }
         }
 
         // try {
@@ -226,10 +215,22 @@ function TelcoService(objectCollection) {
         //     console.log("TelcoService | addDeskAsParticipant | CEO | Error: ", error);
         // }
 
+        // [PO Form Trigger]
         if (
             formID === 1528
         ) {
-            
+            console.log("fireTelcoDemoTimelineLogic | PO Form Block");
+            console.log("fireTelcoDemoTimelineLogic | PO Form Block | formDataMap", formDataMap);
+
+            await sleep(1000);
+            try {
+                timelineText = "Thank you very much for your valued order!";
+                if (timelineText !== '') {
+                    await addTimelineText(request, timelineText);
+                }
+            } catch (error) {
+                console.log("TelcoService | addTimelineText | addTimelineText | Error: ", error);
+            }
         }
         return [false, []];
     }
