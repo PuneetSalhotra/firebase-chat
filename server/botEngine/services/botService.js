@@ -3194,8 +3194,11 @@ function BotService(objectCollection) {
         return new Promise((resolve)=>{
             console.log('URL : ', url);
 
-            const BucketName = url.slice(8, 25);
-            const KeyName = url.slice(43);        
+            // const BucketName = url.slice(8, 25);
+            // const KeyName = url.slice(43);        
+
+            const BucketName = url.slice(8, 20);
+            const KeyName = url.slice(38);
 
             let params = {
                 Bucket: BucketName, 
@@ -3203,7 +3206,7 @@ function BotService(objectCollection) {
             };
             s3.getObject(params, function(err, data) {
                 if (err) {
-                    console.log(err, err.stack); // an error occurred
+                    console.log("[Error | downloadS3Object]", err, err.stack); // an error occurred
                     resolve(err);
                 } 
                 else{

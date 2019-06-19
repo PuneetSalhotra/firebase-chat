@@ -170,6 +170,11 @@ function TelcoService(objectCollection) {
                 const body = JSON.parse(response.body);
                 if (Number(body.status) === 200) {
                     console.log("fireTelcoDemoTimelineLogic | uploadPDFAndTimelineEntryAdd | Body: ", body);
+                    
+                } else {
+                    console.log("[Error] fireTelcoDemoTimelineLogic | uploadPDFAndTimelineEntryAdd | Body.status: ", body.status);
+                    console.log("[Error] fireTelcoDemoTimelineLogic | uploadPDFAndTimelineEntryAdd | Body: ", body);
+
                 }
             } catch (error) {
                 console.log("fireTelcoDemoTimelineLogic | uploadPDFAndTimelineEntryAdd | Error: ", error);
@@ -220,7 +225,55 @@ function TelcoService(objectCollection) {
             formID === 1528
         ) {
             console.log("fireTelcoDemoTimelineLogic | PO Form Block");
-            console.log("fireTelcoDemoTimelineLogic | PO Form Block | formDataMap", formDataMap);
+            // console.log("fireTelcoDemoTimelineLogic | PO Form Block | formDataMap", formDataMap);
+            let po_url = '',
+                signature_url = '';
+            // [IF] Authorization Form
+            console.log("[Nani | Integration] Upload | formID: ", formID);
+            console.log("[Nani | Integration] Upload | formDataMap.get(13835): ", formDataMap.get(13835));
+            console.log("[Nani | Integration] Upload | formDataMap.get(13844): ", formDataMap.get(13844));
+            if (
+                formID === 1528 &&
+                formDataMap.has(13835) &&
+                formDataMap.get(13835).field_value !== "" &&
+                formDataMap.has(13844) &&
+                formDataMap.get(13844).field_value !== ""
+            ) {
+                po_url = formDataMap.get(13835).field_value;
+                signature_url = formDataMap.get(13844).field_value;
+            }
+            console.log("[Nani | Integration] Upload | po_url: ", po_url);
+            console.log("[Nani | Integration] Upload | signature_url: ", signature_url);
+
+            const uploadPOAndTimelineEntryAdd = nodeUtil.promisify(makeRequest.post);
+            const makeRequestOptions = {
+                form: {
+                    organization_id: Number(request.organization_id),
+                    // form_id: 1524,
+                    activity_id: request.activity_id,
+                    account_id: request.account_id,
+                    workforce_id: request.workforce_id,
+                    asset_id: 35532,
+                    po_url,
+                    signature_url
+                }
+            };
+            try {
+                // global.config.mobileBaseUrl + global.config.version
+                if (
+                    po_url === "" ||
+                    signature_url === ""
+                ) {
+                    throw new Error("PO Document and/or Signature not uploaded");
+                }
+                const response = await uploadPOAndTimelineEntryAdd(global.config.mobileBaseUrl + global.config.version + '/account/timeline/po_sign_upload_pdf/add', makeRequestOptions);
+                const body = JSON.parse(response.body);
+                if (Number(body.status) === 200) {
+                    console.log("fireTelcoDemoTimelineLogic | uploadPOAndTimelineEntryAdd | Body: ", body);
+                }
+            } catch (error) {
+                console.log("fireTelcoDemoTimelineLogic | uploadPOAndTimelineEntryAdd | Error: ", error);
+            }
 
             await sleep(1000);
             try {
