@@ -535,6 +535,11 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityText1 = request.form_transaction_id;
                 entityText2 = request.activity_timeline_collection;
                 break;
+            case 702: // form | workflow: Add Participant
+                activityTimelineCollection = request.activity_timeline_collection || '{}';
+                entityText1 = "";
+                entityText2 = "";
+                break;
             case 704: // form: status alter
             case 717: // Workflow: Percentage alter
                 entityTypeId = 0;
