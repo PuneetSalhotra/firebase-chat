@@ -196,8 +196,8 @@ function TelcoService(objectCollection) {
             // Send email to the customer
             try {
                 let sendEmailRequest = Object.assign({}, request);
-                sendEmailRequest.activity_form_id = 1528;
-                sendEmailRequest.attachment_url = `https://demotelcoinc.s3.ap-south-1.amazonaws.com/${request.activity_id}.pdf`;
+                sendEmailRequest.activity_form_id = 1528;                
+                sendEmailRequest.attachment_url = `https://demotelcoinc.s3.ap-south-1.amazonaws.com/${request.activity_id}_with_appr_signature.pdf`;
                 sendEmailRequest.attachment_name = "proposal.pdf";
                 sendEmailRequest.form_transaction_id = originFormTransactionID;
                 sendEmailRequest.activity_id = request.activity_id;
