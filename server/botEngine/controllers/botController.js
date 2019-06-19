@@ -224,6 +224,15 @@ function BotController(objCollection) {
         }
     });
     
+    app.post('/' + global.config.version + '/account/timeline/po_sign_upload_pdf/add', async (req, res) => {        
+        try {
+            let result = await botService.appendPOandSignOFCustomer(req.body);            
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch(err) {
+            console.log('ERROR : ', err);
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
 }
 
 module.exports = BotController;

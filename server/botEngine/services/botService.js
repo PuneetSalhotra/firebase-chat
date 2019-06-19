@@ -2201,6 +2201,15 @@ function BotService(objectCollection) {
                 "organization_id": request.organization_id,
                 "workforce_id": request.workforce_id
             }]),
+            activity_timeline_collection: JSON.stringify({
+                "activity_reference": [],
+                "asset_reference": [],
+                "attachments": [],
+                "content": `Tony added ${assetData.first_name} as collaborator.`,
+                "mail_body": `Tony added ${assetData.first_name} as collaborator.`,
+                "participant_added": `Tony added ${assetData.first_name} as collaborator.`,
+                "subject": `Tony added ${assetData.first_name} as collaborator.`
+            }),
             flag_pin: 0,
             flag_priority: 0,
             flag_offline: 0,
@@ -2771,8 +2780,14 @@ function BotService(objectCollection) {
                     productSubType = "Global VPN";
                     useTemplate = 2; //Global
                 }
-            } else if(activityInlineData[i].field_id === '13777') {
-                customerName = activityInlineData[i].field_value;
+            } else if(activityInlineData[i].field_id === '13777' || 
+                      activityInlineData[i].field_id === '13836' ||
+                      activityInlineData[i].field_id === '13839') {
+                    
+                    if(activityInlineData[i].field_value !== "") {
+                        customerName = activityInlineData[i].field_value;
+                    }
+                        
             } else if(activityInlineData[i].field_id === '13788') {
                 location = activityInlineData[i].field_value;
                 let resp = await this.getCitybasedOnLats(request, location);
@@ -2809,8 +2824,12 @@ function BotService(objectCollection) {
                     locationB = "" 
                     :                
                     locationB = resp;
-            } */ else if(activityInlineData[i].field_id === '13780') {
-                bandWidth = activityInlineData[i].field_value;
+            } */ else if(activityInlineData[i].field_id === '13780' || 
+                         activityInlineData[i].field_id === '13789' || 
+                         activityInlineData[i].field_id === '13795') {
+                            if(activityInlineData[i].field_value !== "") {
+                                bandWidth = activityInlineData[i].field_value;
+                            }                            
             }
         }
         
@@ -3056,11 +3075,13 @@ function BotService(objectCollection) {
                       });
                   });                       
 
-                  let key;
+                  let key, url;
                   if(Number(request.is_signature_upload)  === 1) {
                       key = `${request.activity_id}` + '_with_appr_signature.pdf'; 
+                      url = "https://demotelcoinc.s3.ap-south-1.amazonaws.com/" +request.activity_id+"_with_appr_signature.pdf";
                   } else {
                       key = `${request.activity_id}.pdf`; 
+                      url = "https://demotelcoinc.s3.ap-south-1.amazonaws.com/" +request.activity_id+".pdf";
                   }
                   
                   //console.log('Before Params...');
@@ -3078,7 +3099,7 @@ function BotService(objectCollection) {
                       console.log(err);
                       console.log(data);
       
-                      await (this.addTimelineEntrywithAttachment(request));
+                      await (this.addTimelineEntrywithAttachment(request, url));
                       return resolve();
                   });
                 }
@@ -3088,12 +3109,7 @@ function BotService(objectCollection) {
         
     };
 
-    this.addTimelineEntrywithAttachment = async (request) => {
-
-        let url = "https://demotelcoinc.s3.ap-south-1.amazonaws.com/" +request.activity_id+".pdf";
-        if(Number(request.is_signature_upload)  === 1) {
-            url = "https://demotelcoinc.s3.ap-south-1.amazonaws.com/" +request.activity_id+"_with_appr_signature.pdf";
-        }
+    this.addTimelineEntrywithAttachment = async (request, url) => {        
         
         let activityTimelineCollection = {};
         activityTimelineCollection.content = "File - " + util.getCurrentDate();
@@ -3178,8 +3194,11 @@ function BotService(objectCollection) {
         return new Promise((resolve)=>{
             console.log('URL : ', url);
 
-            const BucketName = url.slice(8, 25);
-            const KeyName = url.slice(43);        
+            // const BucketName = url.slice(8, 25);
+            // const KeyName = url.slice(43);        
+
+            const BucketName = url.slice(8, 20);
+            const KeyName = url.slice(38);
 
             let params = {
                 Bucket: BucketName, 
@@ -3187,7 +3206,7 @@ function BotService(objectCollection) {
             };
             s3.getObject(params, function(err, data) {
                 if (err) {
-                    console.log(err, err.stack); // an error occurred
+                    console.log("[Error | downloadS3Object]", err, err.stack); // an error occurred
                     resolve(err);
                 } 
                 else{
@@ -3195,6 +3214,94 @@ function BotService(objectCollection) {
                     resolve(data.Body);
                 }     
             });
+        });
+    };
+
+    this.appendPOandSignOFCustomer = async (request) =>{
+        let poUrl = request.po_url;
+        let signatureUrl = request.signature_url;        
+
+        const template = `
+            <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+            <html xmlns="http://www.w3.org/1999/xhtml">
+            <head>
+            <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+            <title>Customer PO</title>
+            </head>
+            <body>
+                <div>
+                    <div style="margin-left: 150px;margin-right:150px;">
+                        <img src=${poUrl} alt="" height="550" width="100%">
+                    </div>
+                    <div style="margin-left: 500px;">
+                        <img src=${signatureUrl} alt="" height="100" width="100">
+                    </div>
+                </div>
+            </body>
+            </html>`;
+
+        const pdfFilePath = `${__dirname}/pdfs/${request.activity_id}_with_customer_po_signature.pdf`;
+        await new Promise((resolve,)=>{            
+            fs.writeFile(`${__dirname}/pdfs/${request.activity_id}_with_customer_po_signature.html`, template, function (err) {
+                if (err) throw err;
+
+                console.log('HTML File for PO with Customer Sign is generated');
+                return resolve();
+            });
+        });        
+
+        let html = fs.readFileSync(`${__dirname}/pdfs/${request.activity_id}_with_customer_po_signature.html`, 'utf8');
+        var options = { 
+                "height": "10.5in", // allowed units: mm, cm, in, px
+                  "width": "9in", 
+                format: 'A4',
+                "border": {
+                    "top": "0.5in",            // default is 0, units: mm, cm, in, px
+                    //"right": "0.5in",
+                    "bottom": "0.5in",
+                    "left": "0.25in"
+                  }
+                };         
+        
+        return await new Promise((resolve)=>{
+            pdf.create(html, options).toFile(`${__dirname}/pdfs/${request.activity_id}_with_customer_po_signature.pdf`, async (err, res) => {
+                if (err){
+                  console.log(err);
+                } 
+                else {
+                  console.log('PDF file is generated! ', res);
+      
+                  let body = await new Promise((resolve)=>{
+                      fs.readFile(pdfFilePath, (err, data) => {
+                          if (err) throw err;
+          
+                          console.log('Reading pdf stream is done');
+                          return resolve(data);
+                      });
+                  });                                         
+                  
+                  //console.log('Before Params...');
+                  let params = {
+                      Body: body,
+                      Bucket: "demotelcoinc",                
+                      Key: `${request.activity_id}` + '_with_customer_po_signature.pdf',
+                      ContentType: 'application/pdf',
+                      //ContentEncoding: 'base64',
+                      ACL: 'public-read'
+                  };
+          
+                  console.log('Uploading to S3...');
+                  s3.putObject(params, async (err, data) =>{
+                      console.log(err);
+                      console.log(data);
+      
+                      let url = `https://demotelcoinc.s3.ap-south-1.amazonaws.com/${request.activity_id}_with_customer_po_signature.pdf`;
+                      await (this.addTimelineEntrywithAttachment(request, url));
+                      return resolve();
+                  });
+                }
+                
+              });
         });
     };
 
