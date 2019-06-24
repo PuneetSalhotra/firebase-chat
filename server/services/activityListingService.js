@@ -1825,18 +1825,43 @@ function ActivityListingService(objCollection) {
 	this.getActivityFormFieldValidationData = function (request) {
 		return new Promise((resolve, reject)=>{
 			activityCommonService.getActivityByFormTransaction(request).then((data)=>{
-		   		if(data.length > 0)
-	   			{
-			   		processFormInlineData(request, data).then((finalData)=>{
-				   			//console.log("finalData : "+finalData);
-				   			resolve(finalData);
-				   		});
-	   			}else{
-	   				
-	   				resolve(data);
-	   			}
+			if(data.length > 0) {
+				processFormInlineData(request, data).then(async (finalData)=>{
+					//console.log("finalData : "+finalData);									
+					resolve(finalData);
+				});
+	   		} else {
+				resolve(data);
+				}
 			});
-		})
+		});
+	};
+
+	this.downloadZipFile = async (request) =>{		
+		try {
+			let inlineData = JSON.parse(request.attachments);		
+			//console.log('inlineDAta : ', inlineData);
+			let files = [];
+			for(let i=0; i< inlineData.length; i++) {									
+				console.log(inlineData[i]);
+				let fileName = await util.downloadS3Object(request, inlineData[i]);
+				files.push(fileName);
+			}
+			
+			await new Promise((resolve)=>{
+				setTimeout(()=>{
+					resolve();
+				}, 2000);
+			});
+
+			await util.zipTheFiles(request, files);
+			let url = await util.uploadS3Object(request, './download.zip');
+			return [false, url];
+		} catch(err) {
+			console.log(err);
+			return [true, err];
+		}
+		
 	};
 		
    /* 

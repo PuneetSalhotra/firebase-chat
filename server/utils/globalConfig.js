@@ -159,7 +159,7 @@ if (mode === 'local') {
     config.mobileBaseUrl = "http://localhost:7000/";
 
     //making twilio, Nexmo Calls
-    config.efsPath = "/";
+    config.efsPath = "/tmp/";    
     
     //Kafka Configuration
     config.BROKER_HOST = "192.168.0.102:9092";

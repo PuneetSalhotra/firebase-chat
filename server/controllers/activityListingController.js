@@ -795,6 +795,16 @@ function ActivityListingController(objCollection) {
         }
     });
 
+
+    app.post('/' + global.config.version + '/activity/form/download/attachements',function (req, res) {
+        activityListingService.downloadZipFile(req.body).then((data) => {
+            res.send(responseWrapper.getResponse({}, data[1], 200, req.body));
+        }).catch((err) => {
+            let data = {};
+            res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        });
+    });
+
 }
 
 module.exports = ActivityListingController;

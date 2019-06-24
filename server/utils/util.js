@@ -13,6 +13,7 @@ var os = require('os');
 const excelToJson = require('convert-excel-to-json');
 const XLSX = require('xlsx');
 const AWS = require('aws-sdk');
+const archiver = require('archiver');
 
 AWS.config.update(
     {
@@ -1335,7 +1336,121 @@ function Util() {
             });
 
         return [error, workbook];
-    }
+    };
+
+    this.downloadS3Object = async (request, url) =>{       
+        return new Promise((resolve)=>{
+            var s3 = new AWS.S3();
+            console.log('URL : ', url);
+
+            const BucketName = url.slice(8, 25);
+            let KeyName = url.slice(43);
+            
+            if(url.includes('ap-south-1')) {
+                KeyName = url.slice(54);
+            }           
+    
+            console.log(BucketName);
+            console.log(KeyName);
+
+            const FileNameArr = url.split('/');
+            const FileName = FileNameArr[FileNameArr.length -1];
+
+            console.log('FILENAME : ', FileName);
+
+            let params = {
+                Bucket: BucketName, 
+                Key: KeyName
+            };
+            
+            let filePath= global.config.efsPath;           
+            let myFile = fs.createWriteStream(filePath + FileName);
+            let fileStream = s3.getObject(params).createReadStream();
+            fileStream.pipe(myFile);
+
+            resolve(FileName);
+        });
+    };
+
+    this.uploadS3Object = async (request, archive) => {
+        return new Promise((resolve)=>{
+            let filePath= global.config.efsPath;           
+            let bucketName = "worlddesk-" + this.getCurrentYear() + '-' + this.getCurrentMonth();
+            let prefixPath = request.organization_id + '/' + 
+                             request.account_id + '/' + 
+                             request.workforce_id + '/' + 
+                             request.asset_id + '/' + 
+                             this.getCurrentYear() + '/' + this.getCurrentMonth() + '/103' + '/' + this.getMessageUniqueId(request.asset_id);
+            console.log(bucketName);
+            console.log(prefixPath);
+
+            var s3 = new AWS.S3();
+            let params = {
+                Body: fs.createReadStream(filePath + 'download.zip'),
+                Bucket: bucketName,
+                Key: prefixPath + '/download.zip',
+                ContentType: 'application/zip',
+                //ContentEncoding: 'base64',
+                //ACL: 'public-read'
+            };
+
+            //console.log(params.Body);
+    
+            console.log('Uploading to S3...');
+
+            s3.putObject(params, async (err, data) =>{
+                    console.log('ERROR', err);
+                    console.log(data);
+                   
+                    resolve(`https://${bucketName}.s3.ap-south-1.amazonaws.com/${params.Key}`);
+                });
+            });
+    };    
+
+    this.zipTheFiles = async (request, files) =>{
+        return new Promise((resolve)=>{
+            
+            let filePath = global.config.efsPath;
+            var output = fs.createWriteStream(filePath + 'download.zip');
+            var archive = archiver('zip', {
+                zlib: { level: 9 } // Sets the compression level.
+            });
+            
+            output.on('close', function() {
+                console.log(archive.pointer() + ' total bytes');
+                console.log('archiver has been finalized and the output file descriptor has closed.');  
+                
+                resolve();
+            });
+            
+            output.on('end', function() {
+                console.log('Data has been drained');
+            });
+            
+            archive.on('warning', function(err) {
+                if (err.code === 'ENOENT') {
+                    // log warning
+                } else {
+                    // throw error
+                    throw err;
+                }
+            });
+            
+            // good practice to catch this error explicitly
+            archive.on('error', function(err) {
+                throw err;
+            });
+            
+            archive.pipe(output);
+            
+            for(let i=0;i < files.length; i++) {                
+                archive.append(fs.createReadStream(files[i]), { name: files[i] });
+            }           
+
+            archive.finalize();              
+            //resolve();
+        });
+    };
 }
 
 module.exports = Util;
