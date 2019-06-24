@@ -2052,6 +2052,55 @@ function ActivityListingService(objCollection) {
 		});
 	};
 
+	this.getQueueActivitiesWithUserFilter = async function (request) {
+		// IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
+		// IN p_workforce_id BIGINT(20), IN p_asset_id BIGINT(20),
+		// IN p_activity_type_id BIGINT(20), IN p_activity_status_id BIGINT(20),
+		// IN p_activity_status_type_id BIGINT(20), IN p_sort_flag TINYINT(4),
+		// IN p_flag TINYINT(4), IN p_queue_id BIGINT(20), IN p_start_from INT(11),
+		// IN p_limit_value TINYINT(4)
+
+		let responseData = [],
+			error = true;
+
+		const paramsArr = new Array(
+			request.organization_id,
+			request.account_id,
+			request.workforce_id,
+			request.asset_id,
+
+			request.activity_type_id || 0,
+			request.activity_status_id || 0,
+			request.activity_status_type_id || 0,
+
+			request.sort_flag || 0, // 0 => Ascending | 1 => Descending
+			request.flag || 0, // 0 => Due date | 1 => Created date
+			request.queue_id || 0,
+			request.page_start || 0,
+			request.page_limit || 50
+		);
+		const queryString = util.getQueryString('ds_v1_3_activity_asset_mapping_select_myqueue', paramsArr);
+
+		if (queryString !== '') {
+			await db.executeQueryPromise(1, queryString, request)
+				.then(async (data) => {
+					responseData = data;
+					try {
+						let dataWithParticipant = await appendParticipantList(request, data);
+						responseData = dataWithParticipant;
+					} catch (error) {
+						console.log("getQueueActivitiesWithUserFilter | appendParticipantList | Error: ", error);
+						// Do nothing
+					}
+					error = false;
+				})
+				.catch((err) => {
+					error = err;
+				})
+		}
+		return [error, responseData];
+	}
+
 	this.fetchActivitiesMappedToQueueWithParticipants = function (request) {
 		return new Promise((resolve, reject) => {
 			activityCommonService

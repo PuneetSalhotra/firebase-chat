@@ -756,6 +756,19 @@ function ActivityListingController(objCollection) {
             });
     });
 
+    // Fetch queue activities specific to the user
+    // A queue can be at organization, workforce or account level
+    app.post('/' + global.config.version + '/asset/queue/activity/user_filter/list', async function (req, res) {
+        // 
+        const [err, childOrderData] = await activityListingService.getQueueActivitiesWithUserFilter(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, childOrderData, 200, req.body));
+        } else {
+            console.log("/asset/queue/activity/user_filter/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, childOrderData, -9999, req.body));
+        }
+    });
+
     app.post('/' + global.config.version + '/activity/queue/list/all', function (req, res) {
         activityListingService
             .getQueueActivitiesAllFilters(req.body)

@@ -548,11 +548,26 @@ function WidgetService(objCollection) {
 
         let responseData = [],
             error = true;
+        
+        let appFlag = 0;
+        if (request.hasOwnProperty("device_os_id")) {
+            // Web App
+            if (Number(request.device_os_id) === 5) {
+                appFlag = 1;
+            }
+            // Mobile App
+            if (
+                Number(request.device_os_id) === 1 ||
+                Number(request.device_os_id) === 2
+            ) {
+                appFlag = 2;
+            }
+        }
 
         // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
         // IN p_workforce_id BIGINT(20), IN p_asset_id BIGINT(20), 
         // IN p_activity_type_id BIGINT(20), IN p_sort_flag TINYINT(4), 
-        // IN p_start_from INT(11), IN p_limit_value TINYINT(4)
+        // IN p_flag_app TINYINT(4), IN p_start_from INT(11), IN p_limit_value SMALLINT(6)
         let paramsArr = new Array(
             request.organization_id,
             request.account_id,
@@ -560,11 +575,12 @@ function WidgetService(objCollection) {
             request.asset_id,
             request.activity_type_id,
             request.sort_flag || 0,
+            appFlag,
             Number(request.page_start) || 0,
             util.replaceQueryLimit(Number(request.page_limit))
         );
 
-        var queryString = util.getQueryString('ds_p1_widget_entity_mapping_select_asset_activity_type_widgets', paramsArr);
+        var queryString = util.getQueryString('ds_p1_1_widget_entity_mapping_select_asset_activity_type_widgets', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
