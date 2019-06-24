@@ -766,9 +766,9 @@ function BotService(objectCollection) {
                 }],
                 "asset_reference": [{}],
                 "attachments": [],
-                "content": `Status updated to ${statusName[0].activity_status_name || ""}`,
-                "mail_body": `Status updated to ${statusName[0].activity_status_name || ""}`,
-                "subject": `Status updated to ${statusName[0].activity_status_name || ""}`
+                "content": `Status updated to '${statusName[0].activity_status_name || ""}'`,
+                "mail_body": `Status updated to '${statusName[0].activity_status_name || ""}'`,
+                "subject": `Status updated to '${statusName[0].activity_status_name || ""}'`
             });
         }
 
@@ -1800,9 +1800,9 @@ function BotService(objectCollection) {
                         }],
                         "asset_reference": [{}],
                         "attachments": [],
-                        "content": `Workflow percentage updated to ${wfCompletionPercentage}`,
-                        "mail_body": `Workflow percentage updated to ${wfCompletionPercentage}`,
-                        "subject": `Workflow percentage updated to ${wfCompletionPercentage}`
+                        "content": `Workflow percentage updated to ${wfCompletionPercentage}%`,
+                        "mail_body": `Workflow percentage updated to ${wfCompletionPercentage}%`,
+                        "subject": `Workflow percentage updated to ${wfCompletionPercentage}%`
                     });
                     workflowTimelineUpdateRequest.log_asset_id = 100; // Tony
                     await activityCommonService.asyncActivityTimelineTransactionInsert(workflowTimelineUpdateRequest, {}, 717);
@@ -2184,6 +2184,15 @@ function BotService(objectCollection) {
                 "organization_id": request.organization_id,
                 "workforce_id": request.workforce_id
             }]),
+            activity_timeline_collection: JSON.stringify({
+                "activity_reference": [],
+                "asset_reference": [],
+                "attachments": [],
+                "content": `Tony added ${assetData.first_name} as collaborator.`,
+                "mail_body": `Tony added ${assetData.first_name} as collaborator.`,
+                "participant_added": `Tony added ${assetData.first_name} as collaborator.`,
+                "subject": `Tony added ${assetData.first_name} as collaborator.`
+            }),
             flag_pin: 0,
             flag_priority: 0,
             flag_offline: 0,
