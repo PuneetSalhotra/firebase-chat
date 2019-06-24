@@ -766,9 +766,9 @@ function BotService(objectCollection) {
                 }],
                 "asset_reference": [{}],
                 "attachments": [],
-                "content": `Status updated to ${statusName[0].activity_status_name || ""}`,
-                "mail_body": `Status updated to ${statusName[0].activity_status_name || ""}`,
-                "subject": `Status updated to ${statusName[0].activity_status_name || ""}`
+                "content": `Status updated to '${statusName[0].activity_status_name || ""}'`,
+                "mail_body": `Status updated to '${statusName[0].activity_status_name || ""}'`,
+                "subject": `Status updated to '${statusName[0].activity_status_name || ""}'`
             });
         }
 
@@ -1800,9 +1800,9 @@ function BotService(objectCollection) {
                         }],
                         "asset_reference": [{}],
                         "attachments": [],
-                        "content": `Workflow percentage updated to ${wfCompletionPercentage}`,
-                        "mail_body": `Workflow percentage updated to ${wfCompletionPercentage}`,
-                        "subject": `Workflow percentage updated to ${wfCompletionPercentage}`
+                        "content": `Workflow percentage updated to ${wfCompletionPercentage}%`,
+                        "mail_body": `Workflow percentage updated to ${wfCompletionPercentage}%`,
+                        "subject": `Workflow percentage updated to ${wfCompletionPercentage}%`
                     });
                     workflowTimelineUpdateRequest.log_asset_id = 100; // Tony
                     await activityCommonService.asyncActivityTimelineTransactionInsert(workflowTimelineUpdateRequest, {}, 717);
