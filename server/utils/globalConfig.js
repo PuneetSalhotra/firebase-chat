@@ -159,10 +159,10 @@ if (mode === 'local') {
     config.mobileBaseUrl = "http://localhost:7000/";
 
     //making twilio, Nexmo Calls
-    config.efsPath = "/tmp/";    
+    config.efsPath = "/apistaging-data/";
     
     //Kafka Configuration
-    config.BROKER_HOST = "192.168.0.102:9092";
+    config.BROKER_HOST = "kafka1:9092";
     config.BROKER_CONNECT_TIMEOUT = 10000;
     config.BROKER_REQUEST_TIMEOUT = 60000;
     config.BROKER_AUTO_CONNECT = true;
