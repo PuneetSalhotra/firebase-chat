@@ -1372,7 +1372,7 @@ function Util() {
         });
     };
 
-    this.uploadS3Object = async (request, archive) => {
+    this.uploadS3Object = async (request, zipFile) => {
         return new Promise((resolve)=>{
             let filePath= global.config.efsPath;           
             let bucketName = "worlddesk-" + this.getCurrentYear() + '-' + this.getCurrentMonth();
@@ -1386,9 +1386,9 @@ function Util() {
 
             var s3 = new AWS.S3();
             let params = {
-                Body: fs.createReadStream(filePath + 'download.zip'),
+                Body: fs.createReadStream(filePath + zipFile),
                 Bucket: bucketName,
-                Key: prefixPath + '/download.zip',
+                Key: prefixPath + "/" + zipFile,
                 ContentType: 'application/zip',
                 //ContentEncoding: 'base64',
                 //ACL: 'public-read'
@@ -1410,8 +1410,9 @@ function Util() {
     this.zipTheFiles = async (request, files) =>{
         return new Promise((resolve)=>{
             
+            let zipFile = 'download_' + this.getMessageUniqueId(request.asset_id) + '.zip';
             let filePath = global.config.efsPath;
-            var output = fs.createWriteStream(filePath + 'download.zip');
+            var output = fs.createWriteStream(filePath + zipFile);
             var archive = archiver('zip', {
                 zlib: { level: 9 } // Sets the compression level.
             });
@@ -1420,7 +1421,7 @@ function Util() {
                 console.log(archive.pointer() + ' total bytes');
                 console.log('archiver has been finalized and the output file descriptor has closed.');  
                 
-                resolve();
+                resolve(zipFile);
             });
             
             output.on('end', function() {
@@ -1444,7 +1445,7 @@ function Util() {
             archive.pipe(output);
             
             for(let i=0;i < files.length; i++) {                
-                archive.append(fs.createReadStream(files[i]), { name: files[i] });
+                archive.append(fs.createReadStream(filePath + files[i]), { name: files[i] });
             }           
 
             archive.finalize();              

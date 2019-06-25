@@ -1854,8 +1854,8 @@ function ActivityListingService(objCollection) {
 				}, 2000);
 			});
 
-			await util.zipTheFiles(request, files);
-			let url = await util.uploadS3Object(request, './download.zip');
+			let zipFile = await util.zipTheFiles(request, files);
+			let url = await util.uploadS3Object(request, zipFile);
 			return [false, url];
 		} catch(err) {
 			console.log(err);
