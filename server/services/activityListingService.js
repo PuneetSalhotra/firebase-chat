@@ -1854,8 +1854,8 @@ function ActivityListingService(objCollection) {
 				}, 2000);
 			});
 
-			await util.zipTheFiles(request, files);
-			let url = await util.uploadS3Object(request, './download.zip');
+			let zipFile = await util.zipTheFiles(request, files);
+			let url = await util.uploadS3Object(request, zipFile);
 			return [false, url];
 		} catch(err) {
 			console.log(err);
@@ -2373,7 +2373,7 @@ function ActivityListingService(objCollection) {
 		const paramsArr = new Array(
 			request.organization_id,
 			request.parent_activity_id,
-			request.flag || 1,
+			request.flag || 0,
 			request.sort_flag,
 			request.datetime_start || '1970-01-01 00:00:00',
 			request.datetime_end || util.getCurrentUTCTime(),

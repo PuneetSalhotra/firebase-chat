@@ -5726,6 +5726,10 @@ function VodafoneService(objectCollection) {
                         origin_form_activity_id: childOrderOriginFormActivityId,
                         origin_form_transaction_id: childOrderOriginFormTransactionId,
                     });
+
+                } else {
+                    console.log("vodafoneCreateChildOrdersFromExcelUpload | addActivityAsync | body.status: ", body.status);
+                    console.log("vodafoneCreateChildOrdersFromExcelUpload | addActivityAsync | body: ", body);
                 }
             } catch (error) {
                 console.log("addActivityAsync | Error: ", error);
