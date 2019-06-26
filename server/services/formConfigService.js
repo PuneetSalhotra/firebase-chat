@@ -2256,6 +2256,7 @@ function FormConfigService(objCollection) {
             initBotEngineRequestBotInlineData = {};
 
         try {
+            throw new Error("This is not required!")
             const botListData = await activityCommonService.getBotsMappedToActType({
                 flag: 3,
                 organization_id: request.organization_id,
