@@ -1839,7 +1839,8 @@ function ActivityListingService(objCollection) {
 
 	this.downloadZipFile = async (request) =>{		
 		try {
-			let inlineData = JSON.parse(request.attachments);		
+			let inlineData = request.attachments;
+			//let inlineData = JSON.parse(request.attachments);		
 			//console.log('inlineDAta : ', inlineData);
 			let files = [];
 			for(let i=0; i< inlineData.length; i++) {									
