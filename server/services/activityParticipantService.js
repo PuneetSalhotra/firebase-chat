@@ -297,7 +297,7 @@ function ActivityParticipantService(objectCollection) {
     };
 
 
-    this.unassignParticicpant = function (request, callback) {
+    this.unassignParticicpant = async function (request, callback) {
 
         var loopUnassignParticipant = function (participantCollection, index, maxIndex) {
             iterateUnassignParticipant(participantCollection, index, maxIndex, function (err, data) {
@@ -333,6 +333,11 @@ function ActivityParticipantService(objectCollection) {
         };
         activityCommonService.updateAssetLocation(request, function (err, data) {});
         var activityStreamTypeId = 3;
+        const activityData = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
+        if (activityData.length > 0) {
+            request.activity_type_category_id = activityData[0].activity_type_category_id;
+            console.log("unassignParticicpant | Number(activityData[0].activity_type_category_id): ", Number(activityData[0].activity_type_category_id));
+        }
         if (request.hasOwnProperty('activity_type_category_id')) {
             var activityTypeCategroyId = Number(request.activity_type_category_id);
             switch (activityTypeCategroyId) {
@@ -356,6 +361,7 @@ function ActivityParticipantService(objectCollection) {
                     break;
                     ////////////////////////////////
                 case 9: //form
+                case 48: //form
                     activityStreamTypeId = 707;
                     break;
                 case 10: //document
