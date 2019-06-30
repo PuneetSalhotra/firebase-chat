@@ -1343,15 +1343,24 @@ function Util() {
             var s3 = new AWS.S3();
             console.log('URL : ', url);
 
-            const BucketName = url.slice(8, 25);
+            let BucketName = url.slice(8, 25);
             let KeyName = url.slice(43);
-            
+
             if(url.includes('ap-south-1')) {
                 KeyName = url.slice(54);
-            }           
+            }
+
+            if(url.includes('staging') || url.includes('preprod')) {
+                BucketName = url.slice(8, 33);
+                KeyName = url.slice(51);
+
+                if(url.includes('ap-south-1')) {
+                    KeyName = url.slice(62);
+                }
+            }
     
-            console.log(BucketName);
-            console.log(KeyName);
+            console.log('BucketName : ', BucketName);
+            console.log('KeyName : ', KeyName);
 
             const FileNameArr = url.split('/');
             const FileName = FileNameArr[FileNameArr.length -1];
@@ -1374,8 +1383,14 @@ function Util() {
 
     this.uploadS3Object = async (request, zipFile) => {
         return new Promise((resolve)=>{
-            let filePath= global.config.efsPath;           
-            let bucketName = "worlddesk-" + this.getCurrentYear() + '-' + this.getCurrentMonth();
+            let filePath= global.config.efsPath; 
+            let environment = global.config.mode;
+            
+            if (environment === 'prod') {
+                environment = "";
+            }
+
+            let bucketName = "worlddesk-" + environment + "-" + this.getCurrentYear() + '-' + this.getCurrentMonth();
             let prefixPath = request.organization_id + '/' + 
                              request.account_id + '/' + 
                              request.workforce_id + '/' + 
