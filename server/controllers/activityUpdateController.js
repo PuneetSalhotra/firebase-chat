@@ -306,22 +306,22 @@ function ActivityUpdateController(objCollection) {
             
         }); 
         
-    //Added by V Nani Kalyan
+    // Added by V Nani Kalyan
     app.post('/' + global.config.version + '/activity/unread/count/reset/v1', function (req, res) {
         var cnt = 0;
         var deviceOsId = 0;
         try {
             var activityArray = JSON.parse(req.body.activity_id_array);
-        } catch(exception ) {
-            res.send(responseWrapper.getResponse(false, {data: "Invalid Json format"}, -3308,req.body));
+        } catch (exception) {
+            res.send(responseWrapper.getResponse(false, { data: "Invalid Json format" }, -3308, req.body));
             return;
         }
-        
+
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
-       
+
         var proceedUnreadUpdate = function (rowData) {
-            req.body.activity_id = rowData.activity_id; 
+            req.body.activity_id = rowData.activity_id;
             req.body.timeline_transaction_id = rowData.timeline_transaction_id;
             req.body.timeline_transaction_datetime = rowData.timeline_transaction_datetime;
             var event = {
@@ -331,67 +331,67 @@ function ActivityUpdateController(objCollection) {
                 payload: req.body
             };
 
-            queueWrapper.raiseActivityEvent(event, rowData.activity_id, (err, resp)=>{
-                        if(err) {
-                            //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                            //global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);
-                            res.send(responseWrapper.getResponse(true, {}, -5999,req.body));
-                            throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
-                        } else {
-                            if (req.hasOwnProperty('device_os_id')) {
-                                if (Number(req.device_os_id) !== 5) {
-                                    //incr the asset_message_counter                        
-                                    cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
-                                        if (err) {
-                                            //console.log("error in setting in asset parity");
-                                            global.logger.write('serverError',"error in setting in asset parity",err,req.body);
-                                        } else
-                                            //console.log("asset parity is set successfully")
-                                            global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
+            queueWrapper.raiseActivityEvent(event, rowData.activity_id, (err, resp) => {
+                if (err) {
+                    //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
+                    //global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);
+                    res.send(responseWrapper.getResponse(true, {}, -5999, req.body));
+                    throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+                } else {
+                    if (req.hasOwnProperty('device_os_id')) {
+                        if (Number(req.device_os_id) !== 5) {
+                            //incr the asset_message_counter                        
+                            cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
+                                if (err) {
+                                    //console.log("error in setting in asset parity");
+                                    global.logger.write('serverError', "error in setting in asset parity", err, req.body);
+                                } else
+                                    //console.log("asset parity is set successfully")
+                                    global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
 
-                                    });
-                                }
-                            }
-                            cnt++;
-                            if(cnt == activityArray.length) {
-                                 res.send(responseWrapper.getResponse(false, {}, 200,req.body));
-                            }                       
-                        }
-                }) ;            
-        };
-            
-        if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5) {
-                cacheWrapper.checkAssetParity(req.body.asset_id, Number(req.body.asset_message_counter), function (err, status) {
-                    if (err) {
-                        res.send(responseWrapper.getResponse(false, {}, -7998,req.body));
-                    } else {
-                        if (status) {     // proceed                            
-                            forEachAsync(activityArray, function (next, rowData) {
-                                // console.log(rowData);
-                                global.logger.write('debug', 'rowData: ' + JSON.stringify(rowData, null, 2), {}, req.body);
-
-                                proceedUnreadUpdate(rowData);
-                                next();
                             });
-                        } else {  // this is a duplicate hit,
-                            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
                         }
                     }
-                });
+                    cnt++;
+                    if (cnt == activityArray.length) {
+                        res.send(responseWrapper.getResponse(false, {}, 200, req.body));
+                    }
+                }
+            });
+        };
 
-            } else if (deviceOsId === 5) {
-                forEachAsync(activityArray, function (next, rowData) {
-                                // console.log(rowData);
-                                global.logger.write('debug', 'rowData: ' + JSON.stringify(rowData, null, 2), {}, req.body);
+        if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5) {
+            cacheWrapper.checkAssetParity(req.body.asset_id, Number(req.body.asset_message_counter), function (err, status) {
+                if (err) {
+                    res.send(responseWrapper.getResponse(false, {}, -7998, req.body));
+                } else {
+                    if (status) {     // proceed                            
+                        forEachAsync(activityArray, function (next, rowData) {
+                            // console.log(rowData);
+                            global.logger.write('debug', 'rowData: ' + JSON.stringify(rowData, null, 2), {}, req.body);
 
-                                proceedUnreadUpdate(rowData);
-                                next();
-                            });
-            } else {
-                res.send(responseWrapper.getResponse(false, {}, -3304,req.body));
-            }
-            
-        }); 
+                            proceedUnreadUpdate(rowData);
+                            next();
+                        });
+                    } else {  // this is a duplicate hit,
+                        res.send(responseWrapper.getResponse(false, {}, 200, req.body));
+                    }
+                }
+            });
+
+        } else if (deviceOsId === 5) {
+            forEachAsync(activityArray, function (next, rowData) {
+                // console.log(rowData);
+                global.logger.write('debug', 'rowData: ' + JSON.stringify(rowData, null, 2), {}, req.body);
+
+                proceedUnreadUpdate(rowData);
+                next();
+            });
+        } else {
+            res.send(responseWrapper.getResponse(false, {}, -3304, req.body));
+        }
+
+    }); 
         
         
    //PAM
