@@ -5,7 +5,9 @@
 var mysql = require('mysql');
 
 var clusterConfig = {
-    removeNodeErrorCount: 1, // Remove the node immediately when connection fails.
+    canRetry: true,
+    removeNodeErrorCount: 5, // Remove the node immediately when connection fails.
+    restoreNodeTimeout: 500,
     defaultSelector: 'ORDER'
 };
 
