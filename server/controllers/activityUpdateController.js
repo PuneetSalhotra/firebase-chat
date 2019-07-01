@@ -320,14 +320,15 @@ function ActivityUpdateController(objCollection) {
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
 
-        var proceedUnreadUpdate = function (rowData) {
+        var proceedUnreadUpdate = function () {
+            const rowData = activityArray[0];
             req.body.activity_id = rowData.activity_id;
             req.body.timeline_transaction_id = rowData.timeline_transaction_id;
             req.body.timeline_transaction_datetime = rowData.timeline_transaction_datetime;
             var event = {
-                name: "resetUnreadUpdateCount",
+                name: "resetUnreadUpdateCountV1",
                 service: "activityUpdateService",
-                method: "resetUnreadUpdateCount",
+                method: "resetUnreadUpdateCountV1",
                 payload: req.body
             };
 
@@ -352,10 +353,11 @@ function ActivityUpdateController(objCollection) {
                             });
                         }
                     }
-                    cnt++;
-                    if (cnt == activityArray.length) {
-                        res.send(responseWrapper.getResponse(false, {}, 200, req.body));
-                    }
+                    // cnt++;
+                    // if (cnt == activityArray.length) {
+                    //     res.send(responseWrapper.getResponse(false, {}, 200, req.body));
+                    // }
+                    res.send(responseWrapper.getResponse(false, {}, 200, req.body));
                 }
             });
         };
@@ -366,13 +368,14 @@ function ActivityUpdateController(objCollection) {
                     res.send(responseWrapper.getResponse(false, {}, -7998, req.body));
                 } else {
                     if (status) {     // proceed                            
-                        forEachAsync(activityArray, function (next, rowData) {
-                            // console.log(rowData);
-                            global.logger.write('debug', 'rowData: ' + JSON.stringify(rowData, null, 2), {}, req.body);
+                        // forEachAsync(activityArray, function (next, rowData) {
+                        //     // console.log(rowData);
+                        //     global.logger.write('debug', 'rowData: ' + JSON.stringify(rowData, null, 2), {}, req.body);
 
-                            proceedUnreadUpdate(rowData);
-                            next();
-                        });
+                        //     proceedUnreadUpdate(rowData);
+                        //     next();
+                        // });
+                        proceedUnreadUpdate();
                     } else {  // this is a duplicate hit,
                         res.send(responseWrapper.getResponse(false, {}, 200, req.body));
                     }
@@ -380,13 +383,14 @@ function ActivityUpdateController(objCollection) {
             });
 
         } else if (deviceOsId === 5) {
-            forEachAsync(activityArray, function (next, rowData) {
-                // console.log(rowData);
-                global.logger.write('debug', 'rowData: ' + JSON.stringify(rowData, null, 2), {}, req.body);
+            // forEachAsync(activityArray, function (next, rowData) {
+            //     // console.log(rowData);
+            //     global.logger.write('debug', 'rowData: ' + JSON.stringify(rowData, null, 2), {}, req.body);
 
-                proceedUnreadUpdate(rowData);
-                next();
-            });
+            //     proceedUnreadUpdate(rowData);
+            //     next();
+            // });
+            proceedUnreadUpdate();
         } else {
             res.send(responseWrapper.getResponse(false, {}, -3304, req.body));
         }
