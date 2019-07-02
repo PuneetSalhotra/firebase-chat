@@ -711,7 +711,9 @@ function AssetService(objectCollection) {
             'asset_count_signup': util.replaceDefaultNumber(rowArray[0]['asset_count_signup']),
             'asset_count_task_created': util.replaceDefaultNumber(rowArray[0]['asset_count_task_created']),
             'operating_asset_image_path': util.replaceDefaultString(rowArray[0]['operating_asset_image_path']),
-            'workforce_type_id': util.replaceDefaultNumber(rowArray[0]['workforce_type_id'])
+            'workforce_type_id': util.replaceDefaultNumber(rowArray[0]['workforce_type_id']),
+            
+            'asset_flag_admin': util.replaceDefaultNumber(rowArray[0]['asset_flag_admin'])
         };
 
         callback(false, rowData);
