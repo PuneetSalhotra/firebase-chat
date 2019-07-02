@@ -575,7 +575,7 @@ function AdminOpsService(objectCollection) {
         return [error, responseData];
     }
 
-    this.addNewDeskToWorkforce = async function (request) {
+     this.addNewDeskToWorkforce = async function (request) {
 
         const organizationID = Number(request.organization_id),
             accountID = Number(request.account_id),
@@ -746,6 +746,32 @@ function AdminOpsService(objectCollection) {
         request.activity_description = request.asset_first_name;
         request.activity_access_role_id = 8;
         request.activity_parent_id = 0;
+
+        // Check if an Employee with the given phone nunmber exists
+        const [errZero_1, checkPhoneNumberData] = await assetListSelectCategoryPhoneNumber({
+            phone_number: Number(request.phone_number) || 0,
+            country_code: Number(request.country_code) || 0,
+            asset_type_category_id: 2,
+        }, organizationID);
+        if (errZero_1 || Number(checkPhoneNumberData.length) > 0) {
+            console.log("addNewEmployeeToExistingDesk | assetListSelectCategoryPhoneNumber | Error: ", errZero_1);
+            return [true, {
+                message: `An employee with the country code ${Number(request.country_code)} and phone number ${Number(request.phone_number)} already exists.`
+            }]
+        }
+
+        // Check if an Employee with the given phone nunmber exists
+        const [errZero_2, checkCUIDData] = await assetListSelectCustomerUniqueID({
+            account_id: 0,
+            workforce_id: 0,
+            customer_unique_id: Number(request.customer_unique_id),
+        }, organizationID);
+        if (errZero_2 || Number(checkCUIDData.length) > 0) {
+            console.log("addNewEmployeeToExistingDesk | assetListSelectCustomerUniqueID | Error: ", errZero_2);
+            return [true, {
+                message: `An employee with the CUID ${Number(request.customer_unique_id)} already exists.`
+            }]
+        }
 
         request.activity_inline_data = JSON.stringify({
             employee_profile_picture: "",
@@ -940,6 +966,62 @@ function AdminOpsService(objectCollection) {
             id_card_activity_id: idCardActivityID
         }];
 
+    }
+
+    // Fetch all assets with the given country code and phone number
+    async function assetListSelectCategoryPhoneNumber(request, organizationID) {
+        // IN p_organization_id bigint(20), IN p_phone_number VARCHAR(20), 
+        // IN p_country_code SMALLINT(6), IN p_asset_type_category_id TINYINT(4)
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            organizationID,
+            request.phone_number,
+            request.country_code,
+            request.asset_type_category_id
+        );
+        const queryString = util.getQueryString('ds_v1_asset_list_select_category_phone_number', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Fetch all assets with the given country code and phone number
+    async function assetListSelectCustomerUniqueID(request, organizationID) {
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
+        // IN p_workforce_id BIGINT(20), IN p_customer_unique_id VARCHAR(50)
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            organizationID,
+            request.account_id,
+            request.workforce_id,
+            request.customer_unique_id
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_select_customer_unique_id', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
     }
 
     async function updateInsertEmployeeToDeskAccessMapping(request, deskAssetID, operatingAssetID, idCardActivityID, workforceID, organizationID, accountID) {
