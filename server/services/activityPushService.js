@@ -25,7 +25,7 @@ function ActivityPushService(objectCollection) {
                 
                 var activityId = activityData[0]['activity_id'];
                 pushString.activity_id = activityId;
-                pushString.activity_inline_data = activityInlineJson;
+                // pushString.activity_inline_data = activityInlineJson;
                 
                 switch (activityTypeCategoryId) {
                     case 1: //Task List                        
@@ -379,6 +379,9 @@ function ActivityPushService(objectCollection) {
                             case '/' + global.config.version + '/activity/unread/count/reset/v1':
                                 msg.activity_type_category_id = 48;
                                 msg.type = 'activity_read';
+
+                                // 2nd July 2019 04:03 PM IST: DO NOT SEND push to Android or iOS
+                                pushString = {};
                                 break;
                         }
                         break;

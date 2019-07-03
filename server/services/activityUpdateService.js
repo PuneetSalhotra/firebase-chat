@@ -1867,6 +1867,86 @@ function ActivityUpdateService(objectCollection) {
         }); */
     };
 
+    this.resetUnreadUpdateCountV1 = function (request, callback) {
+
+        var logDatetime = util.getCurrentUTCTime();
+        request['datetime_log'] = logDatetime;
+        var activityTypeCategoryId = Number(request.activity_type_category_id);
+
+        let activityArray = JSON.parse(request.activity_id_array);
+        let activitySet = new Set();
+        for (const activity of activityArray) {
+            activitySet.add(activity.activity_id);
+        }
+
+        for (const activityID of activitySet) {
+            activityCommonService.resetAssetUnreadCount(request, activityID, function (err, data) {
+                if (err === false) {
+                    if (activityTypeCategoryId === 8 && Number(request.device_os_id) !== 5) {
+                        var pubnubMsg = {};
+                        pubnubMsg.type = 'activity_unread';
+                        pubnubMsg.organization_id = request.organization_id;
+                        pubnubMsg.desk_asset_id = request.asset_id;
+                        pubnubMsg.activity_type_category_id = request.activity_type_category_id || 0;
+                        // console.log('PubNub Message : ', pubnubMsg);
+                        global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg, null, 2), {}, request);
+
+                        let pushRequest = Object.assign({}, request);
+                        pushRequest.activity_id = activityID;
+                        activityPushService.pubNubPush(pushRequest, pubnubMsg, function (err, data) { });
+                    }
+                }
+            });
+        }
+
+
+        if (Number(request.device_os_id) === 5) {
+            for (const activityID of activitySet) {
+                let decreaseUnreadRequest = Object.assign({}, request);
+                decreaseUnreadRequest.activity_id = activityID;
+                decreaseUnreadCntsInMobile(decreaseUnreadRequest)
+                    .then(() => { })
+                    .catch((err) => {
+                        // console.log('Error in decreaseUnreadCntsInMobile : ', err);
+                        global.logger.write('debug', 'Error in decreaseUnreadCntsInMobile: ' + JSON.stringify(err), err, decreaseUnreadRequest);
+                    });
+            }
+        }
+
+        if (request.url.includes('v1')) {
+            if (activityTypeCategoryId === 10 || activityTypeCategoryId === 11 || activityTypeCategoryId === 5 ||
+                activityTypeCategoryId === 6 || activityTypeCategoryId === 29 || activityTypeCategoryId === 43 ||
+                activityTypeCategoryId === 44) {
+                activityCommonService.retrieveAccountList(request, (err, data) => {
+                    if (err === false) {
+                        request.config_resp_hours = data[0].account_config_response_hours;
+
+                        for (const activity of activityArray) {
+                            let responseRateRequest = Object.assign({}, request);
+                            responseRateRequest.activity_id = activity.activity_id;
+                            responseRateRequest.timeline_transaction_id = activity.timeline_transaction_id;
+                            activityCommonService.responseRateUnreadCount(responseRateRequest, activity.activity_id, function (err, data) {
+                                if (err === false) {
+                                    updateFilesPS(request).then(() => { });
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        }
+
+        activityPushService.sendPush(request, objectCollection, 0, function () { });
+
+        // New Productivity Score
+        // inMail
+        if (activityTypeCategoryId === 8) {
+            updateInmailPS(request).then(() => { });
+        }
+
+        callback(false, true);
+    };
+
     function decreaseUnreadCntsInMobile(request) {
         return new Promise((resolve, reject) => {
             var paramsArr = new Array(
