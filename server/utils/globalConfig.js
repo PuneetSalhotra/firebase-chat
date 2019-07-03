@@ -431,21 +431,21 @@ if (mode === 'preprod') {
     config.sqsConsumer = 6300;
 
     //Mysql Config
-    // config.masterIp = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    // config.slave1Ip = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.masterIp = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.slave1Ip = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    //config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    //config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
     
     config.dbUser = 'apiuser';    
-    // config.database = 'worlddesk_preprod';
-    config.database = 'desker'; // desker_staging
+    config.database = 'worlddesk_preprod';
+    //config.database = 'desker'; // desker_staging
     config.dbPassword = 'apidbuser';
 
     config.conLimit = 2;
 
     // Redis Config    
-    // config.redisIp = 'cache-preprod.7otgcu.0001.aps1.cache.amazonaws.com';
-    config.redisIp = 'cache-production.7otgcu.ng.0001.aps1.cache.amazonaws.com';
+    config.redisIp = 'cache-preprod.7otgcu.0001.aps1.cache.amazonaws.com';
+    //config.redisIp = 'cache-production.7otgcu.ng.0001.aps1.cache.amazonaws.com';
     config.redisPort = 6379;
 
     //IOS Push
