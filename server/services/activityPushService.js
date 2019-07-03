@@ -367,6 +367,28 @@ function ActivityPushService(objectCollection) {
                                         pushString.description = `Added attachment in ${activityTitle}.`;
                                     }
                                 }
+
+                                // When a form is freshly added to a workflow
+                                if (Number(request.activity_stream_type_id) === 705) {
+                                    // msg.activity_type_category_id = 48;
+                                    // msg.type = 'activity_unread';
+                                    // msg.description = `Added text in ${activityTitle}.`;
+
+                                    pushString.title = senderName;
+                                    pushString.description = `${senderName} added a form to ${activityTitle}.`;
+                                }
+
+                                // When a form is freshly added to a workflow
+                                if (Number(request.activity_stream_type_id) === 713) {
+                                    // msg.activity_type_category_id = 48;
+                                    // msg.type = 'activity_unread';
+                                    // msg.description = `Added text in ${activityTitle}.`;
+
+                                    pushString.title = senderName;
+                                    pushString.description = `${senderName} updated a form in ${activityTitle}.`;
+                                } else {
+                                    // console.log("Wow!!!!! Request", request);
+                                }
                                 break;
                             case '/' + global.config.version + '/activity/status/alter':
                                 // case '/' + global.config.version + '/activity/participant/access/set':
