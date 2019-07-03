@@ -1384,7 +1384,7 @@ function Util() {
     this.uploadS3Object = async (request, zipFile) => {
         return new Promise((resolve)=>{
             let filePath= global.config.efsPath; 
-            let environment = global.config.mode;
+            let environment = global.mode;
             
             if (environment === 'prod') {
                 environment = "";
