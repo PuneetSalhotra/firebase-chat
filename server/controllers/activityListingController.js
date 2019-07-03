@@ -756,6 +756,19 @@ function ActivityListingController(objCollection) {
             });
     });
 
+    // Fetch queue activities specific to the user
+    // A queue can be at organization, workforce or account level
+    app.post('/' + global.config.version + '/asset/queue/activity/user_filter/list', async function (req, res) {
+        // 
+        const [err, childOrderData] = await activityListingService.getQueueActivitiesWithUserFilter(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, childOrderData, 200, req.body));
+        } else {
+            console.log("/asset/queue/activity/user_filter/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, childOrderData, -9999, req.body));
+        }
+    });
+
     app.post('/' + global.config.version + '/activity/queue/list/all', function (req, res) {
         activityListingService
             .getQueueActivitiesAllFilters(req.body)
@@ -780,6 +793,27 @@ function ActivityListingController(objCollection) {
             console.log("/activity/workflow/child_orders/list | Error: ", err);
             res.send(responseWrapper.getResponse(err, childOrderData, -9999, req.body));
         }
+    });
+
+
+    app.post('/' + global.config.version + '/activity/form/download/attachements',function (req, res) {
+        activityListingService.downloadZipFile(req.body).then((data) => {
+            res.send(responseWrapper.getResponse({}, data[1], 200, req.body));
+        }).catch((err) => {
+            let data = {};
+            res.send(responseWrapper.getResponse(err, data, -999, req.body));
+        });
+    });
+
+    app.post('/' + global.config.version + '/activity/queue/list/all/v1', function (req, res) {
+        activityListingService
+            .getQueueActivitiesAllFiltersV1(req.body)
+            .then((data) => {
+                res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            }).catch((err) => {
+                data = {};
+                res.send(responseWrapper.getResponse(err, data, -9998, req.body));
+            });
     });
 
 }

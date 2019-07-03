@@ -13,6 +13,7 @@ var os = require('os');
 const excelToJson = require('convert-excel-to-json');
 const XLSX = require('xlsx');
 const AWS = require('aws-sdk');
+const archiver = require('archiver');
 
 AWS.config.update(
     {
@@ -1335,48 +1336,136 @@ function Util() {
             });
 
         return [error, workbook];
-    }
+    };
 
-    this.sendEmailDemoTelco = function (request, email, subject, text, htmlTemplate, callback) {
-        console.log('email : ', email);
-        console.log('subject : ', subject);
-        console.log('text : ', text);
+    this.downloadS3Object = async (request, url) =>{       
+        return new Promise((resolve)=>{
+            var s3 = new AWS.S3();
+            console.log('URL : ', url);
 
-        // SendSmtpEmail | Values to send a transactional email
-        var sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
-        sendSmtpEmail.to = [{
-            "name": request.email_receiver_name || undefined,
-            "email": email
-        }];
-        sendSmtpEmail.sender = {
-            "name": request.email_sender_name || undefined,
-            "email": request.email_sender
-        };
-        sendSmtpEmail.textContent = text;
-        sendSmtpEmail.htmlContent = htmlTemplate;
-        sendSmtpEmail.subject = subject;
-        sendSmtpEmail.headers = {
-            "x-mailin-custom": "Grene Robotics"
-        };
-        sendSmtpEmail.tags = ["test"];
-        // sendSmtpEmail.attachment = [{
-        //   "url": request.attachment_url
-        //}]
-        //    sendSmtpEmail.url = request.attachment_url;
-        if (request.hasOwnProperty('attachment_url')) {
-            sendSmtpEmail.attachment = [{
-                // use URL as an attachment
-                name: request.attachment_name, // 'service_request_form.pdf',
-                url: request.attachment_url
-            }]
-        }
-        apiInstance.sendTransacEmail(sendSmtpEmail)
-            .then(function (data) {
-                console.log('API called successfully. Returned data: ', data);
-                return callback(false, data);
-            }, function (error) {
-                return callback(true, error);
+            let BucketName = url.slice(8, 25);
+            let KeyName = url.slice(43);
+
+            if(url.includes('ap-south-1')) {
+                KeyName = url.slice(54);
+            }
+
+            if(url.includes('staging') || url.includes('preprod')) {
+                BucketName = url.slice(8, 33);
+                KeyName = url.slice(51);
+
+                if(url.includes('ap-south-1')) {
+                    KeyName = url.slice(62);
+                }
+            }
+    
+            console.log('BucketName : ', BucketName);
+            console.log('KeyName : ', KeyName);
+
+            const FileNameArr = url.split('/');
+            const FileName = FileNameArr[FileNameArr.length -1];
+
+            console.log('FILENAME : ', FileName);
+
+            let params = {
+                Bucket: BucketName, 
+                Key: KeyName
+            };
+            
+            let filePath= global.config.efsPath;           
+            let myFile = fs.createWriteStream(filePath + FileName);
+            let fileStream = s3.getObject(params).createReadStream();
+            fileStream.pipe(myFile);
+
+            resolve(FileName);
+        });
+    };
+
+    this.uploadS3Object = async (request, zipFile) => {
+        return new Promise((resolve)=>{
+            let filePath= global.config.efsPath; 
+            let environment = global.mode;
+            
+            if (environment === 'prod') {
+                environment = "";
+            }
+
+            let bucketName = "worlddesk-" + environment + "-" + this.getCurrentYear() + '-' + this.getCurrentMonth();
+            let prefixPath = request.organization_id + '/' + 
+                             request.account_id + '/' + 
+                             request.workforce_id + '/' + 
+                             request.asset_id + '/' + 
+                             this.getCurrentYear() + '/' + this.getCurrentMonth() + '/103' + '/' + this.getMessageUniqueId(request.asset_id);
+            console.log(bucketName);
+            console.log(prefixPath);
+
+            var s3 = new AWS.S3();
+            let params = {
+                Body: fs.createReadStream(filePath + zipFile),
+                Bucket: bucketName,
+                Key: prefixPath + "/" + zipFile,
+                ContentType: 'application/zip',
+                //ContentEncoding: 'base64',
+                //ACL: 'public-read'
+            };
+
+            //console.log(params.Body);
+    
+            console.log('Uploading to S3...');
+
+            s3.putObject(params, async (err, data) =>{
+                    console.log('ERROR', err);
+                    console.log(data);
+                   
+                    resolve(`https://${bucketName}.s3.ap-south-1.amazonaws.com/${params.Key}`);
+                });
             });
+    };    
+
+    this.zipTheFiles = async (request, files) =>{
+        return new Promise((resolve)=>{
+            
+            let zipFile = 'download_' + this.getMessageUniqueId(request.asset_id) + '.zip';
+            let filePath = global.config.efsPath;
+            var output = fs.createWriteStream(filePath + zipFile);
+            var archive = archiver('zip', {
+                zlib: { level: 9 } // Sets the compression level.
+            });
+            
+            output.on('close', function() {
+                console.log(archive.pointer() + ' total bytes');
+                console.log('archiver has been finalized and the output file descriptor has closed.');  
+                
+                resolve(zipFile);
+            });
+            
+            output.on('end', function() {
+                console.log('Data has been drained');
+            });
+            
+            archive.on('warning', function(err) {
+                if (err.code === 'ENOENT') {
+                    // log warning
+                } else {
+                    // throw error
+                    throw err;
+                }
+            });
+            
+            // good practice to catch this error explicitly
+            archive.on('error', function(err) {
+                throw err;
+            });
+            
+            archive.pipe(output);
+            
+            for(let i=0;i < files.length; i++) {                
+                archive.append(fs.createReadStream(filePath + files[i]), { name: files[i] });
+            }           
+
+            archive.finalize();              
+            //resolve();
+        });
     };
 }
 

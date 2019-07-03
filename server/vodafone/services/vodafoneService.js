@@ -5074,38 +5074,40 @@ function VodafoneService(objectCollection) {
             // setting the minimum read rows to be at least 1 to just add Paramesh as the participant
             // and break out of the loop. - BEN
             // [UPDATE] 6th June 2019 5:27 PM => Comment out the logic below
-            // if (Number(row) > 1) {
-            //     console.log("vodafoneCreateChildOrdersFromBulkOrder | HERE 2");
-            //     // Add Paramesh OMT as participant
-            //     const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
-            //         organization_id: request.organization_id,
-            //         asset_id: 32037
-            //     });
-            //     if (!error && Number(assetData.length) > 0) {
-            //         try {
-            //             await addDeskAsParticipant({
-            //                 organization_id: formWorkflowActivityOrganizationID,
-            //                 account_id: formWorkflowActivityAccountID,
-            //                 workforce_id: formWorkflowActivityWorkforceID,
-            //                 workflow_activity_id: parentWorkflowActivityID,
-            //                 asset_id: 100
-            //             }, {
-            //                 first_name: assetData[0].asset_first_name,
-            //                 desk_asset_id: assetData[0].asset_id,
-            //                 contact_phone_number: assetData[0].operating_asset_phone_number,
-            //                 contact_phone_country_code: assetData[0].operating_asset_phone_country_code,
-            //                 asset_type_id: assetData[0].asset_type_id,
-            //             });
-            //         } catch (error) {
-            //             console.log("vodafoneCreateChildOrdersFromExcelUpload | addDeskAsParticipant | Error: ", error);
-            //         }
-            //         console.log("[ABORT] More than 100 child order rows found. Adding Paramesh as participant.");
-            //     }
-            //     // Abort logic flow
-            //     return [false, {
-            //         message: "[ABORT] More than 100 child order rows found. Adding Paramesh as participant."
-            //     }]
-            // }
+            // [UPDATE] 20th June 2019 3:59 PM => Uncomment the logic below, because child order generation
+            //          was failing for orders with more than 250 child orders
+            if (Number(row) > 1) {
+                // console.log("vodafoneCreateChildOrdersFromBulkOrder | HERE 2");
+                // Add Paramesh OMT as participant
+                const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
+                    organization_id: request.organization_id,
+                    asset_id: 32037
+                });
+                if (!error && Number(assetData.length) > 0) {
+                    try {
+                        await addDeskAsParticipant({
+                            organization_id: formWorkflowActivityOrganizationID,
+                            account_id: formWorkflowActivityAccountID,
+                            workforce_id: formWorkflowActivityWorkforceID,
+                            workflow_activity_id: parentWorkflowActivityID,
+                            asset_id: 100
+                        }, {
+                            first_name: assetData[0].asset_first_name,
+                            desk_asset_id: assetData[0].asset_id,
+                            contact_phone_number: assetData[0].operating_asset_phone_number,
+                            contact_phone_country_code: assetData[0].operating_asset_phone_country_code,
+                            asset_type_id: assetData[0].asset_type_id,
+                        });
+                    } catch (error) {
+                        console.log("vodafoneCreateChildOrdersFromExcelUpload | addDeskAsParticipant | Error: ", error);
+                    }
+                    console.log("[ABORT] More than 1 child order rows found. Adding Paramesh as participant.");
+                }
+                // Abort logic flow
+                return [false, {
+                    message: "[ABORT] More than 1 child order rows found. Adding Paramesh as participant."
+                }]
+            }
 
             // Break at the first emtpy row at column A
             if (!workbook.Sheets[sheet_names[0]][`A${row}`]) {
@@ -5724,6 +5726,10 @@ function VodafoneService(objectCollection) {
                         origin_form_activity_id: childOrderOriginFormActivityId,
                         origin_form_transaction_id: childOrderOriginFormTransactionId,
                     });
+
+                } else {
+                    console.log("vodafoneCreateChildOrdersFromExcelUpload | addActivityAsync | body.status: ", body.status);
+                    console.log("vodafoneCreateChildOrdersFromExcelUpload | addActivityAsync | body: ", body);
                 }
             } catch (error) {
                 console.log("addActivityAsync | Error: ", error);

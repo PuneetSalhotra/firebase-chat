@@ -3463,21 +3463,21 @@ function ActivityCommonService(db, util, forEachAsync) {
     };
 
 
-    this.getWidgetByActivityType = function(request) { 
-        return new Promise((resolve, reject) => {       
-            var paramsArr = new Array(            
+    this.getWidgetByActivityType = function (request) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
                 request.activity_form_id,
                 request.activity_type_id,
                 request.access_level_id || 8,
-                request.page_start||0,
-                request.page_limit ||1
+                request.page_start || 0,
+                request.page_limit || 1
             );
 
             let queryString = util.getQueryString('ds_p1_1_widget_list_select_form_activity_type', paramsArr);
-               
+
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     if (err === false) {

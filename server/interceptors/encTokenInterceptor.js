@@ -19,7 +19,9 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                 var bundleTransactionId = TimeUuid.now();
                 req.body.bundle_transaction_id = bundleTransactionId;
                 req.body.url = req.url;
-                if (req.body.url.includes('/' + global.config.version + '/account/')) {
+                if(req.body.url.includes('/' + global.config.version + '/healthcheck')) {
+                    res.end('Success');
+                } else if (req.body.url.includes('/' + global.config.version + '/account/')) {
                     req.body['module'] = 'asset';
                     global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
                     global.logger.write('conLog', 'bypassing enc token checking as request is from account', {}, req.body);

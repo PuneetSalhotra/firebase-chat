@@ -12,7 +12,8 @@
   "contributors": [],
   "dependencies": {
     "@sendgrid/mail": "^6.3.1",
-    "aws-sdk": "~2.283.1",
+    "archiver": "^3.0.0",
+    "aws-sdk": "~2.283.1",    
     "body-parser": "^1.18.3",
     "bunyan": "~1.8.1",
     "cassandra-driver": "^3.5.0",
@@ -35,6 +36,7 @@
     "redis": "^2.8.0",
     "request": "^2.87.0",
     "sib-api-v3-sdk": "^7.0.3",
+    "stringstream": "^1.0.0",
     "tinyurl": "^1.1.2",
     "twilio": "~3.23.1",
     "xlsx": "^0.14.3"
