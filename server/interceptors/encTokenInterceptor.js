@@ -7,20 +7,25 @@ const TimeUuid = require('cassandra-driver').types.TimeUuid;
 function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
 
     app.use(function (req, res, next) {
-        cacheWrapper.getServiceId(req.url, function (err, result) {
+        //cacheWrapper.getServiceId(req.url, function (err, result) {
 
-            if (err) {
-                //console.log('Unable to get the service Id')
-                global.logger.write('conLog', 'Unable to get the service Id', {}, req.body);
-                req.body.service_id = 0;
-            } else {                
-                global.logger.write('conLog', 'Service Id : ', JSON.stringify(result), {});
-                req.body.service_id = result;
+            //if (err) {
+            //    //console.log('Unable to get the service Id')
+            //    global.logger.write('conLog', 'Unable to get the service Id', {}, req.body);
+            //    req.body.service_id = 0;
+            //} else {                
+                //global.logger.write('conLog', 'Service Id : ', JSON.stringify(result), {});
+                //req.body.service_id = result;
+                
+                req.body.service_id = "";
                 var bundleTransactionId = TimeUuid.now();
                 req.body.bundle_transaction_id = bundleTransactionId;
                 req.body.url = req.url;
+                
                 if(req.body.url.includes('/' + global.config.version + '/healthcheck')) {
-                    res.end('Success');
+                    next();
+                    //res.end('Success');
+                    //res.status(500).send('internal server error');
                 } else if (req.body.url.includes('/' + global.config.version + '/account/')) {
                     req.body['module'] = 'asset';
                     global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
@@ -145,9 +150,9 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
 
                             break;
                     } //switch
-                } //else
+                //} //else
             } //else
-        }); //getServiceId
+        //}); //getServiceId
     }); //app.use
 } // main function
 
