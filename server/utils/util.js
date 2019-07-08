@@ -1303,8 +1303,23 @@ function Util() {
     this.getXlsxWorkbookFromS3Url = async function (request, S3Url) {
         const s3 = new AWS.S3();
 
-        const bucketName = S3Url.slice(8, 25);
-        const keyName = S3Url.slice(43);
+        // const bucketName = S3Url.slice(8, 25);
+        // const keyName = S3Url.slice(43);
+        let bucketName = S3Url.slice(8, 25);
+        let keyName = S3Url.slice(43);
+
+        if (S3Url.includes('ap-south-1')) {
+            keyName = S3Url.slice(54);
+        }
+
+        if (S3Url.includes('staging') || S3Url.includes('preprod')) {
+            bucketName = S3Url.slice(8, 33);
+            keyName = S3Url.slice(51);
+
+            if (S3Url.includes('ap-south-1')) {
+                keyName = S3Url.slice(62);
+            }
+        }
 
         const getObjectParams = {
             Bucket: bucketName,
@@ -1386,11 +1401,14 @@ function Util() {
             let filePath= global.config.efsPath; 
             let environment = global.mode;
             
+            let bucketName = '';
             if (environment === 'prod') {
-                environment = "";
+                bucketName = "worlddesk-" + this.getCurrentYear() + '-' + this.getCurrentMonth();
+
+            } else {
+                bucketName = "worlddesk-" + environment + "-" + this.getCurrentYear() + '-' + this.getCurrentMonth();
             }
 
-            let bucketName = "worlddesk-" + environment + "-" + this.getCurrentYear() + '-' + this.getCurrentMonth();
             let prefixPath = request.organization_id + '/' + 
                              request.account_id + '/' + 
                              request.workforce_id + '/' + 
