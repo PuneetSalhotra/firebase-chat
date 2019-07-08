@@ -4936,6 +4936,7 @@ function VodafoneService(objectCollection) {
         const ROMS_ACTIONS = global.vodafoneConfig[workflowActivityTypeId].ROMS_ACTIONS;
         request.target_form_id = TARGET_FORM_ID;
         request.target_form_transaction_id = targetFormTransactionId;
+        request.fire_bot_engine = 0;
         let {TARGET_FORM_DATA, UPDATED_ROMS_FIELDS} = await performRomsCalculations(request, [...targetFormDataMap.values()], ROMS_ACTIONS, isParentOrder);
         // updatedRomsFields
         for (let i = 0; i < UPDATED_ROMS_FIELDS.length; i++) {
