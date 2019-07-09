@@ -132,7 +132,7 @@ function ActivityTimelineService(objectCollection) {
                     }).then(async () => {
                         try {
                             if (activityTypeCategoryId === 9 && request.device_os_id !== 9) {
-                                await fireBotEngineInitForm(request);
+                                // await fireBotEngineInitForm(request);
                             }
                         } catch (error) {
                             console.log("addTimelineTransaction | fireBotEngineInitForm | Error: ", error);
@@ -744,6 +744,16 @@ function ActivityTimelineService(objectCollection) {
 
     async function fireBotEngineInitWorkflow(request) {
         try {
+            if (
+                request.hasOwnProperty("fire_bot_engine") &&
+                Number(request.fire_bot_engine) === 0
+            ) {
+                return;
+            }
+        } catch (error) {
+            console.log("fireBotEngineInitWorkflow | fire_bot_engine Check | Error: ", error);
+        }
+        try {
             let botEngineRequest = Object.assign({}, request);
             botEngineRequest.form_id = request.activity_form_id || request.form_id;
             botEngineRequest.field_id = 0;
@@ -754,8 +764,8 @@ function ActivityTimelineService(objectCollection) {
             if (
                 (formConfigError === false) &&
                 (Number(formConfigData.length) > 0) &&
-                (Number(formConfigData[0].form_flag_workflow_enabled) === 1) &&
-                (Number(formConfigData[0].form_flag_workflow_origin) === 1)
+                (Number(formConfigData[0].form_flag_workflow_enabled) === 1) // &&
+                // (Number(formConfigData[0].form_flag_workflow_origin) === 1)
             ) {
                 // Proceeding because there was no error found, there were records returned
                 // and form_flag_workflow_enabled is set to 1
@@ -775,6 +785,7 @@ function ActivityTimelineService(objectCollection) {
                     //Bot log - Bot is defined
                     activityCommonService.botOperationFlagUpdateBotDefined(botEngineRequest, 1);
 
+                    console.log("fireBotEngineInitWorkflow | botEngineRequest: ", botEngineRequest);
                     await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
                         .then((resp) => {
                             global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);

@@ -959,6 +959,28 @@ function AdminOpsService(objectCollection) {
             }
         }
 
+        // Send SMS to the newly added employee
+        try {
+            // Get the Org data
+            let orgData = [], senderID = '';
+            const queryString = util.getQueryString('ds_p1_organization_list_select', new Array(request.organization_id));
+            if (queryString != '') {
+                orgData = await (db.executeQueryPromise(1, queryString, request));
+            }
+            (orgData.length > 0) ? senderID = orgData[0].organization_text_sender_name : senderID = 'MYTONY';
+
+            const smsMessage = `Dear ${request.asset_first_name || ''} ${request.asset_last_name || ''}, you have been added as an '${deskAssetDataFromDB[0].asset_first_name}' by '${request.organization_name || ''}' to join their '${request.workforce_name || ''}' workforce. Please click on the link below to download the Tony App and get started.
+        
+            https://download.mytony.app`;
+
+            util.sendSmsSinfiniV1(smsMessage, request.country_code || 91, request.phone_number || 0, senderID, function (err, response) {
+                console.log('[addNewEmployeeToExistingDesk] Sinfini Response: ', response);
+                console.log('[addNewEmployeeToExistingDesk] Sinfini Error: ', err);
+            });
+        } catch (error) {
+            console.log('[addNewEmployeeToExistingDesk] SMS Block Error: ', error);
+        }
+
         return [false, {
             desk_asset_id: deskAssetID,
             coworker_contact_card_activity_id: coWorkerContactCardActivityID,
