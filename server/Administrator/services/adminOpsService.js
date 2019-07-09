@@ -964,7 +964,9 @@ function AdminOpsService(objectCollection) {
         try {
             // Get the Org data
             let orgData = [], senderID = '';
-            const queryString = util.getQueryString('ds_p1_organization_list_select', new Array(request.organization_id));
+            let orgDataQueryParams = new Array(1);
+            orgDataQueryParams[0] = Number(request.organization_id);
+            const queryString = util.getQueryString('ds_p1_organization_list_select', orgDataQueryParams);
             if (queryString != '') {
                 orgData = await (db.executeQueryPromise(1, queryString, request));
             }
