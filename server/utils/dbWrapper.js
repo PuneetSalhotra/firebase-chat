@@ -44,6 +44,35 @@ readCluster.add('MASTER', {
     debug: false
 });
 
+//Test the connection pool error
+var checkDBInstanceAvailablity = async (flag) =>{    
+    var conPool;
+    switch (flag) {
+        case 0: conPool = writeCluster;            
+                break;
+        case 1: conPool = readCluster;
+                break;
+    }
+
+    return await new Promise((resolve)=>{
+        try {         
+            conPool.getConnection(function (err, conn) {
+                if (err) {
+                    //console.log('ERROR WHILE GETTING CONNECTON - ', err);                     
+                    resolve([1, err]);
+                } else {                    
+                    conn.release();                    
+                    resolve([0, 'up']);
+                }
+            });        
+        } catch (exception) {                
+            //console.log('Exception Occurred - ' , exception);
+            resolve([0, exception]) ;
+        }
+    });
+
+};
+
 var executeQuery = function (flag, queryString, request, callback) {
 
     /*
@@ -249,4 +278,5 @@ module.exports = {
     executeQueryPromise: executeQueryPromise,
     executeRecursiveQuery: executeRecursiveQuery,
     callDBProcedure: callDBProcedure,
+    checkDBInstanceAvailablity: checkDBInstanceAvailablity
 };
