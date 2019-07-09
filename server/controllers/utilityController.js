@@ -11,6 +11,7 @@ function UtilityController(objCollection) {
     var app = objCollection.app;
     var util = objCollection.util;
     var sss = new AwsSss();
+    const db = objCollection.db;
 
     app.post('/' + global.config.version + '/time/access/global/entry/collection', function (req, res) {
 
@@ -277,6 +278,36 @@ function UtilityController(objCollection) {
         } catch(err) {
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         }         
+     });
+
+     app.get('/' + global.config.version + '/healthcheck', async (req, res) => {       
+        try {                       
+            let result = await db.checkDBInstanceAvailablity(1);
+            console.log('MASTER : ', result);
+            if(result[0] === 0) {
+                ////////////////////////////////////
+                try {                       
+                    let result = await db.checkDBInstanceAvailablity(0);
+                    console.log('SLAVE : ', result);
+                    if(result[0] === 0) {                        
+                        res.send(result[1]);
+                    } else if(result[0] === 1) {
+                        res.status(500).send(result[1]);
+                    }
+                } catch(err) {
+                    console.log('ERROR : ', err);
+                    res.send(err);
+                }
+                ///////////////////////////////////
+                //res.send(result[1]);
+            } else if(result[0] === 1) {
+                res.status(500).send(result[1]);
+            }
+        } catch(err) {
+            console.log('ERROR : ', err);
+            res.send(err);
+        }
+
      });
 
 }
