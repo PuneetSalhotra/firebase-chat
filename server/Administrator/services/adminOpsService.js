@@ -47,7 +47,8 @@ function AdminOpsService(objectCollection) {
         // Response
         if (Number(organizationID) !== 0) {
             return [false, {
-                message: `Organization ${request.organization_name} with ID ${organizationID}.`
+                message: `Organization ${request.organization_name} with ID ${organizationID}.`,
+                organization_id: organizationID
             }];
         } else {
             return [false, {
@@ -2854,7 +2855,7 @@ function AdminOpsService(objectCollection) {
                             console.log("Desk Asset ID: ", deskAssetID);
                             console.log("Contact Card Activity ID: ", contactCardActivityID);
 
-                            // Create the Desk Asset
+                            // Create the Employee Asset
                             const [errEight, employeeAssetID, idCardActivityID] = await fireEmployeeAssetCreationService(
                                 request,
                                 employee,
@@ -2947,7 +2948,7 @@ function AdminOpsService(objectCollection) {
             asset_image_path: "",
             id_card_json: JSON.stringify({}),
             country_code: employee.emp_coutry_code,
-            phone_number: employee.emp_coutry_code,
+            phone_number: employee.emp_phone,
             email_id: employee.emp_email,
             timezone_id: 0,
             asset_type_id: workforceEmployeeAssetTypeID,
