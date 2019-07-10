@@ -1231,8 +1231,23 @@ function Util() {
         let s3 = new AWS.S3();
 
         let url = request.bucket_url;
-        const BucketName = url.slice(8, 25);
-        const KeyName = url.slice(43);        
+        // const BucketName = url.slice(8, 25);
+        // const KeyName = url.slice(43);      
+        let BucketName = url.slice(8, 25);
+        let KeyName = url.slice(43);
+
+        if (url.includes('ap-south-1')) {
+            KeyName = url.slice(54);
+        }
+
+        if (url.includes('staging') || url.includes('preprod')) {
+            BucketName = url.slice(8, 33);
+            KeyName = url.slice(51);
+
+            if (url.includes('ap-south-1')) {
+                KeyName = url.slice(62);
+            }
+        }
         
         //console.log('request.bucket_url : ', url);
         //console.log('BucketName : ', BucketName);
