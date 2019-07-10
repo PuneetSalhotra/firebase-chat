@@ -517,12 +517,13 @@ function ActivityPushService(objectCollection) {
                     global.logger.write('conLog', pubnubMsg, {}, {});
                     global.logger.write('debug', 'pushStringObj : ' + JSON.stringify(pushStringObj), {}, {});
                     global.logger.write('conLog', pushStringObj, {}, {});
-                    if (Object.keys(pushStringObj).length > 0) {
+                    if (Object.keys(pushStringObj).length > 0) {                        
+                        let cnt = 0;
                         objectCollection.forEachAsync(pushReceivers, function (next, rowData) {
                             objectCollection.cacheWrapper.getAssetMap(rowData.assetId, function (err, assetMap) {
                                 //console.log(rowData.assetId, ' is asset for which we are about to send push');
                                 //console.log('Asset Map : ', assetMap);
-                                global.logger.write('debug', rowData.assetId + ' is asset for which we are about to send push', {}, {});
+                                global.logger.write('debug', rowData.assetId + ' is asset for which we are about to send push', {}, {});                                
                                 if (Object.keys(assetMap).length > 0) {
                                     getAssetBadgeCount(request, objectCollection, assetMap.asset_id, assetMap.organization_id, function (err, badgeCount) {
                                         //console.log(badgeCount, ' is badge count obtained from db');
@@ -567,7 +568,9 @@ function ActivityPushService(objectCollection) {
                                                     pubnubMsg.desk_asset_id = rowData.assetId;
                                                     //console.log('PubNub Message : ', pubnubMsg);
                                                     global.logger.write('debug', 'pubnubMsg: ' + JSON.stringify(pubnubMsg), {}, {});
-                                                    pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
+                                                    if(cnt === 0) { //Pushing org pubnub only once for each activity
+                                                        pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
+                                                    }
                                                     pubnubWrapper.push(rowData.assetId, pubnubMsg);
                                                 }
                                                 //PUB
@@ -590,10 +593,13 @@ function ActivityPushService(objectCollection) {
                                         pubnubMsg.desk_asset_id = rowData.assetId;
                                         //console.log('PubNub Message : ', pubnubMsg);
                                         global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg), {}, {});
-                                        pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
-                                        pubnubWrapper.push(rowData.assetId, pubnubMsg);
+                                        if(cnt === 0) { //Pushing org pubnub only once for each activity
+                                            pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
+                                        }                                        
+                                        pubnubWrapper.push(rowData.assetId, pubnubMsg);                                        
                                     }
                                 }
+                                cnt++;
                             });
                             next();
                         }).then(function () {
@@ -602,15 +608,16 @@ function ActivityPushService(objectCollection) {
                     } else if (Object.keys(pubnubMsg).length > 0) {
                         //console.log('Sending PubNub push Alone');
                         global.logger.write('conLog', 'Sending PubNub push Alone', {}, {});
-                        objectCollection.forEachAsync(pushReceivers, function (next, rowData) {
+                        let cnt = 0;
+                        objectCollection.forEachAsync(pushReceivers, function (next, rowData) {                            
                             objectCollection.cacheWrapper.getAssetMap(rowData.assetId, function (err, assetMap) {
                                 //console.log(rowData.assetId, ' is asset for which we are about to send push');
                                 //console.log('Asset Map : ', assetMap);
                                 global.logger.write('debug', rowData.assetId + ' is asset for which we are about to send push', {}, {});
-                                global.logger.write('debug', assetMap, {}, {});
+                                //global.logger.write('debug', assetMap, {}, {});                                                                
                                 if (Object.keys(assetMap).length > 0) {
                                     //console.log('rowData : ', rowData);
-                                    global.logger.write('debug', rowData, {}, {});
+                                    global.logger.write('debug', rowData, {}, {});                                    
                                     switch (rowData.pushType) {
                                         case 'pub':
                                             //console.log('pubnubMsg :', pubnubMsg);
@@ -620,23 +627,28 @@ function ActivityPushService(objectCollection) {
                                                 pubnubMsg.desk_asset_id = rowData.assetId;
                                                 //console.log('PubNub Message : ', pubnubMsg);
                                                 global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg), {}, {});
-                                                pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
+                                                if(cnt === 0) {
+                                                    pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
+                                                }                                                
                                                 pubnubWrapper.push(rowData.assetId, pubnubMsg);
                                             }
                                             break;
                                         default:
                                             //console.log('pubnubMsg :', pubnubMsg);
-                                            global.logger.write('debug', 'pubnubMsg: ' + JSON.stringify(pubnubMsg, null, 2), {}, {});
+                                            //global.logger.write('debug', 'pubnubMsg: ' + JSON.stringify(pubnubMsg, null, 2), {}, {});
                                             if (pubnubMsg.activity_type_category_id != 0) {
                                                 pubnubMsg.organization_id = rowData.organizationId;
                                                 pubnubMsg.desk_asset_id = rowData.assetId;
                                                 //console.log('PubNub Message : ', pubnubMsg);
-                                                global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg, null, 2), {}, {});
-                                                pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
+                                                global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg, null, 2), {}, {});                                                
+                                                if(cnt === 0) {
+                                                    pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
+                                                }                                                
                                                 pubnubWrapper.push(rowData.assetId, pubnubMsg);
                                             }
                                             break;
                                     }
+                                    cnt++;                                    
                                 }
                             });
                             next();
