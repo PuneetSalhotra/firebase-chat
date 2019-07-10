@@ -685,6 +685,22 @@ function BotService(objectCollection) {
                     }
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     break;
+                
+                case 8: // add_comment
+                    console.log('****************************************************************');
+                    console.log('add_comment');
+                    console.log('add_comment | Request Params received by BOT ENGINE', request);
+                    try {
+                        await addComment(request, botOperationsJson.bot_operations.add_comment);
+                    } catch (err) {
+                        console.log('add_comment | Error', err);
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "err": err
+                        });
+                    }
+                    console.log('****************************************************************');
+                    break;
             }
 
             //botOperationTxnInsert(request, i);
@@ -698,6 +714,63 @@ function BotService(objectCollection) {
 
         return {};
     };
+
+    async function addComment(request, comments) {
+
+        let workflowActivityID = Number(request.workflow_activity_id) || 0,
+            workflowActivityTypeID = 0;
+
+        try {
+            const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
+            if (Number(workflowActivityData.length) > 0) {
+                workflowActivityTypeID = Number(workflowActivityData[0].activity_type_id);
+            }
+        } catch (error) {
+            throw new Error("No Workflow Data Found in DB");
+        }
+
+        if (workflowActivityID === 0 || workflowActivityTypeID === 0) {
+            throw new Error("Couldn't Fetch workflowActivityID or workflowActivityTypeID");
+        }
+
+        for (const comment of comments) {
+            let addCommentRequest = Object.assign(request, {});
+
+            addCommentRequest.asset_id = 100;
+            // addCommentRequest.flag_pin = 0;
+            // addCommentRequest.flag_priority = 0;
+            // addCommentRequest.flag_offline = 0;
+            // addCommentRequest.flag_retry = 0;
+            addCommentRequest.device_os_id = 7;
+            addCommentRequest.activity_type_category_id = 48;
+            addCommentRequest.activity_type_id
+            addCommentRequest.activity_id
+            addCommentRequest.activity_timeline_collection = JSON.stringify({
+                "content": `${comment.comment}`,
+                "subject": `${comment.comment}`,
+                "mail_body": `${comment.comment}`,
+                "attachments": []
+            });
+            addCommentRequest.activity_stream_type_id = 325;
+            addCommentRequest.timeline_stream_type_id = 325;
+            addCommentRequest.activity_timeline_text = "";
+            addCommentRequest.activity_access_role_id = 27;
+            // addCommentRequest.data_entity_inline
+            addCommentRequest.operating_asset_first_name = "TONY"
+            addCommentRequest.datetime_log = util.getCurrentUTCTime();
+            addCommentRequest.flag_timeline_entry = 1;
+            addCommentRequest.log_asset_id = 100;
+
+            const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
+            try {
+                await addTimelineTransactionAsync(addCommentRequest);
+            } catch (error) {
+                console.log("addComment | addCommentRequest | addTimelineTransactionAsync | Error: ", error);
+                throw new Error(error);
+            }
+        }
+        return;
+    }
 
     async function botOperationTxnInsert(request, botData) {
         let paramsArr = new Array(
