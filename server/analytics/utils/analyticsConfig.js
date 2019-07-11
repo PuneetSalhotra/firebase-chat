@@ -2,4 +2,4 @@
     author: bharat krishna masimukku
 */
 
-widgetConfig = {};
+analyticsConfig = {};
