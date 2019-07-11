@@ -25,7 +25,7 @@ var PamUpdateController = require('../controllers/pamUpdateController');
 //var LinkController = require('../controllers/linkController');
 //var GroupController = require('../controllers/groupController');
 //var FormExceptionController = require('../controllers/formExceptionController');
-let WidgetController = require('../widgets/controllers/widgetController.js');
+let AnalyticsController = require('../analytics/controllers/analyticsController.js');
 
 //Vodafone
 var VodafoneController = require('../vodafone/controllers/vodafoneController');
@@ -66,7 +66,7 @@ function ControlInterceptor(objCollection) {
     //new LinkController(app, log, cacheWrapper, queueWrapper);
     //new GroupController(app, log, cacheWrapper, queueWrapper);
     //new FormExceptionController(app, log, cacheWrapper, queueWrapper);
-    new WidgetController(objCollection);
+    new AnalyticsController(objCollection);
 
     // Stats
     new StatsController(objCollection);
