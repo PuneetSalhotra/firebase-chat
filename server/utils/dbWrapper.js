@@ -257,6 +257,48 @@ let callDBProcedure =
         }
     };
 
+//Generic function for firing stored procedures
+//Bharat Masimukku
+//2019-07-13
+let callDBProcedureR2 =
+    async (request, procName, paramsArray, flagReadOperation) => {
+        try {
+            let queryString = getQueryString(procName, paramsArray);
+
+            if (queryString != '') {
+                let result = await (executeQueryPromise(flagReadOperation, queryString, request));
+                
+                console.log();
+                console.log(`--------------------------------------`);
+                console.log(`DB Result:\n${JSON.stringify(result, null, 4)}`);
+                console.log(`--------------------------------------`);
+                console.log();
+                
+                global.logger.write('dbResponse', queryString, result, request);
+                // console.log(`Query Status: ${JSON.stringify(result[0].query_status, null, 4)}`);
+
+                if (result.length > 0)
+                {
+                    if (result[0].query_status === 0) {
+                        return result;
+                    } else {
+                        return Promise.reject(result);
+                    }
+                }
+                else
+                {
+                    return result;
+                }
+            } else {
+                global.logger.write('dbResponse', "Invalid Query String: " + queryString, {}, request);
+                return Promise.reject(`Invalid Query String`);
+            }
+        } catch (error) {
+            global.logger.write('dbResponse', 'QUERY ERROR | ', error, request);
+            return Promise.reject(error);
+        }
+    };
+
 /*process.on('exit', (err) => {
     global.logger.write('conLog', 'Closing the poolCluster : ' + err, {}, {});
     writeCluster.end();
@@ -278,5 +320,6 @@ module.exports = {
     executeQueryPromise: executeQueryPromise,
     executeRecursiveQuery: executeRecursiveQuery,
     callDBProcedure: callDBProcedure,
+    callDBProcedureR2: callDBProcedureR2,
     checkDBInstanceAvailablity: checkDBInstanceAvailablity
 };

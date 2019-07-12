@@ -1853,7 +1853,8 @@ function FormConfigService(objCollection) {
                 isWorkflowEnabled = Number(formConfigData[0].form_flag_workflow_enabled),
                 workflowActivityTypeId = Number(formConfigData[0].form_workflow_activity_type_id),
                 workflowActivityTypeName = formConfigData[0].form_workflow_activity_type_name,
-                formName = String(formConfigData[0].form_name);
+                formName = String(formConfigData[0].form_name),
+                workflowActivityTypeDefaultDurationDays = Number(formConfigData[0].form_workflow_activity_type_default_duration_days);
 
             if (isWorkflowEnabled && originFlagSet) {
                 // Fetch the next activity_id to be inserted
@@ -1881,7 +1882,12 @@ function FormConfigService(objCollection) {
                 //createWorkflowRequest.activity_description = workflowActivityTypeName;
                 createWorkflowRequest.activity_form_id = Number(request.activity_form_id);
                 createWorkflowRequest.form_transaction_id = Number(request.form_transaction_id);
+                
+                // Child Orders
                 createWorkflowRequest.activity_parent_id = Number(request.child_order_activity_parent_id) || 0;
+
+                createWorkflowRequest.activity_datetime_start = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+                createWorkflowRequest.activity_datetime_end = moment().utc().add(workflowActivityTypeDefaultDurationDays, "days").format('YYYY-MM-DD HH:mm:ss');
 
                 const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
                 await addActivityAsync(createWorkflowRequest);
