@@ -3486,6 +3486,58 @@ function ActivityCommonService(db, util, forEachAsync) {
         });
     };
 
+    this.getWorkflowFieldsBasedonActTypeId = async function (request, activityTypeId) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(            
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            activityTypeId
+        );
+
+        var queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_select_id', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.analyticsUpdateWidgetValue = async function (request, flag, value) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.activity_id,
+            flag || 0,
+            value,
+            request.asset_id,
+            util.datetime_log
+        );
+
+        var queryString = util.getQueryString('ds_p1_activity_list_update_widget_value', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
 }
 
 

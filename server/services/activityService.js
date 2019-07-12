@@ -2070,6 +2070,9 @@ function ActivityService(objectCollection) {
                 switch (activityStatusTypeId) {
 
                     case 26: //completed // flag value is 2
+                    case 24:
+                    case 155:
+                        updateActivityClosedDatetime(request);
                         /*activityCommonService.getActivityDetails(request, 0, function (err, resultData) {
                             if (err === false) {
                                 var newRequest = Object.assign({}, request);
@@ -3701,6 +3704,49 @@ function ActivityService(objectCollection) {
                 });
             }
         });
+    }
+
+    //To update the Closed datetime of an activity
+    async function updateActivityClosedDatetime(request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_id,
+            request.activity_status_id || 0,
+            request.activity_status_type_id || 0,
+            request.asset_id,
+            request.datetime_log //log_datetime
+        );
+
+        var queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_closed_datetime', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        var queryString1 = util.getQueryString('ds_p1_activity_list_update_closed_datetime', paramsArr);
+        if (queryString1 !== '') {
+            await db.executeQueryPromise(0, queryString1, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
     }
 
 }
