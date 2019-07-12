@@ -54,6 +54,35 @@ function AnalyticsController(objCollection)
             } 
         }
     );
+
+    app.post('/' + global.config.version + '/analytics/widget/add', async (req, res) => {        
+        try {
+            
+            try {
+                JSON.parse(req.body.widget_inline_data);
+            } catch (exeption) {
+                res.send(responseWrapper.getResponse(false, 'Invalid Inline JSON', -3308, req.body));
+                return;
+            }
+
+            let result = await analyticsService.analyticsWidgetAdd(req.body);
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch(err) {
+            //global.logger('conLog', 'Error : ', err, {});
+            console.log('Error : ', err);
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            } 
+    });
+
+    app.post('/' + global.config.version + '/analytics/widget/alter', async (req, res) => {        
+        try {
+            let result = await analyticsService.analyticsWidgetAlter(req.body);
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch(err) {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            } 
+    });
+    
 }
 
 module.exports = AnalyticsController;
