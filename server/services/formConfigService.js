@@ -482,7 +482,7 @@ function FormConfigService(objCollection) {
                 var retrievedInlineData = [];
                 if (data.length > 0) {
                     request['activity_id'] = data[0].activity_id;
-
+                    request.activity_type_id = data[0].activity_type_id  || 0;
                     retrievedInlineData = JSON.parse(data[0].activity_inline_data);
 
                     newData.form_name = data[0].form_name || newData.form_name;
@@ -560,6 +560,9 @@ function FormConfigService(objCollection) {
                         }).catch((err) => {
                             // global.logger.write(err);
                         });
+
+                        //Analytics for Widget
+                        addValueToWidgetForAnalytics(request);
 
                         // Workflow trigger on form edit
                         const [formConfigError, formConfigData] = await workforceFormMappingSelect(request);
@@ -1850,7 +1853,8 @@ function FormConfigService(objCollection) {
                 isWorkflowEnabled = Number(formConfigData[0].form_flag_workflow_enabled),
                 workflowActivityTypeId = Number(formConfigData[0].form_workflow_activity_type_id),
                 workflowActivityTypeName = formConfigData[0].form_workflow_activity_type_name,
-                formName = String(formConfigData[0].form_name);
+                formName = String(formConfigData[0].form_name),
+                workflowActivityTypeDefaultDurationDays = Number(formConfigData[0].form_workflow_activity_type_default_duration_days);
 
             if (isWorkflowEnabled && originFlagSet) {
                 // Fetch the next activity_id to be inserted
@@ -1878,7 +1882,12 @@ function FormConfigService(objCollection) {
                 //createWorkflowRequest.activity_description = workflowActivityTypeName;
                 createWorkflowRequest.activity_form_id = Number(request.activity_form_id);
                 createWorkflowRequest.form_transaction_id = Number(request.form_transaction_id);
+                
+                // Child Orders
                 createWorkflowRequest.activity_parent_id = Number(request.child_order_activity_parent_id) || 0;
+
+                createWorkflowRequest.activity_datetime_start = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+                createWorkflowRequest.activity_datetime_end = moment().utc().add(workflowActivityTypeDefaultDurationDays, "days").format('YYYY-MM-DD HH:mm:ss');
 
                 const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
                 await addActivityAsync(createWorkflowRequest);
@@ -3500,6 +3509,29 @@ function FormConfigService(objCollection) {
 
         return [error, refinedForms];
     };
+
+    async function addValueToWidgetForAnalytics(requestObj) {
+        let request = Object.assign({}, requestObj);
+        let [err, inlineData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, request.activity_type_id);
+        if(err) {
+            return err;
+        }
+        
+        console.log('inlineData : ', inlineData);
+
+        if(Object.keys(inlineData)) {
+            let workflowFields = inlineData.workflow_fields;
+
+            for(let fieldId in workflowFields){
+                if(fieldId === request.field_id) {
+                    await activityCommonService.analyticsUpdateWidgetValue(request, fieldId.sequence_id, request.new_field_value);
+                    break;
+                }
+            }
+        }
+
+        return "success";
+    }
 }
 
 module.exports = FormConfigService;

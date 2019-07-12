@@ -32,11 +32,11 @@ if (mode === 'masimukku') {
     config.sqsConsumer = 4300;
 
     //Mysql Config
-    config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
+    config.masterIp = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.slave1Ip = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
 
     config.dbUser = 'apiuser';
-    config.database = 'desker_staging';
+    config.database = 'worlddesk_staging';
     config.dbPassword = 'apidbuser';
     config.conLimit = 2;
 
@@ -81,8 +81,8 @@ if (mode === 'masimukku') {
 
     //Desker
     config.TOPIC_ID = 14; //Take from Sai
-    config.TOPIC_NAME = 'masimukku-desker-activities';
-    config.CONSUMER_GROUP_ID = 'masimukku-desker-activities-cg';    
+    config.TOPIC_NAME = 'masimukku-worlddesk-activities';
+    config.CONSUMER_GROUP_ID = 'masimukku-worlddesk-activities-cg';    
     
     //Widget
     config.WIDGET_TOPIC_NAME = 'masimukku-desker-widgets';    
