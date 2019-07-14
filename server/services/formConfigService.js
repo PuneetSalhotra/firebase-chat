@@ -3518,8 +3518,9 @@ function FormConfigService(objCollection) {
         }
         
         console.log('inlineData : ', inlineData);
+        console.log('inlineData.hasOwnProperty(workflow_fields) : ', inlineData.hasOwnProperty('workflow_fields'));
 
-        if(Object.keys(inlineData)) {
+        if(inlineData.hasOwnProperty('workflow_fields')) {
             let workflowFields = inlineData.workflow_fields;
 
             for(let fieldId in workflowFields){

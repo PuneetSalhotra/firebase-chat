@@ -254,6 +254,8 @@ function ActivityService(objectCollection) {
                                 };
 
                                 await queueWrapper.raiseActivityEventPromise(displayFileEvent, request.activity_id);
+
+                                addValueToWidgetForAnalytics(request);
                             }
 
                             if (activityTypeCategroyId === 10 && request.hasOwnProperty('owner_asset_id')) {
@@ -3747,6 +3749,34 @@ function ActivityService(objectCollection) {
         }
 
         return [error, responseData];
+    }
+
+    async function addValueToWidgetForAnalytics(requestObj) {
+        let request = Object.assign({}, requestObj);
+
+        let [err, inlineData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, request.activity_type_id);
+        if(err) {
+            return err;
+        }        
+        console.log('inlineData : ', inlineData);
+        console.log('inlineData.hasOwnProperty(workflow_fields) : ', inlineData.hasOwnProperty('workflow_fields'));
+
+        if(inlineData.hasOwnProperty('workflow_fields')) {
+            let i, fieldId;
+            let workflowFields = inlineData.workflow_fields;
+            let activityInlineData = request.activity_inline_data;
+
+            for(i=0; i<activityInlineData.length; i++) {
+                for(fieldId in workflowFields){
+                    if(fieldId === activityInlineData[i].field_id) {
+                        await activityCommonService.analyticsUpdateWidgetValue(request, fieldId.sequence_id, request.new_field_value);
+                        break;
+                    }
+                }   
+            }
+        }
+
+        return "success";
     }
 
 }
