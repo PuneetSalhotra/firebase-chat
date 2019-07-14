@@ -3769,7 +3769,7 @@ function ActivityService(objectCollection) {
             for(i=0; i<activityInlineData.length; i++) {
                 for(fieldId in workflowFields){
                     if(fieldId === activityInlineData[i].field_id) {
-                        await activityCommonService.analyticsUpdateWidgetValue(request, fieldId.sequence_id, request.new_field_value);
+                        await activityCommonService.analyticsUpdateWidgetValue(request, fieldId.sequence_id, activityInlineData[i].field_value);
                         break;
                     }
                 }   
