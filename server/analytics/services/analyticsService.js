@@ -69,16 +69,16 @@ function AnalyticsService(objectCollection)
         //Add Activity - you will get ActivityID
         const [err, activityData] = await createActivity(request);
         if (err) {
-            global.logger('conLog', "createAssetBundle | createActivity | Error: ", err, {});
+            global.logger.write('conLog', "createAssetBundle | createActivity | Error: ", err, {});
             return [true, {message: "Error creating activity"}];
         }
-        //global.logger('conLog', "createAssetBundle | createActivity | activityData: " + activityData, {}, {});
+        //global.logger.write('conLog', "createAssetBundle | createActivity | activityData: " + activityData, {}, {});
         //console.log("createAssetBundle | createActivity | activityData: ", activityData);
         request.activity_id = activityData.response.activity_id;
 
         let [widgetErr, widgetResponse] = await this.widgetListInsert(request);
         if(widgetErr) {
-            global.logger('conLog', "createAssetBundle | createActivity | Error: ", err, {});
+            global.logger.write('conLog', "createAssetBundle | createActivity | Error: ", err, {});
             return [true, {message: "Error creating Widget"}];
         }            
         //console.log('widgetResponse : ', widgetResponse);
