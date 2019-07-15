@@ -3517,15 +3517,21 @@ function FormConfigService(objCollection) {
             return err;
         }
         
-        console.log('inlineData : ', inlineData);
-        console.log('inlineData.hasOwnProperty(workflow_fields) : ', inlineData.hasOwnProperty('workflow_fields'));
+        console.log('inlineData : ', inlineData[0]);
+        console.log('inlineData.activity_type_inline_data : ', inlineData[0].activity_type_inline_data);
+        
+        let finalInlineData = JSON.parse(inlineData[0].activity_type_inline_data);
 
-        if(inlineData.hasOwnProperty('workflow_fields')) {
-            let workflowFields = inlineData.workflow_fields;
+        console.log('finalInlineData.hasOwnProperty(workflow_fields) : ', finalInlineData.hasOwnProperty('workflow_fields'));
+
+        if(finalInlineData.hasOwnProperty('workflow_fields')) {
+            let workflowFields = finalInlineData.workflow_fields;
 
             for(let fieldId in workflowFields){
                 if(fieldId === request.field_id) {
-                    await activityCommonService.analyticsUpdateWidgetValue(request, fieldId.sequence_id, request.new_field_value);
+                    //console.log('fieldId : ', fieldId);
+                    //console.log('workflowFields[fieldId].sequence_id : ', workflowFields[fieldId].sequence_id);
+                    await activityCommonService.analyticsUpdateWidgetValue(request, workflowFields[fieldId].sequence_id, request.new_field_value);
                     break;
                 }
             }

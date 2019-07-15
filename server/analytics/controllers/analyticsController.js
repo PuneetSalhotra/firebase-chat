@@ -58,12 +58,12 @@ function AnalyticsController(objCollection)
     app.post('/' + global.config.version + '/analytics/widget/add', async (req, res) => {        
         try {
             
-            try {
-                JSON.parse(req.body.widget_inline_data);
-            } catch (exeption) {
-                res.send(responseWrapper.getResponse(false, 'Invalid Inline JSON', -3308, req.body));
-                return;
-            }
+            //try {
+            //    JSON.parse(req.body.widget_inline_data);
+            //} catch (exeption) {
+            //    res.send(responseWrapper.getResponse(false, 'Invalid Inline JSON', -3308, req.body));
+            //    return;
+            //}
 
             let result = await analyticsService.analyticsWidgetAdd(req.body);
             res.send(responseWrapper.getResponse(false, result, 200, req.body));
