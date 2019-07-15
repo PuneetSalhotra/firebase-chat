@@ -1455,6 +1455,12 @@ function Util() {
             });
     };    
 
+    this.uploadReadableStreamToS3 = async (request, options, stream) => {
+        const s3 = new AWS.S3();
+        console.log('Uploading to S3...');
+        return s3.upload(options).promise();
+    };
+
     this.zipTheFiles = async (request, files) =>{
         return new Promise((resolve)=>{
             

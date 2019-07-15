@@ -30,6 +30,8 @@ function BotService(objectCollection) {
     const activityTimelineService = new ActivityTimelineService(objectCollection);
 
     const nodeUtil = require('util');
+
+    const pdf = require('html-pdf');
     /*
     //Generic function for firing stored procedures
     //Bharat Masimukku
@@ -494,6 +496,10 @@ function BotService(objectCollection) {
         }
     };
 
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
     this.initBotEngine = async (request) => {
 
         //Bot Log - Bot engine Triggered
@@ -701,6 +707,38 @@ function BotService(objectCollection) {
                     }
                     console.log('****************************************************************');
                     break;
+                
+                case 9: // add_attachment
+                    console.log('****************************************************************');
+                    console.log('add_attachment');
+                    console.log('add_attachment | Request Params received by BOT ENGINE', request);
+                    try {
+                        await addAttachment(request, botOperationsJson.bot_operations.add_attachment);
+                    } catch (err) {
+                        console.log('add_attachment  | Error', err);
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "err": err
+                        });
+                    }
+                    console.log('****************************************************************');
+                    break;
+                
+                case 10: // add_attachment_with_attestation
+                    console.log('****************************************************************');
+                    console.log('add_attachment_with_attestation');
+                    console.log('add_attachment_with_attestation | Request Params received by BOT ENGINE', request);
+                    try {
+                        await addAttachmentWithAttestation(request, botOperationsJson.bot_operations.add_attachment_with_attestation);
+                    } catch (err) {
+                        console.log('add_attachment_with_attestation  | Error', err);
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "err": err
+                        });
+                    }
+                    console.log('****************************************************************');
+                    break;
             }
 
             //botOperationTxnInsert(request, i);
@@ -743,8 +781,8 @@ function BotService(objectCollection) {
             // addCommentRequest.flag_retry = 0;
             addCommentRequest.device_os_id = 7;
             addCommentRequest.activity_type_category_id = 48;
-            addCommentRequest.activity_type_id
-            addCommentRequest.activity_id
+            addCommentRequest.activity_type_id = workflowActivityTypeID;
+            addCommentRequest.activity_id = workflowActivityID;
             addCommentRequest.activity_timeline_collection = JSON.stringify({
                 "content": `${comment.comment}`,
                 "subject": `${comment.comment}`,
@@ -770,6 +808,313 @@ function BotService(objectCollection) {
             }
         }
         return;
+    }
+
+    async function addAttachment(request, attachments) {
+
+        await sleep(2000);
+
+        let workflowActivityID = Number(request.workflow_activity_id) || 0,
+            workflowActivityTypeID = 0,
+            attachmentsList = [];
+
+        try {
+            const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
+            if (Number(workflowActivityData.length) > 0) {
+                workflowActivityTypeID = Number(workflowActivityData[0].activity_type_id);
+            }
+        } catch (error) {
+            throw new Error("No Workflow Data Found in DB");
+        }
+
+        if (workflowActivityID === 0 || workflowActivityTypeID === 0) {
+            throw new Error("Couldn't Fetch workflowActivityID or workflowActivityTypeID");
+        }
+
+        for (const attachment of attachments) {
+            const targetFormID = Number(attachment.form_id);
+            const targetFieldID = Number(attachment.field_id);
+
+            const targetFormTransactionData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                organization_id: request.organization_id,
+                account_id: request.account_id
+            }, workflowActivityID, targetFormID);
+
+            if (Number(targetFormTransactionData.length) > 0) {
+                targetFormTransactionID = Number(targetFormTransactionData[0].data_form_transaction_id);
+                targetFormActivityID = Number(targetFormTransactionData[0].data_activity_id);
+            }
+
+            if (
+                targetFormTransactionID > 0 &&
+                targetFormActivityID > 0
+            ) {
+                const targetFieldData = await getFieldValue({
+                    form_transaction_id: targetFormTransactionID,
+                    form_id: targetFormID,
+                    field_id: targetFieldID,
+                    organization_id: request.organization_id
+                });
+
+                // console.log("targetFieldData: ", targetFieldData);
+                console.log("targetFieldData[0].data_entity_text_1: ", targetFieldData[0].data_entity_text_1);
+                if (
+                    Number(targetFieldData.length) > 0 &&
+                    targetFieldData[0].data_entity_text_1 !== ''
+                ) {
+                    attachmentsList.push(targetFieldData[0].data_entity_text_1);
+                }
+            }
+
+        }
+        console.log("attachmentsList: ", attachmentsList);
+
+        let addCommentRequest = Object.assign(request, {});
+
+        addCommentRequest.asset_id = 100;
+        addCommentRequest.device_os_id = 7;
+        addCommentRequest.activity_type_category_id = 48;
+        addCommentRequest.activity_type_id
+        addCommentRequest.activity_id
+        addCommentRequest.activity_timeline_collection = JSON.stringify({
+            "content": `Tony has added attachment(s).`,
+            "subject": `Tony has added attachment(s).`,
+            "mail_body": `Tony has added attachment(s).`,
+            "attachments": attachmentsList
+        });
+        addCommentRequest.activity_stream_type_id = 325;
+        addCommentRequest.timeline_stream_type_id = 325;
+        addCommentRequest.activity_timeline_text = "";
+        addCommentRequest.activity_access_role_id = 27;
+        // addCommentRequest.data_entity_inline
+        addCommentRequest.operating_asset_first_name = "TONY"
+        addCommentRequest.datetime_log = util.getCurrentUTCTime();
+        addCommentRequest.track_gps_datetime = util.getCurrentUTCTime();
+        addCommentRequest.flag_timeline_entry = 1;
+        addCommentRequest.log_asset_id = 100;
+
+        const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
+        try {
+            await addTimelineTransactionAsync(addCommentRequest);
+        } catch (error) {
+            console.log("addComment | addCommentRequest | addTimelineTransactionAsync | Error: ", error);
+            throw new Error(error);
+        }
+        return;
+    }
+
+    async function addAttachmentWithAttestation(request, attachments) {
+
+        await sleep(2000);
+
+        let workflowActivityID = Number(request.workflow_activity_id) || 0,
+            workflowActivityTypeID = 0,
+            attachmentsList = [];
+
+        try {
+            const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
+            if (Number(workflowActivityData.length) > 0) {
+                workflowActivityTypeID = Number(workflowActivityData[0].activity_type_id);
+            }
+        } catch (error) {
+            throw new Error("No Workflow Data Found in DB");
+        }
+
+        if (workflowActivityID === 0 || workflowActivityTypeID === 0) {
+            throw new Error("Couldn't Fetch workflowActivityID or workflowActivityTypeID");
+        }
+
+        for (const attachment of attachments) {
+            const documentFormID = Number(attachment.document.form_id);
+            const documentFieldID = Number(attachment.document.field_id);
+            let documentFormTransactionID = 0,
+                documentFormActivityID = 0;
+            
+            const attestationFormID = Number(attachment.attestation.form_id);
+            const attestationFieldID = Number(attachment.attestation.field_id);
+            let attestationFormTransactionID = 0,
+                attestationFormActivityID = 0;
+
+            // Fetch the document's URL
+            const documentFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                organization_id: request.organization_id,
+                account_id: request.account_id
+            }, workflowActivityID, documentFormID);
+
+            if (Number(documentFormData.length) > 0) {
+                documentFormTransactionID = Number(documentFormData[0].data_form_transaction_id);
+                documentFormActivityID = Number(documentFormData[0].data_activity_id);
+            }
+            // Fetch the attestation's URL
+            const attestationFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                organization_id: request.organization_id,
+                account_id: request.account_id
+            }, workflowActivityID, attestationFormID);
+
+            if (Number(attestationFormData.length) > 0) {
+                attestationFormTransactionID = Number(attestationFormData[0].data_form_transaction_id);
+                attestationFormActivityID = Number(attestationFormData[0].data_activity_id);
+            }
+
+            if (
+                documentFormTransactionID > 0 &&
+                documentFormActivityID > 0 &&
+                attestationFormTransactionID > 0 &&
+                attestationFormActivityID > 0
+            ) {
+                // Fetch the Document URL
+                const documentFieldData = await getFieldValue({
+                    form_transaction_id: documentFormTransactionID,
+                    form_id: documentFormID,
+                    field_id: documentFieldID,
+                    organization_id: request.organization_id
+                });
+                // console.log("documentFieldData: ", documentFieldData);
+                console.log("documentFieldData[0].data_entity_text_1: ", documentFieldData[0].data_entity_text_1);
+                
+                // Fetch the Attestation URL
+                const attestationFieldData = await getFieldValue({
+                    form_transaction_id: attestationFormTransactionID,
+                    form_id: attestationFormID,
+                    field_id: attestationFieldID,
+                    organization_id: request.organization_id
+                });
+
+                // console.log("attestationFieldData: ", attestationFieldData);
+                console.log("attestationFieldData[0].data_entity_text_1: ", attestationFieldData[0].data_entity_text_1);
+
+                if (
+                    Number(documentFieldData.length) > 0 &&
+                    documentFieldData[0].data_entity_text_1 !== '' &&
+
+                    Number(attestationFieldData.length) > 0 &&
+                    attestationFieldData[0].data_entity_text_1 !== ''
+                ) {
+                    // Get the HTML template
+                    const htmlTemplate = getHTMLTemplateForAttestation(documentFieldData[0].data_entity_text_1, attestationFieldData[0].data_entity_text_1);
+                    console.log("htmlTemplate: ", htmlTemplate);
+
+                    // Generate PDF readable stream
+                    const readableStream = await generatePDFreadableStream(request, htmlTemplate);
+                    
+                    // Upload to S3
+                    const environment = global.mode;
+                    let bucketName = '';
+                    if (environment === 'prod') {
+                        bucketName = "worlddesk-" + util.getCurrentYear() + '-' + util.getCurrentMonth();
+
+                    } else if (environment === 'staging' || environment === 'local') {
+                        bucketName = "worlddesk-staging-" + util.getCurrentYear() + '-' + util.getCurrentMonth();
+
+                    } else {
+
+                        bucketName = "worlddesk-" + environment + "-" + util.getCurrentYear() + '-' + util.getCurrentMonth();
+                    }
+                    let prefixPath = request.organization_id + '/' +
+                        request.account_id + '/' +
+                        request.workforce_id + '/' +
+                        request.asset_id + '/' +
+                        util.getCurrentYear() + '/' + util.getCurrentMonth() + '/103' + '/' + util.getMessageUniqueId(request.asset_id);
+
+                    // console.log("bucketName: ", bucketName);
+                    // console.log("prefixPath: ", prefixPath);
+
+                    const uploadDetails = await util.uploadReadableStreamToS3(request, {
+                        Bucket: bucketName || "demotelcoinc",
+                        Key: `${prefixPath}/${request.activity_id}` + '_with_attestation.pdf',
+                        Body: readableStream,
+                        ContentType: 'application/pdf',
+                        ACL: 'public-read'
+                    }, readableStream);
+
+                    attachmentsList.push(uploadDetails.Location);
+
+                } else {
+                    throw new Error("Couldn't Fetch document URL or attestation URL");
+                }
+            }
+
+        }
+        console.log("attachmentsList: ", attachmentsList);
+
+        let addCommentRequest = Object.assign(request, {});
+
+        addCommentRequest.asset_id = 100;
+        addCommentRequest.device_os_id = 7;
+        addCommentRequest.activity_type_category_id = 48;
+        addCommentRequest.activity_type_id
+        addCommentRequest.activity_id
+        addCommentRequest.activity_timeline_collection = JSON.stringify({
+            "content": `Tony has added attachment(s).`,
+            "subject": `Tony has added attachment(s).`,
+            "mail_body": `Tony has added attachment(s).`,
+            "attachments": attachmentsList
+        });
+        addCommentRequest.activity_stream_type_id = 325;
+        addCommentRequest.timeline_stream_type_id = 325;
+        addCommentRequest.activity_timeline_text = "";
+        addCommentRequest.activity_access_role_id = 27;
+        // addCommentRequest.data_entity_inline
+        addCommentRequest.operating_asset_first_name = "TONY"
+        addCommentRequest.datetime_log = util.getCurrentUTCTime();
+        addCommentRequest.track_gps_datetime = util.getCurrentUTCTime();
+        addCommentRequest.flag_timeline_entry = 1;
+        addCommentRequest.log_asset_id = 100;
+
+        const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
+        try {
+            await addTimelineTransactionAsync(addCommentRequest);
+        } catch (error) {
+            console.log("addComment | addCommentRequest | addTimelineTransactionAsync | Error: ", error);
+            throw new Error(error);
+        }
+        return;
+    }
+
+    async function generatePDFreadableStream(request, htmlTemplate) {
+        const pdfOptions = {
+            "height": "10.5in", // allowed units: mm, cm, in, px
+            "width": "9in",
+            "format": 'A4',
+            "border": {
+                "top": "0.5in", // default is 0, units: mm, cm, in, px
+                // "right": "0.5in",
+                "bottom": "0.5in",
+                "left": "0.25in"
+            }
+        };
+        return new Promise((resolve, reject) => {
+
+            pdf.create(htmlTemplate, pdfOptions).toStream(function (err, pdfStream) {
+                console.log("generatePDFreadableStream | Error: ", err);
+                // console.log("pdfStream: ", pdfStream);
+                resolve(pdfStream)
+            });
+
+        });
+    }
+
+    function getHTMLTemplateForAttestation(documentURL, attestationURL) {
+        const template = `
+        <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+        <html xmlns="http://www.w3.org/1999/xhtml">
+        <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>Customer PO</title>
+        </head>
+        <body>
+            <div>
+                <div style="margin-left: 150px;margin-right:150px;">
+                    <img src=${documentURL} alt="" height="550" width="100%">
+                </div>
+                <div style="margin-left: 500px;">
+                    <img src=${attestationURL} alt="" height="100" width="100">
+                </div>
+            </div>
+        </body>
+        </html>`;
+
+        return template;
     }
 
     async function botOperationTxnInsert(request, botData) {
