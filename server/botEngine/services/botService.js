@@ -969,7 +969,7 @@ function BotService(objectCollection) {
                     field_id: documentFieldID,
                     organization_id: request.organization_id
                 });
-                console.log("documentFieldData: ", documentFieldData);
+                // console.log("documentFieldData: ", documentFieldData);
                 console.log("documentFieldData[0].data_entity_text_1: ", documentFieldData[0].data_entity_text_1);
                 
                 // Fetch the Attestation URL
@@ -980,7 +980,7 @@ function BotService(objectCollection) {
                     organization_id: request.organization_id
                 });
 
-                console.log("attestationFieldData: ", attestationFieldData);
+                // console.log("attestationFieldData: ", attestationFieldData);
                 console.log("attestationFieldData[0].data_entity_text_1: ", attestationFieldData[0].data_entity_text_1);
 
                 if (
@@ -998,9 +998,30 @@ function BotService(objectCollection) {
                     const readableStream = await generatePDFreadableStream(request, htmlTemplate);
                     
                     // Upload to S3
-                    const uploadDetails  = await util.uploadReadableStreamToS3(request, {
-                        Bucket: "demotelcoinc",
-                        Key: `${request.activity_id}` + '_with_attestation.pdf',
+                    const environment = global.mode;
+                    let bucketName = '';
+                    if (environment === 'prod') {
+                        bucketName = "worlddesk-" + util.getCurrentYear() + '-' + util.getCurrentMonth();
+
+                    } else if (environment === 'staging' || environment === 'local') {
+                        bucketName = "worlddesk-staging-" + util.getCurrentYear() + '-' + util.getCurrentMonth();
+
+                    } else {
+
+                        bucketName = "worlddesk-" + environment + "-" + util.getCurrentYear() + '-' + util.getCurrentMonth();
+                    }
+                    let prefixPath = request.organization_id + '/' +
+                        request.account_id + '/' +
+                        request.workforce_id + '/' +
+                        request.asset_id + '/' +
+                        util.getCurrentYear() + '/' + util.getCurrentMonth() + '/103' + '/' + util.getMessageUniqueId(request.asset_id);
+
+                    // console.log("bucketName: ", bucketName);
+                    // console.log("prefixPath: ", prefixPath);
+
+                    const uploadDetails = await util.uploadReadableStreamToS3(request, {
+                        Bucket: bucketName || "demotelcoinc",
+                        Key: `${prefixPath}/${request.activity_id}` + '_with_attestation.pdf',
                         Body: readableStream,
                         ContentType: 'application/pdf',
                         ACL: 'public-read'
