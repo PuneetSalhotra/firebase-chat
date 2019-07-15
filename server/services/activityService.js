@@ -3748,6 +3748,29 @@ function ActivityService(objectCollection) {
                 });
         }
 
+        let paramsArr2 = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_id,
+            //request.activity_status_id || 0,
+            //request.activity_status_type_id || 0,
+            request.asset_id,
+            request.datetime_log //log_datetime
+        );
+
+        var queryString2 = util.getQueryString('ds_p1_activity_status_change_transaction_update_closed', paramsArr2);
+        if (queryString2 !== '') {
+            await db.executeQueryPromise(0, queryString2, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
         return [error, responseData];
     }
 
@@ -3758,18 +3781,22 @@ function ActivityService(objectCollection) {
         if(err) {
             return err;
         }        
-        console.log('inlineData : ', inlineData);
-        console.log('inlineData.hasOwnProperty(workflow_fields) : ', inlineData.hasOwnProperty('workflow_fields'));
+        console.log('inlineData : ', inlineData[0]);
+        console.log('inlineData.activity_type_inline_data : ', inlineData[0].activity_type_inline_data);
+        
+        let finalInlineData = JSON.parse(inlineData[0].activity_type_inline_data);
 
-        if(inlineData.hasOwnProperty('workflow_fields')) {
+        console.log('finalInlineData.hasOwnProperty(workflow_fields) : ', finalInlineData.hasOwnProperty('workflow_fields'));
+
+        if(finalInlineData.hasOwnProperty('workflow_fields')) {
             let i, fieldId;
-            let workflowFields = inlineData.workflow_fields;
+            let workflowFields = finalInlineData.workflow_fields;
             let activityInlineData = request.activity_inline_data;
 
             for(i=0; i<activityInlineData.length; i++) {
                 for(fieldId in workflowFields){
                     if(fieldId === activityInlineData[i].field_id) {
-                        await activityCommonService.analyticsUpdateWidgetValue(request, fieldId.sequence_id, activityInlineData[i].field_value);
+                        await activityCommonService.analyticsUpdateWidgetValue(request, workflowFields[fieldId].sequence_id, activityInlineData[i].field_value);
                         break;
                     }
                 }   

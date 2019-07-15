@@ -86,6 +86,12 @@ function AnalyticsService(objectCollection)
         widgetId = widgetResponse[0].widget_id;
         request.widget_id = widgetId;                  
             
+        await new Promise((resolve)=>{
+            setTimeout(()=>{
+                return resolve();
+            }, 2500);
+        });
+        
         await updateWidgetDetailsInActList(request);
         await updateWidgetDetailsInActAssetList(request);
 
@@ -124,7 +130,7 @@ function AnalyticsService(objectCollection)
         widgetInfo.organization_name = "";
 
         widgetInfo.activity_id = "";
-        widgetInfo.activity_title = 'Widget Mapped Activity';
+        widgetInfo.activity_title = request.widget_name;
         widgetInfo.activity_type_id = util.replaceDefaultNumber(request.activity_type_id);
         widgetInfo.activity_type_name = util.replaceDefaultString(request.activity_type_name);
         widgetInfo.activity_type_category_id = 52;
@@ -146,8 +152,8 @@ function AnalyticsService(objectCollection)
             auth_asset_id: 31993,
             asset_token_auth: "c15f6fb0-14c9-11e9-8b81-4dbdf2702f95",
             asset_message_counter: 0,
-            activity_title: request.activity_title || 'Widget Mapped Activity',
-            activity_description: request.activity_description || 'Widget Mapped Activity',
+            activity_title: request.widget_name,
+            activity_description: request.widget_name,
             activity_inline_data: JSON.stringify(activityInlineData),
             activity_datetime_start: util.getCurrentUTCTime(),
             activity_datetime_end: util.getCurrentUTCTime(),
@@ -234,7 +240,8 @@ function AnalyticsService(objectCollection)
             request.organization_id,
             request.log_asset_id,
             request.log_workforce_id,            
-            request.datetime_log //log_datetime
+            request.datetime_log, //log_datetime
+            request.widget_target_value
         );
 
         var queryString = util.getQueryString('ds_p1_1_widget_list_insert', paramsArr);
@@ -330,7 +337,7 @@ function AnalyticsService(objectCollection)
             if (Number(body.status) === 200) {
                 console.log("Widget Deleted | Delete Widget | Body: ", body);
                 await unassignWidgdetActMapping(request);
-                return {};
+                return 'Widget Deleted Successfully!'
             }
         } catch (error) {
             console.log("Widget Deleted | Delete Widget | Error: ", error);
