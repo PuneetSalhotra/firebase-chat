@@ -3521,7 +3521,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             flag || 0,
             value,
             request.asset_id,
-            util.datetime_log
+            request.datetime_log
         );
 
         var queryString = util.getQueryString('ds_p1_activity_list_update_widget_value', paramsArr);
