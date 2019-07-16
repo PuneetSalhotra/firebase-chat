@@ -1005,7 +1005,7 @@ function AdminOpsService(objectCollection) {
                 // Give the Account Manager access to the Order Logged Queue
                 const [queueError, queueData] = await queueAccessMappingInsert({
                     queue_id: 79,
-                    access_level_id: 5,
+                    access_level_id: 6,
                     asset_id: deskAssetID,
                     log_asset_id: request.log_asset_id || request.asset_id
                 }, workforceID, organizationID, accountID);
