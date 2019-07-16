@@ -1881,7 +1881,7 @@ function ActivityService(objectCollection) {
         activityListUpdateStatus(request, async function (err, data) {
             if (err === false) {
 
-                console.log("*****STATUS CHANGE | activityTypeCategroyId: ", activityTypeCategroyId)
+                console.log("*****STATUS CHANGE | activityTypeCategroyId: ", activityTypeCategroyId);
                 updateWidgetAggrStatus(request);
 
                 if(activityTypeCategoryId === 48){
@@ -1924,7 +1924,8 @@ function ActivityService(objectCollection) {
                     //sendRequesttoWidgetEngine(request);
                 }
 
-                if ((activityTypeCategroyId === 9 || activityTypeCategroyId === 48) && Number(request.device_os_id) !== 9) {
+                //if ((activityTypeCategroyId === 9 || activityTypeCategroyId === 48) && Number(request.device_os_id) !== 9) {
+                if (activityTypeCategroyId === 9 || activityTypeCategroyId === 48) {
 
                     global.logger.write('conLog', '*****ALTER STATUS : STATUS CHANGE TXN INSERT*******', {}, request);
 
@@ -1958,7 +1959,7 @@ function ActivityService(objectCollection) {
                             }
                         }
                     } catch (botInitError) {
-                        global.logger.write('error', botInitError, botInitError, botEngineRequest);
+                        global.logger.write('error', botInitError, botInitError, request);
                     }
 
                     global.logger.write('conLog', '*****STATUS CHANGE FLAG : ' + request.status_changed_flag, {}, request);
