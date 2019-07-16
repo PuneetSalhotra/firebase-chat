@@ -765,7 +765,7 @@ function AdminOpsService(objectCollection) {
         const [errZero_2, checkCUIDData] = await assetListSelectCustomerUniqueID({
             account_id: 0,
             workforce_id: 0,
-            customer_unique_id: Number(request.customer_unique_id),
+            customer_unique_id: String(request.customer_unique_id),
         }, organizationID);
         if (errZero_2 || Number(checkCUIDData.length) > 0) {
             console.log("addNewEmployeeToExistingDesk | assetListSelectCustomerUniqueID | Error: ", errZero_2);
@@ -984,6 +984,38 @@ function AdminOpsService(objectCollection) {
             console.log('[addNewEmployeeToExistingDesk] SMS Block Error: ', error);
         }
 
+        // [VODAFONE] Give the Account Manager access to the Order Logged Queue
+        try {
+            // Fetch the workforce's workforce type ID
+            let workforceTypeID = 0;
+            const [_, workforceData] = await workforceListSelect({}, workforceID, organizationID, accountID);
+            if (Number(workforceData.length) > 0) {
+                workforceTypeID = Number(workforceData[0].workforce_type_id);
+            }
+            if (
+                organizationID === 868 &&
+                workforceTypeID !== 0 &&
+                (
+                    workforceTypeID === 12 ||
+                    workforceTypeID === 13 ||
+                    workforceTypeID === 14 ||
+                    workforceTypeID === 15
+                )
+            ) {
+                // Give the Account Manager access to the Order Logged Queue
+                const [queueError, queueData] = await queueAccessMappingInsert({
+                    queue_id: 79,
+                    access_level_id: 6,
+                    asset_id: deskAssetID,
+                    log_asset_id: request.log_asset_id || request.asset_id
+                }, workforceID, organizationID, accountID);
+                
+                console.log("addNewEmployeeToExistingDesk | queueAccessMappingInsert | queueError: ", queueError);
+            }
+        } catch (error) {
+            console.log("addNewEmployeeToExistingDesk | queueAccessMappingInsert | Error: ", error);
+        }
+
         return [false, {
             desk_asset_id: deskAssetID,
             coworker_contact_card_activity_id: coWorkerContactCardActivityID,
@@ -992,6 +1024,73 @@ function AdminOpsService(objectCollection) {
         }];
 
     }
+
+    // Give access to a specific queue
+    async function queueAccessMappingInsert(request, workforceID, organizationID, accountID) {
+        // IN p_queue_id BIGINT(20), IN p_access_level_id SMALLINT(6), IN p_asset_id BIGINT(20), 
+        // IN p_workforce_id BIGINT(20), IN p_account_id BIGINT(20), IN p_organization_id BIGINT(20), 
+        // IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.queue_id,
+            request.access_level_id,
+            request.asset_id,
+            workforceID,
+            accountID,
+            organizationID,
+            request.log_asset_id || request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_queue_access_mapping_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Call to get differential data for a workforce
+    async function workforceListSelect(request, workforceID, organizationID, accountID) {
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
+        // IN p_workforce_id BIGINT(20), IN p_flag TINYINT(4), 
+        // IN p_differential_datetime DATETIME, IN p_start_from SMALLINT(6), 
+        // IN p_limit_value TINYINT(4)
+
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            organizationID,
+            accountID,
+            workforceID,
+            request.flag || 0,
+            request.differential_datetime || '1970-01-01 00:00:00',
+            request.page_start || 0,
+            util.replaceQueryLimit(request.page_limit)
+        );
+
+        var queryString = util.getQueryString('ds_p1_workforce_list_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
 
     // Fetch all assets with the given country code and phone number
     async function assetListSelectCategoryPhoneNumber(request, organizationID) {
@@ -1816,12 +1915,73 @@ function AdminOpsService(objectCollection) {
             }
         }
 
+
+        // [VODAFONE] Revoke access to the Order Logged Queue for the Account Manager
+        try {
+            // Fetch the workforce's workforce type ID
+            let workforceTypeID = 0;
+            const [_, workforceData] = await workforceListSelect({}, workforceID, organizationID, accountID);
+            if (Number(workforceData.length) > 0) {
+                workforceTypeID = Number(workforceData[0].workforce_type_id);
+            }
+            if (
+                organizationID === 868 &&
+                workforceTypeID !== 0 &&
+                (
+                    workforceTypeID === 12 ||
+                    workforceTypeID === 13 ||
+                    workforceTypeID === 14 ||
+                    workforceTypeID === 15
+                )
+            ) {
+                // Get the queue_access_id for the Account Manager
+                // [PENDING]
+                // Revoke access to the Order Logged Queue for the Account Manager
+                // const [queueError, queueData] = await queueAccessMappingUpdateLogState({
+                //     queue_access_id: 123123,
+                //     log_state: 3,
+                //     log_asset_id: request.log_asset_id || request.asset_id
+                // }, organizationID);
+                
+                // console.log("removeEmployeeMappedToDesk | queueAccessMappingUpdateLogState | queueError: ", queueError);
+            }
+        } catch (error) {
+            console.log("removeEmployeeMappedToDesk | queueAccessMappingUpdateLogState | Error: ", error);
+        }
+
         return [false, {
             operating_asset_id: operatingAssetID,
             id_card_activity_id: idCardActivityID,
             desk_asset_id: deskAssetID,
             coworker_contact_card_activity_id: coWorkerContactCardActivityID
         }];
+    }
+
+    // Archive the employee asset mapping
+    async function queueAccessMappingUpdateLogState(request, organizationID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.queue_access_id,
+            organizationID,
+            request.log_state,
+            request.log_asset_id || request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_queue_access_mapping_update_log_state', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
     }
 
     // Unlink User | Service: /asset/link/reset
@@ -3091,6 +3251,174 @@ function AdminOpsService(objectCollection) {
             request.email_id
         );
         const queryString = util.getQueryString('ds_p1_2_asset_list_update_details', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.updateActivityTypeDefaultDuration = async function (request) {
+        const organizationID = Number(request.organization_id),
+            accountID = Number(request.account_id),
+            workforceID = Number(request.workforce_id);
+
+        const [errOne, workforceActivityTypeMappingData] = await workforceActivityTypeMappingUpdateDuration({
+            activity_type_id: request.activity_type_id,
+            duration: request.duration,
+            log_asset_id: request.log_asset_id || request.asset_id,
+        }, organizationID, accountID, workforceID);
+        
+        if (errOne) {
+            console.log("updateActivityTypeDefaultDuration | workforceActivityTypeMappingUpdateDuration | Error", errOne);
+
+        } else {
+            // History insert
+            try {
+                await workforceActivityTypeMappingHistoryInsert({
+                    update_type_id: 0
+                }, request.activity_type_id, organizationID);
+            } catch (error) {
+                console.log("updateActivityTypeDefaultDuration | workforceActivityTypeMappingHistoryInsert | Error", error);
+            }
+        }
+
+        const [errTwo, workforceFormMappingData] = await workforceFormMappingUpdateActivityDuration({
+            activity_type_id: request.activity_type_id,
+            duration: request.duration,
+            log_asset_id: request.log_asset_id || request.asset_id,
+        }, organizationID);
+        
+        if (errTwo) {
+            console.log("updateActivityTypeDefaultDuration | workforceFormMappingUpdateActivityDuration | Error", errTwo);
+        }
+
+        const [errThree, formEntityMappingData] = await formEntityMappingUpdateActivityDuration({
+            activity_type_id: request.activity_type_id,
+            duration: request.duration,
+            log_asset_id: request.log_asset_id || request.asset_id,
+        }, organizationID);
+        
+        if (errThree) {
+            console.log("updateActivityTypeDefaultDuration | formEntityMappingUpdateActivityDuration | Error", errThree);
+        }
+
+        return [false, {
+            message: "done",
+        }]
+    }
+
+    // Workforce Activity Type Mapping Update Duration
+    async function workforceActivityTypeMappingUpdateDuration(request, organizationID, accountID, workforceID) {
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
+        // IN p_workforce_id BIGINT(20), IN p_activity_type_id BIGINT(20), 
+        // IN p_duration SMALLINT(6), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            organizationID,
+            accountID,
+            workforceID,
+            request.activity_type_id,
+            request.duration,
+            request.log_asset_id || request.asset_id,
+            util.getCurrentUTCTime(),
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_update_duration', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Workforce Form Mapping Update Activity Duration
+    async function workforceFormMappingUpdateActivityDuration(request, organizationID) {
+        // IN p_organization_id BIGINT(20), IN p_activity_type_id BIGINT(20), 
+        // IN p_duration BIGINT(20), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME)
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            organizationID,
+            request.activity_type_id,
+            request.duration,
+            request.log_asset_id || request.asset_id,
+            util.getCurrentUTCTime(),
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_form_mapping_update_activity_duration', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Workforce Form Mapping Update Duration
+    async function workforceFormMappingHistoryInsert(request, organizationID) {
+        // IN p_form_id BIGINT(20), IN p_organization_id BIGINT(20), 
+        // IN p_update_type_id SMALLINT(6), IN p_update_datetime DATETIME
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.form_id,
+            organizationID,
+            request.update_type_id || 0,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_form_mapping_history_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Form Entity Mapping Update Duration
+    async function formEntityMappingUpdateActivityDuration(request, organizationID) {
+        // IN p_organization_id BIGINT(20), IN p_activity_type_id BIGINT(20), 
+        // IN p_duration BIGINT(20), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME)
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            organizationID,
+            request.activity_type_id,
+            request.duration,
+            request.log_asset_id || request.asset_id,
+            util.getCurrentUTCTime(),
+        );
+        const queryString = util.getQueryString('ds_p1_form_entity_mapping_update_activity_duration', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)

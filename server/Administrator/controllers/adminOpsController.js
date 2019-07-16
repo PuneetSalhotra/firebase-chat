@@ -108,6 +108,17 @@ function AdminOpsController(objCollection) {
         }
     });
 
+    // Update default duration of a workflow
+    app.post('/' + global.config.version + '/admin/activity_type/default_duration/update', async function (req, res) {
+        const [err, assetData] = await adminOpsService.updateActivityTypeDefaultDuration(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, assetData, 200, req.body));
+        } else {
+            console.log("/admin/asset/details/update | Error: ", err);
+            res.send(responseWrapper.getResponse(err, assetData, -9999, req.body));
+        }
+    });
+
 };
 
 module.exports = AdminOpsController;
