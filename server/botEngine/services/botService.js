@@ -1188,8 +1188,11 @@ function BotService(objectCollection) {
                 "mail_body": `Status updated to '${statusName[0].activity_status_name || ""}'`,
                 "subject": `Status updated to '${statusName[0].activity_status_name || ""}'`
             });
+
+            newReq.activity_status_type_id = statusName[0].activity_status_type_id;
         }
 
+        //console.log('statusName newReq ########################## : ', statusName);
         try {
             await new Promise((resolve, reject) => {
                 activityService.alterActivityStatus(newReq, (err, resp) => {
