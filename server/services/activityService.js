@@ -154,6 +154,8 @@ function ActivityService(objectCollection) {
                             var inlineJson = JSON.parse(request.activity_inline_data);
                             util.pamSendSmsMvaayoo('Dear Sir/Madam, Our executive will contact you soon.', inlineJson.country_code, inlineJson.phone_number, function (err, res) {});
                             break;
+                        case 52: activityStreamTypeId = 26001;
+                                 break;
                         default:
                             activityStreamTypeId = 1; //by default so that we know
                             //console.log('adding streamtype id 1');
@@ -336,7 +338,8 @@ function ActivityService(objectCollection) {
                             // Workflow Trigger
                             if (activityTypeCategroyId === 9 && request.device_os_id !== 9) {
 
-                                if (Number(request.device_os_id) === 5) {
+                                if (Number(request.device_os_id) === 5 && !request.hasOwnProperty('is_mytony')) {
+                                                                            
                                     let workflowEngineRequest = Object.assign({}, request);
 
                                     let workflowEngineEvent = {
@@ -362,7 +365,7 @@ function ActivityService(objectCollection) {
                             }
 
                             //  Trigger Bot Engine
-                            if (
+                            /*if (
                                 (activityTypeCategroyId === 48 ||
                                     activityTypeCategroyId === 50 ||
                                     activityTypeCategroyId === 51) &&
@@ -370,6 +373,10 @@ function ActivityService(objectCollection) {
                             ) {
                                 // Moved to ActivityTimelineService => addTimelineTransaction => fireBotEngineInitWorkflow
                                 // Do nothing
+                            }*/
+
+                            if(activityTypeCategroyId === 48) {
+                                addValueToWidgetForAnalyticsWF(request, request.activity_id, request.activity_type_id);
                             }
 
                             /*activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
@@ -1881,7 +1888,7 @@ function ActivityService(objectCollection) {
         activityListUpdateStatus(request, async function (err, data) {
             if (err === false) {
 
-                console.log("*****STATUS CHANGE | activityTypeCategroyId: ", activityTypeCategroyId)
+                console.log("*****STATUS CHANGE | activityTypeCategroyId: ", activityTypeCategroyId);
                 updateWidgetAggrStatus(request);
 
                 if(activityTypeCategoryId === 48){
@@ -1924,7 +1931,8 @@ function ActivityService(objectCollection) {
                     //sendRequesttoWidgetEngine(request);
                 }
 
-                if ((activityTypeCategroyId === 9 || activityTypeCategroyId === 48) && Number(request.device_os_id) !== 9) {
+                //if ((activityTypeCategroyId === 9 || activityTypeCategroyId === 48) && Number(request.device_os_id) !== 9) {
+                if (activityTypeCategroyId === 9 || activityTypeCategroyId === 48) {
 
                     global.logger.write('conLog', '*****ALTER STATUS : STATUS CHANGE TXN INSERT*******', {}, request);
 
@@ -1958,7 +1966,7 @@ function ActivityService(objectCollection) {
                             }
                         }
                     } catch (botInitError) {
-                        global.logger.write('error', botInitError, botInitError, botEngineRequest);
+                        global.logger.write('error', botInitError, botInitError, request);
                     }
 
                     global.logger.write('conLog', '*****STATUS CHANGE FLAG : ' + request.status_changed_flag, {}, request);
@@ -3774,14 +3782,16 @@ function ActivityService(objectCollection) {
         return [error, responseData];
     }
 
-    async function addValueToWidgetForAnalytics(requestObj) {
+    //Update Workflow values in Activity_List for Workflow Form (For origin form putting delay is not good idea)
+    async function addValueToWidgetForAnalyticsWF(requestObj, workflowActivityId, workflowActivityTypeID) {
         let request = Object.assign({}, requestObj);
-
-        let [err, inlineData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, request.activity_type_id);
+        
+        let [err, inlineData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, workflowActivityTypeID);
         if(err) {
             return err;
-        }        
-        console.log('inlineData : ', inlineData[0]);
+        }   
+        
+        //console.log('inlineData : ', inlineData[0]);        
         console.log('inlineData.activity_type_inline_data : ', inlineData[0].activity_type_inline_data);
         
         let finalInlineData = JSON.parse(inlineData[0].activity_type_inline_data);
@@ -3791,12 +3801,91 @@ function ActivityService(objectCollection) {
         if(finalInlineData.hasOwnProperty('workflow_fields')) {
             let i, fieldId;
             let workflowFields = finalInlineData.workflow_fields;
-            let activityInlineData = request.activity_inline_data;
+            let activityInlineData = JSON.parse(request.activity_inline_data);
+
+            console.log('workflowFields : ', workflowFields);
+            console.log('activityInlineData : ', activityInlineData);
+            console.log('activityInlineData.length : ', activityInlineData.length);
 
             for(i=0; i<activityInlineData.length; i++) {
                 for(fieldId in workflowFields){
                     if(fieldId === activityInlineData[i].field_id) {
-                        await activityCommonService.analyticsUpdateWidgetValue(request, workflowFields[fieldId].sequence_id, activityInlineData[i].field_value);
+                        await activityCommonService.analyticsUpdateWidgetValue(request, 
+                                                                               workflowActivityId, 
+                                                                               workflowFields[fieldId].sequence_id, 
+                                                                               activityInlineData[i].field_value);
+                        break;
+                    }
+                }   
+            }
+        }
+
+        return "success";
+    }
+
+    
+    //Update Workflow values in Activity_List for all non-origin Forms
+    async function addValueToWidgetForAnalytics(requestObj) {
+        let request = Object.assign({}, requestObj);
+
+        request.form_id = Number(requestObj.activity_form_id);
+
+        // Fetch form's config data
+        const [formConfigError, formConfigData] = await activityCommonService.workforceFormMappingSelect(request);
+        if (formConfigError !== false) {
+            return [formConfigError, formConfigData];
+        }
+
+        if (Number(formConfigData.length) > 0) {
+            let originFlagSet = Number(formConfigData[0].form_flag_workflow_origin),
+                isWorkflowEnabled = Number(formConfigData[0].form_flag_workflow_enabled);
+
+            if(isWorkflowEnabled && originFlagSet) {
+                console.log('ITS AN ORIGIN FORM!!');
+                return "success";
+            }
+        }
+
+        let [err, workflowData] = await activityCommonService.fetchReferredFormActivityIdAsync(request, request.activity_id, request.form_transaction_id, request.form_id);        
+        console.log('workflowData : ', workflowData);
+
+        const workflowActivityId = Number(workflowData[0].activity_id);
+        const workflowActivityTypeID = Number(workflowData[0].activity_type_id);
+        
+        console.log("workflowActivityId: ", workflowActivityId);
+        console.log("workflowActivityTypeID: ", workflowActivityTypeID);
+        
+        if(err) {
+            return err;
+        }
+
+        let [err1, inlineData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, workflowActivityTypeID);
+        if(err1) {
+            return err;
+        }        
+        //console.log('inlineData : ', inlineData[0]);        
+        console.log('inlineData.activity_type_inline_data : ', inlineData[0].activity_type_inline_data);
+        
+        let finalInlineData = JSON.parse(inlineData[0].activity_type_inline_data);
+
+        console.log('finalInlineData.hasOwnProperty(workflow_fields) : ', finalInlineData.hasOwnProperty('workflow_fields'));
+
+        if(finalInlineData.hasOwnProperty('workflow_fields')) {
+            let i, fieldId;
+            let workflowFields = finalInlineData.workflow_fields;
+            let activityInlineData = JSON.parse(request.activity_inline_data);
+
+            console.log('workflowFields : ', workflowFields);
+            console.log('activityInlineData : ', activityInlineData);
+            console.log('activityInlineData.length : ', activityInlineData.length);
+
+            for(i=0; i<activityInlineData.length; i++) {
+                for(fieldId in workflowFields){
+                    if(fieldId === activityInlineData[i].field_id) {
+                        await activityCommonService.analyticsUpdateWidgetValue(request, 
+                                                                               workflowActivityId, 
+                                                                               workflowFields[fieldId].sequence_id, 
+                                                                               activityInlineData[i].field_value);
                         break;
                     }
                 }   

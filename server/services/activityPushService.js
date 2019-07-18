@@ -1,7 +1,7 @@
- /* 
- * author: Sri Sai Venkatesh
- */
-const pubnubWrapper = new(require('../utils/pubnubWrapper'))(); //BETA
+/* 
+* author: Sri Sai Venkatesh
+*/
+const pubnubWrapper = new (require('../utils/pubnubWrapper'))(); //BETA
 //const smsEngine = require('../utils/smsEngine');
 const moment = require('moment');
 
@@ -20,13 +20,13 @@ function ActivityPushService(objectCollection) {
         var activityTypeCategoryId = Number(request.activity_type_category_id);
         objectCollection.activityCommonService.getActivityDetails(request, 0, async function (err, activityData) {
             if (err === false) {
-                var activityTitle = activityData[0]['activity_title'];                
+                var activityTitle = activityData[0]['activity_title'];
                 var activityInlineJson = JSON.parse(activityData[0]['activity_inline_data']);
-                
+
                 var activityId = activityData[0]['activity_id'];
                 pushString.activity_id = activityId;
                 // pushString.activity_inline_data = activityInlineJson;
-                
+
                 switch (activityTypeCategoryId) {
                     case 1: //Task List                        
                         break;
@@ -73,47 +73,47 @@ function ActivityPushService(objectCollection) {
                                     smsString = ' ' + senderName + ' has sent a memo to your inbox. You can respond by logging into the WorldDesk app. Download Link: https://worlddesk.desker.co/';
                                 }
                                 break;
-                                //Exclusive Pub Nub Pushes
+                            //Exclusive Pub Nub Pushes
                             case '/' + global.config.version + '/activity/unread/count/reset':
                                 msg.activity_type_category_id = 8;
                                 msg.type = 'activity_read';
                                 break;
-                                //////////////////////////////
+                            //////////////////////////////
                         }
                         break;
                     case 9: // Form
                         switch (request.url) {
                             case '/' + global.config.version + '/activity/add':
                             case '/' + global.config.version + '/activity/add/v1':
-                                
+
                                 pushString.title = senderName;
                                 pushString.description = 'Has submitted a form: ' + activityTitle;
-                                
+
                                 break;
                             case '/' + global.config.version + '/activity/timeline/entry/add':
 
                                 pushString.title = senderName;
-                                pushString.description = 'Has added an update to the form: ' + activityTitle;                                
-                                
+                                pushString.description = 'Has added an update to the form: ' + activityTitle;
+
                                 const newOrderFormId = global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER;
-                                
-                                if(Number(activityData[0].form_id) === Number(newOrderFormId)) {
-                                    switch(Number(request.form_id)) {
+
+                                if (Number(activityData[0].form_id) === Number(newOrderFormId)) {
+                                    switch (Number(request.form_id)) {
                                         case global.vodafoneConfig[request.organization_id].FORM_ID.FR:
-                                             pushString.description = 'Has added FR to ' + activityTitle;
-                                             break;
+                                            pushString.description = 'Has added FR to ' + activityTitle;
+                                            break;
                                         case global.vodafoneConfig[request.organization_id].FORM_ID.CRM:
-                                             pushString.description = 'Has added CRM to ' + activityTitle;
-                                             break;
+                                            pushString.description = 'Has added CRM to ' + activityTitle;
+                                            break;
                                         case global.vodafoneConfig[request.organization_id].FORM_ID.HLD:
-                                             pushString.description = 'Has added HLD to ' + activityTitle;
-                                             break;
+                                            pushString.description = 'Has added HLD to ' + activityTitle;
+                                            break;
                                         case global.vodafoneConfig[request.organization_id].FORM_ID.BC_HLD:
-                                             pushString.description = 'Has added BC/HLD to ' + activityTitle;
-                                             break;
+                                            pushString.description = 'Has added BC/HLD to ' + activityTitle;
+                                            break;
                                         case global.vodafoneConfig[request.organization_id].FORM_ID.CAF:
-                                             pushString.description = 'Has added CAF to ' + activityTitle;
-                                             break;
+                                            pushString.description = 'Has added CAF to ' + activityTitle;
+                                            break;
                                     }
 
                                     const [formConfigError, formConfigData] = await objectCollection
@@ -121,7 +121,7 @@ function ActivityPushService(objectCollection) {
                                         .workforceFormMappingSelect(request);
                                     if (
                                         formConfigError === false &&
-                                        Number(formConfigData.length) > 0 && 
+                                        Number(formConfigData.length) > 0 &&
                                         Number(formConfigData[0].form_flag_workflow_enabled) === 1
                                     ) {
                                         pushString.description = `added ${formConfigData[0].form_name} to ${activityTitle}`;
@@ -151,7 +151,7 @@ function ActivityPushService(objectCollection) {
                                 pushString.title = senderName;
                                 pushString.description = 'Form has been shared for approval';
                                 break;
-                                
+
                             case '/' + global.config.version + '/activity/timeline/entry/add/external':
                                 msg.activity_type_category_id = 9;
                                 msg.type = 'activity_unread';
@@ -188,7 +188,7 @@ function ActivityPushService(objectCollection) {
 
                                 pushString.title = senderName;
                                 (Number(request.owner_asset_id) === 0) ? //means unassigning
-                                pushString.description = 'Task: ' + activityTitle + ' is unassigned':
+                                    pushString.description = 'Task: ' + activityTitle + ' is unassigned' :
                                     pushString.description = 'Task: ' + activityTitle + ' is assigned';
 
                                 //pushString.description = 'Folder: ' + activityTitle + ' owner is changed';
@@ -206,7 +206,7 @@ function ActivityPushService(objectCollection) {
                                     smsString = ' ' + senderName + ' has assigned a task named ' + activityTitle + ' to you. You can respond by logging into the WorldDesk app. Download Link: https://worlddesk.desker.co/';
                                 }
                                 break;
-                                //Exclusive Pub Nub Pushes
+                            //Exclusive Pub Nub Pushes
                             case '/' + global.config.version + '/activity/unread/count/reset':
                                 msg.activity_type_category_id = 10;
                                 msg.type = 'activity_read';
@@ -219,7 +219,7 @@ function ActivityPushService(objectCollection) {
                                     smsString = ' ' + senderName + ' has assigned a task named ' + activityTitle + ' to you. You can respond by logging into the WorldDesk app. Download Link: https://worlddesk.desker.co/';
                                 }
                                 break;
-                                //////////////////////////
+                            //////////////////////////
 
                         }
                         break;
@@ -236,12 +236,12 @@ function ActivityPushService(objectCollection) {
                                 pushString.title = senderName;
                                 pushString.description = 'Project: ' + activityTitle + ' has been shared to collaborate';
                                 break;
-                                //Exclusive Pub Nub Pushes
+                            //Exclusive Pub Nub Pushes
                             case '/' + global.config.version + '/activity/cover/alter':
                                 msg.activity_type_category_id = 11;
                                 msg.type = 'activity_duedate';
                                 break;
-                                ////////////////////////////
+                            ////////////////////////////
                         }
                         break;
                     case 14: // Voice Call
@@ -302,10 +302,10 @@ function ActivityPushService(objectCollection) {
                                     msg.type = 'activity_unread';
 
                                 }
-                                
+
                                 break;
-                            
-                            }
+
+                        }
                         break;
                     case 28: // Remainder
                         switch (request.url) {
@@ -330,7 +330,7 @@ function ActivityPushService(objectCollection) {
                             case '/' + global.config.version + '/activity/status/alter':
                                 if (Number(request.activity_status_type_id) === 79) {
                                     pushString.title = senderName;
-                                    pushString.description =  'has joined the meeting - ' + activityTitle + '.';
+                                    pushString.description = 'has joined the meeting - ' + activityTitle + '.';
                                 }
                                 break;
                             case '/' + global.config.version + '/activity/participant/access/set':
@@ -346,6 +346,12 @@ function ActivityPushService(objectCollection) {
                     case 34: //Time Card
                         break;
                     case 48: // Process/Workflow
+                        if (
+                            Number(request.asset_id) === 31993 ||
+                            Number(request.asset_id) === 100
+                        ) {
+                            senderName = "TONY";
+                        }
                         switch (request.url) {
                             case '/' + global.config.version + '/activity/timeline/entry/add':
                             case '/' + global.config.version + '/activity/timeline/entry/add/v1':
@@ -406,9 +412,14 @@ function ActivityPushService(objectCollection) {
                                 pushString = {};
                                 break;
                         }
+                        console.log("getPushString | request.url: ", request.url);
+                        console.log("getPushString | request.activity_stream_type_id: ", request.activity_stream_type_id);
+                        console.log("getPushString | pushString: ", pushString);
+                        console.log("getPushString | msg: ", msg);
+                        console.log("getPushString | request.asset_id: ", request.asset_id);
                         break;
                 }
-                
+
                 // Include activity_id and its category id in the push message, if there is a
                 // push notification intended for a specific servie. So, the client can redirect
                 // users to the specific activity (Task, Meeting, etc.) in the app.
@@ -419,7 +430,7 @@ function ActivityPushService(objectCollection) {
                     pushString.activity_id = request.activity_id;
                     pushString.activity_type_category_id = request.activity_type_category_id;
                 }
-                
+
                 callback(false, pushString, msg, smsString);
             } else {
                 callback(true, {}, msg, smsString);
@@ -451,8 +462,8 @@ function ActivityPushService(objectCollection) {
         pushStringObj.order_name = request.activity_title;
         pushStringObj.status_type_id = 0;
         pushStringObj.station_category_id = request.activity_channel_category_id;
-		pushStringObj.item_order_count = request.item_order_count;
-		
+        pushStringObj.item_order_count = request.item_order_count;
+
         data.forEach(function (arn, index) {
             //console.log(arn);
             global.logger.write('debug', arn, {}, {});
@@ -517,13 +528,13 @@ function ActivityPushService(objectCollection) {
                     global.logger.write('conLog', pubnubMsg, {}, {});
                     global.logger.write('debug', 'pushStringObj : ' + JSON.stringify(pushStringObj), {}, {});
                     global.logger.write('conLog', pushStringObj, {}, {});
-                    if (Object.keys(pushStringObj).length > 0) {                        
+                    if (Object.keys(pushStringObj).length > 0) {
                         let cnt = 0;
                         objectCollection.forEachAsync(pushReceivers, function (next, rowData) {
                             objectCollection.cacheWrapper.getAssetMap(rowData.assetId, function (err, assetMap) {
                                 //console.log(rowData.assetId, ' is asset for which we are about to send push');
                                 //console.log('Asset Map : ', assetMap);
-                                global.logger.write('debug', rowData.assetId + ' is asset for which we are about to send push', {}, {});                                
+                                global.logger.write('debug', rowData.assetId + ' is asset for which we are about to send push', {}, {});
                                 if (Object.keys(assetMap).length > 0) {
                                     getAssetBadgeCount(request, objectCollection, assetMap.asset_id, assetMap.organization_id, function (err, badgeCount) {
                                         //console.log(badgeCount, ' is badge count obtained from db');
@@ -568,7 +579,7 @@ function ActivityPushService(objectCollection) {
                                                     pubnubMsg.desk_asset_id = rowData.assetId;
                                                     //console.log('PubNub Message : ', pubnubMsg);
                                                     global.logger.write('debug', 'pubnubMsg: ' + JSON.stringify(pubnubMsg), {}, {});
-                                                    if(cnt === 0) { //Pushing org pubnub only once for each activity
+                                                    if (cnt === 0) { //Pushing org pubnub only once for each activity
                                                         pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
                                                     }
                                                     pubnubWrapper.push(rowData.assetId, pubnubMsg);
@@ -593,10 +604,10 @@ function ActivityPushService(objectCollection) {
                                         pubnubMsg.desk_asset_id = rowData.assetId;
                                         //console.log('PubNub Message : ', pubnubMsg);
                                         global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg), {}, {});
-                                        if(cnt === 0) { //Pushing org pubnub only once for each activity
+                                        if (cnt === 0) { //Pushing org pubnub only once for each activity
                                             pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
-                                        }                                        
-                                        pubnubWrapper.push(rowData.assetId, pubnubMsg);                                        
+                                        }
+                                        pubnubWrapper.push(rowData.assetId, pubnubMsg);
                                     }
                                 }
                                 cnt++;
@@ -609,7 +620,7 @@ function ActivityPushService(objectCollection) {
                         //console.log('Sending PubNub push Alone');
                         global.logger.write('conLog', 'Sending PubNub push Alone', {}, {});
                         let cnt = 0;
-                        objectCollection.forEachAsync(pushReceivers, function (next, rowData) {                            
+                        objectCollection.forEachAsync(pushReceivers, function (next, rowData) {
                             objectCollection.cacheWrapper.getAssetMap(rowData.assetId, function (err, assetMap) {
                                 //console.log(rowData.assetId, ' is asset for which we are about to send push');
                                 //console.log('Asset Map : ', assetMap);
@@ -617,7 +628,7 @@ function ActivityPushService(objectCollection) {
                                 //global.logger.write('debug', assetMap, {}, {});                                                                
                                 if (Object.keys(assetMap).length > 0) {
                                     //console.log('rowData : ', rowData);
-                                    global.logger.write('debug', rowData, {}, {});                                    
+                                    global.logger.write('debug', rowData, {}, {});
                                     switch (rowData.pushType) {
                                         case 'pub':
                                             //console.log('pubnubMsg :', pubnubMsg);
@@ -627,9 +638,9 @@ function ActivityPushService(objectCollection) {
                                                 pubnubMsg.desk_asset_id = rowData.assetId;
                                                 //console.log('PubNub Message : ', pubnubMsg);
                                                 global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg), {}, {});
-                                                if(cnt === 0) {
+                                                if (cnt === 0) {
                                                     pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
-                                                }                                                
+                                                }
                                                 pubnubWrapper.push(rowData.assetId, pubnubMsg);
                                             }
                                             break;
@@ -640,15 +651,15 @@ function ActivityPushService(objectCollection) {
                                                 pubnubMsg.organization_id = rowData.organizationId;
                                                 pubnubMsg.desk_asset_id = rowData.assetId;
                                                 //console.log('PubNub Message : ', pubnubMsg);
-                                                global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg, null, 2), {}, {});                                                
-                                                if(cnt === 0) {
+                                                global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg, null, 2), {}, {});
+                                                if (cnt === 0) {
                                                     pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
-                                                }                                                
+                                                }
                                                 pubnubWrapper.push(rowData.assetId, pubnubMsg);
                                             }
                                             break;
                                     }
-                                    cnt++;                                    
+                                    cnt++;
                                 }
                             });
                             next();
@@ -669,7 +680,7 @@ function ActivityPushService(objectCollection) {
             if (err === false) {
                 var senderName = '';
                 var reqobj = {};
-                
+
                 //global.logger.write('debug', 'request params in the activityPush Service', {}, request);
                 //global.logger.write('debug', request, {}, request);
 
@@ -735,7 +746,7 @@ function ActivityPushService(objectCollection) {
                                 global.logger.write('debug', 'Number(request.asset_id): ' + JSON.stringify(request.asset_id), {}, request);
                                 global.logger.write('debug', 'Number(rowData[asset_id]): ' + JSON.stringify(rowData['asset_id']), {}, request);
                                 global.logger.write('debug', 'Expression: ' + JSON.stringify(Number(request.asset_id) !== Number(rowData['asset_id'])), {}, request);
-                                
+
                                 if (Number(request.asset_id) !== Number(rowData['asset_id'])) {
                                     reqobj = {
                                         organization_id: rowData['organization_id'],
@@ -813,9 +824,9 @@ function ActivityPushService(objectCollection) {
                             //console.log('SMS String : ', smsString);
                             global.logger.write('debug', 'SMS String: ' + JSON.stringify(smsString), {}, request);
 
-                             objectCollection.util.sendSmsSinfini(smsString, RecieverData.operating_asset_phone_country_code, RecieverData.operating_asset_phone_number, function () {
+                            objectCollection.util.sendSmsSinfini(smsString, RecieverData.operating_asset_phone_country_code, RecieverData.operating_asset_phone_number, function () {
 
-                             });
+                            });
 
                             // GitHub PR (Pull Request) #19: Test out the SMS Engine on SMS Notifications
                             // If it works remove the above commented-out 'sendSmsSinfini' method call.

@@ -47,7 +47,7 @@ function AssetService(objectCollection) {
                 db.executeQuery(1, queryString, request, function (err, selectData) {
                     if (err === false) {
                         var verificationCode;
-                        (phoneNumber === 7032975769) ? verificationCode = 637979: verificationCode = util.getVerificationCode();
+                        (phoneNumber === 7032975769) ? verificationCode = 637979 : verificationCode = util.getVerificationCode();
 
                         var pwdValidDatetime = util.addDays(util.getCurrentUTCTime(), 1);
                         if (selectData.length > 0) {
@@ -150,7 +150,7 @@ function AssetService(objectCollection) {
                 db.executeQuery(1, queryString, request, async function (err, selectData) {
                     if (err === false) {
                         var verificationCode;
-                        (phoneNumber === 7032975769) ? verificationCode = 637979: verificationCode = util.getVerificationCode();
+                        (phoneNumber === 7032975769) ? verificationCode = 637979 : verificationCode = util.getVerificationCode();
 
                         var pwdValidDatetime = util.addDays(util.getCurrentUTCTime(), 1);
                         if (selectData.length > 0) {
@@ -294,7 +294,7 @@ function AssetService(objectCollection) {
             var queryString = util.getQueryString('ds_p1_phone_passcode_transaction_insert', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
-                    (!err) ? resolve(): reject(err);
+                    (!err) ? resolve() : reject(err);
                 });
             }
             //         }
@@ -712,7 +712,7 @@ function AssetService(objectCollection) {
             'asset_count_task_created': util.replaceDefaultNumber(rowArray[0]['asset_count_task_created']),
             'operating_asset_image_path': util.replaceDefaultString(rowArray[0]['operating_asset_image_path']),
             'workforce_type_id': util.replaceDefaultNumber(rowArray[0]['workforce_type_id']),
-            
+
             'asset_flag_admin': util.replaceDefaultNumber(rowArray[0]['asset_flag_admin'])
         };
 
@@ -829,7 +829,7 @@ function AssetService(objectCollection) {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     //console.log("ds_p1_phone_passcode_transaction_select data: ", data);
                     global.logger.write('conLog', "ds_p1_phone_passcode_transaction_select data: " + JSON.stringify(data, null, 2), {}, request);
-                    (!err) ? resolve(data): reject(err);
+                    (!err) ? resolve(data) : reject(err);
                 });
             }
         });
@@ -852,7 +852,7 @@ function AssetService(objectCollection) {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     //console.log("ds_p1_phone_passcode_transaction_update_verified data: ", data);
                     global.logger.write('conLog', "ds_p1_phone_passcode_transaction_update_verified data: " + JSON.stringify(data, null, 2), {}, request);
-                    (!err) ? resolve(data): reject(err);
+                    (!err) ? resolve(data) : reject(err);
                 });
             }
         });
@@ -892,7 +892,7 @@ function AssetService(objectCollection) {
                 if (countryCode === 91) {
 
                     fs.readFile(`${__dirname}/../utils/domesticSmsMode.txt`, function (err, data) {
-                        (err) ? global.logger.write('debug', err, {}, request): domesticSmsMode = Number(data.toString());
+                        (err) ? global.logger.write('debug', err, {}, request) : domesticSmsMode = Number(data.toString());
 
                         /*   case 1: // mvaayoo                        
                                 util.sendSmsMvaayoo(smsString, countryCode, phoneNumber, function (error, data) {
@@ -939,7 +939,7 @@ function AssetService(objectCollection) {
                 } else {
 
                     fs.readFile(`${__dirname}/../utils/internationalSmsMode.txt`, function (err, data) {
-                        (err) ? global.logger.write('debug', err, {}, request): internationalSmsMode = Number(data.toString());
+                        (err) ? global.logger.write('debug', err, {}, request) : internationalSmsMode = Number(data.toString());
 
                         /* case 1:
                                util.sendInternationalTwilioSMS(smsString, countryCode, phoneNumber, function (error, data) {
@@ -978,7 +978,7 @@ function AssetService(objectCollection) {
                 break;
             case 2: //Make a call                
                 fs.readFile(`${__dirname}/../utils/phoneCall.txt`, function (err, data) {
-                    (err) ? global.logger.write('debug', err, {}, request): phoneCall = Number(data.toString());
+                    (err) ? global.logger.write('debug', err, {}, request) : phoneCall = Number(data.toString());
 
                     switch (phoneCall) {
                         case 1: //Nexmo
@@ -1046,8 +1046,8 @@ function AssetService(objectCollection) {
         var flag; //1 is prod and 0 is dev
         var flagAppAccount; //1 is Grene Robotics and 0 is BlueFlock
 
-        (request.hasOwnProperty('flag_dev')) ? flag = request.flag_dev: flag = 1;
-        (request.hasOwnProperty('flag_app_account')) ? flagAppAccount = request.flag_app_account: flagAppAccount = 0;
+        (request.hasOwnProperty('flag_dev')) ? flag = request.flag_dev : flag = 1;
+        (request.hasOwnProperty('flag_app_account')) ? flagAppAccount = request.flag_app_account : flagAppAccount = 0;
 
         var proceedLinking = function (proceedLinkingCallback) {
 
@@ -1072,7 +1072,7 @@ function AssetService(objectCollection) {
                                 if (!err) {
                                     authTokenCollection.asset_id = request.operating_asset_id;
                                     if (reply === 0) { // setting asset parity to 0
-                                        cacheWrapper.setAssetParity(request.operating_asset_id, 0, function (err, reply) {});
+                                        cacheWrapper.setAssetParity(request.operating_asset_id, 0, function (err, reply) { });
                                         responseArr.operating_asset_message_counter = 0;
                                     } else { //sending the retrived parity value as response
                                         responseArr.operating_asset_message_counter = reply;
@@ -1095,35 +1095,35 @@ function AssetService(objectCollection) {
                     });
 
                     function callingNextFunction() {
-                        assetListHistoryInsert(request, request.asset_id, request.organization_id, 201, dateTimeLog, function (err, data) {
-                            if (err === false) {
-                                activityCommonService.assetTimelineTransactionInsert(request, {}, 1001, function (err, data) {});
-                                cacheWrapper.getAssetParity(request.asset_id, function (err, reply) { // setting asset parity for desk asset id 
-                                    if (!err) {
-                                        authTokenCollection.asset_id = request.asset_id;
-                                        if (reply === 0) { // setting asset parity to 0
-                                            cacheWrapper.setAssetParity(request.asset_id, 0, function (err, reply) {});
-                                            responseArr.asset_message_counter = 0;
-                                        } else { //sending the retrived parity value as response
-                                            responseArr.asset_message_counter = reply;
-                                        }
-                                        cacheWrapper.setTokenAuth(request.asset_id, JSON.stringify(authTokenCollection), function (err, reply) {
-                                            if (!err) {
-                                                proceedLinkingCallback(false, responseArr, 200);
-                                            } else {
-                                                proceedLinkingCallback(false, responseArr, -7998);
-                                            }
-                                        });
-                                    } else {
-                                        proceedLinkingCallback(false, responseArr, -7998);
+                        // assetListHistoryInsert(request, request.asset_id, request.organization_id, 201, dateTimeLog, function (err, data) {
+                        if (err === false) {
+                            activityCommonService.assetTimelineTransactionInsert(request, {}, 1001, function (err, data) { });
+                            cacheWrapper.getAssetParity(request.asset_id, function (err, reply) { // setting asset parity for desk asset id 
+                                if (!err) {
+                                    authTokenCollection.asset_id = request.asset_id;
+                                    if (reply === 0) { // setting asset parity to 0
+                                        cacheWrapper.setAssetParity(request.asset_id, 0, function (err, reply) { });
+                                        responseArr.asset_message_counter = 0;
+                                    } else { //sending the retrived parity value as response
+                                        responseArr.asset_message_counter = reply;
                                     }
-                                });
-                                return;
-                            } else {
-                                //callback(err, false, -9998);
-                                proceedLinkingCallback(err, false, -3201);
-                            }
-                        });
+                                    cacheWrapper.setTokenAuth(request.asset_id, JSON.stringify(authTokenCollection), function (err, reply) {
+                                        if (!err) {
+                                            proceedLinkingCallback(false, responseArr, 200);
+                                        } else {
+                                            proceedLinkingCallback(false, responseArr, -7998);
+                                        }
+                                    });
+                                } else {
+                                    proceedLinkingCallback(false, responseArr, -7998);
+                                }
+                            });
+                            return;
+                        } else {
+                            //callback(err, false, -9998);
+                            proceedLinkingCallback(err, false, -3201);
+                        }
+                        // });
                     }
 
                 } else {
@@ -1143,8 +1143,8 @@ function AssetService(objectCollection) {
                     proceedLinking(function (err, response, status) {
                         if (status == 200) {
                             if (request.flag_is_linkup == 1) {
-                                updateSignUpCnt(request, request.asset_id, 1).then(() => {});
-                                updateSignUpCnt(request, request.operating_asset_id, 2).then(() => {});
+                                updateSignUpCnt(request, request.asset_id, 1).then(() => { });
+                                updateSignUpCnt(request, request.operating_asset_id, 2).then(() => { });
                             }
                         }
 
@@ -1161,8 +1161,8 @@ function AssetService(objectCollection) {
             proceedLinking(function (err, response, status) {
                 if (status == 200) {
                     if (request.flag_is_linkup == 1) {
-                        updateSignUpCnt(request, request.asset_id, 1).then(() => {});
-                        updateSignUpCnt(request, request.operating_asset_id, 2).then(() => {});
+                        updateSignUpCnt(request, request.asset_id, 1).then(() => { });
+                        updateSignUpCnt(request, request.operating_asset_id, 2).then(() => { });
                     }
                 }
 
@@ -1288,10 +1288,10 @@ function AssetService(objectCollection) {
                         request.asset_count_signup = data.asset_count_signup;
 
                         if (data.asset_count_signup > 0) {
-                            assetListUpdateSignupCnt(request, assetId).then(() => {});
+                            assetListUpdateSignupCnt(request, assetId).then(() => { });
 
                         } else {
-                            assetListUpdateSignupCnt(request, assetId).then(() => {});
+                            assetListUpdateSignupCnt(request, assetId).then(() => { });
                             //Create a Task in a given Project and add an update
                             //Asset_id, operating_asset_name, organization_name, workforce_name
                             //console.log('Create a Task for Paramesh');
@@ -1365,7 +1365,7 @@ function AssetService(objectCollection) {
                     global.logger.write('debug', '\x1b[36mOperating Asset Signup count:\x1b[0m ' + data.asset_count_signup, {}, newRequest);
                     newRequest.asset_count_signup = data.asset_count_signup;
 
-                    assetListUpdateSignupCnt(request, assetId).then(() => {});
+                    assetListUpdateSignupCnt(request, assetId).then(() => { });
                 });
 
             }
@@ -1388,7 +1388,7 @@ function AssetService(objectCollection) {
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     //global.logger.write(queryString, request, 'asset', 'trace');
-                    (err === false) ? resolve(): reject(err);
+                    (err === false) ? resolve() : reject(err);
                 });
             }
         });
@@ -1686,12 +1686,12 @@ function AssetService(objectCollection) {
         // IN p_manager_asset_id BIGINT(20), IN p_workforce_id BIGINT(20), IN p_account_id  BIGINT(20), 
         // IN p_organization_id BIGINT(20), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
 
-               
+
         var activityInlineData = JSON.parse(request.activity_inline_data);
-        
+
         console.log('activityInlineData.contact_workforce_id - ', activityInlineData.contact_workforce_id);
         console.log('request.workforce_id - ', request.workforce_id);
-        
+
         var paramsArr = new Array(
             activityInlineData.contact_first_name,
             activityInlineData.contact_last_name,
@@ -1760,10 +1760,10 @@ function AssetService(objectCollection) {
 
         assetListUpdateLampStatus(request, request.asset_id, function (err, data) {
             if (err === false) {
-                assetListHistoryInsert(request, request.asset_id, request.organization_id, request.update_type_id, dateTimeLog, function (err, data) {});
+                assetListHistoryInsert(request, request.asset_id, request.organization_id, request.update_type_id, dateTimeLog, function (err, data) { });
                 assetListUpdateLampStatus(request, request.operating_asset_id, function (err, data) {
                     if (err === false) {
-                        assetListHistoryInsert(request, request.operating_asset_id, request.organization_id, request.update_type_id, dateTimeLog, function (err, data) {});
+                        assetListHistoryInsert(request, request.operating_asset_id, request.organization_id, request.update_type_id, dateTimeLog, function (err, data) { });
                         callback(false, {}, 200);
                         return;
                     } else {
@@ -2151,7 +2151,7 @@ function AssetService(objectCollection) {
 
         deleteAsset(request, function (err, AssetId) {
             if (err === false) {
-                assetListHistoryInsert(request, request.target_asset_id, request.organization_id, 204, dateTimeLog, function (err, data) {});
+                assetListHistoryInsert(request, request.target_asset_id, request.organization_id, 204, dateTimeLog, function (err, data) { });
                 var responseDataCollection = {};
                 responseDataCollection.asset_id = AssetId;
                 callback(false, responseDataCollection, 200);
@@ -2381,7 +2381,7 @@ function AssetService(objectCollection) {
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
-                    assetListHistoryInsert(request, request.target_asset_id, request.organization_id, 205, dateTimeLog, function (err, data) {});
+                    assetListHistoryInsert(request, request.target_asset_id, request.organization_id, 205, dateTimeLog, function (err, data) { });
                     callback(false, data, 200);
                 } else {
                     callback(true, err, -9998);
@@ -2423,7 +2423,7 @@ function AssetService(objectCollection) {
             //global.logger.write(queryString, request, 'asset', 'trace');
             db.executeQuery(0, queryString, request, function (err, assetData) {
                 if (err === false) {
-                    assetListHistoryInsert(request, assetData[0]['asset_id'], request.organization_id, 0, dateTimeLog, function (err, data) {});
+                    assetListHistoryInsert(request, assetData[0]['asset_id'], request.organization_id, 0, dateTimeLog, function (err, data) { });
                     request.ingredient_asset_id = assetData[0]['asset_id'];
                     // sss.createAssetBucket(request, function () {});
 
@@ -2431,10 +2431,10 @@ function AssetService(objectCollection) {
                         retrieveAccountWorkforces(request).then((data) => {
                             forEachAsync(data, function (next, x) {
                                 createActivityTypeForAllWorkforces(request, x).then(() => {
-                                    workForceActivityTypeHistoryInsert(request).then(() => {})
+                                    workForceActivityTypeHistoryInsert(request).then(() => { })
                                     next();
                                 })
-                            }).then(() => {});
+                            }).then(() => { });
                         });
                     }
                     callback(false, {
@@ -2459,7 +2459,7 @@ function AssetService(objectCollection) {
             var queryString = util.getQueryString('ds_v1_workforce_list_select_account', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
-                    (err === false) ? resolve(data): reject(err);
+                    (err === false) ? resolve(data) : reject(err);
                 });
             }
         });
@@ -2482,7 +2482,7 @@ function AssetService(objectCollection) {
             var queryString = util.getQueryString('ds_v1_workforce_activity_type_mapping_insert', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
-                    (err === false) ? resolve(data): reject(err);
+                    (err === false) ? resolve(data) : reject(err);
                 });
             }
         });
@@ -2499,7 +2499,7 @@ function AssetService(objectCollection) {
             var queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_history_insert', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
-                    (err === false) ? resolve(data): reject(err);
+                    (err === false) ? resolve(data) : reject(err);
                 });
             }
         });
@@ -2560,7 +2560,7 @@ function AssetService(objectCollection) {
                             global.logger.write('conLog', 'A3 :' + A3, {}, request);
 
 
-                            (A1 == 0 || A2 == 0) ? X = -1: X = ((A3 / (A2 / A1)) * 100);
+                            (A1 == 0 || A2 == 0) ? X = -1 : X = ((A3 / (A2 / A1)) * 100);
 
                             console.log('Work Presence : ' + X);
                             global.logger.write('conLog', 'Work Presence : ' + X, {}, request);
@@ -2583,7 +2583,7 @@ function AssetService(objectCollection) {
                             global.logger.write('conLog', 'E2 :' + E2, {}, request);
 
 
-                            ((D1 + E1) == 0) ? Y = -1: Y = ((((D1 + E1) - (D2 + E2)) / (D1 + E1)) * 100);
+                            ((D1 + E1) == 0) ? Y = -1 : Y = ((((D1 + E1) - (D2 + E2)) / (D1 + E1)) * 100);
 
                             console.log('Communication Aptitude : ' + Y);
                             global.logger.write('conLog', 'Communication Aptitude : ' + Y, {}, request);
@@ -2604,13 +2604,13 @@ function AssetService(objectCollection) {
                             global.logger.write('conLog', 'G1 :' + G1, {}, request);
                             global.logger.write('conLog', 'G3 :' + G3, {}, request);
 
-                            ((F1 + G1) == 0) ? Z = -1: Z = (((F3 + G3) / (F1 + G1)) * 100);
+                            ((F1 + G1) == 0) ? Z = -1 : Z = (((F3 + G3) / (F1 + G1)) * 100);
 
                             console.log('Productivity : ' + Z);
                             global.logger.write('conLog', 'Productivity : ' + Z, {}, request);
 
                             var rating;
-                            (X == -1 || Y == -1 || Z == -1) ? rating = -1: rating = (((12 / 70) * X) + ((34 / 70) * Y) + ((24 / 70) * Z));
+                            (X == -1 || Y == -1 || Z == -1) ? rating = -1 : rating = (((12 / 70) * X) + ((34 / 70) * Y) + ((24 / 70) * Z));
 
                             console.log('Rating : ' + rating);
                             global.logger.write('conLog', 'Rating : ' + rating, {}, request);
@@ -2724,8 +2724,8 @@ function AssetService(objectCollection) {
         var flag; //1 is prod and 0 is dev
         var flagAppAccount; //1 is Grene Robotics and 0 is BlueFlock
 
-        (request.hasOwnProperty('flag_dev')) ? flag = request.flag_dev: flag = 1;
-        (request.hasOwnProperty('flag_app_account')) ? flagAppAccount = request.flag_app_account: flagAppAccount = 0;
+        (request.hasOwnProperty('flag_dev')) ? flag = request.flag_dev : flag = 1;
+        (request.hasOwnProperty('flag_app_account')) ? flagAppAccount = request.flag_app_account : flagAppAccount = 0;
 
         var proceed = function (callback) {
             var authTokenCollection = {
@@ -2761,7 +2761,7 @@ function AssetService(objectCollection) {
                         if (err === false) {
                             authTokenCollection.asset_id = request.asset_id;
                             cacheWrapper.setTokenAuth(request.asset_id, JSON.stringify(authTokenCollection), function (err, reply) {
-                                (!err) ? callback(false, {}, 200): callback(false, {}, -7998);
+                                (!err) ? callback(false, {}, 200) : callback(false, {}, -7998);
                             });
                             return;
                         } else {
@@ -2819,7 +2819,7 @@ function AssetService(objectCollection) {
             var queryString = util.getQueryString('ds_v1_asset_list_update_invite_count', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
-                    (err === false) ? resolve(): reject(err);
+                    (err === false) ? resolve() : reject(err);
                 });
             }
         });
@@ -2834,7 +2834,7 @@ function AssetService(objectCollection) {
         var queryString = util.getQueryString('ds_p1_asset_list_phone_number_delete', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
-                (err === false) ? callback(false, {}, 200): reject(true, err, -9999);
+                (err === false) ? callback(false, {}, 200) : reject(true, err, -9999);
             });
         }
     };
@@ -2998,7 +2998,7 @@ function AssetService(objectCollection) {
             var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_dayplan_count_phone_number', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
-                    (err === false) ? resolve(data): reject(err);
+                    (err === false) ? resolve(data) : reject(err);
                 });
             }
         });
@@ -3018,7 +3018,7 @@ function AssetService(objectCollection) {
             var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_past_due_count_phone_number', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
-                    (err === false) ? resolve(data): reject(err);
+                    (err === false) ? resolve(data) : reject(err);
                 });
             }
         });
@@ -3058,7 +3058,7 @@ function AssetService(objectCollection) {
             var queryString = util.getQueryString('ds_v1_asset_list_update_push_token', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
-                    (err === false) ? resolve(false, data): reject(true, err);
+                    (err === false) ? resolve(false, data) : reject(true, err);
                 });
             }
         });
@@ -3080,7 +3080,7 @@ function AssetService(objectCollection) {
         let queryString = util.getQueryString('ds_p1_asset_monthly_summary_transaction_select_flag', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
-                (err === false) ? callback(false, data, 200): callback(true, err, -9999);
+                (err === false) ? callback(false, data, 200) : callback(true, err, -9999);
             });
         }
     };
@@ -3099,7 +3099,7 @@ function AssetService(objectCollection) {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (typeof data !== 'undefined') {
                     if (data.length > 0) {
-                        (err === false) ? callback(false, data, 200): callback(true, err, -9999);
+                        (err === false) ? callback(false, data, 200) : callback(true, err, -9999);
                     } else {
                         callback(true, err, -9999);
                     }
@@ -3125,7 +3125,7 @@ function AssetService(objectCollection) {
 
         if (queryString !== '') {
             db.executeQuery(0, queryString, request, function (err, data) {
-                (err === false) ? callback(false, data, 200): callback(true, err, -9999);
+                (err === false) ? callback(false, data, 200) : callback(true, err, -9999);
             });
         }
     }
@@ -3158,8 +3158,8 @@ function AssetService(objectCollection) {
         };
 
         Promise.all([
-                // Populate weekly summary params
-                asyncRetrieveAssetWeeklySummaryParams(request)
+            // Populate weekly summary params
+            asyncRetrieveAssetWeeklySummaryParams(request)
                 .then((data) => {
                     // Run through each of the summary entries returned
                     //console.log("data: ", data);
@@ -3175,7 +3175,7 @@ function AssetService(objectCollection) {
                         switch (Number(summaryEntry.weekly_summary_id)) {
 
                             case 3: // Response Rate - InMail
-                                // case 15: // Response Rate - Unread Updates
+                            // case 15: // Response Rate - Unread Updates
                             case 16: // Response Rate - Postits
                             case 19: // Response Rate - File Updates
                                 // Include the response rate value for average calculation only if
@@ -3211,8 +3211,8 @@ function AssetService(objectCollection) {
                     }
                 }),
 
-                // Populate monthly summary params
-                asyncRetrieveAssetMonthlySummaryParams(request)
+            // Populate monthly summary params
+            asyncRetrieveAssetMonthlySummaryParams(request)
                 .then((data) => {
                     let responseRateTotalCount = 0;
                     let responseRateOnTimeCount = 0;
@@ -3226,7 +3226,7 @@ function AssetService(objectCollection) {
                         switch (Number(summaryEntry.monthly_summary_id)) {
 
                             case 10: // Response Rate - InMail
-                                // case 22: // Response Rate - Unread Updates
+                            // case 22: // Response Rate - Unread Updates
                             case 29: // Response Rate - Postits
                             case 32: // Response Rate - File Updates
                                 // Include the response rate value for average calculation only if
@@ -3261,7 +3261,7 @@ function AssetService(objectCollection) {
                     }
 
                 })
-            ])
+        ])
             .then(() => {
                 callback(false, responseJSON, 200)
                 return;
@@ -3286,7 +3286,7 @@ function AssetService(objectCollection) {
             let queryString = util.getQueryString('ds_p1_asset_weekly_summary_transaction_select_flag', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
-                    (!err) ? resolve(data): reject(err);
+                    (!err) ? resolve(data) : reject(err);
                 });
             }
         });
@@ -3307,7 +3307,7 @@ function AssetService(objectCollection) {
             let queryString = util.getQueryString('ds_p1_asset_monthly_summary_transaction_select_flag', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
-                    (!err) ? resolve(data): reject(err);
+                    (!err) ? resolve(data) : reject(err);
                 });
             }
         });
@@ -3334,61 +3334,61 @@ function AssetService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_1_asset_list_update_default_module', paramsArr);
         if (queryString !== '') {
             db.executeQuery(0, queryString, request, function (err, data) {
-                (err) ? callback(true, err, -9999): callback(false, data, 200);
+                (err) ? callback(true, err, -9999) : callback(false, data, 200);
             });
         }
     };
-    
+
     this.checkPamAssetPasscode = function (request, callback) {
-    	
+
         var phoneNumber = util.cleanPhoneNumber(request.asset_phone_number);
         var phoneCountryCode = util.cleanPhoneNumber(request.asset_phone_country_code);
         var verificationCode = util.cleanPhoneNumber(request.verification_passcode);
         var verificationType = Number(request.verification_method);
 
-		var paramsArr = new Array();
-		var queryString = "";
-		
-        if(request.hasOwnProperty('member_code')){
-        	
-        	var paramsArr = new Array(
-        			request.organization_id,
-	                request.account_id,
-	                request.member_code
-	            );
-        	queryString = util.getQueryString('ds_v1_asset_list_passcode_check_member', paramsArr);
-        	
-        }else{
-        	var paramsArr = new Array(
-        			request.organization_id,
-        			request.asset_phone_number,
-        			request.asset_phone_country_code
-        	    );
-        		
-        	queryString = util.getQueryString('pm_v1_asset_list_select_member_phone_number', paramsArr);
+        var paramsArr = new Array();
+        var queryString = "";
+
+        if (request.hasOwnProperty('member_code')) {
+
+            var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.member_code
+            );
+            queryString = util.getQueryString('ds_v1_asset_list_passcode_check_member', paramsArr);
+
+        } else {
+            var paramsArr = new Array(
+                request.organization_id,
+                request.asset_phone_number,
+                request.asset_phone_country_code
+            );
+
+            queryString = util.getQueryString('pm_v1_asset_list_select_member_phone_number', paramsArr);
         }
 
-		if (queryString != '') {
-		    db.executeQuery(1, queryString, request, function (err, data) {
-		    	 if (err === false) {
-		    		 if(data.length > 0){
-		    			 if(verificationCode == data[0].asset_email_password){
-		    				 callback(false, data, 200);
-		    			 }else{			    				 
-		    				 callback(false, {"Error":"OTP Mismatch"}, -3107);
-		    			 }
-		    		 }else{
-		    			 callback(false, {"Error":"Member Code or Phone Number Not Valid"}, -3202);
-		    		 }
-		    	 }else{
-		    		 callback(false, {"Error":"DB Error"}, -9998);
-		    	 }
-		    });
-		}
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, data) {
+                if (err === false) {
+                    if (data.length > 0) {
+                        if (verificationCode == data[0].asset_email_password) {
+                            callback(false, data, 200);
+                        } else {
+                            callback(false, { "Error": "OTP Mismatch" }, -3107);
+                        }
+                    } else {
+                        callback(false, { "Error": "Member Code or Phone Number Not Valid" }, -3202);
+                    }
+                } else {
+                    callback(false, { "Error": "DB Error" }, -9998);
+                }
+            });
+        }
 
     };
 
-    
+
     this.getPamMemberPhoneNumberAsset = function (request, callback) {
 
         var phoneNumber = util.cleanPhoneNumber(request.asset_phone_number);
@@ -3398,79 +3398,79 @@ function AssetService(objectCollection) {
         var organizationId = request.organization_id;
 
         var queryString = '';
-        
-        if(request.hasOwnProperty('member_code')){
-        	
-        	var paramsArr = new Array(
-	                organizationId,
-	                request.account_id,
-	                request.member_code
-	            );
-        	queryString = util.getQueryString('ds_v1_asset_list_passcode_check_member', paramsArr);
-        	
-        }else{
-        	console.log('phoneNumber: '+phoneNumber);
-        	console.log('countryCode: '+countryCode);
-	        var paramsArr = new Array(
-		                organizationId,
-		                phoneNumber,
-		                countryCode
-		            );
-			 queryString = util.getQueryString('pm_v1_asset_list_select_member_phone_number', paramsArr);
+
+        if (request.hasOwnProperty('member_code')) {
+
+            var paramsArr = new Array(
+                organizationId,
+                request.account_id,
+                request.member_code
+            );
+            queryString = util.getQueryString('ds_v1_asset_list_passcode_check_member', paramsArr);
+
+        } else {
+            console.log('phoneNumber: ' + phoneNumber);
+            console.log('countryCode: ' + countryCode);
+            var paramsArr = new Array(
+                organizationId,
+                phoneNumber,
+                countryCode
+            );
+            queryString = util.getQueryString('pm_v1_asset_list_select_member_phone_number', paramsArr);
         }
-		 
 
-		 if (queryString != '') {
-                db.executeQuery(1, queryString, request, function (err, selectData) {
-                    if (err === false) {
-                        var verificationCode;
-                        verificationCode = util.getVerificationCode();
-                       if (selectData.length > 0) {
-                                 paramsArr = new Array(
-                                	selectData[0].organization_id,
-                                	selectData[0].account_id,
-                                	selectData[0].asset_id,                                    
-                                    verificationCode,
-                                    11031,
-                                    util.getCurrentUTCTime()
-                                );
-                                var updateQueryString = util.getQueryString('ds_v1_asset_list_update_pam_member_otp', paramsArr);
-                                db.executeQuery(0, updateQueryString, request, function (err, data) {
-                                    assetListHistoryInsert(request, selectData[0].asset_id, selectData[0].organization_id, 208, util.getCurrentUTCTime(), function (err, data) {
 
-                                    });                                  
-                                });
-                            
-                                sendCallOrSms(verificationMethod, selectData[0].asset_phone_country_code, selectData[0].asset_phone_number, verificationCode, request);
-                            callback(err, true, 200);
-                        }else{
-                        	callback(err, false, -9997);
-                        }
+        if (queryString != '') {
+            db.executeQuery(1, queryString, request, function (err, selectData) {
+                if (err === false) {
+                    var verificationCode;
+                    verificationCode = util.getVerificationCode();
+                    if (selectData.length > 0) {
+                        paramsArr = new Array(
+                            selectData[0].organization_id,
+                            selectData[0].account_id,
+                            selectData[0].asset_id,
+                            verificationCode,
+                            11031,
+                            util.getCurrentUTCTime()
+                        );
+                        var updateQueryString = util.getQueryString('ds_v1_asset_list_update_pam_member_otp', paramsArr);
+                        db.executeQuery(0, updateQueryString, request, function (err, data) {
+                            assetListHistoryInsert(request, selectData[0].asset_id, selectData[0].organization_id, 208, util.getCurrentUTCTime(), function (err, data) {
+
+                            });
+                        });
+
+                        sendCallOrSms(verificationMethod, selectData[0].asset_phone_country_code, selectData[0].asset_phone_number, verificationCode, request);
+                        callback(err, true, 200);
                     } else {
-                        // some thing is wrong and have to be dealt                        
-                        callback(err, false, -9999);
+                        callback(err, false, -9997);
                     }
-                });
-            }else {
-            	callback(false, {}, -3101);
-            }
+                } else {
+                    // some thing is wrong and have to be dealt                        
+                    callback(err, false, -9999);
+                }
+            });
+        } else {
+            callback(false, {}, -3101);
+        }
     };
-    
 
-    this.getAssetTimelineData = async (request) => {        
-        let paramsArr = new Array(                
-            request.organization_id, 
-            request.workforce_id, 
-            request.asset_id, 
+
+    this.getAssetTimelineData = async (request) => {
+        let paramsArr = new Array(
+            request.organization_id,
+            request.workforce_id,
+            request.asset_id,
             request.stream_type_id || 0,
             request.page_start,
             util.replaceQueryLimit(request.page_limit)
         );
         let queryString = util.getQueryString('ds_p1_asset_timeline_transaction_select_asset_stream_type', paramsArr);
         if (queryString != '') {
-            return await (db.executeQueryPromise(1, queryString, request));                
-        }        
-    };    
+            return await (db.executeQueryPromise(1, queryString, request));
+        }
+    };
 
     this.geAssetGeoFenceCounts = async function (request) {
         let responseData = [],
@@ -3540,12 +3540,12 @@ function AssetService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_asset_list_select_flag', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
-                .then((data) => {                    
+                .then((data) => {
                     let zerothElement = Object.assign({}, data[0]);
-                        zerothElement.asset_id = 0;
-                        zerothElement.operating_asset_first_name = "All";
+                    zerothElement.asset_id = 0;
+                    zerothElement.operating_asset_first_name = "All";
                     data.unshift(zerothElement);
-                    responseData = data;                    
+                    responseData = data;
                     error = false;
                 })
                 .catch((err) => {
@@ -3579,7 +3579,7 @@ function AssetService(objectCollection) {
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
-                    responseData = append0thActivityTypeId(data);                    
+                    responseData = append0thActivityTypeId(data);
                     error = false;
                 })
                 .catch((err) => {
@@ -3602,40 +3602,39 @@ function AssetService(objectCollection) {
 
     this.assetAccessMappingSelectUserFlag = function (request) {
         return new Promise((resolve, reject) => {
-        let responseData = [];
-        let singleData = {};
+            let responseData = [];
+            let singleData = {};
 
-        let paramsArr = new Array(
-            request.organization_id,
-            request.account_id,
-            request.workforce_id,
-            request.workforce_type_id || 0,
-            request.target_asset_id,
-            request.tag_type_id || 0,
-            request.tag_id || 0,
-            request.flag || 1,
-            request.page_start || 0,
-            request.page_limit || 50
-        );
-        const queryString = util.getQueryString('ds_p1_asset_access_mapping_select_user_flag', paramsArr);
-        if (queryString !== '') {
-            db.executeQueryPromise(1, queryString, request)
-                .then((data) => {
-                    //responseData = data;
-                    error = false;
-                    console.log("DATA LENGTH ", data.length);
-                        if(request.flag == 2){
-                            if(data.length == 0)
-                            {
-                                    responseData[0] = "";
-                                    responseData[1] = data;
-                                    resolve(responseData);
+            let paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.workforce_type_id || 0,
+                request.target_asset_id,
+                request.tag_type_id || 0,
+                request.tag_id || 0,
+                request.flag || 1,
+                request.page_start || 0,
+                request.page_limit || 50
+            );
+            const queryString = util.getQueryString('ds_p1_asset_access_mapping_select_user_flag', paramsArr);
+            if (queryString !== '') {
+                db.executeQueryPromise(1, queryString, request)
+                    .then((data) => {
+                        //responseData = data;
+                        error = false;
+                        console.log("DATA LENGTH ", data.length);
+                        if (request.flag == 2) {
+                            if (data.length == 0) {
+                                responseData[0] = "";
+                                responseData[1] = data;
+                                resolve(responseData);
 
-                            }else if(data.length == 1){
-                            
-                                if(data[0].account_id == 0){
-                             
-                                    accountListSelect(request).then((resData)=>{
+                            } else if (data.length == 1) {
+
+                                if (data[0].account_id == 0) {
+
+                                    accountListSelect(request).then((resData) => {
                                         singleData.query_status = 0;
                                         singleData.account_id = 0;
                                         singleData.account_name = "All";
@@ -3646,124 +3645,120 @@ function AssetService(objectCollection) {
                                         //console.log("responseData ", responseData);
                                         resolve(responseData);
 
-                                    });                         
-                                }else{
+                                    });
+                                } else {
                                     responseData[0] = "";
                                     responseData[1] = data;
                                     resolve(responseData);
-                                }                           
-                            }else{
-                                    responseData[0] = "";
-                                    responseData[1] = data;
-                                    resolve(responseData);
+                                }
+                            } else {
+                                responseData[0] = "";
+                                responseData[1] = data;
+                                resolve(responseData);
                             }
-                        }else if(request.flag == 19){
-                            if(data.length == 0)
-                            {
-                                if(request.account_id > 0)
-                                {                               
-                                        let paramsArrInter = new Array(
-                                            request.organization_id,
-                                            0,
-                                            request.workforce_id,
-                                            request.workforce_type_id || 0,
-                                            request.target_asset_id,
-                                            request.tag_type_id || 0,
-                                            request.tag_id || 0,
-                                            request.flag || 1,
-                                            request.page_start || 0,
-                                            request.page_limit || 50
-                                        );
+                        } else if (request.flag == 19) {
+                            if (data.length == 0) {
+                                if (request.account_id > 0) {
+                                    let paramsArrInter = new Array(
+                                        request.organization_id,
+                                        0,
+                                        request.workforce_id,
+                                        request.workforce_type_id || 0,
+                                        request.target_asset_id,
+                                        request.tag_type_id || 0,
+                                        request.tag_id || 0,
+                                        request.flag || 1,
+                                        request.page_start || 0,
+                                        request.page_limit || 50
+                                    );
                                     let queryStringInter = util.getQueryString('ds_p1_asset_access_mapping_select_user_flag', paramsArrInter);
-                                    if (queryStringInter !== '')
-                                    {
+                                    if (queryStringInter !== '') {
                                         db.executeQueryPromise(1, queryStringInter, request)
                                             .then((IntermediateData) => {
 
-                                                if(IntermediateData.length == 1){
+                                                if (IntermediateData.length == 1) {
 
-                                                    if(IntermediateData[0].workforce_type_id == 0){
+                                                    if (IntermediateData[0].workforce_type_id == 0) {
 
-                                                        workforceTypeMasterSelect(request).then((resData)=>{
-                                                            
+                                                        workforceTypeMasterSelect(request).then((resData) => {
+
                                                             singleData.query_status = 0;
                                                             singleData.workforce_type_id = 0;
                                                             singleData.workforce_type_name = "All";
 
                                                             resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
-                                                            
+
                                                             responseData[0] = "";
                                                             responseData[1] = resData;
                                                             //console.log("responseData ", responseData);
                                                             resolve(responseData);
 
-                                                        });                        
-                                                    }else{
+                                                        });
+                                                    } else {
                                                         responseData[0] = "";
                                                         responseData[1] = IntermediateData;
                                                         resolve(responseData);
                                                     }
-                                                }else{
+                                                } else {
                                                     responseData[0] = "";
                                                     responseData[1] = IntermediateData;
                                                     resolve(responseData);
                                                 }
                                             })
-                                        
-                                    }else{
+
+                                    } else {
                                         responseData[0] = "";
                                         responseData[1] = data;
                                         resolve(responseData);
                                     }
-                                }else{
+                                } else {
                                     responseData[0] = "";
                                     responseData[1] = data;
                                     resolve(responseData);
                                 }
-                            
-                            }else if(data.length == 1){
-                                if(data[0].workforce_type_id == 0){
-                              
-                                    workforceTypeMasterSelect(request).then((resData)=>{
-                                        
+
+                            } else if (data.length == 1) {
+                                if (data[0].workforce_type_id == 0) {
+
+                                    workforceTypeMasterSelect(request).then((resData) => {
+
                                         singleData.query_status = 0;
                                         singleData.workforce_type_id = 0;
                                         singleData.workforce_type_name = "All";
 
                                         resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
-                                        
+
                                         responseData[0] = "";
                                         responseData[1] = resData;
                                         //console.log("responseData ", responseData);
                                         resolve(responseData);
 
-                                    });                        
-                                }else{
+                                    });
+                                } else {
                                     responseData[0] = "";
                                     responseData[1] = data;
                                     resolve(responseData);
                                 }
-                            }else{
-                                    responseData[0] = "";
-                                    responseData[1] = data;
-                                    resolve(responseData);
+                            } else {
+                                responseData[0] = "";
+                                responseData[1] = data;
+                                resolve(responseData);
                             }
-                        }else if(request.flag == 6){
-                        
-                            if(data.length == 0)
-                            {
-                                if(request.account_id == 0){
+                        } else if (request.flag == 6) {
+
+                            if (data.length == 0) {
+                                if (request.account_id == 0) {
                                     singleData.query_status = 0;
                                     singleData.asset_id = 0;
                                     singleData.asset_first_name = "All";
                                     singleData.operating_asset_id = 0;
                                     singleData.operating_asset_first_name = "All";
-                                    
+
                                     responseData[0] = "";
-                                    responseData[1] = singleData;                               
+                                    responseData[1] = singleData;
                                     resolve(responseData);
-                                }else{
-                                    assetListSelect(request).then((resData)=>{
+                                } else {
+                                    assetListSelect(request).then((resData) => {
 
                                         singleData.query_status = 0;
                                         singleData.asset_id = 0;
@@ -3779,25 +3774,25 @@ function AssetService(objectCollection) {
 
                                     });
                                 }
-                            }else if(data.length == 1){
-                                console.log("CASE 6, DATA LENGTH 1, request.account_id :: ",request.account_id+' '+data[0].asset_id);
-                                if(request.account_id == 0){
-                                    console.log("CASE 6, DATA LENGTH 1, request.account_id = 0 :: ",request.account_id+' '+data[0].asset_id);
+                            } else if (data.length == 1) {
+                                console.log("CASE 6, DATA LENGTH 1, request.account_id :: ", request.account_id + ' ' + data[0].asset_id);
+                                if (request.account_id == 0) {
+                                    console.log("CASE 6, DATA LENGTH 1, request.account_id = 0 :: ", request.account_id + ' ' + data[0].asset_id);
                                     singleData.query_status = 0;
                                     singleData.asset_id = 0;
                                     singleData.asset_first_name = "All";
                                     singleData.operating_asset_id = 0;
                                     singleData.operating_asset_first_name = "All";
-                                    
+
                                     responseData[0] = "";
-                                    responseData[1] = singleData;                               
+                                    responseData[1] = singleData;
                                     resolve(responseData);
-                                    
-                                }else{
-                                    console.log("CASE 6, DATA LENGTH 1, request.account_id > 0:: ",request.account_id+' '+data[0].asset_id);
-                                    if(data[0].asset_id == 0){
-                                        assetListSelect(request).then((resData)=>{
-                                            
+
+                                } else {
+                                    console.log("CASE 6, DATA LENGTH 1, request.account_id > 0:: ", request.account_id + ' ' + data[0].asset_id);
+                                    if (data[0].asset_id == 0) {
+                                        assetListSelect(request).then((resData) => {
+
                                             singleData.query_status = 0;
                                             singleData.asset_id = 0;
                                             singleData.asset_first_name = "All";
@@ -3805,53 +3800,52 @@ function AssetService(objectCollection) {
                                             singleData.operating_asset_first_name = "All";
 
                                             resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
-                                            
+
                                             responseData[0] = "";
                                             responseData[1] = resData;
                                             //console.log("responseData ", responseData);
                                             resolve(responseData);
 
                                         });
-                                    }else{
-                                        console.log('CASE 6, DATA LENGTH 1, request.account_id > 0 data[0].asset_id > 0 :: ',+' '+JSON.stringify(data));
+                                    } else {
+                                        console.log('CASE 6, DATA LENGTH 1, request.account_id > 0 data[0].asset_id > 0 :: ', +' ' + JSON.stringify(data));
                                         responseData[0] = "";
                                         responseData[1] = data;
-                                        console.log('CASE 6, DATA LENGTH 1, request.account_id > 0 data[0].asset_id > 0 responseData :: ',+' '+JSON.stringify(responseData));
+                                        console.log('CASE 6, DATA LENGTH 1, request.account_id > 0 data[0].asset_id > 0 responseData :: ', +' ' + JSON.stringify(responseData));
                                         resolve(responseData);
                                     }
                                 }
-                            
-                            }else{
+
+                            } else {
                                 responseData[0] = "";
                                 responseData[1] = data;
                                 resolve(responseData);
                             }
-                        }else if(request.flag == 20){
-                            if(data.length == 0)
-                            {
-                                tagTypeMasterSelect(request).then((resData)=>{
-/*
-                                    singleData.query_status = 0;
-                                    singleData.tag_type_id = 0;
-                                    singleData.tag_type_name = "All";
-                                       
-                                    resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
-                                     */
+                        } else if (request.flag == 20) {
+                            if (data.length == 0) {
+                                tagTypeMasterSelect(request).then((resData) => {
+                                    /*
+                                                                        singleData.query_status = 0;
+                                                                        singleData.tag_type_id = 0;
+                                                                        singleData.tag_type_name = "All";
+                                                                           
+                                                                        resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                                                         */
                                     responseData[0] = "";
                                     responseData[1] = resData;
                                     //console.log("responseData ", responseData);
                                     resolve(responseData);
                                 });
-                            }else{
+                            } else {
                                 responseData[0] = "";
                                 responseData[1] = data;
                                 resolve(responseData);
                             }
-                        }else if(request.flag == 21){
-                             console.log('CASE 21 request.tag_type_id :: ',+' '+request.tag_type_id);
-                             if(data.length == 0)
-                            {console.log('CASE 21, request.tag_type_id DATA LENGTH 0, :: ');
-                                tagListSelect(request).then((resData)=>{
+                        } else if (request.flag == 21) {
+                            console.log('CASE 21 request.tag_type_id :: ', +' ' + request.tag_type_id);
+                            if (data.length == 0) {
+                                console.log('CASE 21, request.tag_type_id DATA LENGTH 0, :: ');
+                                tagListSelect(request).then((resData) => {
 
                                     singleData.query_status = 0;
                                     singleData.tag_id = 0;
@@ -3865,10 +3859,10 @@ function AssetService(objectCollection) {
                                     resolve(responseData);
                                 });
 
-                             }else{
-                                if(data[0].tag_id == 0){
+                            } else {
+                                if (data[0].tag_id == 0) {
 
-                                   tagListSelect(request).then((resData)=>{
+                                    tagListSelect(request).then((resData) => {
 
                                         singleData.query_status = 0;
                                         singleData.tag_id = 0;
@@ -3881,17 +3875,16 @@ function AssetService(objectCollection) {
                                         resolve(responseData);
 
                                     });
-                                }else{
+                                } else {
                                     responseData[0] = "";
                                     responseData[1] = data;
                                     resolve(responseData);
                                 }
                             }
-                        }else if(request.flag == 8){
-                            if(data.length == 0)
-                            {
-                                activityTypeTagMappingSelect(request).then((resData)=>{
-                                    
+                        } else if (request.flag == 8) {
+                            if (data.length == 0) {
+                                activityTypeTagMappingSelect(request).then((resData) => {
+
                                     singleData.query_status = 0;
                                     singleData.activity_type_id = 0;
                                     singleData.activity_type_name = "All";
@@ -3902,11 +3895,11 @@ function AssetService(objectCollection) {
                                     //console.log("responseData ", responseData);
                                     resolve(responseData);
 
-                                }); 
-                            }else{
-                                if(data[0].activity_type_id == 0){
+                                });
+                            } else {
+                                if (data[0].activity_type_id == 0) {
 
-                                    activityTypeTagMappingSelect(request).then((resData)=>{
+                                    activityTypeTagMappingSelect(request).then((resData) => {
 
                                         singleData.query_status = 0;
                                         singleData.activity_type_id = 0;
@@ -3918,24 +3911,24 @@ function AssetService(objectCollection) {
                                         //console.log("responseData ", responseData);
                                         resolve(responseData);
 
-                                    });                               
-                                }else{
+                                    });
+                                } else {
                                     responseData[0] = "";
                                     responseData[1] = data;
                                     resolve(responseData);
-                                }       
+                                }
                             }
-                        }else{
-                        responseData[0] = "";
-                        responseData[1] = data;
-                        resolve(responseData);
-                    }
-                    
-                })
-                .catch((err) => {
-                    error = err;
-                });
-        }        
+                        } else {
+                            responseData[0] = "";
+                            responseData[1] = data;
+                            resolve(responseData);
+                        }
+
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });
+            }
         });
     };
 
@@ -3950,7 +3943,7 @@ function AssetService(objectCollection) {
             var queryString = util.getQueryString('ds_p1_account_list_select_organization', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
-                    (err === false) ? resolve(data): reject(err);
+                    (err === false) ? resolve(data) : reject(err);
                 });
             }
         });
@@ -3967,7 +3960,7 @@ function AssetService(objectCollection) {
             var queryString = util.getQueryString('ds_p1_workforce_type_master_select_organization', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
-                    (err === false) ? resolve(data): reject(err);
+                    (err === false) ? resolve(data) : reject(err);
                 });
             }
         });
@@ -3980,8 +3973,8 @@ function AssetService(objectCollection) {
                 request.account_id,
                 request.workforce_type_id,
                 request.workforce_id,
-                request._flag||0,
-                request.sort_flag||0,
+                request._flag || 0,
+                request.sort_flag || 0,
                 0,
                 1000
             );
@@ -3989,7 +3982,7 @@ function AssetService(objectCollection) {
             var queryString = util.getQueryString('ds_p1_asset_list_select_flag', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
-                    (err === false) ? resolve(data): reject(err);
+                    (err === false) ? resolve(data) : reject(err);
                 });
             }
         });
@@ -4006,7 +3999,7 @@ function AssetService(objectCollection) {
             var queryString = util.getQueryString('ds_p1_tag_type_master_select', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
-                    (err === false) ? resolve(data): reject(err);
+                    (err === false) ? resolve(data) : reject(err);
                 });
             }
         });
@@ -4023,20 +4016,20 @@ function AssetService(objectCollection) {
             var queryString = util.getQueryString('ds_p1_tag_list_select_organization', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
-                    (err === false) ? resolve(data): reject(err);
+                    (err === false) ? resolve(data) : reject(err);
                 });
             }
         });
     };
 
-   async function activityTypeTagMappingSelect(request) {
+    async function activityTypeTagMappingSelect(request) {
         return new Promise((resolve, reject) => {
             var paramsArr = new Array(
                 request.organization_id,
                 request.tag_type_id,
                 request.tag_id,
-                request._flag||0,
-                request.sort_flag||0,
+                request._flag || 0,
+                request.sort_flag || 0,
                 request.page_start,
                 request.page_limit
             );
@@ -4044,41 +4037,41 @@ function AssetService(objectCollection) {
             var queryString = util.getQueryString('ds_p1_activity_type_tag_mapping_select_flag', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
-                    (err === false) ? resolve(data): reject(err);
+                    (err === false) ? resolve(data) : reject(err);
                 });
             }
         });
     };
 
-    this.processExcel = async function (request){
+    this.processExcel = async function (request) {
 
         const [errOne, workbook] = await util.getXlsxWorkbookFromS3Url(request, request.bucket_url);
         const sheet_name_list = workbook.SheetNames;
-        console.log("EXCEL WORKBOOK :: "+sheet_name_list); 
-        
-        console.log('xlData :: '+ workbook.Sheets[sheet_name_list[0]]);
+        console.log("EXCEL WORKBOOK :: " + sheet_name_list);
+
+        console.log('xlData :: ' + workbook.Sheets[sheet_name_list[0]]);
         var xlData = xlsx.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]]);
-        console.log('xlData :: '+xlData.length);
-        
+        console.log('xlData :: ' + xlData.length);
+
         for (let row = 3; row < xlData.length; row++) {
-             for (const col of 'EF') {
+            for (const col of 'EF') {
                 try {
                     let val = workbook.Sheets[sheet_name_list[0]][`${col}${row}`].t;
-                    if(val === 'n'){
-                        console.log(col +""+row +" : "+ workbook.Sheets[sheet_name_list[0]][`${col}${row}`].v);
-                    }else{
-                        console.log("Not a Number at "+ col +""+row +" : "+ workbook.Sheets[sheet_name_list[0]][`${col}${row}`].v);
+                    if (val === 'n') {
+                        console.log(col + "" + row + " : " + workbook.Sheets[sheet_name_list[0]][`${col}${row}`].v);
+                    } else {
+                        console.log("Not a Number at " + col + "" + row + " : " + workbook.Sheets[sheet_name_list[0]][`${col}${row}`].v);
                         return ["error", "The CAF annexure is not filled in the required format, please check and resubmit"];
                     }
-                    
+
                 } catch (error) {
                     return [error, "The CAF annexure is not filled in the required format, please check and resubmit."];
                 }
             }
         }
-        console.log('No Strings in Excel :: '+xlData.length); 
-        return ["", "Annexure is Valid"];      
-     }
+        console.log('No Strings in Excel :: ' + xlData.length);
+        return ["", "Annexure is Valid"];
+    }
 }
 
 module.exports = AssetService;
