@@ -2026,6 +2026,8 @@ function FormConfigService(objCollection) {
                 //console.log('**************************************************');
                 
                 await addTimelineTransactionAsync(workflowFile713Request);
+
+                addValueToWidgetForAnalyticsWF(request, workflowActivityId, workflowActivityTypeId);
             }
         }
 
@@ -3518,6 +3520,50 @@ function FormConfigService(objCollection) {
         return [error, refinedForms];
     };
 
+    
+    //Update Workflow values in Activity_List for Workflow Form
+    async function addValueToWidgetForAnalyticsWF(requestObj, workflowActivityId, workflowActivityTypeID) {
+        let request = Object.assign({}, requestObj);
+        
+        let [err, inlineData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, workflowActivityTypeID);
+        if(err) {
+            return err;
+        }   
+        
+        //console.log('inlineData : ', inlineData[0]);        
+        console.log('inlineData.activity_type_inline_data : ', inlineData[0].activity_type_inline_data);
+        
+        let finalInlineData = JSON.parse(inlineData[0].activity_type_inline_data);
+
+        console.log('finalInlineData.hasOwnProperty(workflow_fields) : ', finalInlineData.hasOwnProperty('workflow_fields'));
+
+        if(finalInlineData.hasOwnProperty('workflow_fields')) {
+            let i, fieldId;
+            let workflowFields = finalInlineData.workflow_fields;
+            let activityInlineData = JSON.parse(request.activity_inline_data);
+
+            console.log('workflowFields : ', workflowFields);
+            console.log('activityInlineData : ', activityInlineData);
+            console.log('activityInlineData.length : ', activityInlineData.length);
+
+            for(i=0; i<activityInlineData.length; i++) {
+                for(fieldId in workflowFields){
+                    if(fieldId === activityInlineData[i].field_id) {
+                        await activityCommonService.analyticsUpdateWidgetValue(request, 
+                                                                               workflowActivityId, 
+                                                                               workflowFields[fieldId].sequence_id, 
+                                                                               activityInlineData[i].field_value);
+                        break;
+                    }
+                }   
+            }
+        }
+
+        return "success";
+    }
+    
+    
+    //Update Workflow values in Activity_List for all non-origin Forms - field edits
     async function addValueToWidgetForAnalytics(requestObj) {
         let request = Object.assign({}, requestObj);
 
