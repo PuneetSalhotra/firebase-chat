@@ -4129,6 +4129,8 @@ function VodafoneService(objectCollection) {
             workflowFile713Request.message_unique_id = util.getMessageUniqueId(request.asset_id);
             workflowFile713Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
             workflowFile713Request.device_os_id = 8;
+            // This will be captured in the push-string message-forming switch-case logic
+            workflowFile713Request.url = `/${global.config.version}/activity/timeline/entry/add/v1`;
 
             // const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
             try {

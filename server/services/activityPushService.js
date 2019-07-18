@@ -346,6 +346,12 @@ function ActivityPushService(objectCollection) {
                     case 34: //Time Card
                         break;
                     case 48: // Process/Workflow
+                        if (
+                            Number(request.asset_id) === 31993 ||
+                            Number(request.asset_id) === 100
+                        ) {
+                            senderName = "TONY";
+                        }
                         switch (request.url) {
                             case '/' + global.config.version + '/activity/timeline/entry/add':
                             case '/' + global.config.version + '/activity/timeline/entry/add/v1':
@@ -406,6 +412,11 @@ function ActivityPushService(objectCollection) {
                                 pushString = {};
                                 break;
                         }
+                        console.log("getPushString | request.url: ", request.url);
+                        console.log("getPushString | request.activity_stream_type_id: ", request.activity_stream_type_id);
+                        console.log("getPushString | pushString: ", pushString);
+                        console.log("getPushString | msg: ", msg);
+                        console.log("getPushString | request.asset_id: ", request.asset_id);
                         break;
                 }
                 
