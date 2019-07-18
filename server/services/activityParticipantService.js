@@ -408,6 +408,9 @@ function ActivityParticipantService(objectCollection) {
                 case 51: //Feedback
                     activityStreamTypeId = 2307;
                     break;
+                case 52: //Widget
+                    activityStreamTypeId = 26002;
+                    break;
                 default:
                     activityStreamTypeId = 3; //by default so that we know
                     //console.log('adding streamtype id 3');

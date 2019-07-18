@@ -3511,13 +3511,13 @@ function ActivityCommonService(db, util, forEachAsync) {
         return [error, responseData];
     };
 
-    this.analyticsUpdateWidgetValue = async function (request, flag, value) {
+    this.analyticsUpdateWidgetValue = async function (request, activityId, flag, value) {
         let responseData = [],
             error = true;
 
         let paramsArr = new Array(
             request.organization_id,
-            request.activity_id,
+            activityId,
             flag || 0,
             value,
             request.asset_id,
