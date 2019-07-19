@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /*
  * author: Nani Kalyan V
  */
@@ -7,6 +8,22 @@ var ActivityParticipantService = require('../../services/activityParticipantServ
 //var ActivityUpdateService = require('../../services/activityUpdateService.js');
 var ActivityTimelineService = require('../../services/activityTimelineService.js');
 //var ActivityListingService = require('../../services/activityListingService.js');
+const aws = require('aws-sdk');
+var fs = require('fs');
+aws.config.loadFromPath(`${__dirname}/configS3.json`);
+const s3 = new aws.S3();
+var pdf = require('html-pdf');
+var NodeGeocoder = require('node-geocoder');
+var geoCodeOptions = {
+    provider: 'google',
+   
+    // Optional depending on the providers
+    httpAdapter: 'https', // Default
+    apiKey: 'AIzaSyBv5PU4hlsQIlIaYByuatmjt171uN6lDSE', // for Mapquest, OpenCage, Google Premier
+    formatter: null         // 'gpx', 'string', ...
+  };
+   
+  var geocoder = NodeGeocoder(geoCodeOptions);
 
 function BotService(objectCollection) {
 
@@ -1559,10 +1576,10 @@ function BotService(objectCollection) {
         if (type[0] === 'static') {
             newReq.flag_asset = inlineData[type[0]].flag_asset;
 
-            if (newReq.flag_asset === 1) {
-                //Use Asset Id
+            if (Number(newReq.flag_asset) === 1) {
+                // Use Asset Id
                 newReq.desk_asset_id = inlineData[type[0]].desk_asset_id;
-                newReq.phone_number = 0;
+                newReq.phone_number = inlineData[type[0]].phone_number;
             } else {
                 //Use Phone Number
                 newReq.desk_asset_id = 0;
@@ -3144,6 +3161,571 @@ function BotService(objectCollection) {
 
         return [false, activityData];
     };
+
+    // async function uploadHtmltoPDF () {
+    this.uploadHtmltoPDF = async (request) => {
+
+        let signatureUrl = "";
+        let imgSrc = "";       
+        
+        if(Number(request.is_signature_upload) === 1) {             
+            signatureUrl = request.signature_url;            
+            let binaryData = await this.downloadS3Object(request, signatureUrl);
+            imgSrc = 'data:image/jpeg;base64,' + Buffer.from(binaryData).toString('base64');
+        }
+
+        let activityDetails = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
+        //console.log('ACT Details : ', activityDetails);
+        let activityInlineData = JSON.parse(activityDetails[0].activity_inline_data);
+
+        //console.log(activityInlineData);
+        let useTemplate = 0;
+        let customerName = "";
+        let location = "";
+        let productType = "";
+        let productSubType = "";
+        let locations= "";
+        let locationA = "A-End";
+        let locationB = "B-End";
+        let bandWidth = "";
+
+        for(let i=0; i < activityInlineData.length;i++) {
+            //console.log(i.field_name);
+
+            if(activityInlineData[i].field_id === '13786') {
+                productType = activityInlineData[i].field_name;
+                if(activityInlineData[i].field_value === "Domestic VPN"){                    
+                    productSubType = "Domestic VPN";
+                    useTemplate = 1; //Domestic
+                } else {                    
+                    productSubType = "Global VPN";
+                    useTemplate = 2; //Global
+                }
+            } else if(activityInlineData[i].field_id === '13777' || 
+                      activityInlineData[i].field_id === '13836' ||
+                      activityInlineData[i].field_id === '13839') {
+                    
+                    if(activityInlineData[i].field_value !== "") {
+                        customerName = activityInlineData[i].field_value;
+                    }
+                        
+            } else if(activityInlineData[i].field_id === '13788') {
+                location = activityInlineData[i].field_value;
+                let resp = await this.getCitybasedOnLats(request, location);
+                //console.log('############################');
+                //console.log('RESP : ', resp);
+                //console.log('############################');
+                (resp === 'quotaexpired') ?
+                    location = "" 
+                    :                
+                    location = resp;
+            } else if(activityInlineData[i].field_id === '13771') { //Product Type
+                //productType = activityInlineData[i].field_value;
+            } else if(activityInlineData[i].field_id === '13773') { //Product Sub Type
+                productSubType = activityInlineData[i].field_value;                
+            } else if(activityInlineData[i].field_id === '13787') {
+                locations = activityInlineData[i].field_value;
+            } /*else if(activityInlineData[i].field_id === '13783') {
+                locationA = activityInlineData[i].field_value;
+                let resp = await this.getCitybasedOnLats(request, locationA);
+                //console.log('############################');
+                //console.log('RESP LOCATION A: ', resp);
+                //console.log('############################');
+                (resp === 'quotaexpired') ?
+                    locationA = "" 
+                    :                
+                    locationA = resp;
+            } else if(activityInlineData[i].field_id === '13784') {
+                locationB = activityInlineData[i].field_value;
+                let resp = await this.getCitybasedOnLats(request, locationB);
+                //console.log('############################');
+                //console.log('RESP LOCATION B: ', resp);
+                //console.log('############################');
+                (resp === 'quotaexpired') ?
+                    locationB = "" 
+                    :                
+                    locationB = resp;
+            } */ else if(activityInlineData[i].field_id === '13780' || 
+                         activityInlineData[i].field_id === '13789' || 
+                         activityInlineData[i].field_id === '13795') {
+                            if(activityInlineData[i].field_value !== "") {
+                                bandWidth = activityInlineData[i].field_value;
+                            }                            
+            }
+        }
+        
+        const domesticTemplate = `
+            <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+            <html xmlns="http://www.w3.org/1999/xhtml">
+            <head>
+            <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+            <title>Welcome</title>
+            </head>
+            <body style="margin:0; padding:0;">
+            <div style="margin:0 auto; width:650px; font-family:Georgia, 'Times New Roman', Times, serif; color:#555; font-size:14px;">
+            <div style="padding:10px 0; border-bottom:1px dashed #555;">
+                <p style="text-align:center; margin:0;"><span style="font-size:40px; border-bottom:1px solid #555555; color:#555555; font-weight:bold; line-height:30px; display:inline-block;">Demo Telco Inc.</span></p>
+                <p style="text-align:center; font-size:12px; margin:5px 0;">Plot No <span>123</span>, Road No. <span>25</span>, Jubilee Hills, Hyderabad- 500 062</p>
+            </div>
+            <div style=" text-align:right; padding-top:10px; padding-right:30px; font-weight:bold; font-size:15px; color:#555555;">Date:${util.getCurrentDate()}</div>
+            <div style="padding-top:10px; font-weight:bold; font-size:15px; color:#555;">To</div>
+            <div style=" padding-top:30px;font-weight:bold; font-size:15px; color:#555555;">${customerName},</div>
+            <div style=" padding-top:5px;font-weight:bold; font-size:15px; color:#555555;">${location}<span style="color:#555"></span></div>
+            <div style=" padding-top:30px;">Subject: Quotation for <span style="color:#555555">${productType}</span></div>
+            <div style=" padding-top:20px; padding-bottom:20px;">Thank you for your interest in our services. With reference to your inquiry for <span style="color:#555555">${productType}</span>, we are
+                pleased to submit our proposal for your perusal. </div>
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border:1px solid #ccc; text-align:center;">
+                <tr>
+                <td width="5%" style="padding:5px; border:1px solid #ccc;"><strong>S.<br />
+                    No</strong></td>
+                <td width="40%" style="padding:5px; border:1px solid #ccc;"><strong>Description</strong></td>
+                <td width="10%" style="padding:5px; border:1px solid #ccc;">&nbsp;</td>
+                <td width="10%" style="padding:5px; border:1px solid #ccc;"><span style="color:#555555"><strong>Price</strong></span></td>
+                <td width="10%" style="padding:5px; border:1px solid #ccc;"><strong>Total</strong></td>
+                </tr>
+                <tr>
+                <td style="padding:5px;border:1px solid #ccc; text-align:left;">01</td>
+                <td style="padding:5px;border:1px solid #ccc; text-align:left;"><div style="color:#555555">${productType}:</div>
+                    For the <span style="color:#555555">&quot;${productSubType}&quot;</span> with <span style="color:#555555">&quot;${locations}&quot;</span>
+                    locations from <span style="color:#555555">${locationA}</span> to <span style="color:#555555">${locationB}</span> with <span style="color:#555555">&quot;${bandWidth}&quot;</span>
+                    Bandwidth<br />
+                <br /><br />
+                <br />
+
+                </td>
+                    <td style="padding:5px;border:1px solid #ccc; text-align:left;">&nbsp;</td>
+                    <td style="padding:5px;border:1px solid #ccc; text-align:center;"><span>Rs.50,000/-</span></td>
+                    <td style="padding:5px;border:1px solid #ccc; text-align:left;">Rs.50,000/-</td>
+                    </tr>
+                    <tr>
+                    <td style="padding:5px;border:1px solid #ccc; text-align:left;">02</td>
+                    <td style="padding:5px;border:1px solid #ccc;text-align:left;"><span style="color:#555555">Tax<br />
+                <br />
+                </span></td>
+                    <td style="padding:5px;border:1px solid #ccc;text-align:left;"><span style="color:#555555">18</span></td>
+                    <td style="padding:5px;border:1px solid #ccc;text-align:left;">9000</td>
+                    <td style="padding:5px;border:1px solid #ccc;text-align:left;">9000</td>
+                    </tr>
+                    <tr>
+                    <td style="padding:5px;border:1px solid #ccc;text-align:left;"> </td>
+                    <td style="padding:5px;border:1px solid #ccc;text-align:left;"><span style="color:#555555">Total<br />
+                <br />
+                </span></td>
+                    <td style="padding:5px;border:1px solid #ccc;text-align:left;"> </td>
+                    <td style="padding:5px;border:1px solid #ccc;text-align:left;"> </td>
+                    <td style="padding:5px;border:1px solid #ccc;text-align:left;">59000</td>
+                    </tr>
+                </table>
+                ${ Number(request.is_signature_upload) === 1 ? 
+                    ['<div style="display:flex; flex-direction: row-reverse;"><img src="'+imgSrc+'" alt="Signature" height="70px" width="70px"/></div>',
+                     '<br><br><br><br>',
+                     '<div style="margin-top:-50px; color:#000;"><strong><span style="border-bottom:1px solid #555">Terms and Conditions:</span></strong></div>']
+                    :
+                    '<div style="padding:30px 0 0; color:#000;"><strong><span style="border-bottom:1px solid #555">Terms and Conditions:</span></strong></div>'
+                }                             
+                
+                <div style="padding:20px 0; color:#555; line-height:25px;">1. Payment: 70% along with PO and balance against delivery.<br />
+
+                2. GST: @18% Added extra<br />
+
+                3. Installation <span>charges include in above price</span>.<br />
+
+                4. Delivery and installation as per your schedule.<br />
+
+                5. Validity – This quote is valid <span>for one</span> month.</div>
+                
+                <div style="padding:0;"><span>Looking forward to your order and assuring you of</span> our best services at all times.</div>
+                <div style="padding:30px 0 10px;">Thanking you<br />
+                <br />
+                Your’s faithfully</div>
+
+                <div style="padding:10px 0 30px;"><span >Parameshwar Reddy<br />
+
+                For Demo Telco Inc.</span></div>
+                </div>
+                </body>
+                </html>`;
+
+
+        const globalTemplate = `
+            <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+            <html xmlns="http://www.w3.org/1999/xhtml">
+            <head>
+            <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+            <title>Welcome</title>
+            </head>
+            <body style="margin:0; padding:0;">
+            <div style="margin:0 auto; width:650px; font-family:Georgia, 'Times New Roman', Times, serif; color:#555; font-size:14px;">
+            <div style="padding:10px 0; border-bottom:1px dashed #555;">
+                <p style="text-align:center; margin:0;"><span style="font-size:40px; border-bottom:1px solid #555555; color:#555555; font-weight:bold; line-height:30px; display:inline-block;">Demo Telco Inc.</span></p>
+                <p style="text-align:center; font-size:12px; margin:5px 0;">Plot No <span>123</span>, Road No. <span>25</span>, Jubilee Hills, Hyderabad- 500 062</p>
+            </div>
+            <div style=" text-align:right; padding-top:10px; padding-right:30px; font-weight:bold; font-size:15px; color:#555555;">Date:${util.getCurrentDate()}</div>
+            <div style="padding-top:10px; font-weight:bold; font-size:15px; color:#555;">To</div>
+            <div style=" padding-top:30px;font-weight:bold; font-size:15px; color:#555555;">${customerName},</div>
+            <div style=" padding-top:5px;font-weight:bold; font-size:15px; color:#555555;">${location}<span style="color:#555"></span></div>
+            <div style=" padding-top:30px;">Subject: Quotation for <span style="color:#555555">${productType}</span></div>
+            <div style=" padding-top:20px; padding-bottom:20px;">Thank you for your interest in our services. With reference to your inquiry for <span style="color:#555555">${productType}</span>, we are
+                pleased to submit our proposal for your perusal. </div>
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border:1px solid #ccc; text-align:center;">
+                <tr>
+                <td width="5%" style="padding:5px; border:1px solid #ccc;"><strong>S.<br />
+                    No</strong></td>
+                <td width="40%" style="padding:5px; border:1px solid #ccc;"><strong>Description</strong></td>
+                <td width="10%" style="padding:5px; border:1px solid #ccc;">&nbsp;</td>
+                <td width="10%" style="padding:5px; border:1px solid #ccc;"><span style="color:#555555"><strong>Price</strong></span></td>
+                <td width="10%" style="padding:5px; border:1px solid #ccc;"><strong>Total</strong></td>
+                </tr>
+                <tr>
+                <td style="padding:5px;border:1px solid #ccc; text-align:left;">01</td>
+                <td style="padding:5px;border:1px solid #ccc; text-align:left;"><div style="color:#555555">${productType}:</div>
+                    For the <span style="color:#555555">&quot;${productSubType}&quot;</span> with <span style="color:#555555">&quot;${locations}&quot;</span>
+                    locations from <span style="color:#555555">${locationA}</span> to <span style="color:#555555">${locationB}</span> with <span style="color:#555555">&quot;${bandWidth}&quot;</span>
+                    Bandwidth<br />
+            <br /><br />
+            <br />
+
+            </td>
+                <td style="padding:5px;border:1px solid #ccc; text-align:left;">&nbsp;</td>
+                <td style="padding:5px;border:1px solid #ccc; text-align:center;"><span>Rs.50,000/-</span></td>
+                <td style="padding:5px;border:1px solid #ccc; text-align:left;">Rs.50,000/-</td>
+                </tr>
+                <tr>
+                <td style="padding:5px;border:1px solid #ccc; text-align:left;">02</td>
+                <td style="padding:5px;border:1px solid #ccc; text-align:left;"><div style="color:#555555">CAPEX:</div>
+
+
+            </td>
+                <td style="padding:5px;border:1px solid #ccc; text-align:left;">&nbsp;</td>
+                <td style="padding:5px;border:1px solid #ccc; text-align:center;"><span>Rs.200,000/-</span></td>
+                <td style="padding:5px;border:1px solid #ccc; text-align:left;">Rs.200,000/-</td>
+                </tr>
+                <tr>
+                <td style="padding:5px;border:1px solid #ccc; text-align:left;">03</td>
+                <td style="padding:5px;border:1px solid #ccc;text-align:left;"><span style="color:#555555">Tax<br />
+            <br />
+            </span></td>
+                <td style="padding:5px;border:1px solid #ccc;text-align:left;"><span style="color:#555555">18</span></td>
+                <td style="padding:5px;border:1px solid #ccc;text-align:left;">45000</td>
+                <td style="padding:5px;border:1px solid #ccc;text-align:left;">45000</td>
+                </tr>
+                <tr>
+                <td style="padding:5px;border:1px solid #ccc;text-align:left;"> </td>
+                <td style="padding:5px;border:1px solid #ccc;text-align:left;"><span style="color:#555555">Total<br />
+            <br />
+            </span></td>
+                <td style="padding:5px;border:1px solid #ccc;text-align:left;"> </td>
+                <td style="padding:5px;border:1px solid #ccc;text-align:left;"> </td>
+                <td style="padding:5px;border:1px solid #ccc;text-align:left;">295000</td>
+                </tr>
+            </table>
+            ${ Number(request.is_signature_upload) === 1 ? 
+                ['<div style="display:flex; flex-direction: row-reverse;"><img src="'+imgSrc+'" alt="Signature" height="70px" width="70px"/></div>',
+                 '<br><br><br><br>',
+                 '<div style="margin-top:-50px; color:#000;"><strong><span style="border-bottom:1px solid #555">Terms and Conditions:</span></strong></div>']
+                :
+                '<div style="padding:30px 0 0; color:#000;"><strong><span style="border-bottom:1px solid #555">Terms and Conditions:</span></strong></div>'
+            }
+            
+            <div style="padding:20px 0; color:#555; line-height:25px;">1. Payment: 70% along with PO and balance against delivery.<br />
+
+            2. GST: @18% Added extra<br />
+
+            3. Installation <span>charges include in above price</span>.<br />
+
+            4. Delivery and installation as per your schedule.<br />
+
+            5. Validity – This quote is valid <span>for one</span> month.</div>
+            
+            <div style="padding:0;"><span>Looking forward to your order and assuring you of</span> our best services at all times.</div>
+            <div style="padding:30px 0 10px;">Thanking you<br />
+            <br />
+            Your’s faithfully</div>
+
+            <div style="padding:10px 0 30px;"><span>Parameshwar Reddy<br />
+
+            For Demo Telco Inc.</span></div>
+            </div>
+            </body>
+            </html>`;
+
+
+        const pdfFilePath = `${__dirname}/pdfs/${request.activity_id}.pdf`;        
+        await new Promise((resolve,)=>{
+            let template;
+            if(useTemplate === 1) {
+                template = domesticTemplate;
+            } else if(useTemplate === 2) {
+                template = globalTemplate;
+            }
+            fs.writeFile(`${__dirname}/pdfs/${request.activity_id}.html`, template, function (err) {
+                if (err) throw err;
+
+                console.log('HTML File is generated');
+                return resolve();
+            });
+        });        
+
+        let html = fs.readFileSync(`${__dirname}/pdfs/${request.activity_id}.html`, 'utf8');
+        var options = { 
+                "height": "10.5in", // allowed units: mm, cm, in, px
+                  "width": "9in", 
+                format: 'A4',
+                "border": {
+                    "top": "0.5in",            // default is 0, units: mm, cm, in, px
+                    //"right": "0.5in",
+                    "bottom": "0.5in",
+                    "left": "0.25in"
+                  }
+                };         
+        
+        return await new Promise((resolve)=>{
+            pdf.create(html, options).toFile(`${__dirname}/pdfs/${request.activity_id}.pdf`, async (err, res) => {
+                if (err){
+                  console.log(err);
+                } 
+                else {
+                  console.log('PDF file is generated! ', res);
+      
+                  let body = await new Promise((resolve)=>{
+                      fs.readFile(pdfFilePath, (err, data) => {
+                          if (err) throw err;
+          
+                          console.log('Reading pdf stream is done');
+                          return resolve(data);
+                      });
+                  });                       
+
+                  let key, url;
+                  if(Number(request.is_signature_upload)  === 1) {
+                      key = `${request.activity_id}` + '_with_appr_signature.pdf'; 
+                      url = "https://demotelcoinc.s3.ap-south-1.amazonaws.com/" +request.activity_id+"_with_appr_signature.pdf";
+                  } else {
+                      key = `${request.activity_id}.pdf`; 
+                      url = "https://demotelcoinc.s3.ap-south-1.amazonaws.com/" +request.activity_id+".pdf";
+                  }
+                  
+                  //console.log('Before Params...');
+                  let params = {
+                      Body: body,
+                      Bucket: "demotelcoinc",                
+                      Key: key,
+                      ContentType: 'application/pdf',
+                      //ContentEncoding: 'base64',
+                      ACL: 'public-read'
+                  };
+          
+                  console.log('Uploading to S3...');
+                  s3.putObject(params, async (err, data) =>{
+                      console.log(err);
+                      console.log(data);
+      
+                      await (this.addTimelineEntrywithAttachment(request, url));
+                      return resolve();
+                  });
+                }
+                
+              });
+        });
+        
+    };
+
+    this.addTimelineEntrywithAttachment = async (request, url) => {        
+        
+        let activityTimelineCollection = {};
+        activityTimelineCollection.content = "File - " + util.getCurrentDate();
+        activityTimelineCollection.subject = "File - " + util.getCurrentDate();
+        activityTimelineCollection.mail_body = "File - " + util.getCurrentDate();
+        
+        
+        activityTimelineCollection.attachments = [url];
+        activityTimelineCollection.asset_reference = [];
+        activityTimelineCollection.activity_reference = [];
+        activityTimelineCollection.form_approval_field_reference = [];
+
+        let timelineParams = {};
+        timelineParams.account_id= request.account_id;
+        timelineParams.activity_access_role_id= 27;
+        timelineParams.activity_channel_category_id= 0;
+        timelineParams.activity_channel_id= 0;
+        timelineParams.activity_id= request.activity_id;
+        timelineParams.activity_parent_id= 0;
+        timelineParams.activity_stream_type_id= 325;
+        timelineParams.activity_sub_type_id= -1;
+        timelineParams.activity_timeline_collection= JSON.stringify(activityTimelineCollection);
+        timelineParams.activity_timeline_text= "";
+        timelineParams.activity_timeline_url= "";
+        timelineParams.activity_type_category_id= 48;
+        timelineParams.activity_type_id= 140138;
+        timelineParams.app_version= 1;
+        timelineParams.asset_id= request.asset_id;
+        timelineParams.data_entity_inline= JSON.stringify(activityTimelineCollection);
+        timelineParams.datetime_log= util.getCurrentUTCTime();
+        timelineParams.device_os_id= 5;
+        timelineParams.flag_offline= 0;
+        timelineParams.flag_pin= 0;
+        timelineParams.flag_priority= 0;
+        timelineParams.flag_retry= 0;
+        timelineParams.message_unique_id= util.getMessageUniqueId(request.asset_id);
+        timelineParams.operating_asset_first_name= "BOT";
+        timelineParams.organization_id= 898;
+        timelineParams.service_version= 1;
+        timelineParams.timeline_stream_type_id= 325;
+        //timelineParams.timeline_transaction_id= 1560767030826
+        timelineParams.track_altitude= 0;
+        timelineParams.track_gps_accuracy= "0";
+        timelineParams.track_gps_datetime= util.getCurrentUTCTime();
+        timelineParams.track_gps_status= 0;
+        timelineParams.track_latitude= "0.0";
+        timelineParams.track_longitude= "0.0";
+        timelineParams.workforce_id= request.workforce_id;
+
+        await new Promise((resolve, reject) => {
+            activityTimelineService.addTimelineTransaction(timelineParams, (err) => {
+                (err === false) ? resolve() : reject(err);
+            });            
+        });
+    };
+
+
+    this.getCitybasedOnLats = async (request, location) =>{
+        let res = location.split(",");
+        let latitude = res[0];
+        let longitude = res[1];
+
+        return await new Promise((resolve)=>{
+            geocoder.reverse({lat:latitude, lon:longitude}, function(err, res) {            
+                console.log(err);
+                //console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
+                //console.log('RESP in the function : ', res);
+                //console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$');
+                if(res !== undefined) {
+                    //console.log('Above City in function');
+                    resolve('City');
+                } else {
+                    //console.log('Above quotaexpired in function');
+                    resolve('quotaexpired');
+                }
+              });
+        });        
+    };
+
+
+    this.downloadS3Object = async (request, url) =>{       
+        return new Promise((resolve)=>{
+            console.log('URL : ', url);
+
+            // const BucketName = url.slice(8, 25);
+            // const KeyName = url.slice(43);        
+
+            const BucketName = url.slice(8, 20);
+            const KeyName = url.slice(38);
+
+            let params = {
+                Bucket: BucketName, 
+                Key: KeyName
+            };
+            s3.getObject(params, function(err, data) {
+                if (err) {
+                    console.log("[Error | downloadS3Object]", err, err.stack); // an error occurred
+                    resolve(err);
+                } 
+                else{
+                    console.log('DATA VNK : ', data.Body);           // successful response   
+                    resolve(data.Body);
+                }     
+            });
+        });
+    };
+
+    this.appendPOandSignOFCustomer = async (request) =>{
+        let poUrl = request.po_url;
+        let signatureUrl = request.signature_url;        
+
+        const template = `
+            <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+            <html xmlns="http://www.w3.org/1999/xhtml">
+            <head>
+            <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+            <title>Customer PO</title>
+            </head>
+            <body>
+                <div>
+                    <div style="margin-left: 150px;margin-right:150px;">
+                        <img src=${poUrl} alt="" height="550" width="100%">
+                    </div>
+                    <div style="margin-left: 500px;">
+                        <img src=${signatureUrl} alt="" height="100" width="100">
+                    </div>
+                </div>
+            </body>
+            </html>`;
+
+        const pdfFilePath = `${__dirname}/pdfs/${request.activity_id}_with_customer_po_signature.pdf`;
+        await new Promise((resolve,)=>{            
+            fs.writeFile(`${__dirname}/pdfs/${request.activity_id}_with_customer_po_signature.html`, template, function (err) {
+                if (err) throw err;
+
+                console.log('HTML File for PO with Customer Sign is generated');
+                return resolve();
+            });
+        });        
+
+        let html = fs.readFileSync(`${__dirname}/pdfs/${request.activity_id}_with_customer_po_signature.html`, 'utf8');
+        var options = { 
+                "height": "10.5in", // allowed units: mm, cm, in, px
+                  "width": "9in", 
+                format: 'A4',
+                "border": {
+                    "top": "0.5in",            // default is 0, units: mm, cm, in, px
+                    //"right": "0.5in",
+                    "bottom": "0.5in",
+                    "left": "0.25in"
+                  }
+                };         
+        
+        return await new Promise((resolve)=>{
+            pdf.create(html, options).toFile(`${__dirname}/pdfs/${request.activity_id}_with_customer_po_signature.pdf`, async (err, res) => {
+                if (err){
+                  console.log(err);
+                } 
+                else {
+                  console.log('PDF file is generated! ', res);
+      
+                  let body = await new Promise((resolve)=>{
+                      fs.readFile(pdfFilePath, (err, data) => {
+                          if (err) throw err;
+          
+                          console.log('Reading pdf stream is done');
+                          return resolve(data);
+                      });
+                  });                                         
+                  
+                  //console.log('Before Params...');
+                  let params = {
+                      Body: body,
+                      Bucket: "demotelcoinc",                
+                      Key: `${request.activity_id}` + '_with_customer_po_signature.pdf',
+                      ContentType: 'application/pdf',
+                      //ContentEncoding: 'base64',
+                      ACL: 'public-read'
+                  };
+          
+                  console.log('Uploading to S3...');
+                  s3.putObject(params, async (err, data) =>{
+                      console.log(err);
+                      console.log(data);
+      
+                      let url = `https://demotelcoinc.s3.ap-south-1.amazonaws.com/${request.activity_id}_with_customer_po_signature.pdf`;
+                      await (this.addTimelineEntrywithAttachment(request, url));
+                      return resolve();
+                  });
+                }
+                
+              });
+        });
+    };
+
 }
 
 module.exports = BotService;

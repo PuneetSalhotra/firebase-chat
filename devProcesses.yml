@@ -1,0 +1,77 @@
+apps:
+  - name : "Dev_Main"
+    env: {mode: dev}
+    script   : ./main.js
+    instances: max    
+    out_file: '/dev/null'
+    exec_mode: cluster
+    
+  - name : "Dev_ConsumerZero"
+    env: {mode: dev, partition:0}
+    script   : ./consumer.js
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork   
+  
+  - name : "Dev_LogConsumerZero"
+    env: {mode: dev, partition:0}
+    script   : ./logConsumer.js
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "Dev_LogConsumerOne"
+    env: {mode: dev, partition:1}
+    script   : ./logConsumer.js    
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "Dev_LogConsumerTwo"
+    env: {mode: dev, partition:2}
+    script   : ./logConsumer.js    
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "Dev_WidgetZero"
+    env: {mode: dev, partition:0}
+    script   : ./consumerServices/widgetEngine/server.js    
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "Dev_WidgetOne"
+    env: {mode: dev, partition:1}
+    script   : ./consumerServices/widgetEngine/server.js
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "Dev_WidgetTwo"
+    env: {mode: dev, partition:2}
+    script   : ./consumerServices/widgetEngine/server.js
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "Dev_WidgetThree"
+    env: {mode: dev, partition:3}
+    script   : ./consumerServices/widgetEngine/server.js
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "Dev_WidgetFour"
+    env: {mode: dev, partition:4}
+    script   : ./consumerServices/widgetEngine/server.js
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "Dev_WidgetFive"
+    env: {mode: dev, partition:5}
+    script   : ./consumerServices/widgetEngine/server.js
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork

@@ -41,6 +41,9 @@ const AdminOpsController = require('../Administrator/controllers/adminOpsControl
 // Stats
 var StatsController = require('../controllers/statsController');
 
+// Telco
+const TelcoController = require('../telco/controllers/telcoController');
+
 function ControlInterceptor(objCollection) {
 
     new UtilityController(objCollection);
@@ -81,5 +84,8 @@ function ControlInterceptor(objCollection) {
     // Administrator Services UI
     new AdminListingController(objCollection);
     new AdminOpsController(objCollection);
+
+    // Telco
+    new TelcoController(objCollection);
 };
 module.exports = ControlInterceptor;

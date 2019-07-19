@@ -214,15 +214,25 @@ function BotController(objCollection) {
         }
     });
 
-    app.post('/' + global.config.version + '/account/nani/kalyan', async (req, res) => {
+    app.post('/' + global.config.version + '/account/timline/upload_pdf/add', async (req, res) => {        
         try {
-            let result = await botService.nanikalyan(req.body);
+            let result = await botService.uploadHtmltoPDF(req.body);            
             res.send(responseWrapper.getResponse(false, result, 200, req.body));
         } catch(err) {
+            console.log('ERROR : ', err);
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
     
+    app.post('/' + global.config.version + '/account/timeline/po_sign_upload_pdf/add', async (req, res) => {        
+        try {
+            let result = await botService.appendPOandSignOFCustomer(req.body);            
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch(err) {
+            console.log('ERROR : ', err);
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
 }
 
 module.exports = BotController;

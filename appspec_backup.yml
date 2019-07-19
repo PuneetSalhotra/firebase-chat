@@ -1,0 +1,34 @@
+#Author: V Nani Kalyan
+#Date: 02-Aug-2018
+#Description: yml file to run the Staging Mobile API Services
+version: 0.0
+os: linux
+files:
+  - source: .
+    destination: /api-staging-efs/node/staging_desker_api
+  - source: .
+    destination: /api-itsnotan-efs/node/production_desker_api/2018-09-10-03
+permissions:
+  - object: /api-staging-efs/node/staging_desker_api/deployment
+    owner: nanikalyan
+    mode: 777
+    type:
+      - directory
+  - object: /api-itsnotan-efs/node/production_desker_api/2018-09-10-03/deployment
+    owner: nanikalyan
+    mode: 777
+    type:
+      - directory
+hooks:
+  BeforeInstall:
+    - location: deployment/install_dependencies.sh
+      timeout: 300
+      runas: nanikalyan  
+  ApplicationStart:
+    - location: deployment/start_services.sh    
+      timeout: 300    
+      runas: nanikalyan
+  #ApplicationStop:
+    #- location: scripts/stop_server.sh
+     #  timeout: 300
+     # runas: root

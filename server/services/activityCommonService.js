@@ -2186,6 +2186,25 @@ function ActivityCommonService(db, util, forEachAsync) {
             });
         }
     };
+    
+    this.partitionOffsetInsertPromise = function (request) {
+        return new Promise((resolve, reject) => {
+            const paramsArr = new Array(
+                global.config.TOPIC_ID,
+                request.partition,
+                request.offset,
+                request.asset_id,
+                request.activity_id,
+                request.form_transaction_id
+            );
+            const queryString = util.getQueryString('ds_p1_partition_offset_transaction_insert', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data): reject(err);
+                });
+            }
+        });
+    };
 
     /*this.msgUniqueIdInsert = function (request, callback) {
         var paramsArr = new Array(
@@ -2500,12 +2519,15 @@ function ActivityCommonService(db, util, forEachAsync) {
             };
 
             if (port == 0) {
-
+                //
             } else {
                 //global.logger.write('debug', "Request Params b4 making Request : ", {}, request);
                 //global.logger.write('debug', request, {}, {});
-                global.logger.write('debug', "http://localhost:" + global.config.servicePort + "/" + global.config.version + "/" + url, {}, {});
-                makingRequest.post("http://localhost:" + global.config.servicePort + "/" + global.config.version + "/" + url, options, function (error, response, body) {
+                global.logger.write('debug', "https://preprodapi.worlddesk.cloud/" + global.config.version + "/" + url, {}, {});
+                /*makingRequest.post("http://localhost:" + global.config.servicePort + "/" + global.config.version + "/" + url, options, function (error, response, body) {
+                    resolve(body);
+                });*/
+                makingRequest.post("https://preprodapi.worlddesk.cloud/" + global.config.version + "/" + url, options, function (error, response, body) {
                     resolve(body);
                 });
             }
@@ -3571,6 +3593,24 @@ function ActivityCommonService(db, util, forEachAsync) {
 
         return [error, formData];
     }
+
+    this.getFormTransactionDataAll = function (request) {
+        return new Promise((resolve, reject) => {            
+            var paramsArr = new Array(
+                request.organization_id,
+                request.form_transaction_id,
+                request.form_id
+            );
+ 
+            const queryString = util.getQueryString('ds_v1_activity_form_transaction_select_transaction_all', paramsArr);
+ 
+            if (queryString !== '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                });
+            }            
+        });
+    };
 
 }
 
