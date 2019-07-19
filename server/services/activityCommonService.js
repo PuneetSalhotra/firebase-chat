@@ -3508,6 +3508,92 @@ function ActivityCommonService(db, util, forEachAsync) {
         });
     };
 
+    this.getWorkflowFieldsBasedonActTypeId = async function (request, activityTypeId) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            activityTypeId
+        );
+
+        var queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_select_id', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.analyticsUpdateWidgetValue = async function (request, activityId, flag, value) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            activityId,
+            flag || 0,
+            value,
+            request.asset_id,
+            request.datetime_log
+        );
+
+        var queryString = util.getQueryString('ds_p1_activity_list_update_widget_value', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.fetchReferredFormActivityIdAsync = async (request, activityId, formTransactionId, formId) => {
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
+        // IN p_activity_id BIGINT(20), IN p_form_id BIGINT(20), 
+        // IN p_form_transaction_id BIGINT(20), IN p_start_from SMALLINT(6), 
+        // IN p_limit_value smallint(6)
+
+        let formData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            activityId,
+            formId,
+            formTransactionId,
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+        const queryString = util.getQueryString('ds_p1_activity_timeline_transaction_select_refered_activity', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    formData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, formData];
+    }
+
     this.getFormTransactionDataAll = function (request) {
        return new Promise((resolve, reject) => {            
            var paramsArr = new Array(
