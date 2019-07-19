@@ -1506,6 +1506,33 @@ function Util() {
             //resolve();
         });
     };
+
+    this.getS3BucketName = async function (request) {
+        const environment = global.mode;
+        let bucketName = '';
+        if (environment === 'prod') {
+            bucketName = "worlddesk-" + this.getCurrentYear() + '-' + this.getCurrentMonth();
+
+        } else if (environment === 'staging' || environment === 'local') {
+            bucketName = "worlddesk-staging-" + this.getCurrentYear() + '-' + this.getCurrentMonth();
+
+        } else {
+
+            bucketName = "worlddesk-" + environment + "-" + this.getCurrentYear() + '-' + this.getCurrentMonth();
+        }
+        
+        return bucketName;
+    }
+
+    this.getS3PrefixPath = async function (request) {
+        let prefixPath = request.organization_id + '/' +
+            request.account_id + '/' +
+            request.workforce_id + '/' +
+            request.asset_id + '/' +
+            this.getCurrentYear() + '/' + this.getCurrentMonth() + '/103' + '/' + this.getMessageUniqueId(request.asset_id);
+        
+        return prefixPath;
+    }
 }
 
 module.exports = Util;
