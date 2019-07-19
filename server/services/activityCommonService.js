@@ -3512,7 +3512,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         let responseData = [],
             error = true;
 
-        let paramsArr = new Array(
+        let paramsArr = new Array(            
             request.organization_id,
             request.account_id,
             request.workforce_id,
@@ -3560,7 +3560,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         return [error, responseData];
     };
 
-    this.fetchReferredFormActivityIdAsync = async (request, activityId, formTransactionId, formId) => {
+    this.fetchReferredFormActivityIdAsync = async (request, activityId, formTransactionId, formId) =>{
         // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
         // IN p_activity_id BIGINT(20), IN p_form_id BIGINT(20), 
         // IN p_form_transaction_id BIGINT(20), IN p_start_from SMALLINT(6), 
@@ -3595,22 +3595,22 @@ function ActivityCommonService(db, util, forEachAsync) {
     }
 
     this.getFormTransactionDataAll = function (request) {
-       return new Promise((resolve, reject) => {            
-           var paramsArr = new Array(
-               request.organization_id,
-               request.form_transaction_id,
-               request.form_id
-           );
-
-           const queryString = util.getQueryString('ds_v1_activity_form_transaction_select_transaction_all', paramsArr);
-
-           if (queryString !== '') {
-               db.executeQuery(1, queryString, request, function (err, data) {
-                   (err) ? reject(err): resolve(data);
-               });
-           }            
-       });
-   };
+        return new Promise((resolve, reject) => {            
+            var paramsArr = new Array(
+                request.organization_id,
+                request.form_transaction_id,
+                request.form_id
+            );
+ 
+            const queryString = util.getQueryString('ds_v1_activity_form_transaction_select_transaction_all', paramsArr);
+ 
+            if (queryString !== '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                });
+            }            
+        });
+    };
 
 }
 
