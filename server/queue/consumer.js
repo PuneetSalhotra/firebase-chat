@@ -149,33 +149,22 @@ var Consumer = function () {
             request.partition = message.partition;
             request.offset = message.offset;
 
-            activityCommonService.checkingPartitionOffset(request, async (err, data) => {
+            activityCommonService.checkingPartitionOffset(request, (err, data) => {
                 global.logger.write('conLog', 'err from checkingPartitionOffset : ' + err, {}, request);
                 if (err === false) {
                     global.logger.write('conLog', 'Consuming the message', {}, request);
-                    // activityCommonService.partitionOffsetInsert(request, (err, data) => {});
-                    let duplicateMessage = false;
-                    try {
-                        await activityCommonService.partitionOffsetInsertPromise(request);
-                    } catch (error) {
-                        if (error.code === "ER_DUP_ENTRY") {
-                            console.log("activityCommonService.partitionOffsetInsertPromise | DUPLICATE MESSAGE | ABORT")
-                            duplicateMessage = true;
-                        } else {
-                            console.log("activityCommonService.partitionOffsetInsertPromise | Error: ", error)
+                    activityCommonService.partitionOffsetInsert(request, (err, data) => {});
+                    
+                    consumingMsg(message, kafkaMsgId, objCollection).then(() => {                        
+                        if(Number(request.pubnub_push) === 1) {
+                            pubnubWrapper.publish(kafkaMsgId, {"status": 200});
                         }
-                    }
-                    if (!duplicateMessage) {
-                        consumingMsg(message, kafkaMsgId, objCollection).then(() => {                        
-                            if(Number(request.pubnub_push) === 1) {
-                                pubnubWrapper.publish(kafkaMsgId, {"status": 200});
-                            }
-                        }).catch((err)=>{
-                            if(Number(request.pubnub_push) === 1) {
-                                pubnubWrapper.publish(kafkaMsgId, {"status": err});
-                            }
-                        });    
-                    }
+                    }).catch((err)=>{
+                        if(Number(request.pubnub_push) === 1) {
+                            pubnubWrapper.publish(kafkaMsgId, {"status": err});
+                        }
+                    });
+                    
                 } else {
                     global.logger.write('conLog', 'Before calling this duplicateMsgUniqueIdInsert', {}, request);
                     activityCommonService.duplicateMsgUniqueIdInsert(request, (err, data) => {});

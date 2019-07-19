@@ -1009,7 +1009,7 @@ function Util() {
         return;
     };
 
-    // SendGrid
+    // 
     this.sendEmailV2 = function (request, email, subject, text, htmlTemplate, callback) {
         const msg = {
             to: email,
@@ -1154,7 +1154,7 @@ function Util() {
             logFilePath = locationInServer + 'logs/' + this.getCurrentDate() + '.txt';
             // Development and Pre-Production | Not Staging
             targetedLogFilePath = locationInServer + 'targeted_logs/' + this.getCurrentDate() + '.txt';
-        }
+        }       
         
 
         if (typeof data === 'object') {

@@ -11,18 +11,103 @@ apps:
     script   : ./consumer.js
     out_file: '/dev/null'
     instances: 1
-    exec_mode: fork    
+    exec_mode: fork
+    
+  - name : "PreProd_ConsumerOne"
+    env: {mode: preprod, partition: 1}
+    script   : ./consumer.js    
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "PreProd_ConsumerTwo"
+    env: {mode: preprod, partition: 2}
+    script   : ./consumer.js    
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "PreProd_ConsumerThree"
+    env: {mode: preprod, partition: 3}
+    script   : ./consumer.js
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "PreProd_ConsumerFour"
+    env: {mode: preprod, partition: 4}
+    script   : ./consumer.js    
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "PreProd_ConsumerFive"
+    env: {mode: preprod, partition: 5}
+    script   : ./consumer.js
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
     
   - name : "PreProd_Log_ConsumerZero"
     env: {mode: preprod, partition: 0}
     script   : ./logConsumer.js
     out_file: '/dev/null'
     instances: 1
-    exec_mode: fork    
-  
+    exec_mode: fork
+    
+  - name : "PreProd_Log_ConsumerOne"
+    env: {mode: preprod, partition: 1}
+    script   : ./logConsumer.js
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "PreProd_Log_ConsumerTwo"
+    env: {mode: preprod, partition: 2}
+    script   : ./logConsumer.js
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
   - name : "PreProd_Widget_ConsumerZero"
     env: {mode: preprod, partition: 0}
     script   : ./consumerServices/widgetEngine/server.js
     out_file: '/dev/null'
     instances: 1
     exec_mode: fork
+    
+  - name : "PreProd_Widget_ConsumerOne"
+    env: {mode: preprod, partition: 1}
+    script   : ./consumerServices/widgetEngine/server.js
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "PreProd_Widget_ConsumerTwo"
+    env: {mode: preprod, partition: 2}
+    script   : ./consumerServices/widgetEngine/server.js
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "PreProd_Widget_ConsumerThree"
+    env: {mode: preprod, partition: 3}
+    script   : ./consumerServices/widgetEngine/server.js
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "PreProd_Widget_ConsumerFour"
+    env: {mode: preprod, partition: 4}
+    script   : ./consumerServices/widgetEngine/server.js
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+    
+  - name : "PreProd_Widget_ConsumerFive"
+    env: {mode: preprod, partition: 5}
+    script   : ./consumerServices/widgetEngine/server.js
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+  

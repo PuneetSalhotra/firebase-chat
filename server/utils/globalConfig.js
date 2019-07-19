@@ -123,15 +123,15 @@ if (mode === 'local') {
     config.sqsConsumer = 7300;
 
     //Mysql Config
-    config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    // config.masterIp = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    // config.slave1Ip = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    // config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    // config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';       
+    config.masterIp = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.slave1Ip = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
     
     config.dbUser = 'apiuser';
-    config.database = 'desker'; // desker_staging
+    //config.database = 'desker';// desker_staging
     // config.database = 'desker_staging';
-    // config.database = 'worlddesk_staging';
+    config.database = 'worlddesk_staging';
     config.dbPassword = 'apidbuser';
     config.conLimit = 5;
     
@@ -145,8 +145,7 @@ if (mode === 'local') {
     //config.redisIp = '127.0.0.1';
     //config.redisPort = 6379;  
     
-    // config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';    
-    config.redisIp = 'cache-production.7otgcu.ng.0001.aps1.cache.amazonaws.com';
+    config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';    
     config.redisPort = 6379;
     
     //IOS Push
@@ -214,8 +213,7 @@ if (mode === 'local') {
 if (mode === 'dev') {
 
     //Ports Config
-    //config.version = 'rd';
-    config.version = 'r1';
+    config.version = 'rd';
     config.servicePort = 3000;
     config.standAlonePamServicePort = 3100;
 
@@ -236,10 +234,6 @@ if (mode === 'dev') {
     config.database = 'desker_staging';
     config.dbPassword = 'apidbuser';
     config.conLimit = 2;
-    
-    //Log Mysql Config
-    config.logMasterIp = 'worlddesk-r1-log.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
-    config.logDatabase = 'worlddesk_log_staging'; 
 
     config.logMasterIp = '10.0.0.169';
     config.logDatabase = 'worlddesk_log_staging';
@@ -256,11 +250,8 @@ if (mode === 'dev') {
     config.SQSqueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/logs-staging"; //Staging SQS QUEUE
 
     //Portal Service URL & Mobile Service URL
-    //config.portalBaseUrl = "https://stagingportal.worlddesk.cloud/";
-    //config.mobileBaseUrl = "https://stagingapi.worlddesk.cloud/";
-    
-    config.portalBaseUrl = "https://preprodportal.worlddesk.cloud/";
-    config.mobileBaseUrl = "https://preprodapi.worlddesk.cloud/";
+    config.portalBaseUrl = "https://stagingportal.worlddesk.cloud/";
+    config.mobileBaseUrl = "https://stagingapi.worlddesk.cloud/";
 
     //making twilio, Nexmo Calls
     config.efsPath = "/apistaging-data/";
@@ -288,17 +279,9 @@ if (mode === 'dev') {
     config.CONSUMER_GROUP_MIGRATE_ROLLING = true;
 
     config.TOPIC_ID = 1;
-    config.TOPIC_NAME = "dev-desker-activities-v1";
-    config.CONSUMER_GROUP_ID = "dev-desker-activities-consumer-group-v1";     
-    
-    //Widget
-    config.WIDGET_TOPIC_NAME = 'dev-desker-form-widgets';    
-    config.WIDGET_CONSUMER_GROUP_ID = 'dev-desker-activities-widget-cg';
-    
-    //LOGS
-    config.LOGS_TOPIC_NAME = 'dev-desker-logs';
-    config.WIDGET_CONSUMER_GROUP_ID = 'dev-desker-logs-cg';
-    
+    config.TOPIC_NAME = "dev-desker-activities";
+    config.WIDGET_TOPIC_NAME = 'dev-desker-form-widgets';
+    config.CONSUMER_GROUP_ID = "dev-desker-activities-consumer-group";
     config.CONSUMER_AUTO_COMMIT = true;
     config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
     config.CONSUMER_FETCH_MAX_WAIT = 10;
@@ -433,19 +416,15 @@ if (mode === 'preprod') {
     //Mysql Config
     config.masterIp = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
     config.slave1Ip = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    //config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    //config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
     
     config.dbUser = 'apiuser';    
     config.database = 'worlddesk_preprod';
-    //config.database = 'desker'; // desker_staging
     config.dbPassword = 'apidbuser';
 
     config.conLimit = 2;
 
-    // Redis Config    
+    //Redis Config    
     config.redisIp = 'cache-preprod.7otgcu.0001.aps1.cache.amazonaws.com';
-    //config.redisIp = 'cache-production.7otgcu.ng.0001.aps1.cache.amazonaws.com';
     config.redisPort = 6379;
 
     //IOS Push
@@ -504,8 +483,8 @@ if (mode === 'preprod') {
     config.CONSUMER_KEY_ENCODING = "utf8";
     ///////////////////////////////
     
-    config.emailbaseUrlApprove = "https://preprodweb.officedesk.app"; 
-    config.emailbaseUrlUpload = "https://preprodweb.officedesk.app";
+    config.emailbaseUrlApprove = "https://preprod.officedesk.app"; 
+    config.emailbaseUrlUpload = "https://preprod.officedesk.app";
     
 }
 

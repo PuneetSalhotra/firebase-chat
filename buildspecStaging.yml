@@ -13,13 +13,13 @@ phases:
     commands:      
   build:
     commands:
-      - pm2 start preProdProcesses.yml
+      - pm2 start stagingProcesses.yml
   post_build:
     commands:
       - echo Build completed on `date`
-      - sleep 5
+      - sleep 10
       - pm2 ls
-      - sleep 5
+      - sleep 10
       - pm2 stop all      
       - pm2 delete all
 artifacts:

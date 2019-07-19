@@ -18,9 +18,6 @@ function ActivityTimelineService(objectCollection) {
     const ActivityPushService = require('../services/activityPushService');
     const activityPushService = new ActivityPushService(objectCollection);
 
-    const TelcoService = require('../telco/services/telcoService');
-    const telcoService = new TelcoService(objectCollection);
-
     const moment = require('moment');
 
     this.addTimelineTransaction = function (request, callback) {
@@ -178,19 +175,6 @@ function ActivityTimelineService(objectCollection) {
                         }
                         // 
                     }).then(async () => {
-                        // [AntHill] Telco Demo
-                        try {
-                            if ((
-                                activityTypeCategoryId === 48 ||
-                                activityTypeCategoryId === 50 ||
-                                activityTypeCategoryId === 51
-                            ) && request.device_os_id !== 9) {
-                                await fireTelcoDemoTimelineLogic(request);
-                            }
-                        } catch (error) {
-                            console.log("addTimelineTransaction | fireBotEngineInitWorkflow | Error: ", error);
-                        }
-                        // 
                         try {
                             if ((
                                 activityTypeCategoryId === 48 ||
@@ -220,11 +204,6 @@ function ActivityTimelineService(objectCollection) {
         });
         //callback(false, {}, 200);
     };
-
-    // [AntHill] Telco Demo
-    async function fireTelcoDemoTimelineLogic(request) {
-        await telcoService.fireTelcoDemoTimelineLogic(request);
-    }
 
     // [VODAFONE]
     function initiateTargetFormGeneration(request) {

@@ -45,6 +45,7 @@ var AwsSns = function () {
         if (message.hasOwnProperty('activity_id') && message.hasOwnProperty('activity_type_category_id')) {
             GCMjson.data.activity_id = message.activity_id;
             GCMjson.data.activity_type_category_id = message.activity_type_category_id;
+
         }
 
         /*var params = {

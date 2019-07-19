@@ -17,12 +17,6 @@ function ActivityPushService(objectCollection) {
         msg.activity_type_category_id = 0;
         msg.activity_id = request.activity_id;
 
-        // Include activity_id and its category id in the push message
-        if (request.hasOwnProperty('activity_id') && request.hasOwnProperty('activity_type_category_id')) {
-            pushString.activity_id = request.activity_id;
-            pushString.activity_type_category_id = request.activity_type_category_id;
-        }
-
         var activityTypeCategoryId = Number(request.activity_type_category_id);
         objectCollection.activityCommonService.getActivityDetails(request, 0, async function (err, activityData) {
             if (err === false) {

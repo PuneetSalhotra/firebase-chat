@@ -1,7 +1,6 @@
 /* 
  * author: V Nani Kalyan
  */
-//require('newrelic');
 var globalConfig = require('./server/utils/globalConfig');
 var vodafoneConfig = require('./server/vodafone/utils/vodafoneConfig');
 var Logger = require('./server/utils/logger.js');
