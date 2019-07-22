@@ -396,6 +396,19 @@ function ActivityPushService(objectCollection) {
                                     // console.log("Wow!!!!! Request", request);
                                 }
                                 break;
+                            case '/' + global.config.version + '/form/activity/alter':
+                                // When a form is freshly added to a workflow
+                                if (Number(request.activity_stream_type_id) === 713) {
+                                    // msg.activity_type_category_id = 48;
+                                    // msg.type = 'activity_unread';
+                                    // msg.description = `Added text in ${activityTitle}.`;
+
+                                    pushString.title = senderName;
+                                    pushString.description = `${senderName} updated a form in ${activityTitle}.`;
+                                } else {
+                                    // console.log("Wow!!!!! Request", request);
+                                }
+                                break;
                             case '/' + global.config.version + '/activity/status/alter':
                                 // case '/' + global.config.version + '/activity/participant/access/set':
                                 msg.activity_type_category_id = 48;
@@ -409,6 +422,10 @@ function ActivityPushService(objectCollection) {
                                 msg.type = 'activity_read';
 
                                 // 2nd July 2019 04:03 PM IST: DO NOT SEND push to Android or iOS
+                                pushString = {};
+                                break;
+                            case '/' + global.config.version + '/engine/bot/init':
+                                // 22nd July 2019 08:54 PM IST: DO NOT SEND push to Android or iOS
                                 pushString = {};
                                 break;
                         }

@@ -775,6 +775,8 @@ function ActivityTimelineService(objectCollection) {
                     botEngineRequest.bot_inline_data = botsListData[0].bot_inline_data;
                     botEngineRequest.flag_check = 1;
                     botEngineRequest.flag_defined = 1;
+                    // Populate the workflow's activity type ID
+                    botEngineRequest.activity_type_id = Number(formConfigData[0].form_workflow_activity_type_id);
 
                     let result = await activityCommonService.botOperationInsert(botEngineRequest);
                     //console.log('RESULT : ', result);
