@@ -106,42 +106,57 @@ function AnalyticsService(objectCollection)
         let activityInlineData = {};
         let widgetInfo = {};        
         widgetInfo.widget_type_id = util.replaceDefaultString(request.widget_type_id);
-        widgetInfo.widget_type_name = util.replaceDefaultString(request.widget_type_name);
-        widgetInfo.widget_timeline_id = util.replaceDefaultNumber(request.widget_timeline_id);
-        widgetInfo.widget_timline_name = util.replaceDefaultString(request.widget_timline_name);
-        widgetInfo.widget_aggregate_id = util.replaceDefaultNumber(request.widget_aggregate_id);
-        widgetInfo.widget_aggregate_name = util.replaceDefaultString(request.widget_aggregate_name);
-        widgetInfo.widget_chart_id = util.replaceDefaultNumber(request.widget_chart_id);
-        widgetInfo.widget_chart_name = util.replaceDefaultString(request.widget_chart_name);
 
-        widgetInfo.widget_owner_asset_id = request.widget_owner_asset_id;
-        widgetInfo.widget_owner_asset_first_name = "";
-        widgetInfo.widget_owner_operating_asset_id = "";
-        widgetInfo.widget_owner_operating_asset_first_name = "";
-        widgetInfo.asset_id = request.asset_id;
-        widgetInfo.asset_first_name = "";
-        widgetInfo.operating_asset_id = "";
-        widgetInfo.operating_asset_first_name = "";
-        widgetInfo.workforce_id = request.workforce_id;
-        widgetInfo.workforce_name = "";
-        widgetInfo.account_id = request.account_id;
-        widgetInfo.account_name = "";
+        //widgetInfo.widget_type_name = util.replaceDefaultString(request.widget_type_name);
+        //widgetInfo.widget_timline_name = util.replaceDefaultString(request.widget_timline_name);
+        //widgetInfo.widget_aggregate_name = util.replaceDefaultString(request.widget_aggregate_name);
+        //widgetInfo.widget_chart_name = util.replaceDefaultString(request.widget_chart_name);
+        //widgetInfo.widget_owner_asset_first_name = "";
+        //widgetInfo.widget_owner_operating_asset_id = "";
+        //widgetInfo.widget_owner_operating_asset_first_name = "";
+        //widgetInfo.asset_first_name = "";
+        //widgetInfo.operating_asset_id = "";
+        //widgetInfo.operating_asset_first_name = "";
+        //widgetInfo.workforce_name = "";
+        //widgetInfo.account_name = "";
+        //widgetInfo.organization_name = "";
+        //widgetInfo.activity_status_name = util.replaceDefaultString(request.activity_status_name);
+        //widgetInfo.activity_status_type_name = util.replaceDefaultString(request.activity_status_type_name);
+        //widgetInfo.activity_status_tag_name = util.replaceDefaultString(request.activity_status_tag_name);
+        //widgetInfo.activity_type_name = util.replaceDefaultString(request.activity_type_name);
+        //widgetInfo.activity_type_category_name = util.replaceDefaultString(request.activity_type_category_name);
+        
         widgetInfo.organization_id = request.organization_id;
-        widgetInfo.organization_name = "";
-
+        widgetInfo.account_id = request.account_id;
+        widgetInfo.workforce_id = request.workforce_id;
+        widgetInfo.asset_id = request.asset_id;
+        widgetInfo.widget_owner_asset_id = request.widget_owner_asset_id;        
+        
+        widgetInfo.activity_type_category_id = 52;      
+        widgetInfo.activity_type_id = util.replaceDefaultNumber(request.activity_type_id);
+        
+        widgetInfo.widget_timeline_id = util.replaceDefaultNumber(request.widget_timeline_id);
+        widgetInfo.widget_aggregate_id = util.replaceDefaultNumber(request.widget_aggregate_id);
+        widgetInfo.widget_chart_id = util.replaceDefaultNumber(request.widget_chart_id);      
+        
         widgetInfo.activity_id = "";
         widgetInfo.activity_title = request.widget_name;
-        widgetInfo.activity_type_id = util.replaceDefaultNumber(request.activity_type_id);
-        widgetInfo.activity_type_name = util.replaceDefaultString(request.activity_type_name);
-        widgetInfo.activity_type_category_id = 52;
-        widgetInfo.activity_type_category_name = util.replaceDefaultString(request.activity_type_category_name);
-        widgetInfo.activity_status_id = util.replaceDefaultNumber(request.activity_status_id);
-        widgetInfo.activity_status_name = util.replaceDefaultString(request.activity_status_name);
-        widgetInfo.activity_status_type_id = util.replaceDefaultNumber(request.activity_status_type_id);
-        widgetInfo.activity_status_type_name = util.replaceDefaultString(request.activity_status_type_name);
-        widgetInfo.activity_status_tag_id = util.replaceDefaultNumber(request.activity_status_tag_id);
-        widgetInfo.activity_status_tag_name = util.replaceDefaultString(request.activity_status_tag_name);
-        
+
+        widgetInfo.filter_activity_type_id = util.replaceDefaultNumber(request.filter_activity_type_id);
+        widgetInfo.filter_tag_type_id = util.replaceDefaultNumber(request.filter_tag_type_id);
+        widgetInfo.filter_tag_id = util.replaceDefaultNumber(request.filter_tag_id);
+
+        widgetInfo.filter_activity_status_id = util.replaceDefaultNumber(request.filter_activity_status_id);
+        widgetInfo.filter_activity_status_type_id = util.replaceDefaultNumber(request.filter_activity_status_type_id);
+        widgetInfo.filter_activity_status_tag_id = util.replaceDefaultNumber(request.filter_activity_status_tag_id);
+
+        widgetInfo.filter_account_id = util.replaceDefaultNumber(request.filter_account_id);
+        widgetInfo.filter_workforce_type_id = util.replaceDefaultNumber(request.filter_workforce_type_id);
+        widgetInfo.filter_workforce_id = util.replaceDefaultNumber(request.filter_workforce_id);
+
+        widgetInfo.filter_date_type_id = util.replaceDefaultNumber(request.filter_date_type_id);
+        widgetInfo.widget_target_value = request.widget_target_value;
+               
         activityInlineData.widget_info = widgetInfo;
 
         const addActivityRequest = {
