@@ -302,27 +302,31 @@ function ActivityService(objectCollection) {
                                             if(widgetRow[0].widget_entity2_id > 0){
                                                 forEachAsync(requestFormData, function (next, fieldObj) {
 
-                                                    console.log('LOOP ::'+request.activity_type_id+' '+fieldObj.field_id);
-                                                    if(widgetRow[0].widget_entity2_id == fieldObj.field_id){                                               
-                                                            otc_1 = fieldObj.field_value;
-                                                            request['otc_1'] = fieldObj.field_value;
-                                                    }else if(widgetRow[0].widget_entity3_id == fieldObj.field_id){
-                                                            arc_1 = fieldObj.field_value;
-                                                            request['arc_1'] = fieldObj.field_value;
-                                                    }else if(widgetRow[0].widget_entity4_id == fieldObj.field_id){
-                                                             otc_2 = fieldObj.field_value;
-                                                             request['otc_2'] = fieldObj.field_value;
-                                                    }else if(widgetRow[0].widget_entity5_id == fieldObj.field_id){
-                                                             arc_2 = fieldObj.field_value;
-                                                             request['arc_2'] = fieldObj.field_value;
+                                                    console.log('LOOP ::' + request.activity_type_id + ' ' + fieldObj.field_id);
+                                                    if (widgetRow[0].widget_entity2_id == fieldObj.field_id) {
+                                                        let temp_value = isNaN(fieldObj.field_value) ? 0 : fieldObj.field_value;
+                                                        otc_1 = temp_value;
+                                                        request['otc_1'] = temp_value;
+                                                    } else if (widgetRow[0].widget_entity3_id == fieldObj.field_id) {
+                                                        let temp_value = isNaN(fieldObj.field_value) ? 0 : fieldObj.field_value;
+                                                        arc_1 = temp_value;
+                                                        request['arc_1'] = temp_value;
+                                                    } else if (widgetRow[0].widget_entity4_id == fieldObj.field_id) {
+                                                        let temp_value = isNaN(fieldObj.field_value) ? 0 : fieldObj.field_value;
+                                                        otc_2 = temp_value;
+                                                        request['otc_2'] = temp_value;
+                                                    } else if (widgetRow[0].widget_entity5_id == fieldObj.field_id) {
+                                                        let temp_value = isNaN(fieldObj.field_value) ? 0 : fieldObj.field_value;
+                                                        arc_2 = temp_value;
+                                                        request['arc_2'] = temp_value;
                                                     }
                                                     totalvalue = Number(otc_1) + Number(arc_1) + Number(otc_2) + Number(arc_2);
 
-                                                    console.log('Intermediate values ::'+otc_1+' : '+arc_1+' : '+otc_2+' : '+arc_2);
+                                                    console.log('Intermediate values ::' + otc_1 + ' : ' + arc_1 + ' : ' + otc_2 + ' : ' + arc_2);
                                                     next();
-                                                }).then(()=>{
-                                                    console.log('totalvalue :: '+totalvalue);
-                                                     request['field_id'] = 0;
+                                                }).then(() => {
+                                                    console.log('totalvalue :: ' + totalvalue);
+                                                    request['field_id'] = 0;
                                                     request['field_value'] = totalvalue;
                                                     widgetActivityFieldTransactionInsert(request);
                                                 })
