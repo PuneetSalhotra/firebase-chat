@@ -413,18 +413,22 @@ if (mode === 'preprod') {
 
     config.sqsConsumer = 6300;
 
-    //Mysql Config
-    config.masterIp = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    config.slave1Ip = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
-    
-    config.dbUser = 'apiuser';    
-    config.database = 'worlddesk_preprod';
+    // Mysql Config
+    // config.masterIp = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    // config.slave1Ip = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+
+    config.dbUser = 'apiuser';
+    // config.database = 'worlddesk_preprod';
+    config.database = 'desker';
     config.dbPassword = 'apidbuser';
 
     config.conLimit = 2;
 
-    //Redis Config    
-    config.redisIp = 'cache-preprod.7otgcu.0001.aps1.cache.amazonaws.com';
+    // Redis Config    
+    // config.redisIp = 'cache-preprod.7otgcu.0001.aps1.cache.amazonaws.com';
+    config.redisIp = 'cache-production.7otgcu.ng.0001.aps1.cache.amazonaws.com';
     config.redisPort = 6379;
 
     //IOS Push
@@ -434,12 +438,12 @@ if (mode === 'preprod') {
     config.SQSqueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/logs-production";
 
     //Portal Service URL & Mobile Service URL
-    config.portalBaseUrl = "https://preprodportal.worlddesk.cloud/";    
+    config.portalBaseUrl = "https://preprodportal.worlddesk.cloud/";
     config.mobileBaseUrl = "https://preprodapi.worlddesk.cloud/";
 
     //making twilio, Nexmo Calls
     config.efsPath = "/data/";
-    
+
     //Kafka Configuration
     config.BROKER_HOST = "kafka1:9092,kafka2:9092,kafka3:9092";
     config.BROKER_CONNECT_TIMEOUT = 10000;
@@ -468,12 +472,12 @@ if (mode === 'preprod') {
 
     //WIDGETS    
     config.WIDGET_TOPIC_NAME = 'preprod-desker-form-widgets-v1'; //Only one partition
-    config.WIDGET_CONSUMER_GROUP_ID = 'preprod-desker-form-widgets-v1-cg';    
-    
+    config.WIDGET_CONSUMER_GROUP_ID = 'preprod-desker-form-widgets-v1-cg';
+
     //LOGS    
     config.LOGS_TOPIC_NAME = 'preprod-desker-logs-v1'; //Only one partition
     config.LOGS_CONSUMER_GROUP_ID = 'preprod-desker-logs-v1-cg';
-    
+
     config.CONSUMER_AUTO_COMMIT = true;
     config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
     config.CONSUMER_FETCH_MAX_WAIT = 10;
@@ -482,10 +486,10 @@ if (mode === 'preprod') {
     config.CONSUMER_ENCODING = "utf8";
     config.CONSUMER_KEY_ENCODING = "utf8";
     ///////////////////////////////
-    
-    config.emailbaseUrlApprove = "https://preprod.officedesk.app"; 
+
+    config.emailbaseUrlApprove = "https://preprod.officedesk.app";
     config.emailbaseUrlUpload = "https://preprod.officedesk.app";
-    
+
 }
 
 if (mode === 'prod') {
