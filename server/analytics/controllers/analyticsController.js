@@ -55,6 +55,66 @@ function AnalyticsController(objCollection)
         }
     );
 
+    //Get the list of widget values for mobile based clients
+    //Bharat Masimukku
+    //2019-07-16
+    app.post
+    (
+        '/' + global.config.version + '/analytics/widget/list', 
+        async (req, res) => 
+        {        
+            try 
+            {
+                let result = await analyticsService.getWidgetList(req.body);
+                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            } 
+            catch(err) 
+            {
+                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            } 
+        }
+    );
+
+    //Get specific widgets value for web based clients
+    //Bharat Masimukku
+    //2019-07-16
+    app.post
+    (
+        '/' + global.config.version + '/analytics/widget/value', 
+        async (req, res) => 
+        {        
+            try 
+            {
+                let result = await analyticsService.getWidgetValue(req.body);
+                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            } 
+            catch(err) 
+            {
+                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            } 
+        }
+    );
+
+    //Get the drill down for a specific widget
+    //Bharat Masimukku
+    //2019-07-23
+    app.post
+    (
+        '/' + global.config.version + '/analytics/widget/drilldown', 
+        async (req, res) => 
+        {        
+            try 
+            {
+                let result = await analyticsService.getWidgetDrilldown(req.body);
+                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            } 
+            catch(err) 
+            {
+                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            } 
+        }
+    );
+
     app.post('/' + global.config.version + '/analytics/widget/add', async (req, res) => {        
         try {
             

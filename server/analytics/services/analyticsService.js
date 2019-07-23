@@ -634,6 +634,20 @@ function AnalyticsService(objectCollection)
 
                     dbCall = "ds_p1_activity_status_type_master_select_category";
                     results[0] = await db.callDBProcedureR2(request, dbCall, paramsArray, 1);
+                    results[0]
+                    .push
+                    (
+                        {
+                            "query_status": 0,
+                            "activity_status_type_id": 0,
+                            "activity_status_type_name": "Past Due",
+                            "activity_status_type_description": "Past Due",
+                            "activity_status_type_category_id": 0,
+                            "activity_status_type_category_name": "",
+                            "activity_type_category_id": 0,
+                            "activity_type_category_name": ""
+                        }
+                    );
                     return results[0];
                     
                     break;
@@ -726,6 +740,54 @@ function AnalyticsService(objectCollection)
 
                     break;
             }
+        }
+        catch(error)
+        {
+            return Promise.reject(error);
+        }
+    };
+
+    //Get the list of widget values for mobile based clients
+    //Bharat Masimukku
+    //2019-07-16
+    this.getWidgetList = 
+    async (request) => 
+    {
+        try
+        {
+            
+        }
+        catch(error)
+        {
+            return Promise.reject(error);
+        }
+    };
+
+    //Get specific widgets value for web based clients
+    //Bharat Masimukku
+    //2019-07-16
+    this.getWidgetValue = 
+    async (request) => 
+    {
+        try
+        {
+            
+        }
+        catch(error)
+        {
+            return Promise.reject(error);
+        }
+    };
+
+    //Get specific widgets value for web based clients
+    //Bharat Masimukku
+    //2019-07-23
+    this.getWidgetDrilldown = 
+    async (request) => 
+    {
+        try
+        {
+            
         }
         catch(error)
         {
