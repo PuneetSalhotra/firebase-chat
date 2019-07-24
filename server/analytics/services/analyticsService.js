@@ -4,9 +4,8 @@
 
 function AnalyticsService(objectCollection) 
 {
-    const moment = require('moment');
-    const makeRequest = require('request');
-    const TinyURL = require('tinyurl');
+    
+    const makeRequest = require('request');    
     const nodeUtil = require('util');
     
     const cacheWrapper = objectCollection.cacheWrapper;
@@ -65,6 +64,23 @@ function AnalyticsService(objectCollection)
     this.analyticsWidgetAdd = async function(request) {
         request.datetime_log = util.getCurrentUTCTime();
         let widgetId;
+        
+        //Update widget_aggregate_id and widget_chart_id
+        //*******************************************************/
+        let [err1, staticValues] = await getwidgetStaticValueDetails(request);
+        if(err1) {
+            global.logger.write('conLog', "get Widget Chart Id | based on widget_type_id | Error: ", err, {});
+            return [true, {message: "Error creating Widget"}];
+        }
+        
+        global.logger.write('conLog', 'staticValues : ', {}, {});
+        global.logger.write('conLog', staticValues, {}, {});
+
+        request.widget_chart_id = staticValues[0].widget_type_chart_id;
+        request.flag_app = staticValues[0].flag_mobile_enabled;
+        request.widget_aggregate_id = 1;
+        //********************************************************/
+
         
         //Add Activity - you will get ActivityID
         const [err, activityData] = await createActivity(request);
@@ -223,6 +239,27 @@ function AnalyticsService(objectCollection)
         }
     }
 
+    async function getwidgetStaticValueDetails(request){
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(            
+            request.widget_type_id,            
+        );
+
+        var queryString = util.getQueryString('ds_p1_widget_type_master_select_id', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];        
+    }
     
     this.widgetListInsert = async function (request) {        
         
@@ -238,13 +275,13 @@ function AnalyticsService(objectCollection)
             request.widget_aggregate_id,
             request.widget_chart_id,
             request.widget_timeline_id,
-            request.entity1_id,
-            request.entity2_id,
-            request.entity3_id,
-            request.entity4_id,
-            request.entity5_id,
-            request.timezone_id,
-            request.access_level_id,
+            util.replaceDefaultNumber(request.entity1_id),
+            util.replaceDefaultNumber(request.entity2_id),
+            util.replaceDefaultNumber(request.entity3_id),
+            util.replaceDefaultNumber(request.entity4_id),
+            util.replaceDefaultNumber(request.entity5_id),
+            util.replaceDefaultNumber(request.timezone_id),
+            util.replaceDefaultNumber(request.access_level_id),
             request.widget_owner_asset_id,
             request.activity_id,
             request.activity_type_id,
