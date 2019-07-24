@@ -71,6 +71,12 @@ const digitalPriSipLabels = require("./digital_pri_sip/labels.json");
 const digitalPriSipRoms = require("./digital_pri_sip/roms.json");
 const digitalPriSipRomsActions = require("./digital_pri_sip/roms_actions.json");
 
+// New FLV - PRI IPC
+const digitalIpcMappings = require("./digital_ipc/mappings.json");
+const digitalIpcLabels = require("./digital_ipc/labels.json");
+const digitalIpcRoms = require("./digital_ipc/roms.json");
+const digitalIpcRomsActions = require("./digital_ipc/roms_actions.json");
+
 vodafoneConfig = {
     "860": {
         "NAME": "Vodafone Idea | Production | BETA",
@@ -375,5 +381,15 @@ vodafoneConfig = {
         "ROMS": digitalPriSipRoms,
         "ROMS_ACTIONS": digitalPriSipRomsActions,
         "ORIGIN_FORM_ID": 1558,
+    },
+    "142432": {
+        "REQUIRED_FORMS": [1567],
+        "TARGET_FORM_ID": 1566,
+        "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
+        "FORM_FIELD_MAPPING_DATA": digitalIpcMappings,
+        "LABELS": digitalIpcLabels,
+        "ROMS": digitalIpcRoms,
+        "ROMS_ACTIONS": digitalIpcRomsActions,
+        "ORIGIN_FORM_ID": 1567,
     }
 };
