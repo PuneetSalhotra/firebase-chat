@@ -55,7 +55,7 @@ function AnalyticsController(objCollection)
         }
     );
 
-    //Get the list of widget values for mobile based clients
+    //Get the list of widgets and corresponding values
     //Bharat Masimukku
     //2019-07-16
     app.post
@@ -75,7 +75,7 @@ function AnalyticsController(objCollection)
         }
     );
 
-    //Get specific widgets value for web based clients
+    //Get specific widgets value
     //Bharat Masimukku
     //2019-07-16
     app.post
