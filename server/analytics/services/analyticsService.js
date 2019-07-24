@@ -754,7 +754,7 @@ function AnalyticsService(objectCollection)
         }
     };
 
-    //Get the list of widget values for mobile based clients
+    //Get the list of widgets and corresponding targets
     //Bharat Masimukku
     //2019-07-16
     this.getWidgetList = 
@@ -762,7 +762,23 @@ function AnalyticsService(objectCollection)
     {
         try
         {
-            
+            let results = new Array();
+            let paramsArray;
+
+            paramsArray = 
+            new Array
+            (
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.asset_id,
+                0,
+                request.page_start,
+                util.replaceQueryLimit(request.page_limit)
+            );
+
+            results[0] = await db.callDBProcedureR2(request, 'ds_p1_activity_asset_mapping_select_mywidgets', paramsArray, 1);
+            return results[0];
         }
         catch(error)
         {
@@ -770,7 +786,7 @@ function AnalyticsService(objectCollection)
         }
     };
 
-    //Get specific widgets value for web based clients
+    //Get specific widgets value
     //Bharat Masimukku
     //2019-07-16
     this.getWidgetValue = 
@@ -778,7 +794,71 @@ function AnalyticsService(objectCollection)
     {
         try
         {
-            
+            let results = new Array();
+            let paramsArray;
+            let arrayTagTypes;
+            let arrayStatusTypes;
+            let tempResult;
+            let iterator = 0;
+
+            //Get the number of selections for workflow category
+            console.log(JSON.parse(request.filter_tag_type_id).length);
+            arrayTagTypes = JSON.parse(request.filter_tag_type_id);
+
+            //Get the number of selections for status category
+            console.log(JSON.parse(request.filter_activity_status_type_id).length);
+            arrayStatusTypes = JSON.parse(request.filter_activity_status_type_id);
+
+            for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
+            {
+                console.log(`Tag Type[${iteratorX}] : ${arrayTagTypes[iteratorX].tag_type_id}`);
+
+                for (let iteratorY = 0, arrayLengthY = arrayStatusTypes.length; iteratorY < arrayLengthY; iteratorY++) 
+                {
+                    console.log(`Status Type[${iteratorY}] : ${arrayStatusTypes[iteratorY].activity_status_type_id}`);
+
+                    paramsArray = 
+                    new Array
+                    (
+                        parseInt(request.widget_type_id),
+                        parseInt(request.filter_date_type_id),
+                        parseInt(request.filter_timeline_id),
+                        0, //Sort flag
+                        parseInt(request.organization_id),
+                        parseInt(request.filter_account_id),
+                        parseInt(request.filter_workforce_type_id),
+                        parseInt(request.filter_workforce_id),
+                        parseInt(request.filter_asset_id),
+                        parseInt(arrayTagTypes[iteratorX].tag_type_id),
+                        parseInt(request.filter_tag_id),
+                        parseInt(request.filter_activity_type_id),
+                        0, //Activity ID,
+                        parseInt(arrayStatusTypes[iteratorY].activity_status_type_id),
+                        parseInt(request.filter_activity_status_tag_id),
+                        parseInt(request.filter_activity_status_id),
+                        request.datetime_start,
+                        request.datetime_end,
+                        parseInt(request.page_start),
+                        parseInt(util.replaceQueryLimit(request.page_limit))
+                    );
+
+                    tempResult = await db.callDBProcedureR2(request, 'ds_p1_activity_list_select_widget_values', paramsArray, 1);
+                    console.log(tempResult);
+
+                    results[iterator] =
+                    (
+                        {
+                            "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                            "status_type_id": arrayStatusTypes[iteratorY].activity_status_type_id,
+                            "result": tempResult[0].value,
+                        }
+                    );
+
+                    iterator++;
+                }
+            }
+
+            return results;
         }
         catch(error)
         {
@@ -786,7 +866,7 @@ function AnalyticsService(objectCollection)
         }
     };
 
-    //Get specific widgets value for web based clients
+    //Get the drill down for a specific widget
     //Bharat Masimukku
     //2019-07-23
     this.getWidgetDrilldown = 
