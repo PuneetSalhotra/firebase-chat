@@ -100,7 +100,7 @@ function AnalyticsService(objectCollection)
         //console.log('widgetResponse : ', widgetResponse);
         //console.log('Widget ID : ', widgetResponse[0].widget_id);
         widgetId = widgetResponse[0].widget_id;
-        request.widget_id = widgetId;                  
+        request.widget_id = widgetId;                
             
         await new Promise((resolve)=>{
             setTimeout(()=>{
@@ -118,60 +118,30 @@ function AnalyticsService(objectCollection)
     };
 
     async function createActivity(request) {
-        
+        //let filterTagTypeId = request.filter_tag_type_id;
+        //let filterActivityStatusTypeId = request.filter_activity_status_type_id;       
+                
         let activityInlineData = {};
         let widgetInfo = {};        
+        widgetInfo.widget_id = util.replaceDefaultNumber(request.widget_id);
+        widgetInfo.widget_name = util.replaceDefaultString(request.widget_name);
+        widgetInfo.widget_target_value = request.widget_target_value;
         widgetInfo.widget_type_id = util.replaceDefaultString(request.widget_type_id);
-
-        //widgetInfo.widget_type_name = util.replaceDefaultString(request.widget_type_name);
-        //widgetInfo.widget_timline_name = util.replaceDefaultString(request.widget_timline_name);
-        //widgetInfo.widget_aggregate_name = util.replaceDefaultString(request.widget_aggregate_name);
-        //widgetInfo.widget_chart_name = util.replaceDefaultString(request.widget_chart_name);
-        //widgetInfo.widget_owner_asset_first_name = "";
-        //widgetInfo.widget_owner_operating_asset_id = "";
-        //widgetInfo.widget_owner_operating_asset_first_name = "";
-        //widgetInfo.asset_first_name = "";
-        //widgetInfo.operating_asset_id = "";
-        //widgetInfo.operating_asset_first_name = "";
-        //widgetInfo.workforce_name = "";
-        //widgetInfo.account_name = "";
-        //widgetInfo.organization_name = "";
-        //widgetInfo.activity_status_name = util.replaceDefaultString(request.activity_status_name);
-        //widgetInfo.activity_status_type_name = util.replaceDefaultString(request.activity_status_type_name);
-        //widgetInfo.activity_status_tag_name = util.replaceDefaultString(request.activity_status_tag_name);
-        //widgetInfo.activity_type_name = util.replaceDefaultString(request.activity_type_name);
-        //widgetInfo.activity_type_category_name = util.replaceDefaultString(request.activity_type_category_name);
-        
-        widgetInfo.organization_id = request.organization_id;
-        widgetInfo.account_id = request.account_id;
-        widgetInfo.workforce_id = request.workforce_id;
-        widgetInfo.asset_id = request.asset_id;
-        widgetInfo.widget_owner_asset_id = request.widget_owner_asset_id;        
-        
-        widgetInfo.activity_type_category_id = 52;      
-        widgetInfo.activity_type_id = util.replaceDefaultNumber(request.activity_type_id);
-        
-        widgetInfo.widget_timeline_id = util.replaceDefaultNumber(request.widget_timeline_id);
-        widgetInfo.widget_aggregate_id = util.replaceDefaultNumber(request.widget_aggregate_id);
-        widgetInfo.widget_chart_id = util.replaceDefaultNumber(request.widget_chart_id);      
-        
-        widgetInfo.activity_id = "";
-        widgetInfo.activity_title = request.widget_name;
-
-        widgetInfo.filter_activity_type_id = util.replaceDefaultNumber(request.filter_activity_type_id);
-        widgetInfo.filter_tag_type_id = util.replaceDefaultNumber(request.filter_tag_type_id);
+        widgetInfo.widget_type_category_id = 3; //util.replaceDefaultString(request.widget_type_category_id);
+        widgetInfo.widget_chart_id = util.replaceDefaultNumber(request.widget_chart_id);       
+        widgetInfo.widget_aggregate_id = util.replaceDefaultNumber(request.widget_aggregate_id);      
+        widgetInfo.filter_tag_type_id = request.filter_tag_type_id;        
         widgetInfo.filter_tag_id = util.replaceDefaultNumber(request.filter_tag_id);
-
-        widgetInfo.filter_activity_status_id = util.replaceDefaultNumber(request.filter_activity_status_id);
-        widgetInfo.filter_activity_status_type_id = util.replaceDefaultNumber(request.filter_activity_status_type_id);
+        widgetInfo.filter_activity_type_id = util.replaceDefaultNumber(request.filter_activity_type_id);       
+        widgetInfo.filter_activity_status_type_id = request.filter_activity_status_type_id;
         widgetInfo.filter_activity_status_tag_id = util.replaceDefaultNumber(request.filter_activity_status_tag_id);
-
+        widgetInfo.filter_activity_status_id = util.replaceDefaultNumber(request.filter_activity_status_id);
         widgetInfo.filter_account_id = util.replaceDefaultNumber(request.filter_account_id);
         widgetInfo.filter_workforce_type_id = util.replaceDefaultNumber(request.filter_workforce_type_id);
         widgetInfo.filter_workforce_id = util.replaceDefaultNumber(request.filter_workforce_id);
-
+        widgetInfo.filter_asset_id = util.replaceDefaultNumber(request.filter_asset_id);
         widgetInfo.filter_date_type_id = util.replaceDefaultNumber(request.filter_date_type_id);
-        widgetInfo.widget_target_value = request.widget_target_value;
+        widgetInfo.filter_timeline_id = util.replaceDefaultNumber(request.filter_timeline_id);  
                
         activityInlineData.widget_info = widgetInfo;
 
@@ -806,7 +776,7 @@ function AnalyticsService(objectCollection)
         }
     };
 
-    //Get the list of widget values for mobile based clients
+    //Get the list of widgets and corresponding targets
     //Bharat Masimukku
     //2019-07-16
     this.getWidgetList = 
@@ -814,7 +784,23 @@ function AnalyticsService(objectCollection)
     {
         try
         {
-            
+            let results = new Array();
+            let paramsArray;
+
+            paramsArray = 
+            new Array
+            (
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.asset_id,
+                0,
+                request.page_start,
+                util.replaceQueryLimit(request.page_limit)
+            );
+
+            results[0] = await db.callDBProcedureR2(request, 'ds_p1_activity_asset_mapping_select_mywidgets', paramsArray, 1);
+            return results[0];
         }
         catch(error)
         {
@@ -822,7 +808,7 @@ function AnalyticsService(objectCollection)
         }
     };
 
-    //Get specific widgets value for web based clients
+    //Get specific widgets value
     //Bharat Masimukku
     //2019-07-16
     this.getWidgetValue = 
@@ -830,7 +816,71 @@ function AnalyticsService(objectCollection)
     {
         try
         {
-            
+            let results = new Array();
+            let paramsArray;
+            let arrayTagTypes;
+            let arrayStatusTypes;
+            let tempResult;
+            let iterator = 0;
+
+            //Get the number of selections for workflow category
+            console.log(JSON.parse(request.filter_tag_type_id).length);
+            arrayTagTypes = JSON.parse(request.filter_tag_type_id);
+
+            //Get the number of selections for status category
+            console.log(JSON.parse(request.filter_activity_status_type_id).length);
+            arrayStatusTypes = JSON.parse(request.filter_activity_status_type_id);
+
+            for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
+            {
+                console.log(`Tag Type[${iteratorX}] : ${arrayTagTypes[iteratorX].tag_type_id}`);
+
+                for (let iteratorY = 0, arrayLengthY = arrayStatusTypes.length; iteratorY < arrayLengthY; iteratorY++) 
+                {
+                    console.log(`Status Type[${iteratorY}] : ${arrayStatusTypes[iteratorY].activity_status_type_id}`);
+
+                    paramsArray = 
+                    new Array
+                    (
+                        parseInt(request.widget_type_id),
+                        parseInt(request.filter_date_type_id),
+                        parseInt(request.filter_timeline_id),
+                        0, //Sort flag
+                        parseInt(request.organization_id),
+                        parseInt(request.filter_account_id),
+                        parseInt(request.filter_workforce_type_id),
+                        parseInt(request.filter_workforce_id),
+                        parseInt(request.filter_asset_id),
+                        parseInt(arrayTagTypes[iteratorX].tag_type_id),
+                        parseInt(request.filter_tag_id),
+                        parseInt(request.filter_activity_type_id),
+                        0, //Activity ID,
+                        parseInt(arrayStatusTypes[iteratorY].activity_status_type_id),
+                        parseInt(request.filter_activity_status_tag_id),
+                        parseInt(request.filter_activity_status_id),
+                        request.datetime_start,
+                        request.datetime_end,
+                        parseInt(request.page_start),
+                        parseInt(util.replaceQueryLimit(request.page_limit))
+                    );
+
+                    tempResult = await db.callDBProcedureR2(request, 'ds_p1_activity_list_select_widget_values', paramsArray, 1);
+                    console.log(tempResult);
+
+                    results[iterator] =
+                    (
+                        {
+                            "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                            "status_type_id": arrayStatusTypes[iteratorY].activity_status_type_id,
+                            "result": tempResult[0].value,
+                        }
+                    );
+
+                    iterator++;
+                }
+            }
+
+            return results;
         }
         catch(error)
         {
@@ -838,7 +888,7 @@ function AnalyticsService(objectCollection)
         }
     };
 
-    //Get specific widgets value for web based clients
+    //Get the drill down for a specific widget
     //Bharat Masimukku
     //2019-07-23
     this.getWidgetDrilldown = 
