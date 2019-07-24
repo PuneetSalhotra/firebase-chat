@@ -65,6 +65,12 @@ const digitalMplsCafRoms = require("./digital_mpls_caf/roms.json");
 const digitalMplsCafRomsActions = require("./digital_mpls_caf/roms_actions.json");
 const digitalMplsCafBulkOrderToOriginFormMappings = require("./digital_mpls_caf/bulk_order_to_origin_form_mappings.json");
 
+// New FLV - PRI SIP - 142431
+const digitalPriSipMappings = require("./digital_pri_sip/mappings.json");
+const digitalPriSipLabels = require("./digital_pri_sip/labels.json");
+const digitalPriSipRoms = require("./digital_pri_sip/roms.json");
+const digitalPriSipRomsActions = require("./digital_pri_sip/roms_actions.json");
+
 vodafoneConfig = {
     "860": {
         "NAME": "Vodafone Idea | Production | BETA",
@@ -359,5 +365,15 @@ vodafoneConfig = {
         "ROMS_ACTIONS": digitalMplsCafRomsActions,
         "ORIGIN_FORM_ID": 1059,
         "BULK_ORDER_ORIGIN_FORM_MAPPING_DATA": digitalMplsCafBulkOrderToOriginFormMappings
+    },
+    "142431": {
+        "REQUIRED_FORMS": [1558],
+        "TARGET_FORM_ID": 1557,
+        "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
+        "FORM_FIELD_MAPPING_DATA": digitalPriSipMappings,
+        "LABELS": digitalPriSipLabels,
+        "ROMS": digitalPriSipRoms,
+        "ROMS_ACTIONS": digitalPriSipRomsActions,
+        "ORIGIN_FORM_ID": 1558,
     }
 };
