@@ -208,7 +208,6 @@ function AnalyticsService(objectCollection)
         }
     }
 
-    
     this.widgetListInsert = async function (request) {        
         
         let responseData = [],
@@ -309,7 +308,6 @@ function AnalyticsService(objectCollection)
         }
         return [error, responseData];
     }
-
 
     this.analyticsWidgetAlter = async function(request) {
         request.datetime_log = util.getCurrentUTCTime();
@@ -547,7 +545,7 @@ function AnalyticsService(objectCollection)
                     paramsArray = 
                     new Array
                     (
-                        3, //Widget Type Category ID
+                        global.analyticsConfig.widget_type_category_id_default, //Widget Type Category ID
                         request.device_os_id,
                         request.page_start,
                         util.replaceQueryLimit(request.page_limit)
@@ -634,7 +632,7 @@ function AnalyticsService(objectCollection)
                     paramsArray = 
                     new Array
                     (
-                        48, //Activity Type Category ID - Workflow
+                        global.analyticsConfig.activity_type_category_id_workflow, //Activity Type Category ID - Workflow
                         request.page_start,
                         util.replaceQueryLimit(request.page_limit)
                     );
@@ -665,13 +663,13 @@ function AnalyticsService(objectCollection)
                     new Array
                     (
                         request.organization_id,
-                        48, //Activity Type Category ID - Workflow
+                        global.analyticsConfig.activity_type_category_id_workflow, //Activity Type Category ID - Workflow
                         request.tag_type_id,
                         request.activity_type_tag_id,
                         request.activity_type_id,
                         request.activity_status_type_id,
-                        0, //Activity Status Tag
-                        1, //Status Tags
+                        global.analyticsConfig.activity_status_tag_id_all, //Activity Status Tag - All
+                        global.analyticsConfig.parameter_flag_status_tag, //Status Tags
                         request.page_start,
                         util.replaceQueryLimit(request.page_limit)
                     );
@@ -688,13 +686,13 @@ function AnalyticsService(objectCollection)
                     new Array
                     (
                         request.organization_id,
-                        48, //Activity Type Category ID - Workflow
+                        global.analyticsConfig.activity_type_category_id_workflow, //Activity Type Category ID - Workflow
                         request.tag_type_id,
                         request.activity_type_tag_id,
                         request.activity_type_id,
                         request.activity_status_type_id,
                         request.activity_status_tag_id,
-                        2, //Status
+                        global.analyticsConfig.parameter_flag_status, //Status
                         request.page_start,
                         util.replaceQueryLimit(request.page_limit)
                     );
@@ -736,7 +734,7 @@ function AnalyticsService(objectCollection)
                     paramsArray = 
                     new Array
                     (
-                        1, //Flag
+                        global.analyticsConfig.parameter_flag_timeline, //Flag
                         request.page_start,
                         util.replaceQueryLimit(request.page_limit)
                     );
@@ -772,7 +770,7 @@ function AnalyticsService(objectCollection)
                 request.account_id,
                 request.workforce_id,
                 request.asset_id,
-                0,
+                global.analyticsConfig.parameter_flag_sort,
                 request.page_start,
                 util.replaceQueryLimit(request.page_limit)
             );
@@ -823,7 +821,7 @@ function AnalyticsService(objectCollection)
                         parseInt(request.widget_type_id),
                         parseInt(request.filter_date_type_id),
                         parseInt(request.filter_timeline_id),
-                        0, //Sort flag
+                        global.analyticsConfig.parameter_flag_sort, //Sort flag
                         parseInt(request.organization_id),
                         parseInt(request.filter_account_id),
                         parseInt(request.filter_workforce_type_id),
@@ -832,7 +830,7 @@ function AnalyticsService(objectCollection)
                         parseInt(arrayTagTypes[iteratorX].tag_type_id),
                         parseInt(request.filter_tag_id),
                         parseInt(request.filter_activity_type_id),
-                        0, //Activity ID,
+                        global.analyticsConfig.activity_id_all, //Activity ID,
                         parseInt(arrayStatusTypes[iteratorY].activity_status_type_id),
                         parseInt(request.filter_activity_status_tag_id),
                         parseInt(request.filter_activity_status_id),
@@ -844,16 +842,32 @@ function AnalyticsService(objectCollection)
 
                     tempResult = await db.callDBProcedureR2(request, 'ds_p1_activity_list_select_widget_values', paramsArray, 1);
                     console.log(tempResult);
-
-                    results[iterator] =
-                    (
-                        {
-                            "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
-                            "status_type_id": arrayStatusTypes[iteratorY].activity_status_type_id,
-                            "result": tempResult[0].value,
-                        }
-                    );
-
+                        
+                    if (parseInt(request.widget_type_id) === global.analyticsConfig.widget_type_id_tat)
+                    {
+                        results[iterator] =
+                        (
+                            {
+                                "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                                "status_type_id": arrayStatusTypes[iteratorY].activity_status_type_id,
+                                "result": tempResult[0].value,
+                                "sum": tempResult[0].sum,
+                                "count": tempResult[0].count,
+                            }
+                        );
+                    }
+                    else
+                    {
+                        results[iterator] =
+                        (
+                            {
+                                "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                                "status_type_id": arrayStatusTypes[iteratorY].activity_status_type_id,
+                                "result": tempResult[0].value,
+                            }
+                        );
+                    }
+                    
                     iterator++;
                 }
             }
