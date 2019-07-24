@@ -4,9 +4,8 @@
 
 function AnalyticsService(objectCollection) 
 {
-    const moment = require('moment');
-    const makeRequest = require('request');
-    const TinyURL = require('tinyurl');
+    
+    const makeRequest = require('request');    
     const nodeUtil = require('util');
     
     const cacheWrapper = objectCollection.cacheWrapper;
@@ -66,6 +65,23 @@ function AnalyticsService(objectCollection)
         request.datetime_log = util.getCurrentUTCTime();
         let widgetId;
         
+        //Update widget_aggregate_id and widget_chart_id
+        //*******************************************************/
+        let [err1, staticValues] = await getwidgetStaticValueDetails(request);
+        if(err1) {
+            global.logger.write('conLog', "get Widget Chart Id | based on widget_type_id | Error: ", err, {});
+            return [true, {message: "Error creating Widget"}];
+        }
+        
+        global.logger.write('conLog', 'staticValues : ', {}, {});
+        global.logger.write('conLog', staticValues, {}, {});
+
+        request.widget_chart_id = staticValues[0].widget_type_chart_id;
+        request.flag_app = staticValues[0].flag_mobile_enabled;
+        request.widget_aggregate_id = 1;
+        //********************************************************/
+
+        
         //Add Activity - you will get ActivityID
         const [err, activityData] = await createActivity(request);
         if (err) {
@@ -106,42 +122,57 @@ function AnalyticsService(objectCollection)
         let activityInlineData = {};
         let widgetInfo = {};        
         widgetInfo.widget_type_id = util.replaceDefaultString(request.widget_type_id);
-        widgetInfo.widget_type_name = util.replaceDefaultString(request.widget_type_name);
-        widgetInfo.widget_timeline_id = util.replaceDefaultNumber(request.widget_timeline_id);
-        widgetInfo.widget_timline_name = util.replaceDefaultString(request.widget_timline_name);
-        widgetInfo.widget_aggregate_id = util.replaceDefaultNumber(request.widget_aggregate_id);
-        widgetInfo.widget_aggregate_name = util.replaceDefaultString(request.widget_aggregate_name);
-        widgetInfo.widget_chart_id = util.replaceDefaultNumber(request.widget_chart_id);
-        widgetInfo.widget_chart_name = util.replaceDefaultString(request.widget_chart_name);
 
-        widgetInfo.widget_owner_asset_id = request.widget_owner_asset_id;
-        widgetInfo.widget_owner_asset_first_name = "";
-        widgetInfo.widget_owner_operating_asset_id = "";
-        widgetInfo.widget_owner_operating_asset_first_name = "";
-        widgetInfo.asset_id = request.asset_id;
-        widgetInfo.asset_first_name = "";
-        widgetInfo.operating_asset_id = "";
-        widgetInfo.operating_asset_first_name = "";
-        widgetInfo.workforce_id = request.workforce_id;
-        widgetInfo.workforce_name = "";
-        widgetInfo.account_id = request.account_id;
-        widgetInfo.account_name = "";
+        //widgetInfo.widget_type_name = util.replaceDefaultString(request.widget_type_name);
+        //widgetInfo.widget_timline_name = util.replaceDefaultString(request.widget_timline_name);
+        //widgetInfo.widget_aggregate_name = util.replaceDefaultString(request.widget_aggregate_name);
+        //widgetInfo.widget_chart_name = util.replaceDefaultString(request.widget_chart_name);
+        //widgetInfo.widget_owner_asset_first_name = "";
+        //widgetInfo.widget_owner_operating_asset_id = "";
+        //widgetInfo.widget_owner_operating_asset_first_name = "";
+        //widgetInfo.asset_first_name = "";
+        //widgetInfo.operating_asset_id = "";
+        //widgetInfo.operating_asset_first_name = "";
+        //widgetInfo.workforce_name = "";
+        //widgetInfo.account_name = "";
+        //widgetInfo.organization_name = "";
+        //widgetInfo.activity_status_name = util.replaceDefaultString(request.activity_status_name);
+        //widgetInfo.activity_status_type_name = util.replaceDefaultString(request.activity_status_type_name);
+        //widgetInfo.activity_status_tag_name = util.replaceDefaultString(request.activity_status_tag_name);
+        //widgetInfo.activity_type_name = util.replaceDefaultString(request.activity_type_name);
+        //widgetInfo.activity_type_category_name = util.replaceDefaultString(request.activity_type_category_name);
+        
         widgetInfo.organization_id = request.organization_id;
-        widgetInfo.organization_name = "";
-
+        widgetInfo.account_id = request.account_id;
+        widgetInfo.workforce_id = request.workforce_id;
+        widgetInfo.asset_id = request.asset_id;
+        widgetInfo.widget_owner_asset_id = request.widget_owner_asset_id;        
+        
+        widgetInfo.activity_type_category_id = 52;      
+        widgetInfo.activity_type_id = util.replaceDefaultNumber(request.activity_type_id);
+        
+        widgetInfo.widget_timeline_id = util.replaceDefaultNumber(request.widget_timeline_id);
+        widgetInfo.widget_aggregate_id = util.replaceDefaultNumber(request.widget_aggregate_id);
+        widgetInfo.widget_chart_id = util.replaceDefaultNumber(request.widget_chart_id);      
+        
         widgetInfo.activity_id = "";
         widgetInfo.activity_title = request.widget_name;
-        widgetInfo.activity_type_id = util.replaceDefaultNumber(request.activity_type_id);
-        widgetInfo.activity_type_name = util.replaceDefaultString(request.activity_type_name);
-        widgetInfo.activity_type_category_id = 52;
-        widgetInfo.activity_type_category_name = util.replaceDefaultString(request.activity_type_category_name);
-        widgetInfo.activity_status_id = util.replaceDefaultNumber(request.activity_status_id);
-        widgetInfo.activity_status_name = util.replaceDefaultString(request.activity_status_name);
-        widgetInfo.activity_status_type_id = util.replaceDefaultNumber(request.activity_status_type_id);
-        widgetInfo.activity_status_type_name = util.replaceDefaultString(request.activity_status_type_name);
-        widgetInfo.activity_status_tag_id = util.replaceDefaultNumber(request.activity_status_tag_id);
-        widgetInfo.activity_status_tag_name = util.replaceDefaultString(request.activity_status_tag_name);
-        
+
+        widgetInfo.filter_activity_type_id = util.replaceDefaultNumber(request.filter_activity_type_id);
+        widgetInfo.filter_tag_type_id = util.replaceDefaultNumber(request.filter_tag_type_id);
+        widgetInfo.filter_tag_id = util.replaceDefaultNumber(request.filter_tag_id);
+
+        widgetInfo.filter_activity_status_id = util.replaceDefaultNumber(request.filter_activity_status_id);
+        widgetInfo.filter_activity_status_type_id = util.replaceDefaultNumber(request.filter_activity_status_type_id);
+        widgetInfo.filter_activity_status_tag_id = util.replaceDefaultNumber(request.filter_activity_status_tag_id);
+
+        widgetInfo.filter_account_id = util.replaceDefaultNumber(request.filter_account_id);
+        widgetInfo.filter_workforce_type_id = util.replaceDefaultNumber(request.filter_workforce_type_id);
+        widgetInfo.filter_workforce_id = util.replaceDefaultNumber(request.filter_workforce_id);
+
+        widgetInfo.filter_date_type_id = util.replaceDefaultNumber(request.filter_date_type_id);
+        widgetInfo.widget_target_value = request.widget_target_value;
+               
         activityInlineData.widget_info = widgetInfo;
 
         const addActivityRequest = {
@@ -208,6 +239,27 @@ function AnalyticsService(objectCollection)
         }
     }
 
+    async function getwidgetStaticValueDetails(request){
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(            
+            request.widget_type_id,            
+        );
+
+        var queryString = util.getQueryString('ds_p1_widget_type_master_select_id', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];        
+    }
     
     this.widgetListInsert = async function (request) {        
         
@@ -223,13 +275,13 @@ function AnalyticsService(objectCollection)
             request.widget_aggregate_id,
             request.widget_chart_id,
             request.widget_timeline_id,
-            request.entity1_id,
-            request.entity2_id,
-            request.entity3_id,
-            request.entity4_id,
-            request.entity5_id,
-            request.timezone_id,
-            request.access_level_id,
+            util.replaceDefaultNumber(request.entity1_id),
+            util.replaceDefaultNumber(request.entity2_id),
+            util.replaceDefaultNumber(request.entity3_id),
+            util.replaceDefaultNumber(request.entity4_id),
+            util.replaceDefaultNumber(request.entity5_id),
+            util.replaceDefaultNumber(request.timezone_id),
+            util.replaceDefaultNumber(request.access_level_id),
             request.widget_owner_asset_id,
             request.activity_id,
             request.activity_type_id,
@@ -641,6 +693,20 @@ function AnalyticsService(objectCollection)
 
                     dbCall = "ds_p1_activity_status_type_master_select_category";
                     results[0] = await db.callDBProcedureR2(request, dbCall, paramsArray, 1);
+                    results[0]
+                    .push
+                    (
+                        {
+                            "query_status": 0,
+                            "activity_status_type_id": 0,
+                            "activity_status_type_name": "Past Due",
+                            "activity_status_type_description": "Past Due",
+                            "activity_status_type_category_id": 0,
+                            "activity_status_type_category_name": "",
+                            "activity_type_category_id": 0,
+                            "activity_type_category_name": ""
+                        }
+                    );
                     return results[0];
                     
                     break;
@@ -733,6 +799,54 @@ function AnalyticsService(objectCollection)
 
                     break;
             }
+        }
+        catch(error)
+        {
+            return Promise.reject(error);
+        }
+    };
+
+    //Get the list of widget values for mobile based clients
+    //Bharat Masimukku
+    //2019-07-16
+    this.getWidgetList = 
+    async (request) => 
+    {
+        try
+        {
+            
+        }
+        catch(error)
+        {
+            return Promise.reject(error);
+        }
+    };
+
+    //Get specific widgets value for web based clients
+    //Bharat Masimukku
+    //2019-07-16
+    this.getWidgetValue = 
+    async (request) => 
+    {
+        try
+        {
+            
+        }
+        catch(error)
+        {
+            return Promise.reject(error);
+        }
+    };
+
+    //Get specific widgets value for web based clients
+    //Bharat Masimukku
+    //2019-07-23
+    this.getWidgetDrilldown = 
+    async (request) => 
+    {
+        try
+        {
+            
         }
         catch(error)
         {
