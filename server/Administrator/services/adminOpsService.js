@@ -1011,6 +1011,13 @@ function AdminOpsService(objectCollection) {
                 }, workforceID, organizationID, accountID);
                 
                 console.log("addNewEmployeeToExistingDesk | queueAccessMappingInsert | queueError: ", queueError);
+
+                if (
+                    queueError.hasOwnProperty("code") &&
+                    queueError.code === "ER_DUP_ENTRY"
+                ) {
+                    console.log("addNewEmployeeToExistingDesk | queueAccessMappingInsert | queueError: ", "Duplicate Entry Attempt Yet To Be Handled ");
+                }
             }
         } catch (error) {
             console.log("addNewEmployeeToExistingDesk | queueAccessMappingInsert | Error: ", error);
@@ -1044,6 +1051,35 @@ function AdminOpsService(objectCollection) {
             util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_queue_access_mapping_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Fetch an asset's access to a specific queue
+    async function queueAccessMappingSelectQueueAsset(request, workforceID, organizationID, accountID) {
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), 
+        // IN p_asset_id BIGINT(20), IN p_queue_id BIGINT(20)
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            organizationID,
+            accountID,
+            workforceID,
+            request.asset_id,
+            request.queue_id
+        );
+        const queryString = util.getQueryString('ds_p1_queue_access_mapping_select_queue_asset', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -1936,12 +1972,22 @@ function AdminOpsService(objectCollection) {
             ) {
                 // Get the queue_access_id for the Account Manager
                 // [PENDING]
+                const [queueError, queueData] = await queueAccessMappingSelectQueueAsset({
+                    asset_id: deskAssetID,
+                    queue_id: 79
+                }, workforceID, organizationID, accountID);
+                if (
+                    queueError ||
+                    !(Number(queueData.length) > 0)
+                ) {
+                    throw new Error("queueAccessMappingSelectQueueAsset:Error:Error Fetching queue_access_id");
+                }
                 // Revoke access to the Order Logged Queue for the Account Manager
-                // const [queueError, queueData] = await queueAccessMappingUpdateLogState({
-                //     queue_access_id: 123123,
-                //     log_state: 3,
-                //     log_asset_id: request.log_asset_id || request.asset_id
-                // }, organizationID);
+                const [queueUpdateError, queueUpdateData] = await queueAccessMappingUpdateLogState({
+                    queue_access_id: Number(queueData[0].queue_access_id),
+                    log_state: 3,
+                    log_asset_id: request.log_asset_id || request.asset_id
+                }, organizationID);
                 
                 // console.log("removeEmployeeMappedToDesk | queueAccessMappingUpdateLogState | queueError: ", queueError);
             }
