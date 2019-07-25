@@ -819,8 +819,37 @@ function AnalyticsService(objectCollection)
             let paramsArray;
             let arrayTagTypes;
             let arrayStatusTypes;
+            //let arrayStatusTypesAll;
             let tempResult;
             let iterator = 0;
+            let timezoneID = 0;
+            let timezoneOffset = 0;
+
+            /*
+            //Get the list of exhautive status types
+            paramsArray = 
+            new Array
+            (
+                global.analyticsConfig.activity_type_category_id_workflow, //Activity Type Category ID - Workflow
+                request.page_start,
+                util.replaceQueryLimit(request.page_limit)
+            );
+
+            arrayStatusTypesAll = await db.callDBProcedureR2(request, "ds_p1_activity_status_type_master_select_category", paramsArray, 1);
+            console.log(arrayStatusTypesAll);
+            */
+
+            //Get the timezone of the account
+            paramsArray = 
+            new Array
+            (
+                request.account_id
+            );
+
+            tempResult = await db.callDBProcedureR2(request, "ds_p1_account_list_select_timezone", paramsArray, 1);
+            console.log(tempResult);
+            timezoneID = tempResult[0].account_timezone_id;
+            timezoneOffset = tempResult[0].account_timezone_offset;
 
             //Get the number of selections for workflow category
             console.log(JSON.parse(request.filter_tag_type_id).length);
@@ -830,69 +859,147 @@ function AnalyticsService(objectCollection)
             console.log(JSON.parse(request.filter_activity_status_type_id).length);
             arrayStatusTypes = JSON.parse(request.filter_activity_status_type_id);
 
-            for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
+            switch (parseInt(request.widget_type_id))
             {
-                console.log(`Tag Type[${iteratorX}] : ${arrayTagTypes[iteratorX].tag_type_id}`);
+                case 18: //Volume
+                case 19: //Value
+                case 20: //TAT
+                case 28: //Volume Distribution
+                case 29: //Value Distribution
+                    for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
+                    {
+                        console.log(`Tag Type[${iteratorX}] : ${arrayTagTypes[iteratorX].tag_type_id}`);
+        
+                        for (let iteratorY = 0, arrayLengthY = arrayStatusTypes.length; iteratorY < arrayLengthY; iteratorY++) 
+                        {
+                            console.log(`Status Type[${iteratorY}] : ${arrayStatusTypes[iteratorY].activity_status_type_id}`);
+        
+                            paramsArray = 
+                            new Array
+                            (
+                                parseInt(request.widget_type_id),
+                                parseInt(request.filter_date_type_id),
+                                parseInt(request.filter_timeline_id),
+                                timezoneID,
+                                timezoneOffset,
+                                global.analyticsConfig.parameter_flag_sort, //Sort flag
+                                parseInt(request.organization_id),
+                                parseInt(request.filter_account_id),
+                                parseInt(request.filter_workforce_type_id),
+                                parseInt(request.filter_workforce_id),
+                                parseInt(request.filter_asset_id),
+                                parseInt(arrayTagTypes[iteratorX].tag_type_id),
+                                parseInt(request.filter_tag_id),
+                                parseInt(request.filter_activity_type_id),
+                                global.analyticsConfig.activity_id_all, //Activity ID,
+                                parseInt(arrayStatusTypes[iteratorY].activity_status_type_id),
+                                parseInt(request.filter_activity_status_tag_id),
+                                parseInt(request.filter_activity_status_id),
+                                request.datetime_start,
+                                request.datetime_end,
+                                parseInt(request.page_start),
+                                parseInt(util.replaceQueryLimit(request.page_limit))
+                            );
+        
+                            tempResult = await db.callDBProcedureR2(request, 'ds_p1_activity_list_select_widget_values', paramsArray, 1);
+                            console.log(tempResult);
+                                
+                            if (parseInt(request.widget_type_id) === global.analyticsConfig.widget_type_id_tat)
+                            {
+                                results[iterator] =
+                                (
+                                    {
+                                        "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                                        "status_type_id": arrayStatusTypes[iteratorY].activity_status_type_id,
+                                        "result": tempResult[0].value,
+                                        "sum": tempResult[0].sum,
+                                        "count": tempResult[0].count,
+                                    }
+                                );
+                            }
+                            else if 
+                            (
+                                parseInt(request.widget_type_id) === global.analyticsConfig.widget_type_id_volume_distribution || 
+                                parseInt(request.widget_type_id) === global.analyticsConfig.widget_type_id_value_distribution
+                            )
+                            {
+                                results[iterator] =
+                                (
+                                    {
+                                        "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                                        "status_type_id": arrayStatusTypes[iteratorY].activity_status_type_id,
+                                        "result": tempResult,
+                                    }
+                                );
+                            } 
+                            else 
+                            {
+                                results[iterator] =
+                                (
+                                    {
+                                        "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                                        "status_type_id": arrayStatusTypes[iteratorY].activity_status_type_id,
+                                        "result": tempResult[0].value,
+                                    }
+                                );
+                            }
+                            
+                            iterator++;
+                        }
+                    }
 
-                for (let iteratorY = 0, arrayLengthY = arrayStatusTypes.length; iteratorY < arrayLengthY; iteratorY++) 
-                {
-                    console.log(`Status Type[${iteratorY}] : ${arrayStatusTypes[iteratorY].activity_status_type_id}`);
+                    break;
 
-                    paramsArray = 
-                    new Array
-                    (
-                        parseInt(request.widget_type_id),
-                        parseInt(request.filter_date_type_id),
-                        parseInt(request.filter_timeline_id),
-                        global.analyticsConfig.parameter_flag_sort, //Sort flag
-                        parseInt(request.organization_id),
-                        parseInt(request.filter_account_id),
-                        parseInt(request.filter_workforce_type_id),
-                        parseInt(request.filter_workforce_id),
-                        parseInt(request.filter_asset_id),
-                        parseInt(arrayTagTypes[iteratorX].tag_type_id),
-                        parseInt(request.filter_tag_id),
-                        parseInt(request.filter_activity_type_id),
-                        global.analyticsConfig.activity_id_all, //Activity ID,
-                        parseInt(arrayStatusTypes[iteratorY].activity_status_type_id),
-                        parseInt(request.filter_activity_status_tag_id),
-                        parseInt(request.filter_activity_status_id),
-                        request.datetime_start,
-                        request.datetime_end,
-                        parseInt(request.page_start),
-                        parseInt(util.replaceQueryLimit(request.page_limit))
-                    );
+                case 23: //Cumulated Volume
+                case 24: //Cumulated Value
+                case 34: //Cumulated Volume Distribution
+                case 35: //Cumulated Value Distribution
+                    for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
+                    {
+                        console.log(`Tag Type[${iteratorX}] : ${arrayTagTypes[iteratorX].tag_type_id}`);
+        
+                        paramsArray = 
+                        new Array
+                        (
+                            parseInt(request.widget_type_id),
+                            parseInt(request.filter_date_type_id),
+                            parseInt(request.filter_timeline_id),
+                            timezoneID,
+                            timezoneOffset,
+                            global.analyticsConfig.parameter_flag_sort, //Sort flag
+                            parseInt(request.organization_id),
+                            parseInt(request.filter_account_id),
+                            parseInt(request.filter_workforce_type_id),
+                            parseInt(request.filter_workforce_id),
+                            parseInt(request.filter_asset_id),
+                            parseInt(arrayTagTypes[iteratorX].tag_type_id),
+                            parseInt(request.filter_tag_id),
+                            parseInt(request.filter_activity_type_id),
+                            global.analyticsConfig.activity_id_all, //Activity ID,
+                            parseInt(request.filter_activity_status_type_id),
+                            parseInt(request.filter_activity_status_tag_id),
+                            parseInt(request.filter_activity_status_id),
+                            request.datetime_start,
+                            request.datetime_end,
+                            parseInt(request.page_start),
+                            parseInt(util.replaceQueryLimit(request.page_limit))
+                        );
+    
+                        tempResult = await db.callDBProcedureR2(request, 'ds_p1_activity_list_select_widget_values', paramsArray, 1);
+                        console.log(tempResult);
 
-                    tempResult = await db.callDBProcedureR2(request, 'ds_p1_activity_list_select_widget_values', paramsArray, 1);
-                    console.log(tempResult);
+                        results[iterator] =
+                        (
+                            {
+                                "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                                "result": tempResult,
+                            }
+                        );
                         
-                    if (parseInt(request.widget_type_id) === global.analyticsConfig.widget_type_id_tat)
-                    {
-                        results[iterator] =
-                        (
-                            {
-                                "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
-                                "status_type_id": arrayStatusTypes[iteratorY].activity_status_type_id,
-                                "result": tempResult[0].value,
-                                "sum": tempResult[0].sum,
-                                "count": tempResult[0].count,
-                            }
-                        );
+                        iterator++;
                     }
-                    else
-                    {
-                        results[iterator] =
-                        (
-                            {
-                                "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
-                                "status_type_id": arrayStatusTypes[iteratorY].activity_status_type_id,
-                                "result": tempResult[0].value,
-                            }
-                        );
-                    }
-                    
-                    iterator++;
-                }
+
+                    break;
             }
 
             return results;
