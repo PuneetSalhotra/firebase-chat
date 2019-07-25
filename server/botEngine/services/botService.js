@@ -755,6 +755,22 @@ function BotService(objectCollection) {
                     }
                     console.log('****************************************************************');
                     break;
+                
+                // case 11: // add_pdf_from_html_template
+                //     console.log('****************************************************************');
+                //     console.log('add_pdf_from_html_template');
+                //     console.log('add_pdf_from_html_template | Request Params received by BOT ENGINE', request);
+                //     try {
+                //         await addPdfFromHtmlTemplate(request, botOperationsJson.bot_operations.add_pdf_from_html_template);
+                //     } catch (err) {
+                //         console.log('add_pdf_from_html_template  | Error', err);
+                //         i.bot_operation_status_id = 2;
+                //         i.bot_operation_inline_data = JSON.stringify({
+                //             "err": err
+                //         });
+                //     }
+                //     console.log('****************************************************************');
+                //     break;
             }
 
             //botOperationTxnInsert(request, i);
@@ -768,6 +784,16 @@ function BotService(objectCollection) {
 
         return {};
     };
+
+    // async function addPdfFromHtmlTemplate(request, templateData) {
+    //     console.log("addPdfFromHtmlTemplate | request: ", request);
+    //     console.log("addPdfFromHtmlTemplate | templateData: ", templateData);
+    //     templateData = {
+    //         encodedHtmlTemplate: ""
+    //     }
+
+
+    // }
 
     async function addFormAsPdf(request, formDetails) {
         // 
@@ -1800,7 +1826,8 @@ function BotService(objectCollection) {
 
         if (
             (newReq.phone_number !== -1) &&
-            (Number(newReq.phone_number) !== 0)
+            (Number(newReq.phone_number) !== 0) &&
+            newReq.phone_number !== 'null'
         ) {
             console.log("BotService | addParticipant | Message: ", newReq.phone_number, " | ", typeof newReq.phone_number);
             return await addParticipantStep(newReq);
