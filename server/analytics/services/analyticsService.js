@@ -819,25 +819,17 @@ function AnalyticsService(objectCollection)
             let paramsArray;
             let arrayTagTypes;
             let arrayStatusTypes;
-            //let arrayStatusTypesAll;
             let tempResult;
             let iterator = 0;
             let timezoneID = 0;
             let timezoneOffset = 0;
 
-            /*
-            //Get the list of exhautive status types
-            paramsArray = 
-            new Array
-            (
-                global.analyticsConfig.activity_type_category_id_workflow, //Activity Type Category ID - Workflow
-                request.page_start,
-                util.replaceQueryLimit(request.page_limit)
-            );
-
-            arrayStatusTypesAll = await db.callDBProcedureR2(request, "ds_p1_activity_status_type_master_select_category", paramsArray, 1);
-            console.log(arrayStatusTypesAll);
-            */
+            //Setting the activity_id in response
+            results[0] =
+            {
+                activity_id: request.activity_id,
+            };
+            iterator++;
 
             //Get the timezone of the account
             paramsArray = 
@@ -954,6 +946,9 @@ function AnalyticsService(objectCollection)
                 case 24: //Cumulated Value
                 case 34: //Cumulated Volume Distribution
                 case 35: //Cumulated Value Distribution
+                case 27: //Status Type Wise TAT
+                case 26: //Status Tag Wise TAT
+                case 25: //Status Wise TAT
                     for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
                     {
                         console.log(`Tag Type[${iteratorX}] : ${arrayTagTypes[iteratorX].tag_type_id}`);
@@ -1018,7 +1013,94 @@ function AnalyticsService(objectCollection)
     {
         try
         {
-            
+            let results = new Array();
+            let paramsArray;
+            let arrayTagTypes;
+            let arrayStatusTypes;
+            let tempResult;
+            let iterator = 0;
+            let timezoneID = 0;
+            let timezoneOffset = 0;
+
+            //Setting the activity_id in response
+            results[0] =
+            {
+                activity_id: request.activity_id,
+            };
+            iterator++;
+
+            //Get the timezone of the account
+            paramsArray = 
+            new Array
+            (
+                request.account_id
+            );
+
+            tempResult = await db.callDBProcedureR2(request, "ds_p1_account_list_select_timezone", paramsArray, 1);
+            console.log(tempResult);
+            timezoneID = tempResult[0].account_timezone_id;
+            timezoneOffset = tempResult[0].account_timezone_offset;
+
+            //Get the number of selections for workflow category
+            console.log(JSON.parse(request.filter_tag_type_id).length);
+            arrayTagTypes = JSON.parse(request.filter_tag_type_id);
+
+            //Get the number of selections for status category
+            console.log(JSON.parse(request.filter_activity_status_type_id).length);
+            arrayStatusTypes = JSON.parse(request.filter_activity_status_type_id);
+
+            for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
+            {
+                console.log(`Tag Type[${iteratorX}] : ${arrayTagTypes[iteratorX].tag_type_id}`);
+
+                for (let iteratorY = 0, arrayLengthY = arrayStatusTypes.length; iteratorY < arrayLengthY; iteratorY++) 
+                {
+                    console.log(`Status Type[${iteratorY}] : ${arrayStatusTypes[iteratorY].activity_status_type_id}`);
+
+                    paramsArray = 
+                    new Array
+                    (
+                        parseInt(request.widget_type_id),
+                        parseInt(request.filter_date_type_id),
+                        parseInt(request.filter_timeline_id),
+                        timezoneID,
+                        timezoneOffset,
+                        global.analyticsConfig.parameter_flag_sort, //Sort flag
+                        parseInt(request.organization_id),
+                        parseInt(request.filter_account_id),
+                        parseInt(request.filter_workforce_type_id),
+                        parseInt(request.filter_workforce_id),
+                        parseInt(request.filter_asset_id),
+                        parseInt(arrayTagTypes[iteratorX].tag_type_id),
+                        parseInt(request.filter_tag_id),
+                        parseInt(request.filter_activity_type_id),
+                        global.analyticsConfig.activity_id_all, //Activity ID,
+                        parseInt(arrayStatusTypes[iteratorY].activity_status_type_id),
+                        parseInt(request.filter_activity_status_tag_id),
+                        parseInt(request.filter_activity_status_id),
+                        request.datetime_start,
+                        request.datetime_end,
+                        parseInt(request.page_start),
+                        parseInt(util.replaceQueryLimit(request.page_limit))
+                    );
+
+                    tempResult = await db.callDBProcedureR2(request, 'ds_p1_activity_list_select_widget_drilldown', paramsArray, 1);
+                    //console.log(tempResult);
+
+                    results[iterator] =
+                    (
+                        {
+                            "tag_type_id": arrayTagTypes[iteratorX].tag_type_id,
+                            "status_type_id": arrayStatusTypes[iteratorY].activity_status_type_id,
+                            "result": tempResult,
+                        }
+                    );
+
+                    iterator++;
+                }
+            }
+
+            return results;
         }
         catch(error)
         {
