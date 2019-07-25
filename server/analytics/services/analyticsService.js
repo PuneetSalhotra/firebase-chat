@@ -141,7 +141,8 @@ function AnalyticsService(objectCollection)
         widgetInfo.filter_workforce_id = util.replaceDefaultNumber(request.filter_workforce_id);
         widgetInfo.filter_asset_id = util.replaceDefaultNumber(request.filter_asset_id);
         widgetInfo.filter_date_type_id = util.replaceDefaultNumber(request.filter_date_type_id);
-        widgetInfo.filter_timeline_id = util.replaceDefaultNumber(request.filter_timeline_id);  
+        widgetInfo.filter_timeline_id = util.replaceDefaultNumber(request.filter_timeline_id);
+        widgetInfo.filter_timeline_name = util.replaceDefaultNumber(request.filter_timeline_name);  
                
         activityInlineData.widget_info = widgetInfo;
 
@@ -662,7 +663,7 @@ function AnalyticsService(objectCollection)
 
                     dbCall = "ds_p1_activity_status_type_master_select_category";
                     results[0] = await db.callDBProcedureR2(request, dbCall, paramsArray, 1);
-                    results[0]
+                    /*results[0]
                     .push
                     (
                         {
@@ -675,7 +676,7 @@ function AnalyticsService(objectCollection)
                             "activity_type_category_id": 0,
                             "activity_type_category_name": ""
                         }
-                    );
+                    );*/
                     return results[0];
                     
                     break;
