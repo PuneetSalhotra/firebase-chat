@@ -278,6 +278,17 @@ function WidgetController(objCollection) {
             }
         }
     );
+
+    // 219954
+    app.post('/' + global.config.version + '/widget/activity/list', async function (req, res) {
+        const [err, data] = await widgetService.widgetActivityList(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("Error: ", err)
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
     
 }
 

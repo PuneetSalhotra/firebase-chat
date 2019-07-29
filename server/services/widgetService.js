@@ -6,6 +6,9 @@
 function WidgetService(objCollection) {
     var db = objCollection.db;
     var util = objCollection.util;
+
+    const activityCommonService = objCollection.activityCommonService;
+
     //var cacheWrapper = objCollection.cacheWrapper;
     this.getTimecardWidgetCollection = function (request, callback) {
         //IN p_organization_id BIGINT(20), IN p_form_id BIGINT(20), IN p_start_from INT(11), IN p_limit_value TINYINT(4)
@@ -897,6 +900,87 @@ function WidgetService(objCollection) {
             return Promise.reject(error);
         }
     };
+
+
+    this.widgetActivityList = async function (request) {
+
+        let widgetActivityData = [], error = false;
+
+        // Fetch the widget activity details
+        try {
+            widgetActivityData = await activityCommonService.getActivityDetailsPromise(request, Number(request.activity_id));
+        } catch (error) {
+            return [error, widgetActivityData];
+        }
+
+        // Fetch and append participant list to widgetActivityData
+        const widgetActivityDataWithParticipant = await appendParticipantList(request, widgetActivityData);
+
+        return [error, widgetActivityDataWithParticipant];
+    };
+
+    async function appendParticipantList(request, activityList) {
+        // Inits!
+        let participantMap = new Map();
+        // Build the promises array for concurrent processing
+        let fetchParticipantListPromises = [];
+
+        // Iterate through each entry
+        for (const activity of activityList) {
+            participantMap.set(Number(activity.activity_id), activity);
+
+            fetchParticipantListPromises.push(
+                activityCommonService
+                    .getAllParticipantsPromise({
+                        organization_id: request.organization_id,
+                        activity_id: activity.activity_id
+                    })
+                    .then((participantData) => {
+                        // Iterate through each participant and filter out the data you need
+                        if (participantData.length > 0) {
+                            let formattedParticipantList = [];
+                            for (const participant of participantData) {
+                                formattedParticipantList.push({
+                                    'asset_id': participant.asset_id,
+                                    'asset_first_name': participant.asset_first_name,
+                                    'asset_last_name': participant.asset_last_name,
+                                    'asset_phone_number': participant.asset_phone_number,
+                                    'asset_phone_number_code': participant.asset_phone_country_code,
+                                    'operating_asset_phone_number': participant.operating_asset_phone_number,
+                                    'operating_asset_phone_country_code': participant.operating_asset_phone_country_code,
+                                    'operating_asset_id': participant.operating_asset_id,
+                                    'operating_asset_first_name': participant.operating_asset_first_name,
+                                    'operating_asset_last_name': participant.operating_asset_last_name,
+                                    'activity_creator_operating_asset_first_name': participant.activity_creator_operating_asset_first_name,
+                                    'asset_datetime_last_seen': participant.asset_datetime_last_seen
+                                });
+                            }
+                            activity.participant_list = formattedParticipantList;
+                            participantMap.set(Number(activity.activity_id), activity);
+                            // participantMap.set(Number(activity.activity_id), formattedParticipantList);
+                        } else {
+                            activity.participant_list = [];
+                        }
+                        return {
+                            success: true,
+                            activity_id: Number(activity.activity_id)
+                        };
+                    })
+                    .catch((error) => {
+                        console.log(`appendParticipantList | Error fetching participants for ${activity.activity_id}: `, error)
+                    })
+            );
+        }
+        await Promise.all(fetchParticipantListPromises)
+            .then((result) => {
+                console.log("appendParticipantList | Promise.all | Result: ", result);
+            })
+            .catch((error) => {
+                console.log("appendParticipantList | Promise.all | Error: ", error);
+            });
+
+        return [...participantMap.values()];
+    }
 }
 
 module.exports = WidgetService;
