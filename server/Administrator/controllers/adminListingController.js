@@ -190,6 +190,17 @@ function AdminListingController(objCollection) {
         }
     });
 
+
+    app.post('/' + global.config.version + '/admin/activity_type/list', async function (req, res) {
+        const [err, activityTypeData] = await adminListingService.workforceActivityTypeMappingSelectCategory(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, activityTypeData, 200, req.body));
+        } else {
+            console.log("/admin/activity_type/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, activityTypeData, -9999, req.body));
+        }
+    });
+
 };
 
 module.exports = AdminListingController;
