@@ -546,6 +546,18 @@ function BotService(objectCollection) {
             botSteps = Object.keys(botOperationsJson.bot_operations);
             global.logger.write('conLog', botSteps, {}, {});
 
+            // Check for condition, if any
+            let canPassthrough = true;
+            try {
+                canPassthrough = await isBotOperationConditionTrue(request, botOperationsJson);
+            } catch (error) {
+                console.log("add_comment | isBotOperationConditionTrue | canPassthrough | Error: ", error);
+            }
+            if (!canPassthrough) {
+                console.log("The bot operation condition failed, so the bot operation will not be executed.");
+                continue;
+            }
+
             switch (i.bot_operation_type_id) {
                 //case 'participant_add':
                 case 1: // Add Participant                 
@@ -784,6 +796,98 @@ function BotService(objectCollection) {
 
         return {};
     };
+
+    async function isBotOperationConditionTrue(request, botOperationsJson) {
+        let workflowActivityID = Number(request.workflow_activity_id) || 0;
+
+        if (
+            botOperationsJson.hasOwnProperty("condition") &&
+            botOperationsJson.condition.hasOwnProperty("is_check") &&
+            Boolean(botOperationsJson.condition.is_check) === true
+        ) {
+            const formID = botOperationsJson.condition.form_id,
+                fieldID = botOperationsJson.condition.field_id,
+                operation = botOperationsJson.condition.operation,
+                threshold = botOperationsJson.condition.threshold;
+
+            // Get the form transaction ID
+            let formTransactionID, formActivityID;
+            const formTimelineData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                organization_id: request.organization_id,
+                account_id: request.account_id
+            }, workflowActivityID, formID);
+
+            if (Number(formTimelineData.length) > 0) {
+                formTransactionID = Number(formTimelineData[0].data_form_transaction_id);
+                formActivityID = Number(formTimelineData[0].data_activity_id);
+            }
+
+            // Get the field value
+            const fieldData = await getFieldValue({
+                form_transaction_id: formTransactionID,
+                form_id: formID,
+                field_id: fieldID,
+                organization_id: request.organization_id
+            });
+            const fieldDataTypeID = Number(fieldData[0].data_type_id);
+            const fieldValue = Number(fieldData[0][getFielDataValueColumnName(fieldDataTypeID)]);
+            console.log("isBotOperationConditionTrue | fieldValue: ", fieldValue);
+
+            let isConditionTrue = await checkForThresholdCondition(fieldValue, threshold, operation);
+            console.log("isBotOperationConditionTrue | isConditionTrue: ", isConditionTrue);
+
+            return isConditionTrue;
+        } else {
+            return true;
+        }
+    }
+
+    async function checkForThresholdCondition(value, threshold, operation) {
+        console.log("checkForThresholdCondition | value: ", value);
+        console.log("checkForThresholdCondition | threshold: ", threshold);
+        console.log("checkForThresholdCondition | operation: ", operation);
+        switch (operation) {
+            case "gt":
+                if (value > threshold) {
+                    return true;
+                } else {
+                    return false;
+                }
+                break;
+            case "gte":
+                if (value >= threshold) {
+                    return true;
+                } else {
+                    return false;
+                }
+                break;
+            case "lt":
+                if (value < threshold) {
+                    return true;
+                } else {
+                    return false;
+                }
+                break;
+            case "lte":
+                if (value <= threshold) {
+                    return true;
+                } else {
+                    return false;
+                }
+                break;
+            case "eq":
+                if (value === threshold) {
+                    return true;
+                } else {
+                    return false;
+                }
+                break;
+            default:
+                // We don't want any mess-up because of a wrong condition
+                // Let the operation just pass through
+                return true;
+        }
+    }
 
     async function addPdfFromHtmlTemplate(request, templateData) {
         let workflowActivityID = Number(request.workflow_activity_id) || 0,
