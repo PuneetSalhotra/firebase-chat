@@ -7,6 +7,7 @@ const moment = require('moment');
 
 function ActivityPushService(objectCollection) {
     const cacheWrapper = objectCollection.cacheWrapper;
+    const activityCommonService = objectCollection.activityCommonService;
 
     var getPushString = function (request, objectCollection, senderName, callback) {
         var pushString = {};
@@ -355,9 +356,12 @@ function ActivityPushService(objectCollection) {
                         switch (request.url) {
                             case '/' + global.config.version + '/activity/timeline/entry/add':
                             case '/' + global.config.version + '/activity/timeline/entry/add/v1':
-                                let attachments = [];
+                                let attachments = [], content = "";
                                 try {
-                                    attachments = JSON.parse(request.activity_timeline_collection).attachments;
+                                    const activityTimelineCollection = JSON.parse(request.activity_timeline_collection);
+                                    attachments = activityTimelineCollection.attachments;
+                                    content = activityTimelineCollection.content;
+
                                 } catch (error) { }
                                 // if (Number(attachments.length) > 0) {
                                 // Text comment
@@ -365,8 +369,10 @@ function ActivityPushService(objectCollection) {
                                     msg.activity_type_category_id = 48;
                                     msg.type = 'activity_unread';
                                     msg.description = `Added text in ${activityTitle}.`;
-                                    pushString.description = `Added text in ${activityTitle}.`;
-                                    pushString.title = senderName;
+                                    pushString.description = `${content} - ${senderName}`;
+                                    pushString.title = activityTitle;
+                                    pushString.subtitle = content;
+                                    pushString.body = senderName;
 
                                     if (Number(attachments.length) > 0) {
                                         msg.description = `Added attachment in ${activityTitle}.`;
@@ -374,24 +380,39 @@ function ActivityPushService(objectCollection) {
                                     }
                                 }
 
+                                // Fetch form definition details
+                                let formConfigError = false, formConfigData = [];
+                                if (
+                                    Number(request.activity_stream_type_id) === 705 ||
+                                    Number(request.activity_stream_type_id) === 713
+                                ) {
+                                    [formConfigError, formConfigData] = await activityCommonService.workforceFormMappingSelect({
+                                        organization_id: request.organization_id,
+                                        account_id: request.account_id,
+                                        workforce_id: request.workforce_id,
+                                        form_id: request.form_id
+                                    });
+                                }
                                 // When a form is freshly added to a workflow
                                 if (Number(request.activity_stream_type_id) === 705) {
-                                    // msg.activity_type_category_id = 48;
-                                    // msg.type = 'activity_unread';
-                                    // msg.description = `Added text in ${activityTitle}.`;
+                                    let formName = formConfigData[0].form_name || "";
 
-                                    pushString.title = senderName;
-                                    pushString.description = `${senderName} added a form to ${activityTitle}.`;
+                                    pushString.description = `${formName} form submitted - ${senderName}`;
+                                    
+                                    pushString.title = activityTitle;
+                                    pushString.subtitle = `${formName} form submitted`;
+                                    pushString.body = senderName;
                                 }
 
                                 // When a form is freshly added to a workflow
                                 if (Number(request.activity_stream_type_id) === 713) {
-                                    // msg.activity_type_category_id = 48;
-                                    // msg.type = 'activity_unread';
-                                    // msg.description = `Added text in ${activityTitle}.`;
+                                    
+                                    pushString.description = `${formName} form updated - ${senderName}`;
 
-                                    pushString.title = senderName;
-                                    pushString.description = `${senderName} updated a form in ${activityTitle}.`;
+                                    pushString.title = activityTitle;
+                                    pushString.subtitle = `${formName} form updated`;
+                                    pushString.body = senderName;
+
                                 } else {
                                     // console.log("Wow!!!!! Request", request);
                                 }
