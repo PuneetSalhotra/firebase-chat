@@ -1,29 +1,59 @@
-[{
+[
+    {
         "ACTION": "set_static_value",
-        "BATCH": [{
-            "TARGET_FIELD_ID": 11449,
-            "VALUE": "00"
-        }]
+        "BATCH": [
+            {
+                "TARGET_FIELD_ID": 11449,
+                "VALUE": "00"
+            }
+        ]
     },
     {
         "ACTION": "set_participant_name",
-        "BATCH": [{
-            "TARGET_FIELD_ID": 11448,
-            "ASSET_TYPE_ID": 127254
-        }]
+        "BATCH": [
+            {
+                "TARGET_FIELD_ID": 11448,
+                "ASSET_TYPE_ID": 127254
+            },
+            {
+                "TARGET_FIELD_ID": 11643,
+                "ASSET_TYPE_ID": 127254
+            }
+        ]
+    },
+    {
+        "ACTION": "set_date",
+        "BATCH": [
+            {
+                "TARGET_FIELD_ID": 11647,
+                "TZ_OFFSET": "+05:30"
+            }
+        ]
     },
     {
         "ACTION": "check_and_set_annexure_defaults",
-        "BATCH": [{
-            "SOURCE_FORM_ID": 1369,
-            "SOURCE_FIELD_ID": 12963,
-            "TARGET_FIELD_IDS": [
-                11599, 11600, 11601, 11602,
-                11603, 11604, 11605, 11606,
-                11607, 11608, 11609, 11610,
-                11614, 11615
-            ],
-            "VALUE": "As Per CAF Annexure"
-        }]
+        "BATCH": [
+            {
+                "SOURCE_FORM_ID": 1369,
+                "SOURCE_FIELD_ID": 12963,
+                "TARGET_FIELD_IDS": [
+                    11599,
+                    11600,
+                    11601,
+                    11602,
+                    11603,
+                    11604,
+                    11605,
+                    11606,
+                    11607,
+                    11608,
+                    11609,
+                    11610,
+                    11614,
+                    11615
+                ],
+                "VALUE": "As Per CAF Annexure"
+            }
+        ]
     }
 ]
