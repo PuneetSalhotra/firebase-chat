@@ -144,7 +144,7 @@ function AnalyticsService(objectCollection)
         widgetInfo.filter_timeline_id = util.replaceDefaultNumber(request.filter_timeline_id);
         widgetInfo.filter_timeline_name = util.replaceDefaultNumber(request.filter_timeline_name);  
 
-        let widgetDetailedInfo = request.widget_detailed_info || {};
+        let widgetDetailedInfo = JSON.parse(request.widget_detailed_info) || {};
                
         activityInlineData.widget_info = widgetInfo;
         activityInlineData.widget_detailed_info = widgetDetailedInfo;
