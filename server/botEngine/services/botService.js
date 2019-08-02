@@ -2282,7 +2282,8 @@ function BotService(objectCollection) {
         let activityTimelineCollection = {
             email: timelineEntryEmailContent,
             email_sender: newReq.email_sender,
-            email_sender_name: newReq.email_sender_name
+            email_sender_name: newReq.email_sender_name,
+            email_receiver: newReq.email_id
         };
 
         let fire715OnWFOrderFileRequest = Object.assign({}, newReq);
