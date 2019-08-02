@@ -300,6 +300,8 @@ function PamUpdateService(objectCollection) {
                         case 105: itemOrderAlterStatus(request).then(()=>{});
                                   updateStatusDateTimes(request).then(()=>{});
                                   break;                        
+                        case 139: sendRemovedFromBillingSMS(request);
+                                  break;  
                         
                     }
                 }               
@@ -749,6 +751,95 @@ function PamUpdateService(objectCollection) {
                 }
             });
         });      
+    };
+
+    function sendRemovedFromBillingSMS(request) {
+        return new Promise((resolve, reject) => {
+            console.log("IN sendRemovedFromBillingSMS :: ");
+            var employeeName = "Sravan";
+            var removedTime = util.addUnitsToDateTime(util.replaceDefaultDatetime(request.track_gps_datetime), 5.5, 'hours');
+            var text = "";
+            var phoneNumber = '7680000368';
+            var countryCode = '91';
+            console.log("IN sendRemovedFromBillingSMS before getPamSMSConfig:: ");
+            getPamSMSConfig("1").then((configData) => {
+                console.log("IN sendRemovedFromBillingSMS getPamSMSConfig:: ");
+                if (configData.length > 0) {
+                    console.log("IN sendRemovedFromBillingSMS getPamSMSConfig configData:: " + configData);
+                    employeeName = configData[0].receiver_first_name;
+                    phoneNumber = configData[0].receiver_phone_number;
+                    countryCode = configData[0].receiver_country_code;
+
+                    getActivityDetails(request).then((res) => {
+
+                        console.log("IN sendRemovedFromBillingSMS getPamSMSConfig getActivityDetails:: " + res);
+                        request.work_station_asset_id = request.asset_id;
+                        //Dear XXXX, Item XXXX removed by XXXX from reservation XXXX at XXXX.
+                        pamGetAssetDetails(request).then((assetData) => {
+                            console.log("IN sendRemovedFromBillingSMS getPamSMSConfig pamGetAssetDetails:: " + assetData);
+                            text = "Dear " + employeeName + "," + " Item " + res[0].activity_title + " deleted by " + assetData[0].asset_first_name + " from Reservation: " + res[0].parent_activity_title + " at " + removedTime + ". "
+                            text = text + " Pudding n Mink";
+                        }).then(() => {
+                            console.log('SMS text : \n', text);
+
+                            util.sendSmsSinfiniV1(text, countryCode, phoneNumber, 'PUDMNK', function (err, res) {
+                                if (err === false) {
+                                    console.log('Message sent to Admin!', res);
+                                }
+                            });
+                        })
+                    });
+                } else {
+                    console.log('Cannot send SMS! config invalid ');
+                }
+            });
+            resolve();
+        })
+    }
+    function pamGetAssetDetails(request) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                351, //request.organization_id,
+                request.asset_id
+            );
+            var queryString = util.getQueryString('ds_v1_asset_list_select', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data) : reject(err);
+                });
+            }
+        });
+    };
+
+    function getActivityDetails(request) {
+        return new Promise((resolve, reject) => {
+            var paramsArr;
+            paramsArr = new Array(
+                request.activity_id,
+                request.organization_id
+            );
+
+            var queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data) : reject(err);
+                });
+            }
+        });
+    };
+
+    function getPamSMSConfig(smsTypeId) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                smsTypeId
+            );
+            var queryString = util.getQueryString('pm_v1_pam_sms_type_config_master_select', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, {}, function (err, data) {
+                    (err === false) ? resolve(data) : reject(err);
+                });
+            }
+        });
     };
 
 }
