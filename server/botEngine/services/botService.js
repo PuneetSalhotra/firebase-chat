@@ -674,7 +674,7 @@ function BotService(objectCollection) {
                     try {
                         await fireTextMsg(request, botOperationsJson.bot_operations.fire_text);
                     } catch (err) {
-                        global.logger.write('conLog', 'Error in executing fireTextMsg Step', {}, {});
+                        console.log("Error in executing fireTextMsg Step | Error: ", err)
                         global.logger.write('serverError', err, {}, {});
                         i.bot_operation_status_id = 4;
                         i.bot_operation_inline_data = JSON.stringify({
@@ -2385,7 +2385,7 @@ function BotService(objectCollection) {
         return statusLink;
     }
 
-    //Bot Step Firing a Text Message
+    // Bot Step Firing a Text Message
     async function fireTextMsg(request, inlineData) {
         let newReq = Object.assign({}, request);
         let resp;
@@ -2469,8 +2469,10 @@ function BotService(objectCollection) {
 
         });
 
-        //Make a 716 timeline entry - (716 streamtypeid is for email)
+        // Make a 716 timeline entry - (716 streamtypeid is for email)
         let activityTimelineCollection = {
+            country_code: newReq.country_code,
+            phone_number: newReq.phone_number,
             text: retrievedCommInlineData.communication_template.text
         };
 
