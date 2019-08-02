@@ -114,6 +114,8 @@ function AnalyticsService(objectCollection)
         let response = {};
         response.widget_id = widgetId;
         response.widget_activity_id = request.activity_id;
+        response.message_unique_id = request.message_unique_id;
+        response.activity_internal_id = request.activity_internal_id;
         return response;
     };
 
