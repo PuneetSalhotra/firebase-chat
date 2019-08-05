@@ -757,7 +757,7 @@ function PamUpdateService(objectCollection) {
         return new Promise((resolve, reject) => {
             console.log("IN sendRemovedFromBillingSMS :: ");
             var employeeName = "Sravan";
-            var removedTime = util.addUnitsToDateTime(util.replaceDefaultDatetime(request.track_gps_datetime), 5.5, 'hours');
+            var removedTime = util.replaceDefaultDatetime(request.track_gps_datetime);
             var text = "";
             var phoneNumber = '7680000368';
             var countryCode = '91';
