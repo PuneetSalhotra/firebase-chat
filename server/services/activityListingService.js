@@ -1558,8 +1558,11 @@ function ActivityListingService(objCollection) {
 				"activity_rating_lead_timeliness": util.replaceDefaultNumber(rowData['activity_rating_lead_timeliness']),
 				"activity_flag_file_enabled": util.replaceDefaultNumber(rowData['activity_flag_file_enabled']),
 				"count": util.replaceDefaultNumber(rowData['count']),
-				"activity_workflow_completion_percentage": parseInt(util.replaceDefaultNumber(rowData['activity_workflow_completion_percentage']))
-
+				"activity_workflow_completion_percentage": parseInt(util.replaceDefaultNumber(rowData['activity_workflow_completion_percentage'])),
+				"widget_id": parseInt(util.replaceDefaultNumber(rowData['widget_id'])),
+				"widget_name": parseInt(util.replaceDefaultString(rowData['widget_name'])),
+				"widget_type_id": parseInt(util.replaceDefaultNumber(rowData['widget_type_id'])),
+				"widget_type_name": parseInt(util.replaceDefaultString(rowData['widget_type_name']))
 			};
 			responseData.push(rowDataArr);
 		}, this);
