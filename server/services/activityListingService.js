@@ -8,6 +8,7 @@ function ActivityListingService(objCollection) {
 	var util = objCollection.util;
 	var activityCommonService = objCollection.activityCommonService;
 	var forEachAsync = objCollection.forEachAsync;
+	const moment = require("moment");
 
 	this.getActivityListDifferential = function (request, callback) {
 		var paramsArr = new Array();
@@ -2165,6 +2166,15 @@ function ActivityListingService(objCollection) {
 					} else {
 						activity.participant_list = [];
 					}
+
+					// Formatting date time to YYYY-MM-DD HH:mm:ss format
+					// console.log("activity.activity_datetime_created: ", activity.activity_datetime_created);
+					activity.activity_datetime_created = moment(activity.activity_datetime_created).format("YYYY-MM-DD HH:mm:ss");
+					activity.activity_datetime_end_deferred = moment(activity.activity_datetime_end_deferred).format("YYYY-MM-DD HH:mm:ss");
+					activity.activity_datetime_end_expected = moment(activity.activity_datetime_end_expected).format("YYYY-MM-DD HH:mm:ss");
+					activity.activity_datetime_start_expected = moment(activity.activity_datetime_start_expected).format("YYYY-MM-DD HH:mm:ss");
+					activity.log_datetime = moment(activity.log_datetime).format("YYYY-MM-DD HH:mm:ss");
+
 					return {
 						success: true,
 						activity_id: Number(activity.activity_id)
