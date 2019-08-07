@@ -257,6 +257,9 @@ function ActivityParticipantService(objectCollection) {
                 case 41: //Event
                     activityStreamTypeId = 17002;
                     break;
+                case 52: //Widget
+                    activityStreamTypeId = 26002;
+                    break;
                 default:
                     activityStreamTypeId = 2; //by default so that we know
                     //console.log('adding streamtype id 2');
@@ -409,7 +412,7 @@ function ActivityParticipantService(objectCollection) {
                     activityStreamTypeId = 2307;
                     break;
                 case 52: //Widget
-                    activityStreamTypeId = 26002;
+                    activityStreamTypeId = 26005;
                     break;
                 default:
                     activityStreamTypeId = 3; //by default so that we know
