@@ -599,6 +599,9 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityText2 = request.activity_timeline_text;
                 break;
             case 325: // [Files | Workflow] Add Comment/Attachment
+            case 26001: //Widget Created
+            case 26002: //Participant added
+            case 26005: //Participant removed
             case 26004: // [Widget] Comment Added on Widget
                 let attachmentNames = '',
                     isAttachment = 0;
@@ -635,7 +638,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 activityTimelineCollection = request.activity_timeline_collection;
                 entityText1 = "";
                 entityText2 = JSON.stringify(request.activity_timeline_text);
-                break;
+                break;            
             default:
                 entityTypeId = 0;
                 entityText1 = "";
