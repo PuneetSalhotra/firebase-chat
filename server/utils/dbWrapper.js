@@ -2,6 +2,8 @@
  * author: Sri Sai Venkatesh
  */
 
+const logger = require("../logger/winstonLogger");
+
 var mysql = require('mysql');
 
 var clusterConfig = {
@@ -96,7 +98,9 @@ var executeQuery = function (flag, queryString, request, callback) {
     try {
         conPool.getConnection(function (err, conn) {
             if (err) {
-                global.logger.write('serverError', 'ERROR WHILE GETTING CONNECTON - ' + err, err, request);
+                // global.logger.write('serverError', 'ERROR WHILE GETTING CONNECTON - ' + err, err, request);
+                logger.error(`[${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', request_body: request, error: err });
+
                 callback(err, false);
                 return;
             } else {
@@ -104,13 +108,15 @@ var executeQuery = function (flag, queryString, request, callback) {
                 //global.logger.write('conLog', 'Connection is: ' + conn.config.host, {}, request); 
                 conn.query(queryString, function (err, rows, fields) {
                     if (!err) {
-                        global.logger.write('dbResponse', queryString, rows, request);
+                        // global.logger.write('dbResponse', queryString, rows, request);
+                        logger.verbose(`[${flag}] ${queryString}`, { type: 'mysql', db_response: rows[0], request_body: request, error: err });
                         conn.release();
                         callback(false, rows[0]);
                         return;
                     } else {
-                        global.logger.write('dbResponse', 'SOME ERROR IN QUERY | ' + queryString, err, request);
-                        global.logger.write('serverError', err, err, request);
+                        logger.error(`[${flag}] ${queryString}`, { type: 'mysql', db_response: null, request_body: request, error: err });
+                        // global.logger.write('dbResponse', 'SOME ERROR IN QUERY | ' + queryString, err, request);
+                        // global.logger.write('serverError', err, err, request);
                         conn.release();
                         callback(err, false);
                     }
