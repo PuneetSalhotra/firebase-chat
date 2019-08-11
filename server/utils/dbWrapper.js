@@ -47,29 +47,29 @@ readCluster.add('MASTER', {
 });
 
 //Test the connection pool error
-var checkDBInstanceAvailablity = async (flag) =>{    
+var checkDBInstanceAvailablity = async (flag) => {
     var conPool;
     switch (flag) {
-        case 0: conPool = writeCluster;            
-                break;
+        case 0: conPool = writeCluster;
+            break;
         case 1: conPool = readCluster;
-                break;
+            break;
     }
 
-    return await new Promise((resolve)=>{
-        try {         
+    return await new Promise((resolve) => {
+        try {
             conPool.getConnection(function (err, conn) {
                 if (err) {
                     //console.log('ERROR WHILE GETTING CONNECTON - ', err);                     
                     resolve([1, err]);
-                } else {                    
-                    conn.release();                    
+                } else {
+                    conn.release();
                     resolve([0, 'up']);
                 }
-            });        
-        } catch (exception) {                
+            });
+        } catch (exception) {
             //console.log('Exception Occurred - ' , exception);
-            resolve([0, exception]) ;
+            resolve([0, exception]);
         }
     });
 
@@ -130,7 +130,7 @@ var executeQueryPromise = function (flag, queryString, request) {
     return new Promise((resolve, reject) => {
         let conPool;
 
-        (flag === 0) ? conPool = writeCluster: conPool = readCluster;
+        (flag === 0) ? conPool = writeCluster : conPool = readCluster;
 
         try {
             conPool.getConnection(function (err, conn) {
@@ -276,27 +276,25 @@ let callDBProcedureR2 =
 
             if (queryString != '') {
                 let result = await (executeQueryPromise(flagReadOperation, queryString, request));
-                
+
                 console.log();
                 console.log(`--------------------------------------`);
                 // console.log(`DB Result:\n${JSON.stringify(result, null, 4)}`);
                 logger.silly(`DB SP Result: %j`, result);
                 console.log(`--------------------------------------`);
                 console.log();
-                
+
                 // global.logger.write('dbResponse', queryString, result, request);
                 // console.log(`Query Status: ${JSON.stringify(result[0].query_status, null, 4)}`);
 
-                if (result.length > 0)
-                {
+                if (result.length > 0) {
                     if (result[0].query_status === 0) {
                         return result;
                     } else {
                         return Promise.reject(result);
                     }
                 }
-                else
-                {
+                else {
                     return result;
                 }
             } else {
