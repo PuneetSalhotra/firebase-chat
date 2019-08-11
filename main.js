@@ -5,7 +5,7 @@
 // This line must come before importing any instrumented module.
 const tracer = require('dd-trace').init({
     service: 'staging_desker_api',
-    env: 'staging',
+    env: process.env.mode,
     logInjection: true
 });
 
