@@ -935,7 +935,7 @@ function FormConfigService(objCollection) {
 
                         if(Object.keys(orderValueFields).includes(String(row.field_id))){
 
-                            activityCommonService.getFormWorkflowDetails(request).then((workflowData)=>{
+                            activityCommonService.getFormWorkflowDetails(request).then(async (workflowData)=>{
                                 if(workflowData.length > 0){
 
                                     idWorkflow = workflowData[0].activity_id;
@@ -943,10 +943,12 @@ function FormConfigService(objCollection) {
                                     request.workflow_activity_id = idWorkflow;
 
                                     if(idWorkflowType == 0){ 
-                                        if(Number(row.field_value) >= 0)                                       
+                                        if(Number(row.field_value) >= 0)  {
                                             widgetAggrFieldValueUpdateWorkflow(request);
-                                        else
+                                            await activityCommonService.analyticsUpdateWidgetValue(request, idWorkflow, 0, Number(row.field_value));
+                                        } else {
                                             console.log("Field Value is not a number || Total Order Value Field "+row.field_value);
+                                        }                                            
                                     }else{
                                             console.log("This field is not configured to update in intermediate table "+row.field_id);
                                     }                                        
@@ -972,6 +974,22 @@ function FormConfigService(objCollection) {
                                 if(valueflag > 0){
                                     activityCommonService.getFormWorkflowDetails(request).then((workflowData)=>{
                                     if(workflowData.length > 0){
+
+                                        //if(Number(workflowData[0].activity_type_id) === 134564 || //MPLS CRF
+                                        //    Number(workflowData[0].activity_type_id) === 134566 || //ILL CRF
+                                        //    Number(workflowData[0].activity_type_id) === 134573 || //NPLC CRF
+                                        //    Number(workflowData[0].activity_type_id) === 134575) { 
+                                        //    
+                                        //    (Number(arc_1) > Number(arc_2)) ?
+                                        //        finalValue = Number(otc_1) +(Number(arc_1) - Number(arc_2)) :
+                                        //        finalValue = Number(otc_1);
+                                        //}
+//
+                                        //workflowData[0].activity_workflow_value_1; 
+                                        //workflowData[0].activity_workflow_value_2; //oct1
+                                        //workflowData[0].activity_workflow_value_3; //arc1
+                                        //workflowData[0].activity_workflow_value_4; 
+                                        //workflowData[0].activity_workflow_value_5; 
 
                                         idWorkflow = workflowData[0].activity_id;
                                         idWorkflowType = workflowData[0].activity_sub_type_id;
