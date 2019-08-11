@@ -1,25 +1,44 @@
 const winston = require('winston');
 const Util = require('../utils/util');
 const util = new Util();
+const moment = require('moment');
 
 let fileName = `logs/${util.getCurrentDate()}.txt`;
-if (global.mode === 'staging') {
-    // /apistaging-data/staging_api/logs/this.getCurrentDate() + '.txt'
-    fileName = `${global.config.efsPath}staging_api/logs/${util.getCurrentDate()}.txt`;
+switch (global.mode) {
+    case 'staging':
+        fileName = `${global.config.efsPath}staging_api/logs/${util.getCurrentDate()}.txt`;
+        break;
+
+    default:
+        fileName = `logs/${util.getCurrentDate()}.txt`;;
 }
 
-
-let options = {
-    file: {
-        filename: fileName,
-        handleExceptions: true,
-        maxsize: 5242880, // 5MB
-        maxFiles: 5,
-    },
-    console: {
-        handleExceptions: true,
-    },
-};
+// [REFERENCE] Console Color Codes
+const Reset = "\x1b[0m",
+    Bright = "\x1b[1m",
+    Dim = "\x1b[2m",
+    Underscore = "\x1b[4m",
+    Blink = "\x1b[5m",
+    Reverse = "\x1b[7m",
+    Hidden = "\x1b[8m",
+    // Foreground
+    FgBlack = "\x1b[30m",
+    FgRed = "\x1b[31m",
+    FgGreen = "\x1b[32m",
+    FgYellow = "\x1b[33m",
+    FgBlue = "\x1b[34m",
+    FgMagenta = "\x1b[35m",
+    FgCyan = "\x1b[36m",
+    FgWhite = "\x1b[37m",
+    // Background
+    BgBlack = "\x1b[40m",
+    BgRed = "\x1b[41m",
+    BgGreen = "\x1b[42m",
+    BgYellow = "\x1b[43m",
+    BgBlue = "\x1b[44m",
+    BgMagenta = "\x1b[45m",
+    BgCyan = "\x1b[46m",
+    BgWhite = "\x1b[47m";
 
 // FILE Logger
 const appendEssentialsForFileLog = winston.format(
@@ -44,7 +63,12 @@ const appendEssentialsForFileLog = winston.format(
 
 const logger = winston.createLogger({
     transports: [
-        new winston.transports.File(options.file)
+        new winston.transports.File({
+            filename: fileName,
+            handleExceptions: true,
+            maxsize: 5242880, // 5MB
+            maxFiles: 5
+        })
     ],
     level: 'debug',
     exitOnError: false,
@@ -59,21 +83,9 @@ const logger = winston.createLogger({
 
 // CONSOLE Logger
 
-// const customFormatForConsole = winston.format(
-//     (info, opts) => {
+const customFormatForConsole = winston.format.printf(({ level, type, message, timestamp, error }) => {
 
-//         // Need not print the result of a DB stored proc's call to the console
-//         if (info.db_response) { info.db_response = undefined; }
-
-//         // Need not print the request_body as well
-//         if (info.request_body) { info.request_body = undefined; }
-
-//         return info;
-//     }
-// );
-
-const customFormatForConsole = winston.format.printf(({ level, message, timestamp }) => {
-    return `[${timestamp} | ${level}]: ${message}`;
+    return `[${moment.utc(timestamp).format('YYYY-MM-DD HH:mm:ss')} | ${BgBlack}${FgWhite}${type || ''}${Reset}:${level}] ${message} ${error ? "\n" : ""} ${error ? JSON.stringify({ ...error }, null, 2) : ""}`;
 });
 
 
