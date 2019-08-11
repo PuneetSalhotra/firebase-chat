@@ -4,8 +4,8 @@ const util = new Util();
 
 let fileName = `logs/${util.getCurrentDate()}.txt`;
 if (global.mode === 'staging') {
-    // /apistaging-data/staging_api/logs
-    fileName = `${global.config.efsPath}staging_api/logs`;
+    // /apistaging-data/staging_api/logs/this.getCurrentDate() + '.txt'
+    fileName = `${global.config.efsPath}staging_api/logs/${util.getCurrentDate()}.txt`;
 }
 
 
