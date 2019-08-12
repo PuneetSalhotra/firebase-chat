@@ -955,35 +955,61 @@ function FormConfigService(objCollection) {
                                 }                                
                             });
                         }else{
+                            let otc_1 = 0, arc_1 = 0, otc_2= 0, arc_2 = 0;
 
                             try{
                                 if(Object.keys(OTC_1_ValueFields).includes(String(row.field_id))){
-                                         valueflag = 1;
+                                         valueflag = 1;                                         
+                                         //otc_1 = isNaN(row.field_value) ? 0 : row.field_value;
                                 }else if(Object.keys(ARC_1_ValueFields).includes(String(row.field_id))){
-                                         valueflag = 2;
+                                         valueflag = 2;                                         
+                                         //arc_1 = isNaN(row.field_value) ? 0 : row.field_value;
                                 }else if(Object.keys(OTC_2_ValueFields).includes(String(row.field_id))){
-                                         valueflag = 3;
+                                         valueflag = 3;                                         
+                                         //otc_2 = isNaN(row.field_value) ? 0 : row.field_value;
                                 }else if(Object.keys(ARC_2_ValueFields).includes(String(row.field_id))){
-                                         valueflag = 4;
+                                         valueflag = 4;                                         
+                                         //arc_2 = isNaN(row.field_value) ? 0 : row.field_value;
+                                }
+
+                                switch(Number(request.form_id)) {
+                                    case 1073: //MPLS CRF
+                                                (Number(row.field_id) === 8163) ? otc_1 = row.value : otc_1 = 0;
+                                                (Number(row.field_id) === 8164) ? arc_1 = row.value : arc_1 = 0;
+                                                (Number(row.field_id) === 13745) ? arc_2 = row.value : arc_2 = 0;
+                                                break;
+                                    case 1136: //IIL CRF
+                                                (Number(row.field_id) === 9376) ? otc_1 = row.value : otc_1 = 0;
+                                                (Number(row.field_id) === 9377) ? arc_1 = row.value : arc_1 = 0;
+                                                (Number(row.field_id) === 13744) ? arc_2 = row.value : arc_2 = 0;
+                                                break;
+                                    case 1264: //NPLC CRF
+                                                (Number(row.field_id) === 10369) ? otc_1 = row.value : otc_1 = 0;
+                                                (Number(row.field_id) === 10370) ? arc_1 = row.value : arc_1 = 0;
+                                                (Number(row.field_id) === 13743) ? arc_2 = row.value : arc_2 = 0;
+                                                break;
+                                    default: break;
                                 }
                                 console.log('valueflag :: '+valueflag);
                                 request['flag'] = valueflag;
 
                                 console.log('row.field_value ::'+row.field_value+' : '+Number(row.field_value));
-
+                                let finalValue = 0;
                                 if(valueflag > 0){
-                                    activityCommonService.getFormWorkflowDetails(request).then((workflowData)=>{
+                                    activityCommonService.getFormWorkflowDetails(request).then(async (workflowData)=>{
                                     if(workflowData.length > 0){
 
-                                        //if(Number(workflowData[0].activity_type_id) === 134564 || //MPLS CRF
-                                        //    Number(workflowData[0].activity_type_id) === 134566 || //ILL CRF
-                                        //    Number(workflowData[0].activity_type_id) === 134573 || //NPLC CRF
-                                        //    Number(workflowData[0].activity_type_id) === 134575) { 
-                                        //    
-                                        //    (Number(arc_1) > Number(arc_2)) ?
-                                        //        finalValue = Number(otc_1) +(Number(arc_1) - Number(arc_2)) :
-                                        //        finalValue = Number(otc_1);
-                                        //}
+                                        if(Number(workflowData[0].activity_type_id) === 134564 || //MPLS CRF
+                                            Number(workflowData[0].activity_type_id) === 134566 || //ILL CRF
+                                            Number(workflowData[0].activity_type_id) === 134573 || //NPLC CRF
+                                            Number(workflowData[0].activity_type_id) === 134575) { 
+                                            
+                                            (Number(arc_1) > Number(arc_2)) ?
+                                                finalValue = Number(otc_1) +(Number(arc_1) - Number(arc_2)) :
+                                                finalValue = Number(otc_1);
+                                        }
+
+                                        await activityCommonService.analyticsUpdateWidgetValue(request, workflowData[0].activity_id, 0, finalValue);
 //
                                         //workflowData[0].activity_workflow_value_1; 
                                         //workflowData[0].activity_workflow_value_2; //oct1
