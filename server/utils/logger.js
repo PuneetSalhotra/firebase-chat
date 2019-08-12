@@ -46,7 +46,7 @@ function Logger(queueWrapper) {
         }
 
         //Textual Logs
-        // util.writeLogs(message, isTargeted);
+        util.writeLogs(message, isTargeted);
 
         //Logs pushing to Kafka
         switch (level) {
@@ -62,7 +62,7 @@ function Logger(queueWrapper) {
                 }
                 break;
             default:
-                // queueWrapper.raiseLogEvent(loggerCollection).then(() => {});
+                queueWrapper.raiseLogEvent(loggerCollection).then(() => {});
         }
 
 
