@@ -71,6 +71,7 @@ const digitalPriSipMappings = require("./digital_pri_sip/mappings.json");
 const digitalPriSipLabels = require("./digital_pri_sip/labels.json");
 const digitalPriSipRoms = require("./digital_pri_sip/roms.json");
 const digitalPriSipRomsActions = require("./digital_pri_sip/roms_actions.json");
+const digitalPriSipBulkOrderToOriginFormMappings = require("./digital_pri_sip/bulk_order_to_origin_form_mappings.json");
 
 // New FLV - PRI IPC
 const digitalIpcMappings = require("./digital_ipc/mappings.json");
@@ -384,6 +385,7 @@ vodafoneConfig = {
         "ROMS": digitalPriSipRoms,
         "ROMS_ACTIONS": digitalPriSipRomsActions,
         "ORIGIN_FORM_ID": 1558,
+        "BULK_ORDER_ORIGIN_FORM_MAPPING_DATA": digitalPriSipBulkOrderToOriginFormMappings
     },
     "142432": {
         "REQUIRED_FORMS": [1567],
