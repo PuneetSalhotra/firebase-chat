@@ -5,7 +5,7 @@ var globalConfig = require('./server/utils/globalConfig');
 
 // This line must come before importing any instrumented module.
 const tracer = require('dd-trace').init({
-    service: 'staging_desker_api',
+    service: `${process.env.mode}_desker_api`,
     env: process.env.mode,
     logInjection: true
 });

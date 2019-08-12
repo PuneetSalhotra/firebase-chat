@@ -142,7 +142,7 @@ var executeQueryPromise = function (flag, queryString, request) {
                     conn.query(queryString, function (err, rows, fields) {
                         if (!err) {
                             logger.verbose(`[${flag}] ${queryString}`, { type: 'mysql', db_response: rows[0], request_body: request, error: err });
-                            global.logger.write('dbResponse', queryString, rows, request);
+                            // global.logger.write('dbResponse', queryString, rows, request);
                             conn.release();
                             resolve(rows[0]);
                         } else {
