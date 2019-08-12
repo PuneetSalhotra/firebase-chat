@@ -23,6 +23,7 @@ const digitalPriCafMappings = require("./digital_pri_caf/digital_pri_caf_mapping
 const digitalPriCafLabels = require("./digital_pri_caf/labels.json");
 const digitalPriCafRoms = require("./digital_pri_caf/roms.json");
 const digitalPriCafRomsActions = require("./digital_pri_caf/roms_actions.json");
+const digitalPriCafBulkOrderToOriginFormMappings = require("./digital_pri_caf/bulk_order_to_origin_form_mappings.json");
 
 // Digital NPLC CAF - 134569
 const digitalNplcCafMappings = require("./digital_nplc_caf/digital_nplc_caf_mappings.json");
@@ -306,7 +307,9 @@ vodafoneConfig = {
         "FORM_FIELD_MAPPING_DATA": digitalPriCafMappings,
         "LABELS": digitalPriCafLabels,
         "ROMS": digitalPriCafRoms,
-        "ROMS_ACTIONS": digitalPriCafRomsActions
+        "ROMS_ACTIONS": digitalPriCafRomsActions,
+        "ORIGIN_FORM_ID": 1317,
+        "BULK_ORDER_ORIGIN_FORM_MAPPING_DATA": digitalPriCafBulkOrderToOriginFormMappings
     },
     "134569": {
         "REQUIRED_FORMS": [1144],
