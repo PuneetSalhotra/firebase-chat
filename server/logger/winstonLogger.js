@@ -9,6 +9,10 @@ switch (global.mode) {
         fileName = `${global.config.efsPath}staging_api/logs/${util.getCurrentDate()}.txt`;
         break;
 
+    case 'preprod':
+        fileName = `${global.config.efsPath}preprod_api/logs/${util.getCurrentDate()}.txt`;
+        break;
+
     default:
         fileName = `logs/${util.getCurrentDate()}.txt`;;
 }
