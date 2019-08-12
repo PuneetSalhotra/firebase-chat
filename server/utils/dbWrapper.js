@@ -2,6 +2,8 @@
  * author: Sri Sai Venkatesh
  */
 
+const logger = require("../logger/winstonLogger");
+
 var mysql = require('mysql');
 
 var clusterConfig = {
@@ -45,29 +47,29 @@ readCluster.add('MASTER', {
 });
 
 //Test the connection pool error
-var checkDBInstanceAvailablity = async (flag) =>{    
+var checkDBInstanceAvailablity = async (flag) => {
     var conPool;
     switch (flag) {
-        case 0: conPool = writeCluster;            
-                break;
+        case 0: conPool = writeCluster;
+            break;
         case 1: conPool = readCluster;
-                break;
+            break;
     }
 
-    return await new Promise((resolve)=>{
-        try {         
+    return await new Promise((resolve) => {
+        try {
             conPool.getConnection(function (err, conn) {
                 if (err) {
                     //console.log('ERROR WHILE GETTING CONNECTON - ', err);                     
                     resolve([1, err]);
-                } else {                    
-                    conn.release();                    
+                } else {
+                    conn.release();
                     resolve([0, 'up']);
                 }
-            });        
-        } catch (exception) {                
+            });
+        } catch (exception) {
             //console.log('Exception Occurred - ' , exception);
-            resolve([0, exception]) ;
+            resolve([0, exception]);
         }
     });
 
@@ -96,21 +98,20 @@ var executeQuery = function (flag, queryString, request, callback) {
     try {
         conPool.getConnection(function (err, conn) {
             if (err) {
-                global.logger.write('serverError', 'ERROR WHILE GETTING CONNECTON - ' + err, err, request);
+                logger.error(`[${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', request_body: request, error: err });
+
                 callback(err, false);
                 return;
             } else {
-                //global.logger.write('conLog', 'conPool flag - ' + flag, {}, request);
-                //global.logger.write('conLog', 'Connection is: ' + conn.config.host, {}, request); 
                 conn.query(queryString, function (err, rows, fields) {
                     if (!err) {
-                        global.logger.write('dbResponse', queryString, rows, request);
+                        logger.verbose(`[${flag}] ${queryString}`, { type: 'mysql', db_response: rows[0], request_body: request, error: err });
                         conn.release();
                         callback(false, rows[0]);
                         return;
                     } else {
-                        global.logger.write('dbResponse', 'SOME ERROR IN QUERY | ' + queryString, err, request);
-                        global.logger.write('serverError', err, err, request);
+                        // console.log("error: err: ", err);
+                        logger.error(`[${flag}] ${queryString}`, { type: 'mysql', db_response: null, request_body: request, error: err });
                         conn.release();
                         callback(err, false);
                     }
@@ -120,7 +121,8 @@ var executeQuery = function (flag, queryString, request, callback) {
     } catch (exception) {
         //console.log(queryString);
         //console.log(exception);        
-        global.logger.write('serverError', 'Exception Occurred - ' + exception, exception, request);
+        logger.crit(`[${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', db_response: null, request_body: request, error: exception });
+        // global.logger.write('serverError', 'Exception Occurred - ' + exception, exception, request);
     }
 };
 
@@ -128,22 +130,25 @@ var executeQueryPromise = function (flag, queryString, request) {
     return new Promise((resolve, reject) => {
         let conPool;
 
-        (flag === 0) ? conPool = writeCluster: conPool = readCluster;
+        (flag === 0) ? conPool = writeCluster : conPool = readCluster;
 
         try {
             conPool.getConnection(function (err, conn) {
                 if (err) {
-                    global.logger.write('serverError', 'ERROR WHILE GETTING CONNECTON - ' + err, err, request);
+                    logger.error(`[${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', db_response: null, request_body: request, error: err });
+                    // global.logger.write('serverError', 'ERROR WHILE GETTING CONNECTON - ' + err, err, request);
                     reject(err);
                 } else {
                     conn.query(queryString, function (err, rows, fields) {
                         if (!err) {
+                            logger.verbose(`[${flag}] ${queryString}`, { type: 'mysql', db_response: rows[0], request_body: request, error: err });
                             global.logger.write('dbResponse', queryString, rows, request);
                             conn.release();
                             resolve(rows[0]);
                         } else {
-                            global.logger.write('dbResponse', 'SOME ERROR IN QUERY | ' + queryString, err, request);
-                            global.logger.write('serverError', err, err, request);
+                            logger.error(`[${flag}] ${queryString}`, { type: 'mysql', db_response: null, request_body: request, error: err });
+                            // global.logger.write('dbResponse', 'SOME ERROR IN QUERY | ' + queryString, err, request);
+                            // global.logger.write('serverError', err, err, request);
                             conn.release();
                             reject(err);
                         }
@@ -151,7 +156,8 @@ var executeQueryPromise = function (flag, queryString, request) {
                 }
             });
         } catch (exception) {
-            global.logger.write('serverError', 'Exception Occurred - ' + exception, exception, request);
+            logger.crit(`[${flag}] ERROR WHILE GETTING MySQL CONNECTON`, { type: 'mysql', db_response: null, request_body: request, error: exception });
+            // global.logger.write('serverError', 'Exception Occurred - ' + exception, exception, request);
             reject(exception);
         }
     });
@@ -238,8 +244,9 @@ let callDBProcedure =
 
             if (queryString != '') {
                 let result = await (executeQueryPromise(flagReadOperation, queryString, request));
-                console.log(`DB SP Result:\n${JSON.stringify(result, null, 4)}`);
-                global.logger.write('dbResponse', queryString, result, request);
+                logger.silly(`DB SP Result: %j`, result);
+                // console.log(`DB SP Result:\n${JSON.stringify(result, null, 4)}`);
+                // global.logger.write('dbResponse', queryString, result, request);
                 // console.log(`Query Status: ${JSON.stringify(result[0].query_status, null, 4)}`);
 
                 if (result[0].query_status === 0) {
@@ -248,11 +255,13 @@ let callDBProcedure =
                     return Promise.reject(result);
                 }
             } else {
-                global.logger.write('dbResponse', "Invalid Query String: " + queryString, {}, request);
+                logger.warn(`[${flagReadOperation}] ${queryString}`, { type: 'mysql', db_response: null, request_body: request, error: "Invalid Query String" });
+                // global.logger.write('dbResponse', "Invalid Query String: " + queryString, {}, request);
                 return Promise.reject(`Invalid Query String`);
             }
         } catch (error) {
-            global.logger.write('dbResponse', 'QUERY ERROR | ', error, request);
+            logger.warn(`[${flagReadOperation}] QUERY ERROR`, { type: 'mysql', db_response: null, request_body: request, error: error });
+            // global.logger.write('dbResponse', 'QUERY ERROR | ', error, request);
             return Promise.reject(error);
         }
     };
@@ -267,34 +276,35 @@ let callDBProcedureR2 =
 
             if (queryString != '') {
                 let result = await (executeQueryPromise(flagReadOperation, queryString, request));
-                
+
                 console.log();
                 console.log(`--------------------------------------`);
-                console.log(`DB Result:\n${JSON.stringify(result, null, 4)}`);
+                // console.log(`DB Result:\n${JSON.stringify(result, null, 4)}`);
+                logger.silly(`DB SP Result: %j`, result);
                 console.log(`--------------------------------------`);
                 console.log();
-                
-                global.logger.write('dbResponse', queryString, result, request);
+
+                // global.logger.write('dbResponse', queryString, result, request);
                 // console.log(`Query Status: ${JSON.stringify(result[0].query_status, null, 4)}`);
 
-                if (result.length > 0)
-                {
+                if (result.length > 0) {
                     if (result[0].query_status === 0) {
                         return result;
                     } else {
                         return Promise.reject(result);
                     }
                 }
-                else
-                {
+                else {
                     return result;
                 }
             } else {
-                global.logger.write('dbResponse', "Invalid Query String: " + queryString, {}, request);
+                logger.warn(`[${flagReadOperation}] ${queryString}`, { type: 'mysql', db_response: null, request_body: request, error: "Invalid Query String" });
+                // global.logger.write('dbResponse', "Invalid Query String: " + queryString, {}, request);
                 return Promise.reject(`Invalid Query String`);
             }
         } catch (error) {
-            global.logger.write('dbResponse', 'QUERY ERROR | ', error, request);
+            logger.warn(`[${flagReadOperation}] QUERY ERROR`, { type: 'mysql', db_response: null, request_body: request, error: error });
+            // global.logger.write('dbResponse', 'QUERY ERROR | ', error, request);
             return Promise.reject(error);
         }
     };

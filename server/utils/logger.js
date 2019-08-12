@@ -54,11 +54,11 @@ function Logger(queueWrapper) {
                 if ((typeof object === 'object')) {
                     if (Object.keys(object).length > 0) {
                         // eslint-disable-next-line no-console
-                        console.log(object);
+                        // console.log(object);
                     }
                 } else {
                     // eslint-disable-next-line no-console
-                    console.log(object);
+                    // console.log(object);
                 }
                 break;
             default:
