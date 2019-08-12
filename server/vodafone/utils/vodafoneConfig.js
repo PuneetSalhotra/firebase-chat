@@ -73,11 +73,12 @@ const digitalPriSipRoms = require("./digital_pri_sip/roms.json");
 const digitalPriSipRomsActions = require("./digital_pri_sip/roms_actions.json");
 const digitalPriSipBulkOrderToOriginFormMappings = require("./digital_pri_sip/bulk_order_to_origin_form_mappings.json");
 
-// New FLV - PRI IPC
+// New FLV - PRI IPC - 142432
 const digitalIpcMappings = require("./digital_ipc/mappings.json");
 const digitalIpcLabels = require("./digital_ipc/labels.json");
 const digitalIpcRoms = require("./digital_ipc/roms.json");
 const digitalIpcRomsActions = require("./digital_ipc/roms_actions.json");
+const digitalIpcBulkOrderToOriginFormMappings = require("./digital_ipc/bulk_order_to_origin_form_mappings.json");
 
 vodafoneConfig = {
     "860": {
@@ -396,5 +397,6 @@ vodafoneConfig = {
         "ROMS": digitalIpcRoms,
         "ROMS_ACTIONS": digitalIpcRomsActions,
         "ORIGIN_FORM_ID": 1567,
+        "BULK_ORDER_ORIGIN_FORM_MAPPING_DATA": digitalIpcBulkOrderToOriginFormMappings
     }
 };
