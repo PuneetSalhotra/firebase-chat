@@ -4740,6 +4740,38 @@ function VodafoneService(objectCollection) {
         return [error, formData];
     }
 
+    async function activityStatusChangeTransactionUpdateSubType(request, parentOrderActivityID) {
+        // IN p_organization_id BIGINT(20), IN p_account_id bigint(20), 
+        // IN p_workforce_id BIGINT(20), IN p_activity_id BIGINT(20), 
+        // IN p_sub_type_id BIGINT(20), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+
+        let formData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            parentOrderActivityID,
+            request.activity_sub_type_id || 1,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_activity_status_change_transaction_update_sub_type', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    formData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, formData];
+    }
+
     this.regenerateAndSubmitTargetForm = async function (request) {
         // Fetch form's config data
         request.page_start = 0;
@@ -5478,6 +5510,16 @@ function VodafoneService(objectCollection) {
                 activity_sub_type_id: 1,
                 asset_id: request.asset_id
             }, parentWorkflowActivityID);
+
+            // Set activity_sub_type_id=1 in Queue Activity Mapping
+            await activityStatusChangeTransactionUpdateSubType({
+                organization_id: request.organization_id,
+                account_id: request.account_id,
+                workforce_id: request.workforce_id,
+                activity_sub_type_id: 1,
+                asset_id: request.asset_id
+            }, parentWorkflowActivityID);
+
 
         } catch (error) {
             console.log("performRomsCalculations | set_workflow_as_bulk_order | Set activity_sub_type_id | Error: ", error);
