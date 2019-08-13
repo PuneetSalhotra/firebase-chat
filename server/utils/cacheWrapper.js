@@ -1,35 +1,41 @@
+const logger = require("../logger/winstonLogger");
+
 function CacheWrapper(client) {
 
     this.getServiceId = function (url, callback) {
-        const reqBodyObject = {
-            url: url,
-            module: 'asset'
-        };
+        // const reqBodyObject = {
+        //     url: url,
+        //     module: 'asset'
+        // };
         client.hget('service_map', url, function (err, reply) {
             if (err) {
-                console.log(err);
-                global.logger.write('cacheResponse', `HGET service_map ${url}`, err, reqBodyObject);
+                logger.error(`HGET service_map ${url}`, { type: 'redis', cache_response: reply, error: err });
+                // console.log(err);
+                // global.logger.write('cacheResponse', `HGET service_map ${url}`, err, reqBodyObject);
                 callback(err, false);
             } else {
-                global.logger.write('cacheResponse', `HGET service_map ${url}`, reply, reqBodyObject);
+                logger.verbose(`HGET service_map ${url}`, { type: 'redis', cache_response: reply, error: err });
+                // global.logger.write('cacheResponse', `HGET service_map ${url}`, reply, reqBodyObject);
                 callback(false, reply);
             }
         });
     };
 
     this.getTokenAuth = function (assetId, callback) {
-        const reqBodyObject = {
-            asset_id: assetId,
-            module: 'asset'
-        };
+        // const reqBodyObject = {
+        //     asset_id: assetId,
+        //     module: 'asset'
+        // };
 
         client.hget('asset_map', assetId, function (err, reply) {
             if (err) {
-                console.log(err);
-                global.logger.write('cacheResponse', `HGET asset_map ${JSON.stringify(assetId)}`, err, reqBodyObject);
+                logger.error(`HGET asset_map ${JSON.stringify(assetId)}`, { type: 'redis', cache_response: reply, error: err });
+                // console.log(err);
+                // global.logger.write('cacheResponse', `HGET asset_map ${JSON.stringify(assetId)}`, err, reqBodyObject);
                 callback(err, false);
             } else {
-                global.logger.write('cacheResponse', `HGET asset_map ${JSON.stringify(assetId)}`, reply, reqBodyObject);
+                logger.verbose(`HGET asset_map ${JSON.stringify(assetId)}`, { type: 'redis', cache_response: reply, error: err });
+                // global.logger.write('cacheResponse', `HGET asset_map ${JSON.stringify(assetId)}`, reply, reqBodyObject);
                 if (typeof reply === 'string') {
                     var collection = JSON.parse(reply);
 
@@ -43,18 +49,20 @@ function CacheWrapper(client) {
 
     this.setTokenAuth = function (assetId, collectionString, callback) {
 
-        const reqBodyObject = {
-            asset_id: assetId,
-            module: 'asset'
-        };
+        // const reqBodyObject = {
+        //     asset_id: assetId,
+        //     module: 'asset'
+        // };
 
         client.hset('asset_map', assetId, collectionString, function (err, reply) {
             if (err) {
-                console.log(err);
-                global.logger.write('cacheResponse', `HSET asset_map ${JSON.stringify(assetId)} ${JSON.stringify(collectionString)}`, err, reqBodyObject);
+                logger.error(`HSET asset_map ${JSON.stringify(assetId)} ${JSON.stringify(collectionString)}`, { type: 'redis', cache_response: reply, error: err });
+                // console.log(err);
+                // global.logger.write('cacheResponse', `HSET asset_map ${JSON.stringify(assetId)} ${JSON.stringify(collectionString)}`, err, reqBodyObject);
                 callback(err, false);
             } else {
-                global.logger.write('cacheResponse', `HSET asset_map ${JSON.stringify(assetId)} ${JSON.stringify(collectionString)}`, reply, reqBodyObject);
+                logger.verbose(`HSET asset_map ${JSON.stringify(assetId)} ${JSON.stringify(collectionString)}`, { type: 'redis', cache_response: reply, error: err });
+                // global.logger.write('cacheResponse', `HSET asset_map ${JSON.stringify(assetId)} ${JSON.stringify(collectionString)}`, reply, reqBodyObject);
                 callback(false, true);
             }
         });
@@ -62,19 +70,20 @@ function CacheWrapper(client) {
 
     this.getAssetMap = function (assetId, callback) {
 
-        const reqBodyObject = {
-            asset_id: assetId,
-            module: 'asset'
-        };
+        // const reqBodyObject = {
+        //     asset_id: assetId,
+        //     module: 'asset'
+        // };
 
         client.hget('asset_map', assetId, function (err, reply) {
             if (err) {
-                console.log(err);
-                global.logger.write('cacheResponse', `HGET asset_map ${JSON.stringify(assetId)}`, err, reqBodyObject);
+                logger.error(`HGET asset_map ${JSON.stringify(assetId)}`, { type: 'redis', cache_response: reply, error: err });
+                // console.log(err);
+                // global.logger.write('cacheResponse', `HGET asset_map ${JSON.stringify(assetId)}`, err, reqBodyObject);
                 callback(err, false);
             } else {
-
-                global.logger.write('cacheResponse', `HGET asset_map ${JSON.stringify(assetId)}`, reply, reqBodyObject);
+                logger.verbose(`HGET asset_map ${JSON.stringify(assetId)}`, { type: 'redis', cache_response: reply, error: err });
+                // global.logger.write('cacheResponse', `HGET asset_map ${JSON.stringify(assetId)}`, reply, reqBodyObject);
                 var collection = {};
                 if (typeof reply === 'string') {
                     collection = JSON.parse(reply);
@@ -90,38 +99,42 @@ function CacheWrapper(client) {
 
     this.getActivityId = function (callback) {
 
-        const reqBodyObject = {
-            module: 'activity'
-        };
+        // const reqBodyObject = {
+        //     module: 'activity'
+        // };
 
         client.incr('activity_id', function (err, id) {
             if (err) {
-                console.log(err);
-                global.logger.write('cacheResponse', `INCR activity_id`, err, reqBodyObject);
+                logger.error(`INCR activity_id`, { type: 'redis', cache_response: id, error: err });
+                // console.log(err);
+                // global.logger.write('cacheResponse', `INCR activity_id`, err, reqBodyObject);
                 callback(err, 0);
             }
 
-            reqBodyObject.activity_id = id;
-            global.logger.write('cacheResponse', `INCR activity_id`, id, reqBodyObject);
+            // reqBodyObject.activity_id = id;
+            logger.verbose(`INCR activity_id`, { type: 'redis', cache_response: id, error: err });
+            // global.logger.write('cacheResponse', `INCR activity_id`, id, reqBodyObject);
             callback(false, id);
         });
     };
 
     this.getActivityIdPromise = () => {
         return new Promise((resolve, reject) => {
-            const reqBodyObject = {
-                module: 'activity'
-            };
+            // const reqBodyObject = {
+            //     module: 'activity'
+            // };
 
             client.incr('activity_id', function (err, id) {
                 if (err) {
-                    console.log(err);
-                    global.logger.write('cacheResponse', `INCR activity_id`, err, reqBodyObject);
+                    logger.error(`INCR activity_id`, { type: 'redis', cache_response: id, error: err });
+                    // console.log(err);
+                    // global.logger.write('cacheResponse', `INCR activity_id`, err, reqBodyObject);
                     resolve(0);
                 }
 
-                reqBodyObject.activity_id = id;
-                global.logger.write('cacheResponse', `INCR activity_id`, id, reqBodyObject);
+                // reqBodyObject.activity_id = id;
+                logger.verbose(`INCR activity_id`, { type: 'redis', cache_response: id, error: err });
+                // global.logger.write('cacheResponse', `INCR activity_id`, id, reqBodyObject);
                 resolve(id);
             });
         });
@@ -129,38 +142,42 @@ function CacheWrapper(client) {
 
     this.getFormTransactionId = function (callback) {
 
-        const reqBodyObject = {
-            module: 'activity'
-        };
+        // const reqBodyObject = {
+        //     module: 'activity'
+        // };
 
         client.incr('form_transaction_id', function (err, id) {
             if (err) {
-                console.log(err);
-                global.logger.write('cacheResponse', `INCR form_transaction_id`, err, reqBodyObject);
+                logger.error(`INCR form_transaction_id`, { type: 'redis', cache_response: id, error: err });
+                // console.log(err);
+                // global.logger.write('cacheResponse', `INCR form_transaction_id`, err, reqBodyObject);
                 callback(err, 0);
             }
 
-            reqBodyObject.activity_id = id;
-            global.logger.write('cacheResponse', `INCR form_transaction_id`, id, reqBodyObject);
+            // reqBodyObject.activity_id = id;
+            logger.verbose(`INCR form_transaction_id`, { type: 'redis', cache_response: id, error: err });
+            // global.logger.write('cacheResponse', `INCR form_transaction_id`, id, reqBodyObject);
             callback(false, id);
         });
     };
 
     this.getFormTransactionIdPromise = () => {
         return new Promise((resolve, reject) => {
-            const reqBodyObject = {
-                module: 'activity'
-            };
+            // const reqBodyObject = {
+            //     module: 'activity'
+            // };
 
             client.incr('form_transaction_id', function (err, id) {
                 if (err) {
-                    console.log(err);
-                    global.logger.write('cacheResponse', `INCR form_transaction_id`, err, reqBodyObject);
+                    logger.error(`INCR form_transaction_id`, { type: 'redis', cache_response: id, error: err });
+                    // console.log(err);
+                    // global.logger.write('cacheResponse', `INCR form_transaction_id`, err, reqBodyObject);
                     resolve(0);
                 }
 
-                reqBodyObject.activity_id = id;
-                global.logger.write('cacheResponse', `INCR form_transaction_id`, id, reqBodyObject);
+                // reqBodyObject.activity_id = id;
+                logger.verbose(`INCR form_transaction_id`, { type: 'redis', cache_response: id, error: err });
+                // global.logger.write('cacheResponse', `INCR form_transaction_id`, id, reqBodyObject);
                 resolve(id);
             });
         });
@@ -169,18 +186,20 @@ function CacheWrapper(client) {
 
     this.getAssetParity = function (assetId, callback) {
 
-        const reqBodyObject = {
-            asset_id: assetId,
-            module: 'asset'
-        };
+        // const reqBodyObject = {
+        //     asset_id: assetId,
+        //     module: 'asset'
+        // };
 
         client.hget('asset_message_counter', assetId, function (err, reply) {
             if (err) {
-                console.log(err);
-                global.logger.write('cacheResponse', `HGET asset_message_counter ${JSON.stringify(assetId)}`, err, reqBodyObject);
+                logger.error(`HGET asset_message_counter ${JSON.stringify(assetId)}`, { type: 'redis', cache_response: reply, error: err });
+                // console.log(err);
+                // global.logger.write('cacheResponse', `HGET asset_message_counter ${JSON.stringify(assetId)}`, err, reqBodyObject);
                 callback(err, false);
             } else {
-                global.logger.write('cacheResponse', `HGET asset_message_counter ${JSON.stringify(assetId)}`, reply, reqBodyObject);
+                logger.verbose(`HGET asset_message_counter ${JSON.stringify(assetId)}`, { type: 'redis', cache_response: reply, error: err });
+                // global.logger.write('cacheResponse', `HGET asset_message_counter ${JSON.stringify(assetId)}`, reply, reqBodyObject);
                 callback(false, Number(reply));
             }
         });
@@ -188,20 +207,22 @@ function CacheWrapper(client) {
 
     this.setAssetParity = function (assetId, parity, callback) {
 
-        const reqBodyObject = {
-            asset_id: assetId,
-            module: 'asset'
-        };
+        // const reqBodyObject = {
+        //     asset_id: assetId,
+        //     module: 'asset'
+        // };
 
         client.hset('asset_message_counter', assetId, parity, function (err, reply) {
             if (err) {
-                console.log(err);
-                global.logger.write('cacheResponse', `HSET asset_message_counter ${JSON.stringify(assetId)} ${JSON.stringify(parity)}`, err, reqBodyObject);
+                logger.error(`HSET asset_message_counter ${JSON.stringify(assetId)} ${JSON.stringify(parity)}`, { type: 'redis', cache_response: reply, error: err });
+                // console.log(err);
+                // global.logger.write('cacheResponse', `HSET asset_message_counter ${JSON.stringify(assetId)} ${JSON.stringify(parity)}`, err, reqBodyObject);
                 callback(true, false);
                 return;
             } else {
-                //console.log(reply);
-                global.logger.write('cacheResponse', `HSET asset_message_counter ${JSON.stringify(assetId)} ${JSON.stringify(parity)}`, reply, reqBodyObject);
+                logger.verbose(`HSET asset_message_counter ${JSON.stringify(assetId)} ${JSON.stringify(parity)}`, { type: 'redis', cache_response: reply, error: err });
+                // console.log(reply);
+                // global.logger.write('cacheResponse', `HSET asset_message_counter ${JSON.stringify(assetId)} ${JSON.stringify(parity)}`, reply, reqBodyObject);
                 callback(false, true);
                 return;
             }
@@ -223,17 +244,19 @@ function CacheWrapper(client) {
 
     this.getMessageUniqueIdLookup = function (messageUniqueId, callback) {
 
-        const reqBodyObject = {
-            module: 'asset'
-        };
+        // const reqBodyObject = {
+        //     module: 'asset'
+        // };
 
         client.hget('message_unique_id_lookup', messageUniqueId, function (err, reply) {
             if (err) {
-                //console.log(err);
-                global.logger.write('cacheResponse', `HGET message_unique_id_lookup ${JSON.stringify(messageUniqueId)}`, err, reqBodyObject);
+                logger.error(`HGET message_unique_id_lookup ${JSON.stringify(messageUniqueId)}`, { type: 'redis', cache_response: reply, error: err });
+                // console.log(err);
+                // global.logger.write('cacheResponse', `HGET message_unique_id_lookup ${JSON.stringify(messageUniqueId)}`, err, reqBodyObject);
                 callback(err, false);
             } else {
-                global.logger.write('cacheResponse', `HGET message_unique_id_lookup ${JSON.stringify(messageUniqueId)}`, reply, reqBodyObject);
+                logger.verbose(`HGET message_unique_id_lookup ${JSON.stringify(messageUniqueId)}`, { type: 'redis', cache_response: reply, error: err });
+                // global.logger.write('cacheResponse', `HGET message_unique_id_lookup ${JSON.stringify(messageUniqueId)}`, reply, reqBodyObject);
                 callback(false, reply);
             }
         });
@@ -241,19 +264,21 @@ function CacheWrapper(client) {
 
     this.setMessageUniqueIdLookup = function (messageUniqueId, value, callback) {
 
-        const reqBodyObject = {
-            module: 'asset'
-        };
+        // const reqBodyObject = {
+        //     module: 'asset'
+        // };
 
         client.hset('message_unique_id_lookup', messageUniqueId, value, function (err, reply) {
             if (err) {
-                console.log(err);
-                global.logger.write('cacheResponse', `HSET message_unique_id_lookup ${JSON.stringify(messageUniqueId)} ${JSON.stringify(value)}`, err, reqBodyObject);
+                logger.error(`HSET message_unique_id_lookup ${JSON.stringify(messageUniqueId)} ${JSON.stringify(value)}`, { type: 'redis', cache_response: reply, error: err });
+                // console.log(err);
+                // global.logger.write('cacheResponse', `HSET message_unique_id_lookup ${JSON.stringify(messageUniqueId)} ${JSON.stringify(value)}`, err, reqBodyObject);
                 callback(true, false);
                 return;
             } else {
-                //console.log(reply);
-                global.logger.write('cacheResponse', `HSET message_unique_id_lookup ${JSON.stringify(messageUniqueId)} ${JSON.stringify(value)}`, reply, reqBodyObject);
+                logger.verbose(`HSET message_unique_id_lookup ${JSON.stringify(messageUniqueId)} ${JSON.stringify(value)}`, { type: 'redis', cache_response: reply, error: err });
+                // console.log(reply);
+                // global.logger.write('cacheResponse', `HSET message_unique_id_lookup ${JSON.stringify(messageUniqueId)} ${JSON.stringify(value)}`, reply, reqBodyObject);
                 callback(false, true);
                 return;
             }
@@ -262,18 +287,20 @@ function CacheWrapper(client) {
 
     this.setKafkaMessageUniqueId = function (messageUniqueId, value, callback) {
 
-        const reqBodyObject = {
-            module: 'asset'
-        };
+        // const reqBodyObject = {
+        //     module: 'asset'
+        // };
 
         client.hset('kafka_message_unique_id', messageUniqueId, value, function (err, reply) {
             if (err) {
-                console.log(err);
-                global.logger.write('cacheResponse', `HSET kafka_message_unique_id ${JSON.stringify(messageUniqueId)} ${JSON.stringify(value)}`, err, reqBodyObject);
+                logger.error(`HSET kafka_message_unique_id ${JSON.stringify(messageUniqueId)} ${JSON.stringify(value)}`, { type: 'redis', cache_response: reply, error: err });
+                // console.log(err);
+                // global.logger.write('cacheResponse', `HSET kafka_message_unique_id ${JSON.stringify(messageUniqueId)} ${JSON.stringify(value)}`, err, reqBodyObject);
                 callback(true, err);
                 return;
             } else {
-                global.logger.write('cacheResponse', `HSET kafka_message_unique_id ${JSON.stringify(messageUniqueId)} ${JSON.stringify(value)}`, reply, reqBodyObject);
+                logger.verbose(`HSET kafka_message_unique_id ${JSON.stringify(messageUniqueId)} ${JSON.stringify(value)}`, { type: 'redis', cache_response: reply, error: err });
+                // global.logger.write('cacheResponse', `HSET kafka_message_unique_id ${JSON.stringify(messageUniqueId)} ${JSON.stringify(value)}`, reply, reqBodyObject);
                 callback(false, reply);
                 return;
             }
@@ -283,8 +310,10 @@ function CacheWrapper(client) {
     this.getKafkaMessageUniqueId = function (partition, callback) {
         client.hget('kafka_message_unique_id', partition, function (err, reply) {
             if (err) {
+                logger.error(`HGET kafka_message_unique_id ${JSON.stringify(partition)}`, { type: 'redis', cache_response: reply, error: err });
                 callback(true, err);
             } else {
+                logger.verbose(`HGET kafka_message_unique_id ${JSON.stringify(partition)}`, { type: 'redis', cache_response: reply, error: err });
                 callback(false, reply);
             }
         });
@@ -299,18 +328,20 @@ function CacheWrapper(client) {
     // Ref: https://redis.io/commands/sadd
     this.IsAssetIDTargeted = function (asset_id, callback) {
 
-        const reqBodyObject = {
-            asset_id: asset_id,
-            module: 'asset'
-        };
+        // const reqBodyObject = {
+        //     asset_id: asset_id,
+        //     module: 'asset'
+        // };
 
         client.SISMEMBER("targeted_logging_asset_ids", asset_id, (err, reply) => {
             if (err) {
-                global.logger.write('cacheResponse', `SISMEMBER targeted_logging_asset_ids ${JSON.stringify(asset_id)}`, err, reqBodyObject);
+                logger.error(`SISMEMBER targeted_logging_asset_ids ${JSON.stringify(asset_id)}`, { type: 'redis', cache_response: reply, error: err });
+                // global.logger.write('cacheResponse', `SISMEMBER targeted_logging_asset_ids ${JSON.stringify(asset_id)}`, err, reqBodyObject);
                 callback(true, err);
 
             } else {
-                global.logger.write('cacheResponse', `SISMEMBER targeted_logging_asset_ids ${JSON.stringify(asset_id)}`, reply, reqBodyObject);
+                logger.verbose(`SISMEMBER targeted_logging_asset_ids ${JSON.stringify(asset_id)}`, { type: 'redis', cache_response: reply, error: err });
+                // global.logger.write('cacheResponse', `SISMEMBER targeted_logging_asset_ids ${JSON.stringify(asset_id)}`, reply, reqBodyObject);
                 callback(false, reply);
 
             }
@@ -319,19 +350,21 @@ function CacheWrapper(client) {
 
     this.setCSDNumber = function (accountCode, mobileNumber, callback) {
 
-        const reqBodyObject = {
-            account_code: accountCode,
-            mobile_number: mobileNumber,
-            module: 'vodafone'
-        };
+        // const reqBodyObject = {
+        //     account_code: accountCode,
+        //     mobile_number: mobileNumber,
+        //     module: 'vodafone'
+        // };
 
         client.hset('CSDNumber', accountCode, mobileNumber, function (err, reply) {
             if (err) {
-                console.log(err);
-                global.logger.write('cacheResponse', `HSET CSDNumber ${JSON.stringify(accountCode)} ${mobileNumber}`, err, reqBodyObject);
+                logger.error(`HSET CSDNumber ${JSON.stringify(accountCode)} ${mobileNumber}`, { type: 'redis', cache_response: reply, error: err });
+                // console.log(err);
+                // global.logger.write('cacheResponse', `HSET CSDNumber ${JSON.stringify(accountCode)} ${mobileNumber}`, err, reqBodyObject);
                 callback(err, false);
             } else {
-                global.logger.write('cacheResponse', `HSET CSDNumber ${JSON.stringify(accountCode)} ${mobileNumber}`, reply, reqBodyObject);
+                logger.verbose(`HSET CSDNumber ${JSON.stringify(accountCode)} ${mobileNumber}`, { type: 'redis', cache_response: reply, error: err });
+                // global.logger.write('cacheResponse', `HSET CSDNumber ${JSON.stringify(accountCode)} ${mobileNumber}`, reply, reqBodyObject);
                 callback(false, true);
             }
         });
@@ -340,27 +373,31 @@ function CacheWrapper(client) {
     this.getCSDNumber = function (accountCode, callback) {
         client.hget('CSDNumber', accountCode, function (err, reply) {
             if (err) {
+                logger.error(`HGET CSDNumber ${JSON.stringify(accountCode)}`, { type: 'redis', cache_response: reply, error: err });
                 callback(true, err);
             } else {
+                logger.verbose(`HGET CSDNumber ${JSON.stringify(accountCode)}`, { type: 'redis', cache_response: reply, error: err });
                 callback(false, reply);
             }
         });
     };
 
     this.setOrgLastPubnubPushTimestamp = (organizationID, timestamp) => {
-        const reqBodyObject = {
-            organization_id: organizationID,
-            module: 'asset'
-        };
+        // const reqBodyObject = {
+        //     organization_id: organizationID,
+        //     module: 'asset'
+        // };
         return new Promise((resolve, reject) => {
             client.hset('org_pubnub_push_rate_limit', organizationID, timestamp, function (err, reply) {
                 if (err) {
-                    console.log(err);
-                    global.logger.write('cacheResponse', `HSET org_pubnub_push_rate_limit ${JSON.stringify(organizationID)} ${JSON.stringify(timestamp)}`, err, reqBodyObject);
+                    logger.error(`HSET org_pubnub_push_rate_limit ${JSON.stringify(organizationID)} ${JSON.stringify(timestamp)}`, { type: 'redis', cache_response: reply, error: err });
+                    // console.log(err);
+                    // global.logger.write('cacheResponse', `HSET org_pubnub_push_rate_limit ${JSON.stringify(organizationID)} ${JSON.stringify(timestamp)}`, err, reqBodyObject);
                     reject(0);
                 } else {
-                    console.log(reply);
-                    global.logger.write('cacheResponse', `HSET org_pubnub_push_rate_limit ${JSON.stringify(organizationID)} ${JSON.stringify(timestamp)}`, reply, reqBodyObject);
+                    logger.verbose(`HSET org_pubnub_push_rate_limit ${JSON.stringify(organizationID)} ${JSON.stringify(timestamp)}`, { type: 'redis', cache_response: reply, error: err });
+                    // console.log(reply);
+                    // global.logger.write('cacheResponse', `HSET org_pubnub_push_rate_limit ${JSON.stringify(organizationID)} ${JSON.stringify(timestamp)}`, reply, reqBodyObject);
                     resolve(reply);
                 }
             });
@@ -368,19 +405,21 @@ function CacheWrapper(client) {
     };
 
     this.getOrgLastPubnubPushTimestamp = (organizationID) => {
-        const reqBodyObject = {
-            organization_id: organizationID,
-            module: 'asset'
-        };
+        // const reqBodyObject = {
+        //     organization_id: organizationID,
+        //     module: 'asset'
+        // };
         return new Promise((resolve, reject) => {
             client.hget('org_pubnub_push_rate_limit', organizationID, function (err, reply) {
                 if (err) {
-                    console.log(err);
-                    global.logger.write('cacheResponse', `HGET org_pubnub_push_rate_limit ${JSON.stringify(organizationID)}`, err, reqBodyObject);
+                    logger.error(`HGET org_pubnub_push_rate_limit ${JSON.stringify(organizationID)}`, { type: 'redis', cache_response: reply, error: err });
+                    // console.log(err);
+                    // global.logger.write('cacheResponse', `HGET org_pubnub_push_rate_limit ${JSON.stringify(organizationID)}`, err, reqBodyObject);
                     reject(0);
                 } else {
-                    console.log(reply);
-                    global.logger.write('cacheResponse', `HGET org_pubnub_push_rate_limit ${JSON.stringify(organizationID)}`, reply, reqBodyObject);
+                    logger.verbose(`HGET org_pubnub_push_rate_limit ${JSON.stringify(organizationID)}`, { type: 'redis', cache_response: reply, error: err });
+                    // console.log(reply);
+                    // global.logger.write('cacheResponse', `HGET org_pubnub_push_rate_limit ${JSON.stringify(organizationID)}`, reply, reqBodyObject);
                     resolve(reply);
                 }
             });
