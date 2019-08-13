@@ -17,8 +17,8 @@ const archiver = require('archiver');
 
 AWS.config.update(
     {
-        accessKeyId: "AKIAJYK3ECSPVVT67DOQ",
-        secretAccessKey: "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",
+        accessKeyId: "AKIAWIPBVOFRZMTH7FPD",
+        secretAccessKey: "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",
         region: 'ap-south-1'
     }
 );
