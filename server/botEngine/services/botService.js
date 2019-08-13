@@ -2,6 +2,7 @@
  * author: Nani Kalyan V
  */
 
+const logger = require("../../logger/winstonLogger");
 var ActivityService = require('../../services/activityService.js');
 var ActivityParticipantService = require('../../services/activityParticipantService.js');
 //var ActivityUpdateService = require('../../services/activityUpdateService.js');
@@ -505,13 +506,13 @@ function BotService(objectCollection) {
         //Bot Log - Bot engine Triggered
         activityCommonService.botOperationFlagUpdateTrigger(request, 1);
 
-        global.logger.write('conLog', ' ', {}, {});
-        global.logger.write('conLog', '#############################################################################', {}, {});
-        global.logger.write('conLog', ' ', {}, {});
-        global.logger.write('conLog', '############################### ENTERED BOT ENGINE ##########################', {}, {});
-        global.logger.write('conLog', ' ', {}, {});
-        global.logger.write('conLog', '#############################################################################', {}, {});
-        global.logger.write('conLog', ' ', {}, {});
+        logger.silly(' ');
+        logger.silly('🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖');
+        logger.silly(' ');
+        logger.silly('🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖  ENTERED BOT ENGINE  🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖');
+        logger.silly(' ');
+        logger.silly('🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖');
+        logger.silly(' ');
 
         request['datetime_log'] = util.getCurrentUTCTime();
         // console.log("initBotEngine | request: ", request);

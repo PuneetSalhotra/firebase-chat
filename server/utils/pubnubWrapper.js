@@ -1,6 +1,7 @@
 /*
  * author: Nani Kalyan V
  */
+const logger = require("../logger/winstonLogger");
 var PubNub = require('pubnub');
 
 var pubnub = new PubNub({
@@ -22,9 +23,8 @@ function PubnubPush() {
         };
 
         pubnub.publish(publishConfig, function (status, response) {
-            // global.logger.write('conLog', status, {}, {});                
-            // global.logger.write('conLog', response, {}, {});
 
+            logger.verbose('pubnub.push.publish: %j', publishConfig, { type: 'pubnub', message, status, response, channel_id: channelId });
             console.log("PubnubPush: publish | message: ", message)
             console.log("PubnubPush: publish | status: ", status);
             console.log("PubnubPush: publish | response: ", response);
@@ -40,8 +40,9 @@ function PubnubPush() {
         };
 
         pubnub.publish(publishConf, function (status, response) {
-            global.logger.write('conLog', status, {}, {});
-            global.logger.write('conLog', response, {}, {});
+            logger.verbose('pubnub.publish.publish: %j', publishConfig, { type: 'pubnub', message, status, response, channel_id: channelId });
+            // global.logger.write('conLog', status, {}, {});
+            // global.logger.write('conLog', response, {}, {});
         });
     };
 
@@ -50,7 +51,8 @@ function PubnubPush() {
             pubnub.subscribe({ channels: [channelId] });
             pubnub.addListener({
                 message: function (message) {
-                    global.logger.write('conLog', message, {}, {});
+                    logger.verbose('pubnub.subscribe.subscribe: %j', publishConfig, { type: 'pubnub', message, channel_id: channelId });
+                    // global.logger.write('conLog', message, {}, {});
                     resolve(message.message);
                 }
             });

@@ -4,6 +4,7 @@
 
 //var SQS = require("../queue/sqsProducer");
 var Util = require('./util');
+const logger = require("../logger/winstonLogger");
 
 function Logger(queueWrapper) {
 
@@ -45,8 +46,9 @@ function Logger(queueWrapper) {
             // 
         }
 
-        //Textual Logs
-        util.writeLogs(message, isTargeted);
+        // Textual Logs
+        // util.writeLogs(message, isTargeted);
+        logger.silly(message, { type: 'legacy_logs', miscellaneous: object, request_body: request });
 
         //Logs pushing to Kafka
         switch (level) {
@@ -54,11 +56,11 @@ function Logger(queueWrapper) {
                 if ((typeof object === 'object')) {
                     if (Object.keys(object).length > 0) {
                         // eslint-disable-next-line no-console
-                        console.log(object);
+                        // console.log(object);
                     }
                 } else {
                     // eslint-disable-next-line no-console
-                    console.log(object);
+                    // console.log(object);
                 }
                 break;
             default:

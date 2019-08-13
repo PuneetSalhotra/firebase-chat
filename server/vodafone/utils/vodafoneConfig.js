@@ -23,6 +23,7 @@ const digitalPriCafMappings = require("./digital_pri_caf/digital_pri_caf_mapping
 const digitalPriCafLabels = require("./digital_pri_caf/labels.json");
 const digitalPriCafRoms = require("./digital_pri_caf/roms.json");
 const digitalPriCafRomsActions = require("./digital_pri_caf/roms_actions.json");
+const digitalPriCafBulkOrderToOriginFormMappings = require("./digital_pri_caf/bulk_order_to_origin_form_mappings.json");
 
 // Digital NPLC CAF - 134569
 const digitalNplcCafMappings = require("./digital_nplc_caf/digital_nplc_caf_mappings.json");
@@ -70,12 +71,14 @@ const digitalPriSipMappings = require("./digital_pri_sip/mappings.json");
 const digitalPriSipLabels = require("./digital_pri_sip/labels.json");
 const digitalPriSipRoms = require("./digital_pri_sip/roms.json");
 const digitalPriSipRomsActions = require("./digital_pri_sip/roms_actions.json");
+const digitalPriSipBulkOrderToOriginFormMappings = require("./digital_pri_sip/bulk_order_to_origin_form_mappings.json");
 
-// New FLV - PRI IPC
+// New FLV - PRI IPC - 142432
 const digitalIpcMappings = require("./digital_ipc/mappings.json");
 const digitalIpcLabels = require("./digital_ipc/labels.json");
 const digitalIpcRoms = require("./digital_ipc/roms.json");
 const digitalIpcRomsActions = require("./digital_ipc/roms_actions.json");
+const digitalIpcBulkOrderToOriginFormMappings = require("./digital_ipc/bulk_order_to_origin_form_mappings.json");
 
 vodafoneConfig = {
     "860": {
@@ -306,7 +309,9 @@ vodafoneConfig = {
         "FORM_FIELD_MAPPING_DATA": digitalPriCafMappings,
         "LABELS": digitalPriCafLabels,
         "ROMS": digitalPriCafRoms,
-        "ROMS_ACTIONS": digitalPriCafRomsActions
+        "ROMS_ACTIONS": digitalPriCafRomsActions,
+        "ORIGIN_FORM_ID": 1317,
+        "BULK_ORDER_ORIGIN_FORM_MAPPING_DATA": digitalPriCafBulkOrderToOriginFormMappings
     },
     "134569": {
         "REQUIRED_FORMS": [1144],
@@ -381,6 +386,7 @@ vodafoneConfig = {
         "ROMS": digitalPriSipRoms,
         "ROMS_ACTIONS": digitalPriSipRomsActions,
         "ORIGIN_FORM_ID": 1558,
+        "BULK_ORDER_ORIGIN_FORM_MAPPING_DATA": digitalPriSipBulkOrderToOriginFormMappings
     },
     "142432": {
         "REQUIRED_FORMS": [1567],
@@ -391,5 +397,6 @@ vodafoneConfig = {
         "ROMS": digitalIpcRoms,
         "ROMS_ACTIONS": digitalIpcRomsActions,
         "ORIGIN_FORM_ID": 1567,
+        "BULK_ORDER_ORIGIN_FORM_MAPPING_DATA": digitalIpcBulkOrderToOriginFormMappings
     }
 };
