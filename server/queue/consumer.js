@@ -19,6 +19,7 @@ var forEachAsync = require('forEachAsync').forEachAsync;
 var ActivityCommonService = require("../services/activityCommonService");
 var ActivityPushService = require("../services/activityPushService");
 const pubnubWrapper = new(require('../utils/pubnubWrapper'))();
+const logger = require('../logger/winstonLogger');
 
 var Consumer = function () {
 
@@ -288,7 +289,8 @@ var Consumer = function () {
             global.logger.write('conLog', 'Received message.offset : ' + message.offset, {}, {});
 
             //if(data < message.offset) { //I think this should be greater than to current offset                                
-            global.logger.write('debug', message.value, {}, JSON.parse(message.value)['payload']);
+            // global.logger.write('debug', message.value, {}, JSON.parse(message.value)['payload']);
+            logger.debug(message.value, { type: 'kafka' });
 
             try {
                 var messageJson = JSON.parse(message.value);

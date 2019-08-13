@@ -116,6 +116,16 @@ app.use(function (req, res, next) {
     next();
 });
 
+// Basic HTTP logging using morgan
+const logger = require('./server/logger/winstonLogger');
+loggerstream = {
+    write: function (message, encoding) {
+        message = JSON.parse(message);
+        logger.info(`${message.method} ${message.url}`, { type: 'http_log', ...message });
+    }
+};
+app.use(require("morgan")('{"remote_addr": ":remote-addr", "remote_user": ":remote-user", "date": ":date[clf]", "method": ":method", "url": ":url", "http_version": ":http-version", "status": ":status", "result_length": ":res[content-length]", "referrer": ":referrer", "user_agent": ":user-agent", "response_time": ":response-time"}', { stream: loggerstream }));
+
 function connectToKafkaBroker(){
     console.log("redis is connected");
     
