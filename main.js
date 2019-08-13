@@ -1,8 +1,15 @@
 /* 
  * author: V Nani Kalyan
  */
-//require('newrelic');
-var globalConfig = require('./server/utils/globalConfig');
+
+// This line must come before importing any instrumented module.
+const tracer = require('dd-trace').init({
+    service: `${process.env.mode}_desker_api`,
+    env: process.env.mode,
+    logInjection: true
+});
+
+ var globalConfig = require('./server/utils/globalConfig');
 var vodafoneConfig = require('./server/vodafone/utils/vodafoneConfig');
 var Logger = require('./server/utils/logger.js');
 var express = require('express');
@@ -38,12 +45,14 @@ var cacheWrapper = new CacheWrapper(redisClient);
 var QueueWrapper = require('./server/queue/queueWrapper');
 var forEachAsync = require('forEachAsync').forEachAsync;
 var ActivityCommonService = require("./server/services/activityCommonService");
-redisClient.on('connect', function () {
+redisClient.on('connect', function (response) {
+    logger.info('Redis Client Connected', { type: 'redis', response });
     connectToKafkaBroker();
 });
 
 redisClient.on('error', function (error) {
-    console.log(error);
+    logger.error('Redis Error', { type: 'redis', error });
+    // console.log(error);
 });
 
 // Handling null/empty message_unique_ids
@@ -109,6 +118,16 @@ app.use(function (req, res, next) {
     next();
 });
 
+// Basic HTTP logging using morgan
+const logger = require('./server/logger/winstonLogger');
+loggerstream = {
+    write: function (message, encoding) {
+        message = JSON.parse(message);
+        logger.info(`${message.method} ${message.url}`, { type: 'http_log', ...message });
+    }
+};
+app.use(require("morgan")('{"remote_addr": ":remote-addr", "remote_user": ":remote-user", "date": ":date[clf]", "method": ":method", "url": ":url", "http_version": ":http-version", "status": ":status", "result_length": ":res[content-length]", "referrer": ":referrer", "user_agent": ":user-agent", "response_time": ":response-time"}', { stream: loggerstream }));
+
 function connectToKafkaBroker(){
     console.log("redis is connected");
     
@@ -164,11 +183,13 @@ function connectToKafkaBroker(){
     });
 
     kafkaProducer.on('error', function (error) {
+        logger.error('Kafka Producer Error', { type: 'kafka', error });
         connectToKafkaBroker();        
     });
     
     kafkaProducer.on('brokersChanged', function (error) {
-        console.log('brokersChanged: ', error);
+        logger.error('Kafka Producer brokersChanged', { type: 'kafka', error });
+        // console.log('brokersChanged: ', error);
     });
     
 };

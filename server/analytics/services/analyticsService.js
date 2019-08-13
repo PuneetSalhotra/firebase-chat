@@ -9,14 +9,14 @@ function AnalyticsService(objectCollection)
     const nodeUtil = require('util');
     
     const cacheWrapper = objectCollection.cacheWrapper;
-    //const queueWrapper = objectCollection.queueWrapper;
+    const queueWrapper = objectCollection.queueWrapper;
     //const activityPushService = objectCollection.activityPushService;
     
     const util = objectCollection.util;
     const db = objectCollection.db;    
     const analyticsConfig = require('../utils/analyticsConfig.js');
 
-    //const activityCommonService = objectCollection.activityCommonService;    
+    const activityCommonService = objectCollection.activityCommonService;    
     //const activityUpdateService = new ActivityUpdateService(objectCollection);
     //const activityParticipantService = new ActivityParticipantService(objectCollection);
     //const activityService = new ActivityService(objectCollection);
@@ -81,6 +81,16 @@ function AnalyticsService(objectCollection)
         request.widget_aggregate_id = 1;
         //********************************************************/
 
+        //Get Asset Name
+        await new Promise((resolve)=>{
+            activityCommonService.getAssetDetails(request, (err, data, statusCode)=>{
+                if(!err && Object.keys(data).length > 0) {
+                    //console.log('DATA : ', data.operating_asset_first_name);
+                    request.widget_owner_asset_name = data.operating_asset_first_name;
+                }
+                resolve();
+            });
+        });
         
         //Add Activity - you will get ActivityID
         const [err, activityData] = await createActivity(request);
@@ -100,13 +110,40 @@ function AnalyticsService(objectCollection)
         //console.log('widgetResponse : ', widgetResponse);
         //console.log('Widget ID : ', widgetResponse[0].widget_id);
         widgetId = widgetResponse[0].widget_id;
-        request.widget_id = widgetId;                
+        request.widget_id = widgetId;
             
         await new Promise((resolve)=>{
             setTimeout(()=>{
                 return resolve();
             }, 2500);
         });
+
+        //let timelineReqParams = Object.assign({}, request);        
+
+        //Add timeline Entry
+        //let activityTimelineCollectionFor26004 = {
+        //    "content": 'New Widget ' + request.widget_name + ' has been added by ' + request.widget_owner_asset_id,
+        //    "subject": 'New Widget ' + request.widget_name + ' has been added.',
+        //    "mail_body": 'New Widget ' + request.widget_name + ' has been added by ' + request.widget_owner_asset_id,
+        //    "attachments": [],
+        //    "activity_reference": [],
+        //    "asset_reference": [],            
+        //    "form_approval_field_reference": [],                        
+        //};
+//
+        //timelineReqParams.activity_timeline_collection = JSON.stringify(activityTimelineCollectionFor26004);
+        //timelineReqParams.activity_stream_type_id = 26001;
+        //timelineReqParams.flag_timeline_entry = 1;
+        //timelineReqParams.device_os_id = 7;        
+//
+        //let displayFileEvent = {
+        //    name: "addTimelineTransaction",
+        //    service: "activityTimelineService",
+        //    method: "addTimelineTransaction",
+        //    payload: timelineReqParams
+        //};
+//
+        //await queueWrapper.raiseActivityEventPromise(displayFileEvent, request.activity_id);
         
         await updateWidgetDetailsInActList(request);
         await updateWidgetDetailsInActAssetList(request);
@@ -114,12 +151,24 @@ function AnalyticsService(objectCollection)
         let response = {};
         response.widget_id = widgetId;
         response.widget_activity_id = request.activity_id;
+        response.message_unique_id = request.message_unique_id;
+        response.activity_internal_id = request.activity_internal_id;
         return response;
     };
 
     async function createActivity(request) {
         //let filterTagTypeId = request.filter_tag_type_id;
-        //let filterActivityStatusTypeId = request.filter_activity_status_type_id;       
+        //let filterActivityStatusTypeId = request.filter_activity_status_type_id;   
+        
+        let activityTimelineCollectionFor26004 = {
+            "content": 'New Widget ' + request.widget_name + ' has been added by ' + request.widget_owner_asset_name,
+            "subject": 'New Widget ' + request.widget_name + ' has been added.',
+            "mail_body": 'New Widget ' + request.widget_name + ' has been added by ' + request.widget_owner_asset_name,
+            "attachments": [],
+            "activity_reference": [],
+            "asset_reference": [],            
+            "form_approval_field_reference": [],                        
+        };
                 
         let activityInlineData = {};
         let widgetInfo = {};        
@@ -143,8 +192,11 @@ function AnalyticsService(objectCollection)
         widgetInfo.filter_date_type_id = util.replaceDefaultNumber(request.filter_date_type_id);
         widgetInfo.filter_timeline_id = util.replaceDefaultNumber(request.filter_timeline_id);
         widgetInfo.filter_timeline_name = util.replaceDefaultNumber(request.filter_timeline_name);  
+
+        let widgetDetailedInfo = JSON.parse(request.widget_detailed_info) || {};
                
         activityInlineData.widget_info = widgetInfo;
+        activityInlineData.widget_detailed_info = widgetDetailedInfo;
 
         const addActivityRequest = {
             organization_id: request.organization_id,
@@ -183,7 +235,8 @@ function AnalyticsService(objectCollection)
             track_gps_status: 0,
             service_version: "3.0",
             app_version: "3.0.0",
-            device_os_id: 5
+            device_os_id: 5,
+            activity_timeline_collection : JSON.stringify(activityTimelineCollectionFor26004)
         };
 
         
@@ -336,6 +389,16 @@ function AnalyticsService(objectCollection)
     this.analyticsWidgetAlter = async function(request) {
         request.datetime_log = util.getCurrentUTCTime();
 
+        let activityTimelineCollectionFor26005 = {
+            "content": 'Widget Deleted!',
+            "subject": 'Widget Deleted!',
+            "mail_body": 'Widget Deleted!',
+            "attachments": [],
+            "activity_reference": [],
+            "asset_reference": [],            
+            "form_approval_field_reference": [],                        
+        };
+
         //Call delete Widget        
         const widgetRequest = {           
             organization_id: request.organization_id,
@@ -345,7 +408,40 @@ function AnalyticsService(objectCollection)
             auth_asset_id: 31993,
             asset_token_auth: "c15f6fb0-14c9-11e9-8b81-4dbdf2702f95",
             widget_id: request.widget_id,
-            log_datetime: request.datetime_log
+            log_datetime: request.datetime_log,
+
+            //Timeline Params
+            activity_access_role_id: 27,
+            activity_channel_category_id: 0,
+            activity_channel_id: 0,
+            activity_id: request.activity_id,
+            activity_parent_id: 0,
+            activity_stream_type_id: 26003,
+            activity_sub_type_id: -1,
+            activity_timeline_collection: JSON.stringify(activityTimelineCollectionFor26005),
+            activity_timeline_text: "",
+            activity_timeline_url: "",
+            activity_type_category_id: 52,
+            activity_type_id: request.activity_type_id || 0,
+            app_version: 1,                                                
+            data_entity_inline: JSON.stringify(activityTimelineCollectionFor26005),
+            datetime_log: request.datetime_log,            
+            flag_offline: 0,
+            flag_pin: 0,
+            flag_priority: 0,
+            flag_retry: 0,
+            message_unique_id: util.getMessageUniqueId(request.asset_id),
+            //operating_asset_first_name: "Nani kalyan",            
+            service_version: 1,
+            timeline_stream_type_id: 26003,
+            //timeline_transaction_id: 1565290146815,
+            track_altitude: 0,
+            track_gps_accuracy: "0",
+            track_gps_datetime: request.datetime_log,
+            track_gps_status: 0,
+            track_latitude: "0.0",
+            track_longitude: "0.0",
+            device_os_id: 5,
         };
 
         const widgetDeleteAsync = nodeUtil.promisify(makeRequest.post);
@@ -359,7 +455,17 @@ function AnalyticsService(objectCollection)
             if (Number(body.status) === 200) {
                 console.log("Widget Deleted | Delete Widget | Body: ", body);
                 await unassignWidgdetActMapping(request);
-                return 'Widget Deleted Successfully!'
+
+                //Add Timeline Entry
+                let deleteWidgetEvent = {
+                    name: "addTimelineTransaction",
+                    service: "activityTimelineService",
+                    method: "addTimelineTransaction",
+                    payload: widgetRequest
+                };
+        
+                await queueWrapper.raiseActivityEventPromise(deleteWidgetEvent, request.activity_id);
+                return 'Widget Deleted Successfully!';
             }
         } catch (error) {
             console.log("Widget Deleted | Delete Widget | Error: ", error);

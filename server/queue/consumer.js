@@ -19,6 +19,7 @@ var forEachAsync = require('forEachAsync').forEachAsync;
 var ActivityCommonService = require("../services/activityCommonService");
 var ActivityPushService = require("../services/activityPushService");
 const pubnubWrapper = new(require('../utils/pubnubWrapper'))();
+const logger = require('../logger/winstonLogger');
 
 var Consumer = function () {
 
@@ -173,19 +174,23 @@ var Consumer = function () {
         });
 
         consumer.on('connect', function (err, data) {
-            global.logger.write('conLog', "Connected to Kafka Host", {}, {});
+            logger.info('Connected To Kafka Host', { type: 'kafka', data, error: err });
+            // global.logger.write('conLog', "Connected to Kafka Host", {}, {});
         });
 
         consumer.on('error', function (err) {
-            global.logger.write('conLog', 'err => ' + JSON.stringify(err), {}, {});
+            logger.error('Kafka Consumer Error', { type: 'kafka', error: err });
+            // global.logger.write('conLog', 'err => ' + JSON.stringify(err), {}, {});
         });
 
         consumer.on('offsetOutOfRange', function (err) {
-            global.logger.write('conLog', 'offsetOutOfRange => ' + JSON.stringify(err), {}, {});
+            logger.crit('Kafka Consumer offsetOutOfRange Error', { type: 'kafka', error: err });
+            // global.logger.write('conLog', 'offsetOutOfRange => ' + JSON.stringify(err), {}, {});
         });
 
         kafkaProducer.on('error', function (error) {
-            global.logger.write('conLog', error, {}, {});
+            logger.error('Kafka Producer Error', { type: 'kafka', error: error });
+            // global.logger.write('conLog', error, {}, {});
         });
         // */
 /*        
@@ -288,7 +293,8 @@ var Consumer = function () {
             global.logger.write('conLog', 'Received message.offset : ' + message.offset, {}, {});
 
             //if(data < message.offset) { //I think this should be greater than to current offset                                
-            global.logger.write('debug', message.value, {}, JSON.parse(message.value)['payload']);
+            // global.logger.write('debug', message.value, {}, JSON.parse(message.value)['payload']);
+            logger.debug(message.value, { type: 'kafka' });
 
             try {
                 var messageJson = JSON.parse(message.value);

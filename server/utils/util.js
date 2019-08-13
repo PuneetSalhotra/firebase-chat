@@ -14,11 +14,12 @@ const excelToJson = require('convert-excel-to-json');
 const XLSX = require('xlsx');
 const AWS = require('aws-sdk');
 const archiver = require('archiver');
+const logger = require("../logger/winstonLogger");
 
 AWS.config.update(
     {
-        accessKeyId: "AKIAJYK3ECSPVVT67DOQ",
-        secretAccessKey: "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",
+        accessKeyId: "AKIAWIPBVOFRZMTH7FPD",
+        secretAccessKey: "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",
         region: 'ap-south-1'
     }
 );
@@ -156,8 +157,9 @@ function Util() {
 
             //console.log('error : ', error);
             //console.log('body : ' , body);
-            global.logger.write('debug', 'error : ' + JSON.stringify(error), {}, {});
-            global.logger.write('debug', 'body : ' + JSON.stringify(body), {}, {});
+            // global.logger.write('debug', 'error : ' + JSON.stringify(error), {}, {});
+            // global.logger.write('debug', 'body : ' + JSON.stringify(body), {}, {});
+            logger.info(`SMS Sent To ${phoneNumber}`, { type: 'sms', url, country_code: countryCode, phone_number: phoneNumber, message: messageString, response, body, error });
 
             var res = {};
             if (typeof foo != 'undefined' && foo.status === 1) {
@@ -184,8 +186,9 @@ function Util() {
 
             //console.log('error : ', error);
             //console.log('body : ' , body);
-            global.logger.write('debug', 'error : ' + JSON.stringify(error), {}, {});
-            global.logger.write('debug', 'body : ' + JSON.stringify(body), {}, {});
+            // global.logger.write('debug', 'error : ' + JSON.stringify(error), {}, {});
+            // global.logger.write('debug', 'body : ' + JSON.stringify(body), {}, {});
+            logger.info(`SMS Sent To ${phoneNumber}`, { type: 'sms', url, country_code: countryCode, phone_number: phoneNumber, message: messageString, response, body, error });
 
             var res = {};
             if (typeof foo != 'undefined' && foo.status === 1) {
@@ -954,10 +957,12 @@ function Util() {
         // send mail with defined transport object
         transporter.sendMail(mailOptions, function (error, info) {
             if (error) {
+                logger.error(`Error Sending Email Sent To ${email}`, { type: 'email', email_options: mailOptions, response: info, error });
                 callback(true, error);
             } else {
-                //console.log('Message sent: ' + info.response);
-                global.logger.write('debug', 'Message sent: ' + JSON.stringify(info.response), {}, request);
+                logger.info(`Email Sent To ${email}`, { type: 'email', email_options: mailOptions, response: info, error });
+                // console.log('Message sent: ' + info.response);
+                // global.logger.write('debug', 'Message sent: ' + JSON.stringify(info.response), {}, request);
                 callback(false, info);
             }
         });
@@ -999,10 +1004,12 @@ function Util() {
         // send mail with defined transport object
         transporter.sendMail(mailOptions, function (error, info) {
             if (error) {
+                logger.error(`Error Sending Email Sent To ${email}`, { type: 'email', request_body: request, email_options: mailOptions, response: info, error });
                 callback(true, error);
             } else {
-                //console.log('Message sent: ' + info.response);
-                global.logger.write('debug', 'Message sent: ' + info.response, {}, request);
+                logger.info(`Email Sent To ${email}`, { type: 'email', request_body: request, email_options: mailOptions, response: info, error });
+                // console.log('Message sent: ' + info.response);
+                // global.logger.write('debug', 'Message sent: ' + info.response, {}, request);
                 callback(false, info);
             }
         });
@@ -1058,9 +1065,11 @@ function Util() {
 
         apiInstance.sendTransacEmail(sendSmtpEmail)
             .then(function (data) {
-                console.log('API called successfully. Returned data: ', data);
+                logger.error(`Email Sent To ${email}`, { type: 'email', request_body: request, response: data, error: null });
+                // console.log('API called successfully. Returned data: ', data);
                 return callback(false, data);
             }, function (error) {
+                logger.error(`Error Sending Email Sent To ${email}`, { type: 'email', request_body: request, error });
                 return callback(true, error);
             });
     };
@@ -1094,9 +1103,11 @@ function Util() {
 
         apiInstance.sendTransacEmail(sendSmtpEmail)
             .then(function (data) {
-                console.log('API called successfully. Returned data: ', data);
+                logger.error(`Email Sent To ${email}`, { type: 'email', request_body: request, response: data, error: null });
+                // console.log('API called successfully. Returned data: ', data);
                 return callback(false, data);
             }, function (error) {
+                logger.error(`Error Sending Email Sent To ${email}`, { type: 'email', request_body: request, error });
                 return callback(true, error);
             });
     };
