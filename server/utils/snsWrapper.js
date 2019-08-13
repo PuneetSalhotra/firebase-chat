@@ -1,6 +1,7 @@
 /**
  * author: Sri Sai Venkatesh
  */
+const logger = require("../logger/winstonLogger");
 
 var aws = require('aws-sdk');
 var AwsSns = function () {
@@ -81,12 +82,16 @@ var AwsSns = function () {
         };
 
         sns.publish(params, function (err, data) {
+            console.log("sns.publish: ", err);
+            console.log("sns.publish: ", data);
             if (err)
-                //console.log(err); // an error occurred
-                global.logger.write('debug', err, {}, {});
+                // console.log(err); // an error occurred
+                // global.logger.write('debug', err, {}, {});
+                logger.error('AwsSns.publish.sns.publish: Error Sending Push Notification', { type: 'sns_push', sns_params: params, data, activity_id: message.activity_id || 0, error: err });
             else
-                //console.log(data);           // successful response
-                global.logger.write('debug', 'Notification Sent : ' + JSON.stringify(data, null, 2), {}, {});
+                // console.log(data);           // successful response
+                // global.logger.write('debug', 'Notification Sent : ' + JSON.stringify(data, null, 2), {}, {});
+                logger.verbose('AwsSns.publish.sns.publish: %j', data, { type: 'sns_push', sns_params: params, data, activity_id: message.activity_id || 0, error: err });
         });
     };
 

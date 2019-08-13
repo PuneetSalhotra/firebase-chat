@@ -1,20 +1,22 @@
 const winston = require('winston');
-const Util = require('../utils/util');
-const util = new Util();
 const moment = require('moment');
 
-let fileName = `logs/${util.getCurrentDate()}.txt`;
+let fileName = `logs/${moment().utc().format("YYYY-MM-DD")}.txt`;
 switch (global.mode) {
     case 'staging':
-        fileName = `${global.config.efsPath}staging_api/logs/${util.getCurrentDate()}.txt`;
+        fileName = `${global.config.efsPath}staging_api/logs/${moment().utc().format("YYYY-MM-DD")}.txt`;
         break;
 
     case 'preprod':
-        fileName = `${global.config.efsPath}preprod_api/logs/${util.getCurrentDate()}.txt`;
+        fileName = `${global.config.efsPath}preprod_api/logs/${moment().utc().format("YYYY-MM-DD")}.txt`;
+        break;
+
+    case 'prod':
+        fileName = `${global.config.efsPath}api/logs/${moment().utc().format("YYYY-MM-DD")}.txt`;
         break;
 
     default:
-        fileName = `logs/${util.getCurrentDate()}.txt`;;
+        fileName = `logs/${moment().utc().format("YYYY-MM-DD")}.txt`;;
 }
 
 // [REFERENCE] Console Color Codes
@@ -59,6 +61,10 @@ const appendEssentialsForFileLog = winston.format(
             // Append Activity ID details
             if (info.request_body.activity_id) { info.activity_id = info.request_body.activity_id };
             if (info.request_body.workflow_activity_id) { info.workflow_activity_id = info.request_body.workflow_activity_id };
+
+            // Append Form Details
+            if (info.request_body.form_id) { info.form_id = info.request_body.form_id };
+            if (info.request_body.form_transaction_id) { info.form_transaction_id = info.request_body.form_transaction_id };
         }
 
         return info;
@@ -89,7 +95,7 @@ const logger = winston.createLogger({
 
 const customFormatForConsole = winston.format.printf(({ level, type, message, timestamp, error }) => {
 
-    return `[${moment.utc(timestamp).format('YYYY-MM-DD HH:mm:ss')} | ${BgBlack}${FgWhite}${type || ''}${Reset}:${level}] ${message} ${error ? "\n" : ""} ${error ? JSON.stringify({ ...error }, null, 2) : ""}`;
+    return `${moment.utc(timestamp).format('YYYY-MM-DD HH:mm:ss')} ${BgBlack}${FgWhite}${type || ''}${Reset}:${level} | ${message} ${error ? "\n" : ""} ${error ? JSON.stringify({ ...error }, null, 2) : ""}`;
 });
 
 

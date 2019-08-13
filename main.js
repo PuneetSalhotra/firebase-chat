@@ -45,12 +45,14 @@ var cacheWrapper = new CacheWrapper(redisClient);
 var QueueWrapper = require('./server/queue/queueWrapper');
 var forEachAsync = require('forEachAsync').forEachAsync;
 var ActivityCommonService = require("./server/services/activityCommonService");
-redisClient.on('connect', function () {
+redisClient.on('connect', function (response) {
+    logger.info('Redis Client Connected', { type: 'redis', response });
     connectToKafkaBroker();
 });
 
 redisClient.on('error', function (error) {
-    console.log(error);
+    logger.error('Redis Error', { type: 'redis', error });
+    // console.log(error);
 });
 
 // Handling null/empty message_unique_ids
@@ -181,11 +183,13 @@ function connectToKafkaBroker(){
     });
 
     kafkaProducer.on('error', function (error) {
+        logger.error('Kafka Producer Error', { type: 'kafka', error });
         connectToKafkaBroker();        
     });
     
     kafkaProducer.on('brokersChanged', function (error) {
-        console.log('brokersChanged: ', error);
+        logger.error('Kafka Producer brokersChanged', { type: 'kafka', error });
+        // console.log('brokersChanged: ', error);
     });
     
 };
