@@ -1,17 +1,19 @@
 /**
  * author: Sri Sai Venkatesh
  */
-
+const logger = require("../logger/winstonLogger");
 const pubnubWrapper = new(require('../utils/pubnubWrapper'))();
 
 function QueueWrapper(producer) {
 
     producer.on('brokersChanged', function (error) {        
-        global.logger.write('debug', 'brokersChanged : ' + error, {}, {});
+        logger.error('Kafka Producer brokersChanged', { type: 'kafka', error });
+        // global.logger.write('debug', 'brokersChanged : ' + error, {}, {});
     });
 
     producer.on('error', function (err) {
-        global.logger.write('serverError', 'Producer send error message : ' + err, err, {});                
+        logger.error('Kafka Producer Error', { type: 'kafka', error: err });
+        // global.logger.write('serverError', 'Producer send error message : ' + err, err, {});                
     });
 
     this.raiseActivityEvent = function (event, activityId, callback) {
@@ -26,10 +28,12 @@ function QueueWrapper(producer) {
 
         producer.send(payloads, function (err, data) {
             if (err) {
-                global.logger.write('serverError', 'error in producing data - ' + err, {}, event.payload);                
+                logger.error(`${payloads.topic} ${key} | Kafka Producer Send Error`, { type: 'kafka', data, payloads, error: err });
+                // global.logger.write('serverError', 'error in producing data - ' + err, {}, event.payload);                
                 callback(true, err);
             } else {                
-                global.logger.write('debug', 'Producer success callback message' + JSON.stringify(data), JSON.stringify(data), event.payload);                
+                logger.info(`${payloads.topic} ${key} | Kafka Producer Send Success`, { type: 'kafka', data, payloads, error: err });
+                // global.logger.write('debug', 'Producer success callback message' + JSON.stringify(data), JSON.stringify(data), event.payload);                
                 callback(false, 'Producer success callback message');
             }
         });
@@ -90,10 +94,12 @@ function QueueWrapper(producer) {
 
             producer.send(payloads, function (err, data) {
                 if (err) {
-                    global.logger.write('serverError', 'error in producing data - ' + err, {}, event.payload);                
+                    logger.error(`${payloads.topic} ${key} | Kafka Producer Send Error`, { type: 'kafka', data, payloads, error: err });
+                    // global.logger.write('serverError', 'error in producing data - ' + err, {}, event.payload);                
                     reject(err);
-                } else {                
-                    global.logger.write('debug', 'Producer success callback message' + JSON.stringify(data), JSON.stringify(data), event.payload);
+                } else {             
+                    logger.info(`${payloads.topic} ${key} | Kafka Producer Send Success`, { type: 'kafka', data, payloads, error: err });   
+                    // global.logger.write('debug', 'Producer success callback message' + JSON.stringify(data), JSON.stringify(data), event.payload);
                                         
                     //Receive the response from Consumer
                     obj = data[global.config.TOPIC_NAME];

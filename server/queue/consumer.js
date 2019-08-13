@@ -174,19 +174,23 @@ var Consumer = function () {
         });
 
         consumer.on('connect', function (err, data) {
-            global.logger.write('conLog', "Connected to Kafka Host", {}, {});
+            logger.info('Connected To Kafka Host', { type: 'kafka', data, error: err });
+            // global.logger.write('conLog', "Connected to Kafka Host", {}, {});
         });
 
         consumer.on('error', function (err) {
-            global.logger.write('conLog', 'err => ' + JSON.stringify(err), {}, {});
+            logger.error('Kafka Consumer Error', { type: 'kafka', error: err });
+            // global.logger.write('conLog', 'err => ' + JSON.stringify(err), {}, {});
         });
 
         consumer.on('offsetOutOfRange', function (err) {
-            global.logger.write('conLog', 'offsetOutOfRange => ' + JSON.stringify(err), {}, {});
+            logger.crit('Kafka Consumer offsetOutOfRange Error', { type: 'kafka', error: err });
+            // global.logger.write('conLog', 'offsetOutOfRange => ' + JSON.stringify(err), {}, {});
         });
 
         kafkaProducer.on('error', function (error) {
-            global.logger.write('conLog', error, {}, {});
+            logger.error('Kafka Producer Error', { type: 'kafka', error: error });
+            // global.logger.write('conLog', error, {}, {});
         });
         // */
 /*        
