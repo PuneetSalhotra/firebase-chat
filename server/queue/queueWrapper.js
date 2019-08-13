@@ -28,12 +28,12 @@ function QueueWrapper(producer) {
 
         producer.send(payloads, function (err, data) {
             if (err) {
-                logger.error(`${payloads.topic} ${key} | Kafka Producer Send Error`, { type: 'kafka', data, payloads, error: err });
+                logger.error(`${payloads[0].topic} ${payloads[0].key} | Kafka Producer Send Error`, { type: 'kafka', data, payloads, error: err });
                 // global.logger.write('serverError', 'error in producing data - ' + err, {}, event.payload);                
                 callback(true, err);
             } else {                
-                logger.info(`${payloads.topic} ${key} | Kafka Producer Send Success`, { type: 'kafka', data, payloads, error: err });
-                // global.logger.write('debug', 'Producer success callback message' + JSON.stringify(data), JSON.stringify(data), event.payload);                
+                logger.info(`${payloads[0].topic} ${payloads[0].key} | Kafka Producer Send Success`, { type: 'kafka', data, payloads, error: err });
+                global.logger.write('debug', 'Producer success callback message' + JSON.stringify(data), JSON.stringify(data), event.payload);                
                 callback(false, 'Producer success callback message');
             }
         });
@@ -94,11 +94,11 @@ function QueueWrapper(producer) {
 
             producer.send(payloads, function (err, data) {
                 if (err) {
-                    logger.error(`${payloads.topic} ${key} | Kafka Producer Send Error`, { type: 'kafka', data, payloads, error: err });
+                    logger.error(`${payloads[0].topic} ${payloads[0].key} | Kafka Producer Send Error`, { type: 'kafka', data, payloads, error: err });
                     // global.logger.write('serverError', 'error in producing data - ' + err, {}, event.payload);                
                     reject(err);
                 } else {             
-                    logger.info(`${payloads.topic} ${key} | Kafka Producer Send Success`, { type: 'kafka', data, payloads, error: err });   
+                    logger.info(`${payloads[0].topic} ${payloads[0].key} | Kafka Producer Send Success`, { type: 'kafka', data, payloads, error: err });   
                     // global.logger.write('debug', 'Producer success callback message' + JSON.stringify(data), JSON.stringify(data), event.payload);
                                         
                     //Receive the response from Consumer
