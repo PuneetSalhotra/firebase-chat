@@ -78,6 +78,17 @@
     },
     {
         "form_id": 1566,
+        "field_id": 14636,
+        "field_name": "Multiple Connections (Please fill enclosed declaration)",
+        "field_data_type_id": 19,
+        "field_data_type_category_id": 7,
+        "data_type_combo_id": 0,
+        "data_type_combo_value": "",
+        "field_value": "",
+        "message_unique_id": 2222333344445555
+    },
+    {
+        "form_id": 1566,
         "field_id": 14639,
         "field_name": "Proof of Address details",
         "field_data_type_id": 21,
