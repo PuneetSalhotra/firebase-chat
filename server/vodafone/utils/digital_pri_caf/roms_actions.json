@@ -31,6 +31,19 @@
         ]
     },
     {
+        "ACTION": "sum",
+        "BATCH": [
+            {
+                "SOURCE_FIELD_IDS": [
+                    11594,
+                    11595
+                ],
+                "TARGET_FIELD_ID": 11596,
+                "VALUE": 0
+            }
+        ]
+    },
+    {
         "ACTION": "check_and_set_annexure_defaults",
         "BATCH": [
             {
