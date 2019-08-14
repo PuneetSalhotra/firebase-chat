@@ -1,6 +1,11 @@
 /**
  * author Nani Kalyan V
  */
+const tracer = require('dd-trace').init({
+    service: `${process.env.mode}_desker_api`,
+    env: process.env.mode,
+    logInjection: true
+});
 
 require('../utils/globalConfig');
 require('../vodafone/utils/vodafoneConfig');
@@ -294,7 +299,7 @@ var Consumer = function () {
 
             //if(data < message.offset) { //I think this should be greater than to current offset                                
             // global.logger.write('debug', message.value, {}, JSON.parse(message.value)['payload']);
-            logger.debug(message.value, { type: 'kafka' });
+            logger.info(`${message.topic} ${message.key} | Kafka Consuming Message`, { type: 'kafka', message });
 
             try {
                 var messageJson = JSON.parse(message.value);

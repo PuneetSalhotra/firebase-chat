@@ -33,7 +33,7 @@ function QueueWrapper(producer) {
                 callback(true, err);
             } else {                
                 logger.info(`${payloads[0].topic} ${payloads[0].key} | Kafka Producer Send Success`, { type: 'kafka', data, payloads, error: err });
-                global.logger.write('debug', 'Producer success callback message' + JSON.stringify(data), JSON.stringify(data), event.payload);                
+                // global.logger.write('debug', 'Producer success callback message' + JSON.stringify(data), JSON.stringify(data), event.payload);                
                 callback(false, 'Producer success callback message');
             }
         });
