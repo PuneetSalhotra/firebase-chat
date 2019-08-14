@@ -377,6 +377,24 @@ function ActivityPushService(objectCollection) {
                                     pushString.subtitle = content;
                                     pushString.body = senderName;
 
+                                    // pushString.FCM = JSON.stringify({
+                                    //     "data": {
+                                    //         "title": activityTitle,
+                                    //         "message": content,
+                                    //         "sender": senderName,
+                                    //     }
+                                    // });
+
+                                    // pushString.APNS = JSON.stringify({
+                                    //     "aps": {
+                                    //         "alert": {
+                                    //             "title": activityTitle,
+                                    //             "message": content,
+                                    //             "sender": senderName,
+                                    //         }
+                                    //     }
+                                    // });
+
                                     if (Number(attachments.length) === 1) {
                                         const fileExtension = path.extname(attachments[0]);
                                         switch (fileExtension) {
