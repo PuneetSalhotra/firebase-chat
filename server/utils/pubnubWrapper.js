@@ -24,7 +24,7 @@ function PubnubPush() {
 
         pubnub.publish(publishConfig, function (status, response) {
 
-            logger.verbose('pubnub.push.publish: %j', publishConfig, { type: 'pubnub', message, status, response, channel_id: channelId });
+            logger.verbose('pubnub.push.publish: %j', message, { type: 'pubnub', message, status, response, channel_id: channelId });
             console.log("PubnubPush: publish | message: ", message)
             console.log("PubnubPush: publish | status: ", status);
             console.log("PubnubPush: publish | response: ", response);
@@ -40,7 +40,7 @@ function PubnubPush() {
         };
 
         pubnub.publish(publishConf, function (status, response) {
-            logger.verbose('pubnub.publish.publish: %j', publishConfig, { type: 'pubnub', message, status, response, channel_id: channelId });
+            logger.verbose('pubnub.publish.publish: %j', message, { type: 'pubnub', message, status, response, channel_id: channelId });
             // global.logger.write('conLog', status, {}, {});
             // global.logger.write('conLog', response, {}, {});
         });
