@@ -540,7 +540,7 @@ function ActivityPushService(objectCollection) {
 
                                 } catch (error) { }
                                 // Text comment
-                                if (Number(request.activity_stream_type_id) === 325) {
+                                if (Number(request.activity_stream_type_id) === 26004) {
                                     msg.activity_type_category_id = 52;
                                     msg.type = 'activity_unread';
                                     msg.description = `Added text in ${activityTitle}.`;
