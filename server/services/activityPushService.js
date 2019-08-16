@@ -423,7 +423,7 @@ function ActivityPushService(objectCollection) {
                                                 pushString.subtitle = `Added attachment(s)`;
                                                 break;
                                         }
-                                        
+
                                     } else if (Number(attachments.length) > 0) {
                                         msg.description = `Added attachment in ${activityTitle}.`;
 
@@ -459,7 +459,7 @@ function ActivityPushService(objectCollection) {
                                 // When a form is freshly added to a workflow
                                 if (Number(request.activity_stream_type_id) === 713) {
                                     let formName = formConfigData[0].form_name || "";
-                                    
+
                                     pushString.description = `${formName} form updated - ${senderName}`;
 
                                     pushString.title = activityTitle;
@@ -489,7 +489,7 @@ function ActivityPushService(objectCollection) {
                                     pushString.title = activityTitle;
                                     pushString.subtitle = `${formName} form updated`;
                                     pushString.body = senderName;
-                                    
+
                                 } else {
                                     // console.log("Wow!!!!! Request", request);
                                 }
@@ -511,6 +511,10 @@ function ActivityPushService(objectCollection) {
                                 break;
                             case '/' + global.config.version + '/engine/bot/init':
                                 // 22nd July 2019 08:54 PM IST: DO NOT SEND push to Android or iOS
+                                pushString = {};
+                                break;
+
+                            default:
                                 pushString = {};
                                 break;
                         }
@@ -540,7 +544,7 @@ function ActivityPushService(objectCollection) {
 
                                 } catch (error) { }
                                 // Text comment
-                                if (Number(request.activity_stream_type_id) === 325) {
+                                if (Number(request.activity_stream_type_id) === 26004) {
                                     msg.activity_type_category_id = 52;
                                     msg.type = 'activity_unread';
                                     msg.description = `Added text in ${activityTitle}.`;
