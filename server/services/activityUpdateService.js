@@ -438,6 +438,18 @@ function ActivityUpdateService(objectCollection) {
                             }
                         });
                     }
+
+                    // Update Last Seen Data Time For The Request Asset ID
+                    if (
+                        Number(rowData.asset_id) === Number(request.auth_asset_id || request.asset_id)
+                    ) {
+                        activityCommonService.updateAssetLastSeenDatetime({
+                            activity_id: request.activity_id,
+                            asset_id: rowData.asset_id,
+                            organization_id: request.organization_id,
+                            datetime_log: util.getCurrentUTCTime()
+                        }, () => {});
+                    }
                 }, this);
                 callback(false, true);
             } else {
