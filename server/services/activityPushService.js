@@ -558,6 +558,21 @@ function ActivityPushService(objectCollection) {
                                 }
                                 break;
 
+                            case '/' + global.config.version + '/activity/participant/access/set':
+                                // Sharing a widget
+                                msg.activity_type_category_id = 52;
+                                msg.type = 'activity_unread';
+                                msg.description = `Added text in ${activityTitle}.`;
+
+                                pushString.description = `${content} - ${senderName}`;
+                                pushString.description = `Widget shared - ${senderName}`;;
+
+                                pushString.title = activityTitle;
+                                pushString.subtitle = `Widget shared`;
+                                pushString.body = senderName;
+
+                                break;
+
                             default:
                                 pushString = {};
                                 break;
