@@ -559,7 +559,7 @@ function ActivityPushService(objectCollection) {
                                 break;
 
                             case '/' + global.config.version + '/activity/participant/access/set':
-                                // Text comment
+                                // Sharing a widget
                                 msg.activity_type_category_id = 52;
                                 msg.type = 'activity_unread';
                                 msg.description = `Added text in ${activityTitle}.`;
