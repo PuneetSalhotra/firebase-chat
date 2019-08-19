@@ -564,7 +564,6 @@ function ActivityPushService(objectCollection) {
                                 msg.type = 'activity_unread';
                                 msg.description = `Added text in ${activityTitle}.`;
 
-                                pushString.description = `${content} - ${senderName}`;
                                 pushString.description = `Widget shared - ${senderName}`;;
 
                                 pushString.title = activityTitle;
