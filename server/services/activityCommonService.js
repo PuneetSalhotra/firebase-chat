@@ -322,10 +322,12 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityText2 = request.activity_timeline_collection;
                 break;
             case 704: // form: status alter
+            case 711: //alered the due date
             case 717: // Workflow: Percentage alter
                 entityTypeId = 0;
                 entityText2 = request.activity_timeline_collection;
                 activityTimelineCollection = request.activity_timeline_collection || '{}';
+                break;
             case 705: // form
             case 713:
             case 714:
@@ -542,6 +544,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityText2 = "";
                 break;
             case 704: // form: status alter
+            case 711: //alered the due date
             case 717: // Workflow: Percentage alter
                 entityTypeId = 0;
                 entityText2 = request.activity_timeline_collection;
