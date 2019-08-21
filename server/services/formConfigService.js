@@ -536,7 +536,7 @@ function FormConfigService(objCollection) {
                             request.update_sequence_id = 1;
                         }
 
-                        await putLatestUpdateSeqId(request, activityInlineData).then(() => {
+                        await putLatestUpdateSeqId(request, activityInlineData, retrievedInlineData).then(() => {
 
                             
 
@@ -738,7 +738,7 @@ function FormConfigService(objCollection) {
         });
     }
 
-    function putLatestUpdateSeqId(request, activityInlineData) {
+    function putLatestUpdateSeqId(request, activityInlineData, completeInlineData = []) {
         return new Promise((resolve, reject) => {
 
             const widgetFieldsStatusesData = util.widgetFieldsStatusesData();
@@ -749,6 +749,36 @@ function FormConfigService(objCollection) {
             let OTC_2_ValueFields = widgetFieldsStatusesData.OTC_2;
             let ARC_2_ValueFields = widgetFieldsStatusesData.ARC_2;
             let valueflag = 0;
+
+            let otc_1 = 0, arc_1 = 0, otc_2 = 0, arc_2 = 0;
+            for (let i = 0; i < completeInlineData.length; i++) {
+                switch (Number(request.form_id)) {
+                    case 1073: // MPLS CRF
+                        if (Number(completeInlineData[i].field_id) === 8163) otc_1 = completeInlineData[i].field_value;
+                        if (Number(completeInlineData[i].field_id) === 8164) arc_1 = completeInlineData[i].field_value;
+                        if (Number(completeInlineData[i].field_id) === 13745) arc_2 = completeInlineData[i].field_value;
+                        break;
+                    case 1136: // IIL CRF
+                        if (Number(completeInlineData[i].field_id) === 9376) otc_1 = completeInlineData[i].field_value;
+                        if (Number(completeInlineData[i].field_id) === 9377) arc_1 = completeInlineData[i].field_value;
+                        if (Number(completeInlineData[i].field_id) === 13744) arc_2 = completeInlineData[i].field_value;
+                        break;
+                    case 1264: // NPLC CRF
+                        if (Number(completeInlineData[i].field_id) === 10369) otc_1 = completeInlineData[i].field_value;
+                        if (Number(completeInlineData[i].field_id) === 10370) arc_1 = completeInlineData[i].field_value;
+                        if (Number(completeInlineData[i].field_id) === 13743) arc_2 = completeInlineData[i].field_value;
+                        break;
+                    case 1281: // FLV CRF
+                        if (Number(completeInlineData[i].field_id) === 15127) otc_1 = completeInlineData[i].field_value;
+                        if (Number(completeInlineData[i].field_id) === 15128) arc_1 = completeInlineData[i].field_value;
+                        if (Number(completeInlineData[i].field_id) === 15129) arc_2 = completeInlineData[i].field_value;
+                        break;
+                    default: break;
+                }
+            }
+            console.log("[putLatestUpdateSeqId | widgets] otc_1: ", otc_1);
+            console.log("[putLatestUpdateSeqId | widgets] arc_1: ", arc_1);
+            console.log("[putLatestUpdateSeqId | widgets] arc_2: ", arc_2);
 
             forEachAsync(activityInlineData, (next, row) => {
                 var params = new Array(
@@ -955,7 +985,6 @@ function FormConfigService(objCollection) {
                                 }                                
                             });
                         }else{
-                            let otc_1 = 0, arc_1 = 0, otc_2= 0, arc_2 = 0;
 
                             try{
                                 if(Object.keys(OTC_1_ValueFields).includes(String(row.field_id))){
@@ -972,24 +1001,6 @@ function FormConfigService(objCollection) {
                                          //arc_2 = isNaN(row.field_value) ? 0 : row.field_value;
                                 }
 
-                                switch(Number(request.form_id)) {
-                                    case 1073: //MPLS CRF
-                                                (Number(row.field_id) === 8163) ? otc_1 = row.value : otc_1 = 0;
-                                                (Number(row.field_id) === 8164) ? arc_1 = row.value : arc_1 = 0;
-                                                (Number(row.field_id) === 13745) ? arc_2 = row.value : arc_2 = 0;
-                                                break;
-                                    case 1136: //IIL CRF
-                                                (Number(row.field_id) === 9376) ? otc_1 = row.value : otc_1 = 0;
-                                                (Number(row.field_id) === 9377) ? arc_1 = row.value : arc_1 = 0;
-                                                (Number(row.field_id) === 13744) ? arc_2 = row.value : arc_2 = 0;
-                                                break;
-                                    case 1264: //NPLC CRF
-                                                (Number(row.field_id) === 10369) ? otc_1 = row.value : otc_1 = 0;
-                                                (Number(row.field_id) === 10370) ? arc_1 = row.value : arc_1 = 0;
-                                                (Number(row.field_id) === 13743) ? arc_2 = row.value : arc_2 = 0;
-                                                break;
-                                    default: break;
-                                }
                                 console.log('valueflag :: '+valueflag);
                                 request['flag'] = valueflag;
 
