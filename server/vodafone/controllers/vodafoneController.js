@@ -412,7 +412,30 @@ function VodafoneController(objCollection) {
             res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
         }
     });
+
+    //Search service for workflow reference with activity type restriction
+    app.post('/' + global.config.version + '/workflow_reference/activity_type/search', async (req, res) =>{       
+        try {            
+            global.logger.write('conLog', req.body, {}, {});
+            let result = await vodafoneService.searchWFBasedOnActivityType(req.body);
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch(err) {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+
     
-};
+    //Search service for attachment reference with attachment type restriction
+    app.post('/' + global.config.version + '/document_reference/attachment_type/search', async (req, res) =>{        
+        try {            
+            global.logger.write('conLog', req.body, {}, {});
+            let result = await vodafoneService.searchDocBasedOnAttachmentType(req.body);
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch(err) {
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+    
+}
 
 module.exports = VodafoneController;

@@ -4071,7 +4071,24 @@ function AssetService(objectCollection) {
         }
         console.log('No Strings in Excel :: ' + xlData.length);
         return ["", "Annexure is Valid"];
-    }
+    };
+    
+    this.searchAssetRef = async (request) => {
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.asset_type_category_id,            
+            request.search_string,            
+            request.page_start,
+            util.replaceQueryLimit(request.page_limit)
+        );
+        let queryString = util.getQueryString('ds_p1_activity_timeline_transaction_search_document_ref', paramsArr);
+        if (queryString != '') {
+            return await (db.executeQueryPromise(1, queryString, request));
+        }
+    };
+
 }
 
 module.exports = AssetService;
