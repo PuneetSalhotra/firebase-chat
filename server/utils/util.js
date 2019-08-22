@@ -1379,6 +1379,47 @@ function Util() {
         return [error, workbook];
     };
 
+    this.getFileDataFromS3Url = async function (request, S3Url) {
+        const s3 = new AWS.S3();
+
+        let bucketName = S3Url.slice(8, 25);
+        let keyName = S3Url.slice(43);
+
+        if (S3Url.includes('ap-south-1')) {
+            keyName = S3Url.slice(54);
+        }
+
+        if (S3Url.includes('staging') || S3Url.includes('preprod')) {
+            bucketName = S3Url.slice(8, 33);
+            keyName = S3Url.slice(51);
+
+            if (S3Url.includes('ap-south-1')) {
+                keyName = S3Url.slice(62);
+            }
+        }
+
+        const getObjectParams = {
+            Bucket: bucketName,
+            Key: keyName,
+        };
+        const s3GetObjectPromise = s3.getObject(getObjectParams).promise();
+
+        let error, fileData;
+
+        await s3GetObjectPromise
+            .then(function (data) {
+                logger.verbose(`s3GetObjectPromise | Data Fetched: %j`, data, { type: 'aws_s3', s3_url: S3Url, bucket: bucketName, key: keyName, data, request_body: request, error: null });
+
+                fileData = data;
+
+            }).catch(function (err) {
+                error = err;
+                logger.verbose(`s3GetObjectPromise | Data Fetch Error `, { type: 'aws_s3', s3_url: S3Url, bucket: bucketName, key: keyName, request_body: request, error });
+            });
+
+        return [error, fileData];
+    };
+
     this.downloadS3Object = async (request, url) =>{       
         return new Promise((resolve)=>{
             var s3 = new AWS.S3();
@@ -1469,7 +1510,9 @@ function Util() {
     this.uploadReadableStreamToS3 = async (request, options, stream) => {
         const s3 = new AWS.S3();
         console.log('Uploading to S3...');
-        return s3.upload(options).promise();
+        return s3.upload(options).promise().catch((error) => {
+            logger.error(`uploadReadableStreamToS3 | Data Upload Error: `, { type: 'aws_s3', options, request_body: request, error });
+        });
     };
 
     this.zipTheFiles = async (request, files) =>{
