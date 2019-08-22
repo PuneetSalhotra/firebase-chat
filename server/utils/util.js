@@ -1059,9 +1059,15 @@ function Util() {
             "x-mailin-custom": "Grene Robotics"
         };
         sendSmtpEmail.tags = ["test"];
-        // sendSmtpEmail.attachment = [{
+        //sendSmtpEmail.attachment = [{
         //     "url": "https://i.imgur.com/Pf7zKgl.jpg"
-        // }]
+        //}];
+
+        if(request.attachment !== null) {
+            sendSmtpEmail.attachment = [{
+                "url": request.attachment
+            }];
+        }        
 
         apiInstance.sendTransacEmail(sendSmtpEmail)
             .then(function (data) {

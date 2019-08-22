@@ -780,6 +780,8 @@ function FormConfigService(objCollection) {
             console.log("[putLatestUpdateSeqId | widgets] arc_1: ", arc_1);
             console.log("[putLatestUpdateSeqId | widgets] arc_2: ", arc_2);
 
+            let workflowReference,documentReference,assetReference;
+
             forEachAsync(activityInlineData, (next, row) => {
                 var params = new Array(
                     request.form_transaction_id, //0
@@ -934,6 +936,22 @@ function FormConfigService(objCollection) {
                         break;
                     case 39: //Flag
                         params[11] = row.field_value;
+                        break;
+                        case 57: //Workflow reference
+                        workflowReference = row.field_value.split('|');
+                        params[13] = workflowReference[0]; //ID
+                        params[18] = workflowReference[1]; //Name
+                        break;
+                    case 58://Document reference
+                        documentReference = row.field_value.split('|');
+                        params[13] = documentReference[0]; //ID
+                        params[18] = documentReference[1]; //Name
+                        break;
+                    case 59: //Asset reference
+                        assetReference = row.field_value.split('|');
+                        params[13] = assetReference[0]; //ID
+                        params[18] = assetReference[1]; //Name
+                        break;
                 }
 
                 params.push(''); //IN p_device_manufacturer_name VARCHAR(50)

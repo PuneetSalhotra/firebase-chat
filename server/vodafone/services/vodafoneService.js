@@ -5863,6 +5863,44 @@ function VodafoneService(objectCollection) {
             }
         });
     }
+
+    this.searchWFBasedOnActivityType = async (request) => {
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.asset_id,
+            request.activity_type_id,
+            request.search_string,
+            request.flag_status,
+            request.flag_participating,            
+            request.page_start,
+            util.replaceQueryLimit(request.page_limit)
+        );
+        let queryString = util.getQueryString('ds_p1_activity_list_search_workflow_reference', paramsArr);
+        if (queryString != '') {
+            return await (db.executeQueryPromise(1, queryString, request));
+        }
+    };
+
+    this.searchDocBasedOnAttachmentType = async (request) => {
+        let paramsArr = new Array(
+            request.organization_id,
+            //request.account_id,
+            //request.workforce_id,
+            //request.asset_id,
+            request.activity_id,
+            request.attachment_type_id,
+            request.flag || 0,
+            request.search_string,            
+            request.page_start,
+            util.replaceQueryLimit(request.page_limit)
+        );
+        let queryString = util.getQueryString('ds_p1_activity_timeline_transaction_search_document_ref', paramsArr);
+        if (queryString != '') {
+            return await (db.executeQueryPromise(1, queryString, request));
+        }
+    };
 }
 
 
