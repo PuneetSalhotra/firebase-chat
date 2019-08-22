@@ -550,7 +550,7 @@ function BotService(objectCollection) {
             // Check for condition, if any
             let canPassthrough = true;
             try {
-                canPassthrough = await isBotOperationConditionTrue(request, botOperationsJson);
+                canPassthrough = await isBotOperationConditionTrue(request, botSteps);
             } catch (error) {
                 console.log("add_comment | isBotOperationConditionTrue | canPassthrough | Error: ", error);
             }
@@ -1013,7 +1013,7 @@ function BotService(objectCollection) {
         addCommentRequest.track_gps_datetime = util.getCurrentUTCTime();
         addCommentRequest.flag_timeline_entry = 1;
         addCommentRequest.log_asset_id = 100;
-        addCommentRequest.message_unique_id = 9273649187236491872364;
+        addCommentRequest.attachment_type_id = 17;
 
         const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
         try {
