@@ -322,10 +322,12 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityText2 = request.activity_timeline_collection;
                 break;
             case 704: // form: status alter
+            case 711: //alered the due date
             case 717: // Workflow: Percentage alter
                 entityTypeId = 0;
                 entityText2 = request.activity_timeline_collection;
                 activityTimelineCollection = request.activity_timeline_collection || '{}';
+                break;
             case 705: // form
             case 713:
             case 714:
@@ -542,6 +544,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityText2 = "";
                 break;
             case 704: // form: status alter
+            case 711: //alered the due date
             case 717: // Workflow: Percentage alter
                 entityTypeId = 0;
                 entityText2 = request.activity_timeline_collection;
@@ -648,6 +651,20 @@ function ActivityCommonService(db, util, forEachAsync) {
 
         //global.logger.write('debug', 'activityTimelineCollection : ', {}, request);
         //global.logger.write('debug', activityTimelineCollection, {}, request);        
+
+        // [QUICK FIX] 16th August 2019, Friday 08:51 PM - Ben
+        // 1506 is a Time Card stream type, however, un-diagnosed bug was causing this
+        // stream type to be added whenever a workflows due date (/r0/activity/cover/alter) 
+        // was being changed from web. This was also setting all the participants to have 
+        // to same last seen timestamp
+        if (
+            Number(streamTypeId) === 1506 &&
+            request.hasOwnProperty('activity_type_category_id') &&
+            Number(request.activity_type_category_id) !== 34
+        ) {
+            callback(false, false);
+            return;
+        }
 
         var paramsArr = new Array(
             request.activity_id,

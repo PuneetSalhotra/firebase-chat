@@ -102,6 +102,7 @@ const customFormatForConsole = winston.format.printf(({ level, type, message, ti
 logger.add(
     new winston.transports.Console({
         level: 'silly',
+        handleExceptions: true,
         format: winston.format.combine(
             winston.format.splat(),
             winston.format.timestamp(),

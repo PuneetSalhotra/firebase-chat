@@ -1,6 +1,13 @@
 /**
  * author Nani Kalyan V
  */
+const tracer = require('dd-trace').init({
+    service: `${process.env.mode}_desker_api`,
+    env: process.env.mode,
+    logInjection: true
+});
+const tracerScope = tracer.scope();
+const tracerFormats = require('dd-trace/ext/formats')
 
 require('../utils/globalConfig');
 require('../vodafone/utils/vodafoneConfig');
@@ -150,27 +157,69 @@ var Consumer = function () {
             request.partition = message.partition;
             request.offset = message.offset;
 
-            activityCommonService.checkingPartitionOffset(request, (err, data) => {
-                global.logger.write('conLog', 'err from checkingPartitionOffset : ' + err, {}, request);
-                if (err === false) {
-                    global.logger.write('conLog', 'Consuming the message', {}, request);
-                    activityCommonService.partitionOffsetInsert(request, (err, data) => {});
-                    
-                    consumingMsg(message, kafkaMsgId, objCollection).then(() => {                        
-                        if(Number(request.pubnub_push) === 1) {
-                            pubnubWrapper.publish(kafkaMsgId, {"status": 200});
-                        }
-                    }).catch((err)=>{
-                        if(Number(request.pubnub_push) === 1) {
-                            pubnubWrapper.publish(kafkaMsgId, {"status": err});
-                        }
-                    });
-                    
-                } else {
-                    global.logger.write('conLog', 'Before calling this duplicateMsgUniqueIdInsert', {}, request);
-                    activityCommonService.duplicateMsgUniqueIdInsert(request, (err, data) => {});
-                }
+            // [START] Tracer Span Extract-Inject Logic
+            // Get the Span Context sent by the Kafka producer
+            let logTraceHeaders = {};
+            try {
+                logTraceHeaders = messageJson['log_trace_headers'];
+                logger.silly('trace headers received at kafka consumer: %j', logTraceHeaders, {type: 'trace_span'});
+            } catch (error) {
+                logger.silly('[ERROR] trace headers received at kafka consumer: %j', logTraceHeaders, {type: 'trace_span'});
+            }
+            // Parent span, in this case is the span in which the Kafka producer sent the 
+            // message to the Kafka consumer here...
+            const kafkaProduceEventSpan = tracer.extract(tracerFormats.LOG, logTraceHeaders)
+            const span = tracer.startSpan('kafka_consumer', {
+                childOf: kafkaProduceEventSpan
+            })
+
+            tracerScope.activate(span, () => {
+
+                activityCommonService.checkingPartitionOffset(request, (err, data) => {
+                    global.logger.write('conLog', 'err from checkingPartitionOffset : ' + err, {}, request);
+                    if (err === false) {
+                        global.logger.write('conLog', 'Consuming the message', {}, request);
+                        activityCommonService.partitionOffsetInsert(request, (err, data) => {});
+                        consumingMsg(message, kafkaMsgId, objCollection).then(() => {
+                            if (Number(request.pubnub_push) === 1) {
+                                pubnubWrapper.publish(kafkaMsgId, { "status": 200 });
+                            }
+                        }).catch((err) => {
+                            if (Number(request.pubnub_push) === 1) {
+                                pubnubWrapper.publish(kafkaMsgId, { "status": err });
+                            }
+                        });
+
+                    } else {
+                        global.logger.write('conLog', 'Before calling this duplicateMsgUniqueIdInsert', {}, request);
+                        activityCommonService.duplicateMsgUniqueIdInsert(request, (err, data) => { });
+                    }
+                });
+                
             });
+            // [END] Tracer Span Extract-Inject Logic
+
+            // Backup
+            // activityCommonService.checkingPartitionOffset(request, (err, data) => {
+            //     global.logger.write('conLog', 'err from checkingPartitionOffset : ' + err, {}, request);
+            //     if (err === false) {
+            //         global.logger.write('conLog', 'Consuming the message', {}, request);
+            //         activityCommonService.partitionOffsetInsert(request, (err, data) => {});
+            //         consumingMsg(message, kafkaMsgId, objCollection).then(() => {                        
+            //             if(Number(request.pubnub_push) === 1) {
+            //                 pubnubWrapper.publish(kafkaMsgId, {"status": 200});
+            //             }
+            //         }).catch((err)=>{
+            //             if(Number(request.pubnub_push) === 1) {
+            //                 pubnubWrapper.publish(kafkaMsgId, {"status": err});
+            //             }
+            //         });
+                    
+            //     } else {
+            //         global.logger.write('conLog', 'Before calling this duplicateMsgUniqueIdInsert', {}, request);
+            //         activityCommonService.duplicateMsgUniqueIdInsert(request, (err, data) => {});
+            //     }
+            // });
         });
 
         consumer.on('connect', function (err, data) {
@@ -294,7 +343,7 @@ var Consumer = function () {
 
             //if(data < message.offset) { //I think this should be greater than to current offset                                
             // global.logger.write('debug', message.value, {}, JSON.parse(message.value)['payload']);
-            logger.debug(message.value, { type: 'kafka' });
+            logger.info(`${message.topic} ${message.key} | Kafka Consuming Message`, { type: 'kafka', ...message });
 
             try {
                 var messageJson = JSON.parse(message.value);

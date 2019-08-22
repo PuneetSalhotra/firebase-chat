@@ -721,69 +721,69 @@ function BotService(objectCollection) {
                     console.log('****************************************************************');
                     break;
                 
-                case 9: // add_attachment
-                    console.log('****************************************************************');
-                    console.log('add_attachment');
-                    console.log('add_attachment | Request Params received by BOT ENGINE', request);
-                    try {
-                        await addAttachment(request, botOperationsJson.bot_operations.add_attachment);
-                    } catch (err) {
-                        console.log('add_attachment  | Error', err);
-                        i.bot_operation_status_id = 2;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "err": err
-                        });
-                    }
-                    console.log('****************************************************************');
-                    break;
+                // case 9: // add_attachment
+                //     console.log('****************************************************************');
+                //     console.log('add_attachment');
+                //     console.log('add_attachment | Request Params received by BOT ENGINE', request);
+                //     try {
+                //         await addAttachment(request, botOperationsJson.bot_operations.add_attachment);
+                //     } catch (err) {
+                //         console.log('add_attachment  | Error', err);
+                //         i.bot_operation_status_id = 2;
+                //         i.bot_operation_inline_data = JSON.stringify({
+                //             "err": err
+                //         });
+                //     }
+                //     console.log('****************************************************************');
+                //     break;
                 
-                case 10: // add_attachment_with_attestation
-                    console.log('****************************************************************');
-                    console.log('add_attachment_with_attestation');
-                    console.log('add_attachment_with_attestation | Request Params received by BOT ENGINE', request);
-                    try {
-                        await addAttachmentWithAttestation(request, botOperationsJson.bot_operations.add_attachment_with_attestation);
-                    } catch (err) {
-                        console.log('add_attachment_with_attestation  | Error', err);
-                        i.bot_operation_status_id = 2;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "err": err
-                        });
-                    }
-                    console.log('****************************************************************');
-                    break;
+                // case 10: // add_attachment_with_attestation
+                //     console.log('****************************************************************');
+                //     console.log('add_attachment_with_attestation');
+                //     console.log('add_attachment_with_attestation | Request Params received by BOT ENGINE', request);
+                //     try {
+                //         await addAttachmentWithAttestation(request, botOperationsJson.bot_operations.add_attachment_with_attestation);
+                //     } catch (err) {
+                //         console.log('add_attachment_with_attestation  | Error', err);
+                //         i.bot_operation_status_id = 2;
+                //         i.bot_operation_inline_data = JSON.stringify({
+                //             "err": err
+                //         });
+                //     }
+                //     console.log('****************************************************************');
+                //     break;
                 
-                case 11: // add_form_as_pdf
-                    console.log('****************************************************************');
-                    console.log('add_form_as_pdf');
-                    console.log('add_form_as_pdf | Request Params received by BOT ENGINE', request);
-                    try {
-                        await addFormAsPdf(request, botOperationsJson.bot_operations.add_form_as_pdf);
-                    } catch (err) {
-                        console.log('add_form_as_pdf  | Error', err);
-                        i.bot_operation_status_id = 2;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "err": err
-                        });
-                    }
-                    console.log('****************************************************************');
-                    break;
+                // case 11: // add_form_as_pdf
+                //     console.log('****************************************************************');
+                //     console.log('add_form_as_pdf');
+                //     console.log('add_form_as_pdf | Request Params received by BOT ENGINE', request);
+                //     try {
+                //         await addFormAsPdf(request, botOperationsJson.bot_operations.add_form_as_pdf);
+                //     } catch (err) {
+                //         console.log('add_form_as_pdf  | Error', err);
+                //         i.bot_operation_status_id = 2;
+                //         i.bot_operation_inline_data = JSON.stringify({
+                //             "err": err
+                //         });
+                //     }
+                //     console.log('****************************************************************');
+                //     break;
                 
-                case 12: // add_pdf_from_html_template
-                    console.log('****************************************************************');
-                    console.log('add_pdf_from_html_template');
-                    console.log('add_pdf_from_html_template | Request Params received by BOT ENGINE', request);
-                    try {
-                        await addPdfFromHtmlTemplate(request, botOperationsJson.bot_operations.add_pdf_from_html_template);
-                    } catch (err) {
-                        console.log('add_pdf_from_html_template  | Error', err);
-                        i.bot_operation_status_id = 2;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "err": err
-                        });
-                    }
-                    console.log('****************************************************************');
-                    break;
+                // case 12: // add_pdf_from_html_template
+                //     console.log('****************************************************************');
+                //     console.log('add_pdf_from_html_template');
+                //     console.log('add_pdf_from_html_template | Request Params received by BOT ENGINE', request);
+                //     try {
+                //         await addPdfFromHtmlTemplate(request, botOperationsJson.bot_operations.add_pdf_from_html_template);
+                //     } catch (err) {
+                //         console.log('add_pdf_from_html_template  | Error', err);
+                //         i.bot_operation_status_id = 2;
+                //         i.bot_operation_inline_data = JSON.stringify({
+                //             "err": err
+                //         });
+                //     }
+                //     console.log('****************************************************************');
+                //     break;
             }
 
             //botOperationTxnInsert(request, i);
