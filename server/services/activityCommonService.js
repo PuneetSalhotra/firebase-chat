@@ -383,6 +383,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 activityTimelineCollection = request.activity_timeline_collection;
                 entityText1 = "";
                 entityText2 = request.activity_timeline_text;
+                request.entity_tinyint_2 = request.attachment_type_id || 0;
                 break;
             default:
                 entityTypeId = 0;
@@ -627,6 +628,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityText2 = request.activity_timeline_text;
                 entityText3 = attachmentNames;
                 request.entity_tinyint_1 = isAttachment;
+                request.entity_tinyint_2 = request.attachment_type_id || 0;
                 break;
             case 23002: // Telephone Module: Altered the status of the chat
             case 23003: // Telephone Module: Added an update to the chat
