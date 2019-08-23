@@ -1027,7 +1027,6 @@ function BotService(objectCollection) {
     //     // 
     //     let workflowActivityID = Number(request.workflow_activity_id) || 0,
     //         workflowActivityTypeID = 0;
-
     //     try {
     //         const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
     //         if (Number(workflowActivityData.length) > 0) {
