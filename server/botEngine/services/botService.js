@@ -550,7 +550,7 @@ function BotService(objectCollection) {
             // Check for condition, if any
             let canPassthrough = true;
             try {
-                canPassthrough = await isBotOperationConditionTrue(request, botOperationsJson);
+                canPassthrough = await isBotOperationConditionTrue(request, botSteps);
             } catch (error) {
                 console.log("add_comment | isBotOperationConditionTrue | canPassthrough | Error: ", error);
             }
@@ -769,21 +769,21 @@ function BotService(objectCollection) {
                 //     console.log('****************************************************************');
                 //     break;
                 
-                // case 12: // add_pdf_from_html_template
-                //     console.log('****************************************************************');
-                //     console.log('add_pdf_from_html_template');
-                //     console.log('add_pdf_from_html_template | Request Params received by BOT ENGINE', request);
-                //     try {
-                //         await addPdfFromHtmlTemplate(request, botOperationsJson.bot_operations.add_pdf_from_html_template);
-                //     } catch (err) {
-                //         console.log('add_pdf_from_html_template  | Error', err);
-                //         i.bot_operation_status_id = 2;
-                //         i.bot_operation_inline_data = JSON.stringify({
-                //             "err": err
-                //         });
-                //     }
-                //     console.log('****************************************************************');
-                //     break;
+                case 12: // form_pdf
+                    console.log('****************************************************************');
+                    console.log('form_pdf');
+                    console.log('form_pdf | Request Params received by BOT ENGINE', request);
+                    try {
+                        await addPdfFromHtmlTemplate(request, botOperationsJson.bot_operations.form_pdf);
+                    } catch (err) {
+                        console.log('form_pdf  | Error', err);
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "err": err
+                        });
+                    }
+                    console.log('****************************************************************');
+                    break;
             }
 
             //botOperationTxnInsert(request, i);
@@ -890,18 +890,19 @@ function BotService(objectCollection) {
         }
     }
 
+    this.helloWorld = async (request, templateData) => {
+        await addPdfFromHtmlTemplate(request, templateData);
+        return;
+    }
+
     async function addPdfFromHtmlTemplate(request, templateData) {
         let workflowActivityID = Number(request.workflow_activity_id) || 0,
             workflowActivityTypeID = 0;
 
-        console.log("addPdfFromHtmlTemplate | request: ", request);
-        console.log("addPdfFromHtmlTemplate | templateData: ", templateData);
-        // templateData = {
-        //     encoded_html_template: "PCFET0NUWVBFIGh0bWwgUFVCTElDICItLy9XM0MvL0RURCBYSFRNTCAxLjAgVHJhbnNpdGlvbmFsLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL1RSL3hodG1sMS9EVEQveGh0bWwxLXRyYW5zaXRpb25hbC5kdGQiPgogICAgICAgIDxodG1sIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIj4KICAgICAgICA8aGVhZD4KICAgICAgICA8bWV0YSBodHRwLWVxdWl2PSJDb250ZW50LVR5cGUiIGNvbnRlbnQ9InRleHQvaHRtbDsgY2hhcnNldD11dGYtOCIgLz4KICAgICAgICA8dGl0bGU+Q3VzdG9tZXIgUE88L3RpdGxlPgogICAgICAgIDwvaGVhZD4KICAgICAgICA8Ym9keT4KICAgICAgICAgICAgPGRpdj4KICAgICAgICAgICAgICAgIDxkaXYgc3R5bGU9Im1hcmdpbi1sZWZ0OiAxNTBweDttYXJnaW4tcmlnaHQ6MTUwcHg7Ij4KICAgICAgICAgICAgICAgICAgICAxLiBUaGlzIGlzIG9uZSA8cD57JDE1MzdfMTM5MTV9PC9wPgogICAgICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgICAgICAgICA8ZGl2IHN0eWxlPSJtYXJnaW4tbGVmdDogMTUwcHg7bWFyZ2luLXJpZ2h0OjE1MHB4OyI+CiAgICAgICAgICAgICAgICAgICAgMi4gR2VuZXJhbCBTaWduYXR1cmUgPGltZyBzcmM9InskMTUzOF8xMzkxOX0iIGFsdD0iIiBoZWlnaHQ9IjEwMCIgd2lkdGg9IjEwMCI+CiAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgIDxkaXYgc3R5bGU9Im1hcmdpbi1sZWZ0OiAxNTBweDttYXJnaW4tcmlnaHQ6MTUwcHg7Ij4KICAgICAgICAgICAgICAgICAgICAzLiBTaG9ydCBUZXh0IDxwPnskMTUzOV8xMzkyMH08L3A+CiAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgICAgIDxkaXYgc3R5bGU9Im1hcmdpbi1sZWZ0OiAxNTBweDttYXJnaW4tcmlnaHQ6MTUwcHg7Ij4KICAgICAgICAgICAgICAgICAgICA0LiBOdW1iZXIgPHA+eyQxNTM5XzEzOTIzfTwvcD4KICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgICAgPGRpdiBzdHlsZT0ibWFyZ2luLWxlZnQ6IDE1MHB4O21hcmdpbi1yaWdodDoxNTBweDsiPgogICAgICAgICAgICAgICAgICAgIDUuIE1BQyBBZGRyZXNzIDxwPnskMTUzOV8xMzk0NH08L3A+CiAgICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgPC9kaXY+CiAgICAgICAgPC9ib2R5PgogICAgICAgIDwvaHRtbD4="
-        // }
+        let [errOne, htmlTemplate] = await util.getFileDataFromS3Url(request, templateData.html_template_url);
+        htmlTemplate = Buffer.from(htmlTemplate.Body).toString('ascii');
 
-        let htmlTemplate = Buffer.from(templateData.encoded_html_template, 'base64').toString('ascii');
-        // 
+        console.log("htmlTemplate: ", htmlTemplate);
 
         try {
             const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
@@ -911,77 +912,61 @@ function BotService(objectCollection) {
         } catch (error) {
             throw new Error("addFormAsPdf | No Workflow Data Found in DB");
         }
-
+        
         if (workflowActivityID === 0 || workflowActivityTypeID === 0) {
             throw new Error("addFormAsPdf | Couldn't Fetch workflowActivityID or workflowActivityTypeID");
         }
-
-
-        let placeholderRegex = /\{\$([0-9]*?\_[0-9]*?)\}/g,
-            match,
-            placeholderMatches = new Map();
-
+        
+        
+        let placeholderRegex = /\{\$(\d*?)\}/g,
+        match,
+        placeholderMatches = new Map();
+        
         while (match = placeholderRegex.exec(htmlTemplate)) {
-            console.log("match[1]: ", match[1]);
+            // console.log("match[1]: ", match[1]);
             placeholderMatches.set(match[1], {});
         }
         console.log("placeholderMatches: ", placeholderMatches);
-
+        
         let formAndFormTxnIDMap = new Map(),
-            fieldDataMap = new Map();
+        fieldDataMap = new Map();
 
+        const formID = Number(templateData.form_id);
+        const formTimelineData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+            organization_id: request.organization_id,
+            account_id: request.account_id
+        }, workflowActivityID, formID);
+
+        let formDataCollection = JSON.parse(formTimelineData[0].data_entity_inline),
+            formFieldData = [],
+            formFieldDataMap = new Map();
+
+        if (Array.isArray(formDataCollection.form_submitted) === true || typeof formDataCollection.form_submitted === 'object') {
+            formFieldData = formDataCollection.form_submitted;
+        } else {
+            formFieldData = JSON.parse(formDataCollection.form_submitted);
+        }
+        for (const field of formFieldData) {
+            formFieldDataMap.set(Number(field.field_id), field);
+        }
+        // console.log("formFieldDataMap: ", formFieldDataMap);
+        
         for (const placeholder of placeholderMatches) {
-            const formID = Number(placeholder[0].split("_")[0]);
-            const fieldID = Number(placeholder[0].split("_")[1]);
-
-            // Get the form transaction ID
-            if (formAndFormTxnIDMap.has(formID)) {
-
-                console.log("Form ID Already Exists: ", formID, formAndFormTxnIDMap.get(formID))
-
-            } else {
-                const formTimelineData = await activityCommonService.getActivityTimelineTransactionByFormId713({
-                    organization_id: request.organization_id,
-                    account_id: request.account_id
-                }, workflowActivityID, formID);
-
-                if (Number(formTimelineData.length) > 0) {
-                    let formTransactionID = Number(formTimelineData[0].data_form_transaction_id);
-                    let formActivityID = Number(formTimelineData[0].data_activity_id);
-
-                    formAndFormTxnIDMap.set(formID, formTransactionID);
-                }
-            }
-
-            // Get the field value
-            const targetFieldData = await getFieldValue({
-                form_transaction_id: formAndFormTxnIDMap.get(formID),
+            // const formID = Number(placeholder[0].split("_")[0]);
+            const fieldID = Number(placeholder[0]);
+            console.log("fieldID: ", fieldID);
+            
+            placeholderMatches.set(fieldID, {
                 form_id: formID,
                 field_id: fieldID,
-                organization_id: request.organization_id
+                data_type_category_id: formFieldDataMap.get(fieldID).field_data_type_category_id,
+                field_value: formFieldDataMap.get(fieldID).field_value
             });
 
-            // console.log("targetFieldData: ", targetFieldData);
-            console.log("targetFieldData[0].data_entity_text_1: ", targetFieldData[0].data_entity_text_1);
-            if (
-                Number(targetFieldData.length) > 0
-            ) {
-                placeholderMatches.set(`${formID}_${fieldID}`, {
-                    form_id: formID,
-                    field_id: fieldID,
-                    data_type_category_id: Number(targetFieldData[0].data_type_category_id),
-                    field_value: targetFieldData[0].data_entity_text_1
-                })
-
-
-                // Replace the placeholders with values in the html template
-                htmlTemplate = String(htmlTemplate).replace(`{$${String(placeholder[0])}}`, targetFieldData[0].data_entity_text_1 || '');
-            }
-
+            // Replace the placeholders with values in the html template
+            htmlTemplate = String(htmlTemplate).replace(`{$${String(fieldID)}}`, formFieldDataMap.get(fieldID).field_value || '');
         }
 
-        console.log("formAndFormTxnIDMap: ", formAndFormTxnIDMap);
-        console.log("placeholderMatches: ", placeholderMatches);
         console.log("htmlTemplate: ", htmlTemplate);
 
         // Generate PDF readable stream
@@ -1001,6 +986,7 @@ function BotService(objectCollection) {
 
         let attachmentsList = [];
         attachmentsList.push(uploadDetails.Location);
+        logger.verbose(`uploadReadableStreamToS3 | Data Upload Success: %j: `, uploadDetails, { type: 'aws_s3', upload_details: uploadDetails, request_body: request, error: null });
 
         // 
         console.log("attachmentsList: ", attachmentsList);
@@ -1022,12 +1008,12 @@ function BotService(objectCollection) {
         addCommentRequest.timeline_stream_type_id = 325;
         addCommentRequest.activity_timeline_text = "";
         addCommentRequest.activity_access_role_id = 27;
-        // addCommentRequest.data_entity_inline
         addCommentRequest.operating_asset_first_name = "TONY"
         addCommentRequest.datetime_log = util.getCurrentUTCTime();
         addCommentRequest.track_gps_datetime = util.getCurrentUTCTime();
         addCommentRequest.flag_timeline_entry = 1;
         addCommentRequest.log_asset_id = 100;
+        addCommentRequest.attachment_type_id = 17;
 
         const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
         try {
@@ -1039,149 +1025,149 @@ function BotService(objectCollection) {
         return;
     }
 
-    async function addFormAsPdf(request, formDetails) {
-        // 
-        let workflowActivityID = Number(request.workflow_activity_id) || 0,
-            workflowActivityTypeID = 0;
+    // async function addFormAsPdf(request, formDetails) {
+    //     // 
+    //     let workflowActivityID = Number(request.workflow_activity_id) || 0,
+    //         workflowActivityTypeID = 0;
 
-        try {
-            const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
-            if (Number(workflowActivityData.length) > 0) {
-                workflowActivityTypeID = Number(workflowActivityData[0].activity_type_id);
-            }
-        } catch (error) {
-            throw new Error("addFormAsPdf | No Workflow Data Found in DB");
-        }
+    //     try {
+    //         const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
+    //         if (Number(workflowActivityData.length) > 0) {
+    //             workflowActivityTypeID = Number(workflowActivityData[0].activity_type_id);
+    //         }
+    //     } catch (error) {
+    //         throw new Error("addFormAsPdf | No Workflow Data Found in DB");
+    //     }
 
-        if (workflowActivityID === 0 || workflowActivityTypeID === 0) {
-            throw new Error("addFormAsPdf | Couldn't Fetch workflowActivityID or workflowActivityTypeID");
-        }
+    //     if (workflowActivityID === 0 || workflowActivityTypeID === 0) {
+    //         throw new Error("addFormAsPdf | Couldn't Fetch workflowActivityID or workflowActivityTypeID");
+    //     }
 
-        let attachmentsList = [];
-        // 
-        for (const formDetail of formDetails) {
-            const formID = Number(formDetail.form_id);
-            let formTransactionID = 0,
-                formActivityID = 0;
+    //     let attachmentsList = [];
+    //     // 
+    //     for (const formDetail of formDetails) {
+    //         const formID = Number(formDetail.form_id);
+    //         let formTransactionID = 0,
+    //             formActivityID = 0;
 
-            const formTimelineData = await activityCommonService.getActivityTimelineTransactionByFormId713({
-                organization_id: request.organization_id,
-                account_id: request.account_id
-            }, workflowActivityID, formID);
+    //         const formTimelineData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+    //             organization_id: request.organization_id,
+    //             account_id: request.account_id
+    //         }, workflowActivityID, formID);
 
-            let formInlineData = [], formEntries = [];
-            if (Number(formTimelineData.length) > 0) {
-                formTransactionID = Number(formTimelineData[0].data_form_transaction_id);
-                formActivityID = Number(formTimelineData[0].data_activity_id);
+    //         let formInlineData = [], formEntries = [];
+    //         if (Number(formTimelineData.length) > 0) {
+    //             formTransactionID = Number(formTimelineData[0].data_form_transaction_id);
+    //             formActivityID = Number(formTimelineData[0].data_activity_id);
 
-                formInlineData = JSON.parse(formTimelineData[0].data_entity_inline);
+    //             formInlineData = JSON.parse(formTimelineData[0].data_entity_inline);
 
-                if (Array.isArray(formInlineData.form_submitted) === true || typeof formInlineData.form_submitted === 'object') {
-                    formEntries = formInlineData.form_submitted;
+    //             if (Array.isArray(formInlineData.form_submitted) === true || typeof formInlineData.form_submitted === 'object') {
+    //                 formEntries = formInlineData.form_submitted;
 
-                } else {
-                    formEntries = JSON.parse(formInlineData.form_submitted);
+    //             } else {
+    //                 formEntries = JSON.parse(formInlineData.form_submitted);
 
-                }
-            }
+    //             }
+    //         }
 
-            if (
-                Number(formEntries.length) > 0
-            ) {
-                const htmlTemplate = await getHTMLTemplateForFormData(request, formEntries);
+    //         if (
+    //             Number(formEntries.length) > 0
+    //         ) {
+    //             const htmlTemplate = await getHTMLTemplateForFormData(request, formEntries);
 
-                // Generate PDF readable stream
-                const readableStream = await generatePDFreadableStream(request, htmlTemplate);
-                const bucketName = await util.getS3BucketName();
-                const prefixPath = await util.getS3PrefixPath(request);
-                console.log("bucketName: ", bucketName);
-                console.log("prefixPath: ", prefixPath);
+    //             // Generate PDF readable stream
+    //             const readableStream = await generatePDFreadableStream(request, htmlTemplate);
+    //             const bucketName = await util.getS3BucketName();
+    //             const prefixPath = await util.getS3PrefixPath(request);
+    //             console.log("bucketName: ", bucketName);
+    //             console.log("prefixPath: ", prefixPath);
 
-                const uploadDetails = await util.uploadReadableStreamToS3(request, {
-                    Bucket: bucketName || "demotelcoinc",
-                    Key: `${prefixPath}/${formActivityID}` + '_form_data.pdf',
-                    Body: readableStream,
-                    ContentType: 'application/pdf',
-                    ACL: 'public-read'
-                }, readableStream);
+    //             const uploadDetails = await util.uploadReadableStreamToS3(request, {
+    //                 Bucket: bucketName || "demotelcoinc",
+    //                 Key: `${prefixPath}/${formActivityID}` + '_form_data.pdf',
+    //                 Body: readableStream,
+    //                 ContentType: 'application/pdf',
+    //                 ACL: 'public-read'
+    //             }, readableStream);
 
-                attachmentsList.push(uploadDetails.Location);
+    //             attachmentsList.push(uploadDetails.Location);
 
-            } else {
-                continue;
-            }
+    //         } else {
+    //             continue;
+    //         }
 
-        }
-        // 
-        console.log("attachmentsList: ", attachmentsList);
+    //     }
+    //     // 
+    //     console.log("attachmentsList: ", attachmentsList);
 
-        let addCommentRequest = Object.assign(request, {});
+    //     let addCommentRequest = Object.assign(request, {});
 
-        addCommentRequest.asset_id = 100;
-        addCommentRequest.device_os_id = 7;
-        addCommentRequest.activity_type_category_id = 48;
-        addCommentRequest.activity_type_id = workflowActivityTypeID;
-        addCommentRequest.activity_id = workflowActivityID;
-        addCommentRequest.activity_timeline_collection = JSON.stringify({
-            "content": `Tony has added attachment(s).`,
-            "subject": `Tony has added attachment(s).`,
-            "mail_body": `Tony has added attachment(s).`,
-            "attachments": attachmentsList
-        });
-        addCommentRequest.activity_stream_type_id = 325;
-        addCommentRequest.timeline_stream_type_id = 325;
-        addCommentRequest.activity_timeline_text = "";
-        addCommentRequest.activity_access_role_id = 27;
-        // addCommentRequest.data_entity_inline
-        addCommentRequest.operating_asset_first_name = "TONY"
-        addCommentRequest.datetime_log = util.getCurrentUTCTime();
-        addCommentRequest.track_gps_datetime = util.getCurrentUTCTime();
-        addCommentRequest.flag_timeline_entry = 1;
-        addCommentRequest.log_asset_id = 100;
+    //     addCommentRequest.asset_id = 100;
+    //     addCommentRequest.device_os_id = 7;
+    //     addCommentRequest.activity_type_category_id = 48;
+    //     addCommentRequest.activity_type_id = workflowActivityTypeID;
+    //     addCommentRequest.activity_id = workflowActivityID;
+    //     addCommentRequest.activity_timeline_collection = JSON.stringify({
+    //         "content": `Tony has added attachment(s).`,
+    //         "subject": `Tony has added attachment(s).`,
+    //         "mail_body": `Tony has added attachment(s).`,
+    //         "attachments": attachmentsList
+    //     });
+    //     addCommentRequest.activity_stream_type_id = 325;
+    //     addCommentRequest.timeline_stream_type_id = 325;
+    //     addCommentRequest.activity_timeline_text = "";
+    //     addCommentRequest.activity_access_role_id = 27;
+    //     // addCommentRequest.data_entity_inline
+    //     addCommentRequest.operating_asset_first_name = "TONY"
+    //     addCommentRequest.datetime_log = util.getCurrentUTCTime();
+    //     addCommentRequest.track_gps_datetime = util.getCurrentUTCTime();
+    //     addCommentRequest.flag_timeline_entry = 1;
+    //     addCommentRequest.log_asset_id = 100;
 
-        const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
-        try {
-            await addTimelineTransactionAsync(addCommentRequest);
-        } catch (error) {
-            console.log("addFormAsPdf | addCommentRequest | addTimelineTransactionAsync | Error: ", error);
-            throw new Error(error);
-        }
-        return;
-    }
+    //     const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
+    //     try {
+    //         await addTimelineTransactionAsync(addCommentRequest);
+    //     } catch (error) {
+    //         console.log("addFormAsPdf | addCommentRequest | addTimelineTransactionAsync | Error: ", error);
+    //         throw new Error(error);
+    //     }
+    //     return;
+    // }
 
-    async function getHTMLTemplateForFormData(request, formEntries) {
+    // async function getHTMLTemplateForFormData(request, formEntries) {
 
-        let formDataHTML = '';
+    //     let formDataHTML = '';
 
-        for (const formEntry of formEntries) {
-            console.log(`addFormAsPdf | getHTMLTemplateForFormData | Field Name: ${formEntry.field_name} | Field Value: ${formEntry.field_value}`);
+    //     for (const formEntry of formEntries) {
+    //         console.log(`addFormAsPdf | getHTMLTemplateForFormData | Field Name: ${formEntry.field_name} | Field Value: ${formEntry.field_value}`);
             
-            formDataHTML += `
-            <tr>
-                <td>${formEntry.field_name}</td>
-                <td>${formEntry.field_value}</td>
-            </tr>
-            `;
-        }
+    //         formDataHTML += `
+    //         <tr>
+    //             <td>${formEntry.field_name}</td>
+    //             <td>${formEntry.field_value}</td>
+    //         </tr>
+    //         `;
+    //     }
 
-        let htmlTemplate = `
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <meta http-equiv="X-UA-Compatible" content="ie=edge">
-            <title>Form Data</title>
-        </head>
-        <body>
-            <table>
-                ${formDataHTML}
-            </table>
-        </body>
-        </html>
-        `;
-        return htmlTemplate;
-    }
+    //     let htmlTemplate = `
+    //     <!DOCTYPE html>
+    //     <html lang="en">
+    //     <head>
+    //         <meta charset="UTF-8">
+    //         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    //         <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    //         <title>Form Data</title>
+    //     </head>
+    //     <body>
+    //         <table>
+    //             ${formDataHTML}
+    //         </table>
+    //     </body>
+    //     </html>
+    //     `;
+    //     return htmlTemplate;
+    // }
 
     async function addComment(request, comments) {
 

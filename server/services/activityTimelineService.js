@@ -2049,6 +2049,8 @@ function ActivityTimelineService(objectCollection) {
 
         console.log('formDataJson : ', formDataJson);
 
+        let workflowReference,documentReference,assetReference;
+
         var approvalFields = new Array();
         forEachAsync(formDataJson, function (next, row) {
             if (row.hasOwnProperty('data_type_combo_id')) {
@@ -2221,6 +2223,22 @@ function ActivityTimelineService(objectCollection) {
                     break;
                 case 39: //Flag
                     params[11] = row.field_value;
+                    break;
+                case 57: //Workflow reference
+                    workflowReference = row.field_value.split('|');
+                    params[13] = workflowReference[0]; //ID
+                    params[18] = workflowReference[1]; //Name
+                    break;
+                case 58://Document reference
+                    documentReference = row.field_value.split('|');
+                    params[13] = documentReference[0]; //ID
+                    params[18] = documentReference[1]; //Name
+                    break;
+                case 59: //Asset reference
+                    assetReference = row.field_value.split('|');
+                    params[13] = assetReference[0]; //ID
+                    params[18] = assetReference[1]; //Name
+                    break;
             }
 
 

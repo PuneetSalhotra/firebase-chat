@@ -2530,6 +2530,7 @@ function AdminOpsService(objectCollection) {
                 idCardActivityID = idCardData[0].activity_id;
 
                 let idCardActivityInlineData = JSON.parse(idCardData[0].activity_inline_data);
+                idCardActivityInlineData.employee_department = newWorkforceName;
                 idCardActivityInlineData.workforce_name = newWorkforceName;
                 idCardActivityInlineData.employee_workforce_id = newWorkforceID;
 
