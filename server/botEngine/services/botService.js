@@ -1011,6 +1011,7 @@ function BotService(objectCollection) {
         addCommentRequest.flag_timeline_entry = 1;
         addCommentRequest.log_asset_id = 100;
         addCommentRequest.attachment_type_id = 17;
+        addCommentRequest.attachment_type_name = path.basename(attachmentsList[0]);
 
         const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
         try {
