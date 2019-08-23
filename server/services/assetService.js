@@ -4083,7 +4083,7 @@ function AssetService(objectCollection) {
             request.page_start,
             util.replaceQueryLimit(request.page_limit)
         );
-        let queryString = util.getQueryString('ds_p1_activity_timeline_transaction_search_document_ref', paramsArr);
+        let queryString = util.getQueryString('ds_p1_asset_list_search_asset_reference', paramsArr);
         if (queryString != '') {
             return await (db.executeQueryPromise(1, queryString, request));
         }
