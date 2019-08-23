@@ -33,6 +33,8 @@ function BotService(objectCollection) {
     const nodeUtil = require('util');
 
     const pdf = require('html-pdf');
+
+    const path = require('path');
     /*
     //Generic function for firing stored procedures
     //Bharat Masimukku
@@ -890,11 +892,6 @@ function BotService(objectCollection) {
         }
     }
 
-    this.helloWorld = async (request, templateData) => {
-        await addPdfFromHtmlTemplate(request, templateData);
-        return;
-    }
-
     async function addPdfFromHtmlTemplate(request, templateData) {
         let workflowActivityID = Number(request.workflow_activity_id) || 0,
             workflowActivityTypeID = 0;
@@ -1014,6 +1011,7 @@ function BotService(objectCollection) {
         addCommentRequest.flag_timeline_entry = 1;
         addCommentRequest.log_asset_id = 100;
         addCommentRequest.attachment_type_id = 17;
+        addCommentRequest.attachment_type_name = path.basename(attachmentsList[0]);
 
         const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
         try {
@@ -2095,6 +2093,53 @@ function BotService(objectCollection) {
             resp = await getFieldValue(newReq);
             newReq.email_id = resp[0].data_entity_text_1;
         }
+
+        let attachmentsList = [], attachmentURL = '';
+        if (
+            inlineData[type[0]].hasOwnProperty("attatchments") &&
+            inlineData[type[0]].attatchments.length > 0
+        ) {
+            for (const attachment of inlineData[type[0]].attatchments) {
+                const formID = Number(attachment.attachment_form_id);
+                const fieldID = Number(attachment.attachment_field_id);
+                try {
+                    let formData = await activityCommonService.getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, formID);
+                    if (formData.length > 0) {
+                        const activityId = formData[0].data_activity_id;
+                        const formTransactionId = formData[0].data_form_transaction_id;
+    
+                        let fieldData = await getFieldValue({
+                            form_transaction_id: formTransactionId,
+                            form_id: formID,
+                            field_id: fieldID,
+                            organization_id: request.organization_id
+                        });
+                        if (
+                            fieldData[0].data_entity_text_1 !== '' &&
+                            fieldData[0].data_entity_text_1 !== 'null' &&
+                            fieldData[0].data_entity_text_1 !== null
+                        ) {
+                            // attachmentsList.push(fieldData[0].data_entity_text_1);
+                            attachmentURL = fieldData[0].data_entity_text_1;
+
+                            let [errOne, attachmentFile] = await util.getFileDataFromS3Url(request, attachmentURL);
+                            base64EncodedAttachmentFile = Buffer.from(attachmentFile.Body).toString('base64');
+                            attachmentsList.push({
+                                content: base64EncodedAttachmentFile,
+                                name: path.basename(attachmentURL)
+                            })
+                        }
+                    } else {
+                        // Ignore
+                    }
+                } catch (error) {
+                    console.log("Error fetching attachment value: ", error)
+                }
+            }
+        }
+        // console.log(attachmentsList);
+        newReq.bot_operation_email_attachment = attachmentsList;
+
 
         let dbResp = await getCommTemplates(newReq);
         let retrievedCommInlineData = JSON.parse(dbResp[0].communication_inline_data);
