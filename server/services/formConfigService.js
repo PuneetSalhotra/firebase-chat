@@ -536,6 +536,7 @@ function FormConfigService(objCollection) {
                             request.update_sequence_id = 1;
                         }
 
+                        activityInlineData[0].old_field_value = oldFieldValue;
                         await putLatestUpdateSeqId(request, activityInlineData, retrievedInlineData).then(() => {
 
                             
@@ -739,8 +740,8 @@ function FormConfigService(objCollection) {
     }
 
     function putLatestUpdateSeqId(request, activityInlineData, completeInlineData = []) {
-        return new Promise((resolve, reject) => {
-
+        console.log('Activity Inline Data : ', activityInlineData);
+        return new Promise(async (resolve, reject) => {
             const widgetFieldsStatusesData = util.widgetFieldsStatusesData();
             let poFields = widgetFieldsStatusesData.PO_FIELDS; //new Array(13263, 13269, 13265, 13268, 13271);
             let orderValueFields = widgetFieldsStatusesData.TOTAL_ORDER_VALUE_IDS; //new Array(7200, 8565, 8817, 9667, 9941, 10207, 12069, 12610)
@@ -1031,20 +1032,18 @@ function FormConfigService(objCollection) {
                                         if(Number(workflowData[0].activity_type_id) === 134564 || //MPLS CRF
                                             Number(workflowData[0].activity_type_id) === 134566 || //ILL CRF
                                             Number(workflowData[0].activity_type_id) === 134573 || //NPLC CRF
-                                            Number(workflowData[0].activity_type_id) === 134575) { 
+                                            Number(workflowData[0].activity_type_id) === 134575) { //FLV CRF                                            
                                             
                                             (Number(arc_1) > Number(arc_2)) ?
                                                 finalValue = Number(otc_1) +(Number(arc_1) - Number(arc_2)) :
                                                 finalValue = Number(otc_1);
-                                        }
 
-                                        await activityCommonService.analyticsUpdateWidgetValue(request, workflowData[0].activity_id, 0, finalValue);
-//
-                                        //workflowData[0].activity_workflow_value_1; 
-                                        //workflowData[0].activity_workflow_value_2; //oct1
-                                        //workflowData[0].activity_workflow_value_3; //arc1
-                                        //workflowData[0].activity_workflow_value_4; 
-                                        //workflowData[0].activity_workflow_value_5; 
+                                                await activityCommonService.analyticsUpdateWidgetValue(request, workflowData[0].activity_id, 0, finalValue);
+                                        } else {
+                                            setTimeout(()=>{
+                                                updateWFTotalOrderValueinActList(request, workflowData[0].activity_id);
+                                            },2000);
+                                        }
 
                                         idWorkflow = workflowData[0].activity_id;
                                         idWorkflowType = workflowData[0].activity_sub_type_id;
@@ -1100,6 +1099,24 @@ function FormConfigService(objCollection) {
         });
     }
 
+    async function updateWFTotalOrderValueinActList(request, workflowActID) {
+        let finalValueOfCAF;
+            try{
+                let activityDataResp = await activityCommonService.getActivityDetailsPromise(request, workflowActID);
+                console.log('activityDataResp:', activityDataResp);
+                if (activityDataResp.length > 0) {
+                    finalValueOfCAF = Number(activityDataResp[0].activity_workflow_value_1) +
+                                      Number(activityDataResp[0].activity_workflow_value_2) +
+                                      Number(activityDataResp[0].activity_workflow_value_3) +
+                                      Number(activityDataResp[0].activity_workflow_value_4) +
+                                      Number(activityDataResp[0].activity_workflow_value_5);
+                }                
+                console.log('FINAL VALUE OF CAF : ', finalValueOfCAF);
+                await activityCommonService.analyticsUpdateWidgetValue(request, workflowActID, 0, finalValueOfCAF);
+            }catch(err){
+                console.log('ERROR : ', err);
+            }
+    }
 
     this.getFormFieldComboValues = function (request) {
         return new Promise((resolve, reject) => {
