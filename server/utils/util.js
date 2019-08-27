@@ -1067,7 +1067,14 @@ function Util() {
             sendSmtpEmail.attachment = [{
                 "url": request.attachment
             }];
-        }        
+        }
+        
+        if(
+            request.hasOwnProperty("bot_operation_email_attachment") &&
+            request.bot_operation_email_attachment.length > 0
+        ) {
+            sendSmtpEmail.attachment = request.bot_operation_email_attachment;
+        }
 
         apiInstance.sendTransacEmail(sendSmtpEmail)
             .then(function (data) {
