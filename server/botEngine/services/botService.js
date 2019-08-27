@@ -552,7 +552,7 @@ function BotService(objectCollection) {
             // Check for condition, if any
             let canPassthrough = true;
             try {
-                canPassthrough = await isBotOperationConditionTrue(request, botSteps);
+                canPassthrough = await isBotOperationConditionTrue(request, botOperationsJson.bot_operations);
             } catch (error) {
                 console.log("add_comment | isBotOperationConditionTrue | canPassthrough | Error: ", error);
             }
