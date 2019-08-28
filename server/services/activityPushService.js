@@ -10,6 +10,9 @@ function ActivityPushService(objectCollection) {
     const cacheWrapper = objectCollection.cacheWrapper;
     const activityCommonService = objectCollection.activityCommonService;
 
+    const AwsSns = require('../utils/snsWrapper');
+    const sns = new AwsSns();
+
     var getPushString = function (request, objectCollection, senderName, callback) {
         var pushString = {};
         var extraData = {};
@@ -511,7 +514,25 @@ function ActivityPushService(objectCollection) {
                                 break;
                             case '/' + global.config.version + '/engine/bot/init':
                                 // 22nd July 2019 08:54 PM IST: DO NOT SEND push to Android or iOS
-                                pushString = {};
+                                // 28th August 2019 11:52 AM IST: Send push for select bot operations for live updates load
+
+                                switch (Number(request.activity_stream_type_id)) {
+                                    case 717: // Workflow Percentage Updated
+                                        pushString.title = activityTitle;
+                                        pushString.subtitle = request.push_message || 'Workflow percentage updated';
+                                        pushString.body = senderName;
+                                        break;
+                                
+                                    case 704: // Alter the status of the Form Activity
+                                        pushString.title = activityTitle;
+                                        pushString.subtitle = request.push_message || 'Workflow status altered';
+                                        pushString.body = senderName;
+                                        break;
+                                
+                                    default:
+                                        pushString = {};
+                                        break;
+                                }
                                 break;
 
                             default:
@@ -731,7 +752,13 @@ function ActivityPushService(objectCollection) {
                                                 try {
                                                     objectCollection.sns.publish(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn);
                                                 } catch (error) {
-                                                    console.log("activityPushService.js | sendPush | objectCollection.sns.publish | Error: ", error);
+                                                    console.log("activityPushService | sendPush | objectCollection.sns.publish | Error: ", error);
+                                                    try {
+                                                        sns.publish(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn);
+                                                    } catch (snsError) {
+                                                        console.log("activityPushService | sendPush | sns.publish | Error: ", snsError);
+                                                        
+                                                    }
                                                 }
                                                 if (pubnubMsg.activity_type_category_id != 0) {
                                                     pubnubMsg.organization_id = rowData.organizationId;
