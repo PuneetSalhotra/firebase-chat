@@ -981,7 +981,7 @@ function BotService(objectCollection) {
             Key: `${prefixPath}/${workflowActivityID}` + '_html_template.pdf',
             Body: readableStream,
             ContentType: 'application/pdf',
-            ACL: 'public-read'
+            // ACL: 'public-read'
         }, readableStream);
 
         let attachmentsList = [];
@@ -1191,10 +1191,6 @@ function BotService(objectCollection) {
             let addCommentRequest = Object.assign(request, {});
 
             addCommentRequest.asset_id = 100;
-            // addCommentRequest.flag_pin = 0;
-            // addCommentRequest.flag_priority = 0;
-            // addCommentRequest.flag_offline = 0;
-            // addCommentRequest.flag_retry = 0;
             addCommentRequest.device_os_id = 7;
             addCommentRequest.activity_type_category_id = 48;
             addCommentRequest.activity_type_id = workflowActivityTypeID;
@@ -1214,6 +1210,11 @@ function BotService(objectCollection) {
             addCommentRequest.datetime_log = util.getCurrentUTCTime();
             addCommentRequest.flag_timeline_entry = 1;
             addCommentRequest.log_asset_id = 100;
+
+            // Send push notification to mobile devices for live loading of the updates 
+            addCommentRequest.activity_stream_type_id = 325;
+            addCommentRequest.bot_operation_type = 'add_comment';
+            addCommentRequest.push_message = `${comment.comment}`;
 
             const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
             try {
