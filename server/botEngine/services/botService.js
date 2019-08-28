@@ -18,6 +18,9 @@ function BotService(objectCollection) {
     const cacheWrapper = objectCollection.cacheWrapper;
     const queueWrapper = objectCollection.queueWrapper;
     //const activityPushService = objectCollection.activityPushService;
+    
+    const ActivityPushService = require('../../services/activityPushService');
+    const activityPushService = new ActivityPushService(objectCollection);
 
     const util = objectCollection.util;
     const db = objectCollection.db;
@@ -554,7 +557,7 @@ function BotService(objectCollection) {
             try {
                 canPassthrough = await isBotOperationConditionTrue(request, botOperationsJson.bot_operations);
             } catch (error) {
-                console.log("add_comment | isBotOperationConditionTrue | canPassthrough | Error: ", error);
+                console.log("canPassthrough | isBotOperationConditionTrue | canPassthrough | Error: ", error);
             }
             if (!canPassthrough) {
                 console.log("The bot operation condition failed, so the bot operation will not be executed.");
@@ -1491,7 +1494,7 @@ function BotService(objectCollection) {
             "format": 'A4',
             "border": {
                 "top": "0.5in", // default is 0, units: mm, cm, in, px
-                // "right": "0.5in",
+                "right": "0.5in",
                 "bottom": "0.5in",
                 "left": "0.25in"
             }
@@ -1603,6 +1606,11 @@ function BotService(objectCollection) {
             });
 
             newReq.activity_status_type_id = statusName[0].activity_status_type_id;
+
+            // Send push notification to mobile devices for live loading of the updates 
+            newReq.activity_stream_type_id = 704;
+            newReq.bot_operation_type = 'status_alter';
+            newReq.push_message = `Status updated to '${statusName[0].activity_status_name || ""}'`;
         }
 
         //console.log('statusName newReq ########################## : ', statusName);
@@ -2691,6 +2699,12 @@ function BotService(objectCollection) {
                     });
                     workflowTimelineUpdateRequest.log_asset_id = 100; // Tony
                     await activityCommonService.asyncActivityTimelineTransactionInsert(workflowTimelineUpdateRequest, {}, 717);
+
+                    // Send push notification to mobile devices for live loading of the updates 
+                    workflowTimelineUpdateRequest.activity_stream_type_id = 717;
+                    workflowTimelineUpdateRequest.bot_operation_type = 'workflow_percentage_alter';
+                    workflowTimelineUpdateRequest.push_message = `Workflow percentage updated to ${wfCompletionPercentage}%`;
+                    activityPushService.sendPush(workflowTimelineUpdateRequest, objectCollection, 0, function () {});
                 } catch (error) {
                     console.log("Bot Engine | alterWFCompletionPercentage | asyncActivityTimelineTransactionInsert | Error: ", error)
                 }
