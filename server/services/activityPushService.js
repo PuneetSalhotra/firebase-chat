@@ -518,14 +518,26 @@ function ActivityPushService(objectCollection) {
 
                                 switch (Number(request.activity_stream_type_id)) {
                                     case 717: // Workflow Percentage Updated
+                                        pushString.description = `${request.push_message || 'Workflow percentage updated'} - ${senderName}`;
+
                                         pushString.title = activityTitle;
                                         pushString.subtitle = request.push_message || 'Workflow percentage updated';
                                         pushString.body = senderName;
                                         break;
                                 
                                     case 704: // Alter the status of the Form Activity
+                                        pushString.description = `${request.push_message || 'Workflow status altered'} - ${senderName}`;
+
                                         pushString.title = activityTitle;
                                         pushString.subtitle = request.push_message || 'Workflow status altered';
+                                        pushString.body = senderName;
+                                        break;
+                                
+                                    case 325: // Add Collection to the file
+                                        pushString.description = `${request.push_message || 'Added comment to workflow'} - ${senderName}`;
+
+                                        pushString.title = activityTitle;
+                                        pushString.subtitle = request.push_message || 'Added comment to workflow';
                                         pushString.body = senderName;
                                         break;
                                 
