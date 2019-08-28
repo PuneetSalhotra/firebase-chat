@@ -1579,7 +1579,7 @@ function BotService(objectCollection) {
         }
     }
 
-    //Bot Step to change the status
+    // Bot Step to change the status
     async function changeStatus(request, inlineData) {
         let newReq = Object.assign({}, request);
         global.logger.write('conLog', inlineData, {}, {});
@@ -1591,6 +1591,7 @@ function BotService(objectCollection) {
         newReq.message_unique_id = util.getMessageUniqueId(request.asset_id);
         newReq.device_os_id = 9;
         newReq.log_asset_id = 100; // Tony
+        newReq.asset_id = 100; // Tony
 
         const statusName = await getStatusName(newReq, inlineData.activity_status_id);
         if (Number(statusName.length) > 0) {
@@ -1611,7 +1612,7 @@ function BotService(objectCollection) {
             // Send push notification to mobile devices for live loading of the updates 
             newReq.activity_stream_type_id = 704;
             newReq.bot_operation_type = 'status_alter';
-            newReq.push_message = `Status updated to '${statusName[0].activity_status_name || ""}'`;
+            newReq.push_message = `Status updated to ${statusName[0].activity_status_name || ""}`;
         }
 
         //console.log('statusName newReq ########################## : ', statusName);
@@ -2698,6 +2699,7 @@ function BotService(objectCollection) {
                         "mail_body": `Workflow percentage updated to ${wfCompletionPercentage}%`,
                         "subject": `Workflow percentage updated to ${wfCompletionPercentage}%`
                     });
+                    workflowTimelineUpdateRequest.asset_id = 100; // Tony
                     workflowTimelineUpdateRequest.log_asset_id = 100; // Tony
                     await activityCommonService.asyncActivityTimelineTransactionInsert(workflowTimelineUpdateRequest, {}, 717);
 
