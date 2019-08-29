@@ -1063,7 +1063,10 @@ function Util() {
         //     "url": "https://i.imgur.com/Pf7zKgl.jpg"
         //}];
 
-        if(request.attachment !== null) {
+        if(
+            request.hasOwnProperty("attachment") &&
+            request.attachment !== null
+        ) {
             sendSmtpEmail.attachment = [{
                 "url": request.attachment
             }];
@@ -1078,7 +1081,7 @@ function Util() {
 
         apiInstance.sendTransacEmail(sendSmtpEmail)
             .then(function (data) {
-                logger.error(`Email Sent To ${email}`, { type: 'email', request_body: request, response: data, error: null });
+                logger.info(`Email Sent To ${email}: %j`, data, { type: 'email', request_body: request, response: data, error: null });
                 // console.log('API called successfully. Returned data: ', data);
                 return callback(false, data);
             }, function (error) {
@@ -1116,7 +1119,7 @@ function Util() {
 
         apiInstance.sendTransacEmail(sendSmtpEmail)
             .then(function (data) {
-                logger.error(`Email Sent To ${email}`, { type: 'email', request_body: request, response: data, error: null });
+                logger.info(`Email Sent To ${email}`, { type: 'email', request_body: request, response: data, error: null });
                 // console.log('API called successfully. Returned data: ', data);
                 return callback(false, data);
             }, function (error) {
