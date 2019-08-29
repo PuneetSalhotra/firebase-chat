@@ -2381,6 +2381,9 @@ function BotService(objectCollection) {
         if (global.mode === 'prod') {
             urlStrFill = "https://officedesk.app/#/forms/entry/" + base64Json;
         }
+        if (global.mode === 'preprod') {
+            urlStrFill = "https://preprod.officedesk.app/#/forms/entry/" + base64Json;
+        }
 
         const buttonName = formAction.call_to_action_label;
         const actionLink = `<a style='background: #f47920;display: inline-block;color: #FFFFFF;text-decoration: none;font-size: 12px;margin-top: 1.0em;background-clip: padding-box;padding: 5px 15px;box-shadow: 4px 4px 6px 1px #cbcbcb;margin-left:10px' target='_blank' href='${urlStrFill}'>${buttonName}</a> `;
