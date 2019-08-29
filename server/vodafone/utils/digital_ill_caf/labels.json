@@ -217,16 +217,5 @@
         "data_type_combo_value": "",
         "field_value": "Customer declaration:",
         "message_unique_id": 1111222233334444
-    },
-    {
-        "form_id": 1119,
-        "field_id": 8865,
-        "field_name": "I/We hereby declare that I/We have read, being explained in regional language, verbatim understood and accepted the terms and conditions mentioned in this CAF and thereupon. I am/We are signing this CAF and subscribing to the Services of VIL. V/We declare that I/We shall abide by and be bound to the terms and conditions mentioned herein above without any breach, violation, misuse or default.",
-        "field_data_type_id": 21,
-        "field_data_type_category_id": 8,
-        "data_type_combo_id": 0,
-        "data_type_combo_value": "",
-        "field_value": "I/We hereby declare that I/We have read, being explained in regional language, verbatim understood and accepted the terms and conditions mentioned in this CAF and thereupon. I am/We are signing this CAF and subscribing to the Services of VIL. V/We declare that I/We shall abide by and be bound to the terms and conditions mentioned herein above without any breach, violation, misuse or default.",
-        "message_unique_id": 1111222233334444
     }
 ]
