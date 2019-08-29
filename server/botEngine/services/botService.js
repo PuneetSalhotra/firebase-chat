@@ -2377,9 +2377,12 @@ function BotService(objectCollection) {
         }
 
         const base64Json = Buffer.from(JSON.stringify(JsonData)).toString('base64');
-        let urlStrFill = "https://staging.officedesk.app/#/forms/view/" + base64Json;
+        let urlStrFill = "https://staging.officedesk.app/#/forms/entry/" + base64Json;
         if (global.mode === 'prod') {
-            urlStrFill = "https://officedesk.app/#/forms/view/" + base64Json;
+            urlStrFill = "https://officedesk.app/#/forms/entry/" + base64Json;
+        }
+        if (global.mode === 'preprod') {
+            urlStrFill = "https://preprod.officedesk.app/#/forms/entry/" + base64Json;
         }
 
         const buttonName = formAction.call_to_action_label;
