@@ -734,6 +734,18 @@ function AccountService(objectCollection) {
 
     };
 
-};
+    this.fetchCredentials = async function (request) {
+        let paramsArr = new Array(
+            request.device_os_id,
+            request.access_key_type_id,
+            util.getCurrentUTCTime()
+        );
+        let queryString = util.getQueryString('ds_p1_access_key_master_select', paramsArr);
+        if (queryString != '') {
+            return await (db.executeQueryPromise(1, queryString, request));
+        }        
+    };
+
+}
 
 module.exports = AccountService;

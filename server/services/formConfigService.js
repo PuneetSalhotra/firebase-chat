@@ -944,9 +944,8 @@ function FormConfigService(objCollection) {
                         params[18] = workflowReference[1]; //Name
                         break;
                     case 58://Document reference
-                        documentReference = row.field_value.split('|');
-                        params[13] = documentReference[0]; //ID
-                        params[18] = documentReference[1]; //Name
+                        // documentReference = row.field_value.split('|');
+                        params[18] = row.field_value;
                         break;
                     case 59: //Asset reference
                         assetReference = row.field_value.split('|');

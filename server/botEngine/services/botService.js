@@ -967,6 +967,12 @@ function BotService(objectCollection) {
             htmlTemplate = String(htmlTemplate).replace(`{$${String(fieldID)}}`, formFieldDataMap.get(fieldID).field_value || '');
         }
 
+        // Other miscellaneous placeholders
+        // 1. {$currentDatetime}
+        if (String(htmlTemplate).includes("{$currentDatetime}")) {
+            htmlTemplate = String(htmlTemplate).replace(/{\$currentDatetime}/g, moment().utcOffset("+05:30").format("YYYY/MM/DD hh:mm A"));
+        }
+
         console.log("htmlTemplate: ", htmlTemplate);
 
         // Generate PDF readable stream
@@ -978,7 +984,7 @@ function BotService(objectCollection) {
 
         const uploadDetails = await util.uploadReadableStreamToS3(request, {
             Bucket: bucketName || "demotelcoinc",
-            Key: `${prefixPath}/${workflowActivityID}` + '_html_template.pdf',
+            Key: `${prefixPath}/${workflowActivityID}` + `_${moment().utcOffset("+05:30").format("YYYYMMDD_hhmmA")}_` + 'proposal.pdf',
             Body: readableStream,
             ContentType: 'application/pdf',
             // ACL: 'public-read'
@@ -1495,7 +1501,7 @@ function BotService(objectCollection) {
             "format": 'A4',
             "border": {
                 "top": "0.5in", // default is 0, units: mm, cm, in, px
-                "right": "0.5in",
+                // "right": "0.5in",
                 "bottom": "0.5in",
                 "left": "0.25in"
             }
@@ -2099,16 +2105,17 @@ function BotService(objectCollection) {
             //request.email_sender = 'OMT.IN1@vodafoneidea.com'; 
             //request.email_sender_name = 'Vodafoneidea';
 
+            await sleep(4000);
             resp = await getFieldValue(newReq);
             newReq.email_id = resp[0].data_entity_text_1;
         }
 
         let attachmentsList = [], attachmentURL = '';
         if (
-            inlineData[type[0]].hasOwnProperty("attatchments") &&
-            inlineData[type[0]].attatchments.length > 0
+            inlineData[type[0]].hasOwnProperty("attachments") &&
+            inlineData[type[0]].attachments.length > 0
         ) {
-            for (const attachment of inlineData[type[0]].attatchments) {
+            for (const attachment of inlineData[type[0]].attachments) {
                 const formID = Number(attachment.attachment_form_id);
                 const fieldID = Number(attachment.attachment_field_id);
                 try {

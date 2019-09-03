@@ -457,6 +457,16 @@ function AccountController(objCollection) {
         }
     });
 
+    // Service to fetch AWS Resource Credentials
+    app.post('/' + global.config.version + '/aws_resources/credentials/fetch', async function (req, res) {
+        try{
+            const data = await accountService.fetchCredentials(req.body);
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        }catch(err){            
+            res.send(responseWrapper.getResponse(err, {}, -9999, req.body));
+        }        
+    });
+
     app.post('/' + global.config.version + '/organization/labels/fetch', async function (req, res) {
         const [err, data] = await accountService.fetchOrganizationLabels(req.body);
         if (!err) {
