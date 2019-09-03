@@ -2,6 +2,8 @@
  * author: Sri Sai Venkatesh
  */
 
+const crypto = require('crypto');
+
 function AccountService(objectCollection) {
 
     var db = objectCollection.db;
@@ -735,6 +737,13 @@ function AccountService(objectCollection) {
     };
 
     this.fetchCredentials = async function (request) {
+        const algorithm = 'aes-192-cbc';
+        const password = 'lp-n5^+8M@62';
+       
+        const key = crypto.scryptSync(password, 'salt', 24);        
+        const iv = Buffer.alloc(16, 0); // Initialization vector.
+        const cipher = crypto.createCipheriv(algorithm, key, iv);       
+
         let paramsArr = new Array(
             request.device_os_id,
             request.access_key_type_id,
@@ -742,7 +751,20 @@ function AccountService(objectCollection) {
         );
         let queryString = util.getQueryString('ds_p1_access_key_master_select', paramsArr);
         if (queryString != '') {
-            return await (db.executeQueryPromise(1, queryString, request));
+            let data = await (db.executeQueryPromise(1, queryString, request));
+            //console.log('DATA: ', data);
+            if(data.length > 0) {
+                let credentials = data[0].access_key_inline_data;
+                
+                let encrypted = cipher.update(credentials, 'utf8', 'hex');
+                encrypted += cipher.final('hex');
+                //console.log(encrypted);
+                data[0].access_key_inline_data = encrypted;
+                return data;
+            } else {
+                return new Error;
+            }
+            
         }        
     };
 
