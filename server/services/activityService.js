@@ -21,6 +21,8 @@ function ActivityService(objectCollection) {
     const ActivityPushService = require('../services/activityPushService');
     const activityPushService = new ActivityPushService(objectCollection);
 
+    const logger = require("../logger/winstonLogger");
+
     this.addActivity = function (request, callback) {
 
         request.flag_retry = request.flag_retry || 0;
@@ -357,6 +359,16 @@ function ActivityService(objectCollection) {
                             }
 
                             // Workflow Trigger
+                            logger.verbose(`Workflow Trigger Condition`, {
+                                type: 'workflow_trigger_condition',
+                                request_body: request, error: null,
+
+                                activity_type_categroy_id: activityTypeCategroyId,
+                                device_os_id: request.device_os_id,
+                                number_device_os_id: Number(request.device_os_id),
+                                condition_1: `activityTypeCategroyId === 9 && request.device_os_id !== 9: ${activityTypeCategroyId === 9 && request.device_os_id !== 9}`,
+                                condition_2: `Number(request.device_os_id) === 5 && !request.hasOwnProperty('is_mytony'): ${Number(request.device_os_id) === 5 && !request.hasOwnProperty('is_mytony')}`
+                            });
                             if (activityTypeCategroyId === 9 && request.device_os_id !== 9) {
 
                                 if (Number(request.device_os_id) === 5 && !request.hasOwnProperty('is_mytony')) {
