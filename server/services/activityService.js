@@ -3469,13 +3469,14 @@ function ActivityService(objectCollection) {
 
     this.updateWorkflowQueueMapping = async function name(request) {
         request.flag = 0;
-        let workflowActivityPercentage = 0;
+        let workflowActivityPercentage = 0, workflowActivityCreationTime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
         try {
             await activityCommonService
                 .getActivityDetailsPromise(request, request.activity_id)
                 .then((workflowActivityData) => {
                     if (workflowActivityData.length > 0) {
                         workflowActivityPercentage = Number(workflowActivityData[0].activity_workflow_completion_percentage);
+                        workflowActivityCreationTime = moment(workflowActivityData[0].activity_datetime_created).format('YYYY-MM-DD HH:mm:ss');
                     }
                 })
                 .catch((error) => {
@@ -3529,7 +3530,7 @@ function ActivityService(objectCollection) {
                                         .mapFileToQueue(request, queueId, JSON.stringify({
                                             "queue_sort": {
                                                 "current_status_id": 0,
-                                                "file_creation_time": moment().utc().format('YYYY-MM-DD HH:mm:ss'),
+                                                "file_creation_time": workflowActivityCreationTime,
                                                 "queue_mapping_time": moment().utc().format('YYYY-MM-DD HH:mm:ss'),
                                                 "current_status_name": "",
                                                 "last_status_alter_time": "",
