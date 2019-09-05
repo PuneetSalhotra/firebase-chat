@@ -984,7 +984,7 @@ function BotService(objectCollection) {
 
         const uploadDetails = await util.uploadReadableStreamToS3(request, {
             Bucket: bucketName || "demotelcoinc",
-            Key: `${prefixPath}/${workflowActivityID}` + `_${moment().utcOffset("+05:30").format("YYYYMMDD_hhmmA")}_` + 'proposal.pdf',
+            Key: "customer_proposal.pdf" || `${prefixPath}/${workflowActivityID}` + `_${moment().utcOffset("+05:30").format("YYYYMMDD_hhmmA")}_` + 'proposal.pdf',
             Body: readableStream,
             ContentType: 'application/pdf',
             // ACL: 'public-read'
