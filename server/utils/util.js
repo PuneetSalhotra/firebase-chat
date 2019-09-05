@@ -16,13 +16,15 @@ const AWS = require('aws-sdk');
 const archiver = require('archiver');
 const logger = require("../logger/winstonLogger");
 
-AWS.config.update(
-    {
-        accessKeyId: "AKIAWIPBVOFRZMTH7FPD",
-        secretAccessKey: "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",
-        region: 'ap-south-1'
-    }
-);
+AWS.config.loadFromPath(`${__dirname}/configS3.json`);
+
+//AWS.config.update(
+//    {
+//        accessKeyId: "AKIAWIPBVOFRZMTH7FPD",
+//        secretAccessKey: "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",
+//        region: 'ap-south-1'
+//    }
+//);
 
 // SendGrid
 const sgMail = require('@sendgrid/mail');
