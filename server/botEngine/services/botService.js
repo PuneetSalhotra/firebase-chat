@@ -1722,15 +1722,13 @@ function BotService(objectCollection) {
     async function copyFields(request, fieldCopyInlineData) {
 
         const workflowActivityID = Number(request.workflow_activity_id),
-            sourceFormActivityID = Number(request.activity_id),
-            sourceFormTransactionID = Number(request.form_transaction_id),
-            sourceFormID = Number(request.form_id),
+            // sourceFormActivityID = Number(request.activity_id),
+            // sourceFormID = Number(request.form_id),
             targetFormID = Number(fieldCopyInlineData[0].target_form_id);
 
-        let sourceFormTransactionData = [],
-            targetFormTransactionData = [],
+        let targetFormTransactionData = [],
             targetFormActivityID = 0,
-            targetFormTransactionID = 0;
+            targetFormTransactionID = 0,
 
         // Check if the target form already exists for the given workflow
         try {
@@ -1753,6 +1751,30 @@ function BotService(objectCollection) {
             REQUEST_FIELD_ID = 0;
 
         for (const batch of fieldCopyInlineData) {
+            let sourceFormID = Number(batch.source_form_id),
+                sourceFormTransactionData = [],
+                sourceFormActivityID = 0,
+                sourceFormTransactionID = 0;
+            // Fetch Source Form Transaction Data
+            try {
+                sourceFormTransactionData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                    organization_id: request.organization_id,
+                    account_id: request.account_id
+                }, workflowActivityID, sourceFormID);
+    
+                if (Number(sourceFormTransactionData.length) > 0) {
+                    sourceFormTransactionID = Number(sourceFormTransactionData[0].data_form_transaction_id);
+                    sourceFormActivityID = Number(sourceFormTransactionData[0].data_activity_id);
+                }
+            } catch (error) {
+                console.log("copyFields | Fetch Source Form Transaction Data | Error: ", error);
+                throw new Error(error);
+            }
+            if (
+                sourceFormTransactionID === 0
+            ) {
+                continue;
+            }
             const sourceFieldID = Number(batch.source_field_id);
             const targetFieldID = Number(batch.target_field_id);
 
