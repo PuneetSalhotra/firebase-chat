@@ -1186,12 +1186,13 @@ function AnalyticsService(objectCollection)
                         parseInt(request.filter_activity_status_tag_id),
                         parseInt(request.filter_activity_status_id),
                         request.datetime_start,
-                        request.datetime_end,
-                        parseInt(request.page_start),
-                        parseInt(util.replaceQueryLimit(request.page_limit))
+                        request.datetime_end
+                        // parseInt(request.page_start),
+                        // parseInt(util.replaceQueryLimit(request.page_limit))
                     );
 
-                    tempResult = await db.callDBProcedureR2(request, 'ds_p1_activity_list_select_widget_drilldown', paramsArray, 1);
+                    // tempResult = await db.callDBProcedureR2(request, 'ds_p1_activity_list_select_widget_drilldown', paramsArray, 1);
+                    tempResult = await db.callDBProcedureRecursive(request, 1, 0, 50, 'ds_p1_activity_list_select_widget_drilldown', paramsArray, []);
                     //console.log(tempResult);
 
                     results[iterator] =
