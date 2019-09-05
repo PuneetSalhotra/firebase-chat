@@ -984,7 +984,7 @@ function BotService(objectCollection) {
 
         const uploadDetails = await util.uploadReadableStreamToS3(request, {
             Bucket: bucketName || "demotelcoinc",
-            Key: `${prefixPath}/${workflowActivityID}` + `_${moment().utcOffset("+05:30").format("YYYYMMDD_hhmmA")}_` + 'proposal.pdf',
+            Key: "Customer Proposal.pdf" || `${prefixPath}/${workflowActivityID}` + `_${moment().utcOffset("+05:30").format("YYYYMMDD_hhmmA")}_` + 'proposal.pdf',
             Body: readableStream,
             ContentType: 'application/pdf',
             // ACL: 'public-read'
@@ -1728,7 +1728,7 @@ function BotService(objectCollection) {
 
         let targetFormTransactionData = [],
             targetFormActivityID = 0,
-            targetFormTransactionID = 0,
+            targetFormTransactionID = 0;
 
         // Check if the target form already exists for the given workflow
         try {
