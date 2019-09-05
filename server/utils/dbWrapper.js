@@ -309,6 +309,58 @@ let callDBProcedureR2 =
         }
     };
 
+let callDBProcedureRecursive =
+    async (request, flagReadOperation, start, limit, procName, paramsArray, returnData) => {
+        try {
+            
+            let startInternal = start;
+            paramsArray.push(startInternal);
+            paramsArray.push(limit);
+
+            let queryString = getQueryString(procName, paramsArray);
+            paramsArray.pop();
+            paramsArray.pop();
+            if (queryString != '') {
+                let result = await (executeQueryPromise(flagReadOperation, queryString, request));
+
+                console.log();
+                console.log(`--------------------------------------`);
+                console.log(`--------------------------------------`);
+                console.log();
+
+                if (result.length > 0) {
+                    if (result[0].query_status === 0) {
+                        logger.verbose(`[${flagReadOperation} | ${startInternal}] ${queryString}`, { type: 'mysql', db_response: result, request_body: request, error: null });
+
+                        returnData = returnData.concat(result);
+
+                        startInternal = startInternal + result.length;
+
+                        if (result.length === limit) {
+
+                            return callDBProcedureRecursive(request, 1, startInternal, limit, procName, paramsArray, returnData);
+                        } else {
+                            // logger.verbose(`[${flagReadOperation}] ${queryString}`, { type: 'mysql', db_response: returnData, request_body: request, error: null });
+                            return returnData;
+                        }
+                    } else {
+                        logger.error(`[${flagReadOperation} | ${startInternal}] ${queryString}`, { type: 'mysql', db_response: result, request_body: request, error: "query_status is not equal to 0" });
+                        return Promise.reject(result);
+                    }
+                } else {
+                    return result;
+                }
+            } else {
+                logger.warn(`[${flagReadOperation}] ${queryString}`, { type: 'mysql', db_response: null, request_body: request, error: "Invalid Query String" });
+                
+                return Promise.reject(`Invalid Query String`);
+            }
+        } catch (error) {
+            logger.warn(`[${flagReadOperation}] QUERY ERROR`, { type: 'mysql', db_response: null, request_body: request, error: error });
+            
+            return Promise.reject(error);
+        }
+    };
 /*process.on('exit', (err) => {
     global.logger.write('conLog', 'Closing the poolCluster : ' + err, {}, {});
     writeCluster.end();
