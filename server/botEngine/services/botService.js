@@ -1303,6 +1303,12 @@ function BotService(objectCollection) {
 
         }
         console.log("attachmentsList: ", attachmentsList);
+        // Do not do anything if no attachments are to be added
+        if (
+            Number(attachmentsList.length) === 0
+        ) {
+            return;
+        }
 
         let addCommentRequest = Object.assign(request, {});
 
@@ -1360,6 +1366,16 @@ function BotService(objectCollection) {
         }
 
         for (const attachment of attachments) {
+
+            // If the bot operation inline data doesn't have the key "attestation",
+            // redirect bot operation to just add the attachment without any attestation
+            if (
+                !attachment.document.hasOwnProperty("attestation")
+            ) {
+
+                await addAttachment(request, [attachment.document]);
+                continue;
+            }
             const documentFormID = Number(attachment.document.form_id);
             const documentFieldID = Number(attachment.document.field_id);
             let documentFormTransactionID = 0,
@@ -1493,6 +1509,13 @@ function BotService(objectCollection) {
 
         }
         console.log("attachmentsList: ", attachmentsList);
+
+        // Do not do anything if no attachments are to be added
+        if (
+            Number(attachmentsList.length) === 0
+        ) {
+            return;
+        }
 
         let addCommentRequest = Object.assign(request, {});
 
