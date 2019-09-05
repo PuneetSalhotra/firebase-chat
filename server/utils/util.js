@@ -1438,41 +1438,41 @@ function Util() {
         return [error, fileData];
     };
 
-    this.downloadS3Object = async (request, url) =>{       
-        return new Promise((resolve)=>{
+    this.downloadS3Object = async (request, url) => {
+        return new Promise((resolve) => {
             var s3 = new AWS.S3();
             console.log('URL : ', url);
 
             let BucketName = url.slice(8, 25);
             let KeyName = url.slice(43);
 
-            if(url.includes('ap-south-1')) {
+            if (url.includes('ap-south-1')) {
                 KeyName = url.slice(54);
             }
 
-            if(url.includes('staging') || url.includes('preprod')) {
+            if (url.includes('staging') || url.includes('preprod')) {
                 BucketName = url.slice(8, 33);
                 KeyName = url.slice(51);
 
-                if(url.includes('ap-south-1')) {
+                if (url.includes('ap-south-1')) {
                     KeyName = url.slice(62);
                 }
             }
-    
+
             console.log('BucketName : ', BucketName);
             console.log('KeyName : ', KeyName);
 
             const FileNameArr = url.split('/');
-            const FileName = FileNameArr[FileNameArr.length -1];
+            const FileName = FileNameArr[FileNameArr.length - 1];
 
             console.log('FILENAME : ', FileName);
 
             let params = {
-                Bucket: BucketName, 
+                Bucket: BucketName,
                 Key: KeyName
             };
-            
-            let filePath= global.config.efsPath;           
+
+            let filePath = global.config.efsPath;
             let myFile = fs.createWriteStream(filePath + FileName);
             let fileStream = s3.getObject(params).createReadStream();
             fileStream.pipe(myFile);
