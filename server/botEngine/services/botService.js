@@ -1728,7 +1728,7 @@ function BotService(objectCollection) {
 
         let targetFormTransactionData = [],
             targetFormActivityID = 0,
-            targetFormTransactionID = 0,
+            targetFormTransactionID = 0;
 
         // Check if the target form already exists for the given workflow
         try {
