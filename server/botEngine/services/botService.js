@@ -38,6 +38,9 @@ function BotService(objectCollection) {
     const pdf = require('html-pdf');
 
     const path = require('path');
+    const fs = require('fs');
+
+    const HummusRecipe = require('hummus-recipe');
     /*
     //Generic function for firing stored procedures
     //Bharat Masimukku
@@ -742,21 +745,21 @@ function BotService(objectCollection) {
                 //     console.log('****************************************************************');
                 //     break;
                 
-                // case 10: // add_attachment_with_attestation
-                //     console.log('****************************************************************');
-                //     console.log('add_attachment_with_attestation');
-                //     console.log('add_attachment_with_attestation | Request Params received by BOT ENGINE', request);
-                //     try {
-                //         await addAttachmentWithAttestation(request, botOperationsJson.bot_operations.add_attachment_with_attestation);
-                //     } catch (err) {
-                //         console.log('add_attachment_with_attestation  | Error', err);
-                //         i.bot_operation_status_id = 2;
-                //         i.bot_operation_inline_data = JSON.stringify({
-                //             "err": err
-                //         });
-                //     }
-                //     console.log('****************************************************************');
-                //     break;
+                case 10: // add_attachment_with_attestation
+                    console.log('****************************************************************');
+                    console.log('add_attachment_with_attestation');
+                    console.log('add_attachment_with_attestation | Request Params received by BOT ENGINE', request);
+                    try {
+                        await addAttachmentWithAttestation(request, botOperationsJson.bot_operations.add_attachment_with_attestation);
+                    } catch (err) {
+                        console.log('add_attachment_with_attestation  | Error', err);
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "err": err
+                        });
+                    }
+                    console.log('****************************************************************');
+                    break;
                 
                 // case 11: // add_form_as_pdf
                 //     console.log('****************************************************************');
@@ -1353,8 +1356,8 @@ function BotService(objectCollection) {
             let documentFormTransactionID = 0,
                 documentFormActivityID = 0;
             
-            const attestationFormID = Number(attachment.attestation.form_id);
-            const attestationFieldID = Number(attachment.attestation.field_id);
+            const attestationFormID = Number(attachment.document.attestation.form_id);
+            const attestationFieldID = Number(attachment.document.attestation.field_id);
             let attestationFormTransactionID = 0,
                 attestationFormActivityID = 0;
 
@@ -1413,12 +1416,34 @@ function BotService(objectCollection) {
                     Number(attestationFieldData.length) > 0 &&
                     attestationFieldData[0].data_entity_text_1 !== ''
                 ) {
-                    // Get the HTML template
-                    const htmlTemplate = getHTMLTemplateForAttestation(documentFieldData[0].data_entity_text_1, attestationFieldData[0].data_entity_text_1);
-                    console.log("htmlTemplate: ", htmlTemplate);
+                    // Document
+                    let documentName = await util.downloadS3Object(request, documentFieldData[0].data_entity_text_1);
+                    const documentPath = path.resolve(global.config.efsPath, documentName);
+                    logger.silly(`documentPath: ${documentPath}`, { type: 'document_with_attestation' });
+                    
+                    // Signature
+                    let attestationName = await util.downloadS3Object(request, attestationFieldData[0].data_entity_text_1);
+                    const attestationPath = path.resolve(global.config.efsPath, attestationName);
+                    logger.silly(`attestationPath: ${attestationPath}`, { type: 'document_with_attestation' });
+                    
+                    // Document With Attestation/Signature
+                    const documentWithAttestationPath = `${documentPath.split('.')[0]}_with_attestation.pdf`
+                    logger.silly(`documentWithAttestationPath: ${documentWithAttestationPath}`, { type: 'document_with_attestation' });
 
-                    // Generate PDF readable stream
-                    const readableStream = await generatePDFreadableStream(request, htmlTemplate);
+                    await sleep(4000);
+                    const pdfDoc = new HummusRecipe(
+                        documentPath,
+                        documentWithAttestationPath
+                    );
+                    for (let i = 1; i <= pdfDoc.metadata.pages; i++) {
+                
+                        pdfDoc
+                            .editPage(i)
+                            .image(attestationPath, 500, 600, { width: 100, keepAspectRatio: true })
+                            .endPage();
+                            // .endPDF();
+                    }
+                    pdfDoc.endPDF();
                     
                     // Upload to S3
                     const environment = global.mode;
@@ -1439,16 +1464,16 @@ function BotService(objectCollection) {
                         request.asset_id + '/' +
                         util.getCurrentYear() + '/' + util.getCurrentMonth() + '/103' + '/' + util.getMessageUniqueId(request.asset_id);
 
-                    // console.log("bucketName: ", bucketName);
-                    // console.log("prefixPath: ", prefixPath);
+                    console.log("bucketName: ", bucketName);
+                    console.log("prefixPath: ", prefixPath);
 
                     const uploadDetails = await util.uploadReadableStreamToS3(request, {
                         Bucket: bucketName || "demotelcoinc",
-                        Key: `${prefixPath}/${request.activity_id}` + '_with_attestation.pdf',
-                        Body: readableStream,
+                        Key: `${prefixPath}/${request.activity_id}` + '_with_signature.pdf',
+                        Body: fs.createReadStream(documentWithAttestationPath),
                         ContentType: 'application/pdf',
-                        ACL: 'public-read'
-                    }, readableStream);
+                        // ACL: 'public-read'
+                    }, null);
 
                     attachmentsList.push(uploadDetails.Location);
 
