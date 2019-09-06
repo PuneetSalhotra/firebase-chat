@@ -996,7 +996,7 @@ function BotService(objectCollection) {
 
         const uploadDetails = await util.uploadReadableStreamToS3(request, {
             Bucket: bucketName || "demotelcoinc",
-            Key: "Customer Proposal.pdf" || `${prefixPath}/${workflowActivityID}` + `_${moment().utcOffset("+05:30").format("YYYYMMDD_hhmmA")}_` + 'proposal.pdf',
+            Key: `${prefixPath}/${workflowActivityID}` + `_${moment().utcOffset("+05:30").format("YYYYMMDD_hhmmA")}_` + 'customer_proposal.pdf',
             Body: readableStream,
             ContentType: 'application/pdf',
             // ACL: 'public-read'
@@ -2174,6 +2174,7 @@ function BotService(objectCollection) {
             newReq.email_id = inlineData[type[0]].email;
             newReq.email_sender = inlineData[type[0]].sender_email;
             newReq.email_sender_name = inlineData[type[0]].sender_name;
+            newReq.form_id = 0;
         } else if (type[0] === 'dynamic') {
             newReq.communication_id = inlineData[type[0]].template_id;
             newReq.form_id = inlineData[type[0]].form_id;
@@ -2377,10 +2378,23 @@ function BotService(objectCollection) {
         // 4. {$actionLink}
         let formActions = callToActions.forms;
         let actionLink = '';
+        let formsToFill = [];
         for (const formAction of formActions) {
             if (formAction.call_to_action_label !== '') {
                 let link = await getActionLink(request, formAction, request.workflow_activity_id);
                 actionLink += link;
+
+                const [_, formConfigData] = await activityCommonService.workforceFormMappingSelect({
+                    organization_id: request.organization_id,
+                    account_id: request.account_id,
+                    workforce_id: request.workforce_id,
+                    form_id: formAction.form_id
+                });
+                let formToFill = {};
+                formToFill[formAction.form_id] = {
+                    "name": formConfigData[0].form_name || ""
+                };
+                formsToFill.push(formToFill);
             }
         }
 
@@ -2406,11 +2420,30 @@ function BotService(objectCollection) {
         // Buffer.from(retrievedCommInlineData.communication_template.email).toString('base64')
         let timelineEntryEmailContent = retrievedCommInlineData.communication_template.email;
         timelineEntryEmailContent.body = Buffer.from(emailBody).toString('base64');
+        //let activityTimelineCollection = {
+        //    email: timelineEntryEmailContent,
+        //    email_sender: newReq.email_sender,
+        //    email_sender_name: newReq.email_sender_name,
+        //    email_receiver: newReq.email_id
+        //};
+
+        let emailJson = retrievedCommInlineData.communication_template.email;
         let activityTimelineCollection = {
-            email: timelineEntryEmailContent,
-            email_sender: newReq.email_sender,
-            email_sender_name: newReq.email_sender_name,
-            email_receiver: newReq.email_id
+            reminder_email: {
+                sender_email: newReq.email_sender,
+                sender_name: newReq.email_sender_name,
+                receiver_email: newReq.email_id,
+                receiver_name: "",
+                subject: emailJson.subject,
+                body: Buffer.from(emailBody).toString('base64'),
+                form_trigger: {
+                    [newReq.form_id]: {
+                        name: fromNameValue
+                    }
+                },
+                form_fill: formsToFill,
+                form_approval: []
+            }
         };
 
         let fire715OnWFOrderFileRequest = Object.assign({}, newReq);
@@ -2529,6 +2562,7 @@ function BotService(objectCollection) {
             newReq.communication_id = inlineData[type[0]].template_id;
             newReq.country_code = inlineData[type[0]].phone_country_code;
             newReq.phone_number = inlineData[type[0]].phone_number;
+            newReq.form_id = 0;
         } else if (type[0] === 'dynamic') {
             newReq.communication_id = inlineData[type[0]].template_id;
             newReq.form_id = inlineData[type[0]].form_id;
@@ -2601,10 +2635,25 @@ function BotService(objectCollection) {
         });
 
         // Make a 716 timeline entry - (716 streamtypeid is for email)
-        let activityTimelineCollection = {
-            country_code: newReq.country_code,
-            phone_number: newReq.phone_number,
-            text: retrievedCommInlineData.communication_template.text
+        //let activityTimelineCollection = {
+        //    country_code: newReq.country_code,
+        //    phone_number: newReq.phone_number,
+        //    text: retrievedCommInlineData.communication_template.text
+        //};
+
+        // Make a 716 timeline entry - (716 streamtypeid is for SMS)
+        let activityTimelineCollection = {            
+            reminder_text: {
+                country_code: newReq.country_code,
+                phone_number: newReq.phone_number,
+                message: newReq.smsText,
+                form_trigger: 
+                    {
+                        [Number(newReq.form_id)]: {
+                            name: newReq.form_name || ""
+                        }
+                    }
+                }
         };
 
         let fire716OnWFOrderFileRequest = Object.assign({}, newReq);

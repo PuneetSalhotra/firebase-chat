@@ -312,7 +312,7 @@ let callDBProcedureR2 =
 let callDBProcedureRecursive =
     async (request, flagReadOperation, start, limit, procName, paramsArray, returnData) => {
         try {
-            
+
             let startInternal = start;
             paramsArray.push(startInternal);
             paramsArray.push(limit);
@@ -352,12 +352,12 @@ let callDBProcedureRecursive =
                 }
             } else {
                 logger.warn(`[${flagReadOperation}] ${queryString}`, { type: 'mysql', db_response: null, request_body: request, error: "Invalid Query String" });
-                
+
                 return Promise.reject(`Invalid Query String`);
             }
         } catch (error) {
             logger.warn(`[${flagReadOperation}] QUERY ERROR`, { type: 'mysql', db_response: null, request_body: request, error: error });
-            
+
             return Promise.reject(error);
         }
     };
@@ -383,5 +383,6 @@ module.exports = {
     executeRecursiveQuery: executeRecursiveQuery,
     callDBProcedure: callDBProcedure,
     callDBProcedureR2: callDBProcedureR2,
+    callDBProcedureRecursive: callDBProcedureRecursive,
     checkDBInstanceAvailablity: checkDBInstanceAvailablity
 };
