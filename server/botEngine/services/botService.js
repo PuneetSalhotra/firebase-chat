@@ -996,7 +996,7 @@ function BotService(objectCollection) {
 
         const uploadDetails = await util.uploadReadableStreamToS3(request, {
             Bucket: bucketName || "demotelcoinc",
-            Key: "Customer Proposal.pdf" || `${prefixPath}/${workflowActivityID}` + `_${moment().utcOffset("+05:30").format("YYYYMMDD_hhmmA")}_` + 'proposal.pdf',
+            Key: `${prefixPath}/${workflowActivityID}` + `_${moment().utcOffset("+05:30").format("YYYYMMDD_hhmmA")}_` + 'customer_proposal.pdf',
             Body: readableStream,
             ContentType: 'application/pdf',
             // ACL: 'public-read'
@@ -2378,10 +2378,23 @@ function BotService(objectCollection) {
         // 4. {$actionLink}
         let formActions = callToActions.forms;
         let actionLink = '';
+        let formsToFill = [];
         for (const formAction of formActions) {
             if (formAction.call_to_action_label !== '') {
                 let link = await getActionLink(request, formAction, request.workflow_activity_id);
                 actionLink += link;
+
+                const [_, formConfigData] = await activityCommonService.workforceFormMappingSelect({
+                    organization_id: request.organization_id,
+                    account_id: request.account_id,
+                    workforce_id: request.workforce_id,
+                    form_id: formAction.form_id
+                });
+                let formToFill = {};
+                formToFill[formAction.form_id] = {
+                    "name": formConfigData[0].form_name || ""
+                };
+                formsToFill.push(formToFill);
             }
         }
 
@@ -2422,13 +2435,13 @@ function BotService(objectCollection) {
                 receiver_email: newReq.email_id,
                 receiver_name: "",
                 subject: emailJson.subject,
-                body: emailBody,
+                body: Buffer.from(emailBody).toString('base64'),
                 form_trigger: {
                     [newReq.form_id]: {
                         name: fromNameValue
                     }
                 },
-                form_fill: [],
+                form_fill: formsToFill,
                 form_approval: []
             }
         };
