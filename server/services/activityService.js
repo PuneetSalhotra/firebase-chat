@@ -354,6 +354,8 @@ function ActivityService(objectCollection) {
                                                  request['field_id'] = -1;
                                                  widgetActivityFieldTransactionInsert(request);                                                 
                                             }
+                                        } else {
+                                            addValueToWidgetForAnalyticsWF(request, request.activity_id, request.activity_type_id, 1); //Widget final value
                                         }
                                     });
                             }
@@ -409,7 +411,7 @@ function ActivityService(objectCollection) {
                             }*/
 
                             if(activityTypeCategroyId === 48) {
-                                addValueToWidgetForAnalyticsWF(request, request.activity_id, request.activity_type_id);
+                                addValueToWidgetForAnalyticsWF(request, request.activity_id, request.activity_type_id, 0); //0 - Non-Widget
                             }
 
                             /*activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, function (err, data) {
@@ -3817,7 +3819,7 @@ function ActivityService(objectCollection) {
     }
 
     //Update Workflow values in Activity_List for Workflow Form (For origin form putting delay is not good idea)
-    async function addValueToWidgetForAnalyticsWF(requestObj, workflowActivityId, workflowActivityTypeID) {
+    async function addValueToWidgetForAnalyticsWF(requestObj, workflowActivityId, workflowActivityTypeID, flag) {
         let request = Object.assign({}, requestObj);
         
         let [err, inlineData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, workflowActivityTypeID);
@@ -3840,7 +3842,8 @@ function ActivityService(objectCollection) {
             console.log('workflowFields : ', workflowFields);
             console.log('activityInlineData : ', activityInlineData);
             console.log('activityInlineData.length : ', activityInlineData.length);
-
+            
+            let finalValue = 0;
             for(i=0; i<activityInlineData.length; i++) {
                 for(fieldId in workflowFields){
                     if(fieldId === activityInlineData[i].field_id) {
@@ -3848,9 +3851,18 @@ function ActivityService(objectCollection) {
                                                                                workflowActivityId, 
                                                                                workflowFields[fieldId].sequence_id, 
                                                                                activityInlineData[i].field_value);
+                        
+                        finalValue += Number(activityInlineData[i].field_value);
                         break;
                     }
                 }   
+            }
+
+            if(flag === 1) {
+                await activityCommonService.analyticsUpdateWidgetValue(request, 
+                                                                       workflowActivityId, 
+                                                                       0, 
+                                                                       finalValue);
             }
         }
 
