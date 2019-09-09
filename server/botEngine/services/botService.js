@@ -2391,9 +2391,11 @@ function BotService(objectCollection) {
                     form_id: formAction.form_id
                 });
                 let formToFill = {};
-                formToFill[formAction.form_id] = {
-                    "name": formConfigData[0].form_name || ""
-                };
+                // formToFill[formAction.form_id] = {
+                //     "name": formConfigData[0].form_name || ""
+                // };
+                formToFill["id"] = formAction.form_id;
+                formToFill["value"] = formConfigData[0].form_name || "";
                 formsToFill.push(formToFill);
             }
         }
@@ -2433,7 +2435,7 @@ function BotService(objectCollection) {
                 sender_email: newReq.email_sender,
                 sender_name: newReq.email_sender_name,
                 receiver_email: newReq.email_id,
-                receiver_name: "",
+                receiver_name: newReq.email_id,
                 subject: emailJson.subject,
                 body: Buffer.from(emailBody).toString('base64'),
                 form_trigger: {
@@ -2442,7 +2444,7 @@ function BotService(objectCollection) {
                     }
                 },
                 form_fill: formsToFill,
-                form_approval: []
+                // form_approval: []
             }
         };
 
