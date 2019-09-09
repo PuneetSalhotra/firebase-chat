@@ -1068,6 +1068,15 @@ function FormConfigService(objCollection) {
                                     });
 
                                 }else{
+                                    activityCommonService.getFormWorkflowDetails(request).then(async (workflowData)=>{
+                                        if(workflowData.length > 0){                                          
+                                            addValueToWidgetForAnalyticsWF(request, 
+                                                                            workflowData[0].activity_id, 
+                                                                            workflowData[0].activity_type_id, 
+                                                                            1); //1 - Final value Widget
+                                        }
+                                    });
+
                                     console.log("This field is not configured to update in intermediate table "+row.field_id);
                                 }
                             }catch(err){
@@ -2116,7 +2125,7 @@ function FormConfigService(objCollection) {
                 
                 await addTimelineTransactionAsync(workflowFile713Request);
 
-                addValueToWidgetForAnalyticsWF(request, workflowActivityId, workflowActivityTypeId);
+                addValueToWidgetForAnalyticsWF(request, workflowActivityId, workflowActivityTypeId, 0); //non-widget
             }
         }
 
@@ -3611,7 +3620,7 @@ function FormConfigService(objCollection) {
 
     
     //Update Workflow values in Activity_List for Workflow Form
-    async function addValueToWidgetForAnalyticsWF(requestObj, workflowActivityId, workflowActivityTypeID) {
+    async function addValueToWidgetForAnalyticsWF(requestObj, workflowActivityId, workflowActivityTypeID, flag) {
         let request = Object.assign({}, requestObj);
         
         let [err, inlineData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, workflowActivityTypeID);
@@ -3635,6 +3644,7 @@ function FormConfigService(objCollection) {
             console.log('activityInlineData : ', activityInlineData);
             console.log('activityInlineData.length : ', activityInlineData.length);
 
+            let finalValue = 0;
             for(i=0; i<activityInlineData.length; i++) {
                 for(fieldId in workflowFields){
                     if(fieldId === activityInlineData[i].field_id) {
@@ -3642,9 +3652,18 @@ function FormConfigService(objCollection) {
                                                                                workflowActivityId, 
                                                                                workflowFields[fieldId].sequence_id, 
                                                                                activityInlineData[i].field_value);
+                        
+                        finalValue += Number(activityInlineData[i].field_value);
                         break;
                     }
                 }   
+            }
+
+            if(flag === 1) {
+                await activityCommonService.analyticsUpdateWidgetValue(request, 
+                                                                       workflowActivityId, 
+                                                                       0, 
+                                                                       finalValue);
             }
         }
 
