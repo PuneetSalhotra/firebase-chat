@@ -1464,7 +1464,7 @@ function BotService(objectCollection) {
                 
                         pdfDoc
                             .editPage(i)
-                            .image(attestationPath, 500, 600, { width: 100, keepAspectRatio: true })
+                            .image(attestationPath, 500, 640, { width: 100, keepAspectRatio: true })
                             .endPage();
                             // .endPDF();
                     }
