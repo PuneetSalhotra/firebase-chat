@@ -1,3 +1,4 @@
+const logger = require('../logger/winstonLogger');
 
 function ResponseWrapper(util) {
 
@@ -9,10 +10,11 @@ function ResponseWrapper(util) {
             gmt_time: util.getCurrentUTCTime(),
             response: data
         };
-        
+
         try {
             global.logger.write('response', 'response', response, request);
-        } catch(e){}       
+            logger.info(`service_id ${request.bundle_transaction_id || 0}`, { type: 'server_response', request_body: request, response });
+        } catch (e) { }
 
         return response;
     };
