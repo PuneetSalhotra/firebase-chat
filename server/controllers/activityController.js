@@ -578,14 +578,27 @@ function ActivityController(objCollection) {
 
                         proceedAddActivity();
                     } else { // get the activity id using message unique id and send as response
-                        cacheWrapper.getMessageUniqueIdLookup(req.body.message_unique_id, function (err, activityId) {
+                        cacheWrapper.getMessageUniqueIdLookup(req.body.message_unique_id, async function (err, activityId) {
                             if (err) {
                                 res.send(responseWrapper.getResponse(false, {
                                     activity_id: 0
                                 }, -7998, req.body));
                             } else {
+                                let formTransactionID = 0;
+                                try {
+                                    if (Number(req.body.activity_type_category_id) === 9) {
+                                        const activityData = await activityCommonService.getActivityDetailsPromise(req.body, Number(activityId));
+                                        if (Number(activityData.length) > 0) {
+                                            formTransactionID = activityData[0].form_transaction_id;
+                                        }
+                                    }
+                                } catch (error) {
+                                    // Nothing
+                                }
+
                                 res.send(responseWrapper.getResponse(false, {
-                                    activity_id: Number(activityId)
+                                    activity_id: Number(activityId),
+                                    form_transaction_id: formTransactionID === 0 ? undefined : formTransactionID
                                 }, 200, req.body));
                             }
                         });
