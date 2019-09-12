@@ -27,6 +27,15 @@
         ]
     },
     {
+        "ACTION": "set_date",
+        "BATCH": [
+            {
+                "TARGET_FIELD_ID": 15573,
+                "TZ_OFFSET": "+05:30"
+            }
+        ]
+    },
+    {
         "ACTION": "sum",
         "BATCH": [
             {
