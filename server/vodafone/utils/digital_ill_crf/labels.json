@@ -737,17 +737,6 @@
     },
     {
         "form_id": 1229,
-        "field_id": 9739,
-        "field_name": "Comments ( Comments/ Special Considerations: )",
-        "field_data_type_id": 21,
-        "field_data_type_category_id": 8,
-        "data_type_combo_id": 0,
-        "data_type_combo_value": "",
-        "field_value": "Comments ( Comments/ Special Considerations: )",
-        "message_unique_id": 1111222233334444
-    },
-    {
-        "form_id": 1229,
         "field_id": 9740,
         "field_name": "Declaration",
         "field_data_type_id": 21,
