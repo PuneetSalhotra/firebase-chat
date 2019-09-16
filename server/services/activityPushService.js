@@ -471,6 +471,7 @@ function ActivityPushService(objectCollection) {
 
                                 } else {
                                     // console.log("Wow!!!!! Request", request);
+                                    pushString = {};
                                 }
                                 break;
                             case '/' + global.config.version + '/form/activity/alter':

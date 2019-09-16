@@ -19,9 +19,7 @@ function VodafoneController(objCollection) {
     const multer = require('multer');
     const upload = multer({
         storage: multer.diskStorage({
-            destination: function (req, file, cb) {
-                cb(null, 'bulk_order_excel_uploads/')
-            },
+            destination: 'bulk_order_excel_uploads',
             filename: function (req, file, cb) {
                 cb(null, req.body.workflow_activity_id + '-' + moment().utcOffset('+05:30').format('YYYY-MM-DD_HH-mm-ss') + '.xlsx')
             }

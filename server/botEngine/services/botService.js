@@ -2444,7 +2444,7 @@ function BotService(objectCollection) {
                     }
                 },
                 form_fill: formsToFill,
-                // form_approval: []
+                form_approval: []
             }
         };
 
