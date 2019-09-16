@@ -3645,6 +3645,7 @@ function FormConfigService(objCollection) {
             console.log('activityInlineData.length : ', activityInlineData.length);
 
             let finalValue = 0;
+            let flagExecuteFinalValue = 0;
             for(i=0; i<activityInlineData.length; i++) {
                 for(fieldId in workflowFields){
                     if(fieldId === activityInlineData[i].field_id) {
@@ -3653,13 +3654,14 @@ function FormConfigService(objCollection) {
                                                                                workflowFields[fieldId].sequence_id, 
                                                                                activityInlineData[i].field_value);
                         
+                        flagExecuteFinalValue = 1;
                         finalValue += Number(activityInlineData[i].field_value);
                         break;
                     }
                 }   
             }
 
-            if(flag === 1) {
+            if(flag === 1 && flagExecuteFinalValue === 1) {
                 await activityCommonService.analyticsUpdateWidgetValue(request, 
                                                                        workflowActivityId, 
                                                                        0, 
