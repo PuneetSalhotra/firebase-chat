@@ -2,6 +2,7 @@
  * author: Nani Kalyan V and Ben Sooraj
  * Upate: PreProd Test 1
  */
+const logger = require(__dirname + "/../../logger/winstonLogger");
 
 function VodafoneService(objectCollection) {
 
@@ -3901,6 +3902,7 @@ function VodafoneService(objectCollection) {
         const requiredForms = global.vodafoneConfig[formWorkflowActivityTypeId].REQUIRED_FORMS;
         console.log("buildAndSubmitCafFormV1 | requiredForms: ", requiredForms);
         if (!requiredForms.includes(Number(request.form_id))) {
+            logger.error("Origin Form not found for CAR/CRF generation/re-generation", { type: "vodafone", request_body: request, error: new Error("[MISSION ABORT] Call to build the target forms is not from one of the required forms.") });
             return [new Error("[MISSION ABORT] Call to build the target forms is not from one of the required forms."), []];
         }
 
@@ -4875,6 +4877,7 @@ function VodafoneService(objectCollection) {
                     targetFormDataMap.set(Number(field.field_id), field);
                 }
             } else {
+                logger.error(`[regenerateAndSubmitTargetForm] Target Form ${TARGET_FORM_ID} does not exist.`, { type: "vodafone", request_body: request, error: { error: "TargetFormDoesNotExist" } });
                 throw new Error("TargetFormDoesNotExist");
             }
         } catch (error) {

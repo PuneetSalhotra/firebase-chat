@@ -678,6 +678,15 @@ function BotService(objectCollection) {
 
                 //case 'fire_text': 
                 case 6: // Send Text Message
+                    if (
+                        request.hasOwnProperty("activity_stream_type_id") &&
+                        Number(request.activity_stream_type_id) === 713
+                    ) {
+                        // Do not fire this bot step on form edits
+                        logger.verbose(`Do Not Fire Email On Form Edit`, { type: 'bot_engine', request_body: request, error: null });
+                        continue;
+                        // break;
+                    }
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'FIRE TEXT', {}, {});
                     try {
@@ -696,6 +705,15 @@ function BotService(objectCollection) {
 
                 //case 'fire_email':           
                 case 7: // Send email
+                    if (
+                        request.hasOwnProperty("activity_stream_type_id") &&
+                        Number(request.activity_stream_type_id) === 713
+                    ) {
+                        // Do not fire this bot step on form edits
+                        logger.verbose(`Do Not Fire Email On Form Edit`, { type: 'bot_engine', request_body: request, error: null });
+                        continue;
+                        // break;
+                    }
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     global.logger.write('conLog', 'FIRE EMAIL', {}, {});
                     try {
