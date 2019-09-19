@@ -392,7 +392,7 @@ function WidgetService(objCollection) {
     this.widgetUpdate = async function (request) {
 
         let responseData = [],
-            error = true;
+            error = true;        
 
         let paramsArr = new Array(
             request.organization_id,
@@ -413,8 +413,26 @@ function WidgetService(objCollection) {
                 })
                 .catch((err) => {
                     error = err;
-                })
+                });
         }
+
+        let paramsArr1 = new Array(
+            request.activity_id || 0,
+            request.widget_id,
+            request.organization_id,
+            request.log_datetime
+        );
+
+        var queryString1 = util.getQueryString('ds_p1_activity_list_update_widget_details', paramsArr1);
+        if (queryString1 !== '') {
+            await db.executeQueryPromise(0, queryString1, request);        
+        }    
+
+        var queryString2 = util.getQueryString('ds_p1_activity_asset_mapping_update_widget_details', paramsArr1);
+        if (queryString2 !== '') {
+            await db.executeQueryPromise(0, queryString2, request);
+        }
+
         return [error, responseData];
     };
 
