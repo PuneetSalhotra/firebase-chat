@@ -17,14 +17,17 @@ var AwsSns = function () {
                 message: "",
                 timestamp: "",
                 activity_id: 0,
-                activity_inline_data: ""
+                activity_inline_data: "",
+                subtitle: "",
+                body: ""
             }
         };
         GCMjson.data.title = "'" + message.title + "'";
         GCMjson.data.message = "'" + message.description + "'";
         GCMjson.data.timestamp = "''";
         GCMjson.data.activity_id = Number(message.activity_id) || 0;
-        GCMjson.data.activity_inline_data = message.activity_inline_data;
+        GCMjson.data.subtitle = `'${message.subtitle}'`;
+        GCMjson.data.body = `'${message.body}'`;
 
         var aps = {
             'badge': badgeCount,
