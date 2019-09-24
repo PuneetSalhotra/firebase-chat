@@ -869,9 +869,11 @@ function FormConfigService(objCollection) {
                         params[18] = row.field_value;
                         break;
                     case 17: //Location
-                        var location = row.field_value.split('|');
-                        params[16] = location[0];
-                        params[17] = location[1];
+                        const location = row.field_value.split(',');
+                        params[16] = parseFloat(location[0]);
+                        params[17] = parseFloat(location[1]);
+
+                        params[18] = row.field_value;
                         break;
                     case 18: //Money with currency name
                         var money = row.field_value.split('|');

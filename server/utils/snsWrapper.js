@@ -32,9 +32,12 @@ var AwsSns = function () {
         var aps = {
             'badge': badgeCount,
             'sound': 'default',
-            'alert': message.title + message.description,
+            'alert': {
+                'title': message.title,
+                'body': `${message.subtitle}\r\n${message.body}`
+            },
             'activity_id': Number(message.activity_id) || 0,
-            'content-available': 1
+            'content-available': 1,
         };
 
         if (message.hasOwnProperty('extra_data')) {
