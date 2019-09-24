@@ -1,0 +1,20 @@
+[
+    {
+        "ACTION": "set_participant_name",
+        "BATCH": [
+            {
+                "TARGET_FIELD_ID": 16940,
+                "ASSET_TYPE_ID": 127254
+            }
+        ]
+    },
+    {
+        "ACTION": "set_participant_name",
+        "BATCH": [
+            {
+                "TARGET_FIELD_ID": 17053,
+                "ASSET_TYPE_ID": 127254
+            }
+        ]
+    }
+]
