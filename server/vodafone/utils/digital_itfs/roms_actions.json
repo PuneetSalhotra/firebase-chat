@@ -16,5 +16,14 @@
                 "ASSET_TYPE_ID": 127254
             }
         ]
+    },
+    {
+        "ACTION": "set_date",
+        "BATCH": [
+            {
+                "TARGET_FIELD_ID": 17056,
+                "TZ_OFFSET": "+05:30"
+            }
+        ]
     }
 ]
