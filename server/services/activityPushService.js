@@ -380,24 +380,6 @@ function ActivityPushService(objectCollection) {
                                     pushString.subtitle = content;
                                     pushString.body = senderName;
 
-                                    // pushString.FCM = JSON.stringify({
-                                    //     "data": {
-                                    //         "title": activityTitle,
-                                    //         "message": content,
-                                    //         "sender": senderName,
-                                    //     }
-                                    // });
-
-                                    // pushString.APNS = JSON.stringify({
-                                    //     "aps": {
-                                    //         "alert": {
-                                    //             "title": activityTitle,
-                                    //             "message": content,
-                                    //             "sender": senderName,
-                                    //         }
-                                    //     }
-                                    // });
-
                                     if (Number(attachments.length) === 1) {
                                         const fileExtension = path.extname(attachments[0]);
                                         switch (fileExtension) {
@@ -471,6 +453,13 @@ function ActivityPushService(objectCollection) {
 
                                 } else {
                                     // console.log("Wow!!!!! Request", request);
+                                    // pushString = {};
+                                }
+
+                                // Do not sent mobile push notification for any other stream types
+                                if (
+                                    !(Object.keys(pushString).length > 1)
+                                ) {
                                     pushString = {};
                                 }
                                 break;
