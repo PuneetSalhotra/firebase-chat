@@ -2132,7 +2132,35 @@ function ActivityTimelineService(objectCollection) {
                     params[18] = row.field_value;
                     break;
                 case 53: // IP Address Form
+                    // Format: { "ip_address_data": { "flag_ip_address_available": 1, "ip_address": "0.00.0.0" } }
+                    // Revision 1 | 25th September 2019
+                    try {
+                        const fieldValue = isObject(row.field_value) ? row.field_value : JSON.parse(row.field_value);
+
+                        if (Number(fieldValue.ip_address_data.flag_ip_address_available) === 1) {
+                            params[18] = fieldValue.ip_address_data.ip_address;
+                            // Set the IP address availibility flag
+                            params[11] = 1;
+                        } else {
+                            // Reset the IP address availibility flag
+                            params[11] = 0;
+                        }
+                        break;
+                    } catch (error) {
+                        console.log("Error parsing location data")
+                        // Proceed
+                    }
+                    // Format: X.X.X.X | Legacy | Ensure backward compatibility
                     params[18] = row.field_value;
+                    if (
+                        row.field_value !== "null" &&
+                        row.field_value !== "" &&
+                        row.field_value !== "undefined" &&
+                        row.field_value !== "NA"
+                    ) {
+                        // Set the IP address availibility flag
+                        params[11] = 1;
+                    }
                     break;
                 case 54: // MAC Address Form
                     params[18] = row.field_value;
@@ -2143,12 +2171,53 @@ function ActivityTimelineService(objectCollection) {
                 case 56: // Outlook Message
                     params[18] = row.field_value;
                     break;
-                case 17: //Location
+                case 17: // Location
+                    // Format: { "location_data": { "flag_location_available": 1, "location_latitude": 0.0, "location_longitude": 0.0 } }
+                    // Revision 1 | 25th September 2019
+                    try {
+                        const fieldValue = isObject(row.field_value) ? row.field_value : JSON.parse(row.field_value);
+
+                        if (Number(fieldValue.location_data.flag_location_available) === 1) {
+                            params[16] = parseFloat(fieldValue.location_data.location_latitude);
+                            params[17] = parseFloat(fieldValue.location_data.location_longitude);
+                            // Set the location availibility flag
+                            params[11] = 1;
+                        } else {
+                            // Reset the location availibility flag
+                            params[11] = 0;
+                        }
+                        params[18] = JSON.stringify(fieldValue);
+                        break;
+                    } catch (error) {
+                        console.log("Error parsing location data")
+                        // Proceed
+                    }
+                    // Format: xx.xxx,yy.yyy | Legacy | Ensure backward compatibility
                     const location = row.field_value.split(',');
-                    params[16] = parseFloat(location[0]);
-                    params[17] = parseFloat(location[1]);
+                    if (
+                        !isNaN(parseFloat(location[0])) ||
+                        !isNaN(parseFloat(location[1]))
+                    ) {
+                        params[16] = parseFloat(location[0]);
+                        params[17] = parseFloat(location[1]);
+                    } else {
+                        params[16] = 0;
+                        params[17] = 0;
+                    }
 
                     params[18] = row.field_value;
+                    if (
+                        row.field_value !== "null" &&
+                        row.field_value !== "" &&
+                        row.field_value !== "undefined" &&
+                        row.field_value !== "NA"
+                    ) {
+                        // Set the location availibility flag
+                        params[11] = 1;
+                    } else {
+                        // Reset the location availibility flag
+                        params[11] = 0;
+                    }
                     break;
                 case 18: //Money with currency name
                     var money = row.field_value.split('|');
@@ -2516,6 +2585,9 @@ function ActivityTimelineService(objectCollection) {
         return [error, responseData];
     }
 
+    function isObject(arg) {
+        return arg !== null && typeof arg === 'object';
+    }
 }
 
 module.exports = ActivityTimelineService;
