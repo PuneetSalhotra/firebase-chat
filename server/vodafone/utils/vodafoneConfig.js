@@ -115,6 +115,13 @@ const digitalTfsRoms = require("./nfl_digital_tfs/roms.json");
 const digitalTfsRomsActions = require("./nfl_digital_tfs/roms_actions.json");
 // const digitalTfsBulkOrderToOriginFormMappings = require("./nfl_digital_tfs/bulk_order_to_origin_form_mappings.json");
 
+// NFL - Digital VC - 133896
+const digitalVcMappings = require("./nfl_digital_vc/mappings.json");
+const digitalVcLabels = require("./nfl_digital_vc/labels.json");
+const digitalVcRoms = require("./nfl_digital_vc/roms.json");
+const digitalVcRomsActions = require("./nfl_digital_vc/roms_actions.json");
+// const digitalVcBulkOrderToOriginFormMappings = require("./nfl_digital_vc/bulk_order_to_origin_form_mappings.json");
+
 vodafoneConfig = {
     "860": {
         "NAME": "Vodafone Idea | Production | BETA",
@@ -483,5 +490,15 @@ vodafoneConfig = {
         "ROMS": digitalTfsRoms,
         "ROMS_ACTIONS": digitalTfsRomsActions,
         "ORIGIN_FORM_ID": 1694
+    },
+    "133896": {
+        "REQUIRED_FORMS": [1714],
+        "TARGET_FORM_ID": 1713,
+        "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
+        "FORM_FIELD_MAPPING_DATA": digitalVcMappings,
+        "LABELS": digitalVcLabels,
+        "ROMS": digitalVcRoms,
+        "ROMS_ACTIONS": digitalVcRomsActions,
+        "ORIGIN_FORM_ID": 1714
     }
 };
