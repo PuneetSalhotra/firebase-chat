@@ -101,6 +101,41 @@ const digitalNflCrfRoms = require("./digital_nfl_crf/roms.json");
 const digitalNflCrfRomsActions = require("./digital_nfl_crf/roms_actions.json");
 // const digitalVltCafBulkOrderToOriginFormMappings = require("./digital_nfl_crf/bulk_order_to_origin_form_mappings.json");
 
+// NFL - Digital AC - 133892
+const digitalAcMappings = require("./nfl_digital_ac/mappings.json");
+const digitalAcLabels = require("./nfl_digital_ac/labels.json");
+const digitalAcRoms = require("./nfl_digital_ac/roms.json");
+const digitalAcRomsActions = require("./nfl_digital_ac/roms_actions.json");
+// const digitalAcBulkOrderToOriginFormMappings = require("./nfl_digital_ac/bulk_order_to_origin_form_mappings.json");
+
+// NFL - Digital TFS - 133893
+const digitalTfsMappings = require("./nfl_digital_tfs/mappings.json");
+const digitalTfsLabels = require("./nfl_digital_tfs/labels.json");
+const digitalTfsRoms = require("./nfl_digital_tfs/roms.json");
+const digitalTfsRomsActions = require("./nfl_digital_tfs/roms_actions.json");
+// const digitalTfsBulkOrderToOriginFormMappings = require("./nfl_digital_tfs/bulk_order_to_origin_form_mappings.json");
+
+// NFL - Digital VC - 133896
+const digitalVcMappings = require("./nfl_digital_vc/mappings.json");
+const digitalVcLabels = require("./nfl_digital_vc/labels.json");
+const digitalVcRoms = require("./nfl_digital_vc/roms.json");
+const digitalVcRomsActions = require("./nfl_digital_vc/roms_actions.json");
+// const digitalVcBulkOrderToOriginFormMappings = require("./nfl_digital_vc/bulk_order_to_origin_form_mappings.json");
+
+// NFL - Digital BulkSMS - 133897
+const digitalBulkSMSMappings = require("./nfl_digital_bulksms/mappings.json");
+const digitalBulkSMSLabels = require("./nfl_digital_bulksms/labels.json");
+const digitalBulkSMSRoms = require("./nfl_digital_bulksms/roms.json");
+const digitalBulkSMSRomsActions = require("./nfl_digital_bulksms/roms_actions.json");
+// const digitalBulkSMSBulkOrderToOriginFormMappings = require("./nfl_digital_bulksms/bulk_order_to_origin_form_mappings.json");
+
+// NFL - Digital VSDM - 133898
+const digitalVsdmMappings = require("./nfl_digital_vsdm/mappings.json");
+const digitalVsdmLabels = require("./nfl_digital_vsdm/labels.json");
+const digitalVsdmRoms = require("./nfl_digital_vsdm/roms.json");
+const digitalVsdmRomsActions = require("./nfl_digital_vsdm/roms_actions.json");
+// const digitalVsdmBulkOrderToOriginFormMappings = require("./nfl_digital_vsdm/bulk_order_to_origin_form_mappings.json");
+
 vodafoneConfig = {
     "860": {
         "NAME": "Vodafone Idea | Production | BETA",
@@ -449,5 +484,55 @@ vodafoneConfig = {
         "ROMS": digitalNflCrfRoms,
         "ROMS_ACTIONS": digitalNflCrfRomsActions,
         "ORIGIN_FORM_ID": 1734
+    },
+    "133892": {
+        "REQUIRED_FORMS": [1688],
+        "TARGET_FORM_ID": 1687,
+        "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
+        "FORM_FIELD_MAPPING_DATA": digitalAcMappings,
+        "LABELS": digitalAcLabels,
+        "ROMS": digitalAcRoms,
+        "ROMS_ACTIONS": digitalAcRomsActions,
+        "ORIGIN_FORM_ID": 1688
+    },
+    "133893": {
+        "REQUIRED_FORMS": [1694],
+        "TARGET_FORM_ID": 1693,
+        "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
+        "FORM_FIELD_MAPPING_DATA": digitalTfsMappings,
+        "LABELS": digitalTfsLabels,
+        "ROMS": digitalTfsRoms,
+        "ROMS_ACTIONS": digitalTfsRomsActions,
+        "ORIGIN_FORM_ID": 1694
+    },
+    "133896": {
+        "REQUIRED_FORMS": [1714],
+        "TARGET_FORM_ID": 1713,
+        "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
+        "FORM_FIELD_MAPPING_DATA": digitalVcMappings,
+        "LABELS": digitalVcLabels,
+        "ROMS": digitalVcRoms,
+        "ROMS_ACTIONS": digitalVcRomsActions,
+        "ORIGIN_FORM_ID": 1714
+    },
+    "133897": {
+        "REQUIRED_FORMS": [1720],
+        "TARGET_FORM_ID": 1719,
+        "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
+        "FORM_FIELD_MAPPING_DATA": digitalBulkSMSMappings,
+        "LABELS": digitalBulkSMSLabels,
+        "ROMS": digitalBulkSMSRoms,
+        "ROMS_ACTIONS": digitalBulkSMSRomsActions,
+        "ORIGIN_FORM_ID": 1720
+    },
+    "133898": {
+        "REQUIRED_FORMS": [1878],
+        "TARGET_FORM_ID": 1726,
+        "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
+        "FORM_FIELD_MAPPING_DATA": digitalVsdmMappings,
+        "LABELS": digitalVsdmLabels,
+        "ROMS": digitalVsdmRoms,
+        "ROMS_ACTIONS": digitalVsdmRomsActions,
+        "ORIGIN_FORM_ID": 1878
     }
 };

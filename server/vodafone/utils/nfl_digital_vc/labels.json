@@ -1,0 +1,156 @@
+[
+    {
+        "form_id": 1713,
+        "field_id": 17598,
+        "field_name": "Name and Address",
+        "field_data_type_id": 21,
+        "field_data_type_category_id": 8,
+        "data_type_combo_id": 0,
+        "data_type_combo_value": "",
+        "field_value": "Name and Address",
+        "message_unique_id": 1111220000000000
+    },
+    {
+        "form_id": 1713,
+        "field_id": 17609,
+        "field_name": "Basic Organisation details",
+        "field_data_type_id": 21,
+        "field_data_type_category_id": 8,
+        "data_type_combo_id": 0,
+        "data_type_combo_value": "",
+        "field_value": "Basic Organisation details",
+        "message_unique_id": 1111220000000000
+    },
+    {
+        "form_id": 1713,
+        "field_id": 17610,
+        "field_name": "Addree 1 (Authorised Signatory Location)",
+        "field_data_type_id": 21,
+        "field_data_type_category_id": 8,
+        "data_type_combo_id": 0,
+        "data_type_combo_value": "",
+        "field_value": "Addree 1 (Authorised Signatory Location)",
+        "message_unique_id": 1111220000000000
+    },
+    {
+        "form_id": 1713,
+        "field_id": 17625,
+        "field_name": "Address 2 Key Contact location)",
+        "field_data_type_id": 21,
+        "field_data_type_category_id": 8,
+        "data_type_combo_id": 0,
+        "data_type_combo_value": "",
+        "field_value": "Address 2 Key Contact location)",
+        "message_unique_id": 1111220000000000
+    },
+    {
+        "form_id": 1713,
+        "field_id": 17644,
+        "field_name": "Mandatory for GST regisstered Companies",
+        "field_data_type_id": 21,
+        "field_data_type_category_id": 8,
+        "data_type_combo_id": 0,
+        "data_type_combo_value": "",
+        "field_value": "Mandatory for GST regisstered Companies",
+        "message_unique_id": 1111220000000000
+    },
+    {
+        "form_id": 1713,
+        "field_id": 17650,
+        "field_name": "if GST address is different from billing address",
+        "field_data_type_id": 21,
+        "field_data_type_category_id": 8,
+        "data_type_combo_id": 0,
+        "data_type_combo_value": "",
+        "field_value": "if GST address is different from billing address",
+        "message_unique_id": 1111220000000000
+    },
+    {
+        "form_id": 1713,
+        "field_id": 17654,
+        "field_name": "Proof of Identity Details",
+        "field_data_type_id": 21,
+        "field_data_type_category_id": 8,
+        "data_type_combo_id": 0,
+        "data_type_combo_value": "",
+        "field_value": "Proof of Identity Details",
+        "message_unique_id": 1111220000000000
+    },
+    {
+        "form_id": 1713,
+        "field_id": 17664,
+        "field_name": "Proof of Address details",
+        "field_data_type_id": 21,
+        "field_data_type_category_id": 8,
+        "data_type_combo_id": 0,
+        "data_type_combo_value": "",
+        "field_value": "Proof of Address details",
+        "message_unique_id": 1111220000000000
+    },
+    {
+        "form_id": 1713,
+        "field_id": 17671,
+        "field_name": "Local Reference ( for National outstation andforeign National Customers)",
+        "field_data_type_id": 21,
+        "field_data_type_category_id": 8,
+        "data_type_combo_id": 0,
+        "data_type_combo_value": "",
+        "field_value": "Local Reference ( for National outstation andforeign National Customers)",
+        "message_unique_id": 1111220000000000
+    },
+    {
+        "form_id": 1713,
+        "field_id": 17677,
+        "field_name": "Current Requirement",
+        "field_data_type_id": 21,
+        "field_data_type_category_id": 8,
+        "data_type_combo_id": 0,
+        "data_type_combo_value": "",
+        "field_value": "Current Requirement",
+        "message_unique_id": 1111220000000000
+    },
+    {
+        "form_id": 1713,
+        "field_id": 17694,
+        "field_name": "Payment Details",
+        "field_data_type_id": 21,
+        "field_data_type_category_id": 8,
+        "data_type_combo_id": 0,
+        "data_type_combo_value": "",
+        "field_value": "Payment Details",
+        "message_unique_id": 1111220000000000
+    },
+    {
+        "form_id": 1713,
+        "field_id": 17702,
+        "field_name": "VIL Internal Use",
+        "field_data_type_id": 21,
+        "field_data_type_category_id": 8,
+        "data_type_combo_id": 0,
+        "data_type_combo_value": "",
+        "field_value": "VIL Internal Use",
+        "message_unique_id": 1111220000000000
+    },
+    {
+        "form_id": 1713,
+        "field_id": 17706,
+        "field_name": "Customer Acceptance",
+        "field_data_type_id": 21,
+        "field_data_type_category_id": 8,
+        "data_type_combo_id": 0,
+        "data_type_combo_value": "",
+        "field_value": "Customer Acceptance",
+        "message_unique_id": 1111220000000000
+    },
+    {
+        "form_id": 1713,
+        "field_id": 17712,
+        "field_name": "Fulfilment and Channel Details",
+        "field_data_type_id": 21,
+        "field_data_type_category_id": 8,
+        "data_type_combo_id": 0,
+        "data_type_combo_value": "",
+        "field_value": "Fulfilment and Channel Details",
+        "message_unique_id": 1111220000000000
+    }
+]
