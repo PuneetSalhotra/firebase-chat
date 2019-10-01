@@ -17,7 +17,7 @@ var AwsSns = function () {
                 message: "",
                 timestamp: "",
                 activity_id: 0,
-                activity_inline_data: "",
+                activity_inline_data: "''",
                 subtitle: "",
                 body: ""
             }

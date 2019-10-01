@@ -1,22 +1,24 @@
 const winston = require('winston');
+require('winston-daily-rotate-file');
+
 const moment = require('moment');
 
-let fileName = `logs/${moment().utc().format("YYYY-MM-DD")}.txt`;
+let fileName = `logs/%DATE%`;
 switch (global.mode) {
     case 'staging':
-        fileName = `${global.config.efsPath}staging_api/logs/${moment().utc().format("YYYY-MM-DD")}.txt`;
+        fileName = `${global.config.efsPath}staging_api/logs/%DATE%`;
         break;
 
     case 'preprod':
-        fileName = `${global.config.efsPath}preprod_api/logs/${moment().utc().format("YYYY-MM-DD")}.txt`;
+        fileName = `${global.config.efsPath}preprod_api/logs/%DATE%`;
         break;
 
     case 'prod':
-        fileName = `${global.config.efsPath}api/logs/${moment().utc().format("YYYY-MM-DD")}.txt`;
+        fileName = `${global.config.efsPath}api/logs/%DATE%`;
         break;
 
     default:
-        fileName = `logs/${moment().utc().format("YYYY-MM-DD")}.txt`;;
+        fileName = `logs/%DATE%`;
 }
 
 // [REFERENCE] Console Color Codes
@@ -73,11 +75,19 @@ const appendEssentialsForFileLog = winston.format(
 
 const logger = winston.createLogger({
     transports: [
-        new winston.transports.File({
+        // new winston.transports.File({
+        //     filename: fileName,
+        //     handleExceptions: true,
+        //     maxsize: 10485760, // 5MB => 5242880 | 10MB => 10485760
+        //     maxFiles: 5
+        // }),
+        new winston.transports.DailyRotateFile({
+            datePattern: 'YYYY-MM-DD',
             filename: fileName,
             handleExceptions: true,
-            maxsize: 5242880, // 5MB
-            maxFiles: 5
+            maxsize: 10485760, // 5MB => 5242880 | 10MB => 10485760
+            // maxFiles: 5,
+            extension: '.txt'
         })
     ],
     level: 'debug',

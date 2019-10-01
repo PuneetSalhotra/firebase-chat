@@ -2314,7 +2314,7 @@ function ActivityListingService(objCollection) {
 				request.activity_type_id,
 				flag,
 				request.page_start || 0,
-				util.replaceQueryLimit(request.page_limit)
+				request.page_limit || 50 // util.replaceQueryLimit(request.page_limit),
 			);
 
 			var queryString = util.getQueryString('ds_p1_1_queue_list_select', paramsArr);
