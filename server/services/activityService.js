@@ -3500,6 +3500,7 @@ function ActivityService(objectCollection) {
             console.log("updateWorkflowQueueMapping | Activity Details Fetch Error | error: ", error);
         }
         try {
+            request.page_limit = 100;
             const queueMap = await activityListingService.getEntityQueueMapping(request);
             if (queueMap.length > 0) {
                 // Iterate through each queue mapped to the activity type
