@@ -213,7 +213,7 @@ function ActivityConfigService(db, util) {
             );
             var queryString = util.getQueryString('ds_p1_1_workforce_activity_type_mapping_update', paramsArr);
             if (queryString != '') {
-                db.executeQuery(0, queryString, request, function (err, data) {
+                db.executeQuery(0, queryString, request, async function (err, data) {
                     if (err === false) {
                         // Update the default workflow duration as well
                         try {
