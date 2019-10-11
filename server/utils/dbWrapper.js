@@ -255,12 +255,12 @@ let callDBProcedure =
                     return Promise.reject(result);
                 }
             } else {
-                logger.warn(`[${flagReadOperation}] ${queryString}`, { type: 'mysql', db_response: null, request_body: request, error: "Invalid Query String" });
+                logger.error(`[${flagReadOperation}] ${queryString}`, { type: 'mysql', db_response: null, request_body: request, error: "Invalid Query String" });
                 // global.logger.write('dbResponse', "Invalid Query String: " + queryString, {}, request);
                 return Promise.reject(`Invalid Query String`);
             }
         } catch (error) {
-            logger.warn(`[${flagReadOperation}] QUERY ERROR`, { type: 'mysql', db_response: null, request_body: request, error: error });
+            logger.error(`[${flagReadOperation}] QUERY ERROR`, { type: 'mysql', db_response: null, request_body: request, error: error });
             // global.logger.write('dbResponse', 'QUERY ERROR | ', error, request);
             return Promise.reject(error);
         }
