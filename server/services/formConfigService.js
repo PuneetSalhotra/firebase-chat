@@ -899,24 +899,24 @@ function FormConfigService(objCollection) {
                     case 17: //Location
                         // Format: { "location_data": { "flag_location_available": 1, "location_latitude": 0.0, "location_longitude": 0.0 } }
                         // Revision 1 | 25th September 2019
-                        try {
-                            const fieldValue = isObject(row.field_value) ? row.field_value : JSON.parse(row.field_value);
+                        // try {
+                        //     const fieldValue = isObject(row.field_value) ? row.field_value : JSON.parse(row.field_value);
 
-                            if (Number(fieldValue.location_data.flag_location_available) === 1) {
-                                params[16] = parseFloat(fieldValue.location_data.location_latitude);
-                                params[17] = parseFloat(fieldValue.location_data.location_longitude);
-                                // Set the location availibility flag
-                                params[11] = 1;
-                            } else {
-                                // Reset the location availibility flag
-                                params[11] = 0;
-                            }
-                            params[18] = JSON.stringify(fieldValue);
-                            break;
-                        } catch (error) {
-                            console.log("Error parsing location data")
-                            // Proceed
-                        }
+                        //     if (Number(fieldValue.location_data.flag_location_available) === 1) {
+                        //         params[16] = parseFloat(fieldValue.location_data.location_latitude);
+                        //         params[17] = parseFloat(fieldValue.location_data.location_longitude);
+                        //         // Set the location availibility flag
+                        //         params[11] = 1;
+                        //     } else {
+                        //         // Reset the location availibility flag
+                        //         params[11] = 0;
+                        //     }
+                        //     params[18] = JSON.stringify(fieldValue);
+                        //     break;
+                        // } catch (error) {
+                        //     console.log("Error parsing location data")
+                        //     // Proceed
+                        // }
                         // Format: xx.xxx,yy.yyy | Legacy | Ensure backward compatibility
                         const location = row.field_value.split(',');
                         if (
