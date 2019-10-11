@@ -129,7 +129,7 @@ function WorkflowQueueService(objectCollection) {
                             request.organization_id,
                             request.log_state,
                             request.log_asset_id,
-                            request.log_datetime,
+                            request.log_datetime || moment().utc().format('YYYY-MM-DD HH:mm:ss'),
                         );
 
                     results[1] = await db.callDBProcedure(request, 'ds_p1_queue_access_mapping_update_log_state', paramsArray, 0);
@@ -140,7 +140,7 @@ function WorkflowQueueService(objectCollection) {
                             request.organization_id,
                             global.workflowQueueConfig.queueAccessReset,
                             request.log_asset_id,
-                            request.log_datetime,
+                            request.log_datetime || moment().utc().format('YYYY-MM-DD HH:mm:ss'),
                         );
 
                     results[2] = await db.callDBProcedure(request, 'ds_p1_queue_access_mapping_history_insert', paramsArray, 0);
@@ -152,7 +152,7 @@ function WorkflowQueueService(objectCollection) {
                         request.log_state,
                         request.organization_id,
                         request.log_asset_id,
-                        request.log_datetime,
+                        request.log_datetime || moment().utc().format('YYYY-MM-DD HH:mm:ss'),
                     );
 
                 results[3] = await db.callDBProcedure(request, 'ds_p1_queue_list_update_log_state', paramsArray, 0);
@@ -162,7 +162,7 @@ function WorkflowQueueService(objectCollection) {
                         request.queue_id,
                         global.workflowQueueConfig.queueArchived,
                         request.log_asset_id,
-                        request.log_datetime,
+                        request.log_datetime || moment().utc().format('YYYY-MM-DD HH:mm:ss'),
                     );
 
                 results[4] = await db.callDBProcedure(request, 'ds_p1_queue_list_history_insert', paramsArray, 0);
