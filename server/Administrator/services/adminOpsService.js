@@ -3571,6 +3571,11 @@ function AdminOpsService(objectCollection) {
         }
         return [error, responseData];
     }
+
+    this.deleteStatusTag = async function (request) {
+        
+        return [false, true]
+    }
 }
 
 module.exports = AdminOpsService;

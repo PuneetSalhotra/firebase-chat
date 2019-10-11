@@ -141,6 +141,17 @@ function AdminOpsController(objCollection) {
         }
     });
 
+    // Delete a status tag
+    app.post('/' + global.config.version + '/admin/status_tag/delete', async function (req, res) {
+        const [err, statusData] = await adminOpsService.deleteStatusTag(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, statusData, 200, req.body));
+        } else {
+            console.log("/admin/status_tag/delete | Error: ", err);
+            res.send(responseWrapper.getResponse(err, statusData, -9999, req.body));
+        }
+    });
+
 };
 
 module.exports = AdminOpsController;
