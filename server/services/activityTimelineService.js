@@ -2134,22 +2134,22 @@ function ActivityTimelineService(objectCollection) {
                 case 53: // IP Address Form
                     // Format: { "ip_address_data": { "flag_ip_address_available": 1, "ip_address": "0.00.0.0" } }
                     // Revision 1 | 25th September 2019
-                    try {
-                        const fieldValue = isObject(row.field_value) ? row.field_value : JSON.parse(row.field_value);
+                    // try {
+                    //     const fieldValue = isObject(row.field_value) ? row.field_value : JSON.parse(row.field_value);
 
-                        if (Number(fieldValue.ip_address_data.flag_ip_address_available) === 1) {
-                            params[18] = fieldValue.ip_address_data.ip_address;
-                            // Set the IP address availibility flag
-                            params[11] = 1;
-                        } else {
-                            // Reset the IP address availibility flag
-                            params[11] = 0;
-                        }
-                        break;
-                    } catch (error) {
-                        console.log("Error parsing location data")
-                        // Proceed
-                    }
+                    //     if (Number(fieldValue.ip_address_data.flag_ip_address_available) === 1) {
+                    //         params[18] = fieldValue.ip_address_data.ip_address;
+                    //         // Set the IP address availibility flag
+                    //         params[11] = 1;
+                    //     } else {
+                    //         // Reset the IP address availibility flag
+                    //         params[11] = 0;
+                    //     }
+                    //     break;
+                    // } catch (error) {
+                    //     console.log("Error parsing location data")
+                    //     // Proceed
+                    // }
                     // Format: X.X.X.X | Legacy | Ensure backward compatibility
                     params[18] = row.field_value;
                     if (
