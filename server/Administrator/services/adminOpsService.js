@@ -2770,6 +2770,48 @@ function AdminOpsService(objectCollection) {
 
     }
 
+    // Alter/update an existin workforce
+    this.alterWorkforce = async function (request) {
+        const organizationID = Number(request.organization_id),
+            accountID = Number(request.account_id),
+            workforceID = Number(request.workforce_id),
+            assetID = Number(request.asset_id),
+            logDateTime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+        
+        
+    };
+
+    // Workforce List Update
+    async function workforceListUpdateName(request, workforceID, organizationID, accountID) {
+        // IN p_workforce_name VARCHAR(50), IN p_workforce_image_path VARCHAR(300), 
+        // IN p_workforce_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_log_asset_id BIGINT(20), 
+        // IN p_log_datetime DATETIME
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.workforce_name,
+            request.workforce_image_path || '',
+            workforceID,
+            organizationID,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_list_update', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
     // Workforce Activity Types Insert
     async function workforceActivityTypeMappingInsert(request, workforceID, organizationID, accountID) {
         let responseData = [],

@@ -75,6 +75,17 @@ function AdminOpsController(objCollection) {
         }
     });
 
+    // Alter or update an existing workforce
+    app.post('/' + global.config.version + '/admin/workforce/alter', async function (req, res) {
+        const [err, workforceData] = await adminOpsService.alterWorkforce(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, workforceData, 200, req.body));
+        } else {
+            console.log("/admin/workforce/alter | Error: ", err);
+            res.send(responseWrapper.getResponse(err, workforceData, -9999, req.body));
+        }
+    });
+
     // Create a new organization
     app.post('/' + global.config.version + '/admin/organization/add', async function (req, res) {
         const [err, workforceData] = await adminOpsService.createOrganization(req.body);
