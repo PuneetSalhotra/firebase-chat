@@ -3524,6 +3524,53 @@ function AdminOpsService(objectCollection) {
         }
         return [error, responseData];
     }
+
+    this.addStatusTag = async function (request) {
+        const organizationID = Number(request.organization_id),
+            accountID = Number(request.account_id),
+            workforceID = Number(request.workforce_id);
+
+        const [errOne, activityStatusTagListData] = await activityStatusTagListInsert(request, organizationID, accountID, workforceID);
+
+        if (errOne) {
+            console.log("addStatusTag | activityStatusTagListInsert | Error", errOne);
+        }
+        return [errOne, activityStatusTagListData];
+    }
+
+    // Status Tag List Insert
+    async function activityStatusTagListInsert(request, organizationID, accountID, workforceID) {
+        // IN p_activity_status_tag_name VARCHAR(50), IN p_level_id SMALLINT(6), 
+        // N p_activity_type_id BIGINT(20), IN p_workforce_id BIGINT(20), 
+        // IN p_account_id  BIGINT(20), IN p_organization_id BIGINT(20), 
+        // IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.activity_status_tag_name,
+            request.level_id || 1,
+            request.activity_type_id,
+            workforceID,
+            accountID,
+            organizationID,
+            request.log_asset_id || request.asset_id,
+            util.getCurrentUTCTime(),
+        );
+        const queryString = util.getQueryString('ds_p1_activity_status_tag_list_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = AdminOpsService;
