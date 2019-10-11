@@ -3573,8 +3573,47 @@ function AdminOpsService(objectCollection) {
     }
 
     this.deleteStatusTag = async function (request) {
-        
+        const organizationID = Number(request.organization_id),
+            accountID = Number(request.account_id),
+            workforceID = Number(request.workforce_id),
+            activity_status_tag_id = Number(request.activity_status_tag_id);
+
+        const [errOne, activityStatusTagListData] = await activityStatusTagListInsert(request, organizationID, accountID, workforceID);
+        if (errOne) {
+            return [errOne, []]
+        }
+
         return [false, true]
+    }
+
+    // Status Tag List Delete
+    async function activityStatusTagListDelete(request, organizationID, accountID, workforceID) {
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), 
+        // IN p_activity_status_tag_id BIGINT(20), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            organizationID,
+            accountID,
+            workforceID,
+            request.activity_status_tag_id,
+            request.log_asset_id || request.asset_id,
+            util.getCurrentUTCTime(),
+        );
+        const queryString = util.getQueryString('ds_p1_activity_status_tag_list_delete', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
     }
 }
 
