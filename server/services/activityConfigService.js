@@ -3,7 +3,7 @@
  */
 const AdminOpsService = require('../Administrator/services/adminOpsService');
 
-function ActivityConfigService(db, util) {
+function ActivityConfigService(db, util, objCollection) {
     const adminOpsService = new AdminOpsService(objCollection);
 
     this.getWorkforceActivityTypesList = function (request, callback) {
