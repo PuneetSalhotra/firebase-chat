@@ -620,15 +620,23 @@ function AdminListingService(objectCollection) {
 
     // Get forms list based on form type id
     this.accountListSelectOrganization = async function (request) {
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
+        // IN p_account_name VARCHAR(50), IN p_flag_search TINYINT(4), 
+        // IN p_sort_flag TINYINT(4), IN p_start_from SMALLINT(6), IN p_limit_value TINYINT(4)
         let responseData = [],
             error = true;
 
         const paramsArr = new Array(
             request.organization_id,
+            request.account_id || 0,
+            request.account_name || '',
+            request.flag_search || 0,
+            request.sort_flag || 0,
             request.start_from || 0,
             request.limit_value || 50
         );
-        const queryString = util.getQueryString('ds_p1_account_list_select_organization', paramsArr);
+        // const queryString = util.getQueryString('ds_p1_account_list_select_organization', paramsArr);
+        const queryString = util.getQueryString('ds_v1_account_list_select_organization', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)

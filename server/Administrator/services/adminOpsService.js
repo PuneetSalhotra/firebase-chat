@@ -166,9 +166,12 @@ function AdminOpsService(objectCollection) {
             organizationID,
             request.log_asset_id || 1,
             util.getCurrentUTCTime(),
-            request.joined_datetime || util.getCurrentUTCTime()
+            request.joined_datetime || util.getCurrentUTCTime(),
+            request.asset_flag_account_admin || 0,
+            request.asset_flag_organization_admin || 0
         );
-        const queryString = util.getQueryString('ds_p1_1_asset_list_insert', paramsArr);
+        // const queryString = util.getQueryString('ds_p1_1_asset_list_insert', paramsArr);
+        const queryString = util.getQueryString('ds_p1_2_asset_list_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
