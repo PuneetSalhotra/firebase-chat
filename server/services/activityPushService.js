@@ -408,6 +408,7 @@ function ActivityPushService(objectCollection) {
                                                 pushString.subtitle = `Added attachment(s)`;
                                                 break;
                                         }
+                                        pushString.description = `${pushString.subtitle} - ${senderName}`;
 
                                     } else if (Number(attachments.length) > 0) {
                                         msg.description = `Added attachment in ${activityTitle}.`;
