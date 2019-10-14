@@ -201,6 +201,17 @@ function AdminListingController(objCollection) {
         }
     });
 
+    // List activity status tags
+    app.post('/' + global.config.version + '/admin/status_tag/list', async function (req, res) {
+        const [err, activityStatusTagData] = await adminListingService.activityStatusTagListSelect(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, activityStatusTagData, 200, req.body));
+        } else {
+            console.log("/admin/status_tag/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, activityStatusTagData, -9999, req.body));
+        }
+    });
+
 };
 
 module.exports = AdminListingController;

@@ -713,7 +713,10 @@ function AssetService(objectCollection) {
             'operating_asset_image_path': util.replaceDefaultString(rowArray[0]['operating_asset_image_path']),
             'workforce_type_id': util.replaceDefaultNumber(rowArray[0]['workforce_type_id']),
 
-            'asset_flag_admin': util.replaceDefaultNumber(rowArray[0]['asset_flag_admin'])
+            'asset_flag_admin': util.replaceDefaultNumber(rowArray[0]['asset_flag_admin']), // Legacy
+            'asset_flag_account_admin': util.replaceDefaultNumber(rowArray[0]['asset_flag_admin']),
+            'asset_flag_organization_admin': util.replaceDefaultNumber(rowArray[0]['asset_flag_organization_admin'])
+
         };
 
         callback(false, rowData);

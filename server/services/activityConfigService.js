@@ -1,8 +1,10 @@
 /*
  * author: Sri Sai Venkatesh
  */
+const AdminOpsService = require('../Administrator/services/adminOpsService');
 
-function ActivityConfigService(db, util) {
+function ActivityConfigService(db, util, objCollection) {
+    const adminOpsService = new AdminOpsService(objCollection);
 
     this.getWorkforceActivityTypesList = function (request, callback) {
         var paramsArr = new Array(
@@ -196,29 +198,35 @@ function ActivityConfigService(db, util) {
         });
     };
     
-   this.workForceActivityTypeUpdate =  function(request) {
-        return new Promise((resolve, reject)=>{
+    this.workForceActivityTypeUpdate = function (request) {
+        return new Promise((resolve, reject) => {
             var paramsArr = new Array(
-                    request.organization_id,
-                    request.account_id,
-                    request.workforce_id,
-                    request.activity_type_id,
-                    request.activity_type_name,
-                    request.activity_type_description,
-                    request.access_level_id, 
-                    request.asset_id,
-                    request.datetime_log
-                );
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.activity_type_id,
+                request.activity_type_name,
+                request.activity_type_description,
+                request.access_level_id,
+                request.asset_id,
+                request.datetime_log
+            );
             var queryString = util.getQueryString('ds_p1_1_workforce_activity_type_mapping_update', paramsArr);
             if (queryString != '') {
-                db.executeQuery(0, queryString, request, function (err, data) {
-                	if(err === false){                		
-                		request['update_type_id'] = 901;
-                		workForceActivityTypeHistoryInsert(request).then(()=>{});
-                		resolve(data);
-                	}else{
-                		reject(err);
-                	}
+                db.executeQuery(0, queryString, request, async function (err, data) {
+                    if (err === false) {
+                        // Update the default workflow duration as well
+                        try {
+                            await adminOpsService.updateActivityTypeDefaultDuration(request);
+                        } catch (error) {
+                            console.log("[ERROR] workForceActivityTypeUpdate | updateActivityTypeDefaultDuration: ", error);
+                        }
+                        request['update_type_id'] = 901;
+                        workForceActivityTypeHistoryInsert(request).then(() => { });
+                        resolve(data);
+                    } else {
+                        reject(err);
+                    }
                 });
             }
         });

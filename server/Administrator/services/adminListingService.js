@@ -620,15 +620,23 @@ function AdminListingService(objectCollection) {
 
     // Get forms list based on form type id
     this.accountListSelectOrganization = async function (request) {
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
+        // IN p_account_name VARCHAR(50), IN p_flag_search TINYINT(4), 
+        // IN p_sort_flag TINYINT(4), IN p_start_from SMALLINT(6), IN p_limit_value TINYINT(4)
         let responseData = [],
             error = true;
 
         const paramsArr = new Array(
             request.organization_id,
+            request.account_id || 0,
+            request.account_name || '',
+            request.flag_search || 0,
+            request.sort_flag || 0,
             request.start_from || 0,
             request.limit_value || 50
         );
-        const queryString = util.getQueryString('ds_p1_account_list_select_organization', paramsArr);
+        // const queryString = util.getQueryString('ds_p1_account_list_select_organization', paramsArr);
+        const queryString = util.getQueryString('ds_v1_account_list_select_organization', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
@@ -687,6 +695,74 @@ function AdminListingService(objectCollection) {
             request.limit_value || 50
         );
         const queryString = util.getQueryString('ds_p1_widget_list_select_level', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Get the list of activity statuses
+    this.workforceActivityStatusMappingSelectFlag = async function (request) {
+        // IN p_organization_id bigint(20), IN p_account_id bigint(20), IN p_workforce_id bigint(20), 
+        // IN p_activity_type_category_id SMALLINT(6), IN p_activity_type_id BIGINT(20), 
+        // IN p_tag_type_id SMALLINT(6), IN p_tag_id BIGINT(20), IN p_activity_status_type_id BIGINT(20), 
+        // IN p_activity_status_tag_id BIGINT(20), IN p_flag TINYINT(4), IN p_log_datetime DATETIME, 
+        // IN p_start_from SMALLINT(6), IN p_limit_value TINYINT(4)
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id || 0,
+            request.workforce_id || 0,
+            request.activity_type_category_id || 48,
+            request.activity_type_id || 0,
+            request.tag_type_id || 0,
+            request.tag_id || 0,
+            request.activity_status_type_id || 0,
+            request.activity_status_tag_id || 0,
+            request.flag || 0,
+            util.getCurrentUTCTime(),
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_select_flag', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Get the list of activity status tag IDs
+    this.activityStatusTagListSelect = async function (request) {
+        // IN p_organization_id BIGINT(20), IN p_activity_type_category_id SMALLINT(6), 
+        // IN p_start_from SMALLINT(6), IN p_limit_value TINYINT(4)
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.activity_type_category_id,
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+        const queryString = util.getQueryString('ds_p1_activity_status_tag_list_select', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
