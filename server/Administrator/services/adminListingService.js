@@ -709,6 +709,46 @@ function AdminListingService(objectCollection) {
         return [error, responseData];
     }
 
+    // Get the list of activity statuses
+    this.workforceActivityStatusMappingSelectFlag = async function (request) {
+        // IN p_organization_id bigint(20), IN p_account_id bigint(20), IN p_workforce_id bigint(20), 
+        // IN p_activity_type_category_id SMALLINT(6), IN p_activity_type_id BIGINT(20), 
+        // IN p_tag_type_id SMALLINT(6), IN p_tag_id BIGINT(20), IN p_activity_status_type_id BIGINT(20), 
+        // IN p_activity_status_tag_id BIGINT(20), IN p_flag TINYINT(4), IN p_log_datetime DATETIME, 
+        // IN p_start_from SMALLINT(6), IN p_limit_value TINYINT(4)
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id || 0,
+            request.workforce_id || 0,
+            request.activity_type_category_id || 48,
+            request.activity_type_id || 0,
+            request.tag_type_id || 0,
+            request.tag_id || 0,
+            request.activity_status_type_id || 0,
+            request.activity_status_tag_id || 0,
+            request.flag || 0,
+            util.getCurrentUTCTime(),
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_select_flag', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
 }
 
 

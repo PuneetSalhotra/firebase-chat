@@ -3576,14 +3576,30 @@ function AdminOpsService(objectCollection) {
         const organizationID = Number(request.organization_id),
             accountID = Number(request.account_id),
             workforceID = Number(request.workforce_id),
-            activity_status_tag_id = Number(request.activity_status_tag_id);
+            activityStatusTagID = Number(request.activity_status_tag_id);
 
-        const [errOne, activityStatusTagListData] = await activityStatusTagListInsert(request, organizationID, accountID, workforceID);
+        // Delete the Status Tag
+        const [errOne, activityStatusTagListData] = await activityStatusTagListDelete(request, organizationID, accountID, workforceID);
         if (errOne) {
             return [errOne, []]
         }
 
-        return [false, true]
+        // Fetch activity statuses to status tag mappings
+        const [errTwo, activityStatusMappingData] = await adminListingService.workforceActivityStatusMappingSelectFlag(request);
+        if (errTwo) {
+            return [errTwo, []]
+        }
+
+        // Unset status tag for each activity status mapping entry
+        for (const activityStatusMapping of activityStatusMappingData) {
+            const [errThree, _] = await workforceActivityStatusMappingUpdateTag({
+                activity_status_id: activityStatusMapping.activity_status_id,
+                activity_status_tag_id: 0,
+                asset_id: request.asset_id
+            }, organizationID, accountID, workforceID);
+        }
+
+        return [false, []]
     }
 
     // Status Tag List Delete
@@ -3602,6 +3618,38 @@ function AdminOpsService(objectCollection) {
             util.getCurrentUTCTime(),
         );
         const queryString = util.getQueryString('ds_p1_activity_status_tag_list_delete', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Update Status Tag for an activity status
+    async function workforceActivityStatusMappingUpdateTag(request, organizationID, accountID, workforceID) {
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), 
+        // IN p_activity_status_id BIGINT(20), IN p_status_tag_id BIGINT(20), IN p_log_asset_id BIGINT(20), 
+        // IN p_log_datetime DATETIME
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            organizationID,
+            accountID,
+            workforceID,
+            request.activity_status_id,
+            request.activity_status_tag_id,
+            request.log_asset_id || request.asset_id,
+            util.getCurrentUTCTime(),
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_update_tag', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
