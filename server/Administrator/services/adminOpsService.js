@@ -2319,6 +2319,7 @@ function AdminOpsService(objectCollection) {
         const organizationID = Number(request.organization_id),
             accountID = Number(request.account_id),
             workforceID = Number(request.workforce_id),
+            newAccountID = Number(request.new_account_id),
             newWorkforceID = Number(request.new_workforce_id),
             deskAssetID = Number(request.desk_asset_id);
         let newWorkforceName = '';
@@ -2368,7 +2369,7 @@ function AdminOpsService(objectCollection) {
             asset_id: deskAssetID,
             asset_type_id: newWorkforceDeskAssetTypeID,
             log_asset_id: request.log_asset_id
-        }, newWorkforceID, organizationID, accountID);
+        }, newWorkforceID, organizationID, newAccountID || accountID);
         if (errFour) {
             console.log("moveEmployeeDeskToAnotherWorkforce | assetListUpdateWorkforce | Error: ", errFour);
             return [true, {
@@ -2392,7 +2393,7 @@ function AdminOpsService(objectCollection) {
             assetTimelineTxnRequest.asset_id = deskAssetID;
             assetTimelineTxnRequest.stream_type_id = 11024;
 
-            await assetTimelineTransactionInsert(assetTimelineTxnRequest, newWorkforceID, organizationID, accountID);
+            await assetTimelineTransactionInsert(assetTimelineTxnRequest, newWorkforceID, organizationID, newAccountID || accountID);
         } catch (error) {
             console.log("moveEmployeeDeskToAnotherWorkforce | assetTimelineTransactionInsert | Error: ", error);
         }
@@ -2425,6 +2426,7 @@ function AdminOpsService(objectCollection) {
                 // Update inline data
                 contactCardInlineData.contact_department = deskAssetDataFromDB[0].workforce_name;
                 contactCardInlineData.contact_asset_type_id = deskAssetDataFromDB[0].asset_type_id;
+                contactCardInlineData.contact_account_id = newAccountID || newAccountID;
                 contactCardInlineData.contact_workforce_id = newWorkforceID;
 
                 // Co-Worker Contact Card: Activity List Update
@@ -2456,7 +2458,7 @@ function AdminOpsService(objectCollection) {
                     activityTimelineTxnRequest.asset_id = deskAssetID;
                     activityTimelineTxnRequest.stream_type_id = 11024;
 
-                    await activityTimelineTransactionInsert(activityTimelineTxnRequest, newWorkforceID, organizationID, accountID);
+                    await activityTimelineTransactionInsert(activityTimelineTxnRequest, newWorkforceID, organizationID, newAccountID || accountID);
                 } catch (error) {
                     console.log("removeEmployeeMappedToDesk | Co-Worker | activityTimelineTransactionInsert | Error: ", error);
                 }
@@ -2495,7 +2497,7 @@ function AdminOpsService(objectCollection) {
                 asset_id: operatingAssetID,
                 asset_type_id: newWorkforceEmployeeAssetTypeID,
                 log_asset_id: request.log_asset_id
-            }, newWorkforceID, organizationID, accountID);
+            }, newWorkforceID, organizationID, newAccountID || accountID);
             if (!errSix) {
                 console.log("moveEmployeeDeskToAnotherWorkforce | Employee | assetListUpdateWorkforce | Error: ", errSix);
 
@@ -2515,7 +2517,7 @@ function AdminOpsService(objectCollection) {
                     assetTimelineTxnRequest.asset_id = operatingAssetID;
                     assetTimelineTxnRequest.stream_type_id = 11024;
 
-                    await assetTimelineTransactionInsert(assetTimelineTxnRequest, newWorkforceID, organizationID, accountID);
+                    await assetTimelineTransactionInsert(assetTimelineTxnRequest, newWorkforceID, organizationID, newAccountID || accountID);
                 } catch (error) {
                     console.log("moveEmployeeDeskToAnotherWorkforce | Employee | assetTimelineTransactionInsert | Error: ", error);
                 }
@@ -2534,6 +2536,7 @@ function AdminOpsService(objectCollection) {
 
                 let idCardActivityInlineData = JSON.parse(idCardData[0].activity_inline_data);
                 idCardActivityInlineData.employee_department = newWorkforceName;
+                idCardActivityInlineData.employee_account_id = newAccountID || newAccountID;
                 idCardActivityInlineData.workforce_name = newWorkforceName;
                 idCardActivityInlineData.employee_workforce_id = newWorkforceID;
 
@@ -2575,7 +2578,7 @@ function AdminOpsService(objectCollection) {
                     activityTimelineTxnRequest.asset_id = deskAssetID;
                     activityTimelineTxnRequest.stream_type_id = 11010;
 
-                    await activityTimelineTransactionInsert(activityTimelineTxnRequest, workforceID, organizationID, accountID);
+                    await activityTimelineTransactionInsert(activityTimelineTxnRequest, workforceID, organizationID, newAccountID || accountID);
                 } catch (error) {
                     console.log("moveEmployeeDeskToAnotherWorkforce | ID Card | activityTimelineTransactionInsert | Error: ", error);
                 }
