@@ -749,6 +749,34 @@ function AdminListingService(objectCollection) {
         return [error, responseData];
     }
 
+    // Get the list of activity status tag IDs
+    this.activityStatusTagListSelect = async function (request) {
+        // IN p_organization_id BIGINT(20), IN p_activity_type_category_id SMALLINT(6), 
+        // IN p_start_from SMALLINT(6), IN p_limit_value TINYINT(4)
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.activity_type_category_id,
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+        const queryString = util.getQueryString('ds_p1_activity_status_tag_list_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
 }
 
 
