@@ -782,7 +782,21 @@ function AdminListingService(objectCollection) {
             accountID = Number(request.account_id),
             workforceID = Number(request.workforce_id);
         const [err, assetData] = await assetListSelectCustomerUniqueID(request, organizationID, accountID, workforceID);
-        return [err, assetData]
+
+        const filteredAssetData = assetData.map(x => {
+            return {
+                organization_id: x.organization_id,
+                organization_name: x.organization_name,
+                account_id: x.account_id,
+                account_name: x.account_name,
+                workforce_id: x.workforce_id,
+                workforce_name: x.workforce_name,
+                asset_id: x.asset_id,
+                asset_first_name: x.asset_first_name
+            }
+        })
+
+        return [err, filteredAssetData]
     }
 
     // Fetch all assets with the given customer unique ID
@@ -800,7 +814,7 @@ function AdminListingService(objectCollection) {
             request.customer_unique_id,
             request.asset_type_category_id
         );
-        const queryString = util.getQueryString('ds_p1_asset_list_select_customer_unique_id', paramsArr);
+        const queryString = util.getQueryString('ds_p1_1_asset_list_select_customer_unique_id', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
