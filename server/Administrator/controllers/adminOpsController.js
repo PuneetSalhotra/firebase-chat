@@ -75,6 +75,17 @@ function AdminOpsController(objCollection) {
         }
     });
 
+    // Alter or update an existing workforce
+    app.post('/' + global.config.version + '/admin/workforce/alter', async function (req, res) {
+        const [err, workforceData] = await adminOpsService.alterWorkforce(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, workforceData, 200, req.body));
+        } else {
+            console.log("/admin/workforce/alter | Error: ", err);
+            res.send(responseWrapper.getResponse(err, workforceData, -9999, req.body));
+        }
+    });
+
     // Create a new organization
     app.post('/' + global.config.version + '/admin/organization/add', async function (req, res) {
         const [err, workforceData] = await adminOpsService.createOrganization(req.body);
@@ -116,6 +127,28 @@ function AdminOpsController(objCollection) {
         } else {
             console.log("/admin/asset/details/update | Error: ", err);
             res.send(responseWrapper.getResponse(err, assetData, -9999, req.body));
+        }
+    });
+
+    // Add a status tag
+    app.post('/' + global.config.version + '/admin/status_tag/add', async function (req, res) {
+        const [err, statusData] = await adminOpsService.addStatusTag(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, statusData, 200, req.body));
+        } else {
+            console.log("/admin/status_tag/add | Error: ", err);
+            res.send(responseWrapper.getResponse(err, statusData, -9999, req.body));
+        }
+    });
+
+    // Delete a status tag
+    app.post('/' + global.config.version + '/admin/status_tag/delete', async function (req, res) {
+        const [err, statusData] = await adminOpsService.deleteStatusTag(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, statusData, 200, req.body));
+        } else {
+            console.log("/admin/status_tag/delete | Error: ", err);
+            res.send(responseWrapper.getResponse(err, statusData, -9999, req.body));
         }
     });
 

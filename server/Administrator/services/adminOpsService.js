@@ -166,9 +166,12 @@ function AdminOpsService(objectCollection) {
             organizationID,
             request.log_asset_id || 1,
             util.getCurrentUTCTime(),
-            request.joined_datetime || util.getCurrentUTCTime()
+            request.joined_datetime || util.getCurrentUTCTime(),
+            request.asset_flag_account_admin || 0,
+            request.asset_flag_organization_admin || 0
         );
-        const queryString = util.getQueryString('ds_p1_1_asset_list_insert', paramsArr);
+        // const queryString = util.getQueryString('ds_p1_1_asset_list_insert', paramsArr);
+        const queryString = util.getQueryString('ds_p1_2_asset_list_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -2767,6 +2770,48 @@ function AdminOpsService(objectCollection) {
 
     }
 
+    // Alter/update an existin workforce
+    this.alterWorkforce = async function (request) {
+        const organizationID = Number(request.organization_id),
+            accountID = Number(request.account_id),
+            workforceID = Number(request.workforce_id),
+            assetID = Number(request.asset_id),
+            logDateTime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+        
+        
+    };
+
+    // Workforce List Update
+    async function workforceListUpdateName(request, workforceID, organizationID, accountID) {
+        // IN p_workforce_name VARCHAR(50), IN p_workforce_image_path VARCHAR(300), 
+        // IN p_workforce_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_log_asset_id BIGINT(20), 
+        // IN p_log_datetime DATETIME
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.workforce_name,
+            request.workforce_image_path || '',
+            workforceID,
+            organizationID,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_list_update', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
     // Workforce Activity Types Insert
     async function workforceActivityTypeMappingInsert(request, workforceID, organizationID, accountID) {
         let responseData = [],
@@ -3466,6 +3511,145 @@ function AdminOpsService(objectCollection) {
             util.getCurrentUTCTime(),
         );
         const queryString = util.getQueryString('ds_p1_form_entity_mapping_update_activity_duration', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.addStatusTag = async function (request) {
+        const organizationID = Number(request.organization_id),
+            accountID = Number(request.account_id),
+            workforceID = Number(request.workforce_id);
+
+        const [errOne, activityStatusTagListData] = await activityStatusTagListInsert(request, organizationID, accountID, workforceID);
+
+        if (errOne) {
+            console.log("addStatusTag | activityStatusTagListInsert | Error", errOne);
+        }
+        return [errOne, activityStatusTagListData];
+    }
+
+    // Status Tag List Insert
+    async function activityStatusTagListInsert(request, organizationID, accountID, workforceID) {
+        // IN p_activity_status_tag_name VARCHAR(50), IN p_level_id SMALLINT(6), 
+        // N p_activity_type_id BIGINT(20), IN p_workforce_id BIGINT(20), 
+        // IN p_account_id  BIGINT(20), IN p_organization_id BIGINT(20), 
+        // IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.activity_status_tag_name,
+            request.level_id || 1,
+            request.activity_type_id,
+            workforceID,
+            accountID,
+            organizationID,
+            request.log_asset_id || request.asset_id,
+            util.getCurrentUTCTime(),
+        );
+        const queryString = util.getQueryString('ds_p1_activity_status_tag_list_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.deleteStatusTag = async function (request) {
+        const organizationID = Number(request.organization_id),
+            accountID = Number(request.account_id),
+            workforceID = Number(request.workforce_id),
+            activityStatusTagID = Number(request.activity_status_tag_id);
+
+        // Delete the Status Tag
+        const [errOne, activityStatusTagListData] = await activityStatusTagListDelete(request, organizationID, accountID, workforceID);
+        if (errOne) {
+            return [errOne, []]
+        }
+
+        // Fetch activity statuses to status tag mappings
+        const [errTwo, activityStatusMappingData] = await adminListingService.workforceActivityStatusMappingSelectFlag(request);
+        if (errTwo) {
+            return [errTwo, []]
+        }
+
+        // Unset status tag for each activity status mapping entry
+        for (const activityStatusMapping of activityStatusMappingData) {
+            const [errThree, _] = await workforceActivityStatusMappingUpdateTag({
+                activity_status_id: activityStatusMapping.activity_status_id,
+                activity_status_tag_id: 0,
+                asset_id: request.asset_id
+            }, organizationID, accountID, workforceID);
+        }
+
+        return [false, []]
+    }
+
+    // Status Tag List Delete
+    async function activityStatusTagListDelete(request, organizationID, accountID, workforceID) {
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), 
+        // IN p_activity_status_tag_id BIGINT(20), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            organizationID,
+            accountID,
+            workforceID,
+            request.activity_status_tag_id,
+            request.log_asset_id || request.asset_id,
+            util.getCurrentUTCTime(),
+        );
+        const queryString = util.getQueryString('ds_p1_activity_status_tag_list_delete', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Update Status Tag for an activity status
+    async function workforceActivityStatusMappingUpdateTag(request, organizationID, accountID, workforceID) {
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), 
+        // IN p_activity_status_id BIGINT(20), IN p_status_tag_id BIGINT(20), IN p_log_asset_id BIGINT(20), 
+        // IN p_log_datetime DATETIME
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            organizationID,
+            accountID,
+            workforceID,
+            request.activity_status_id,
+            request.activity_status_tag_id,
+            request.log_asset_id || request.asset_id,
+            util.getCurrentUTCTime(),
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_update_tag', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
