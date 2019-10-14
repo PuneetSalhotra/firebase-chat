@@ -1159,7 +1159,7 @@ function AdminOpsService(objectCollection) {
         return [error, responseData];
     }
 
-    // Fetch all assets with the given country code and phone number
+    // Fetch all assets with the given customer unique ID
     async function assetListSelectCustomerUniqueID(request, organizationID) {
         // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
         // IN p_workforce_id BIGINT(20), IN p_customer_unique_id VARCHAR(50)
