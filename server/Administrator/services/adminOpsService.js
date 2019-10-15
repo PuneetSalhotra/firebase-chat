@@ -1,4 +1,5 @@
 const AdminListingService = require("../services/adminListingService");
+const logger = require('../../logger/winstonLogger');
 
 function AdminOpsService(objectCollection) {
 
@@ -2778,29 +2779,73 @@ function AdminOpsService(objectCollection) {
         const organizationID = Number(request.organization_id),
             accountID = Number(request.account_id),
             workforceID = Number(request.workforce_id),
+            newWorkforceName = request.workforce_name,
             assetID = Number(request.asset_id),
             logDateTime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
 
         // Upadte the name of the workforce
         const [errOne, _] = await workforceListUpdateName(request, workforceID, organizationID, accountID);
         if (errOne) {
+            logger.error(`alterWorkforce.workforceListUpdateName`, { type: 'admin_ops', request_body: request, error: errOne });
             return [errOne, []]
         }
 
         // Update workforce name in the workforce_asset_type_mapping table
-        // workforceAssetTypeMappingUpdate(request, workforceID, organizationID, accountID)
+        try {
+            await workforceAssetTypeMappingUpdate(request, workforceID, organizationID, accountID);
+        } catch (error) {
+            logger.error(`alterWorkforce.workforceAssetTypeMappingUpdate`, { type: 'admin_ops', request_body: request, error });
+        }
 
         // Update workforce name in the workforce_activity_type_mapping table
-        // workforceActivityTypeMappingUpdateWorkforceName(request, workforceID, organizationID, accountID)
+        try {
+            await workforceActivityTypeMappingUpdateWorkforceName(request, workforceID, organizationID, accountID);
+        } catch (error) {
+            logger.error(`alterWorkforce.workforceActivityTypeMappingUpdateWorkforceName`, { type: 'admin_ops', request_body: request, error });
+        }
 
         // Workforce Activity Status Mapping Update Workforce Name
-        // workforceActivityStatusMappingUpdateWorkforceName(request, workforceID, organizationID, accountID)
+        try {
+            await workforceActivityStatusMappingUpdateWorkforceName(request, workforceID, organizationID, accountID);
+        } catch (error) {
+            logger.error(`alterWorkforce.workforceActivityStatusMappingUpdateWorkforceName`, { type: 'admin_ops', request_body: request, error });
+        }
 
         // Asset List Update Workforce Name
-        // assetListUpdateWorkforceName(request, workforceID, organizationID, accountID)
+        const [errTwo, assetData] = await adminListingService.assetListSelectAllDesks(request);
+        if (errTwo) {
+            logger.error(`alterWorkforce.assetListSelectAllDesks`, { type: 'admin_ops', request_body: request, error: errTwo });
+            return [errTwo, []]
+        }
+        // const promises = widgets.map((widget) => widget && widget.crunchDataAndSave(message));
+        const assetListUpdateWorkforceNamePromises = assetData.map(asset => assetListUpdateWorkforceName(request, asset.asset_id, workforceID, organizationID, accountID));
+        try {
+            await Promise.all(assetListUpdateWorkforceNamePromises);
+        } catch (error) {
+            logger.error(`alterWorkforce.assetListUpdateWorkforceNamePromises`, { type: 'admin_ops', request_body: request, error });
+        }
 
         // Note to self: Apart from the above tables, you will have to update inline data for 
         // ID Card activity and Contact card activity for all the assets in the workforce.
+
+        // Fetch all ID cards => Update inline data
+        // const [errThree, idCardData] = await adminListingService.getIDCards(request);
+        // let idCardData = [];
+        // const idCardsUpdateWorkforceNamePromises = idCardData.map(idCard => {
+        //     // Update Inline Data
+        //     let inlineJSON = JSON.parse(idCard.activity_inline_data)
+        //     inlineJSON.employee_department = newWorkforceName;
+
+        //     return activityListUpdateInlineData({
+        //         activity_id: idCard.activity_id,
+        //         activity_inline_data: JSON.stringify(inlineJSON)
+        //     }, organizationID);
+        // });
+        // try {
+        //     await Promise.all(idCardsUpdateWorkforceNamePromises);
+        // } catch (error) {
+        //     logger.error(`alterWorkforce.idCardsUpdateWorkforceNamePromises`, { type: 'admin_ops', request_body: request, error });
+        // }
 
         return [false, []]
     };
@@ -2929,14 +2974,14 @@ function AdminOpsService(objectCollection) {
     }
 
     // Asset List Update Workforce Name
-    async function assetListUpdateWorkforceName(request, workforceID, organizationID, accountID) {
+    async function assetListUpdateWorkforceName(request, assetID, workforceID, organizationID, accountID) {
         // IN p_asset_id BIGINT(20), IN p_workforce_id BIGINT(20), IN p_account_id BIGINT(20), 
         // IN p_organization_id BIGINT(20), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
         let responseData = [],
             error = true;
 
         const paramsArr = new Array(
-            request.asset_id || 0,
+            assetID || 0,
             workforceID,
             accountID,
             organizationID,
