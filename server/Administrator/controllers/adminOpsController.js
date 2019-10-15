@@ -41,6 +41,17 @@ function AdminOpsController(objCollection) {
         }
     });
 
+    // Update the desk asset
+    app.post('/' + global.config.version + '/admin/workforce/desk_employee/update', async function (req, res) {
+        const [err, assetData] = await adminOpsService.upateDeskAndEmployeeAsset(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, assetData, 200, req.body));
+        } else {
+            console.log("/admin/workforce/desk/archive | Error: ", err);
+            res.send(responseWrapper.getResponse(err, assetData, -9999, req.body));
+        }
+    });
+
     // Archive the desk asset from the floor/workforce provided no employee is mapped to it
     app.post('/' + global.config.version + '/admin/workforce/desk/archive', async function (req, res) {
         const [err, orgData] = await adminOpsService.archiveDeskIfEmployeeNotMapped(req.body);

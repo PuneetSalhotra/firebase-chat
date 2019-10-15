@@ -2780,8 +2780,29 @@ function AdminOpsService(objectCollection) {
             workforceID = Number(request.workforce_id),
             assetID = Number(request.asset_id),
             logDateTime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
-        
-        
+
+        // Upadte the name of the workforce
+        const [errOne, _] = await workforceListUpdateName(request, workforceID, organizationID, accountID);
+        if (errOne) {
+            return [errOne, []]
+        }
+
+        // Update workforce name in the workforce_asset_type_mapping table
+        // workforceAssetTypeMappingUpdate(request, workforceID, organizationID, accountID)
+
+        // Update workforce name in the workforce_activity_type_mapping table
+        // workforceActivityTypeMappingUpdateWorkforceName(request, workforceID, organizationID, accountID)
+
+        // Workforce Activity Status Mapping Update Workforce Name
+        // workforceActivityStatusMappingUpdateWorkforceName(request, workforceID, organizationID, accountID)
+
+        // Asset List Update Workforce Name
+        // assetListUpdateWorkforceName(request, workforceID, organizationID, accountID)
+
+        // Note to self: Apart from the above tables, you will have to update inline data for 
+        // ID Card activity and Contact card activity for all the assets in the workforce.
+
+        return [false, []]
     };
 
     // Workforce List Update
@@ -2801,6 +2822,128 @@ function AdminOpsService(objectCollection) {
             util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_workforce_list_update', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Workforce Asset Type Mapping Update
+    async function workforceAssetTypeMappingUpdate(request, workforceID, organizationID, accountID) {
+        // IN p_asset_type_id BIGINT(20), IN p_workforce_id BIGINT(20), 
+        // IN p_account_id BIGINT(20), IN p_organization_id BIGINT(20), 
+        // IN p_log_datetime DATETIME, IN p_log_asset_id BIGINT(20)
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_type_id || 0,
+            workforceID,
+            accountID,
+            organizationID,
+            util.getCurrentUTCTime(),
+            request.asset_id
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_asset_type_mapping_update', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Workforce Activity Type Mapping Update Workforce Name
+    async function workforceActivityTypeMappingUpdateWorkforceName(request, workforceID, organizationID, accountID) {
+        // IN p_activity_type_id BIGINT(20), IN p_workforce_id BIGINT(20), 
+        // IN p_account_id BIGINT(20), IN p_organization_id BIGINT(20), 
+        // IN p_log_datetime DATETIME, IN p_log_asset_id BIGINT(20)
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.activity_type_id || 0,
+            workforceID,
+            accountID,
+            organizationID,
+            util.getCurrentUTCTime(),
+            request.asset_id
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_update_workforce_name', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Workforce Activity Status Mapping Update Workforce Name
+    async function workforceActivityStatusMappingUpdateWorkforceName(request, workforceID, organizationID, accountID) {
+        // IN p_activity_status_id BIGINT(20), IN p_workforce_id BIGINT(20), IN p_account_id BIGINT(20), 
+        // IN p_organization_id BIGINT(20), IN p_log_datetime DATETIME, IN p_log_asset_id BIGINT(20)
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.activity_status_id || 0,
+            workforceID,
+            accountID,
+            organizationID,
+            util.getCurrentUTCTime(),
+            request.asset_id
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_update_workforce_name', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Asset List Update Workforce Name
+    async function assetListUpdateWorkforceName(request, workforceID, organizationID, accountID) {
+        // IN p_asset_id BIGINT(20), IN p_workforce_id BIGINT(20), IN p_account_id BIGINT(20), 
+        // IN p_organization_id BIGINT(20), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_id || 0,
+            workforceID,
+            accountID,
+            organizationID,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_update_workforce_name', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -3665,6 +3808,11 @@ function AdminOpsService(objectCollection) {
                 })
         }
         return [error, responseData];
+    }
+
+    this.upateDeskAndEmployeeAsset = async function (request) {
+        
+        return [false, []];
     }
 }
 
