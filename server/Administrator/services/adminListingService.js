@@ -829,6 +829,35 @@ function AdminListingService(objectCollection) {
         return [error, responseData];
     }
 
+    // Activity List Select Workforce Category
+    this.activityListSelectWorkforceCategory = async function (request, workforceID, organizationID, accountID) {
+        // IN p_workforce_id BIGINT(20), IN p_account_id BIGINT(20), IN p_organization_id BIGINT(20), 
+        // IN p_activity_type_category_id SMALLINT(6), IN p_start_from SMALLINT(6), IN p_limit_value TINYINT(4)
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            workforceID,
+            accountID,
+            organizationID,
+            request.activity_type_category_id,
+            request.start_from,
+            request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_activity_list_select_workforce_category', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = AdminListingService;

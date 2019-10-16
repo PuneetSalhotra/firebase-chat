@@ -2828,24 +2828,63 @@ function AdminOpsService(objectCollection) {
         // Note to self: Apart from the above tables, you will have to update inline data for 
         // ID Card activity and Contact card activity for all the assets in the workforce.
 
+        logger.silly()
+        logger.silly("🔥 🔥 🔥 🔥 🔥 🔥  Updating workforce name in all the ID Cards 🔥 🔥 🔥 🔥 🔥 🔥");
+        logger.silly()
         // Fetch all ID cards => Update inline data
-        // const [errThree, idCardData] = await adminListingService.getIDCards(request);
-        // let idCardData = [];
-        // const idCardsUpdateWorkforceNamePromises = idCardData.map(idCard => {
-        //     // Update Inline Data
-        //     let inlineJSON = JSON.parse(idCard.activity_inline_data)
-        //     inlineJSON.employee_department = newWorkforceName;
+        const [errThree, idCardData] = await adminListingService.activityListSelectWorkforceCategory({
+            activity_type_category_id: 4,
+            start_from: 0,
+            limit_value: 50,
+        }, workforceID, organizationID, accountID);
+        if (errThree) {
+            logger.error(`alterWorkforce.activityListSelectWorkforceCategory_IDCard`, { type: 'admin_ops', request_body: request, error: errThree });
+            return [errThree, []]
+        }
+        const idCardsUpdateWorkforceNamePromises = idCardData.map(idCard => {
+            // Update Inline Data
+            let inlineJSON = JSON.parse(idCard.activity_inline_data)
+            inlineJSON.employee_department = newWorkforceName;
 
-        //     return activityListUpdateInlineData({
-        //         activity_id: idCard.activity_id,
-        //         activity_inline_data: JSON.stringify(inlineJSON)
-        //     }, organizationID);
-        // });
-        // try {
-        //     await Promise.all(idCardsUpdateWorkforceNamePromises);
-        // } catch (error) {
-        //     logger.error(`alterWorkforce.idCardsUpdateWorkforceNamePromises`, { type: 'admin_ops', request_body: request, error });
-        // }
+            return activityListUpdateInlineData({
+                activity_id: idCard.activity_id,
+                activity_inline_data: JSON.stringify(inlineJSON)
+            }, organizationID);
+        });
+        try {
+            await Promise.all(idCardsUpdateWorkforceNamePromises);
+        } catch (error) {
+            logger.error(`alterWorkforce.idCardsUpdateWorkforceNamePromises`, { type: 'admin_ops', request_body: request, error });
+        }
+
+        logger.silly()
+        logger.silly("🔥 🔥 🔥 🔥 🔥 🔥  Updating workforce name in all the Contact Cards 🔥 🔥 🔥 🔥 🔥 🔥");
+        logger.silly()
+        // Fetch all Contact cards => Update inline data
+        const [errFour, contactCardData] = await adminListingService.activityListSelectWorkforceCategory({
+            activity_type_category_id: 5,
+            start_from: 0,
+            limit_value: 50,
+        }, workforceID, organizationID, accountID);
+        if (errFour) {
+            logger.error(`alterWorkforce.activityListSelectWorkforceCategory_ContactCCard`, { type: 'admin_ops', request_body: request, error: errFour });
+            return [errFour, []]
+        }
+        const contactCardsUpdateWorkforceNamePromises = contactCardData.map(contactCard => {
+            // Update Inline Data
+            let inlineJSON = JSON.parse(contactCard.activity_inline_data)
+            inlineJSON.contact_department = newWorkforceName;
+
+            return activityListUpdateInlineData({
+                activity_id: contactCard.activity_id,
+                activity_inline_data: JSON.stringify(inlineJSON)
+            }, organizationID);
+        });
+        try {
+            await Promise.all(contactCardsUpdateWorkforceNamePromises);
+        } catch (error) {
+            logger.error(`alterWorkforce.contactCardsUpdateWorkforceNamePromises`, { type: 'admin_ops', request_body: request, error });
+        }
 
         return [false, []]
     };
@@ -2897,7 +2936,7 @@ function AdminOpsService(objectCollection) {
             util.getCurrentUTCTime(),
             request.asset_id
         );
-        const queryString = util.getQueryString('ds_p1_workforce_asset_type_mapping_update', paramsArr);
+        const queryString = util.getQueryString('ds_p1_workforce_asset_type_mapping_update_workforce_name', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
