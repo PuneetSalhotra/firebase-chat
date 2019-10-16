@@ -67,32 +67,69 @@ function WorkflowQueueService(objectCollection) {
     //2019-01-21
     this.alterWorkflowQueue =
         async (request) => {
+            request['log_datetime'] = util.getCurrentUTCTime();
+            let flag = 0; //0 = update inline
+            
+            if(request.hasOwnProperty('flag')) {
+                flag = 1; //1 = Update the Name
+            }
+
             try {
-                let results = new Array();
-                let paramsArray;
+                if(flag === 1) {
+                    let results = new Array();
+                    let paramsArray;
 
-                paramsArray =
-                    new Array(
-                        request.queue_id,
-                        request.queue_inline_data,
-                        request.organization_id,
-                        request.log_asset_id,
-                        request.log_datetime,
-                    );
+                    paramsArray =
+                        new Array(
+                            request.queue_id,
+                            request.queue_name,
+                            request.queue_flag_participating_only,
+                            request.organization_id,
+                            request.asset_id,
+                            request.log_datetime
+                        );
 
-                results[0] = await db.callDBProcedure(request, 'ds_p1_queue_list_update_inline_data', paramsArray, 0);
+                    results[0] = await db.callDBProcedure(request, 'ds_p1_queue_list_update', paramsArray, 0);
 
-                paramsArray =
-                    new Array(
-                        request.queue_id,
-                        global.workflowQueueConfig.queueAltered,
-                        request.log_asset_id,
-                        request.log_datetime,
-                    );
+                    paramsArray =
+                        new Array(
+                            request.queue_id,
+                            request.organization_id,
+                            request.asset_id,
+                            request.log_datetime,
+                        );
 
-                results[1] = await db.callDBProcedure(request, 'ds_p1_queue_list_history_insert', paramsArray, 0);
+                    results[1] = await db.callDBProcedure(request, 'ds_p1_queue_access_mapping_update_queue_details', paramsArray, 0);
 
-                return results[0];
+                    return results[0];
+                } else {
+                    let results = new Array();
+                    let paramsArray;
+
+                    paramsArray =
+                        new Array(
+                            request.queue_id,
+                            request.queue_inline_data,
+                            request.organization_id,
+                            request.log_asset_id,
+                            request.log_datetime,
+                        );
+
+                    results[0] = await db.callDBProcedure(request, 'ds_p1_queue_list_update_inline_data', paramsArray, 0);
+
+                    paramsArray =
+                        new Array(
+                            request.queue_id,
+                            global.workflowQueueConfig.queueAltered,
+                            request.log_asset_id,
+                            request.log_datetime,
+                        );
+
+                    results[1] = await db.callDBProcedure(request, 'ds_p1_queue_list_history_insert', paramsArray, 0);
+
+                    return results[0];
+                }
+                
             } catch (error) {
                 return Promise.reject(error);
             }

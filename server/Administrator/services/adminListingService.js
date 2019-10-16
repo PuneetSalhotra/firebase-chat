@@ -505,7 +505,7 @@ function AdminListingService(objectCollection) {
         if (errOne) {
             return [true, {
                 message: "Error fetching data"
-            }];     
+            }];
         }
         // for (const [assetIndex, asset] of Array.from(assetListSearchData).entries()) {
         //     console.log(`${assetIndex} asset_id: ${asset.asset_id} | asset_first_name: ${asset.asset_first_name} | operating_asset_id: ${asset.operating_asset_id} | operating_asset_first_name: ${asset.operating_asset_first_name}`);
@@ -777,7 +777,87 @@ function AdminListingService(objectCollection) {
         return [error, responseData];
     }
 
-}
+    this.listAssetsByCUID = async function (request) {
+        const organizationID = Number(request.organization_id),
+            accountID = Number(request.account_id),
+            workforceID = Number(request.workforce_id);
+        const [err, assetData] = await assetListSelectCustomerUniqueID(request, organizationID, accountID, workforceID);
 
+        const filteredAssetData = assetData.map(x => {
+            return {
+                organization_id: x.organization_id,
+                organization_name: x.organization_name,
+                account_id: x.account_id,
+                account_name: x.account_name,
+                workforce_id: x.workforce_id,
+                workforce_name: x.workforce_name,
+                asset_id: x.asset_id,
+                asset_first_name: x.asset_first_name
+            }
+        })
+
+        return [err, filteredAssetData]
+    }
+
+    // Fetch all assets with the given customer unique ID
+    async function assetListSelectCustomerUniqueID(request, organizationID, accountID, workforceID) {
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
+        // IN p_workforce_id BIGINT(20), IN p_customer_unique_id VARCHAR(50), 
+        // IN p_asset_type_category_id BIGINT(20))
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            organizationID,
+            accountID,
+            workforceID,
+            request.customer_unique_id,
+            request.asset_type_category_id
+        );
+        const queryString = util.getQueryString('ds_p1_1_asset_list_select_customer_unique_id', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Activity List Select Workforce Category
+    this.activityListSelectWorkforceCategory = async function (request, workforceID, organizationID, accountID) {
+        // IN p_workforce_id BIGINT(20), IN p_account_id BIGINT(20), IN p_organization_id BIGINT(20), 
+        // IN p_activity_type_category_id SMALLINT(6), IN p_start_from SMALLINT(6), IN p_limit_value TINYINT(4)
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            workforceID,
+            accountID,
+            organizationID,
+            request.activity_type_category_id,
+            request.start_from,
+            request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_activity_list_select_workforce_category', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+}
 
 module.exports = AdminListingService;
