@@ -3830,7 +3830,7 @@ function AdminOpsService(objectCollection) {
         }
 
         return [false, []]
-    }
+    };
 
     // Status Tag List Delete
     async function activityStatusTagListDelete(request, organizationID, accountID, workforceID) {
@@ -3897,7 +3897,45 @@ function AdminOpsService(objectCollection) {
     this.upateDeskAndEmployeeAsset = async function (request) {
         
         return [false, []];
-    }
+    };
+
+    this.updateAssetFlags = async function (request) {
+        const organizationID = Number(request.organization_id),
+                accountID = Number(request.account_id),
+                workforceID = Number(request.workforce_id),
+                assetId= Number(request.asset_id),
+                flag = Number(request.flag),
+                flag_admin = Number(request.set_admin_flag),
+                flag_organization_admin = Number(request.set_organization_admin_flag);
+                
+        let responseData = [],
+        error = true;
+    
+        const paramsArr = new Array(
+            organizationID,
+            accountID,
+            workforceID,
+            assetId,
+            flag,
+            flag_admin,
+            flag_organization_admin,
+            util.getCurrentUTCTime(),
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_update_admin_flags', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
 }
 
 module.exports = AdminOpsService;
