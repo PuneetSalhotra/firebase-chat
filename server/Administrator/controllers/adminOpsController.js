@@ -163,6 +163,17 @@ function AdminOpsController(objCollection) {
         }
     });
 
-};
+    // To Grant or Revoke access to workforce - Building; asset can be wf, building, organization
+    app.post('/' + global.config.version + '/admin/asset_flags/update', async function (req, res) {
+        const [err, statusData] = await adminOpsService.updateAssetFlags(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(statusData, statusData, 200, req.body));
+        } else {
+            console.log("/admin/asset_flags/update | Error: ", err);
+            res.send(responseWrapper.getResponse(err, statusData, -9999, req.body));
+        }
+    });
+
+}
 
 module.exports = AdminOpsController;

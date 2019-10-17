@@ -3490,7 +3490,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 });
             }
         });
-    }
+    };
 
     this.getFormWorkflowDetails = function (request) {
 

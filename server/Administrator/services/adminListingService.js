@@ -146,10 +146,10 @@ function AdminListingService(objectCollection) {
                 })
                 .catch((err) => {
                     error = err;
-                })
+                });
         }
         return [error, responseData];
-    }
+    };
 
     this.workforceActivityTypeMappingSelectCategory = async function (request) {
         let responseData = [],
@@ -173,10 +173,10 @@ function AdminListingService(objectCollection) {
                 })
                 .catch((err) => {
                     error = err;
-                })
+                });
         }
         return [error, responseData];
-    }
+    };
 
     this.assetListSelectCountAssetTypeWorkforce = async function (request) {
         let responseData = [],
@@ -704,10 +704,10 @@ function AdminListingService(objectCollection) {
                 })
                 .catch((err) => {
                     error = err;
-                })
+                });
         }
         return [error, responseData];
-    }
+    };
 
     // Get the list of activity statuses
     this.workforceActivityStatusMappingSelectFlag = async function (request) {
@@ -737,17 +737,17 @@ function AdminListingService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_select_flag', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
                 })
                 .catch((err) => {
                     error = err;
-                })
+                });
         }
         return [error, responseData];
-    }
+    };
 
     // Get the list of activity status tag IDs
     this.activityStatusTagListSelect = async function (request) {
@@ -765,7 +765,7 @@ function AdminListingService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_activity_status_tag_list_select', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;

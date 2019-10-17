@@ -223,6 +223,17 @@ function AdminListingController(objCollection) {
         }
     });
 
-};
+    // Retrieve the list of activity statuses
+    app.post('/' + global.config.version + '/admin/activity_type/mapping/list', async function (req, res) {
+        const [err, assetData] = await adminListingService.workforceActivityStatusMappingSelectFlag(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, assetData, 200, req.body));
+        } else {
+            console.log("/admin/activity_type/mapping/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, assetData, -9999, req.body));
+        }
+    });
+
+}
 
 module.exports = AdminListingController;
