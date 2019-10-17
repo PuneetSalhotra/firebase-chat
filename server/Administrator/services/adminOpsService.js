@@ -3953,7 +3953,107 @@ function AdminOpsService(objectCollection) {
             }
         }
 
+        if (deskAssetID !== 0) {
+            // Update the Employee's details in the asset_list table
+            const [errThree, employeeAssetData] = await assetListUpdateDetailsV3({
+
+                ...request,
+                description: request.desk_title,
+                asset_first_name: request.desk_title,
+                asset_last_name: "",
+                operating_asset_first_name: request.asset_first_name,
+                operating_asset_last_name: request.asset_last_name
+
+            }, deskAssetID, Number(request.asset_id));
+            if (errThree) {
+                logger.error(`upateDeskAndEmployeeAsset.assetListUpdateDetailsV3_DESK`, { type: 'admin_ops', request_body: request, error: errThree });
+                return [errThree, []]
+            }
+
+            // Fetch the desk's contact card
+            // Fetch the Employee's ID card
+            const [errFour, contactCardData] = await adminListingService.activityListSelectCategoryContact({
+                asset_id: deskAssetID
+            }, organizationID);
+            if (errFour || Number(contactCardData.length) === 0
+            ) {
+                logger.error(`upateDeskAndEmployeeAsset.activityListSelectCategoryContact`, { type: 'admin_ops', request_body: request, error: errFour });
+                return [errFour, []]
+            }
+            const contactCardActivityID = Number(contactCardData[0].activity_id);
+            let contactCardJSON = JSON.parse(contactCardData[0].activity_inline_data);
+
+            contactCardJSON.contact_designation = request.desk_title;
+            contactCardJSON.contact_first_name = request.desk_title;
+            contactCardJSON.contact_operating_asset_name = request.asset_first_name;
+            contactCardJSON.contact_phone_country_code = request.country_code;
+            contactCardJSON.contact_phone_number = request.phone_number;
+
+            // Update the Contact Card's Activity List table
+            try {
+                await activityListUpdateInlineData({
+                    activity_id: contactCardActivityID,
+                    activity_inline_data: JSON.stringify(contactCardJSON)
+                }, organizationID);
+            } catch (error) {
+                logger.error(`upateDeskAndEmployeeAsset.activityListUpdateInlineData_IDCard`, { type: 'admin_ops', request_body: request, error });
+            }
+
+            // Update the Contact Card's Activity Asset Mapping table
+            try {
+                await activityAssetMappingUpdateInlineData({
+                    activity_id: contactCardActivityID,
+                    asset_id: deskAssetID,
+                    activity_inline_data: JSON.stringify(contactCardJSON),
+                    pipe_separated_string: '',
+                    log_asset_id: request.asset_id
+                }, organizationID);
+            } catch (error) {
+                logger.error(`upateDeskAndEmployeeAsset.activityAssetMappingUpdateInlineData_IDCard`, { type: 'admin_ops', request_body: request, error });
+            }
+        }
+
         return [false, []];
+    }
+
+    // Asset List Insert For Employee Desk
+    async function assetListUpdateDetailsV3(request, deskAssetID = 0, logAssetID = 0) {
+        // IN p_asset_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_asset_first_name VARCHAR(50), 
+        // IN p_asset_last_name VARCHAR(50), IN p_operating_asset_first_name VARCHAR(50), 
+        // IN p_operating_asset_last_name VARCHAR(50), IN p_description VARCHAR(150), IN p_cuid VARCHAR(50), 
+        // IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME, IN p_joining_datetime DATETIME, 
+        // IN p_gender_id TINYINT(4), IN p_email VARCHAR(100)
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            deskAssetID || request.asset_id,
+            request.organization_id,
+            request.asset_first_name || request.description || "",
+            request.asset_last_name || "",
+            request.operating_asset_first_name || "",
+            request.operating_asset_last_name || "",
+            request.description || "",
+            request.cuid,
+            logAssetID || request.asset_id,
+            util.getCurrentUTCTime(),
+            request.joining_datetime,
+            request.gender_id,
+            request.email_id
+        );
+        const queryString = util.getQueryString('ds_p1_3_asset_list_update_details', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
     }
 }
 

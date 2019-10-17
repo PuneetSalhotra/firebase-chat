@@ -871,7 +871,32 @@ function AdminListingService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_asset_id_card', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Get the desk asset's contact card activity details
+    this.activityListSelectCategoryContact = async function (request, organizationID, activityTypeCategoryID = 5) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_id,
+            organizationID,
+            activityTypeCategoryID
+        );
+        const queryString = util.getQueryString('ds_v1_activity_list_select_category_contact', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
