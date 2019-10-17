@@ -1102,7 +1102,7 @@ function FormConfigService(objCollection) {
                                         if(Number(workflowData[0].activity_type_id) === 134564 || //MPLS CRF
                                             Number(workflowData[0].activity_type_id) === 134566 || //ILL CRF
                                             Number(workflowData[0].activity_type_id) === 134573 || //NPLC CRF
-                                            Number(workflowData[0].activity_type_id) === 134575) { //FLV CRF                                            
+                                            Number(workflowData[0].activity_type_id) === 134575) { //FLV CRF
                                             
                                             (Number(arc_1) > Number(arc_2)) ?
                                                 finalValue = Number(otc_1) +(Number(arc_1) - Number(arc_2)) :
@@ -1138,15 +1138,24 @@ function FormConfigService(objCollection) {
                                     }
                                     });
 
-                                }else{
+                                }else{                                    
                                     activityCommonService.getFormWorkflowDetails(request).then(async (workflowData)=>{
-                                        if(workflowData.length > 0){                                          
-                                            addValueToWidgetForAnalyticsWF(request, 
-                                                                            workflowData[0].activity_id, 
-                                                                            workflowData[0].activity_type_id, 
-                                                                            1); //1 - Final value Widget
-                                        }
-                                    });
+                                        if(workflowData.length > 0){
+                                            
+                                            if(Number(workflowData[0].activity_type_id) === 134564 || //MPLS CRF
+                                                Number(workflowData[0].activity_type_id) === 134566 || //ILL CRF
+                                                Number(workflowData[0].activity_type_id) === 134573 || //NPLC CRF
+                                                Number(workflowData[0].activity_type_id) === 134575) { //FLV CRF
+                                                //Do Nothing
+                                            } else {
+                                                addValueToWidgetForAnalyticsWF(request, 
+                                                    workflowData[0].activity_id, 
+                                                    workflowData[0].activity_type_id, 
+                                                    1); //1 - Final value Widget
+                                                }
+                                        }           
+                                            
+                                    });                                    
 
                                     console.log("This field is not configured to update in intermediate table "+row.field_id);
                                 }
