@@ -772,10 +772,10 @@ function AdminListingService(objectCollection) {
                 })
                 .catch((err) => {
                     error = err;
-                })
+                });
         }
         return [error, responseData];
-    }
+    };
 
     this.listAssetsByCUID = async function (request) {
         const organizationID = Number(request.organization_id),

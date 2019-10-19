@@ -174,6 +174,35 @@ function AdminOpsController(objCollection) {
         }
     });
 
+    // Create Queue Mapping with Status_tag
+    app.post('/' + global.config.version + '/admin/queue/status_tag/add', async function (req, res) {
+        const [err, statusData] = await adminOpsService.queueWithStatusTag(req.body);
+        try{
+            JSON.parse(req.body.status_tag_ids);
+        } catch(err1) {
+            res.send(responseWrapper.getResponse(err1, {}, -3308, req.body));
+        }
+        if (!err) {
+            res.send(responseWrapper.getResponse(statusData, statusData, 200, req.body));
+        } else {
+            console.log("/admin/queue/status_tag/add | Error: ", err);
+            res.send(responseWrapper.getResponse(err, statusData, -9999, req.body));
+        }
+    });
+
+
+    //Upload the Smart Mi form
+    app.post('/' + global.config.version + '/admin/smart_form/upload', async function (req, res) {
+        const [err, responseData] = await adminOpsService.nanikalyan(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/admin/smart_form/upload | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+        
+    });
+
 }
 
 module.exports = AdminOpsController;
