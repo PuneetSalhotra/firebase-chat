@@ -214,14 +214,14 @@ function BotController(objCollection) {
         }
     });
 
-    app.post('/' + global.config.version + '/account/nani/kalyan', async (req, res) => {
-        try {
-            let result = await botService.nanikalyan(req.body);
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
-        } catch(err) {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
-        }
-    });
+    //app.post('/' + global.config.version + '/account/nani/kalyan', async (req, res) => {
+    //    try {
+    //        let result = await botService.nanikalyan(req.body);
+    //        res.send(responseWrapper.getResponse(false, result, 200, req.body));
+    //    } catch(err) {
+    //        res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+    //    }
+    //});
     
 }
 
