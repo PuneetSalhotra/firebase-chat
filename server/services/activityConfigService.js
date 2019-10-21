@@ -406,34 +406,77 @@ function ActivityConfigService(db, util, objCollection) {
     }
     
     this.workForceActivityStatusInsert = function (request) {
-        return new Promise((resolve, reject)=>{
+        return new Promise((resolve, reject) => {
             var paramsArr = new Array(
-                    request.activity_status_name,
-                    request.activity_status_description,
-                    request.status_sequence_id,
-                    request.activity_status_type_id,
-                    request.is_customer_exposed,
-                    request.activity_type_id,
-                    request.workforce_id,
-                    request.account_id,
-                    request.organization_id,
-                    request.asset_id,
-                    request.datetime_log
-                );
+                request.activity_status_name,
+                request.activity_status_description,
+                request.status_sequence_id,
+                request.activity_status_type_id,
+                request.is_customer_exposed,
+                request.activity_type_id,
+                request.workforce_id,
+                request.account_id,
+                request.organization_id,
+                request.asset_id,
+                request.datetime_log
+            );
             var queryString = util.getQueryString('ds_p1_1_workforce_activity_status_mapping_insert', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
-                	if(err === false){
-                		request['activity_status_id'] = data[0].activity_status_id;
-                		request['update_type_id'] = 0;
-                		workForceActivityStatusHistoryInsert(request).then(()=>{});
-                		resolve(data);
-                	}else{
-                		reject(err);
-                	}
+                    if (err === false) {
+                        request['activity_status_id'] = data[0].activity_status_id;
+                        request['update_type_id'] = 0;
+                        workForceActivityStatusHistoryInsert(request).then(() => { });
+                        
+                        // Update the status tag mapping
+                        // >0 => Map
+                        // 0 => Unmap
+                        if (request.activity_status_tag_id && Number(request.activity_status_tag_id) >= 0) {
+                            try {
+                                workforceActivityStatusMappingUpdateTag(request, request.organization_id, request.account_id, request.workforce_id);
+                            } catch (error) {
+                                console.log("workForceActivityStatusInsert | workforceActivityStatusMappingUpdateTag | Error: ", error);
+                            }
+                        }
+
+                        resolve(data);
+                    } else {
+                        reject(err);
+                    }
                 });
             }
         });
+    }
+    // Update Status Tag for an activity status
+    async function workforceActivityStatusMappingUpdateTag(request, organizationID, accountID, workforceID) {
+        // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), 
+        // IN p_activity_status_id BIGINT(20), IN p_status_tag_id BIGINT(20), IN p_log_asset_id BIGINT(20), 
+        // IN p_log_datetime DATETIME
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            organizationID,
+            accountID,
+            workforceID,
+            request.activity_status_id,
+            request.activity_status_tag_id,
+            request.log_asset_id || request.asset_id,
+            util.getCurrentUTCTime(),
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_update_tag', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
     }
     
     this.workForceActivityStatusUpdate =  function(request) {

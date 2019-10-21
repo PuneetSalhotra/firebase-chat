@@ -155,32 +155,37 @@ function WorkflowQueueService(objectCollection) {
                         100,
                     );
 
-                results[0] = await db.callDBProcedure(request, 'ds_p1_queue_access_mapping_select_queue_participants', paramsArray, 1);
+                try {
+                    results[0] = await db.callDBProcedure(request, 'ds_p1_queue_access_mapping_select_queue_participants', paramsArray, 1);
 
-                for (let value of results[0]) {
-                    //console.log(value);
+                    for (let value of results[0]) {
+                        //console.log(value);
 
-                    paramsArray =
-                        new Array(
-                            value.queue_access_id,
-                            request.organization_id,
-                            request.log_state,
-                            request.log_asset_id,
-                            request.log_datetime || moment().utc().format('YYYY-MM-DD HH:mm:ss'),
-                        );
+                        paramsArray =
+                            new Array(
+                                value.queue_access_id,
+                                request.organization_id,
+                                request.log_state,
+                                request.log_asset_id,
+                                request.log_datetime || moment().utc().format('YYYY-MM-DD HH:mm:ss'),
+                            );
 
-                    results[1] = await db.callDBProcedure(request, 'ds_p1_queue_access_mapping_update_log_state', paramsArray, 0);
+                        results[1] = await db.callDBProcedure(request, 'ds_p1_queue_access_mapping_update_log_state', paramsArray, 0);
 
-                    paramsArray =
-                        new Array(
-                            value.queue_access_id,
-                            request.organization_id,
-                            global.workflowQueueConfig.queueAccessReset,
-                            request.log_asset_id,
-                            request.log_datetime || moment().utc().format('YYYY-MM-DD HH:mm:ss'),
-                        );
+                        paramsArray =
+                            new Array(
+                                value.queue_access_id,
+                                request.organization_id,
+                                global.workflowQueueConfig.queueAccessReset,
+                                request.log_asset_id,
+                                request.log_datetime || moment().utc().format('YYYY-MM-DD HH:mm:ss'),
+                            );
 
-                    results[2] = await db.callDBProcedure(request, 'ds_p1_queue_access_mapping_history_insert', paramsArray, 0);
+                        results[2] = await db.callDBProcedure(request, 'ds_p1_queue_access_mapping_history_insert', paramsArray, 0);
+                    }
+
+                } catch (error) {
+                    console.log("archiveWorkflowQueue | Error 1: ", error);
                 }
 
                 paramsArray =
