@@ -3487,12 +3487,12 @@ function AdminOpsService(objectCollection) {
             error = true;
 
         const paramsArr = new Array(
-            request.organization_name, // account_name
-            request.organization_image_path || '', // account_image_path
-            request.organization_phone_country_code || 0, // account_phone_country_code
-            request.organization_phone_number || 0, // account_phone_number
-            request.contact_email || '', // account_email
-            request.organization_address || '', // account_address
+            request.account_name, // account_name
+            request.account_image_path || '', // account_image_path
+            request.account_phone_country_code || request.organization_phone_country_code || 0, // account_phone_country_code
+            request.account_phone_number || request.organization_phone_number || 0, // account_phone_number
+            request.account_email || '', // account_email
+            request.account_address || '', // account_address
             request.account_location_latitide || 0, // account_location_latitide
             request.account_location_longitude || 0, // account_location_longitude
             request.contact_person || 'Admin',
