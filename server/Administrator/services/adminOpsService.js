@@ -1,5 +1,8 @@
 const AdminListingService = require("../services/adminListingService");
 const logger = require('../../logger/winstonLogger');
+const XLSX = require('xlsx');
+const excelToJson = require('convert-excel-to-json');
+const fs = require('fs');
 
 function AdminOpsService(objectCollection) {
 
@@ -4094,6 +4097,148 @@ function AdminOpsService(objectCollection) {
                 })
         }
         return [error, responseData];
+    };
+
+    this.queueWithStatusTag = async function (request) {             
+        let responseData = [],
+            error = true;            
+        
+        let statusTags = JSON.parse(request.status_tag_ids);
+        let finalStatusIdsArray = new Array;
+        let iterator_x;
+        let iterator_y;
+
+        console.log('statusTags : ', statusTags);
+
+        for(iterator_x=0; iterator_x < statusTags.length; iterator_x++) {
+            let newReqObj = Object.assign({}, request);
+            newReqObj.activity_status_tag_id = statusTags[iterator_x].status_tag_id;
+            let [err, statusList] = await adminListingService.workforceActivityStatusMappingSelectFlag(newReqObj);
+
+            if (err) {
+                return [true, {
+                    message: "Error retrieving the status ids based on status tag!"
+                }]
+            }
+
+            console.log('statusList.length : ', statusList.length);
+
+            for(iterator_y=0; iterator_y < statusList.length; iterator_y++) {
+                let temp = {};
+                temp.activity_status_id = statusList[iterator_y].activity_status_id;
+                console.log('statusList for ', statusTags[iterator_x].status_tag , ' ------ ' ,statusList[iterator_y].activity_status_id);
+                finalStatusIdsArray.push(temp);
+            }                        
+
+            console.log('*******************************************');
+            console.log('finalStatusIdsArray : ', finalStatusIdsArray);
+        }
+
+        request.queue_inline_data = JSON.stringify(finalStatusIdsArray);
+        request.log_asset_id = request.asset_id;
+        request.log_datetime = util.getCurrentUTCTime();
+        await activityCommonService.makeRequest(
+            request,
+            'workflowQueue/add',
+            1
+        ).then(()=>{
+            error = false;
+        }).catch((err)=>{
+            error = true;
+        });        
+        
+        return [error, responseData];
+    };
+
+    this.nanikalyan = async (request) => {       
+        let jsonFormat = await util.getJSONfromXcel(request);      
+        
+        console.log('typeof jsonformat : ', typeof jsonFormat);
+        let data = JSON.parse(jsonFormat);
+        let sheetsData = data['Sheet9'];
+
+        console.log('typeof sheetsData : ', typeof sheetsData);
+        console.log('sheetsData.length : ', sheetsData.length);
+
+        let form_fields = new Array();        
+
+        let iterator_x;
+        let formName = sheetsData[0].K;
+        for(iterator_x = 0; iterator_x < sheetsData.length; iterator_x++) {            
+            console.log(sheetsData[iterator_x]);
+            
+            let temp = {};
+                temp.placeholder = "";
+                temp.label = sheetsData[iterator_x].B;
+                temp.title = sheetsData[iterator_x].B;
+                temp.datatypeid = sheetsData[iterator_x].H;
+                temp.datatypecategoryid = "";                
+
+            let data = {};
+                data.values = [];
+                data.json = "";
+                data.url = "",
+                data.resource = "",
+                data.custom = "";
+            temp.data = data;
+
+            let validate = {};
+                validate.required = (Number(sheetsData[iterator_x].D) === 1) ? true : false;
+                validate.minLength = "";
+                validate.maxLength = "";
+                validate.pattern = "";
+                validate.custom = "";
+                validate.customPrivate = false;
+            temp.validate = validate;
+
+            let conditional = {};
+                conditional.show = false;
+                conditional.when = null;
+                conditional.eq = "";
+            temp.conditional = conditional;
+
+            form_fields.push(temp);
+            console.log('form_fields : ', form_fields);
+            console.log('*****************');
+        }
+
+        //Add Form
+        let formRequestParams = {};
+            formRequestParams.account_id = request.account_id;
+            formRequestParams.activity_id = 0;
+            formRequestParams.activity_type_id = 0;
+            formRequestParams.add_default_widget = true;
+            formRequestParams.auth_asset_id = request.asset_id;       
+            formRequestParams.asset_id = 100;       
+            formRequestParams.asset_token_auth = request.asset_token_auth;
+            formRequestParams.entity_level_id = 3;
+            formRequestParams.form_activity_type_id = 142427;
+            formRequestParams.form_description = "";
+            formRequestParams.form_fields = JSON.stringify(form_fields);
+            formRequestParams.form_name = formName;
+            formRequestParams.form_type_id = 23;
+            formRequestParams.group_id = 0;
+            formRequestParams.is_workflow = 1;
+            formRequestParams.is_workflow_origin = 0;
+            formRequestParams.organization_id = 336;
+            formRequestParams.timezone_id = 0;
+            formRequestParams.track_gps_accuracy = 0;
+            formRequestParams.track_gps_datetime = util.getCurrentUTCTime();
+            formRequestParams.track_gps_location = 0;
+            formRequestParams.track_gps_status = 0;
+            formRequestParams.track_latitude = 0;
+            formRequestParams.track_longitude = 0;
+            formRequestParams.workflow_percentage = 0;
+            formRequestParams.workforce_id = request.workforce_id;
+
+        await activityCommonService.makeRequest(
+            formRequestParams,
+            'form/add',
+            1
+        );
+
+        return [false, 'success'];
+        
     };
 
 }

@@ -1278,9 +1278,9 @@ function Util() {
             }
         }
         
-        //console.log('request.bucket_url : ', url);
-        //console.log('BucketName : ', BucketName);
-        //console.log('KeyName : ', KeyName);
+        console.log('request.bucket_url : ', url);
+        console.log('BucketName : ', BucketName);
+        console.log('KeyName : ', KeyName);
         
         let params =  {
                         Bucket: BucketName, 
@@ -1296,14 +1296,17 @@ function Util() {
                             break;
             case 'prod': fileName = '/api-data/';
                          break;            
-            default: break;
+            default: fileName = '/api-data/'; 
+                     break;
         }
 
         fileName += 'mpls-aws-'+this.getCurrentUTCTimestamp()+'.xlsx';
         let file = require('fs').createWriteStream(fileName);
         s3.getObject(params).createReadStream().pipe(file);
 
-        return new Promise((resolve, reject)=>{
+        console.log('HERE I AM ', fileName);        
+
+        return await new Promise((resolve, reject)=>{
             setTimeout(() =>{
                 const result = excelToJson({sourceFile: fileName});
                 //console.log(JSON.stringify(result, null, 4));
