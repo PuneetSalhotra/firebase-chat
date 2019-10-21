@@ -2339,7 +2339,7 @@ function AdminOpsService(objectCollection) {
         // Check if the target workforce has exceeded the maximum number of desks allowed
         const [errTwo, workforceAssetCountData] = await adminListingService.assetListSelectCountAssetTypeWorkforce({
             organization_id: organizationID,
-            account_id: accountID,
+            account_id: newAccountID || accountID,
             workforce_id: newWorkforceID,
             asset_type_category_id: 3
         });
@@ -2353,7 +2353,7 @@ function AdminOpsService(objectCollection) {
         // Fetch asset type for the new workforce
         const [errThree, newWorkforceAssetTypeData] = await adminListingService.workforceAssetTypeMappingSelectCategory({
             organization_id: organizationID,
-            account_id: accountID,
+            account_id: newAccountID || accountID,
             workforce_id: newWorkforceID,
             asset_type_category_id: 3
         });
@@ -2482,7 +2482,7 @@ function AdminOpsService(objectCollection) {
             // Fetch asset type for the new workforce
             const [errFive, newWorkforceEmpAssetTypeData] = await adminListingService.workforceAssetTypeMappingSelectCategory({
                 organization_id: organizationID,
-                account_id: accountID,
+                account_id: newAccountID || accountID,
                 workforce_id: newWorkforceID,
                 asset_type_category_id: 2
             });
@@ -2590,7 +2590,11 @@ function AdminOpsService(objectCollection) {
         }
 
         return [false, {
-            message: "Desk (and Employee) moved to the new workforce"
+            message: "Desk (and Employee) moved to the new workforce",
+            organization_id: organizationID,
+            account_id: newAccountID || accountID,
+            workforce_id: newWorkforceID || workforceID,
+            desk_asset_id: deskAssetID
         }];
     }
 
