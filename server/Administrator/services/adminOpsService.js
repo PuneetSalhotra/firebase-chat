@@ -4146,29 +4146,55 @@ function AdminOpsService(objectCollection) {
         return [error, responseData];
     };
 
-    this.nanikalyan = async (request) => {       
+    this.uploadSmartForm = async (request) => {       
         let jsonFormat = await util.getJSONfromXcel(request);      
         
         console.log('typeof jsonformat : ', typeof jsonFormat);
         let data = JSON.parse(jsonFormat);
-        let sheetsData = data['Sheet9'];
+        let sheetsData = data['Sheet1'];
 
-        console.log('typeof sheetsData : ', typeof sheetsData);
+        //console.log('typeof sheetsData : ', typeof sheetsData);
         console.log('sheetsData.length : ', sheetsData.length);
+        request.form_id = sheetsData[1].J;
 
-        let form_fields = new Array();        
+        for(iterator_x = 1; iterator_x < sheetsData.length; iterator_x++) {
+            //sheetsData[iterator_x].A //field_id
+            //sheetsData[iterator_x].F //next_field_id
+
+            //console.log('sheetsData[iterator_x].A : ', sheetsData[iterator_x].A);
+            //console.log('sheetsData[iterator_x].F : ', sheetsData[iterator_x].F);
+
+            const [updateError, updateStatus] = await workforceFormFieldMappingUpdate(request, {
+                field_id: sheetsData[iterator_x].A,
+                data_type_combo_id: sheetsData[iterator_x].E,
+                field_name: sheetsData[iterator_x].B,
+                field_description: '',
+                data_type_combo_value: sheetsData[iterator_x].G,
+                field_sequence_id: sheetsData[iterator_x].C,
+                field_mandatory_enabled: sheetsData[iterator_x].D,
+                field_preview_enabled: '0'
+            });
+        }
+
+        /*let form_fields = new Array();        
 
         let iterator_x;
         let formName = sheetsData[0].K;
-        for(iterator_x = 0; iterator_x < sheetsData.length; iterator_x++) {            
-            console.log(sheetsData[iterator_x]);
-            
+        let prevFieldId = 0;
+        let prevDataTypeId = 0;
+        
+        let dataValue_33 = [];        
+        let dataValue_34 = [];           
+
+        for(iterator_x = 1; iterator_x < sheetsData.length; iterator_x++) {            
+            //console.log(sheetsData[iterator_x]);
+
             let temp = {};
                 temp.placeholder = "";
                 temp.label = sheetsData[iterator_x].B;
                 temp.title = sheetsData[iterator_x].B;
                 temp.datatypeid = sheetsData[iterator_x].H;
-                temp.datatypecategoryid = "";                
+                temp.datatypecategoryid = "";
 
             let data = {};
                 data.values = [];
@@ -4193,10 +4219,90 @@ function AdminOpsService(objectCollection) {
                 conditional.eq = "";
             temp.conditional = conditional;
 
-            form_fields.push(temp);
-            console.log('form_fields : ', form_fields);
-            console.log('*****************');
+            if(sheetsData[iterator_x].H === 33) { //Single Selection                
+                
+                let optionObj = {};
+                    optionObj.label = sheetsData[iterator_x].G;
+                    optionObj.value = sheetsData[iterator_x].G;
+                    
+                dataValue_33.push(optionObj);
+            } else if(sheetsData[iterator_x].H === 34) { //Multi Selection
+
+                let optionObj = {};
+                    optionObj.label = sheetsData[iterator_x].G;
+                    optionObj.value = sheetsData[iterator_x].G;
+                    
+                dataValue_34.push(optionObj);
+
+            } else { //Create a new row
+                if(prevDataTypeId === 33) {
+                    let temp_33 = {};
+                        temp_33.placeholder = "";
+                        temp_33.label = sheetsData[iterator_x-1].B;
+                        temp_33.title = sheetsData[iterator_x-1].B;
+                        temp_33.datatypeid = sheetsData[iterator_x-1].H;
+                        temp_33.datatypecategoryid = "";
+
+                    let data_33 = {};
+                        data_33.values = dataValue_33;
+                        data_33.json = "";
+                        data_33.url = "",
+                        data_33.resource = "",
+                        data_33.custom = "";
+                    temp_33.data = data_33;
+        
+                    let validate_33 = {};
+                        validate_33.required = (Number(sheetsData[iterator_x-1].D) === 1) ? true : false;
+                        validate_33.minLength = "";
+                        validate_33.maxLength = "";
+                        validate_33.pattern = "";
+                        validate_33.custom = "";
+                        validate_33.customPrivate = false;
+                    temp_33.validate = validate;
+
+                    dataValue_33 = [];
+                    form_fields.push(temp_33);
+                } else if(prevDataTypeId === 34) {
+                    let temp_34 = {};
+                        temp_34.placeholder = "";
+                        temp_34.label = sheetsData[iterator_x-1].B;
+                        temp_34.title = sheetsData[iterator_x-1].B;
+                        temp_34.datatypeid = sheetsData[iterator_x-1].H;
+                        temp_34.datatypecategoryid = "";
+
+                    let data_34 = {};
+                        data_34.values = dataValue_33;
+                        data_34.json = "";
+                        data_34.url = "",
+                        data_34.resource = "",
+                        data_34.custom = "";
+                    temp_34.data = data_34;
+        
+                    let validate_34 = {};
+                        validate_34.required = (Number(sheetsData[iterator_x-1].D) === 1) ? true : false;
+                        validate_34.minLength = "";
+                        validate_34.maxLength = "";
+                        validate_34.pattern = "";
+                        validate_34.custom = "";
+                        validate_34.customPrivate = false;
+                    temp_34.validate = validate;
+
+                    dataValue_34 = [];
+                    form_fields.push(temp_34);
+                }
+
+                form_fields.push(temp);
+            }
+
+            if(iterator_x === 15) {
+                break;
+            }
+            //prevFieldId = sheetsData[iterator_x].A;
+            prevDataTypeId = sheetsData[iterator_x].H;
         }
+        
+        console.log('form_fields : ', form_fields);
+        console.log('*****************');   
 
         //Add Form
         let formRequestParams = {};
@@ -4216,7 +4322,7 @@ function AdminOpsService(objectCollection) {
             formRequestParams.group_id = 0;
             formRequestParams.is_workflow = 1;
             formRequestParams.is_workflow_origin = 0;
-            formRequestParams.organization_id = 336;
+            formRequestParams.organization_id = request.organization_id;
             formRequestParams.timezone_id = 0;
             formRequestParams.track_gps_accuracy = 0;
             formRequestParams.track_gps_datetime = util.getCurrentUTCTime();
@@ -4231,11 +4337,52 @@ function AdminOpsService(objectCollection) {
             formRequestParams,
             'form/add',
             1
-        );
+        );*/
 
         return [false, 'success'];
         
     };
+
+    async function workforceFormFieldMappingUpdate(request, fieldOptions) {
+        // IN p_field_id BIGINT(20), IN p_data_type_combo_id SMALLINT(6), 
+        // IN p_form_id BIGINT(20), IN p_field_name VARCHAR(1200), 
+        // IN p_field_description VARCHAR(300), IN p_data_type_combo_value VARCHAR(1200), 
+        // IN p_field_sequence_id BIGINT(20), IN p_field_mandatory_enabled TINYINT(4), 
+        // IN p_field_preview_enabled TINYINT(4), IN p_organization_id BIGINT(20), 
+        // IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+
+        let fieldUpdateStatus = [],
+            error = false; // true;
+
+        let paramsArr = new Array(
+            fieldOptions.field_id,
+            fieldOptions.data_type_combo_id,
+            request.form_id,
+            fieldOptions.field_name,
+            fieldOptions.field_description,
+            fieldOptions.data_type_combo_value,
+            fieldOptions.field_sequence_id,
+            fieldOptions.field_mandatory_enabled,
+            fieldOptions.field_preview_enabled,
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime(),
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_form_field_mapping_update', paramsArr);
+        if (queryString !== '') {
+            // console.log(queryString)
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    fieldUpdateStatus = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, fieldUpdateStatus];
+    }
 
 }
 
