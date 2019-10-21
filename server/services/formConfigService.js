@@ -1148,10 +1148,10 @@ function FormConfigService(objCollection) {
                                                 Number(workflowData[0].activity_type_id) === 134575) { //FLV CRF
                                                 //Do Nothing
                                             } else {
-                                                addValueToWidgetForAnalyticsWF(request, 
-                                                    workflowData[0].activity_id, 
-                                                    workflowData[0].activity_type_id, 
-                                                    1); //1 - Final value Widget
+                                                //addValueToWidgetForAnalyticsWF(request, 
+                                                //    workflowData[0].activity_id, 
+                                                //    workflowData[0].activity_type_id, 
+                                                //    1); //1 - Final value Widget
                                                 }
                                         }           
                                             
