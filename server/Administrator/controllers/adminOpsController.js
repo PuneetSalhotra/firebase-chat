@@ -193,7 +193,7 @@ function AdminOpsController(objCollection) {
 
     //Upload the Smart Mi form
     app.post('/' + global.config.version + '/admin/smart_form/upload', async function (req, res) {
-        const [err, responseData] = await adminOpsService.nanikalyan(req.body);
+        const [err, responseData] = await adminOpsService.uploadSmartForm(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
         } else {
