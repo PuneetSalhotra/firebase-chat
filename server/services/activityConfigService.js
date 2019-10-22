@@ -479,29 +479,41 @@ function ActivityConfigService(db, util, objCollection) {
         return [error, responseData];
     }
     
-    this.workForceActivityStatusUpdate =  function(request) {
-        return new Promise((resolve, reject)=>{
+    this.workForceActivityStatusUpdate = function (request) {
+        return new Promise((resolve, reject) => {
             var paramsArr = new Array(
-                    request.organization_id,
-                    request.account_id,
-                    request.workforce_id,
-                    request.activity_status_id,
-                    request.activity_status_name,
-                    request.activity_status_sequence_id,
-                    request.is_cusotmer_exposed,
-                    request.asset_id,
-                    request.datetime_log
-                );
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.activity_status_id,
+                request.activity_status_name,
+                request.activity_status_sequence_id,
+                request.is_cusotmer_exposed,
+                request.asset_id,
+                request.datetime_log
+            );
             var queryString = util.getQueryString('ds_p1_1_workforce_activity_status_mapping_update', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
-                	if(err === false){                		
-                		request['update_type_id'] = 1501;
-                		workForceActivityStatusHistoryInsert(request).then(()=>{});
-                		resolve(data);
-                	}else{
-                		reject(err);
-                	}
+                    if (err === false) {
+                        request['update_type_id'] = 1501;
+
+                        // Update the status tag mapping
+                        // >0 => Map
+                        // 0 => Unmap
+                        if (request.activity_status_tag_id && Number(request.activity_status_tag_id) >= 0) {
+                            try {
+                                workforceActivityStatusMappingUpdateTag(request, request.organization_id, request.account_id, request.workforce_id);
+                            } catch (error) {
+                                console.log("workForceActivityStatusUpdate | workforceActivityStatusMappingUpdateTag | Error: ", error);
+                            }
+                        }
+
+                        workForceActivityStatusHistoryInsert(request).then(() => { });
+                        resolve(data);
+                    } else {
+                        reject(err);
+                    }
                 });
             }
         });
