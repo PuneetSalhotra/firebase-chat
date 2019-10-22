@@ -3127,10 +3127,47 @@ function AssetService(objectCollection) {
         let queryString = util.getQueryString('ds_p1_asset_app_launch_transaction_insert', paramsArr);
 
         if (queryString !== '') {
-            db.executeQuery(0, queryString, request, function (err, data) {
+            db.executeQuery(0, queryString, request, async function (err, data) {
+                try {
+                    await assetListUpdateAppVersion(request);
+                } catch (error) {
+                    console.log("assetAppLaunchTransactionInsert | assetListUpdateAppVersion | Error: ", error);
+                }
                 (err === false) ? callback(false, data, 200) : callback(true, err, -9999);
             });
         }
+    }
+
+    // Asset List Update App Version
+    async function assetListUpdateAppVersion(request) {
+        // IN p_asset_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_app_version VARCHAR(50), 
+        // IN p_device_os_version VARCHAR(50),   IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME, 
+        // IN p_timezone_offset BIGINT
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_id,
+            request.organization_id,
+            request.app_version,
+            request.device_os_version,
+            request.log_asset_id || request.asset_id,
+            util.getCurrentUTCTime(),
+            request.timezone_offset
+        );
+        const queryString = util.getQueryString('ds_v1_2_asset_list_update_app_version', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
     }
 
     // Service to return both weekly and monthly summary params combined.
