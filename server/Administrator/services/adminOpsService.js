@@ -4168,7 +4168,7 @@ function AdminOpsService(objectCollection) {
             //console.log('sheetsData[iterator_x].A : ', sheetsData[iterator_x].A);
             //console.log('sheetsData[iterator_x].F : ', sheetsData[iterator_x].F);
 
-            const [updateError, updateStatus] = await workforceFormFieldMappingUpdate(request, {
+            const [updateError, updateStatus] = await workforceFormFieldMappingNextFieldIdUpdate(request, {
                 field_id: sheetsData[iterator_x].A,
                 data_type_combo_id: sheetsData[iterator_x].E,
                 field_name: sheetsData[iterator_x].B,
@@ -4176,7 +4176,8 @@ function AdminOpsService(objectCollection) {
                 data_type_combo_value: sheetsData[iterator_x].G,
                 field_sequence_id: sheetsData[iterator_x].C,
                 field_mandatory_enabled: sheetsData[iterator_x].D,
-                field_preview_enabled: '0'
+                field_preview_enabled: '0',
+                next_field_id: sheetsData[iterator_x].F
             });
         }
 
@@ -4347,7 +4348,7 @@ function AdminOpsService(objectCollection) {
         
     };
 
-    async function workforceFormFieldMappingUpdate(request, fieldOptions) {
+    async function workforceFormFieldMappingNextFieldIdUpdate(request, fieldOptions) {
         // IN p_field_id BIGINT(20), IN p_data_type_combo_id SMALLINT(6), 
         // IN p_form_id BIGINT(20), IN p_field_name VARCHAR(1200), 
         // IN p_field_description VARCHAR(300), IN p_data_type_combo_value VARCHAR(1200), 
@@ -4361,18 +4362,16 @@ function AdminOpsService(objectCollection) {
         let paramsArr = new Array(
             fieldOptions.field_id,
             fieldOptions.data_type_combo_id,
-            request.form_id,
-            fieldOptions.field_name,
-            fieldOptions.field_description,
-            fieldOptions.data_type_combo_value,
+            request.form_id,                        
             fieldOptions.field_sequence_id,
             fieldOptions.field_mandatory_enabled,
             fieldOptions.field_preview_enabled,
+            fieldOptions.next_field_id,
             request.organization_id,
             request.asset_id,
-            util.getCurrentUTCTime(),
+            util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_p1_workforce_form_field_mapping_update', paramsArr);
+        const queryString = util.getQueryString('ds_p1_workforce_form_field_mapping_update_next_field', paramsArr);
         if (queryString !== '') {
             // console.log(queryString)
             await db.executeQueryPromise(0, queryString, request)
