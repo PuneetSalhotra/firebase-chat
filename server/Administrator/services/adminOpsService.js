@@ -3487,7 +3487,7 @@ function AdminOpsService(objectCollection) {
             error = true;
 
         const paramsArr = new Array(
-            request.account_name, // account_name
+            request.account_city, // account_name
             request.account_image_path || '', // account_image_path
             request.account_phone_country_code || request.organization_phone_country_code || 0, // account_phone_country_code
             request.account_phone_number || request.organization_phone_number || 0, // account_phone_number
