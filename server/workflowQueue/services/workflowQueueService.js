@@ -101,6 +101,11 @@ function WorkflowQueueService(objectCollection) {
             if(request.hasOwnProperty('flag')) {
                 flag = 1; //1 = Update the Name
             }
+            if(request.hasOwnProperty('activity_status_tag_id')) {
+                if(Number(request.activity_status_tag_id) > 0){
+                    flag = 2;
+                }
+            }            
 
             try {
                 if(flag === 1) {
@@ -122,12 +127,84 @@ function WorkflowQueueService(objectCollection) {
                     paramsArray =
                         new Array(
                             request.queue_id,
+                            global.workflowQueueConfig.queueAltered,
+                            request.log_asset_id,
+                            request.log_datetime,
+                        );
+
+                    results[1] = await db.callDBProcedure(request, 'ds_p1_queue_list_history_insert', paramsArray, 0);
+
+                    paramsArray =
+                        new Array(
+                            request.queue_id,
                             request.organization_id,
                             request.asset_id,
                             request.log_datetime,
                         );
 
                     results[1] = await db.callDBProcedure(request, 'ds_p1_queue_access_mapping_update_queue_details', paramsArray, 0);
+
+                    return results[0];
+
+                }else if(flag === 2) {
+                    let results = new Array();
+                    let paramsArray;
+                    let statusTagInlineData = new Array();
+
+                    paramsArray =
+                        new Array(
+                            request.organization_id,                                                                       
+                            request.account_id,
+                            request.workforce_id,
+                            request.activity_status_tag_id,
+                            0,
+                            500
+                        );
+
+                    results[2] = await db.callDBProcedure(request, 'ds_p1_workforce_activity_status_mapping_select_status_tag', paramsArray, 0);
+                        console.log('results[2] ',results[2].length);
+                        for(let i = 0; i < results[2].length; i++){
+                            //console.log('statusObject :: ',statusObject);
+                            let statusObj = {
+                                "activity_status_id": results[2][i].activity_status_id
+                            }
+                            //console.log('statusObj ::',statusObj);
+                            statusTagInlineData.push(statusObj);
+                            //console.log('tagInlineData :: ',tagInlineData);
+                        }
+                        request.queue_inline_data = JSON.stringify(statusTagInlineData);                    
+
+                    paramsArray =
+                        new Array(
+                            request.queue_id,
+                            request.queue_inline_data,
+                            request.activity_status_tag_id,
+                            request.organization_id,
+                            request.asset_id,
+                            request.log_datetime
+                        );
+
+                    results[0] = await db.callDBProcedure(request, 'ds_p1_queue_list_update_inline_data_status_tag', paramsArray, 0);
+
+                    paramsArray =
+                        new Array(
+                            request.queue_id,
+                            global.workflowQueueConfig.queueAltered,
+                            request.log_asset_id,
+                            request.log_datetime,
+                        );
+
+                    results[1] = await db.callDBProcedure(request, 'ds_p1_queue_list_history_insert', paramsArray, 0);
+
+                    paramsArray =
+                        new Array(
+                            request.queue_id,
+                            request.organization_id,
+                            request.asset_id,
+                            request.log_datetime,
+                        );
+
+                    results[3] = await db.callDBProcedure(request, 'ds_p1_queue_access_mapping_update_queue_details', paramsArray, 0);
 
                     return results[0];
                 } else {
@@ -154,6 +231,16 @@ function WorkflowQueueService(objectCollection) {
                         );
 
                     results[1] = await db.callDBProcedure(request, 'ds_p1_queue_list_history_insert', paramsArray, 0);
+
+                    paramsArray =
+                        new Array(
+                            request.queue_id,
+                            request.organization_id,
+                            request.asset_id,
+                            request.log_datetime,
+                        );
+
+                    results[3] = await db.callDBProcedure(request, 'ds_p1_queue_access_mapping_update_queue_details', paramsArray, 0);
 
                     return results[0];
                 }
