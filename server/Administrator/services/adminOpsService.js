@@ -4169,7 +4169,11 @@ function AdminOpsService(objectCollection) {
     };
 
     this.uploadSmartForm = async (request) => {       
-        let jsonFormat = await util.getJSONfromXcel(request);      
+        //let jsonFormat = await util.getJSONfromXcel(request);   
+        
+        let fileName = request.bucket_url;
+        const result = excelToJson({sourceFile: fileName});
+        jsonFormat = JSON.stringify(result, null, 4)
         
         console.log('typeof jsonformat : ', typeof jsonFormat);
         let data = JSON.parse(jsonFormat);
