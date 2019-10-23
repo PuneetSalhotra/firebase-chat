@@ -3369,6 +3369,24 @@ function AdminOpsService(objectCollection) {
                     }
                 }
             }
+        
+            // Create Customer Floor
+            const [errFour, customerWorkforceResponse] = await self.createWorkforce({
+                workforce_name: "Customer Floor",
+                workforce_type_id: 10,
+                log_asset_id: request.asset_id || request.auth_asset_id,
+                asset_id: request.asset_id,
+                account_id: accountID,
+                organization_id: organizationID
+            })
+            if (errFour || Number(customerWorkforceResponse.workforce_id) === 0) {
+                console.log("[createAccount | customerWorkforceResponse] Error creating workforce: ", errFour);
+            }
+            workforces.push({
+                workforce_id: customerWorkforceResponse.workforce_id,
+                workforce_name: "Customer Floor"
+            });
+        
         }
 
         return [false, {
