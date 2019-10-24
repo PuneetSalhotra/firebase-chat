@@ -33,6 +33,43 @@ function AdminListingService(objectCollection) {
         return [error, responseData];
     }
 
+    this.checkSelfSignUpFlagForOrganization = async function (request) {
+        const [err, orgData] = await self.organizationListSelect(request);
+        if (err || Number(orgData.length) === 0) {
+            return [err || "Organization does not exist", []]
+        }
+
+        return [false, orgData.map(row => {
+            return {
+                organization_id: row.organization_id,
+                organization_name: row.organization_name,
+                organization_self_signup_enabled: row.organization_self_signup_enabled,
+            }
+        })]
+    }
+
+    this.organizationListSelect = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id
+        );
+        const queryString = util.getQueryString('ds_p1_organization_list_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
     this.workforceTypeMasterSelect = async function (request) {
         let responseData = [],
             error = true;
