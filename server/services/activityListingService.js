@@ -1562,7 +1562,16 @@ function ActivityListingService(objCollection) {
 				"widget_id": parseInt(util.replaceDefaultNumber(rowData['widget_id'])),
 				"widget_name": parseInt(util.replaceDefaultString(rowData['widget_name'])),
 				"widget_type_id": parseInt(util.replaceDefaultNumber(rowData['widget_type_id'])),
-				"widget_type_name": parseInt(util.replaceDefaultString(rowData['widget_type_name']))
+				"widget_type_name": parseInt(util.replaceDefaultString(rowData['widget_type_name'])),
+				"activity_status_description": util.replaceDefaultString(rowData['activity_status_description']),
+				"activity_status_flag_tracking_enabled" : parseInt(util.replaceDefaultNumber(rowData['activity_status_flag_tracking_enabled'])),
+ 				"activity_lead_asset_id" : parseInt(util.replaceDefaultNumber(rowData['activity_lead_asset_id'])),
+ 				"activity_lead_asset_first_name" : util.replaceDefaultString(rowData['activity_lead_asset_first_name']),
+ 				"activity_lead_operating_asset_id": parseInt(util.replaceDefaultNumber(rowData['activity_lead_operating_asset_id'])),
+ 				"activity_lead_operating_asset_first_name": util.replaceDefaultString(rowData['activity_lead_operating_asset_first_name']),
+ 				"activity_lead_operating_asset_last_name": util.replaceDefaultString(rowData['activity_lead_operating_asset_last_name']),
+ 				"activity_lead_operating_asset_phone_number": parseInt(util.replaceDefaultNumber(rowData['activity_lead_operating_asset_phone_number'])), 
+ 				"activity_lead_operating_asset_phone_country_code": parseInt(util.replaceDefaultNumber(rowData['activity_lead_operating_asset_phone_country_code']))
 			};
 			responseData.push(rowDataArr);
 		}, this);
