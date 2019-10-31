@@ -15,6 +15,9 @@ const XLSX = require('xlsx');
 const AWS = require('aws-sdk');
 const archiver = require('archiver');
 const logger = require("../logger/winstonLogger");
+const ip = require("ip");
+let ipAddress = ip.address();
+ipAddress = ipAddress.replace(/\./g, '_');
 
 AWS.config.loadFromPath(`${__dirname}/configS3.json`);
 
@@ -1171,18 +1174,18 @@ function Util() {
 
         if (global.mode === 'prod') {
             locationInServer = global.config.efsPath + 'api/';
-            logFilePath = locationInServer + 'logs/' + this.getCurrentDate() + '.txt';
-            targetedLogFilePath = locationInServer + 'targeted_logs/' + this.getCurrentDate() + '.txt';
+            logFilePath = locationInServer + 'logs/' + this.getCurrentDate() +'_'+ ipAddress  + '.txt';
+            targetedLogFilePath = locationInServer + 'targeted_logs/' + this.getCurrentDate() +'_'+ ipAddress  + '.txt';
         } else if(global.mode === 'preprod'){
             locationInServer = global.config.efsPath + 'preprod_api/';
-            logFilePath = locationInServer + 'logs/' + this.getCurrentDate() + '.txt';
+            logFilePath = locationInServer + 'logs/' + this.getCurrentDate() + '_'+ ipAddress  + '.txt';
             // Development and Pre-Production | Not Staging
-            targetedLogFilePath = locationInServer + 'targeted_logs/' + this.getCurrentDate() + '.txt';
+            targetedLogFilePath = locationInServer + 'targeted_logs/' + this.getCurrentDate() +'_'+ ipAddress  + '.txt';
         } else {
             locationInServer = global.config.efsPath + 'staging_api/';
-            logFilePath = locationInServer + 'logs/' + this.getCurrentDate() + '.txt';
+            logFilePath = locationInServer + 'logs/' + this.getCurrentDate() +'_'+ ipAddress + '.txt';
             // Development and Pre-Production | Not Staging
-            targetedLogFilePath = locationInServer + 'targeted_logs/' + this.getCurrentDate() + '.txt';
+            targetedLogFilePath = locationInServer + 'targeted_logs/' + this.getCurrentDate()  +'_'+ ipAddress + '.txt';
         }       
         
 
