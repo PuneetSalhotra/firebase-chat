@@ -245,6 +245,17 @@ function AdminListingController(objCollection) {
         }
     });
 
+    // Retrieve the list of activity statuses mapped to a Status Tag
+    app.post('/' + global.config.version + '/admin/status_tag/mapping/list', async function (req, res) {
+        const [err, statusTagData] = await adminListingService.workforceActivityStatusMappingSelectStatusTag(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, statusTagData, 200, req.body));
+        } else {
+            console.log("/admin/status_tag/mapping/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, statusTagData, -9999, req.body));
+        }
+    });    
+
 }
 
 module.exports = AdminListingController;
