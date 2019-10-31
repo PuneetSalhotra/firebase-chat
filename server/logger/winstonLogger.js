@@ -89,7 +89,7 @@ const logger = winston.createLogger({
             filename: fileName,
             handleExceptions: true,
             maxsize: 10485760, // 5MB => 5242880 | 10MB => 10485760
-            // maxFiles: 5,
+            maxFiles: '7d',
             extension: '.txt'
         })
     ],
