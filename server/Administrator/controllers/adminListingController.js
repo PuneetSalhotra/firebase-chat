@@ -164,6 +164,17 @@ function AdminListingController(objCollection) {
         }
     });
 
+    // Check self sign up flag 
+    app.post('/' + global.config.version + '/admin/organization/self_signup_flag/check', async function (req, res) {
+        const [err, accountListData] = await adminListingService.checkSelfSignUpFlagForOrganization(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, accountListData, 200, req.body));
+        } else {
+            console.log("/admin/organization/self_signup_flag/check | Error: ", err);
+            res.send(responseWrapper.getResponse(err, err, -9999, req.body));
+        }
+    });
+
     // Portal: activityAssetUnreadUpdatesCountReset
     // DB Call: ds_p1_activity_asset_mapping_update_unread_updates_count_reset
     // To update Unread count and last Seen
@@ -233,6 +244,17 @@ function AdminListingController(objCollection) {
             res.send(responseWrapper.getResponse(err, assetData, -9999, req.body));
         }
     });
+
+    // Retrieve the list of activity statuses mapped to a Status Tag
+    app.post('/' + global.config.version + '/admin/status_tag/mapping/list', async function (req, res) {
+        const [err, statusTagData] = await adminListingService.workforceActivityStatusMappingSelectStatusTag(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, statusTagData, 200, req.body));
+        } else {
+            console.log("/admin/status_tag/mapping/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, statusTagData, -9999, req.body));
+        }
+    });    
 
 }
 

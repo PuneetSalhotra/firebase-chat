@@ -539,6 +539,29 @@ function FormConfigController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/form/workforce/list', async function (req, res) {
+
+        const [err, formWorkforceData] = await formConfigService.formEntityMappingSelectForm(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, formWorkforceData, 200, req.body));
+        } else {
+            console.log("Error: ", err);
+            res.send(responseWrapper.getResponse(err, formWorkforceData, -9999, req.body));
+        }
+    }); 
+
+    app.post(
+        '/' + global.config.version + '/form/workforce/access/set',
+        async (req, res) => {
+            try {
+                let result = await formConfigService.setMultipleWorkforceAccess(req.body);
+                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            } catch (err) {
+                console.log("error ",err);
+                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            }
+        }
+    );     
 }
 
 module.exports = FormConfigController;

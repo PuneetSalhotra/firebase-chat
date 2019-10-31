@@ -33,6 +33,43 @@ function AdminListingService(objectCollection) {
         return [error, responseData];
     }
 
+    this.checkSelfSignUpFlagForOrganization = async function (request) {
+        const [err, orgData] = await self.organizationListSelect(request);
+        if (err || Number(orgData.length) === 0) {
+            return [err || "Organization does not exist", []]
+        }
+
+        return [false, orgData.map(row => {
+            return {
+                organization_id: row.organization_id,
+                organization_name: row.organization_name,
+                organization_self_signup_enabled: row.organization_self_signup_enabled,
+            }
+        })]
+    }
+
+    this.organizationListSelect = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id
+        );
+        const queryString = util.getQueryString('ds_p1_organization_list_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
     this.workforceTypeMasterSelect = async function (request) {
         let responseData = [],
             error = true;
@@ -907,6 +944,39 @@ function AdminListingService(objectCollection) {
         }
         return [error, responseData];
     }
+
+    // Get the list of activity statuses mapped to a status tag
+    this.workforceActivityStatusMappingSelectStatusTag = async function (request) {
+        // IN p_organization_id bigint(20), IN p_account_id bigint(20), IN p_workforce_id bigint(20), 
+        // IN p_activity_type_category_id SMALLINT(6), IN p_activity_type_id BIGINT(20), 
+        // IN p_tag_type_id SMALLINT(6), IN p_tag_id BIGINT(20), IN p_activity_status_type_id BIGINT(20), 
+        // IN p_activity_status_tag_id BIGINT(20), IN p_flag TINYINT(4), IN p_log_datetime DATETIME, 
+        // IN p_start_from SMALLINT(6), IN p_limit_value TINYINT(4)
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+                request.organization_id,                                                                       
+                request.account_id,
+                request.workforce_id,
+                request.activity_status_tag_id,
+                request.page_start,
+                request.page_limit
+            );
+        const queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_select_status_tag', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };    
 }
 
 module.exports = AdminListingService;

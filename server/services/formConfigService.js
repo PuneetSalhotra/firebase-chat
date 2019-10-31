@@ -3801,6 +3801,54 @@ function FormConfigService(objCollection) {
     function isObject(arg) {
         return arg !== null && typeof arg === 'object';
     }
+
+    this.formEntityMappingSelectForm = async function (request) {
+
+        let workforceData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.form_id,
+            request.flag,
+            request.page_start,
+            request.page_limit
+        );
+        const queryString = util.getQueryString('ds_v1_form_entity_mapping_select_form', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    workforceData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, workforceData];
+    } 
+
+    this.setMultipleWorkforceAccess = 
+        async (request) => {
+            try{
+                let targetWorkforceInline = JSON.parse(request.target_workforces);
+                for(let counter = 0; counter < targetWorkforceInline.length; counter++){
+                    request.workforce_id = targetWorkforceInline[counter].target_workforce_id;
+                    request.account_id = targetWorkforceInline[counter].target_account_id;
+                    let [err, formFieldData] = await self.formEntityAccessCheck(request);
+                    console.log("formFieldData :: "+formFieldData.length);
+                    if(formFieldData.length === 0)
+                    await formEntityMappingInsert(request, request.form_id, 3);
+                }
+            } catch (error) {
+                return Promise.reject(error);
+            }
+        }
+
 }
 
 module.exports = FormConfigService;
