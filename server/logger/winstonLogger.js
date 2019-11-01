@@ -9,19 +9,19 @@ ipAddress = ipAddress.replace(/\./g, '_');
 let fileName = `logs/%DATE%`;
 switch (global.mode) {
     case 'staging':
-        fileName = `${global.config.efsPath}staging_api/logs/${ipAddress}/%DATE%`;
+        fileName = `${global.config.efsPath}staging_api/logs/${ipAddress}_%DATE%`;
         break;
 
     case 'preprod':
-        fileName = `${global.config.efsPath}preprod_api/logs//${ipAddress}%DATE%`;
+        fileName = `${global.config.efsPath}preprod_api/logs/${ipAddress}_%DATE%`;
         break;
 
     case 'prod':
-        fileName = `${global.config.efsPath}api/logs/${ipAddress}/%DATE%`;
+        fileName = `${global.config.efsPath}api/logs/${ipAddress}_%DATE%`;
         break;
 
     default:
-        fileName = `logs/${ipAddress}/%DATE%`;
+        fileName = `logs/${ipAddress}_%DATE%`;
 }
 
 // [REFERENCE] Console Color Codes

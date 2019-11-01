@@ -1174,18 +1174,18 @@ function Util() {
 
         if (global.mode === 'prod') {
             locationInServer = global.config.efsPath + 'api/';
-            logFilePath = locationInServer + 'logs/' + this.getCurrentDate() +'_'+ ipAddress  + '.txt';
-            targetedLogFilePath = locationInServer + 'targeted_logs/' + this.getCurrentDate() +'_'+ ipAddress  + '.txt';
+            logFilePath = locationInServer + 'logs/' + ipAddress + '_' + this.getCurrentDate() + '.txt';
+            targetedLogFilePath = locationInServer + 'targeted_logs/' + ipAddress + '_' + this.getCurrentDate() + '.txt';
         } else if(global.mode === 'preprod'){
             locationInServer = global.config.efsPath + 'preprod_api/';
-            logFilePath = locationInServer + 'logs/' + this.getCurrentDate() + '_'+ ipAddress  + '.txt';
+            logFilePath = locationInServer + 'logs/' + ipAddress + '_' + this.getCurrentDate() + '.txt';
             // Development and Pre-Production | Not Staging
-            targetedLogFilePath = locationInServer + 'targeted_logs/' + this.getCurrentDate() +'_'+ ipAddress  + '.txt';
+            targetedLogFilePath = locationInServer + 'targeted_logs/' + ipAddress + '_' + this.getCurrentDate() + '.txt';
         } else {
             locationInServer = global.config.efsPath + 'staging_api/';
-            logFilePath = locationInServer + 'logs/' + this.getCurrentDate() +'_'+ ipAddress + '.txt';
+            logFilePath = locationInServer + 'logs/' + ipAddress + '_' + this.getCurrentDate() + '.txt';
             // Development and Pre-Production | Not Staging
-            targetedLogFilePath = locationInServer + 'targeted_logs/' + this.getCurrentDate()  +'_'+ ipAddress + '.txt';
+            targetedLogFilePath = locationInServer + 'targeted_logs/' + ipAddress + '_' + this.getCurrentDate() + '.txt';
         }       
         
 
