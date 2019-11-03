@@ -105,7 +105,7 @@ function UtilityController(objCollection) {
             if (err === false) {
                 res.send(responseWrapper.getResponse(err, data, 200, req.body));
             } else {
-                res.send(responseWrapper.getResponse(err, data, -100, req.body));
+                res.send(responseWrapper.getResponse(err, err, -100, req.body));
             }
         });
     });
