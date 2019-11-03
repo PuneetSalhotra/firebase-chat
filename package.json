@@ -26,6 +26,7 @@
     "html-pdf": "^2.2.0",
     "hummus": "^1.0.105",
     "hummus-recipe": "^1.7.3",
+    "ip": "^1.1.5",
     "kafka-node": "~3.0.1",
     "mailgun-js": "^0.22.0",
     "moment": "^2.22.2",

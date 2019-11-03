@@ -2,23 +2,26 @@ const winston = require('winston');
 require('winston-daily-rotate-file');
 
 const moment = require('moment');
+const ip = require("ip");
+let ipAddress = ip.address();
+ipAddress = ipAddress.replace(/\./g, '_');
 
 let fileName = `logs/%DATE%`;
 switch (global.mode) {
     case 'staging':
-        fileName = `${global.config.efsPath}staging_api/logs/%DATE%`;
+        fileName = `${global.config.efsPath}staging_api/logs/${ipAddress}_%DATE%`;
         break;
 
     case 'preprod':
-        fileName = `${global.config.efsPath}preprod_api/logs/%DATE%`;
+        fileName = `${global.config.efsPath}preprod_api/logs/${ipAddress}_%DATE%`;
         break;
 
     case 'prod':
-        fileName = `${global.config.efsPath}api/logs/%DATE%`;
+        fileName = `${global.config.efsPath}api/logs/${ipAddress}_%DATE%`;
         break;
 
     default:
-        fileName = `logs/%DATE%`;
+        fileName = `logs/${ipAddress}_%DATE%`;
 }
 
 // [REFERENCE] Console Color Codes
@@ -86,7 +89,7 @@ const logger = winston.createLogger({
             filename: fileName,
             handleExceptions: true,
             maxsize: 10485760, // 5MB => 5242880 | 10MB => 10485760
-            // maxFiles: 5,
+            maxFiles: '7d',
             extension: '.txt'
         })
     ],
