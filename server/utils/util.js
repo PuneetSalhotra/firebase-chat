@@ -1049,10 +1049,30 @@ function Util() {
     };
 
     // SendInBlue
-    this.sendEmailV3 = function (request, email, subject, text, htmlTemplate, callback) {
+    this.sendEmailV3 = async function (request, email, subject, text, htmlTemplate, callback) {
         console.log('email : ', email);
         console.log('subject : ', subject);
         console.log('text : ', text);
+
+        const appConfig = JSON.parse(fs.readFileSync(`${__dirname}/appConfig.json`));
+        const emailProvider = appConfig.config.EMAIL_PROVIDER || 0;
+
+        if (Number(emailProvider) === 1) {
+            try {
+                const responseBody = await sendEmailMailgunV1(
+                    request, email, subject, 
+                    text, htmlTemplate, 
+                    htmlTemplateEncoding = "html"
+                );
+                logger.info(`Email Sent To ${email}`, { type: 'email', request_body: request, response: responseBody, error: null });
+                return callback(false, responseBody);
+            } catch (error) {
+                console.log("Error: ", error)
+                logger.error(`Error Sending Email Sent To ${email}`, { type: 'email', request_body: request, error });
+                return callback(error, []);
+                
+            }
+        }
         
         // SendSmtpEmail | Values to send a transactional email
         var sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
