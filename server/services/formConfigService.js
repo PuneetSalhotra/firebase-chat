@@ -1009,7 +1009,7 @@ function FormConfigService(objCollection) {
                     case 39: //Flag
                         params[11] = row.field_value;
                         break;
-                        case 57: //Workflow reference
+                    case 57: //Workflow reference
                         workflowReference = row.field_value.split('|');
                         params[13] = workflowReference[0]; //ID
                         params[18] = workflowReference[1]; //Name
@@ -1022,6 +1022,9 @@ function FormConfigService(objCollection) {
                         assetReference = row.field_value.split('|');
                         params[13] = assetReference[0]; //ID
                         params[18] = assetReference[1]; //Name
+                        break;
+                    case 61: //Time Datatype
+                        params[18] = row.field_value;
                         break;
                 }
 

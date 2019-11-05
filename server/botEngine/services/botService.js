@@ -3555,6 +3555,10 @@ function BotService(objectCollection) {
                     break;
                 case 39: //Flag
                     params[11] = row.field_value;
+                    break;
+                case 61: //Time Datatype
+                    params[18] = row.field_value;
+                    break;
             }
 
             params.push(''); //IN p_device_manufacturer_name VARCHAR(50)
