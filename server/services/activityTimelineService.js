@@ -2309,8 +2309,10 @@ function ActivityTimelineService(objectCollection) {
                     params[13] = assetReference[0]; //ID
                     params[18] = assetReference[1]; //Name
                     break;
+                case 61: //Time Datatype
+                    params[18] = row.field_value;
+                    break;
             }
-
 
             params.push(''); //IN p_device_manufacturer_name VARCHAR(50)
             params.push(''); // IN p_device_model_name VARCHAR(50)
