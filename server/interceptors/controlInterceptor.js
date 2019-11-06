@@ -38,6 +38,10 @@ const CommnTemplateController = require('../commnTemplate/controllers/commnTempl
 const AdminListingController = require('../Administrator/controllers/adminListingController');
 const AdminOpsController = require('../Administrator/controllers/adminOpsController');
 
+// URL Services
+const UrlListingController = require('../UrlShortner/controllers/urlListingController');
+const UrlOpsController = require('../UrlShortner/controllers/urlOpsController');
+
 // Stats
 var StatsController = require('../controllers/statsController');
 
@@ -81,5 +85,9 @@ function ControlInterceptor(objCollection) {
     // Administrator Services UI
     new AdminListingController(objCollection);
     new AdminOpsController(objCollection);
+
+    // URL Services
+    new UrlListingController(objCollection)
+    new UrlOpsController(objCollection)
 };
 module.exports = ControlInterceptor;

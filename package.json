@@ -44,6 +44,7 @@
     "stringstream": "^1.0.0",
     "tinyurl": "^1.1.2",
     "twilio": "~3.23.1",
+    "uuid": "^3.3.3",
     "winston": "^3.2.1",
     "winston-daily-rotate-file": "^4.2.1",
     "xlsx": "^0.14.3"
