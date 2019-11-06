@@ -5581,6 +5581,7 @@ function VodafoneService(objectCollection) {
             'B': 'bandwidth_mbps',
             'C': 'one_time_charges',
             'D': 'recurring_charges',
+            'E': 'existing_arc'
         };
         let bulkOrderContentMap = new Map();
         for (let row = 2; row < MAX_CHILD_ORDERS_TO_BE_PARSED; row++) {
@@ -5594,10 +5595,11 @@ function VodafoneService(objectCollection) {
                 feasibility_id: '',
                 bandwidth_mbps: '',
                 one_time_charges: '',
-                recurring_charges: ''
+                recurring_charges: '',
+                existing_arc: ''
             };
 
-            for (const col of 'ABCD') {
+            for (const col of 'ABCDE') {
                 try {
                     childBulkOrderData[colToLabelMapping[col]] = workbook.Sheets[sheet_names[0]][`${col}${row}`].v;
                 } catch (error) {
