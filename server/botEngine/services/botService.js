@@ -9,6 +9,8 @@ var ActivityParticipantService = require('../../services/activityParticipantServ
 var ActivityTimelineService = require('../../services/activityTimelineService.js');
 //var ActivityListingService = require('../../services/activityListingService.js');
 
+const UrlOpsService = require('../../UrlShortner/services/urlOpsService');
+
 function BotService(objectCollection) {
 
     const moment = require('moment');
@@ -32,6 +34,8 @@ function BotService(objectCollection) {
     const activityService = new ActivityService(objectCollection);
     //const activityListingService = new ActivityListingService(objectCollection);
     const activityTimelineService = new ActivityTimelineService(objectCollection);
+
+    const urlOpsService = new UrlOpsService(objectCollection);
 
     const nodeUtil = require('util');
 
@@ -2253,6 +2257,7 @@ function BotService(objectCollection) {
         }
         // console.log(attachmentsList);
         newReq.bot_operation_email_attachment = attachmentsList;
+        request.email_id = newReq.email_id;
 
 
         let dbResp = await getCommTemplates(newReq);
@@ -2514,8 +2519,21 @@ function BotService(objectCollection) {
             asset_phone_number: request.operating_asset_phone_number || 0,
             operating_asset_first_name: request.operating_asset_first_name || ''
         }
+        const [errOne, urlData] = await urlOpsService.urlParametersShorten({
+            ...request,
+            url_form_data: JSON.stringify(JsonData),
+            url_mail_receiver: request.email_id || ''
+        });
+        if (errOne) {
+            console.log("Error shortening URL parameters: ", errOne);
+        }
+        const paramsJSON = {
+            "url_id": urlData[0].url_id,
+            "uuid": urlData[0].uuid,
+            "organization_id": request.organization_id
+        };
 
-        const base64Json = Buffer.from(JSON.stringify(JsonData)).toString('base64');
+        const base64Json = Buffer.from(JSON.stringify(paramsJSON)).toString('base64');
         let urlStrFill = "https://staging.officedesk.app/#/forms/entry/" + base64Json;
         if (global.mode === 'prod') {
             urlStrFill = "https://officedesk.app/#/forms/entry/" + base64Json;
@@ -2559,7 +2577,20 @@ function BotService(objectCollection) {
             activity_type_id: workflowActivityTypeId,
             asset_first_name: request.asset_first_name || ''
         }
-        const base64Json = Buffer.from(JSON.stringify(JsonData)).toString('base64');
+        const [errOne, urlData] = await urlOpsService.urlParametersShorten({
+            ...request,
+            url_form_data: JSON.stringify(JsonData),
+            url_mail_receiver: request.email_id || ''
+        });
+        if (errOne) {
+            console.log("Error shortening URL parameters: ", errOne);
+        }
+        const paramsJSON = {
+            "url_id": urlData[0].url_id,
+            "uuid": urlData[0].uuid,
+            "organization_id": request.organization_id
+        };
+        const base64Json = Buffer.from(JSON.stringify(paramsJSON)).toString('base64');
         let urlStrFill = "https://staging.officedesk.app/#/orderstatus/" + base64Json;
         if (global.mode === 'prod') {
             urlStrFill = "https://officedesk.app/#/orderstatus/" + base64Json;
