@@ -552,8 +552,55 @@ function BotService(objectCollection) {
         let botOperationsJson,
             botSteps;
 
+        // Prepare the map equivalent for the form's inline data,
+        // for easy checks and comparisons
+        let formInlineData = [], formInlineDataMap = new Map();
+        try {
+            formInlineData = JSON.parse(request.activity_inline_data);
+            for (const field of formInlineData) {
+                formInlineDataMap.set(Number(field.field_id), field);
+            }
+        } catch (error) {
+            logger.error("Error parsing inline JSON and/or preparing the form data map", { type: 'bot_engine', error, request_body: request });
+        }
+        // console.log("formInlineDataMap: ", formInlineDataMap);
+
         for (let i of wfSteps) {
             global.logger.write('conLog', i.bot_operation_type_id, {}, {});
+
+            // Check whether the bot operation should be triggered for a specific field_id only
+            console.table([{
+                bot_operation_sequence_id: i.bot_operation_sequence_id,
+                bot_operation_type_name: i.bot_operation_type_name,
+                form_id: i.form_id,
+                field_id: i.field_id,
+                data_type_combo_id: i.data_type_combo_id,
+                data_type_combo_name: i.data_type_combo_name
+            }]);
+            try {
+                // Check if the bot operation is field specific
+                let botOperationFieldID = Number(i.field_id);
+                if (
+                    botOperationFieldID > 0 &&
+                    !formInlineDataMap.has(botOperationFieldID)
+                ) {
+                    logger.silly("\x1b[31mThis bot operation is field specific & cannot be applied.\x1b[0m");
+                    continue;
+                }
+                // 
+                // Check if the bot operation is field + data_type_combo_id specific
+                if (
+                    botOperationFieldID > 0 &&
+                    Number(i.data_type_combo_id) > 0 &&
+                    formInlineDataMap.has(botOperationFieldID) &&
+                    !(Number(i.data_type_combo_id) === Number(formInlineDataMap.get(botOperationFieldID).data_type_combo_id))
+                ) {
+                    logger.silly("\x1b[31mThis bot operation is field and data_type_combo_id specific & cannot be applied.\x1b[0m");
+                    continue;
+                }
+            } catch (error) {
+                logger.error("Error checking field/data_type_combo_id trigger specificity", { type: 'bot_engine', error, request_body: request });
+            }
 
             botOperationsJson = JSON.parse(i.bot_operation_inline_data);
             botSteps = Object.keys(botOperationsJson.bot_operations);
