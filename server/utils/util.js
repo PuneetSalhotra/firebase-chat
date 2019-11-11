@@ -67,7 +67,6 @@ function Util(objectCollection) {
         objectCollection.hasOwnProperty("cacheWrapper")
     ) {
         cacheWrapper = objectCollection.cacheWrapper;
-        console.log("Util | objectCollection: ", objectCollection);
     }
 
     this.getSMSString = function (verificationCode) {
