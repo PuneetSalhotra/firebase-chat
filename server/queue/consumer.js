@@ -31,9 +31,11 @@ const logger = require('../logger/winstonLogger');
 var Consumer = function () {
 
     var serviceObjectCollection = {};
-    var util = new Util();
     var redisClient = redis.createClient(global.config.redisPort, global.config.redisIp);
     var cacheWrapper = new CacheWrapper(redisClient);
+    var util = new Util({
+        cacheWrapper
+    });
     var sns = new AwsSns();
     var activityCommonService = new ActivityCommonService(db, util, forEachAsync);
     var activityPushService = new ActivityPushService({

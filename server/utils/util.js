@@ -60,7 +60,14 @@ const mailgun = require('mailgun-js')({
     domain: 'mg.grenerobotics.com'
 });
 
-function Util() {
+function Util(objectCollection) {
+    let cacheWrapper = {};
+    if (
+        objectCollection &&
+        objectCollection.hasOwnProperty("cacheWrapper")
+    ) {
+        cacheWrapper = objectCollection.cacheWrapper;
+    }
 
     this.getSMSString = function (verificationCode) {
         var msg_body = "MyTony : Use " + verificationCode + " as verification code for registering the MyTony App .";
@@ -1054,14 +1061,18 @@ function Util() {
         console.log('subject : ', subject);
         console.log('text : ', text);
 
-        const appConfig = JSON.parse(fs.readFileSync(`${__dirname}/appConfig.json`));
-        const emailProvider = appConfig.config.EMAIL_PROVIDER || 0;
+        let emailProvider = 0;
+        try {
+            emailProvider = await cacheWrapper.getEmailProvider();
+        } catch (error) {
+            console.log("Error fetching the app_config:emailProvider: ", error);
+        }
 
         if (Number(emailProvider) === 1) {
             try {
                 const responseBody = await sendEmailMailgunV1(
-                    request, email, subject, 
-                    text, htmlTemplate, 
+                    request, email, subject,
+                    text, htmlTemplate,
                     htmlTemplateEncoding = "html"
                 );
                 logger.info(`Email Sent To ${email}`, { type: 'email', request_body: request, response: responseBody, error: null });
@@ -1070,10 +1081,10 @@ function Util() {
                 console.log("Error: ", error)
                 logger.error(`Error Sending Email Sent To ${email}`, { type: 'email', request_body: request, error });
                 return callback(error, []);
-                
+
             }
         }
-        
+
         // SendSmtpEmail | Values to send a transactional email
         var sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
         sendSmtpEmail.to = [{
@@ -1095,7 +1106,7 @@ function Util() {
         //     "url": "https://i.imgur.com/Pf7zKgl.jpg"
         //}];
 
-        if(
+        if (
             request.hasOwnProperty("attachment") &&
             request.attachment !== null
         ) {
@@ -1103,8 +1114,8 @@ function Util() {
                 "url": request.attachment
             }];
         }
-        
-        if(
+
+        if (
             request.hasOwnProperty("bot_operation_email_attachment") &&
             request.bot_operation_email_attachment.length > 0
         ) {
@@ -1140,7 +1151,7 @@ function Util() {
             // attachment: filepath
         };
 
-        if(
+        if (
             request.hasOwnProperty("attachment") &&
             request.attachment !== null
         ) {
@@ -1182,14 +1193,18 @@ function Util() {
         console.log('subject : ', subject);
         console.log('text : ', text);
 
-        const appConfig = JSON.parse(fs.readFileSync(`${__dirname}/appConfig.json`));
-        const emailProvider = appConfig.config.EMAIL_PROVIDER || 0;
+        let emailProvider = 0;
+        try {
+            emailProvider = await cacheWrapper.getEmailProvider();
+        } catch (error) {
+            console.log("Error fetching the app_config:emailProvider: ", error);
+        }
 
         if (Number(emailProvider) === 1) {
             try {
                 const responseBody = await sendEmailMailgunV1(
-                    request, email, subject, 
-                    text, base64EncodedHtmlTemplate, 
+                    request, email, subject,
+                    text, base64EncodedHtmlTemplate,
                     htmlTemplateEncoding = "base64"
                 );
                 logger.info(`Email Sent To ${email}`, { type: 'email', request_body: request, response: responseBody, error: null });
@@ -1198,7 +1213,7 @@ function Util() {
                 console.log("Error: ", error)
                 logger.error(`Error Sending Email Sent To ${email}`, { type: 'email', request_body: request, error });
                 return callback(error, []);
-                
+
             }
         }
 

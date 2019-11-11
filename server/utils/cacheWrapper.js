@@ -426,6 +426,20 @@ function CacheWrapper(client) {
         });
     };
 
+    this.getEmailProvider = function () {
+        return new Promise((resolve, reject) => {
+            client.hget('APP_CONFIG', 'EMAIL_PROVIDER', function (err, reply) {
+                if (err) {
+                    logger.error(`HGET APP_CONFIG EMAIL_PROVIDER`, { type: 'redis', cache_response: reply, error: err });
+                    reject(0);
+                } else {
+                    logger.verbose(`HGET APP_CONFIG EMAIL_PROVIDER`, { type: 'redis', cache_response: reply, error: err });
+                    resolve(reply);
+                }
+            });
+        });
+    };
+
 }
 
 module.exports = CacheWrapper;
