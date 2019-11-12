@@ -162,7 +162,9 @@ function connectToKafkaBroker(){
         global.logger.write('conLog', 'Kafka Producer is ready', {}, {});
         global.logger.write('conLog', 'BROKER_HOST : ' + global.config.BROKER_HOST, {}, {});
 
-        var util = new Util();
+        var util = new Util({
+            cacheWrapper
+        });
         var responseWrapper = new ResponseWrapper(util);
         var activityCommonService = new ActivityCommonService(db, util, forEachAsync);      
 

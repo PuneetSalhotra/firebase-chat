@@ -1,4 +1,4 @@
-function AdminListingService(objectCollection) {
+function UrlListingService(objectCollection) {
 
     const util = objectCollection.util;
     const db = objectCollection.db;
@@ -14,7 +14,7 @@ function AdminListingService(objectCollection) {
     this.urlParametersLookup = async function (request) {
         const [errOne, urlData] = await self.urlLookupTransactionSelect(request);
         if (errOne) {
-            return [errOne, {message: "Error retrieving URL parameters"}];
+            return [errOne, { message: "Error retrieving URL parameters" }];
         }
         return [false, urlData];
     }
@@ -45,4 +45,4 @@ function AdminListingService(objectCollection) {
     }
 }
 
-module.exports = AdminListingService;
+module.exports = UrlListingService;
