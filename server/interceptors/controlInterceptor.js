@@ -42,6 +42,10 @@ const AdminOpsController = require('../Administrator/controllers/adminOpsControl
 const UrlListingController = require('../UrlShortner/controllers/urlListingController');
 const UrlOpsController = require('../UrlShortner/controllers/urlOpsController');
 
+// Ledger Services
+const LedgerListingController = require('../Ledgers/controllers/ledgerListingController');
+const LedgerOpsController = require('../Ledgers/controllers/ledgerOpsController');
+
 // Stats
 var StatsController = require('../controllers/statsController');
 
@@ -89,5 +93,9 @@ function ControlInterceptor(objCollection) {
     // URL Services
     new UrlListingController(objCollection)
     new UrlOpsController(objCollection)
+
+    // Ledger Services
+    new LedgerListingController(objCollection);
+    new LedgerOpsController(objCollection);
 };
 module.exports = ControlInterceptor;
