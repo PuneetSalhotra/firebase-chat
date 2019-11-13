@@ -15,6 +15,10 @@ const XLSX = require('xlsx');
 const AWS = require('aws-sdk');
 const archiver = require('archiver');
 const logger = require("../logger/winstonLogger");
+const path = require('path');
+const ip = require("ip");
+let ipAddress = ip.address();
+ipAddress = ipAddress.replace(/\./g, '_');
 
 AWS.config.loadFromPath(`${__dirname}/configS3.json`);
 
@@ -49,8 +53,21 @@ const apiInstance = new SibApiV3Sdk.SMTPApi();
 // MySQL for generating prepared statements
 const mysql = require('mysql');
 
+// Mailgun Setup
+// 
+const mailgun = require('mailgun-js')({
+    apiKey: 'eabfd38c33980f8f2402df7e4256af64-816b23ef-96f002de',
+    domain: 'mg.grenerobotics.com'
+});
 
-function Util() {
+function Util(objectCollection) {
+    let cacheWrapper = {};
+    if (
+        objectCollection &&
+        objectCollection.hasOwnProperty("cacheWrapper")
+    ) {
+        cacheWrapper = objectCollection.cacheWrapper;
+    }
 
     this.getSMSString = function (verificationCode) {
         var msg_body = "MyTony : Use " + verificationCode + " as verification code for registering the MyTony App .";
@@ -1039,11 +1056,35 @@ function Util() {
     };
 
     // SendInBlue
-    this.sendEmailV3 = function (request, email, subject, text, htmlTemplate, callback) {
+    this.sendEmailV3 = async function (request, email, subject, text, htmlTemplate, callback) {
         console.log('email : ', email);
         console.log('subject : ', subject);
         console.log('text : ', text);
-        
+
+        let emailProvider = 0;
+        try {
+            emailProvider = await cacheWrapper.getEmailProvider();
+        } catch (error) {
+            console.log("Error fetching the app_config:emailProvider: ", error);
+        }
+
+        if (Number(emailProvider) === 1) {
+            try {
+                const responseBody = await sendEmailMailgunV1(
+                    request, email, subject,
+                    text, htmlTemplate,
+                    htmlTemplateEncoding = "html"
+                );
+                logger.info(`Email Sent To ${email}`, { type: 'email', request_body: request, response: responseBody, error: null });
+                return callback(false, responseBody);
+            } catch (error) {
+                console.log("Error: ", error)
+                logger.error(`Error Sending Email Sent To ${email}`, { type: 'email', request_body: request, error });
+                return callback(error, []);
+
+            }
+        }
+
         // SendSmtpEmail | Values to send a transactional email
         var sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
         sendSmtpEmail.to = [{
@@ -1065,7 +1106,7 @@ function Util() {
         //     "url": "https://i.imgur.com/Pf7zKgl.jpg"
         //}];
 
-        if(
+        if (
             request.hasOwnProperty("attachment") &&
             request.attachment !== null
         ) {
@@ -1073,8 +1114,8 @@ function Util() {
                 "url": request.attachment
             }];
         }
-        
-        if(
+
+        if (
             request.hasOwnProperty("bot_operation_email_attachment") &&
             request.bot_operation_email_attachment.length > 0
         ) {
@@ -1092,11 +1133,89 @@ function Util() {
             });
     };
 
+    async function sendEmailMailgunV1(request, email, subject, text, htmlTemplate, htmlTemplateEncoding = "html") {
+        console.log("htmlTemplateEncoding: ", htmlTemplateEncoding);
+        if (htmlTemplateEncoding === "base64") {
+            let buff = new Buffer(htmlTemplate, 'base64');
+            htmlTemplate = buff.toString('ascii');
+        }
+
+        const mailOptions = {
+            from: `${request.email_sender_name} <${request.email_sender}>`,
+            to: `${request.email_receiver_name} <${email}>`,
+            // cc: 'baz@example.com',
+            // bcc: 'bar@example.com',
+            subject: subject,
+            // text: 'Testing some Mailgun awesomness!',
+            html: htmlTemplate,
+            // attachment: filepath
+        };
+
+        if (
+            request.hasOwnProperty("attachment") &&
+            request.attachment !== null
+        ) {
+            mailOptions.attachment = mailgun.Attachment({
+                data: request.attachment,
+                filename: path.basename(request.attachment)
+            });
+        }
+
+        if (
+            request.hasOwnProperty("bot_operation_email_attachment") &&
+            request.bot_operation_email_attachment.length > 0
+        ) {
+            let attachments = [];
+            // attachments = request.bot_operation_email_attachment;
+            mailOptions.attachment = attachments.map(attachment => {
+                return mailgun.Attachment({
+                    data: Buffer.from(attachment.content, 'base64'),
+                    filename: attachment.name
+                });
+            });
+        }
+
+        return new Promise((resolve, reject) => {
+            mailgun
+                .messages()
+                .send(mailOptions, function (error, body) {
+                    if (error) {
+                        reject(error);
+                    }
+                    resolve(body);
+                });
+        });
+    }
+
     // SendInBlue, htmlTemplate is sent as base64 encoded
-    this.sendEmailV4 = function (request, email, subject, text, base64EncodedHtmlTemplate, callback) {
+    this.sendEmailV4 = async function (request, email, subject, text, base64EncodedHtmlTemplate, callback) {
         console.log('email : ', email);
         console.log('subject : ', subject);
         console.log('text : ', text);
+
+        let emailProvider = 0;
+        try {
+            emailProvider = await cacheWrapper.getEmailProvider();
+        } catch (error) {
+            console.log("Error fetching the app_config:emailProvider: ", error);
+        }
+
+        if (Number(emailProvider) === 1) {
+            try {
+                const responseBody = await sendEmailMailgunV1(
+                    request, email, subject,
+                    text, base64EncodedHtmlTemplate,
+                    htmlTemplateEncoding = "base64"
+                );
+                logger.info(`Email Sent To ${email}`, { type: 'email', request_body: request, response: responseBody, error: null });
+                return callback(false, responseBody);
+            } catch (error) {
+                console.log("Error: ", error)
+                logger.error(`Error Sending Email Sent To ${email}`, { type: 'email', request_body: request, error });
+                return callback(error, []);
+
+            }
+        }
 
         let buff = new Buffer(base64EncodedHtmlTemplate, 'base64');
         let htmlTemplate = buff.toString('ascii');
@@ -1171,18 +1290,18 @@ function Util() {
 
         if (global.mode === 'prod') {
             locationInServer = global.config.efsPath + 'api/';
-            logFilePath = locationInServer + 'logs/' + this.getCurrentDate() + '.txt';
-            targetedLogFilePath = locationInServer + 'targeted_logs/' + this.getCurrentDate() + '.txt';
+            logFilePath = locationInServer + 'logs/' + ipAddress + '_' + this.getCurrentDate() + '.txt';
+            targetedLogFilePath = locationInServer + 'targeted_logs/' + ipAddress + '_' + this.getCurrentDate() + '.txt';
         } else if(global.mode === 'preprod'){
             locationInServer = global.config.efsPath + 'preprod_api/';
-            logFilePath = locationInServer + 'logs/' + this.getCurrentDate() + '.txt';
+            logFilePath = locationInServer + 'logs/' + ipAddress + '_' + this.getCurrentDate() + '.txt';
             // Development and Pre-Production | Not Staging
-            targetedLogFilePath = locationInServer + 'targeted_logs/' + this.getCurrentDate() + '.txt';
+            targetedLogFilePath = locationInServer + 'targeted_logs/' + ipAddress + '_' + this.getCurrentDate() + '.txt';
         } else {
             locationInServer = global.config.efsPath + 'staging_api/';
-            logFilePath = locationInServer + 'logs/' + this.getCurrentDate() + '.txt';
+            logFilePath = locationInServer + 'logs/' + ipAddress + '_' + this.getCurrentDate() + '.txt';
             // Development and Pre-Production | Not Staging
-            targetedLogFilePath = locationInServer + 'targeted_logs/' + this.getCurrentDate() + '.txt';
+            targetedLogFilePath = locationInServer + 'targeted_logs/' + ipAddress + '_' + this.getCurrentDate() + '.txt';
         }       
         
 

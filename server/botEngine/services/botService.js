@@ -9,6 +9,8 @@ var ActivityParticipantService = require('../../services/activityParticipantServ
 var ActivityTimelineService = require('../../services/activityTimelineService.js');
 //var ActivityListingService = require('../../services/activityListingService.js');
 
+const UrlOpsService = require('../../UrlShortner/services/urlOpsService');
+
 function BotService(objectCollection) {
 
     const moment = require('moment');
@@ -32,6 +34,8 @@ function BotService(objectCollection) {
     const activityService = new ActivityService(objectCollection);
     //const activityListingService = new ActivityListingService(objectCollection);
     const activityTimelineService = new ActivityTimelineService(objectCollection);
+
+    const urlOpsService = new UrlOpsService(objectCollection);
 
     const nodeUtil = require('util');
 
@@ -548,8 +552,55 @@ function BotService(objectCollection) {
         let botOperationsJson,
             botSteps;
 
+        // Prepare the map equivalent for the form's inline data,
+        // for easy checks and comparisons
+        let formInlineData = [], formInlineDataMap = new Map();
+        try {
+            formInlineData = JSON.parse(request.activity_inline_data);
+            for (const field of formInlineData) {
+                formInlineDataMap.set(Number(field.field_id), field);
+            }
+        } catch (error) {
+            logger.error("Error parsing inline JSON and/or preparing the form data map", { type: 'bot_engine', error, request_body: request });
+        }
+        // console.log("formInlineDataMap: ", formInlineDataMap);
+
         for (let i of wfSteps) {
             global.logger.write('conLog', i.bot_operation_type_id, {}, {});
+
+            // Check whether the bot operation should be triggered for a specific field_id only
+            console.table([{
+                bot_operation_sequence_id: i.bot_operation_sequence_id,
+                bot_operation_type_name: i.bot_operation_type_name,
+                form_id: i.form_id,
+                field_id: i.field_id,
+                data_type_combo_id: i.data_type_combo_id,
+                data_type_combo_name: i.data_type_combo_name
+            }]);
+            try {
+                // Check if the bot operation is field specific
+                let botOperationFieldID = Number(i.field_id);
+                if (
+                    botOperationFieldID > 0 &&
+                    !formInlineDataMap.has(botOperationFieldID)
+                ) {
+                    logger.silly("\x1b[31mThis bot operation is field specific & cannot be applied.\x1b[0m");
+                    continue;
+                }
+                // 
+                // Check if the bot operation is field + data_type_combo_id specific
+                if (
+                    botOperationFieldID > 0 &&
+                    Number(i.data_type_combo_id) > 0 &&
+                    formInlineDataMap.has(botOperationFieldID) &&
+                    !(Number(i.data_type_combo_id) === Number(formInlineDataMap.get(botOperationFieldID).data_type_combo_id))
+                ) {
+                    logger.silly("\x1b[31mThis bot operation is field and data_type_combo_id specific & cannot be applied.\x1b[0m");
+                    continue;
+                }
+            } catch (error) {
+                logger.error("Error checking field/data_type_combo_id trigger specificity", { type: 'bot_engine', error, request_body: request });
+            }
 
             botOperationsJson = JSON.parse(i.bot_operation_inline_data);
             botSteps = Object.keys(botOperationsJson.bot_operations);
@@ -2253,6 +2304,7 @@ function BotService(objectCollection) {
         }
         // console.log(attachmentsList);
         newReq.bot_operation_email_attachment = attachmentsList;
+        request.email_id = newReq.email_id;
 
 
         let dbResp = await getCommTemplates(newReq);
@@ -2514,8 +2566,21 @@ function BotService(objectCollection) {
             asset_phone_number: request.operating_asset_phone_number || 0,
             operating_asset_first_name: request.operating_asset_first_name || ''
         }
+        const [errOne, urlData] = await urlOpsService.urlParametersShorten({
+            ...request,
+            url_form_data: JSON.stringify(JsonData),
+            url_mail_receiver: request.email_id || ''
+        });
+        if (errOne) {
+            console.log("Error shortening URL parameters: ", errOne);
+        }
+        const paramsJSON = {
+            "url_id": urlData[0].url_id,
+            "uuid": urlData[0].uuid,
+            "organization_id": request.organization_id
+        };
 
-        const base64Json = Buffer.from(JSON.stringify(JsonData)).toString('base64');
+        const base64Json = Buffer.from(JSON.stringify(paramsJSON)).toString('base64');
         let urlStrFill = "https://staging.officedesk.app/#/forms/entry/" + base64Json;
         if (global.mode === 'prod') {
             urlStrFill = "https://officedesk.app/#/forms/entry/" + base64Json;
@@ -2559,7 +2624,20 @@ function BotService(objectCollection) {
             activity_type_id: workflowActivityTypeId,
             asset_first_name: request.asset_first_name || ''
         }
-        const base64Json = Buffer.from(JSON.stringify(JsonData)).toString('base64');
+        const [errOne, urlData] = await urlOpsService.urlParametersShorten({
+            ...request,
+            url_form_data: JSON.stringify(JsonData),
+            url_mail_receiver: request.email_id || ''
+        });
+        if (errOne) {
+            console.log("Error shortening URL parameters: ", errOne);
+        }
+        const paramsJSON = {
+            "url_id": urlData[0].url_id,
+            "uuid": urlData[0].uuid,
+            "organization_id": request.organization_id
+        };
+        const base64Json = Buffer.from(JSON.stringify(paramsJSON)).toString('base64');
         let urlStrFill = "https://staging.officedesk.app/#/orderstatus/" + base64Json;
         if (global.mode === 'prod') {
             urlStrFill = "https://officedesk.app/#/orderstatus/" + base64Json;
@@ -3555,6 +3633,10 @@ function BotService(objectCollection) {
                     break;
                 case 39: //Flag
                     params[11] = row.field_value;
+                    break;
+                case 61: //Time Datatype
+                    params[18] = row.field_value;
+                    break;
             }
 
             params.push(''); //IN p_device_manufacturer_name VARCHAR(50)
