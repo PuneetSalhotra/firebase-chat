@@ -141,6 +141,16 @@ function AdminListingService(objectCollection) {
         return [error, responseData];
     }
 
+    this.listActivityStatusTypeByActivityTypeCategoryID = async function (request) {
+        const [errOne, activityStatusTypes] = await self.activityStatusTypeMasterSelectCategory({
+            ...request,
+            activity_type_category_id: request.activity_type_category_id || 48,
+            start_from: 0,
+            limit_value: 50
+        });
+        return [errOne, activityStatusTypes];
+    }
+
     this.activityStatusTypeMasterSelectCategory = async function (request) {
         let responseData = [],
             error = true;
