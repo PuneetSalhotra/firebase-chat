@@ -152,6 +152,17 @@ function AdminOpsController(objCollection) {
         }
     });
 
+    // Update a status tag name
+    app.post('/' + global.config.version + '/admin/status_tag/update_name', async function (req, res) {
+        const [err, statusData] = await adminOpsService.updateStatusTagName(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, statusData, 200, req.body));
+        } else {
+            console.log("/admin/status_tag/update_name: ", err);
+            res.send(responseWrapper.getResponse(err, statusData, -9999, req.body));
+        }
+    });
+
     // Delete a status tag
     app.post('/' + global.config.version + '/admin/status_tag/delete', async function (req, res) {
         const [err, statusData] = await adminOpsService.deleteStatusTag(req.body);
