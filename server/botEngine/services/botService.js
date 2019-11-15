@@ -1757,6 +1757,7 @@ function BotService(objectCollection) {
 
             await activityService.updateWorkflowQueueMapping(newReq);
         } catch (err) {
+            logger.error("Error updating the workflow's queue mapping", { type: 'bot_engine', error: err, request_body: request });
             return [true, "unknown Error"];
         }
 
@@ -1840,6 +1841,7 @@ function BotService(objectCollection) {
         }*/
             return [false, {}];
         } else {
+            logger.error("No workflow to queue mappings found", { type: 'bot_engine', request_body: request });
             return [true, "Resp is Empty"];
         }
     }
