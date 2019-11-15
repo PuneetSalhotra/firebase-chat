@@ -256,6 +256,16 @@ function AdminListingController(objCollection) {
         }
     });    
 
+    // List all activity status type IDs filtered by activity_type_category_id (DEFAULT: 48)
+    app.post('/' + global.config.version + '/admin/activity_status_type/list', async function (req, res) {
+        const [err, data] = await adminListingService.listActivityStatusTypeByActivityTypeCategoryID(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("/admin/workforce/activity_status/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
 }
 
 module.exports = AdminListingController;
