@@ -2295,7 +2295,7 @@ function ActivityTimelineService(objectCollection) {
                 case 39: //Flag
                     params[11] = row.field_value;
                     break;
-                case 57: //Workflow reference
+                case 57: //Workflow(/Activity) reference
                     workflowReference = row.field_value.split('|');
                     params[13] = workflowReference[0]; //ID
                     params[18] = workflowReference[1]; //Name
@@ -2311,6 +2311,17 @@ function ActivityTimelineService(objectCollection) {
                     break;
                 case 61: //Time Datatype
                     params[18] = row.field_value;
+                    break;
+                case 62: //Credit/Debit DataType
+                    try {
+                        let jsonData = JSON.parse(row.field_value);
+                        (Number(jsonData.transaction_type_id) === 1) ?
+                            params[15] = jsonData.transaction_data.transaction_amount: //credit
+                            params[16] = jsonData.transaction_data.transaction_amount; // Debit
+                        params[13] = jsonData.transaction_data.activity_id; //Activity_id i.e account(ledger)_activity_id
+                    } catch (err) {
+                        console.log(err);
+                    }
                     break;
             }
 
