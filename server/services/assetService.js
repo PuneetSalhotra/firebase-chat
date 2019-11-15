@@ -3133,6 +3133,18 @@ function AssetService(objectCollection) {
                 } catch (error) {
                     console.log("assetAppLaunchTransactionInsert | assetListUpdateAppVersion | Error: ", error);
                 }
+                try {
+                    request.datetime_log = util.getCurrentUTCTime();
+                    // Update the desk's location
+                    await activityCommonService.updateAssetLocationPromise(request);
+                    // Update the operating asset's location
+                    await activityCommonService.updateAssetLocationPromise({
+                        ...request,
+                        asset_id: request.operating_asset_id
+                    });
+                } catch (error) {
+                    console.log("assetAppLaunchTransactionInsert | activityCommonService.updateAssetLocationPromise | Error: ", error);
+                }
                 (err === false) ? callback(false, data, 200) : callback(true, err, -9999);
             });
         }
