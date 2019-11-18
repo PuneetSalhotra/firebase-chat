@@ -2038,8 +2038,8 @@ function ActivityListingService(objCollection) {
 				request.activity_status_type_id || 0,
 
 				request.sort_flag || 0, // 0 => Ascending | 1 => Descending
-				//request.flag || 0, // 0 => Due date | 1 => Created date
-				-1, //Flag = -1 (After removing the Join between activity asset Mapping and MyQueue)
+				//Flag = -1 (After removing the Join between activity asset Mapping and MyQueue)
+				request.flag || -1, // 0 => Due date | 1 => Created date
 				request.page_start,
 				request.page_limit
 			);
