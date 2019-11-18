@@ -3639,6 +3639,17 @@ function BotService(objectCollection) {
                 case 61: //Time Datatype
                     params[18] = row.field_value;
                     break;
+                case 62: //Credit/Debit DataType
+                    try {
+                        let jsonData = JSON.parse(row.field_value);
+                        (Number(jsonData.transaction_type_id) === 1) ?
+                            params[15] = jsonData.transaction_data.transaction_amount: //credit
+                            params[16] = jsonData.transaction_data.transaction_amount; // Debit
+                        params[13] = jsonData.transaction_data.activity_id; //Activity_id i.e account(ledger)_activity_id
+                    } catch (err) {
+                        console.log(err);
+                    }
+                    break;
             }
 
             params.push(''); //IN p_device_manufacturer_name VARCHAR(50)
