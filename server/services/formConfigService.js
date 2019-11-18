@@ -1115,7 +1115,7 @@ function FormConfigService(objCollection) {
                                         } else {
                                             setTimeout(()=>{
                                                 updateWFTotalOrderValueinActList(request, workflowData[0].activity_id);
-                                            },2000);
+                                            },3000);
                                         }
 
                                         idWorkflow = workflowData[0].activity_id;
@@ -3787,8 +3787,8 @@ function FormConfigService(objCollection) {
         console.log('finalInlineData.hasOwnProperty(workflow_fields) : ', finalInlineData.hasOwnProperty('workflow_fields'));
         if(finalInlineData.hasOwnProperty('workflow_fields')) {
                 let workflowFields = finalInlineData.workflow_fields;
-                for(let fieldId in workflowFields){
-                    if(fieldId === request.field_id) {
+                for(let fieldId in workflowFields){                    
+                    if(fieldId == request.field_id) {
                         //console.log('fieldId : ', fieldId);
                         //console.log('workflowFields[fieldId].sequence_id : ', workflowFields[fieldId].sequence_id);
                         await activityCommonService.analyticsUpdateWidgetValue(request, 
