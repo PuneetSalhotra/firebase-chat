@@ -2038,7 +2038,8 @@ function ActivityListingService(objCollection) {
 				request.activity_status_type_id || 0,
 
 				request.sort_flag || 0, // 0 => Ascending | 1 => Descending
-				request.flag || 0, // 0 => Due date | 1 => Created date
+				//request.flag || 0, // 0 => Due date | 1 => Created date
+				-1, //Flag = -1 (After removing the Join between activity asset Mapping and MyQueue)
 				request.page_start,
 				request.page_limit
 			);
@@ -2047,6 +2048,26 @@ function ActivityListingService(objCollection) {
 			if (queryString !== '') {
 				db.executeQuery(1, queryString, request, async function (err, data) {
 					if (err === false) {
+						
+						let finalObj = {};
+						let tempObj = {};
+
+						for(let i=0; i<data.length;i++){
+							finalObj = {};
+							tempObj = {};
+								tempObj.current_status_id = data[i].activity_status_id;
+								tempObj.file_creation_time = "";
+								tempObj.queue_mapping_time = "";
+								tempObj.current_status_name = data[i].activity_status_name;
+								tempObj.last_status_alter_time = "";
+								tempObj.caf_completion_percentage = data[i].activity_workflow_completion_percentage;
+							
+							finalObj.queue_sort = tempObj;
+
+							data[i].queue_activity_mapping_inline_data = JSON.stringify(finalObj);
+							data[i].queue_id = 0;
+						}
+
 						try{
 							if(Number(request.flag) === 3) {
 								resolve(data);
