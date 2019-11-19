@@ -873,7 +873,7 @@ function BotService(objectCollection) {
                     try {
                         await ledgerOpsService.ledgerCreditDebitNetTransactionUpdate(request);
                     } catch (error) {
-                        
+                        console.log("LEDGER TRANSACTION Error: ", error);
                     }
                     break;
             }
