@@ -376,7 +376,8 @@ function FormConfigService(objCollection) {
                 "update_sequence_id": util.replaceDefaultNumber(rowData['update_sequence_id']),
                 "form_workflow_activity_type_id": util.replaceDefaultNumber(rowData['form_workflow_activity_type_id']),
                 "form_workflow_activity_type_name": util.replaceDefaultString(util.decodeSpecialChars(rowData['form_workflow_activity_type_name'])),
-                "form_flag_workflow_origin": util.replaceDefaultNumber(rowData['form_flag_workflow_origin'])
+                "form_flag_workflow_origin": util.replaceDefaultNumber(rowData['form_flag_workflow_origin']),
+                "field_value_edit_enabled": util.replaceDefaultNumber(rowData['field_value_edit_enabled'])
             };
 
             /*if (Number(device_os_id) === 5 && Number(index) === 0 && Number(rowData['field_sequence_id']) === 0)
@@ -1445,6 +1446,7 @@ function FormConfigService(objCollection) {
                         let fieldDescription = (typeof formField.description == 'undefined') ? '' : formField.description;
                         let fieldMandatoryEnabled = (typeof formField.validate == 'undefined') ? 0 : (formField.validate.required == true ? 1 : 0);
                         let nextFieldId = (typeof formField.next_field_id == 'undefined') ? 0 : Number(formField.next_field_id);
+                        let fieldValueEditEnabled = (typeof formField.field_value_edit_enabled == 'undefined') ? 1 : Number(formField.field_value_edit_enabled);
 
                         let dataTypeCategoryId = Number(formField.datatypecategoryid);
 
@@ -1470,6 +1472,7 @@ function FormConfigService(objCollection) {
                                         field_sequence_id: fieldSequenceId,
                                         field_mandatory_enabled: fieldMandatoryEnabled,
                                         field_preview_enabled: 0, // THIS NEEDS WORK
+                                        field_value_edit_enabled: fieldValueEditEnabled,
                                         data_type_combo_id: index + 1,
                                         data_type_combo_value: comboEntry.label,
                                         data_type_id: Number(formField.datatypeid),
@@ -1502,6 +1505,7 @@ function FormConfigService(objCollection) {
                                     field_sequence_id: fieldSequenceId,
                                     field_mandatory_enabled: fieldMandatoryEnabled,
                                     field_preview_enabled: 0, // THIS NEEDS WORK
+                                    field_value_edit_enabled: fieldValueEditEnabled,
                                     data_type_combo_id: 0,
                                     data_type_combo_value: '',
                                     data_type_id: Number(formField.datatypeid),
@@ -1608,6 +1612,7 @@ function FormConfigService(objCollection) {
                 formFieldCollection.field_sequence_id,
                 formFieldCollection.field_mandatory_enabled,
                 formFieldCollection.field_preview_enabled,
+                formFieldCollection.field_value_edit_enabled,
                 formFieldCollection.data_type_combo_id,
                 formFieldCollection.data_type_combo_value,
                 formFieldCollection.data_type_id,
@@ -1618,7 +1623,8 @@ function FormConfigService(objCollection) {
                 util.getCurrentUTCTime()
             );
 
-            const queryString = util.getQueryString('ds_p1_1_workforce_form_field_mapping_insert', paramsArr);
+            //const queryString = util.getQueryString('ds_p1_1_workforce_form_field_mapping_insert', paramsArr);
+            const queryString = util.getQueryString('ds_p1_2_workforce_form_field_mapping_insert', paramsArr);            
             if (queryString !== '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err) ? reject(err): resolve(data);
@@ -2937,6 +2943,7 @@ function FormConfigService(objCollection) {
             let fieldMandatoryEnabled = (typeof formField.validate == 'undefined') ? 0 : (formField.validate.required == true ? 1 : 0);
             let nextFieldId = (typeof formField.next_field_id == 'undefined') ? 0 : Number(formField.next_field_id);
             let fieldSequenceId = Number(formField.sequence_id);
+            let fieldValueEditEnabled = (typeof formField.field_value_edit_enabled == 'undefined') ? 1 : Number(formField.field_value_edit_enabled);
 
             let dataTypeCategoryId = Number(formField.dataTypeCategoryId);
 
@@ -2965,6 +2972,7 @@ function FormConfigService(objCollection) {
                             field_sequence_id: fieldSequenceId,
                             field_mandatory_enabled: fieldMandatoryEnabled,
                             field_preview_enabled: 0, // THIS NEEDS WORK
+                            field_value_edit_enabled: fieldValueEditEnabled,
                             data_type_combo_id: comboEntry.dataTypeComboId,
                             data_type_combo_value: comboEntry.label,
                             data_type_id: Number(formField.dataTypeId),
@@ -3024,6 +3032,7 @@ function FormConfigService(objCollection) {
                         field_sequence_id: fieldSequenceId,
                         field_mandatory_enabled: fieldMandatoryEnabled,
                         field_preview_enabled: 0, // THIS NEEDS WORK
+                        field_value_edit_enabled: fieldValueEditEnabled,
                         data_type_combo_id: 0,
                         data_type_combo_value: '',
                         data_type_id: Number(formField.dataTypeId),
