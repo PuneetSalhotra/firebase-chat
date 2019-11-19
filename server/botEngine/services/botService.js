@@ -11,6 +11,8 @@ var ActivityTimelineService = require('../../services/activityTimelineService.js
 
 const UrlOpsService = require('../../UrlShortner/services/urlOpsService');
 
+const LedgerOpsService = require('../../Ledgers/services/ledgerOpsService');
+
 function BotService(objectCollection) {
 
     const moment = require('moment');
@@ -36,6 +38,7 @@ function BotService(objectCollection) {
     const activityTimelineService = new ActivityTimelineService(objectCollection);
 
     const urlOpsService = new UrlOpsService(objectCollection);
+    const ledgerOpsService = new LedgerOpsService(objectCollection);
 
     const nodeUtil = require('util');
 
@@ -860,6 +863,18 @@ function BotService(objectCollection) {
                         });
                     }
                     console.log('****************************************************************');
+                    break;
+                
+                case 13: // [RESERVED] Time Slot Bot
+                    break;
+
+                case 14: // [RESERVED] Ledger Transactions Bot
+                    logger.silly("LEDGER TRANSACTION");
+                    try {
+                        await ledgerOpsService.ledgerCreditDebitNetTransactionUpdate(request);
+                    } catch (error) {
+                        
+                    }
                     break;
             }
 
