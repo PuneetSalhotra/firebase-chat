@@ -347,6 +347,11 @@ function ActivityService(objectCollection) {
                                                     request['field_id'] = 0;
                                                     request['field_value'] = totalvalue;
                                                     widgetActivityFieldTransactionInsert(request);
+                                                    
+                                                    await activityCommonService.analyticsUpdateWidgetValue(request, request.activity_id, 1, otc_1);
+                                                    await activityCommonService.analyticsUpdateWidgetValue(request, request.activity_id, 2, arc_1);
+                                                    await activityCommonService.analyticsUpdateWidgetValue(request, request.activity_id, 3, otc_2);
+                                                    await activityCommonService.analyticsUpdateWidgetValue(request, request.activity_id, 4, arc_2);
                                                     await activityCommonService.analyticsUpdateWidgetValue(request, request.activity_id, 0, finalValue);
                                                 });
                                             }else{

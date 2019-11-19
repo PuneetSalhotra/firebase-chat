@@ -1772,6 +1772,7 @@ function BotService(objectCollection) {
 
             await activityService.updateWorkflowQueueMapping(newReq);
         } catch (err) {
+            logger.error("Error updating the workflow's queue mapping", { type: 'bot_engine', error: err, request_body: request });
             return [true, "unknown Error"];
         }
 
@@ -1855,6 +1856,7 @@ function BotService(objectCollection) {
         }*/
             return [false, {}];
         } else {
+            logger.error("No workflow to queue mappings found", { type: 'bot_engine', request_body: request });
             return [true, "Resp is Empty"];
         }
     }
@@ -3651,6 +3653,17 @@ function BotService(objectCollection) {
                     break;
                 case 61: //Time Datatype
                     params[18] = row.field_value;
+                    break;
+                case 62: //Credit/Debit DataType
+                    try {
+                        let jsonData = JSON.parse(row.field_value);
+                        (Number(jsonData.transaction_type_id) === 1) ?
+                            params[15] = jsonData.transaction_data.transaction_amount: //credit
+                            params[16] = jsonData.transaction_data.transaction_amount; // Debit
+                        params[13] = jsonData.transaction_data.activity_id; //Activity_id i.e account(ledger)_activity_id
+                    } catch (err) {
+                        console.log(err);
+                    }
                     break;
             }
 
