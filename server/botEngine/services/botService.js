@@ -265,6 +265,9 @@ function BotService(objectCollection) {
                     new Array(
                         request.bot_id,
                         request.bot_operation_type_id,
+                        request.field_id,
+                        request.data_type_combo_id,
+                        request.form_id,
                         request.bot_operation_sequence_id,
                         request.bot_operation_inline_data,
                         request.organization_id,
@@ -272,7 +275,8 @@ function BotService(objectCollection) {
                         request.log_datetime,
                     );
 
-                results[0] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_insert', paramsArray, 0);
+                // results[0] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_insert', paramsArray, 0);
+                results[0] = await db.callDBProcedure(request, 'ds_p1_1_bot_operation_mapping_insert', paramsArray, 0);
 
                 paramsArray =
                     new Array(
