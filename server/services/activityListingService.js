@@ -2021,7 +2021,7 @@ function ActivityListingService(objCollection) {
 		// -->you will get the orders based on the status id value
 
 		//flag - 3 && activity_status_id = 0
-		// -->you will get all the statuses		
+		// -->you will get all the statuses
 		return new Promise((resolve, reject) => {
 			// IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
 			// IN p_workforce_id BIGINT(20), IN p_asset_id BIGINT(20), 
@@ -2039,7 +2039,7 @@ function ActivityListingService(objCollection) {
 
 				request.sort_flag || 0, // 0 => Ascending | 1 => Descending
 				//Flag = -1 (After removing the Join between activity asset Mapping and MyQueue)
-				request.flag || -1, // 0 => Due date | 1 => Created date
+				request.flag || 0, // 0 => Due date | 1 => Created date
 				request.page_start,
 				request.page_limit
 			);
@@ -2048,27 +2048,28 @@ function ActivityListingService(objCollection) {
 			if (queryString !== '') {
 				db.executeQuery(1, queryString, request, async function (err, data) {
 					if (err === false) {
-						
-						let finalObj = {};
-						let tempObj = {};
-
-						for(let i=0; i<data.length;i++){
-							finalObj = {};
-							tempObj = {};
-								tempObj.current_status_id = data[i].activity_status_id;
-								tempObj.file_creation_time = "";
-								tempObj.queue_mapping_time = "";
-								tempObj.current_status_name = data[i].activity_status_name;
-								tempObj.last_status_alter_time = "";
-								tempObj.caf_completion_percentage = data[i].activity_workflow_completion_percentage;
-							
-							finalObj.queue_sort = tempObj;
-
-							data[i].queue_activity_mapping_inline_data = JSON.stringify(finalObj);
-							data[i].queue_id = 0;
-						}
-
 						try{
+							if(Number(request.flag) == -1) {								
+								let finalObj = {};
+								let tempObj = {};
+
+								for(let i=0; i<data.length;i++){
+									finalObj = {};
+									tempObj = {};
+										tempObj.current_status_id = data[i].activity_status_id;
+										tempObj.file_creation_time = "";
+										tempObj.queue_mapping_time = "";
+										tempObj.current_status_name = data[i].activity_status_name;
+										tempObj.last_status_alter_time = "";
+										tempObj.caf_completion_percentage = data[i].activity_workflow_completion_percentage;
+									
+									finalObj.queue_sort = tempObj;
+
+									data[i].queue_activity_mapping_inline_data = JSON.stringify(finalObj);
+									data[i].queue_id = 0;
+								}
+							}							
+
 							if(Number(request.flag) === 3) {
 								resolve(data);
 							} else {
