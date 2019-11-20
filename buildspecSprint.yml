@@ -2,10 +2,14 @@
 #Date: 02-Aug-2018
 #Description: yml file to build the Mobile API Services
 
-version: 0.1
+version: 0.2
           
 phases:
   install:
+    runtime-versions:
+        npm: 6.4.1
+        pm2: 3.2.2
+        nodejs: 10.13.0
     commands: 
       - npm install pm2 -g
       - npm install
