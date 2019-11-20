@@ -19,6 +19,17 @@ function LedgerListingController(objCollection) {
         }
     });
 
+    // 
+    app.post('/' + global.config.version + '/ledger/transaction/summary/monthly', async function (req, res) {
+        const [err, statusTagData] = await ledgerListingService.activityMonthlySummaryTransactionSelectFlag(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, statusTagData, 200, req.body));
+        } else {
+            console.log("/ledger/transaction/summary/monthly | Error: ", err);
+            res.send(responseWrapper.getResponse(err, statusTagData, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = LedgerListingController;

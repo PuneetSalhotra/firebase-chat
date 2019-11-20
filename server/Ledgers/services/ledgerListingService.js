@@ -1,4 +1,5 @@
 const logger = require('../../logger/winstonLogger');
+const moment = require('moment');
 
 function LedgerListingService(objectCollection) {
 
@@ -53,6 +54,33 @@ function LedgerListingService(objectCollection) {
             request.datetime_end
         );
         const queryString = util.getQueryString('ds_p1_activity_timeline_transaction_select_ledger_totals', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.activityMonthlySummaryTransactionSelectFlag = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.activity_id,
+            request.organization_id,
+            request.flag, // 1
+            request.data_entity_date_1 || '',
+            request.datetime_start || moment().startOf('month').format('YYYY-MM-DD'),
+            request.datetime_end || util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_activity_monthly_summary_transaction_select_flag', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
