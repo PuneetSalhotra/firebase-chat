@@ -296,6 +296,107 @@ if (mode === 'dev') {
     
 }
 
+if (mode === 'sprint') {
+
+    //Ports Config
+    config.version = 'r0';
+    config.servicePort = 5000;
+    config.standAlonePamServicePort = 5100;
+
+    config.consumerSix = 5200;
+    config.consumerOne = 5201;
+    config.consumerTwo = 5202;
+    config.consumerThree = 5203;
+    config.consumerFour = 5204;
+    config.consumerFive = 5205;
+
+    config.sqsConsumer = 5300;
+
+    //Mysql Config
+    // config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    // config.slave1Ip = 'worlddesk-r1-slave1.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
+    config.masterIp = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+    config.slave1Ip = 'worlddesk-staging.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
+
+    config.dbUser = 'apiuser';
+    // config.database = 'desker_staging';
+    config.database = 'worlddesk_staging';
+    config.dbPassword = 'apidbuser';
+
+    config.conLimit = 2;
+    
+    //Log Mysql Config
+    // config.logMasterIp = 'worlddesk-r1-log.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';    
+    config.logMasterIp = '10.0.0.169';    
+    config.logDatabase = 'worlddesk_log_staging';
+    config.logDbPassword = 'Apidbuser_123';
+
+    //Redis Config    
+    config.redisIp = 'cache-staging.7otgcu.0001.aps1.cache.amazonaws.com';
+    config.redisPort = 6379;
+
+    //IOS Push
+    config.iosPushMode = 'dev'; // currently shouuld be in dev
+
+    //SQS Queue
+    config.SQSqueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/logs-staging"; //Staging SQS QUEUE
+
+    //Portal Service URL & Mobile Service URL
+    config.portalBaseUrl = "https://stagingportal.worlddesk.cloud/";
+    config.mobileBaseUrl = "https://stagingapi.worlddesk.cloud/";
+
+    //making twilio, Nexmo Calls
+    config.efsPath = "/apistaging-data/";
+    
+    //Kafka Configuration
+    config.BROKER_HOST = "kafka1:9092,kafka2:9092,kafka3:9092";
+    config.BROKER_CONNECT_TIMEOUT = 10000;
+    config.BROKER_REQUEST_TIMEOUT = 60000;
+    config.BROKER_AUTO_CONNECT = true;
+    config.BROKER_MAX_ASYNC_REQUESTS = 10;
+
+    config.PRODUCER_REQUIRE_ACKS = 1;
+    config.PRODUCER_ACKS_TIMEOUT = 100;
+    config.PRODUCER_PARTITONER_TYPE = 3;
+
+    //Configs for Consumer Group
+    config.CONSUMER_GROUP_BATCH = undefined;
+    config.CONSUMER_GROUP_SSL = false;
+    config.CONSUMER_GROUP_SESSION_TIMEOUT = 15000;
+    config.CONSUMER_GROUP_PARTITION_ASSIGNMENT_PROTOCOL = ['roundrobin'];
+    config.CONSUMER_GROUP_FROM_OFFSET = 'latest';
+    config.CONSUMER_GROUP_COMMIT_OFFSET_ONFIRSTJOIN = true;
+    config.CONSUMER_GROUP_OUTOFRANGE_OFFSET = 'earliest';
+    config.CONSUMER_GROUP_MIGRATE_HLC = false;
+    config.CONSUMER_GROUP_MIGRATE_ROLLING = true;
+
+    config.TOPIC_ID = 16;
+    config.TOPIC_NAME = 'sprint-desker-activities'; //v1 is only one partition
+    config.CONSUMER_GROUP_ID = 'sprint-desker-activities-cg';
+    
+    //staging-desker-form-widgets-v2 - 1 partition
+    config.WIDGET_TOPIC_NAME = 'sprint-desker-form-widgets';    
+    config.WIDGET_CONSUMER_GROUP_ID = 'sprint-desker-form-widgets-cg';
+    
+    //LOGS
+    //staging-desker-logs-v2 1 partition
+    config.LOGS_TOPIC_NAME = 'sprint-desker-logs';
+    config.LOGS_CONSUMER_GROUP_ID = 'sprint-desker-logs-cg';
+    
+    config.CONSUMER_AUTO_COMMIT = true;
+    config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
+    config.CONSUMER_FETCH_MAX_WAIT = 10;
+    config.CONSUMER_FETCH_MIN_BYTES = 1;
+    config.CONSUMER_FETCH_MAX_BYTES = 1048576;
+    config.CONSUMER_ENCODING = "utf8";
+    config.CONSUMER_KEY_ENCODING = "utf8";
+    ///////////////////////////////
+    
+    config.emailbaseUrlApprove = "https://sprint.officedesk.app"; 
+    config.emailbaseUrlUpload = "https://sprint.officedesk.app";
+    //config.emailbaseUrlUpload = "https://stagingmydesk.desker.co";
+}
+
 if (mode === 'staging') {
 
     //Ports Config
