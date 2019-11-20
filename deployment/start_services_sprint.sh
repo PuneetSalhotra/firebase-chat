@@ -1,5 +1,5 @@
 #Pass arguments from command line
-if [ "$DEPLOYMENT_GROUP_NAME" == "codeDeployOnsprintGroup" ]
+if [ "$DEPLOYMENT_GROUP_NAME" == "sprintServicesCodeDeploy-dg" ]
 then
   cd /sprint_desker_api/
   pm2 delete /^sprint_Consumer/
