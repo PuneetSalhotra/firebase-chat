@@ -102,6 +102,29 @@ function LedgerOpsService(objectCollection) {
                     netAmountMonthly = Number(creditDebitDataMonthly[0].total_credit) - Number(creditDebitDataMonthly[0].total_debit);
                 }
                 // console.log("netAmountMonthly: ", netAmountMonthly);
+
+                // Update the master data column of the ledger
+                const ledgerInlineData = {
+                    monthly: {
+                        credit_amount: Number(creditDebitDataMonthly[0].total_credit),
+                        debit_amount: Number(creditDebitDataMonthly[0].total_debit),
+                        net_amount: netAmountMonthly
+                    },
+                    quarterly: {
+                        credit_amount: Number(creditDebitDataQuarterly[0].total_credit),
+                        debit_amount: Number(creditDebitDataQuarterly[0].total_debit),
+                        net_amount: netAmountQuarterly
+                    },
+                    yearly: {
+                        credit_amount: Number(creditDebitDataYearly[0].total_credit),
+                        debit_amount: Number(creditDebitDataYearly[0].total_debit),
+                        net_amount: netAmountYearly
+                    }
+                };
+                const [errFour, _] = await activityListUpdateMasterData({
+                    activity_id: ledgerActivityID,
+                    activity_master_data: JSON.stringify(ledgerInlineData)
+                }, organizationID);
             } catch (error) {
                 logger.silly("Error calculating net: %j", error);
             }
@@ -372,6 +395,31 @@ function LedgerOpsService(objectCollection) {
             request.trigger_form_transaction_id || 0,
         );
         const queryString = util.getQueryString('ds_v1_6_activity_timeline_transaction_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Update ledger inline data stored in the `master_data` in the `activity_list` table
+    async function activityListUpdateMasterData(request, organizationID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.activity_id,
+            organizationID,
+            request.activity_master_data
+        );
+        const queryString = util.getQueryString('ds_p1_activity_list_update_master_data', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
