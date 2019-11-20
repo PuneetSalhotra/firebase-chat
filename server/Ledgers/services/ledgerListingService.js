@@ -184,6 +184,64 @@ function LedgerListingService(objectCollection) {
         return [error, responseData];
     };
 
+    this.getLedgerTransactionSummaryYearly = async function (request) {
+
+        const [errOne, summaryData] = await self.activityYearlySummaryTransactionSelectFlag(request);
+        if (errOne) {
+            return [errOne, []]
+        }
+        const filteredSummaryData = summaryData.map(summary => {
+            return {
+                yearly_summary_id: summary.yearly_summary_id,
+                yearly_summary_name: summary.yearly_summary_name,
+                data_type_id: summary.data_type_id,
+                data_type_category_id: summary.data_type_category_id,
+                credit_amount: summary.data_entity_decimal_1,
+                debit_amount: summary.data_entity_decimal_2,
+                net_amount: summary.data_entity_decimal_3,
+                activity_id: summary.activity_id,
+                activity_title: summary.activity_title,
+                activity_type_name: summary.activity_type_name,
+                activity_type_category_id: summary.activity_type_category_id,
+                activity_type_category_name: summary.activity_type_category_name,
+                asset_id: summary.asset_id,
+                asset_first_name: summary.asset_first_name,
+                operating_asset_id: summary.operating_asset_id,
+                operating_asset_first_name: summary.operating_asset_first_name,
+                log_datetime: summary.log_datetime
+            };
+        });
+
+        return [false, filteredSummaryData];
+    }
+
+    this.activityYearlySummaryTransactionSelectFlag = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.activity_id,
+            request.organization_id,
+            request.flag, // 1
+            request.data_entity_date_1 || '',
+            request.datetime_start || moment().startOf('year').format('YYYY-MM-DD'),
+            request.datetime_end || util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_activity_yearly_summary_transaction_select_flag', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
 }
 
 module.exports = LedgerListingService;

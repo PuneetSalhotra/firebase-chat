@@ -41,6 +41,17 @@ function LedgerListingController(objCollection) {
         }
     });
 
+    // Yearly Summary Transaction
+    app.post('/' + global.config.version + '/ledger/transaction/summary/yearly', async function (req, res) {
+        const [err, summaryData] = await ledgerListingService.getLedgerTransactionSummaryYearly(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, summaryData, 200, req.body));
+        } else {
+            console.log("/ledger/transaction/summary/yearly | Error: ", err);
+            res.send(responseWrapper.getResponse(err, summaryData, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = LedgerListingController;
