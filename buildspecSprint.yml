@@ -6,8 +6,7 @@ version: 0.2
           
 phases:
   install:
-    runtime-versions:
-        npm: 6.4.1        
+    runtime-versions:                
         nodejs: 10.13.0
     commands: 
       - npm install pm2 -g
