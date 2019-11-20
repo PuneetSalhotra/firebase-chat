@@ -2848,10 +2848,22 @@ function AdminOpsService(objectCollection) {
             logger.error(`alterWorkforce.activityListSelectWorkforceCategory_IDCard`, { type: 'admin_ops', request_body: request, error: errThree });
             return [errThree, []]
         }
+
+        let idCardsUpdateActivityAssetMappingPromises = [];
         const idCardsUpdateWorkforceNamePromises = idCardData.map(idCard => {
             // Update Inline Data
             let inlineJSON = JSON.parse(idCard.activity_inline_data)
             inlineJSON.employee_department = newWorkforceName;
+
+            idCardsUpdateActivityAssetMappingPromises.push(
+                activityAssetMappingUpdateInlineData({
+                    ...request,
+                    activity_id: idCard.activity_id,
+                    activity_inline_data: JSON.stringify(inlineJSON),
+                    asset_id: idCard.asset_id,
+                    log_asset_id: request.asset_id
+                }, organizationID)
+            );
 
             return activityListUpdateInlineData({
                 activity_id: idCard.activity_id,
@@ -2859,7 +2871,7 @@ function AdminOpsService(objectCollection) {
             }, organizationID);
         });
         try {
-            await Promise.all(idCardsUpdateWorkforceNamePromises);
+            await Promise.all(idCardsUpdateWorkforceNamePromises.concat(idCardsUpdateActivityAssetMappingPromises));
         } catch (error) {
             logger.error(`alterWorkforce.idCardsUpdateWorkforceNamePromises`, { type: 'admin_ops', request_body: request, error });
         }
