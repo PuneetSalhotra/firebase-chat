@@ -65,6 +65,47 @@ function LedgerOpsService(objectCollection) {
                 logger.silly("activityTimelineTransactionInsertV6 | Error: %j", error);
             }
 
+            // Calculate net
+            let netAmountYearly = 0,
+                netAmountQuarterly = 0,
+                netAmountMonthly = 0;
+            try {
+                // Yearly
+                const [errOne, creditDebitDataYearly] = await ledgerListingService.activityTimelineTransactionSelectLedgerTotals({
+                    activity_id: ledgerActivityID,
+                    datetime_start: startOfYear,
+                    datetime_end: util.getCurrentUTCTime()
+                });
+                if (creditDebitDataYearly.length > 0) {
+                    netAmountYearly = Number(creditDebitDataYearly[0].total_credit) - Number(creditDebitDataYearly[0].total_debit);
+                }
+                // console.log("netAmountYearly: ", netAmountYearly);
+
+                // Quarterly
+                const [errTwo, creditDebitDataQuarterly] = await ledgerListingService.activityTimelineTransactionSelectLedgerTotals({
+                    activity_id: ledgerActivityID,
+                    datetime_start: startOfQuarter,
+                    datetime_end: util.getCurrentUTCTime()
+                });
+                if (creditDebitDataQuarterly.length > 0) {
+                    netAmountQuarterly = Number(creditDebitDataQuarterly[0].total_credit) - Number(creditDebitDataQuarterly[0].total_debit);
+                }
+                // console.log("netAmountQuarterly: ", netAmountQuarterly);
+
+                // Monthly
+                const [errThree, creditDebitDataMonthly] = await ledgerListingService.activityTimelineTransactionSelectLedgerTotals({
+                    activity_id: ledgerActivityID,
+                    datetime_start: startOfMonth,
+                    datetime_end: util.getCurrentUTCTime()
+                });
+                if (creditDebitDataMonthly.length > 0) {
+                    netAmountMonthly = Number(creditDebitDataMonthly[0].total_credit) - Number(creditDebitDataMonthly[0].total_debit);
+                }
+                // console.log("netAmountMonthly: ", netAmountMonthly);
+            } catch (error) {
+                logger.silly("Error calculating net: %j", error);
+            }
+
             // Monthly summary transaction insert
             try {
                 await activityMonthlySummaryTransactionInsert({
@@ -73,7 +114,7 @@ function LedgerOpsService(objectCollection) {
                     entity_date_1: startOfMonth,
                     entity_decimal_1: (transactionTypeID === 1) ? transactionAmount : 0,
                     entity_decimal_2: (transactionTypeID === 2) ? transactionAmount : 0,
-                    entity_decimal_3: 0
+                    entity_decimal_3: netAmountMonthly
                 }, organizationID, accountID, workforceID)
             } catch (error) {
                 logger.silly("activityMonthlySummaryTransactionInsert | Error: %j", error);
@@ -87,7 +128,7 @@ function LedgerOpsService(objectCollection) {
                     entity_date_1: startOfQuarter,
                     entity_decimal_1: (transactionTypeID === 1) ? transactionAmount : 0,
                     entity_decimal_2: (transactionTypeID === 2) ? transactionAmount : 0,
-                    entity_decimal_3: 0
+                    entity_decimal_3: netAmountQuarterly
                 }, organizationID, accountID, workforceID)
             } catch (error) {
                 logger.silly("activityQuarterlySummaryTransactionInsert | Error: %j", error);
@@ -101,7 +142,7 @@ function LedgerOpsService(objectCollection) {
                     entity_date_1: startOfYear,
                     entity_decimal_1: (transactionTypeID === 1) ? transactionAmount : 0,
                     entity_decimal_2: (transactionTypeID === 2) ? transactionAmount : 0,
-                    entity_decimal_3: 0
+                    entity_decimal_3: netAmountYearly
                 }, organizationID, accountID, workforceID)
             } catch (error) {
                 logger.silly("activityYearlySummaryTransactionInsert | Error: %j", error);
