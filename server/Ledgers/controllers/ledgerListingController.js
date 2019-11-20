@@ -21,7 +21,7 @@ function LedgerListingController(objCollection) {
 
     // 
     app.post('/' + global.config.version + '/ledger/transaction/summary/monthly', async function (req, res) {
-        const [err, statusTagData] = await ledgerListingService.activityMonthlySummaryTransactionSelectFlag(req.body);
+        const [err, statusTagData] = await ledgerListingService.getLedgerTransactionSummaryMonthly(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse({}, statusTagData, 200, req.body));
         } else {
