@@ -1,5 +1,5 @@
 #Author: V Nani Kalyan
-#Date: 02-Aug-2018
+#Date: 20-Nov-2019
 #Description: yml file to build the Mobile API Services
 
 version: 0.2
@@ -7,7 +7,7 @@ version: 0.2
 phases:
   install:
     runtime-versions:                
-        nodejs: 10.13.0
+        nodejs: 10
     commands: 
       - npm install pm2 -g
       - npm install
