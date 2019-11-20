@@ -46,6 +46,25 @@ function LedgerOpsService(objectCollection) {
                 startOfQuarter = moment().startOf('quarter').format('YYYY-MM-DD'),
                 startOfMonth = moment().startOf('month').format('YYYY-MM-DD');
 
+            // Ledger timeline transaction insert
+            let streamTypeID;
+            if (transactionTypeID === 1) {
+                streamTypeID = 27007;
+            } else if (transactionTypeID === 2) {
+                streamTypeID = 27008;
+            }
+
+            try {
+                await activityTimelineTransactionInsertV6({
+                    ...request,
+                    activity_id: ledgerActivityID,
+                    entity_decimal_1: transactionAmount,
+                    data_type_id: 62
+                }, streamTypeID, organizationID, accountID, workforceID)
+            } catch (error) {
+                logger.silly("activityTimelineTransactionInsertV6 | Error: %j", error);
+            }
+
             // Monthly summary transaction insert
             try {
                 await activityMonthlySummaryTransactionInsert({
@@ -244,6 +263,74 @@ function LedgerOpsService(objectCollection) {
             util.getCurrentUTCTime() // log datetime
         );
         const queryString = util.getQueryString('ds_v1_activity_yearly_summary_transaction_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Activity Timeline Transaction Insert
+    async function activityTimelineTransactionInsertV6(request, streamTypeID, organizationID, accountID, workforceID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.activity_id,
+            request.asset_id,
+            workforceID,
+            accountID,
+            organizationID,
+            streamTypeID,
+            request.entity_type_id,
+            request.entity_datetime_1,
+            request.entity_datetime_2,
+            request.entity_text_1,
+            request.entity_text_2,
+            request.entity_text_3,
+            request.data_entity_inline,
+            request.entity_decimal_1,
+            request.entity_decimal_2,
+            request.entity_tinyint_1,
+            request.entity_tinyint_2,
+            request.entity_bigint_1,
+            request.entity_bigint_2,
+            request.form_transaction_id,
+            request.form_id,
+            request.data_type_id,
+            request.location_latitude,
+            request.location_longitude,
+            request.location_gps_accuracy,
+            request.location_gps_enabled,
+            request.location_address,
+            request.location_datetime,
+            request.device_manufacturer_name,
+            request.device_model_name,
+            request.device_os_id,
+            request.device_os_name,
+            request.device_os_version,
+            request.device_app_version,
+            request.device_api_version,
+            request.log_asset_id || request.asset_id,
+            request.message_unique_id,
+            request.log_retry || 0,
+            request.log_offline || 0,
+            util.getCurrentUTCTime(), // request.transaction_datetime
+            util.getCurrentUTCTime(), // request.log_datetime
+            request.data_activity_id || 0,
+            request.trigger_bot_id,
+            request.trigger_bot_operation_id,
+            request.trigger_form_id || 0,
+            request.trigger_form_transaction_id || 0,
+        );
+        const queryString = util.getQueryString('ds_v1_6_activity_timeline_transaction_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
