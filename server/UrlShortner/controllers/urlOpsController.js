@@ -8,7 +8,7 @@ function UrlOpsController(objCollection) {
     const urlOpsService = new UrlOpsService(objCollection);
 
     // Shorten the URL parameters
-    app.post('/' + global.config.version + '/url/parameters/shorten', async function (req, res) {
+    app.post('/' + global.config.version + '/url/parameters/shorten/v1', async function (req, res) {
         const [err, urlData] = await urlOpsService.urlParametersShorten(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse({}, urlData, 200, req.body));
