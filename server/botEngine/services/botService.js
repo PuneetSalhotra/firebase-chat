@@ -262,6 +262,9 @@ function BotService(objectCollection) {
                     new Array(
                         request.bot_id,
                         request.bot_operation_type_id,
+                        request.field_id,
+                        request.data_type_combo_id,
+                        request.form_id,
                         request.bot_operation_sequence_id,
                         request.bot_operation_inline_data,
                         request.organization_id,
@@ -269,7 +272,8 @@ function BotService(objectCollection) {
                         request.log_datetime,
                     );
 
-                results[0] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_insert', paramsArray, 0);
+                // results[0] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_insert', paramsArray, 0);
+                results[0] = await db.callDBProcedure(request, 'ds_p1_1_bot_operation_mapping_insert', paramsArray, 0);
 
                 paramsArray =
                     new Array(
@@ -1757,6 +1761,7 @@ function BotService(objectCollection) {
 
             await activityService.updateWorkflowQueueMapping(newReq);
         } catch (err) {
+            logger.error("Error updating the workflow's queue mapping", { type: 'bot_engine', error: err, request_body: request });
             return [true, "unknown Error"];
         }
 
@@ -1840,6 +1845,7 @@ function BotService(objectCollection) {
         }*/
             return [false, {}];
         } else {
+            logger.error("No workflow to queue mappings found", { type: 'bot_engine', request_body: request });
             return [true, "Resp is Empty"];
         }
     }
@@ -3636,6 +3642,17 @@ function BotService(objectCollection) {
                     break;
                 case 61: //Time Datatype
                     params[18] = row.field_value;
+                    break;
+                case 62: //Credit/Debit DataType
+                    try {
+                        let jsonData = JSON.parse(row.field_value);
+                        (Number(jsonData.transaction_type_id) === 1) ?
+                            params[15] = jsonData.transaction_data.transaction_amount: //credit
+                            params[16] = jsonData.transaction_data.transaction_amount; // Debit
+                        params[13] = jsonData.transaction_data.activity_id; //Activity_id i.e account(ledger)_activity_id
+                    } catch (err) {
+                        console.log(err);
+                    }
                     break;
             }
 

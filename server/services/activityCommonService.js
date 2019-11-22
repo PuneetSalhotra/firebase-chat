@@ -954,6 +954,17 @@ function ActivityCommonService(db, util, forEachAsync) {
 
     };
 
+    this.updateAssetLocationPromise = async function (request) {
+        return new Promise((resolve, reject) => {
+            self.updateAssetLocation(request, (err, response) => {
+                if (err) {
+                    return reject(err);
+                }
+                return resolve(response);
+            })
+        });
+    }
+
     this.formatFormDataCollection = function (data, callback) {
         var responseData = new Array();
         forEachAsync(data, function (next, rowData) {

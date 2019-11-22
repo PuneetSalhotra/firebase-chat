@@ -3133,6 +3133,18 @@ function AssetService(objectCollection) {
                 } catch (error) {
                     console.log("assetAppLaunchTransactionInsert | assetListUpdateAppVersion | Error: ", error);
                 }
+                try {
+                    request.datetime_log = util.getCurrentUTCTime();
+                    // Update the desk's location
+                    await activityCommonService.updateAssetLocationPromise(request);
+                    // Update the operating asset's location
+                    await activityCommonService.updateAssetLocationPromise({
+                        ...request,
+                        asset_id: request.operating_asset_id
+                    });
+                } catch (error) {
+                    console.log("assetAppLaunchTransactionInsert | activityCommonService.updateAssetLocationPromise | Error: ", error);
+                }
                 (err === false) ? callback(false, data, 200) : callback(true, err, -9999);
             });
         }
@@ -4094,7 +4106,7 @@ function AssetService(objectCollection) {
         console.log('xlData :: ' + xlData.length);
 
         for (let row = 3; row < xlData.length; row++) {
-            for (const col of 'EF') {
+            for (const col of 'EFG') {
                 try {
                     let val = workbook.Sheets[sheet_name_list[0]][`${col}${row}`].t;
                     if (val === 'n') {
