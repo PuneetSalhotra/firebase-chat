@@ -4104,18 +4104,25 @@ function AssetService(objectCollection) {
         console.log('xlData :: ' + workbook.Sheets[sheet_name_list[0]]);
         var xlData = xlsx.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]]);
         console.log('xlData :: ' + xlData.length);
+        //console.log('xlData :: ' + JSON.stringify(xlData));
 
-        for (let row = 3; row < xlData.length; row++) {
+        if(xlData.length == 0){
+            return ["error", "The CAF annexure is not filled in the required format,   please check and resubmit"];
+        }
+        for (let row = 2; row <= (xlData.length+1); row++) {
+            //console.log('row ',row);
             for (const col of 'EFG') {
+                //console.log('col ',col);
                 try {
                     let val = workbook.Sheets[sheet_name_list[0]][`${col}${row}`].t;
+                    //console.log('value :: ',workbook.Sheets[sheet_name_list[0]][`${col}${row}`]);
+                    console.log('is number :: ',val);
                     if (val === 'n') {
                         console.log(col + "" + row + " : " + workbook.Sheets[sheet_name_list[0]][`${col}${row}`].v);
                     } else {
                         console.log("Not a Number at " + col + "" + row + " : " + workbook.Sheets[sheet_name_list[0]][`${col}${row}`].v);
                         return ["error", "The CAF annexure is not filled in the required format, please check and resubmit"];
                     }
-
                 } catch (error) {
                     return [error, "The CAF annexure is not filled in the required format, please check and resubmit."];
                 }
