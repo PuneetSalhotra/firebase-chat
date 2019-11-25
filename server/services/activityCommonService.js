@@ -3607,6 +3607,32 @@ function ActivityCommonService(db, util, forEachAsync) {
         return [error, formData];
     }
 
+    this.activityListUpdateInlineData = async function (request, organizationID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.activity_id,
+            organizationID || request.organization_id,
+            request.activity_inline_data,
+            request.pipe_separated_string || '',
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_activity_list_update_inline_data', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
 }
 
 
