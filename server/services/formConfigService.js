@@ -1447,6 +1447,7 @@ function FormConfigService(objCollection) {
                         let fieldMandatoryEnabled = (typeof formField.validate == 'undefined') ? 0 : (formField.validate.required == true ? 1 : 0);
                         let nextFieldId = (typeof formField.next_field_id == 'undefined') ? 0 : Number(formField.next_field_id);
                         let fieldValueEditEnabled = (typeof formField.field_value_edit_enabled == 'undefined') ? 1 : Number(formField.field_value_edit_enabled);
+                        let inlineData = (typeof formField.inline_data == 'undefined') ? '{}' : JSON.stringify(formField.inline_data);
 
                         let dataTypeCategoryId = Number(formField.datatypecategoryid);
 
@@ -1469,6 +1470,7 @@ function FormConfigService(objCollection) {
                                         field_id: fieldId,
                                         field_name: fieldName,
                                         field_description: fieldDescription,
+                                        inline_data: inlineData,
                                         field_sequence_id: fieldSequenceId,
                                         field_mandatory_enabled: fieldMandatoryEnabled,
                                         field_preview_enabled: 0, // THIS NEEDS WORK
@@ -1502,6 +1504,7 @@ function FormConfigService(objCollection) {
                                     field_id: 0,
                                     field_name: fieldName,
                                     field_description: fieldDescription,
+                                    inline_data: inlineData,
                                     field_sequence_id: fieldSequenceId,
                                     field_mandatory_enabled: fieldMandatoryEnabled,
                                     field_preview_enabled: 0, // THIS NEEDS WORK
@@ -1609,6 +1612,7 @@ function FormConfigService(objCollection) {
                 formFieldCollection.field_id,
                 formFieldCollection.field_name || '',
                 formFieldCollection.field_description,
+                formFieldCollection.inline_data,
                 formFieldCollection.field_sequence_id,
                 formFieldCollection.field_mandatory_enabled,
                 formFieldCollection.field_preview_enabled,
@@ -1624,7 +1628,8 @@ function FormConfigService(objCollection) {
             );
 
             //const queryString = util.getQueryString('ds_p1_1_workforce_form_field_mapping_insert', paramsArr);
-            const queryString = util.getQueryString('ds_p1_2_workforce_form_field_mapping_insert', paramsArr);            
+            //const queryString = util.getQueryString('ds_p1_2_workforce_form_field_mapping_insert', paramsArr);
+            const queryString = util.getQueryString('ds_p1_3_workforce_form_field_mapping_insert', paramsArr);            
             if (queryString !== '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err) ? reject(err): resolve(data);
@@ -2944,6 +2949,9 @@ function FormConfigService(objCollection) {
             let nextFieldId = (typeof formField.next_field_id == 'undefined') ? 0 : Number(formField.next_field_id);
             let fieldSequenceId = Number(formField.sequence_id);
             let fieldValueEditEnabled = (typeof formField.field_value_edit_enabled == 'undefined') ? 1 : Number(formField.field_value_edit_enabled);
+            let inlineData = (typeof formField.inline_data == 'undefined') ? '{}' : JSON.stringify(formField.inline_data);
+
+            //console.log('typeof inlineData : ', typeof inlineData);
 
             let dataTypeCategoryId = Number(formField.dataTypeCategoryId);
 
@@ -2969,6 +2977,7 @@ function FormConfigService(objCollection) {
                             field_id: fieldId,
                             field_name: fieldName,
                             field_description: fieldDescription,
+                            inline_data: inlineData,
                             field_sequence_id: fieldSequenceId,
                             field_mandatory_enabled: fieldMandatoryEnabled,
                             field_preview_enabled: 0, // THIS NEEDS WORK
@@ -3029,6 +3038,7 @@ function FormConfigService(objCollection) {
                         field_id: 0,
                         field_name: fieldName,
                         field_description: fieldDescription,
+                        inline_data: inlineData,
                         field_sequence_id: fieldSequenceId,
                         field_mandatory_enabled: fieldMandatoryEnabled,
                         field_preview_enabled: 0, // THIS NEEDS WORK
