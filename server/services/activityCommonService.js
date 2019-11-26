@@ -540,6 +540,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityText2 = request.activity_timeline_collection;
                 break;
             case 702: // form | workflow: Add Participant
+            case 26002: // widget: Add Participant
                 activityTimelineCollection = request.activity_timeline_collection || '{}';
                 entityText1 = "";
                 entityText2 = "";
@@ -604,7 +605,6 @@ function ActivityCommonService(db, util, forEachAsync) {
                 break;
             case 325: // [Files | Workflow] Add Comment/Attachment
             case 26001: //Widget Created
-            case 26002: //Participant added
             case 26005: //Participant removed
             case 26004: // [Widget] Comment Added on Widget
                 let attachmentNames = '',
