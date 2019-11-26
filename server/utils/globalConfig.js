@@ -300,17 +300,17 @@ if (mode === 'sprint') {
 
     //Ports Config
     config.version = 'r0';
-    config.servicePort = 5000;
-    config.standAlonePamServicePort = 5100;
+    config.servicePort = 6000;
+    config.standAlonePamServicePort = 6100;
 
-    config.consumerSix = 5200;
-    config.consumerOne = 5201;
-    config.consumerTwo = 5202;
-    config.consumerThree = 5203;
-    config.consumerFour = 5204;
-    config.consumerFive = 5205;
+    config.consumerSix = 6200;
+    config.consumerOne = 6201;
+    config.consumerTwo = 6202;
+    config.consumerThree = 6203;
+    config.consumerFour = 6204;
+    config.consumerFive = 6205;
 
-    config.sqsConsumer = 5300;
+    config.sqsConsumer = 6300;
 
     //Mysql Config
     // config.masterIp = 'worlddesk-r1-master.cgbemsumnr3x.ap-south-1.rds.amazonaws.com';
@@ -370,7 +370,7 @@ if (mode === 'sprint') {
     config.CONSUMER_GROUP_MIGRATE_HLC = false;
     config.CONSUMER_GROUP_MIGRATE_ROLLING = true;
 
-    config.TOPIC_ID = 16;
+    config.TOPIC_ID = 20;
     config.TOPIC_NAME = 'sprint-desker-activities'; //v1 is only one partition
     config.CONSUMER_GROUP_ID = 'sprint-desker-activities-cg';
     
