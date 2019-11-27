@@ -4047,6 +4047,7 @@ function BotService(objectCollection) {
             asset_first_name: deskName,
             asset_type_category_id: 45,
             workforce_name: "Customer Floor",
+            activity_stream_type_id: 11018,
             stream_type_id: 11018,
             asset_type_id: serviceDeskAssetTypeData[0].asset_type_id,
             activity_inline_data: JSON.stringify({
@@ -4066,16 +4067,49 @@ function BotService(objectCollection) {
                 "contact_operating_asset_name": "",
                 "contact_operating_asset_id": ""
             })
-        }
+        };
         console.log("createCustomerServiceDeskRequest: ", createCustomerServiceDeskRequest)
 
         const [errTwo, serviceDeskData] = await adminOpsService.addNewDeskToWorkforce(createCustomerServiceDeskRequest);
         console.log("serviceDeskData: ", serviceDeskData);
         // const serviceDeskData = { asset_id: 38906, activity_id: 340666 };
 
+        // Fetch the Customer's asset_type_id
+        const [errThree, customerAssetTypeData] = await adminListingService.workforceAssetTypeMappingSelectCategory({
+            organization_id: request.organization_id,
+            account_id: createCustomerInlineData.account_id,
+            workforce_id: createCustomerInlineData.workforce_id,
+            asset_type_category_id: 13
+        });
+        if (errThree || !(customerAssetTypeData.length > 0)) {
+            throw new Error("Unable to fetch asset_type_id for the customer.");
+        }
         // Create Customer on the Service Desk
-        // const cu
+        const createCustomerRequest = {
+            ...createCustomerServiceDeskRequest,
+            activity_description: `${customerData.customer_name_first} ${customerData.customer_name_last}`,
+            activity_title: `${customerData.customer_name_first} ${customerData.customer_name_last}`,
+            asset_first_name: `${customerData.customer_name_first} ${customerData.customer_name_last}`,
+            asset_type_category_id: 13,
+            asset_access_role_id: 1,
+            asset_access_level_id: 5,
+            asset_type_id: customerAssetTypeData[0].asset_type_id,
+            desk_asset_id: serviceDeskData.asset_id,
+            country_code: countryCode,
+            phone_number: phoneNumber,
+            customer_unique_id: customerData.customer_cuid,
+            email_id: customerData.customer_email,
+            gender_id: customerData.customer_gender,
+            joined_datetime: util.getCurrentUTCTime(),
+            activity_stream_type_id: 11006,
+            stream_type_id: 11006,
+            timezone_id: 22
+        };
 
+        console.log("createCustomerRequest: ", createCustomerRequest);
+
+        const [errFour, customerAssetData] = await adminOpsService.addNewEmployeeToExistingDesk(createCustomerRequest);
+        console.log("customerAssetData: ", customerAssetData);
 
         return;
     }
