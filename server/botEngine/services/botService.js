@@ -3988,8 +3988,8 @@ function BotService(objectCollection) {
     };
 
     async function createCustomerAsset(request, createCustomerInlineData) {
-        console.log("createCustomerInlineData: ", createCustomerInlineData);
-        console.log("createCustomerAsset: ", request);
+        // console.log("createCustomerInlineData: ", createCustomerInlineData);
+        // console.log("createCustomerAsset: ", request);
         // Fetch and prepare the form data map
         let formInlineData = [], formInlineDataMap = new Map();
         try {
@@ -4012,7 +4012,6 @@ function BotService(objectCollection) {
                 console.log("formInlineDataMap.get(fieldID).field_value: ", formInlineDataMap.get(fieldID).field_value);
             }
         }
-        console.log("customerData: ", customerData);
 
         let countryCode = 0, phoneNumber = 0;
         if (customerData.customer_phone_number.includes('|')) {
@@ -4020,8 +4019,19 @@ function BotService(objectCollection) {
         } else if (customerData.customer_phone_number.includes('||')) {
             [countryCode, phoneNumber] = customerData.customer_phone_number.split('||')
         }
-        console.log("countryCode: ", countryCode);
-        console.log("phoneNumber: ", phoneNumber);
+        logger.silly("countryCode: %j", countryCode);
+        logger.silly("phoneNumber: %j", phoneNumber);
+
+        // Check if an asset already exists with the given number
+        const assetCheckData = await getAssetDetailsOfANumber({
+            organization_id: request.organization_id,
+            country_code: countryCode,
+            phone_number: phoneNumber
+        })
+        if (assetCheckData.length > 0) {
+            logger.error("Asset with phone number exists", { type: 'bot_engine', request_body: request });
+            return;
+        }
 
         // Fetch the Customer Service Desk's asset_type_id
         const [errOne, serviceDeskAssetTypeData] = await adminListingService.workforceAssetTypeMappingSelectCategory({
@@ -4031,7 +4041,8 @@ function BotService(objectCollection) {
             asset_type_category_id: 45
         });
         if (errOne || !(serviceDeskAssetTypeData.length > 0)) {
-            throw new Error("Unable to fetch asset_type_id for the customer service desk.");
+            logger.error("Unable to fetch asset_type_id for the customer service desk.", { type: 'bot_engine', request_body: request });
+            return;
         }
         // Create the desk
         const deskName = `Customer Service Desk ${customerData.customer_cuid || ''}`;
@@ -4068,11 +4079,9 @@ function BotService(objectCollection) {
                 "contact_operating_asset_id": ""
             })
         };
-        console.log("createCustomerServiceDeskRequest: ", createCustomerServiceDeskRequest)
 
         const [errTwo, serviceDeskData] = await adminOpsService.addNewDeskToWorkforce(createCustomerServiceDeskRequest);
-        console.log("serviceDeskData: ", serviceDeskData);
-        // const serviceDeskData = { asset_id: 38906, activity_id: 340666 };
+        logger.verbose(`Customer service desk created: %j`, serviceDeskData, { type: 'bot_engine' });
 
         // Fetch the Customer's asset_type_id
         const [errThree, customerAssetTypeData] = await adminListingService.workforceAssetTypeMappingSelectCategory({
@@ -4082,7 +4091,8 @@ function BotService(objectCollection) {
             asset_type_category_id: 13
         });
         if (errThree || !(customerAssetTypeData.length > 0)) {
-            throw new Error("Unable to fetch asset_type_id for the customer.");
+            logger.error("Unable to fetch asset_type_id for the customer.", { type: 'bot_engine', request_body: request });
+            return;
         }
         // Create Customer on the Service Desk
         const createCustomerRequest = {
@@ -4106,10 +4116,8 @@ function BotService(objectCollection) {
             timezone_id: 22
         };
 
-        console.log("createCustomerRequest: ", createCustomerRequest);
-
         const [errFour, customerAssetData] = await adminOpsService.addNewEmployeeToExistingDesk(createCustomerRequest);
-        console.log("customerAssetData: ", customerAssetData);
+        logger.verbose(`Customer asset created: %j`, customerAssetData, { type: 'bot_engine' });
 
         return;
     }
