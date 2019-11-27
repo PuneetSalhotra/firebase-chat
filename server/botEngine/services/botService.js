@@ -888,6 +888,14 @@ function BotService(objectCollection) {
                     break;
 
                 case 15: // Customer Creation Bot
+                    if (
+                        request.hasOwnProperty("activity_stream_type_id") &&
+                        Number(request.activity_stream_type_id) === 713
+                    ) {
+                        // Do not fire this bot step on form edits
+                        logger.silly(`Do Not Fire Create Customer On Form Edit`, { type: 'bot_engine', error: null });
+                        continue;
+                    }
                     logger.silly("CREATE CUSTOMER");
                     try {
                         await createCustomerAsset(request, botOperationsJson.bot_operations.create_customer);
