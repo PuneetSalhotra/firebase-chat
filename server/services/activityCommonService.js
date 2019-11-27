@@ -3633,6 +3633,34 @@ function ActivityCommonService(db, util, forEachAsync) {
         return [error, responseData];
     }
 
+    this.getFormFieldDefinition = function (request, fieldData) {
+        return new Promise((resolve, reject) => {
+            var queryString = '';
+
+            var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                fieldData.form_id,
+                fieldData.field_id,
+                request.page_start || 0,
+                util.replaceQueryLimit(request.page_limit)
+            );
+            queryString = util.getQueryString('ds_p1_workforce_form_field_mapping_select_field', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    if (err === false) {
+                        resolve(data);
+                    } else {
+                        console.log(err);
+                        reject(true);
+                    }
+                });
+            }
+
+        });
+    };
+
 }
 
 
