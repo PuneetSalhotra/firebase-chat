@@ -1913,28 +1913,56 @@ function ActivityListingService(objCollection) {
 	}; */
 	
 	function processFormInlineData(request, data){
-		return new Promise((resolve, reject) => {
+		return new Promise(async (resolve, reject) => {
 			var array = [];
-			forEachAsync(JSON.parse(data[0].activity_inline_data), function (next, fieldData) {
-				//console.log('fieldData : '+JSON.stringify(fieldData));
-				if(JSON.parse(JSON.stringify(fieldData)).hasOwnProperty("field_validated")){
-					//.log("HAS FIELD VALIDATED : "+fieldData.field_id);
-					array.push(fieldData);
-						next();
-				}else{		    				
-					//console.log("FIELD NOT VALIDATED : "+fieldData.field_id);
-					fieldData.field_validated = 0;
-					//console.log("FIELD NOT VALIDATED : "+fieldData.field_validated);
-					array.push(fieldData);		    				
-					next();
-					
-				}              
-	
-			}).then(()=>{
-				//console.log("DATA : "+JSON.stringify(data));
-				data[0].activity_inline_data = array;
-				resolve(data);
-			});	    		
+			let inlineData = JSON.parse(data[0].activity_inline_data);
+			//console.log('inline DATA : ', inlineData);
+
+			for(let i=0; i<inlineData.length;i++) {
+				let fieldData = await activityCommonService.getFormFieldDefinition(request, inlineData[i]);
+				if(fieldData !== true) {
+					if(fieldData.length > 0) {
+						//console.log('fieldData : ', fieldData[0].field_value_edit_enabled);
+						inlineData[i].field_value_edit_enabled = fieldData[0].field_value_edit_enabled;
+					} else {
+						inlineData[i].field_value_edit_enabled = 1;
+					}
+				} else {
+					inlineData[i].field_value_edit_enabled = 1;
+				}
+
+				if(JSON.parse(JSON.stringify(inlineData[i])).hasOwnProperty("field_validated")){					
+					array.push(inlineData[i]);
+				}
+				else {									
+					inlineData[i].field_validated = 0;
+					array.push(inlineData[i]);
+				}
+			}
+
+			data[0].activity_inline_data = array;
+			resolve(data);
+			
+			//forEachAsync(JSON.parse(data[0].activity_inline_data), function (next, fieldData) {
+			//	//console.log('fieldData : '+JSON.stringify(fieldData));
+			//	if(JSON.parse(JSON.stringify(fieldData)).hasOwnProperty("field_validated")){
+			//		//.log("HAS FIELD VALIDATED : "+fieldData.field_id);
+			//		array.push(fieldData);
+			//			next();
+			//	}else{		    				
+			//		//console.log("FIELD NOT VALIDATED : "+fieldData.field_id);
+			//		fieldData.field_validated = 0;
+			//		//console.log("FIELD NOT VALIDATED : "+fieldData.field_validated);
+			//		array.push(fieldData);		    				
+			//		next();
+			//		
+			//	}              
+	//
+			//}).then(()=>{
+			//	//console.log("DATA : "+JSON.stringify(data));
+			//	data[0].activity_inline_data = array;
+			//	resolve(data);
+			//});	    		
 		});
 	};
 
