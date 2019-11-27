@@ -24,7 +24,16 @@ function LedgerOpsService(objectCollection) {
             accountID = Number(request.account_id),
             workforceID = Number(request.workforce_id);
 
-        let activityInlineData = JSON.parse(request.activity_inline_data),
+        if (
+            Number(request.activity_stream_type_id) === 705 &&
+            Number(request.device_os_id) !== 5
+        ) {
+            request.activity_inline_data = JSON.parse(request.activity_timeline_collection).form_submitted;
+        }
+
+        let activityInlineData =
+            (typeof request.activity_inline_data === 'string') ? JSON.parse(request.activity_inline_data) : request.activity_inline_data,
+
             accountTransactionFieldsMap = new Map();
 
         activityInlineData.map(field => {
