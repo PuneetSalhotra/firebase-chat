@@ -3661,6 +3661,128 @@ function ActivityCommonService(db, util, forEachAsync) {
         });
     };
 
+    //Insert into activity_entity_mapping table
+    //Workflow, combo fields reference data pre-crunch purpose
+    this.activityEntityMappingInsert = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(            
+            request.entity_type_id,
+            request.entity_level_id,
+            request.activity_id,
+            request.mapping_activity_id,
+            request.bot_operation_id,
+            request.form_transaction_id,
+            request.form_id,
+            request.field_id,
+            request.data_type_combo_id ,
+            request.asset_id,
+            request.workforce_id,
+            request.account_id,
+            request.organization_id,
+            request.participant_access_id,
+            request.log_asset_id,
+            request.log_datetime
+        );
+        const queryString = util.getQueryString('ds_p1_activity_entity_mapping_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    //udpate status - activity_entity_mapping
+    this.activityEntityMappingUpdateStatus = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_id,
+            request.activity_status_id,
+            request.activity_status_type_id,
+            request.log_datetime
+        );
+        const queryString = util.getQueryString('ds_p1_activity_entity_mapping_update_status', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    //udpate workflow percentage - activity_entity_mapping
+    this.activityEntityMappingUpdateWFPercentage = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.activity_id,
+            request.workflow_percentage,
+            request.log_asset_id,
+            request.log_datetime
+        );
+        const queryString = util.getQueryString('ds_p1_activity_entity_mapping_update_workflow_percent', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    //udpate deferred datetime - activity_entity_mapping
+    this.activityEntityMappingUpdateDefDt = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.activity_id,
+            request.organization_id,
+            request.deferred_datetime,
+            request.log_asset_id,
+            request.log_datetime
+        );
+        const queryString = util.getQueryString('ds_v1_activity_entity_mapping_update_deferred_datetime', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
 }
 
 

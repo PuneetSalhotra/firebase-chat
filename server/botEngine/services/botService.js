@@ -4129,6 +4129,33 @@ function BotService(objectCollection) {
 
         return;
     }
+
+    this.getWorkflowReferenceBots = async (request) =>{
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.activity_type_id,
+            request.form_id,
+            request.data_type_id,
+            request.start_from || 0,
+            request.limit_value || 1
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_form_field_mapping_select_workflow_fields', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = BotService;
