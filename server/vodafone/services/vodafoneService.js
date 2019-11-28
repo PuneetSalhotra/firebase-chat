@@ -4478,31 +4478,31 @@ function VodafoneService(objectCollection) {
                     // isAnnexureUploaded = true;
                     if (isAnnexureUploaded) {
                         // Target form field ID (single/multi-selection field) 
-                        const targetFormSelectionFieldID = Number(batch.CHECK_FIELD_ID);
-                        if (targetFormDataMap.has(Number(targetFormSelectionFieldID))) {
-                            // Get the entire object
-                            const multiSelectFieldEntry = targetFormDataMap.get(Number(targetFormSelectionFieldID));
-                            const multiSelectFieldValue = multiSelectFieldEntry.field_value;
-                            for (const selectBatch of batch.BATCH) {
-                                if (String(multiSelectFieldValue).includes(selectBatch.COMBO_VALUE)) {
-                                    for (const targetFieldID of selectBatch.TARGET_FIELD_IDS) {
-                                        if (targetFormDataMap.has(Number(targetFieldID))) {
-                                            // Get the entire object
-                                            let targetFieldEntry = targetFormDataMap.get(Number(targetFieldID));
-                                            // Set the value
-                                            let oldValue = String(targetFieldEntry.field_value);
-                                            targetFieldEntry.field_value = batch.VALUE;
-                                            if (oldValue !== batch.VALUE) {
-                                                updatedRomsFields.push(targetFieldEntry);
-                                                updatedRomsFieldsMap.set(Number(targetFieldID), targetFieldEntry);
-                                                // Set the updated object as value for the target field ID
-                                                targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        // const targetFormSelectionFieldID = Number(batch.CHECK_FIELD_ID);
+                        // if (targetFormDataMap.has(Number(targetFormSelectionFieldID))) {
+                        //     // Get the entire object
+                        //     const multiSelectFieldEntry = targetFormDataMap.get(Number(targetFormSelectionFieldID));
+                        //     const multiSelectFieldValue = multiSelectFieldEntry.field_value;
+                        //     for (const selectBatch of batch.BATCH) {
+                        //         if (String(multiSelectFieldValue).includes(selectBatch.COMBO_VALUE)) {
+                        //             for (const targetFieldID of selectBatch.TARGET_FIELD_IDS) {
+                        //                 if (targetFormDataMap.has(Number(targetFieldID))) {
+                        //                     // Get the entire object
+                        //                     let targetFieldEntry = targetFormDataMap.get(Number(targetFieldID));
+                        //                     // Set the value
+                        //                     let oldValue = String(targetFieldEntry.field_value);
+                        //                     targetFieldEntry.field_value = batch.VALUE;
+                        //                     if (oldValue !== batch.VALUE) {
+                        //                         updatedRomsFields.push(targetFieldEntry);
+                        //                         updatedRomsFieldsMap.set(Number(targetFieldID), targetFieldEntry);
+                        //                         // Set the updated object as value for the target field ID
+                        //                         targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
+                        //                     }
+                        //                 }
+                        //             }
+                        //         }
+                        //     }
+                        // }
                     } else {
                         for (const selectBatch of batch.BATCH) {
                             for (const targetFieldID of selectBatch.TARGET_FIELD_IDS) {
@@ -5626,7 +5626,7 @@ function VodafoneService(objectCollection) {
 
         // Update relevant fields with "As Per CAF/CRF Annexure" in the CAF/CRF form
         const ROMS_ACTIONS = global.vodafoneConfig[formWorkflowActivityTypeID].ROMS_ACTIONS;
-        const setAnnexureMaskRomsAction = ROMS_ACTIONS.filter(action => action.ACTION === "check_and_set_annexure_defaults");
+        let setAnnexureMaskRomsAction = ROMS_ACTIONS.filter(action => action.ACTION === "check_and_set_annexure_defaults");
         const TARGET_FORM_ID = global.vodafoneConfig[formWorkflowActivityTypeID].TARGET_FORM_ID;
         let targetFormActivityID = 0,
             targetFormTransactionID = 0,
@@ -5648,9 +5648,13 @@ function VodafoneService(objectCollection) {
                 }
             })
             .catch((error) => {
+                // console.log("getActivityTimelineTransactionByFormId713 | Error: ", error)
                 // return [error, false];
             });
 
+        // Keep track of whether the inline data is updated or not
+        let istargetFormInlineUpdated = false;
+        // SET ANNEXURE FOR C A Fs
         if (
             
             targetFormDataMap.size > 0 &&
@@ -5669,7 +5673,49 @@ function VodafoneService(objectCollection) {
                     }
                 }
             }
-            console.log("targetFormDataMap: ", targetFormDataMap.values());
+            istargetFormInlineUpdated = true;
+        }
+
+        // Fetch check_multiselect_and_set_annexure_defaults for masking CRF fields
+        setAnnexureMaskRomsAction = ROMS_ACTIONS.filter(action => action.ACTION === "check_multiselect_and_set_annexure_defaults");
+        // SET ANNEXURE FOR C R Fs
+        if (
+            
+            targetFormDataMap.size > 0 &&
+            setAnnexureMaskRomsAction.length > 0 &&
+            targetFormActivityID !== 0 &&
+            !isParentOrderFlag
+        ) {
+            console.log("setAnnexureMaskRomsAction[0]: ", setAnnexureMaskRomsAction[0]);
+
+            for (const batch of setAnnexureMaskRomsAction[0].BATCH) {
+                const multiSelectFieldID = batch.CHECK_FIELD_ID;
+
+                let multiSelectFieldValue = '';
+                if (targetFormDataMap.has(multiSelectFieldID)) {
+                    const multiSelectField = targetFormDataMap.get(multiSelectFieldID);
+                    multiSelectFieldValue = multiSelectField.field_value;
+                }
+
+                let comboBatch = [];
+                // Filter out the combo values batches that we want to apply, based on the checkboxes selected
+                comboBatch = batch.BATCH.filter(combo => multiSelectFieldValue.includes(combo.COMBO_VALUE));
+                // Select the "TARGET_FIELD_IDS" array from each combo batch and flatten them out
+                // [ [a, b], [c], [x, y] ] => [ a, b, c, x, y ]
+                targetFieldIDs = comboBatch.flatMap(combo => combo.TARGET_FIELD_IDS);
+
+                for (const targetFieldID of targetFieldIDs) {
+                    if (targetFormDataMap.has(targetFieldID)) {
+                        let targetFieldEntry = targetFormDataMap.get(targetFieldID);
+                        targetFieldEntry.field_value = batch.VALUE;
+                        targetFormDataMap.set(targetFieldID, targetFieldEntry)
+                    }
+                }
+            }
+            istargetFormInlineUpdated = true;
+        }
+
+        if (istargetFormInlineUpdated) {
             const updatedInlineData = [...targetFormDataMap.values()];
             await activityCommonService.activityListUpdateInlineData({
                 ...request,
