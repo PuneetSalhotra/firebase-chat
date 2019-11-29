@@ -5964,10 +5964,12 @@ function VodafoneService(objectCollection) {
         queueWrapper.raiseActivityEvent(addParticipantEvent, request.workflow_activity_id, (err, resp) => {
             if (err) {
                 global.logger.write('conLog', "\x1b[35m [ERROR] Raising queue activity raised for adding Service Desk as a participant. \x1b[0m", {}, request);
-                reject('Error while raising queue activity for adding service desk as a participant');
+                // reject('Error while raising queue activity for adding service desk as a participant');
+                return;
             } else {
                 global.logger.write('conLog', "\x1b[35m Queue activity raised for adding Service Desk as a participant. \x1b[0m", {}, request);
-                resolve();
+                // resolve();
+                return;
             }
         });
     }
