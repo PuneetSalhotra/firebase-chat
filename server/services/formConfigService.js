@@ -1405,7 +1405,8 @@ function FormConfigService(objCollection) {
         let formId = 0,
             formFields = [],
             formData = [],
-            error;
+            error,
+            fieldIdforBotCreation = 0;
 
         await workforceFormMappingInsert(request)
             .then(async (newFormData) => {
@@ -1450,30 +1451,7 @@ function FormConfigService(objCollection) {
                         let fieldValueEditEnabled = (typeof formField.field_value_edit_enabled == 'undefined') ? 1 : Number(formField.field_value_edit_enabled);
                         let inlineData = (typeof formField.inline_data == 'undefined') ? '{}' : JSON.stringify(formField.inline_data);
 
-                        let dataTypeId = Number(formField.datatypeid);
-
-                        //Listener  
-                        //To create a bot for every workflow reference with type constraint datatype added in forms
-                        //To create a bot for every single selection datatype added in forms
-                        switch(dataTypeId) {
-                            case 57: if(inlineData !== '{}') {
-                                        let newInlineData = JSON.parse(inlineData);
-                                        console.log('newInlineDAta : ', newInlineData);
-                                        let key = Object.keys(newInlineData);
-                                        if(key[0] === 'workflow_reference_restriction') {
-                                            if(Number(newInlineData.workflow_reference_restriction.activity_type_id) > 0) {
-                                                // Create a Bot
-                                                await createBot(request, newInlineData, dataTypeId);
-                                            }
-                                        } else if(key[0] === 'asset_reference_restriction') {
-                                            //
-                                        }
-                                    } 
-                                    break;
-                            case 33: await createBot(request, {}, dataTypeId);
-                                    break;
-                            default: break;
-                        }                       
+                        let dataTypeId = Number(formField.datatypeid);                                           
 
                         let dataTypeCategoryId = Number(formField.datatypecategoryid);
                         
@@ -1510,6 +1488,7 @@ function FormConfigService(objCollection) {
                                         // console.log("someData: ", someData)
                                         if (fieldId === 0) {
                                             fieldId = Number(fieldData[0].p_field_id);
+                                            fieldIdforBotCreation = fieldId;
                                         }
                                     });
 
@@ -1547,7 +1526,39 @@ function FormConfigService(objCollection) {
                                         field_id: Number(fieldData[0].p_field_id),
                                         data_type_combo_id: 0
                                     });
+                                    fieldIdforBotCreation = Number(fieldData[0].p_field_id);
                                 });
+                        }
+
+                        //Listener  
+                        //To create a bot for every workflow reference with type constraint datatype added in forms
+                        //To create a bot for every single selection datatype added in forms
+                        switch(dataTypeId) {
+                            case 57: if(inlineData !== '{}') {
+                                        let newInlineData = JSON.parse(inlineData);
+                                        console.log('newInlineDAta : ', newInlineData);
+                                        let key = Object.keys(newInlineData);
+                                        if(key[0] === 'workflow_reference_restriction') {
+                                            if(Number(newInlineData.workflow_reference_restriction.activity_type_id) > 0) {
+                                                // Create a Bot
+                                                await createBot(request, newInlineData, {
+                                                    dataTypeId,
+                                                    fieldName,
+                                                    fieldIdforBotCreation
+                                                });
+                                            }
+                                        } else if(key[0] === 'asset_reference_restriction') {
+                                            //
+                                        }
+                                    } 
+                                    break;
+                            case 33: await createBot(request, {},  {
+                                            dataTypeId,
+                                            fieldName,
+                                            fieldIdforBotCreation
+                                     });
+                                    break;
+                            default: break;
                         }
 
                         fieldSequenceId++;
@@ -3911,7 +3922,7 @@ function FormConfigService(objCollection) {
             }
         };
 
-    async function createBot(request, newInlineData, dataTypeId) {
+    async function createBot(request, newInlineData, fieldData) {
         let botInlineData = [];
         let botOperations = {};
         let tempObj = {};
@@ -3925,11 +3936,12 @@ function FormConfigService(objCollection) {
             newRequest.log_asset_id = request.asset_id;
             newRequest.log_datetime = util.getCurrentUTCTime();
 
-        switch(dataTypeId) {
+        switch(fieldData.dataTypeId) {
             case 57:let refActDataType = {};
                          refActDataType.form_id = request.form_id;
-                         refActDataType.field_id = "";
-                         refActDataType.field_id_label = "";
+                         refActDataType.field_id = fieldData.fieldIdforBotCreation;
+                         refActDataType.field_id_label = fieldData.fieldName;
+                         refActDataType.activity_flag_due_date_impact = Number(newInlineData.workflow_reference_restriction.activity_flag_due_date_impact);
 
                     let wfRefCumulation = {};
                         wfRefCumulation.combo_field_sequence_id = -1;
@@ -3947,8 +3959,8 @@ function FormConfigService(objCollection) {
 
             case 33:let singleSelectionDataType = {};
                         singleSelectionDataType.form_id = request.form_id;
-                        singleSelectionDataType.field_id = "";
-                        singleSelectionDataType.field_id_label = "";
+                        singleSelectionDataType.field_id = fieldData.fieldIdforBotCreation;
+                        singleSelectionDataType.field_id_label = fieldData.fieldName;
 
                     let singleSelectionCumulation = {};
                         singleSelectionCumulation.combo_field_sequence_id = -1;

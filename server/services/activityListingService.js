@@ -2518,6 +2518,52 @@ function ActivityListingService(objCollection) {
 			}
 		});
 	};
+
+	
+	this.getWidgetValues = async (request) =>{
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.widget_type_id,
+			request.flag_datetime,
+			request.timeline_id,
+			request.timezone_id,
+			request.timezone_offset,
+			request.flag_sort,
+			request.organization_id,
+			request.account_id,
+			request.workforce_type_id,
+			request.workforce_id,
+			request.asset_id,
+			request.tag_type_id,
+			request.tag_id,
+			request.activity_type_id,
+			request.activity_id,
+			request.activity_status_type_id,
+			request.activity_status_tag_id,
+			request.activity_status_id,
+			request.bot_id,
+			request.bot_operation_id,
+			request.datetime_start,
+			request.datetime_end,
+			request.start_from ,
+			request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_1_activity_list_select_widget_values', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
 	
 }
 

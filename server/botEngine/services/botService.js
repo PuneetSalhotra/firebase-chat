@@ -903,6 +903,19 @@ function BotService(objectCollection) {
                         console.log("CREATE CUSTOMER Error: ", error);
                     }
                     break;
+                
+                case 16: // Workflow Reference Bot
+                    logger.silly("Workflow Reference Bot");
+                    try {
+                        //await createCustomerAsset(request, botOperationsJson.bot_operations.create_customer);
+                    } catch (error) {
+                        console.log("Workflow Reference Bot: ", error);
+                    }
+                    break;
+
+                case 17: // Combo Field Selection Bot
+                    logger.silly("Combo Field Selection Bot");
+                    break;
             }
 
             //botOperationTxnInsert(request, i);
@@ -4130,6 +4143,33 @@ function BotService(objectCollection) {
         return;
     }
 
+    //this.getWorkflowReferenceBots = async (request) =>{
+    //    let responseData = [],
+    //        error = true;
+//
+    //    const paramsArr = new Array(
+    //        request.organization_id,
+    //        request.activity_type_id,
+    //        request.form_id,
+    //        request.data_type_id,
+    //        request.start_from || 0,
+    //        request.limit_value || 1
+    //    );
+    //    const queryString = util.getQueryString('ds_p1_workforce_form_field_mapping_select_workflow_fields', paramsArr);
+//
+    //    if (queryString !== '') {
+    //        await db.executeQueryPromise(1, queryString, request)
+    //            .then((data) => {
+    //                responseData = data;
+    //                error = false;
+    //            })
+    //            .catch((err) => {
+    //                error = err;
+    //            })
+    //    }
+    //    return [error, responseData];
+    //}
+
     this.getWorkflowReferenceBots = async (request) =>{
         let responseData = [],
             error = true;
@@ -4137,12 +4177,11 @@ function BotService(objectCollection) {
         const paramsArr = new Array(
             request.organization_id,
             request.activity_type_id,
-            request.form_id,
-            request.data_type_id,
+            request.operation_type_id,            
             request.start_from || 0,
             request.limit_value || 1
         );
-        const queryString = util.getQueryString('ds_p1_workforce_form_field_mapping_select_workflow_fields', paramsArr);
+        const queryString = util.getQueryString('ds_p1_bot_operation_mapping_select_operation_type', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
