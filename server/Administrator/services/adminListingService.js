@@ -509,7 +509,12 @@ function AdminListingService(objectCollection) {
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
-                    responseData = data;
+                    responseData = data.map(desk => {
+                        return {
+                            ...desk,
+                            asset_flag_account_admin: desk.asset_flag_admin,
+                        }
+                    });
                     error = false;
                 })
                 .catch((err) => {
