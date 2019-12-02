@@ -4072,7 +4072,7 @@ function AdminOpsService(objectCollection) {
                     set_organization_admin_flag: request.asset_flag_organization_admin
                 });
             } catch (error) {
-                logger.error(`upateDeskAndEmployeeAsset.updateAssetFlags [Desk]`, { type: 'admin_ops', request_body: request, error });
+                logger.error(`upateDeskAndEmployeeAsset.updateAssetFlags [Employee]`, { type: 'admin_ops', request_body: request, error });
             }
         }
 
