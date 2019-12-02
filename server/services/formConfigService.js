@@ -4031,7 +4031,7 @@ function FormConfigService(objCollection) {
           newRequest.bot_operation_id = botEngineRequest.bot_operation_id;
           newRequest.mapping_activity_id = fieldData.field_value;
           newRequest.log_asset_id = request.asset_id;
-          newRequest.log_datetime = util.getCurrentUTCTime();          
+          newRequest.log_datetime = util.getCurrentUTCTime();
           
       if(botIsDefined === 1) {
         switch(Number(fieldData.field_data_type_id)) {

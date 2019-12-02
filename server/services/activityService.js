@@ -258,7 +258,7 @@ function ActivityService(objectCollection) {
                                     payload: newRequest
                                 };
 
-                                //await queueWrapper.raiseActivityEventPromise(displayFileEvent, request.activity_id);
+                                await queueWrapper.raiseActivityEventPromise(displayFileEvent, request.activity_id);
 
                                 addValueToWidgetForAnalytics(request);
                             }

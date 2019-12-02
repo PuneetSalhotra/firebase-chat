@@ -7,7 +7,7 @@ var ActivityService = require('../../services/activityService.js');
 var ActivityParticipantService = require('../../services/activityParticipantService.js');
 //var ActivityUpdateService = require('../../services/activityUpdateService.js');
 var ActivityTimelineService = require('../../services/activityTimelineService.js');
-//var ActivityListingService = require('../../services/activityListingService.js');
+var ActivityListingService = require('../../services/activityListingService.js');
 
 const UrlOpsService = require('../../UrlShortner/services/urlOpsService');
 
@@ -37,7 +37,7 @@ function BotService(objectCollection) {
     //const activityUpdateService = new ActivityUpdateService(objectCollection);
     const activityParticipantService = new ActivityParticipantService(objectCollection);
     const activityService = new ActivityService(objectCollection);
-    //const activityListingService = new ActivityListingService(objectCollection);
+    const activityListingService = new ActivityListingService(objectCollection);
     const activityTimelineService = new ActivityTimelineService(objectCollection);
 
     const urlOpsService = new UrlOpsService(objectCollection);
@@ -1863,8 +1863,13 @@ function BotService(objectCollection) {
                 activityCommonService.queueHistoryInsert(newReq, 1402, i.queue_activity_mapping_id).then(() => { });
             }
 
-
-
+            //Listeners
+            //For Workflow reference, combo field widgets
+            //flag = 1 - Insert into activity entity Mapping Table
+            //flag = 2 - Insert into activity form field Mapping Table
+            if(Number(request.activity_type_id) > 0) {
+                updateStatusInIntTablesReferenceDtypes(request, inlineData);
+            }  
             //Checking the queuemappingid
             /*let queueActivityMappingData = await (activityCommonService.fetchQueueActivityMappingId({activity_id: request.workflow_activity_id,
                                                                                                      organization_id: newReq.organization_id}, 
@@ -3008,6 +3013,16 @@ function BotService(objectCollection) {
                     console.log("Bot Engine | alterWFCompletionPercentage | asyncActivityTimelineTransactionInsert | Error: ", error)
                 }
             }
+
+            //Listeners
+            //For Workflow reference, combo field widgets
+            //flag = 1 - Insert into activity entity Mapping Table
+            //flag = 2 - Insert into activity form field Mapping Table
+            if(Number(request.activity_type_id) > 0) {
+                newrequest.workflow_percentage = wfCompletionPercentage;
+                updateWFPercentageInIntTablesReferenceDtypes(newrequest);
+            }           
+            
             return [false, {}];
         } else {
             return [true, "Queue Not Available"];
@@ -4170,30 +4185,63 @@ function BotService(objectCollection) {
     //    return [error, responseData];
     //}
 
-    this.getWorkflowReferenceBots = async (request) =>{
-        let responseData = [],
-            error = true;
-
-        const paramsArr = new Array(
-            request.organization_id,
-            request.activity_type_id,
-            request.operation_type_id,            
-            request.start_from || 0,
-            request.limit_value || 1
-        );
-        const queryString = util.getQueryString('ds_p1_bot_operation_mapping_select_operation_type', paramsArr);
-
-        if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
-                .then((data) => {
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                })
+    async function updateStatusInIntTablesReferenceDtypes(request, inlineData) {
+        let activity_id = request.workflow_activity_id;
+        let activity_status_id = inlineData.activity_status_id;
+        let activity_status_type_id = inlineData.activity_status_id
+        
+        let newRequest = Object.assign({}, request);
+            newRequest.operation_type_id = 16;
+        const [err, respData] = await activityListingService.getWorkflowReferenceBots(newRequest);
+        console.log('Workflow Reference Bots for this activity_type : ', respData);
+        if(respData.length > 0) {
+            //for(let i = 0; i<respData.length; i++) {}               
+            activityCommonService.activityEntityMappingUpdateWFPercentage(request, {
+                activity_id,
+                activity_status_id,
+                activity_status_type_id
+            }, 1);
         }
-        return [error, responseData];
+
+        newRequest.operation_type_id = 17;
+        const [err1, respData1] = await activityListingService.getWorkflowReferenceBots(newRequest);
+        console.log('Combo Field Reference Bots for this activity_type : ', respData);
+        if(respData1.length > 0) {
+            //for(let i = 0; i<respData.length; i++) {}
+            activityCommonService.activityEntityMappingUpdateWFPercentage(request, {
+                activity_id,
+                activity_status_id,
+                activity_status_type_id
+            }, 2);
+        }
+    }
+
+    async function updateWFPercentageInIntTablesReferenceDtypes(request) {
+        let activity_id = newrequest.workflow_activity_id;
+        let workflow_percentage = request.workflow_percentage;
+
+        let newRequest = Object.assign({}, request);
+            newRequest.operation_type_id = 16;
+        const [err, respData] = await activityListingService.getWorkflowReferenceBots(newRequest);
+        console.log('Workflow Reference Bots for this activity_type : ', respData);
+        if(respData.length > 0) {
+            //for(let i = 0; i<respData.length; i++) {}               
+            activityCommonService.activityEntityMappingUpdateWFPercentage(request, {
+                activity_id,
+                workflow_percentage
+            }, 1);
+        }
+
+        newRequest.operation_type_id = 17;
+        const [err1, respData1] = await activityListingService.getWorkflowReferenceBots(newRequest);
+        console.log('Combo Field Reference Bots for this activity_type : ', respData);
+        if(respData1.length > 0) {
+            //for(let i = 0; i<respData.length; i++) {}
+            activityCommonService.activityEntityMappingUpdateWFPercentage(request, {
+                activity_id,
+                workflow_percentage
+            }, 2);
+        }        
     }
 }
 
