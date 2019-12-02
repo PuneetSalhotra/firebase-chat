@@ -4048,6 +4048,32 @@ function AdminOpsService(objectCollection) {
             } catch (error) {
                 logger.error(`upateDeskAndEmployeeAsset.activityAssetMappingUpdateInlineData_IDCard`, { type: 'admin_ops', request_body: request, error });
             }
+
+            // Update admin flags for the desk asset
+            try {
+                await self.updateAssetFlags({
+                    ...request,
+                    asset_id: deskAssetID,
+                    flag: 0,
+                    set_admin_flag: request.asset_flag_account_admin,
+                    set_organization_admin_flag: request.asset_flag_organization_admin
+                });
+            } catch (error) {
+                logger.error(`upateDeskAndEmployeeAsset.updateAssetFlags [Desk]`, { type: 'admin_ops', request_body: request, error });
+            }
+
+            // Update admin flags for the employee asset
+            try {
+                await self.updateAssetFlags({
+                    ...request,
+                    asset_id: employeeAssetID,
+                    flag: 0,
+                    set_admin_flag: request.asset_flag_account_admin,
+                    set_organization_admin_flag: request.asset_flag_organization_admin
+                });
+            } catch (error) {
+                logger.error(`upateDeskAndEmployeeAsset.updateAssetFlags [Employee]`, { type: 'admin_ops', request_body: request, error });
+            }
         }
 
         return [false, []];
