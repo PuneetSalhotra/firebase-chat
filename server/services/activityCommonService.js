@@ -3664,7 +3664,9 @@ function ActivityCommonService(db, util, forEachAsync) {
     //Insert into activity_entity_mapping table
     //Insert into activity_form_field_mapping table
     //Workflow, combo fields reference data pre-crunch purpose
-    this.activityEntityMappingInsert = async function(request) {
+    this.activityEntityMappingInsert = async function(request, flag) {
+        //flag = 1 - Insert into activity entity Mapping Table
+        //flag = 2 - Insert into activity form field Mapping Table
       let responseData = [],
         error = true;
 
@@ -3687,12 +3689,13 @@ function ActivityCommonService(db, util, forEachAsync) {
         request.log_datetime,
         request.flag_due_date_impact
       );
-      const queryString = util.getQueryString(
-        "ds_p1_activity_entity_mapping_insert",
-        paramsArr
-      );
-      //const queryString = util.getQueryString('ds_p1_activity_form_field_mapping_insert', paramsArr);
-
+      let queryString = "";
+      if(flag === 1) {
+        queryString = util.getQueryString("ds_p1_activity_entity_mapping_insert",paramsArr);
+      } else if(flag === 2) {
+        queryString = util.getQueryString('ds_p1_activity_form_field_mapping_insert', paramsArr);
+      }
+      
       if (queryString !== "") {
         await db
           .executeQueryPromise(0, queryString, request)
@@ -3709,7 +3712,9 @@ function ActivityCommonService(db, util, forEachAsync) {
 
     //udpate status - activity_entity_mapping - Workflow reference
     //udpate status - form field mapping - combo field
-    this.activityEntityMappingUpdateStatus = async function(request) {
+    this.activityEntityMappingUpdateStatus = async function(request, flag) {
+        //flag = 1 - Insert into activity entity Mapping Table
+        //flag = 2 - Insert into activity form field Mapping Table
       let responseData = [],
         error = true;
 
@@ -3722,12 +3727,13 @@ function ActivityCommonService(db, util, forEachAsync) {
         request.activity_status_type_id,
         request.log_datetime
       );
-      const queryString = util.getQueryString(
-        "ds_p1_activity_entity_mapping_update_status",
-        paramsArr
-      );
-      //const queryString = util.getQueryString('ds_p1_activity_form_field_mapping_update_status', paramsArr);
-
+      let queryString = "";
+      if(flag === 1) {
+        queryString = util.getQueryString("ds_p1_activity_entity_mapping_update_status",paramsArr);
+      } else if(flag === 2) {
+        queryString = util.getQueryString('ds_p1_activity_form_field_mapping_update_status', paramsArr);
+      }
+    
       if (queryString !== "") {
         await db
           .executeQueryPromise(0, queryString, request)
@@ -3744,7 +3750,9 @@ function ActivityCommonService(db, util, forEachAsync) {
 
     //udpate workflow percentage - activity_entity_mapping - workflow reference
     //udpate workflow percentage - form field mapping - combo field
-    this.activityEntityMappingUpdateWFPercentage = async function(request) {
+    this.activityEntityMappingUpdateWFPercentage = async function(request, flag) {
+        //flag = 1 - Insert into activity entity Mapping Table
+        //flag = 2 - Insert into activity form field Mapping Table
       let responseData = [],
         error = true;
 
@@ -3755,12 +3763,14 @@ function ActivityCommonService(db, util, forEachAsync) {
         request.log_asset_id,
         request.log_datetime
       );
-      const queryString = util.getQueryString(
-        "ds_p1_activity_entity_mapping_update_workflow_percent",
-        paramsArr
-      );
-      //const queryString = util.getQueryString('ds_p1_activity_form_field_mapping_update_workflow_percent', paramsArr);
 
+      let queryString = "";
+      if(flag === 1) {
+        queryString = util.getQueryString("ds_p1_activity_entity_mapping_update_workflow_percent",paramsArr);
+      } else if(flag === 1) {
+        queryString = util.getQueryString('ds_p1_activity_form_field_mapping_update_workflow_percent', paramsArr);
+      }
+    
       if (queryString !== "") {
         await db
           .executeQueryPromise(0, queryString, request)
@@ -3777,7 +3787,9 @@ function ActivityCommonService(db, util, forEachAsync) {
 
     //udpate deferred datetime - activity_entity_mapping -workflow reference
     //udpate deferred datetime - form field mapping - combo field
-    this.activityEntityMappingUpdateDefDt = async function(request) {
+    this.activityEntityMappingUpdateDefDt = async function(request, flag) {
+        //flag = 1 - Insert into activity entity Mapping Table
+        //flag = 2 - Insert into activity form field Mapping Table
       let responseData = [],
         error = true;
 
@@ -3788,12 +3800,13 @@ function ActivityCommonService(db, util, forEachAsync) {
         request.log_asset_id,
         request.log_datetime
       );
-      const queryString = util.getQueryString(
-        "ds_v1_activity_entity_mapping_update_deferred_datetime",
-        paramsArr
-      );
-      //const queryString = util.getQueryString('ds_v1_activity_form_field_mapping_update_deferred_datetime', paramsArr);
-
+      let queryString = "";
+      if(flag === 1) {
+        queryString = util.getQueryString("ds_v1_activity_entity_mapping_update_deferred_datetime",paramsArr);
+      } else if(flag === 2) {
+        queryString = util.getQueryString('ds_v1_activity_form_field_mapping_update_deferred_datetime', paramsArr);
+      }
+    
       if (queryString !== "") {
         await db
           .executeQueryPromise(0, queryString, request)
@@ -3810,7 +3823,9 @@ function ActivityCommonService(db, util, forEachAsync) {
 
     //udpate due date - activity_entity_mapping -workflow reference
     //udpate due date - form field mapping - combo field
-    this.activityEntityMappingUpdateDefDt = async function(request) {
+    this.activityEntityMappingUpdateDefDt = async function(request, flag) {
+        //flag = 1 - Insert into activity entity Mapping Table
+        //flag = 2 - Insert into activity form field Mapping Table
         let responseData = [],
           error = true;
   
@@ -3821,12 +3836,81 @@ function ActivityCommonService(db, util, forEachAsync) {
           request.log_asset_id,
           request.log_datetime
         );
-        const queryString = util.getQueryString(
-          "ds_v1_activity_entity_mapping_update_mapping_activity_duedate",
-          paramsArr
-        );
-        //const queryString = util.getQueryString('ds_v1_activity_form_field_mapping_update_deferred_datetime', paramsArr);
+
+        let queryString = "";
+        if(flag === 1) {
+            queryString = util.getQueryString("ds_v1_activity_entity_mapping_update_mapping_activity_duedate",paramsArr);
+        } else if(flag === 2) {
+            queryString = util.getQueryString('ds_v1_activity_form_field_mapping_update_deferred_datetime', paramsArr);
+        }
+    
+        if (queryString !== "") {
+          await db
+            .executeQueryPromise(0, queryString, request)
+            .then(data => {
+              responseData = data;
+              error = false;
+            })
+            .catch(err => {
+              error = err;
+            });
+        }
+        return [error, responseData];
+      };
+
+    
+    //udpate Workflow reference data type Value - activity_entity_mapping -workflow reference    
+    this.activityEntityMappingUpdateWfValue = async function(request, flag) {
+        let responseData = [],
+          error = true;
   
+        const paramsArr = new Array(
+            request.activity_id,
+            request.form_transaction_id,
+            request.field_id,
+            request.bot_operation_id,
+            request.organization_id,
+            request.mapping_activity_id,
+            request.log_asset_id,
+            request.log_datetime
+        );
+        
+        const queryString = util.getQueryString("ds_v1_activity_entity_mapping_update_mapping_activity",paramsArr);        
+    
+        if (queryString !== "") {
+          await db
+            .executeQueryPromise(0, queryString, request)
+            .then(data => {
+              responseData = data;
+              error = false;
+            })
+            .catch(err => {
+              error = err;
+            });
+        }
+        return [error, responseData];
+      };
+
+    
+    //udpate Combo field data type value - form field mapping - combo field
+    this.activityFormFieldMappingUpdateWfValue = async function(request, flag) {
+        let responseData = [],
+          error = true;
+  
+        const paramsArr = new Array(
+            request.activity_id,
+            request.form_transaction_id,
+            request.field_id,
+            request.data_type_combo_id,
+            request.bot_operation_id,
+            request.organization_id,
+            request.mapping_activity_id,
+            request.log_asset_id,
+            request.log_datetime
+        );
+
+        const queryString = util.getQueryString("ds_v1_activity_form_field_mapping_update_combo_value",paramsArr);        
+    
         if (queryString !== "") {
           await db
             .executeQueryPromise(0, queryString, request)

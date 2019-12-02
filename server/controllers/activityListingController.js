@@ -821,7 +821,7 @@ function ActivityListingController(objCollection) {
         if (!err) {
             res.send(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            console.log("/bot/workflow_references/list | Error: ", err);
+            console.log("/activity/widget_values/list | Error: ", err);
             res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
     });
