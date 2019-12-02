@@ -214,7 +214,7 @@ function AdminListingController(objCollection) {
 
     // List activity status tags
     app.post('/' + global.config.version + '/admin/status_tag/list', async function (req, res) {
-        const [err, activityStatusTagData] = await adminListingService.activityStatusTagListSelect(req.body);
+        const [err, activityStatusTagData] = await adminListingService.getListOfActivityStatusTags(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse({}, activityStatusTagData, 200, req.body));
         } else {
