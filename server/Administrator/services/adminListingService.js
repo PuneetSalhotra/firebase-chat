@@ -801,6 +801,21 @@ function AdminListingService(objectCollection) {
         return [error, responseData];
     };
 
+    this.getListOfActivityStatusTags = async function (request) {
+        let error, activityStatusTagsData = [];
+        if (
+            request.hasOwnProperty("is_status_mapped") &&
+            Number(request.is_status_mapped) === 1
+        ) {
+            [error, activityStatusTagsData] = await self.workforceActivityStatusMappingSelectMappedTags(request);
+
+        } else {
+            [error, activityStatusTagsData] = await self.activityStatusTagListSelect(request);
+        }
+
+        return [error, activityStatusTagsData];
+    }
+
     // Get the list of activity status tag IDs
     this.activityStatusTagListSelect = async function (request) {
         // IN p_organization_id BIGINT(20), IN p_activity_type_category_id SMALLINT(6), 
@@ -815,6 +830,41 @@ function AdminListingService(objectCollection) {
             request.limit_value || 50
         );
         const queryString = util.getQueryString('ds_p1_activity_status_tag_list_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data.map(statusTag => {
+                        return {
+                            query_status: statusTag.query_status,
+                            activity_status_tag_id: statusTag.activity_status_tag_id,
+                            activity_status_tag_name: statusTag.activity_status_tag_name,
+                            activity_status_tag_level_name: statusTag.activity_status_tag_level_name
+                        }
+                    });
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    // Get the list of activity status tag IDs WHICH have activity statuses mapped
+    this.workforceActivityStatusMappingSelectMappedTags = async function (request) {
+        // IN p_organization_id BIGINT(20), IN p_activity_type_category_id SMALLINT(6), 
+        // IN p_start_from SMALLINT(6), IN p_limit_value TINYINT(4)
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.activity_type_category_id,
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_select_mapped_tags', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
