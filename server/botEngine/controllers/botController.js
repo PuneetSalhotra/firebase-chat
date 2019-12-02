@@ -214,13 +214,14 @@ function BotController(objCollection) {
         }
     });
 
-    //app.post('/' + global.config.version + '/account/nani/kalyan', async (req, res) => {
-    //    try {
-    //        let result = await botService.nanikalyan(req.body);
+    //app.post('/' + global.config.version + '/bot/workflow_references/list', async (req, res) => {
+    //    const [err, result] = await botService.getWorkflowReferenceBots(req.body);
+    //    if (!err) {
     //        res.send(responseWrapper.getResponse(false, result, 200, req.body));
-    //    } catch(err) {
+    //    } else {
+    //        console.log("/bot/workflow_references/list | Error: ", err);
     //        res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
-    //    }
+    //    } 
     //});
     
 }

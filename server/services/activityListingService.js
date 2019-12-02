@@ -1913,28 +1913,56 @@ function ActivityListingService(objCollection) {
 	}; */
 	
 	function processFormInlineData(request, data){
-		return new Promise((resolve, reject) => {
+		return new Promise(async (resolve, reject) => {
 			var array = [];
-			forEachAsync(JSON.parse(data[0].activity_inline_data), function (next, fieldData) {
-				//console.log('fieldData : '+JSON.stringify(fieldData));
-				if(JSON.parse(JSON.stringify(fieldData)).hasOwnProperty("field_validated")){
-					//.log("HAS FIELD VALIDATED : "+fieldData.field_id);
-					array.push(fieldData);
-						next();
-				}else{		    				
-					//console.log("FIELD NOT VALIDATED : "+fieldData.field_id);
-					fieldData.field_validated = 0;
-					//console.log("FIELD NOT VALIDATED : "+fieldData.field_validated);
-					array.push(fieldData);		    				
-					next();
-					
-				}              
-	
-			}).then(()=>{
-				//console.log("DATA : "+JSON.stringify(data));
-				data[0].activity_inline_data = array;
-				resolve(data);
-			});	    		
+			let inlineData = JSON.parse(data[0].activity_inline_data);
+			//console.log('inline DATA : ', inlineData);
+
+			for(let i=0; i<inlineData.length;i++) {
+				let fieldData = await activityCommonService.getFormFieldDefinition(request, inlineData[i]);
+				if(fieldData !== true) {
+					if(fieldData.length > 0) {
+						//console.log('fieldData : ', fieldData[0].field_value_edit_enabled);
+						inlineData[i].field_value_edit_enabled = fieldData[0].field_value_edit_enabled;
+					} else {
+						inlineData[i].field_value_edit_enabled = 1;
+					}
+				} else {
+					inlineData[i].field_value_edit_enabled = 1;
+				}
+
+				if(JSON.parse(JSON.stringify(inlineData[i])).hasOwnProperty("field_validated")){					
+					array.push(inlineData[i]);
+				}
+				else {									
+					inlineData[i].field_validated = 0;
+					array.push(inlineData[i]);
+				}
+			}
+
+			data[0].activity_inline_data = array;
+			resolve(data);
+			
+			//forEachAsync(JSON.parse(data[0].activity_inline_data), function (next, fieldData) {
+			//	//console.log('fieldData : '+JSON.stringify(fieldData));
+			//	if(JSON.parse(JSON.stringify(fieldData)).hasOwnProperty("field_validated")){
+			//		//.log("HAS FIELD VALIDATED : "+fieldData.field_id);
+			//		array.push(fieldData);
+			//			next();
+			//	}else{		    				
+			//		//console.log("FIELD NOT VALIDATED : "+fieldData.field_id);
+			//		fieldData.field_validated = 0;
+			//		//console.log("FIELD NOT VALIDATED : "+fieldData.field_validated);
+			//		array.push(fieldData);		    				
+			//		next();
+			//		
+			//	}              
+	//
+			//}).then(()=>{
+			//	//console.log("DATA : "+JSON.stringify(data));
+			//	data[0].activity_inline_data = array;
+			//	resolve(data);
+			//});	    		
 		});
 	};
 
@@ -2490,6 +2518,78 @@ function ActivityListingService(objCollection) {
 			}
 		});
 	};
+
+	
+	this.getWidgetValues = async (request) =>{
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.widget_type_id,
+			request.flag_datetime,
+			request.timeline_id,
+			request.timezone_id,
+			request.timezone_offset,
+			request.flag_sort,
+			request.organization_id,
+			request.account_id,
+			request.workforce_type_id,
+			request.workforce_id,
+			request.asset_id,
+			request.tag_type_id,
+			request.tag_id,
+			request.activity_type_id,
+			request.activity_id,
+			request.activity_status_type_id,
+			request.activity_status_tag_id,
+			request.activity_status_id,
+			request.bot_id,
+			request.bot_operation_id,
+			request.datetime_start,
+			request.datetime_end,
+			request.start_from ,
+			request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_1_activity_list_select_widget_values', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+	};
+	
+	this.getWorkflowReferenceBots = async (request) =>{
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.activity_type_id,
+            request.operation_type_id,            
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+        const queryString = util.getQueryString('ds_p1_bot_operation_mapping_select_operation_type', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
 	
 }
 

@@ -4372,21 +4372,21 @@ function VodafoneService(objectCollection) {
                     }
                     // isAnnexureUploaded = true;
                     if (isAnnexureUploaded) {
-                        for (const targetFieldID of batch.TARGET_FIELD_IDS) {
-                            if (targetFormDataMap.has(Number(targetFieldID))) {
-                                // Get the entire object
-                                let targetFieldEntry = targetFormDataMap.get(Number(targetFieldID));
-                                // Set the value
-                                let oldValue = String(targetFieldEntry.field_value);
-                                targetFieldEntry.field_value = batch.VALUE;
-                                if (oldValue !== batch.VALUE) {
-                                    updatedRomsFields.push(targetFieldEntry);
-                                    updatedRomsFieldsMap.set(Number(targetFieldID), targetFieldEntry);
-                                    // Set the updated object as value for the target field ID
-                                    targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
-                                }
-                            }
-                        }
+                        // for (const targetFieldID of batch.TARGET_FIELD_IDS) {
+                        //     if (targetFormDataMap.has(Number(targetFieldID))) {
+                        //         // Get the entire object
+                        //         let targetFieldEntry = targetFormDataMap.get(Number(targetFieldID));
+                        //         // Set the value
+                        //         let oldValue = String(targetFieldEntry.field_value);
+                        //         targetFieldEntry.field_value = batch.VALUE;
+                        //         if (oldValue !== batch.VALUE) {
+                        //             updatedRomsFields.push(targetFieldEntry);
+                        //             updatedRomsFieldsMap.set(Number(targetFieldID), targetFieldEntry);
+                        //             // Set the updated object as value for the target field ID
+                        //             targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
+                        //         }
+                        //     }
+                        // }
                     } else {
                         for (const targetFieldID of batch.TARGET_FIELD_IDS) {
                             if (targetFormDataMap.has(Number(targetFieldID))) {
@@ -4478,31 +4478,31 @@ function VodafoneService(objectCollection) {
                     // isAnnexureUploaded = true;
                     if (isAnnexureUploaded) {
                         // Target form field ID (single/multi-selection field) 
-                        const targetFormSelectionFieldID = Number(batch.CHECK_FIELD_ID);
-                        if (targetFormDataMap.has(Number(targetFormSelectionFieldID))) {
-                            // Get the entire object
-                            const multiSelectFieldEntry = targetFormDataMap.get(Number(targetFormSelectionFieldID));
-                            const multiSelectFieldValue = multiSelectFieldEntry.field_value;
-                            for (const selectBatch of batch.BATCH) {
-                                if (String(multiSelectFieldValue).includes(selectBatch.COMBO_VALUE)) {
-                                    for (const targetFieldID of selectBatch.TARGET_FIELD_IDS) {
-                                        if (targetFormDataMap.has(Number(targetFieldID))) {
-                                            // Get the entire object
-                                            let targetFieldEntry = targetFormDataMap.get(Number(targetFieldID));
-                                            // Set the value
-                                            let oldValue = String(targetFieldEntry.field_value);
-                                            targetFieldEntry.field_value = batch.VALUE;
-                                            if (oldValue !== batch.VALUE) {
-                                                updatedRomsFields.push(targetFieldEntry);
-                                                updatedRomsFieldsMap.set(Number(targetFieldID), targetFieldEntry);
-                                                // Set the updated object as value for the target field ID
-                                                targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        // const targetFormSelectionFieldID = Number(batch.CHECK_FIELD_ID);
+                        // if (targetFormDataMap.has(Number(targetFormSelectionFieldID))) {
+                        //     // Get the entire object
+                        //     const multiSelectFieldEntry = targetFormDataMap.get(Number(targetFormSelectionFieldID));
+                        //     const multiSelectFieldValue = multiSelectFieldEntry.field_value;
+                        //     for (const selectBatch of batch.BATCH) {
+                        //         if (String(multiSelectFieldValue).includes(selectBatch.COMBO_VALUE)) {
+                        //             for (const targetFieldID of selectBatch.TARGET_FIELD_IDS) {
+                        //                 if (targetFormDataMap.has(Number(targetFieldID))) {
+                        //                     // Get the entire object
+                        //                     let targetFieldEntry = targetFormDataMap.get(Number(targetFieldID));
+                        //                     // Set the value
+                        //                     let oldValue = String(targetFieldEntry.field_value);
+                        //                     targetFieldEntry.field_value = batch.VALUE;
+                        //                     if (oldValue !== batch.VALUE) {
+                        //                         updatedRomsFields.push(targetFieldEntry);
+                        //                         updatedRomsFieldsMap.set(Number(targetFieldID), targetFieldEntry);
+                        //                         // Set the updated object as value for the target field ID
+                        //                         targetFormDataMap.set(Number(targetFieldID), targetFieldEntry);
+                        //                     }
+                        //                 }
+                        //             }
+                        //         }
+                        //     }
+                        // }
                     } else {
                         for (const selectBatch of batch.BATCH) {
                             for (const targetFieldID of selectBatch.TARGET_FIELD_IDS) {
@@ -5487,6 +5487,43 @@ function VodafoneService(objectCollection) {
     const XLSX = require('xlsx');
 
     this.vodafoneCreateChildOrdersFromExcelUpload = async function (request, parentWorkflowActivityID, bulkOrderExcelFile) {
+        // 
+
+        let formWorkflowActivityTypeID = 0,
+            formWorkflowActivityCreatorAssetID = 0,
+            formWorkflowActivityDueDate = '',
+            formWorkflowActivityStartDate = '',
+            formWorkflowActivityOrganizationID = 0,
+            formWorkflowActivityAccountID = 0,
+            formWorkflowActivityWorkforceID = 0,
+            parentWorkflowOriginFormActivityTitle = '',
+            isParentOrderFlag = false;
+
+        const MAX_CHILD_ORDERS_TO_BE_PARSED = 150;
+
+        try {
+            const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, parentWorkflowActivityID);
+            if (workflowActivityData.length > 0) {
+                formWorkflowActivityTypeID = workflowActivityData[0].activity_type_id;
+                formWorkflowActivityCreatorAssetID = workflowActivityData[0].activity_creator_asset_id;
+                formWorkflowActivityStartDate = workflowActivityData[0].activity_datetime_start_expected;
+                formWorkflowActivityDueDate = workflowActivityData[0].activity_datetime_end_deferred;
+                formWorkflowActivityOrganizationID = workflowActivityData[0].organization_id;
+                formWorkflowActivityAccountID = workflowActivityData[0].account_id;
+                formWorkflowActivityWorkforceID = workflowActivityData[0].workforce_id;
+                parentWorkflowOriginFormActivityTitle = workflowActivityData[0].activity_title;
+                isParentOrderFlag = Number(workflowActivityData[0].activity_sub_type_id) === 1? true: false;
+            } else {
+                return [true, {
+                    message: `Parent Workflow ${parentWorkflowActivityID} Not Found`
+                }];
+            }
+        } catch (error) {
+            console.log(`vodafoneCreateChildOrdersFromBulkOrder | getActivityDetailsPromise ${parentWorkflowActivityID} | Error: `, error);
+            return [error, {
+                message: `Error Fetching Parent Workflow ${parentWorkflowActivityID} Details.`
+            }];
+        }
 
         try {
             // Set activity_sub_type_id=1 in Activity List
@@ -5529,40 +5566,6 @@ function VodafoneService(objectCollection) {
             // If there's an error setting the activity_sub_type_id, return
             return [true, {
                 message: "Unable to activity_sub_type_id for the workflow. Please try again."
-            }];
-        }
-
-        let formWorkflowActivityTypeID = 0,
-            formWorkflowActivityCreatorAssetID = 0,
-            formWorkflowActivityDueDate = '',
-            formWorkflowActivityStartDate = '',
-            formWorkflowActivityOrganizationID = 0,
-            formWorkflowActivityAccountID = 0,
-            formWorkflowActivityWorkforceID = 0,
-            parentWorkflowOriginFormActivityTitle = '';
-
-        const MAX_CHILD_ORDERS_TO_BE_PARSED = 150;
-
-        try {
-            const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, parentWorkflowActivityID);
-            if (workflowActivityData.length > 0) {
-                formWorkflowActivityTypeID = workflowActivityData[0].activity_type_id;
-                formWorkflowActivityCreatorAssetID = workflowActivityData[0].activity_creator_asset_id;
-                formWorkflowActivityStartDate = workflowActivityData[0].activity_datetime_start_expected;
-                formWorkflowActivityDueDate = workflowActivityData[0].activity_datetime_end_deferred;
-                formWorkflowActivityOrganizationID = workflowActivityData[0].organization_id;
-                formWorkflowActivityAccountID = workflowActivityData[0].account_id;
-                formWorkflowActivityWorkforceID = workflowActivityData[0].workforce_id;
-                parentWorkflowOriginFormActivityTitle = workflowActivityData[0].activity_title;
-            } else {
-                return [true, {
-                    message: `Parent Workflow ${parentWorkflowActivityID} Not Found`
-                }];
-            }
-        } catch (error) {
-            console.log(`vodafoneCreateChildOrdersFromBulkOrder | getActivityDetailsPromise ${parentWorkflowActivityID} | Error: `, error);
-            return [error, {
-                message: `Error Fetching Parent Workflow ${parentWorkflowActivityID} Details.`
             }];
         }
 
@@ -5619,6 +5622,106 @@ function VodafoneService(objectCollection) {
             return [true, {
                 message: "bulkOrderContentMap is empty! Xlsx file contains no data."
             }];
+        }
+
+        // Update relevant fields with "As Per CAF/CRF Annexure" in the CAF/CRF form
+        const ROMS_ACTIONS = global.vodafoneConfig[formWorkflowActivityTypeID].ROMS_ACTIONS;
+        let setAnnexureMaskRomsAction = ROMS_ACTIONS.filter(action => action.ACTION === "check_and_set_annexure_defaults");
+        const TARGET_FORM_ID = global.vodafoneConfig[formWorkflowActivityTypeID].TARGET_FORM_ID;
+        let targetFormActivityID = 0,
+            targetFormTransactionID = 0,
+            targetFormDataMap = new Map();
+        await activityCommonService
+            .getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, TARGET_FORM_ID)
+            .then((formData) => {
+                console.log("formData.length: ", formData.length);
+                if (formData.length > 0) {
+                    targetFormActivityID = formData[0].data_activity_id;
+                    targetFormTransactionID = formData[0].data_form_transaction_id;
+                    const dataActivityInline = JSON.parse(formData[0].data_entity_inline);
+                    const formSubmittedData =
+                        (typeof dataActivityInline.form_submitted === 'string') ? JSON.parse(dataActivityInline.form_submitted) : dataActivityInline.form_submitted;
+                    // console.log("dataActivityInline: ", formSubmittedData);
+                    for (const field of formSubmittedData) {
+                        targetFormDataMap.set(Number(field.field_id), field);
+                    }
+                }
+            })
+            .catch((error) => {
+                // console.log("getActivityTimelineTransactionByFormId713 | Error: ", error)
+                // return [error, false];
+            });
+
+        // Keep track of whether the inline data is updated or not
+        let istargetFormInlineUpdated = false;
+        // SET ANNEXURE FOR C A Fs
+        if (
+            
+            targetFormDataMap.size > 0 &&
+            setAnnexureMaskRomsAction.length > 0 &&
+            targetFormActivityID !== 0 &&
+            !isParentOrderFlag
+        ) {
+            console.log("setAnnexureMaskRomsAction[0]: ", setAnnexureMaskRomsAction[0]);
+
+            for (const batch of setAnnexureMaskRomsAction[0].BATCH) {
+                for (const targetFieldID of batch.TARGET_FIELD_IDS) {
+                    if (targetFormDataMap.has(targetFieldID)) {
+                        let targetFieldEntry = targetFormDataMap.get(targetFieldID);
+                        targetFieldEntry.field_value = batch.VALUE;
+                        targetFormDataMap.set(targetFieldID, targetFieldEntry)
+                    }
+                }
+            }
+            istargetFormInlineUpdated = true;
+        }
+
+        // Fetch check_multiselect_and_set_annexure_defaults for masking CRF fields
+        setAnnexureMaskRomsAction = ROMS_ACTIONS.filter(action => action.ACTION === "check_multiselect_and_set_annexure_defaults");
+        // SET ANNEXURE FOR C R Fs
+        if (
+            
+            targetFormDataMap.size > 0 &&
+            setAnnexureMaskRomsAction.length > 0 &&
+            targetFormActivityID !== 0 &&
+            !isParentOrderFlag
+        ) {
+            console.log("setAnnexureMaskRomsAction[0]: ", setAnnexureMaskRomsAction[0]);
+
+            for (const batch of setAnnexureMaskRomsAction[0].BATCH) {
+                const multiSelectFieldID = batch.CHECK_FIELD_ID;
+
+                let multiSelectFieldValue = '';
+                if (targetFormDataMap.has(multiSelectFieldID)) {
+                    const multiSelectField = targetFormDataMap.get(multiSelectFieldID);
+                    multiSelectFieldValue = multiSelectField.field_value;
+                }
+
+                let comboBatch = [];
+                // Filter out the combo values batches that we want to apply, based on the checkboxes selected
+                comboBatch = batch.BATCH.filter(combo => multiSelectFieldValue.includes(combo.COMBO_VALUE));
+                // Select the "TARGET_FIELD_IDS" array from each combo batch and flatten them out
+                // [ [a, b], [c], [x, y] ] => [ a, b, c, x, y ]
+                targetFieldIDs = comboBatch.flatMap(combo => combo.TARGET_FIELD_IDS);
+
+                for (const targetFieldID of targetFieldIDs) {
+                    if (targetFormDataMap.has(targetFieldID)) {
+                        let targetFieldEntry = targetFormDataMap.get(targetFieldID);
+                        targetFieldEntry.field_value = batch.VALUE;
+                        targetFormDataMap.set(targetFieldID, targetFieldEntry)
+                    }
+                }
+            }
+            istargetFormInlineUpdated = true;
+        }
+
+        if (istargetFormInlineUpdated) {
+            const updatedInlineData = [...targetFormDataMap.values()];
+            await activityCommonService.activityListUpdateInlineData({
+                ...request,
+                activity_id: targetFormActivityID,
+                activity_inline_data: JSON.stringify(updatedInlineData)
+            });
         }
 
         // return [false, {
@@ -5861,10 +5964,12 @@ function VodafoneService(objectCollection) {
         queueWrapper.raiseActivityEvent(addParticipantEvent, request.workflow_activity_id, (err, resp) => {
             if (err) {
                 global.logger.write('conLog', "\x1b[35m [ERROR] Raising queue activity raised for adding Service Desk as a participant. \x1b[0m", {}, request);
-                reject('Error while raising queue activity for adding service desk as a participant');
+                // reject('Error while raising queue activity for adding service desk as a participant');
+                return;
             } else {
                 global.logger.write('conLog', "\x1b[35m Queue activity raised for adding Service Desk as a participant. \x1b[0m", {}, request);
-                resolve();
+                // resolve();
+                return;
             }
         });
     }

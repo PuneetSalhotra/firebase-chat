@@ -1056,6 +1056,12 @@ function AnalyticsService(objectCollection)
                 case 27: //Status Type Wise TAT
                 case 26: //Status Tag Wise TAT
                 case 25: //Status Wise TAT
+                case 37: //Status Wise Cumulated Volume (Pie Chart)
+                case 38: //Status Wise Cumulated Value (Pie Chart)
+                case 39: //Workflow Reference Volume
+                case 40: //Workflow Reference Value
+                case 41: //Single Selection Reference Volume
+                case 42: //Single Selection Reference Value
                     for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
                     {
                         console.log(`Tag Type[${iteratorX}] : ${arrayTagTypes[iteratorX].tag_type_id}`);
