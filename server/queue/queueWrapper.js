@@ -22,15 +22,15 @@ function QueueWrapper(producer) {
 
     this.raiseActivityEvent = function (event, activityId, callback) {
         // Get current SpanContext
-        //let kafkaProduceEventSpan = tracer.scope().active().context();
-        //const traceHeaders = {};
-        //let span = tracer.startSpan('kafka_producing_message', {
-        //    childOf: kafkaProduceEventSpan
-        //});
-        //tracer.inject(span, tracerFormats.LOG, traceHeaders)
-        //logger.silly('traceHeaders: %j', traceHeaders, {type: 'trace_span'});
-        //// console.log("raiseActivityEvent | span | logHeaders: ", traceHeaders);
-        //event.log_trace_headers = traceHeaders;
+        let kafkaProduceEventSpan = tracer.scope().active().context();
+        const traceHeaders = {};
+        let span = tracer.startSpan('kafka_producing_message', {
+            childOf: kafkaProduceEventSpan
+        });
+        tracer.inject(span, tracerFormats.LOG, traceHeaders)
+        logger.silly('traceHeaders: %j', traceHeaders, {type: 'trace_span'});
+        // console.log("raiseActivityEvent | span | logHeaders: ", traceHeaders);
+        event.log_trace_headers = traceHeaders;
 
         //event.payload.pubnub_push = 0;
         
@@ -96,15 +96,15 @@ function QueueWrapper(producer) {
     
     this.raiseActivityEventPromise = function (event, activityId) {
         // Get current SpanContext
-        //let kafkaProduceEventSpan = tracer.scope().active().context();
-        //const traceHeaders = {};
-        //let span = tracer.startSpan('kafka_producer', {
-        //    childOf: kafkaProduceEventSpan
-        //});
-        //tracer.inject(span, tracerFormats.LOG, traceHeaders)
-        //logger.silly('trace headers sent from kafka producer: %j', traceHeaders, {type: 'trace_span'});
-        //// console.log("raiseActivityEvent | span | traceHeaders: ", traceHeaders);
-        //event.log_trace_headers = traceHeaders;
+        let kafkaProduceEventSpan = tracer.scope().active().context();
+        const traceHeaders = {};
+        let span = tracer.startSpan('kafka_producer', {
+            childOf: kafkaProduceEventSpan
+        });
+        tracer.inject(span, tracerFormats.LOG, traceHeaders)
+        logger.silly('trace headers sent from kafka producer: %j', traceHeaders, {type: 'trace_span'});
+        // console.log("raiseActivityEvent | span | traceHeaders: ", traceHeaders);
+        event.log_trace_headers = traceHeaders;
 
         return new Promise((resolve, reject)=>{
             let obj;
