@@ -2774,13 +2774,13 @@ function FormConfigService(objCollection) {
             }];
         }
         // console.log("fieldDefinitions: ", fieldDefinitions)
-        console.log("fieldDefinitions.length: ", fieldDefinitions.length)
+        console.log("fieldDefinitions.length: ", fieldDefinitions.length);
 
         // Process each field
         for (const field of fieldDefinitions) {
             // console.log("Object.keys(field): ", Object.keys(field));
-            console.log("dataTypeCategoryId: ", field.dataTypeCategoryId)
-            let dataTypeCategoryId = Number(field.dataTypeCategoryId)
+            console.log("dataTypeCategoryId: ", field.dataTypeCategoryId);
+            let dataTypeCategoryId = Number(field.dataTypeCategoryId);
             // let fieldName = (typeof field.update_option === 'undefined') ? field.label : field.update_option;
             let fieldName = field.label;
             let fieldMandatoryEnabled = 0;
@@ -2808,7 +2808,8 @@ function FormConfigService(objCollection) {
                         data_type_combo_value: dataTypeComboValue,
                         field_sequence_id: field.sequence_id,
                         field_mandatory_enabled: fieldMandatoryEnabled,
-                        field_preview_enabled: '0'
+                        field_preview_enabled: '0',
+                        field_value_edit_enabled: field.field_value_edit_enabled 
                     });
                     if (updateError !== false) {
 
@@ -2830,7 +2831,8 @@ function FormConfigService(objCollection) {
                     data_type_combo_value: dataTypeComboValue,
                     field_sequence_id: field.sequence_id,
                     field_mandatory_enabled: fieldMandatoryEnabled,
-                    field_preview_enabled: '0'
+                    field_preview_enabled: '0',
+                    field_value_edit_enabled: field.field_value_edit_enabled
                 });
                 if (updateError !== false) {
 
@@ -2869,11 +2871,13 @@ function FormConfigService(objCollection) {
             fieldOptions.field_sequence_id,
             fieldOptions.field_mandatory_enabled,
             fieldOptions.field_preview_enabled,
+            fieldOptions.field_value_edit_enabled || 1,
             request.organization_id,
             request.asset_id,
             util.getCurrentUTCTime(),
         );
-        const queryString = util.getQueryString('ds_p1_workforce_form_field_mapping_update', paramsArr);
+        //const queryString = util.getQueryString('ds_p1_workforce_form_field_mapping_update', paramsArr);
+        const queryString = util.getQueryString('ds_p1_1_workforce_form_field_mapping_update', paramsArr);
         if (queryString !== '') {
             // console.log(queryString)
             await db.executeQueryPromise(0, queryString, request)
