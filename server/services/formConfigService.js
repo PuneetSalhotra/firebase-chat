@@ -1569,8 +1569,8 @@ function FormConfigService(objCollection) {
                                 break;
                             case 62: await createBot(request, {}, {
                                 dataTypeId,
-                                fieldName,
-                                fieldIdforBotCreation
+                                fieldName: '',
+                                fieldIdforBotCreation: 0
                             });
                                 break;
                             default: break;

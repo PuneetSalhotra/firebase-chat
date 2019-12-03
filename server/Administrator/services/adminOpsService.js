@@ -2048,7 +2048,7 @@ function AdminOpsService(objectCollection) {
             operating_asset_id: assetDataFromDB[0].operating_asset_id,
             auth_asset_id: 31993,
             asset_token_auth: "c15f6fb0-14c9-11e9-8b81-4dbdf2702f95",
-            asset_message_counter: 0,
+            // asset_message_counter: 0,
             track_latitude: 0.0,
             track_longitude: 0.0,
             track_altitude: 0,
@@ -2057,7 +2057,8 @@ function AdminOpsService(objectCollection) {
             track_gps_status: 0,
             service_version: "3.0",
             app_version: "3.0.0",
-            device_os_id: 5
+            device_os_id: 5,
+            message_unique_id: util.getMessageUniqueId(Number(request.asset_id))
         };
 
         const assetLinkResetAsync = nodeUtil.promisify(makeRequest.post);
@@ -2586,6 +2587,16 @@ function AdminOpsService(objectCollection) {
                 } catch (error) {
                     console.log("moveEmployeeDeskToAnotherWorkforce | ID Card | activityTimelineTransactionInsert | Error: ", error);
                 }
+            }
+
+            // Unlink User | Call Service: /asset/link/reset
+            try {
+                await assetLinkReset(request, [{
+                    asset_id: deskAssetID,
+                    operating_asset_id: operatingAssetID
+                }], newWorkforceID || workforceID, organizationID, newAccountID || accountID);
+            } catch (error) {
+                console.log("removeEmployeeMappedToDesk | Unlink User | /asset/link/reset | Error: ", error);
             }
 
         } else {
