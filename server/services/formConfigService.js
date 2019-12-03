@@ -1985,6 +1985,7 @@ function FormConfigService(objCollection) {
         if (formUpdateError !== false) {
             return [formUpdateError, {
                 formUpdateStatus,
+                formEntityUpdateStatus: [],
                 formFieldUpdateStatus: []
             }];
         }
@@ -1992,11 +1993,21 @@ function FormConfigService(objCollection) {
         request.update_type_id = 605;
         workforceFormMappingHistoryInsert(request);
 
+        // Update form
+        const [formEntityUpdateError, formEntityUpdateStatus] = await formEntityMappingUpdateWorkflow(request);
+        if (formEntityUpdateError !== false) {
+            return [formEntityUpdateError, {
+                formEntityUpdateStatus,
+                formFieldUpdateStatus: []
+            }];
+        }
+
         // Update form fields
         const [formFieldUpdateError, formFieldUpdateStatus] = await workforceFormFieldMappingUpdateWorkflow(request);
         if (formFieldUpdateError !== false) {
             return [formFieldUpdateError, {
                 formUpdateStatus,
+                formEntityUpdateStatus,
                 formFieldUpdateStatus
             }];
         }
@@ -2035,6 +2046,40 @@ function FormConfigService(objCollection) {
             util.getCurrentUTCTime(),
         );
         const queryString = util.getQueryString('ds_p1_workforce_form_mapping_update_workflow', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    updateStatus = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, updateStatus];
+    }
+
+
+    async function formEntityMappingUpdateWorkflow(request) {
+        // IN p_organization_id BIGINT(20),
+        // IN p_form_id BIGINT(20),
+        // IN p_flag_origin TINYINT(4),
+        // IN p_log_asset_id BIGINT(20),
+        // IN p_log_datetime DATETIME
+
+        let updateStatus = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.form_id,
+            request.is_workflow_origin,
+            request.asset_id,
+            util.getCurrentUTCTime(),
+        );
+        const queryString = util.getQueryString('ds_p1_form_entity_mapping_update_origin_flag', paramsArr);
         if (queryString !== '') {
 
             await db.executeQueryPromise(0, queryString, request)
