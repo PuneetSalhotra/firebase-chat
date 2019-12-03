@@ -837,10 +837,10 @@ function ActivityUpdateService(objectCollection) {
         let activityStreamTypeId;
         //let parsedActivityCoverData = JSON.parse(request.activity_cover_data);
         activityCommonService.updateAssetLocation(request, function (err, data) {});
-        activityListUpdateCover(request, function (err, data) {
+        activityListUpdateCover(request, async function (err, data) {
             if (err === false) {
                 activityCommonService.activityListHistoryInsert(request, 403, function (err, result) {});
-                assetActivityListUpdateCover(request, function (err, data) {
+                assetActivityListUpdateCover(request, async function (err, data) {
                     //Switch-CASE Added by Nani Kalyan
                     switch (activityTypeCategoryId) {
                         case 1:
@@ -1222,6 +1222,7 @@ function ActivityUpdateService(objectCollection) {
 
                 // For type workflow or process
                 if (activityTypeCategoryId === 48) {
+                    let datetimeEndDeffered;
                     let parsedActivityCoverData = JSON.parse(request.activity_cover_data);
                     console.log("parsedActivityCoverData: ", parsedActivityCoverData)
                     console.log("parsedActivityCoverData.duedate.old: ", parsedActivityCoverData.duedate.old)
@@ -1229,11 +1230,42 @@ function ActivityUpdateService(objectCollection) {
 
                     if (parsedActivityCoverData.duedate.old !== parsedActivityCoverData.duedate.new) {
                         try {
-                            let datetimeEndDeffered = parsedActivityCoverData.duedate.new;
+                            datetimeEndDeffered = parsedActivityCoverData.duedate.new;
                             updateDuedateForQueueActivityMappingEntries(request, datetimeEndDeffered);
                         } catch (error) {
                             console.log("Workflow Datetime update Error: ", error)
                         }
+                    }
+
+                    //Listener - to update data in the intermediate tables for workflow reference, combo field datatypes
+                    let activity_id = request.activity_id;
+                    let deferred_datetime = datetimeEndDeffered;
+                    
+                    let newRequest = Object.assign({}, request);
+                        newRequest.operation_type_id = 16;
+                    const [err, respData] = await activityListingService.getWorkflowReferenceBots(newRequest);
+                    console.log('Workflow Reference Bots for this activity_type : ', respData);
+                    if(respData.length > 0) {
+                        //for(let i = 0; i<respData.length; i++) {
+                        //    
+                        //}
+                        activityCommonService.activityEntityMappingUpdateWFPercentage(request, {
+                            activity_id,
+                            deferred_datetime
+                        }, 1);
+                    }
+
+                    newRequest.operation_type_id = 17;
+                    const [err1, respData1] = await activityListingService.getWorkflowReferenceBots(newRequest);
+                    console.log('Combo Field Reference Bots for this activity_type : ', respData);
+                    if(respData1.length > 0) {
+                        //for(let i = 0; i<respData.length; i++) {
+                        //    
+                        //}
+                        activityCommonService.activityEntityMappingUpdateWFPercentage(request, {
+                            activity_id,
+                            deferred_datetime
+                        }, 2);
                     }
                 }
 

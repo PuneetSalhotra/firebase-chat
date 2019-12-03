@@ -540,6 +540,8 @@ function ActivityCommonService(db, util, forEachAsync) {
                 entityText2 = request.activity_timeline_collection;
                 break;
             case 702: // form | workflow: Add Participant
+            case 26002: // widget: Add Participant
+            case 26005: // widget: Remove Participant
                 activityTimelineCollection = request.activity_timeline_collection || '{}';
                 entityText1 = "";
                 entityText2 = "";
@@ -604,8 +606,6 @@ function ActivityCommonService(db, util, forEachAsync) {
                 break;
             case 325: // [Files | Workflow] Add Comment/Attachment
             case 26001: //Widget Created
-            case 26002: //Participant added
-            case 26005: //Participant removed
             case 26004: // [Widget] Comment Added on Widget
                 let attachmentNames = '',
                     isAttachment = 0;
@@ -3606,6 +3606,286 @@ function ActivityCommonService(db, util, forEachAsync) {
 
         return [error, formData];
     }
+
+    this.activityListUpdateInlineData = async function (request, organizationID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.activity_id,
+            organizationID || request.organization_id,
+            request.activity_inline_data,
+            request.pipe_separated_string || '',
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_activity_list_update_inline_data', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.getFormFieldDefinition = function (request, fieldData) {
+        return new Promise((resolve, reject) => {
+            var queryString = '';
+
+            var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                fieldData.form_id,
+                fieldData.field_id,
+                request.page_start || 0,
+                util.replaceQueryLimit(request.page_limit)
+            );
+            queryString = util.getQueryString('ds_p1_workforce_form_field_mapping_select_field', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    if (err === false) {
+                        resolve(data);
+                    } else {
+                        console.log(err);
+                        reject(true);
+                    }
+                });
+            }
+
+        });
+    };
+
+    //Insert into activity_entity_mapping table
+    //Insert into activity_form_field_mapping table
+    //Workflow, combo fields reference data pre-crunch purpose
+    this.activityEntityMappingInsert = async function(request, flag) {
+        //flag = 1 - Insert into activity entity Mapping Table
+        //flag = 2 - Insert into activity form field Mapping Table
+      let responseData = [],
+        error = true;
+
+      const paramsArr = new Array(
+        request.entity_type_id,
+        request.entity_level_id,
+        request.activity_id,
+        request.mapping_activity_id,
+        request.bot_operation_id,
+        request.form_transaction_id,
+        request.form_id,
+        request.field_id,
+        request.data_type_combo_id,
+        request.asset_id,
+        request.workforce_id,
+        request.account_id,
+        request.organization_id,
+        request.participant_access_id,
+        request.log_asset_id,
+        request.log_datetime,
+        request.flag_due_date_impact
+      );
+      let queryString = "";
+      if(flag === 1) {
+        queryString = util.getQueryString("ds_p1_activity_entity_mapping_insert",paramsArr);
+      } else if(flag === 2) {
+        queryString = util.getQueryString('ds_p1_activity_form_field_mapping_insert', paramsArr);
+      }
+      
+      if (queryString !== "") {
+        await db
+          .executeQueryPromise(0, queryString, request)
+          .then(data => {
+            responseData = data;
+            error = false;
+          })
+          .catch(err => {
+            error = err;
+          });
+      }
+      return [error, responseData];
+    };
+
+    //udpate status - activity_entity_mapping - Workflow reference
+    //udpate status - form field mapping - combo field
+    this.activityEntityMappingUpdateStatus = async function(request, data, flag) {
+        //flag = 1 - Insert into activity entity Mapping Table
+        //flag = 2 - Insert into activity form field Mapping Table
+      let responseData = [],
+        error = true;
+
+      const paramsArr = new Array(
+        request.organization_id,
+        request.account_id,
+        request.workforce_id,
+        data.activity_id,
+        data.activity_status_id,
+        data.activity_status_type_id,
+        util.getCurrentUTCTime()
+      );
+      let queryString = "";
+      if(flag === 1) {
+        queryString = util.getQueryString("ds_p1_activity_entity_mapping_update_status",paramsArr);
+      } else if(flag === 2) {
+        queryString = util.getQueryString('ds_p1_activity_form_field_mapping_update_status', paramsArr);
+      }
+    
+      if (queryString !== "") {
+        await db
+          .executeQueryPromise(0, queryString, request)
+          .then(data => {
+            responseData = data;
+            error = false;
+          })
+          .catch(err => {
+            error = err;
+          });
+      }
+      return [error, responseData];
+    };
+
+    //udpate workflow percentage - activity_entity_mapping - workflow reference
+    //udpate workflow percentage - form field mapping - combo field
+    this.activityEntityMappingUpdateWFPercentage = async function(request, data, flag) {
+        //flag = 1 - Insert into activity entity Mapping Table
+        //flag = 2 - Insert into activity form field Mapping Table
+      let responseData = [],
+        error = true;
+
+      const paramsArr = new Array(
+        request.organization_id,
+        data.activity_id,
+        data.workflow_percentage,
+        request.log_asset_id,
+        util.getCurrentUTCTime()
+      );
+
+      let queryString = "";
+      if(flag === 1) {
+        queryString = util.getQueryString("ds_p1_activity_entity_mapping_update_workflow_percent",paramsArr);
+      } else if(flag === 1) {
+        queryString = util.getQueryString('ds_p1_activity_form_field_mapping_update_workflow_percent', paramsArr);
+      }
+    
+      if (queryString !== "") {
+        await db
+          .executeQueryPromise(0, queryString, request)
+          .then(data => {
+            responseData = data;
+            error = false;
+          })
+          .catch(err => {
+            error = err;
+          });
+      }
+      return [error, responseData];
+    };
+
+    //udpate deferred datetime - activity_entity_mapping -workflow reference
+    //udpate deferred datetime - form field mapping - combo field
+    this.activityEntityMappingUpdateDefDt = async function(request, data, flag) {
+        //flag = 1 - Insert into activity entity Mapping Table
+        //flag = 2 - Insert into activity form field Mapping Table
+      let responseData = [],
+        error = true;
+
+      const paramsArr = new Array(
+        data.activity_id,
+        request.organization_id,
+        data.deferred_datetime,
+        request.log_asset_id,
+        util.getCurrentUTCTime()
+      );
+      let queryString = "";
+      if(flag === 1) {
+        queryString = util.getQueryString("ds_v1_activity_entity_mapping_update_deferred_datetime",paramsArr);
+      } else if(flag === 2) {
+        queryString = util.getQueryString('ds_v1_activity_form_field_mapping_update_deferred_datetime', paramsArr);
+      }
+    
+      if (queryString !== "") {
+        await db
+          .executeQueryPromise(0, queryString, request)
+          .then(data => {
+            responseData = data;
+            error = false;
+          })
+          .catch(err => {
+            error = err;
+          });
+      }
+      return [error, responseData];
+    };
+    
+    //udpate Workflow reference data type Value - activity_entity_mapping -workflow reference    
+    this.activityEntityMappingUpdateWfValue = async function(request) {
+        let responseData = [],
+          error = true;
+  
+        const paramsArr = new Array(
+            request.activity_id,
+            request.form_transaction_id,
+            request.field_id,
+            request.bot_operation_id,
+            request.organization_id,
+            request.mapping_activity_id,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        );
+        
+        const queryString = util.getQueryString("ds_v1_activity_entity_mapping_update_mapping_activity",paramsArr);        
+    
+        if (queryString !== "") {
+          await db
+            .executeQueryPromise(0, queryString, request)
+            .then(data => {
+              responseData = data;
+              error = false;
+            })
+            .catch(err => {
+              error = err;
+            });
+        }
+        return [error, responseData];
+      };
+
+    
+    //udpate Combo field data type value - form field mapping - combo field
+    this.activityFormFieldMappingUpdateWfValue = async function(request) {
+        let responseData = [],
+          error = true;
+  
+        const paramsArr = new Array(
+            request.activity_id,
+            request.form_transaction_id,
+            request.field_id,
+            request.data_type_combo_id,
+            request.bot_operation_id,
+            request.organization_id,
+            request.mapping_activity_id,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString("ds_v1_activity_form_field_mapping_update_combo_value",paramsArr);        
+    
+        if (queryString !== "") {
+          await db
+            .executeQueryPromise(0, queryString, request)
+            .then(data => {
+              responseData = data;
+              error = false;
+            })
+            .catch(err => {
+              error = err;
+            });
+        }
+        return [error, responseData];
+      };
 
 }
 

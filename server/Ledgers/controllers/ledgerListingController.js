@@ -19,6 +19,39 @@ function LedgerListingController(objCollection) {
         }
     });
 
+    // Monthly Summary Transaction
+    app.post('/' + global.config.version + '/ledger/transaction/summary/monthly', async function (req, res) {
+        const [err, summaryData] = await ledgerListingService.getLedgerTransactionSummaryMonthly(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, summaryData, 200, req.body));
+        } else {
+            console.log("/ledger/transaction/summary/monthly | Error: ", err);
+            res.send(responseWrapper.getResponse(err, summaryData, -9999, req.body));
+        }
+    });
+
+    // Quarterly Summary Transaction
+    app.post('/' + global.config.version + '/ledger/transaction/summary/quarterly', async function (req, res) {
+        const [err, summaryData] = await ledgerListingService.getLedgerTransactionSummaryQuarterly(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, summaryData, 200, req.body));
+        } else {
+            console.log("/ledger/transaction/summary/quarterly | Error: ", err);
+            res.send(responseWrapper.getResponse(err, summaryData, -9999, req.body));
+        }
+    });
+
+    // Yearly Summary Transaction
+    app.post('/' + global.config.version + '/ledger/transaction/summary/yearly', async function (req, res) {
+        const [err, summaryData] = await ledgerListingService.getLedgerTransactionSummaryYearly(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, summaryData, 200, req.body));
+        } else {
+            console.log("/ledger/transaction/summary/yearly | Error: ", err);
+            res.send(responseWrapper.getResponse(err, summaryData, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = LedgerListingController;
