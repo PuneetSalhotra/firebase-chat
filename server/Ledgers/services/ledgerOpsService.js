@@ -56,19 +56,33 @@ function LedgerOpsService(objectCollection) {
                 startOfMonth = moment().startOf('month').format('YYYY-MM-DD');
 
             // Ledger timeline transaction insert
-            let streamTypeID;
+            let streamTypeID, transactionTypeName = '';
             if (transactionTypeID === 1) {
                 streamTypeID = 27007;
+                transactionTypeName = "credited to";
             } else if (transactionTypeID === 2) {
                 streamTypeID = 27008;
+                transactionTypeName = "debited from";
             }
 
             try {
+                let message = `An amount of ${transactionAmount} has been ${transactionTypeName} this account.`;
                 await activityTimelineTransactionInsertV6({
                     ...request,
                     activity_id: ledgerActivityID,
                     entity_decimal_1: transactionAmount,
-                    data_type_id: 62
+                    data_type_id: 62,
+                    data_entity_inline: JSON.stringify({
+                        subject: `Account transaction at ${moment().utcOffset('+05:30').format('LLLL')}`,
+                        content: message,
+                        mail_body: `Account transaction at ${moment().utcOffset('+05:30').format('LLLL')}`,
+                        attachments: [],
+                        asset_reference: [],
+                        form_submitted: [],
+                        activity_reference: [],
+                        form_approval_field_reference: []
+
+                    })
                 }, streamTypeID, organizationID, accountID, workforceID)
             } catch (error) {
                 logger.silly("activityTimelineTransactionInsertV6 | Error: %j", error);
