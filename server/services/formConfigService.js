@@ -1792,9 +1792,9 @@ function FormConfigService(objCollection) {
         let paramsArr = new Array(
             request.organization_id,
             request.activity_type_id,
-            request.workflow_form_origin,,
-            request.start_from,
-            request.limit_value
+            request.workflow_form_origin,
+            request.page_start,
+            request.page_limit
         );
         const queryString = util.getQueryString('ds_p1_workforce_form_mapping_select_workflow_form_origin', paramsArr);
         if (queryString !== '') {
