@@ -1786,7 +1786,8 @@ function FormConfigService(objCollection) {
             request.hasOwnProperty("add_process") &&
             Number(request.add_process) === 1
         ) {
-            const [error, workflowFormsData] = await formEntityMappingSelectWorkflowForms(request);
+            //const [error, workflowFormsData] = await formEntityMappingSelectWorkflowForms(request);
+            const [error, workflowFormsData] = await retrieveOriginForm(request);
             return [error, workflowFormsData];
             
         } else {
@@ -1870,6 +1871,35 @@ function FormConfigService(objCollection) {
             request.limit_value || 50
         );
         const queryString = util.getQueryString('ds_p1_form_entity_mapping_select_workflow_forms', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    workflowFormsData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, workflowFormsData];
+    }
+
+    
+    async function retrieveOriginForm(request) {
+        let workflowFormsData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,            
+            request.activity_type_id || 0,
+            1,
+            //request.flag_origin,            
+            request.start_from || 0,
+            request.limit_value || 1
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_form_mapping_select_workflow_form_origin', paramsArr);
         if (queryString !== '') {
 
             await db.executeQueryPromise(0, queryString, request)
