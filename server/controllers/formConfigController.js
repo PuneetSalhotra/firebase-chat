@@ -561,7 +561,19 @@ function FormConfigController(objCollection) {
                 res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
             }
         }
-    );     
+    );    
+
+    app.post('/' + global.config.version + '/get/form/workflow/origin', async function (req, res) {
+
+        const [err, formEntityData] = await formConfigService.formEntityMappingSelectProcessOrigin(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, formEntityData, 200, req.body));
+        } else {
+            console.log("Error: ", err);
+            res.send(responseWrapper.getResponse(err, formEntityData, -9999, req.body));
+        }
+
+    }); 
 }
 
 module.exports = FormConfigController;

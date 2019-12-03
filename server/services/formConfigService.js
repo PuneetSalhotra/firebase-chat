@@ -1777,6 +1777,42 @@ function FormConfigService(objCollection) {
 
     }
 
+    this.formEntityMappingSelectProcessOrigin = async function (request) {
+
+        const [error, formEntityData] = await formEntityMappingSelectProcessOriginForm(request);
+       
+        return [error, formEntityData];
+    };
+
+    async function formEntityMappingSelectProcessOriginForm(request) {
+        
+        let formEntityData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.activity_type_id,
+            request.workflow_form_origin,,
+            request.start_from,
+            request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_form_mapping_select_workflow_form_origin', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    formEntityData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, formEntityData];
+
+    }
+
     this.fetchFormAccessList = async function (request) {
         // Update asset's GPS data
         request.datetime_log = util.getCurrentUTCTime();
