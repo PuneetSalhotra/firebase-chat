@@ -1,0 +1,28 @@
+apps:
+  - name : "Sprint_Main"
+    env: {mode: sprint}
+    script   : ./main.js
+    instances: max    
+    out_file: '/dev/null'
+    exec_mode: cluster
+    
+  - name : "Sprint_ConsumerZero"
+    env: {mode: sprint, partition:0}
+    script   : ./consumer.js
+    out_file: '/dev/null'
+    instances: 1
+    exec_mode: fork
+      
+#  - name : "Sprint_LogConsumerZero"
+#    env: {mode: sprint, partition:0}
+#    script   : ./logConsumer.js
+#    out_file: '/dev/null'
+#    instances: 1
+#    exec_mode: fork
+    
+#  - name : "Sprint_WidgetZero"
+#    env: {mode: sprint, partition:0}
+#    script   : ./consumerServices/widgetEngine/server.js    
+#    out_file: '/dev/null'
+#    instances: 1
+#    exec_mode: fork

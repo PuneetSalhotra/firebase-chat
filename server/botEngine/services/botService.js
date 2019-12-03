@@ -7,9 +7,14 @@ var ActivityService = require('../../services/activityService.js');
 var ActivityParticipantService = require('../../services/activityParticipantService.js');
 //var ActivityUpdateService = require('../../services/activityUpdateService.js');
 var ActivityTimelineService = require('../../services/activityTimelineService.js');
-//var ActivityListingService = require('../../services/activityListingService.js');
+var ActivityListingService = require('../../services/activityListingService.js');
 
 const UrlOpsService = require('../../UrlShortner/services/urlOpsService');
+
+const LedgerOpsService = require('../../Ledgers/services/ledgerOpsService');
+
+const AdminListingService = require("../../Administrator/services/adminListingService");
+const AdminOpsService = require('../../Administrator/services/adminOpsService');
 
 function BotService(objectCollection) {
 
@@ -32,10 +37,14 @@ function BotService(objectCollection) {
     //const activityUpdateService = new ActivityUpdateService(objectCollection);
     const activityParticipantService = new ActivityParticipantService(objectCollection);
     const activityService = new ActivityService(objectCollection);
-    //const activityListingService = new ActivityListingService(objectCollection);
+    const activityListingService = new ActivityListingService(objectCollection);
     const activityTimelineService = new ActivityTimelineService(objectCollection);
 
     const urlOpsService = new UrlOpsService(objectCollection);
+    const ledgerOpsService = new LedgerOpsService(objectCollection);
+
+    const adminListingService = new AdminListingService(objectCollection);
+    const adminOpsService = new AdminOpsService(objectCollection);
 
     const nodeUtil = require('util');
 
@@ -262,6 +271,9 @@ function BotService(objectCollection) {
                     new Array(
                         request.bot_id,
                         request.bot_operation_type_id,
+                        request.field_id,
+                        request.data_type_combo_id,
+                        request.form_id,
                         request.bot_operation_sequence_id,
                         request.bot_operation_inline_data,
                         request.organization_id,
@@ -269,7 +281,8 @@ function BotService(objectCollection) {
                         request.log_datetime,
                     );
 
-                results[0] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_insert', paramsArray, 0);
+                // results[0] = await db.callDBProcedure(request, 'ds_p1_bot_operation_mapping_insert', paramsArray, 0);
+                results[0] = await db.callDBProcedure(request, 'ds_p1_1_bot_operation_mapping_insert', paramsArray, 0);
 
                 paramsArray =
                     new Array(
@@ -860,6 +873,48 @@ function BotService(objectCollection) {
                         });
                     }
                     console.log('****************************************************************');
+                    break;
+                
+                case 13: // [RESERVED] Time Slot Bot
+                    break;
+
+                case 14: // [RESERVED] Ledger Transactions Bot
+                    logger.silly("LEDGER TRANSACTION");
+                    try {
+                        await ledgerOpsService.ledgerCreditDebitNetTransactionUpdate(request);
+                    } catch (error) {
+                        console.log("LEDGER TRANSACTION Error: ", error);
+                    }
+                    break;
+
+                case 15: // Customer Creation Bot
+                    if (
+                        request.hasOwnProperty("activity_stream_type_id") &&
+                        Number(request.activity_stream_type_id) === 713
+                    ) {
+                        // Do not fire this bot step on form edits
+                        logger.silly(`Do Not Fire Create Customer On Form Edit`, { type: 'bot_engine', error: null });
+                        continue;
+                    }
+                    logger.silly("CREATE CUSTOMER");
+                    try {
+                        await createCustomerAsset(request, botOperationsJson.bot_operations.create_customer);
+                    } catch (error) {
+                        console.log("CREATE CUSTOMER Error: ", error);
+                    }
+                    break;
+                
+                case 16: // Workflow Reference Bot
+                    logger.silly("Workflow Reference Bot");
+                    try {
+                        //await createCustomerAsset(request, botOperationsJson.bot_operations.create_customer);
+                    } catch (error) {
+                        console.log("Workflow Reference Bot: ", error);
+                    }
+                    break;
+
+                case 17: // Combo Field Selection Bot
+                    logger.silly("Combo Field Selection Bot");
                     break;
             }
 
@@ -1808,8 +1863,13 @@ function BotService(objectCollection) {
                 activityCommonService.queueHistoryInsert(newReq, 1402, i.queue_activity_mapping_id).then(() => { });
             }
 
-
-
+            //Listeners
+            //For Workflow reference, combo field widgets
+            //flag = 1 - Insert into activity entity Mapping Table
+            //flag = 2 - Insert into activity form field Mapping Table
+            if(Number(request.activity_type_id) > 0) {
+                updateStatusInIntTablesReferenceDtypes(request, inlineData);
+            }  
             //Checking the queuemappingid
             /*let queueActivityMappingData = await (activityCommonService.fetchQueueActivityMappingId({activity_id: request.workflow_activity_id,
                                                                                                      organization_id: newReq.organization_id}, 
@@ -2953,6 +3013,16 @@ function BotService(objectCollection) {
                     console.log("Bot Engine | alterWFCompletionPercentage | asyncActivityTimelineTransactionInsert | Error: ", error)
                 }
             }
+
+            //Listeners
+            //For Workflow reference, combo field widgets
+            //flag = 1 - Insert into activity entity Mapping Table
+            //flag = 2 - Insert into activity form field Mapping Table
+            if(Number(request.activity_type_id) > 0) {
+                newrequest.workflow_percentage = wfCompletionPercentage;
+                updateWFPercentageInIntTablesReferenceDtypes(newrequest);
+            }           
+            
             return [false, {}];
         } else {
             return [true, "Queue Not Available"];
@@ -3952,6 +4022,227 @@ function BotService(objectCollection) {
 
         return [false, activityData];
     };
+
+    async function createCustomerAsset(request, createCustomerInlineData) {
+        // console.log("createCustomerInlineData: ", createCustomerInlineData);
+        // console.log("createCustomerAsset: ", request);
+        // Fetch and prepare the form data map
+        let formInlineData = [], formInlineDataMap = new Map();
+        try {
+            formInlineData = JSON.parse(request.activity_inline_data);
+            for (const field of formInlineData) {
+                formInlineDataMap.set(Number(field.field_id), field);
+            }
+        } catch (error) {
+            logger.error("Error parsing inline JSON and/or preparing the form data map", { type: 'bot_engine', error, request_body: request });
+        }
+
+        // Prepare the customer data
+        const customerData = {};
+        for (const key of Object.keys(createCustomerInlineData)) {
+            console.log("key: ", key);
+            const fieldID = Number(createCustomerInlineData[key].field_id);
+            console.log("fieldID: ", fieldID);
+            if (formInlineDataMap.has(fieldID)) {
+                customerData[key] = formInlineDataMap.get(fieldID).field_value;
+                console.log("formInlineDataMap.get(fieldID).field_value: ", formInlineDataMap.get(fieldID).field_value);
+            }
+        }
+
+        let countryCode = 0, phoneNumber = 0;
+        if (customerData.customer_phone_number.includes('|')) {
+            [countryCode, phoneNumber] = customerData.customer_phone_number.split('|')
+        } else if (customerData.customer_phone_number.includes('||')) {
+            [countryCode, phoneNumber] = customerData.customer_phone_number.split('||')
+        }
+        logger.silly("countryCode: %j", countryCode);
+        logger.silly("phoneNumber: %j", phoneNumber);
+
+        // Check if an asset already exists with the given number
+        const assetCheckData = await getAssetDetailsOfANumber({
+            organization_id: request.organization_id,
+            country_code: countryCode,
+            phone_number: phoneNumber
+        })
+        if (assetCheckData.length > 0) {
+            logger.error("Asset with phone number exists", { type: 'bot_engine', request_body: request });
+            return;
+        }
+
+        // Fetch the Customer Service Desk's asset_type_id
+        const [errOne, serviceDeskAssetTypeData] = await adminListingService.workforceAssetTypeMappingSelectCategory({
+            organization_id: request.organization_id,
+            account_id: createCustomerInlineData.account_id,
+            workforce_id: createCustomerInlineData.workforce_id,
+            asset_type_category_id: 45
+        });
+        if (errOne || !(serviceDeskAssetTypeData.length > 0)) {
+            logger.error("Unable to fetch asset_type_id for the customer service desk.", { type: 'bot_engine', request_body: request });
+            return;
+        }
+        // Create the desk
+        const deskName = `Customer Service Desk ${customerData.customer_cuid || ''}`;
+        const createCustomerServiceDeskRequest = {
+            ...request,
+            activity_timeline_collection: null,
+            data_entity_inline: null,
+            account_id: createCustomerInlineData.account_id,
+            workforce_id: createCustomerInlineData.workforce_id,
+            activity_access_role_id: 10,
+            activity_description: deskName,
+            activity_title: deskName,
+            asset_first_name: deskName,
+            asset_type_category_id: 45,
+            workforce_name: "Customer Floor",
+            activity_stream_type_id: 11018,
+            stream_type_id: 11018,
+            asset_type_id: serviceDeskAssetTypeData[0].asset_type_id,
+            activity_inline_data: JSON.stringify({
+                "contact_profile_picture": "",
+                "contact_first_name": deskName,
+                "contact_designation": deskName,
+                "contact_location": "",
+                "contact_phone_country_code": countryCode,
+                "contact_phone_number": phoneNumber,
+                "contact_email_id": customerData.customer_email,
+                "contact_asset_type_id": serviceDeskAssetTypeData[0].asset_type_id,
+                "contact_organization": "",
+                "contact_asset_id": 0,
+                "contact_workforce_id": createCustomerInlineData.workforce_id,
+                "contact_account_id": createCustomerInlineData.account_id,
+                "contact_organization_id": request.organization_id,
+                "contact_operating_asset_name": "",
+                "contact_operating_asset_id": ""
+            })
+        };
+
+        const [errTwo, serviceDeskData] = await adminOpsService.addNewDeskToWorkforce(createCustomerServiceDeskRequest);
+        logger.verbose(`Customer service desk created: %j`, serviceDeskData, { type: 'bot_engine' });
+
+        // Fetch the Customer's asset_type_id
+        const [errThree, customerAssetTypeData] = await adminListingService.workforceAssetTypeMappingSelectCategory({
+            organization_id: request.organization_id,
+            account_id: createCustomerInlineData.account_id,
+            workforce_id: createCustomerInlineData.workforce_id,
+            asset_type_category_id: 13
+        });
+        if (errThree || !(customerAssetTypeData.length > 0)) {
+            logger.error("Unable to fetch asset_type_id for the customer.", { type: 'bot_engine', request_body: request });
+            return;
+        }
+        // Create Customer on the Service Desk
+        const createCustomerRequest = {
+            ...createCustomerServiceDeskRequest,
+            activity_description: `${customerData.customer_name_first} ${customerData.customer_name_last}`,
+            activity_title: `${customerData.customer_name_first} ${customerData.customer_name_last}`,
+            asset_first_name: `${customerData.customer_name_first} ${customerData.customer_name_last}`,
+            asset_type_category_id: 13,
+            asset_access_role_id: 1,
+            asset_access_level_id: 5,
+            asset_type_id: customerAssetTypeData[0].asset_type_id,
+            desk_asset_id: serviceDeskData.asset_id,
+            country_code: countryCode,
+            phone_number: phoneNumber,
+            customer_unique_id: customerData.customer_cuid,
+            email_id: customerData.customer_email,
+            gender_id: customerData.customer_gender,
+            joined_datetime: util.getCurrentUTCTime(),
+            activity_stream_type_id: 11006,
+            stream_type_id: 11006,
+            timezone_id: 22
+        };
+
+        const [errFour, customerAssetData] = await adminOpsService.addNewEmployeeToExistingDesk(createCustomerRequest);
+        logger.verbose(`Customer asset created: %j`, customerAssetData, { type: 'bot_engine' });
+
+        return;
+    }
+
+    //this.getWorkflowReferenceBots = async (request) =>{
+    //    let responseData = [],
+    //        error = true;
+//
+    //    const paramsArr = new Array(
+    //        request.organization_id,
+    //        request.activity_type_id,
+    //        request.form_id,
+    //        request.data_type_id,
+    //        request.start_from || 0,
+    //        request.limit_value || 1
+    //    );
+    //    const queryString = util.getQueryString('ds_p1_workforce_form_field_mapping_select_workflow_fields', paramsArr);
+//
+    //    if (queryString !== '') {
+    //        await db.executeQueryPromise(1, queryString, request)
+    //            .then((data) => {
+    //                responseData = data;
+    //                error = false;
+    //            })
+    //            .catch((err) => {
+    //                error = err;
+    //            })
+    //    }
+    //    return [error, responseData];
+    //}
+
+    async function updateStatusInIntTablesReferenceDtypes(request, inlineData) {
+        let activity_id = request.workflow_activity_id;
+        let activity_status_id = inlineData.activity_status_id;
+        let activity_status_type_id = inlineData.activity_status_id
+        
+        let newRequest = Object.assign({}, request);
+            newRequest.operation_type_id = 16;
+        const [err, respData] = await activityListingService.getWorkflowReferenceBots(newRequest);
+        console.log('Workflow Reference Bots for this activity_type : ', respData);
+        if(respData.length > 0) {
+            //for(let i = 0; i<respData.length; i++) {}               
+            activityCommonService.activityEntityMappingUpdateWFPercentage(request, {
+                activity_id,
+                activity_status_id,
+                activity_status_type_id
+            }, 1);
+        }
+
+        newRequest.operation_type_id = 17;
+        const [err1, respData1] = await activityListingService.getWorkflowReferenceBots(newRequest);
+        console.log('Combo Field Reference Bots for this activity_type : ', respData);
+        if(respData1.length > 0) {
+            //for(let i = 0; i<respData.length; i++) {}
+            activityCommonService.activityEntityMappingUpdateWFPercentage(request, {
+                activity_id,
+                activity_status_id,
+                activity_status_type_id
+            }, 2);
+        }
+    }
+
+    async function updateWFPercentageInIntTablesReferenceDtypes(request) {
+        let activity_id = newrequest.workflow_activity_id;
+        let workflow_percentage = request.workflow_percentage;
+
+        let newRequest = Object.assign({}, request);
+            newRequest.operation_type_id = 16;
+        const [err, respData] = await activityListingService.getWorkflowReferenceBots(newRequest);
+        console.log('Workflow Reference Bots for this activity_type : ', respData);
+        if(respData.length > 0) {
+            //for(let i = 0; i<respData.length; i++) {}               
+            activityCommonService.activityEntityMappingUpdateWFPercentage(request, {
+                activity_id,
+                workflow_percentage
+            }, 1);
+        }
+
+        newRequest.operation_type_id = 17;
+        const [err1, respData1] = await activityListingService.getWorkflowReferenceBots(newRequest);
+        console.log('Combo Field Reference Bots for this activity_type : ', respData);
+        if(respData1.length > 0) {
+            //for(let i = 0; i<respData.length; i++) {}
+            activityCommonService.activityEntityMappingUpdateWFPercentage(request, {
+                activity_id,
+                workflow_percentage
+            }, 2);
+        }        
+    }
 }
 
 module.exports = BotService;

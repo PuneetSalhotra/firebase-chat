@@ -2048,7 +2048,7 @@ function AdminOpsService(objectCollection) {
             operating_asset_id: assetDataFromDB[0].operating_asset_id,
             auth_asset_id: 31993,
             asset_token_auth: "c15f6fb0-14c9-11e9-8b81-4dbdf2702f95",
-            asset_message_counter: 0,
+            // asset_message_counter: 0,
             track_latitude: 0.0,
             track_longitude: 0.0,
             track_altitude: 0,
@@ -2057,7 +2057,8 @@ function AdminOpsService(objectCollection) {
             track_gps_status: 0,
             service_version: "3.0",
             app_version: "3.0.0",
-            device_os_id: 5
+            device_os_id: 5,
+            message_unique_id: util.getMessageUniqueId(Number(request.asset_id))
         };
 
         const assetLinkResetAsync = nodeUtil.promisify(makeRequest.post);
@@ -2588,6 +2589,16 @@ function AdminOpsService(objectCollection) {
                 }
             }
 
+            // Unlink User | Call Service: /asset/link/reset
+            try {
+                await assetLinkReset(request, [{
+                    asset_id: deskAssetID,
+                    operating_asset_id: operatingAssetID
+                }], newWorkforceID || workforceID, organizationID, newAccountID || accountID);
+            } catch (error) {
+                console.log("removeEmployeeMappedToDesk | Unlink User | /asset/link/reset | Error: ", error);
+            }
+
         } else {
             console.log("moveEmployeeDeskToAnotherWorkforce | deskAssetDataFromDB[0].operating_asset_id: No operating asset found.");
         }
@@ -2848,10 +2859,22 @@ function AdminOpsService(objectCollection) {
             logger.error(`alterWorkforce.activityListSelectWorkforceCategory_IDCard`, { type: 'admin_ops', request_body: request, error: errThree });
             return [errThree, []]
         }
+
+        let idCardsUpdateActivityAssetMappingPromises = [];
         const idCardsUpdateWorkforceNamePromises = idCardData.map(idCard => {
             // Update Inline Data
             let inlineJSON = JSON.parse(idCard.activity_inline_data)
             inlineJSON.employee_department = newWorkforceName;
+
+            idCardsUpdateActivityAssetMappingPromises.push(
+                activityAssetMappingUpdateInlineData({
+                    ...request,
+                    activity_id: idCard.activity_id,
+                    activity_inline_data: JSON.stringify(inlineJSON),
+                    asset_id: idCard.asset_id,
+                    log_asset_id: request.asset_id
+                }, organizationID)
+            );
 
             return activityListUpdateInlineData({
                 activity_id: idCard.activity_id,
@@ -2859,7 +2882,7 @@ function AdminOpsService(objectCollection) {
             }, organizationID);
         });
         try {
-            await Promise.all(idCardsUpdateWorkforceNamePromises);
+            await Promise.all(idCardsUpdateWorkforceNamePromises.concat(idCardsUpdateActivityAssetMappingPromises));
         } catch (error) {
             logger.error(`alterWorkforce.idCardsUpdateWorkforceNamePromises`, { type: 'admin_ops', request_body: request, error });
         }
@@ -4035,6 +4058,32 @@ function AdminOpsService(objectCollection) {
                 }, organizationID);
             } catch (error) {
                 logger.error(`upateDeskAndEmployeeAsset.activityAssetMappingUpdateInlineData_IDCard`, { type: 'admin_ops', request_body: request, error });
+            }
+
+            // Update admin flags for the desk asset
+            try {
+                await self.updateAssetFlags({
+                    ...request,
+                    asset_id: deskAssetID,
+                    flag: 0,
+                    set_admin_flag: request.asset_flag_account_admin,
+                    set_organization_admin_flag: request.asset_flag_organization_admin
+                });
+            } catch (error) {
+                logger.error(`upateDeskAndEmployeeAsset.updateAssetFlags [Desk]`, { type: 'admin_ops', request_body: request, error });
+            }
+
+            // Update admin flags for the employee asset
+            try {
+                await self.updateAssetFlags({
+                    ...request,
+                    asset_id: employeeAssetID,
+                    flag: 0,
+                    set_admin_flag: request.asset_flag_account_admin,
+                    set_organization_admin_flag: request.asset_flag_organization_admin
+                });
+            } catch (error) {
+                logger.error(`upateDeskAndEmployeeAsset.updateAssetFlags [Employee]`, { type: 'admin_ops', request_body: request, error });
             }
         }
 
