@@ -1,3 +1,4 @@
+/* eslint-disable no-case-declarations */
 /* 
  * author: Sri Sai Venkatesh
  */
@@ -402,6 +403,25 @@ function ActivityService(objectCollection) {
                             if (activityTypeCategroyId === 9 && request.device_os_id !== 9) {
                                 // Moved to ActivityTimelineService => addTimelineTransaction => fireBotEngineInitForm
                                 // Do nothing
+
+                                //Listener
+                                //Form Submission - When the form has data type reference type
+                                let formInlineData = JSON.parse(request.activity_inline_data);
+                                console.log('formInlineData : ', formInlineData);
+                                let fieldData;
+                                for(let i=0; i<formInlineData.length;i++){                                    
+                                    fieldData = formInlineData[i];
+                                    switch(Number(fieldData.field_data_type_id)) {
+                                        case 57: //Fire the Bot 
+                                                console.log('FIRE THE BOT');
+                                                fireBotInsertIntTables(request, fieldData);
+                                                break;
+                                        case 33: //Fire the Bot 
+                                                console.log('FIRE THE BOT');
+                                                break;
+                                        default: break;
+                                    }
+                                }
                             }
 
                             //  Trigger Bot Engine
@@ -3949,6 +3969,61 @@ function ActivityService(objectCollection) {
         }
 
         return "success";
+    }
+
+    //Insert in the Intermediate tables - For workflow Reference, Combo Field data types
+    async function fireBotInsertIntTables(request, fieldData) {
+        let botIsDefined = 0;
+        let botEngineRequest = Object.assign({}, request);
+            botEngineRequest.form_id = Number(fieldData.form_id);
+            botEngineRequest.field_id = Number(fieldData.field_id);
+            botEngineRequest.flag = 5;
+
+        try{            
+            let botsListData = await activityCommonService.getBotsMappedToActType(botEngineRequest);
+            if (botsListData.length > 0) {
+                botEngineRequest.bot_id = botsListData[0].bot_id;
+                botEngineRequest.bot_operation_id = botsListData[0].bot_operation_id;
+                botIsDefined = 1;          
+            }
+        } catch (botInitError) {
+            global.logger.write('error', botInitError, botInitError, request);
+        }
+
+      let newRequest = Object.assign({}, request);
+          newRequest.activity_id = request.activity_id;
+          newRequest.mapping_activity_id = "";
+          newRequest.bot_operation_id = botEngineRequest.bot_operation_id;
+          newRequest.form_transaction_id = request.form_transaction_id;
+          newRequest.form_id = fieldData.form_id;
+          newRequest.field_id = fieldData.field_id;
+          newRequest.data_type_combo_id = 0;
+          //newRequest.asset_id = request.asset_id;
+          //newRequest.workforce_id = ;
+          //newRequest.account_id = "";
+          //newRequest.organization_id = "";
+          newRequest.participant_access_id = 0;
+          newRequest.log_asset_id = request.asset_id;
+          newRequest.log_datetime = util.getCurrentUTCTime();
+          newRequest.flag_due_date_impact = 0;
+
+      if(botIsDefined === 1) {
+        switch(Number(fieldData.field_data_type_id)) {
+            //Workflow Reference
+            case 57: newRequest.entity_type_id = 1;
+                     newRequest.entity_level_id = 9;
+                     await activityCommonService.activityEntityMappingInsert(newRequest, 1); //1 - activity_entity_mapping
+                     break;
+
+            //Combo field
+            case 33: newRequest.entity_type_id = 2;
+                     newRequest.entity_level_id = 18;
+                     await activityCommonService.activityEntityMappingInsert(newRequest, 2); //2 - activity_form_field_mapping
+                     break;
+        }        
+      } 
+        
+      return "success";      
     }
 
 }
