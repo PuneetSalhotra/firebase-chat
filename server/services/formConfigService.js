@@ -1952,6 +1952,15 @@ function FormConfigService(objCollection) {
         request.update_type_id = 606;
         workforceFormMappingHistoryInsert(request);
 
+        // Update form
+       const [formEntityUpdateError, formEntityUpdateStatus] = await formEntityMappingUpdateWorkflow(request);
+        if (formEntityUpdateError !== false) {
+            return [formEntityUpdateError, {
+                formEntityUpdateStatus,
+                formFieldUpdateStatus: []
+            }];
+        }        
+
         // Update form fields
         const [formFieldUpdateError, formFieldUpdateStatus] = await workforceFormFieldMappingUpdateWorkflow(request);
         if (formFieldUpdateError !== false) {
@@ -1994,7 +2003,7 @@ function FormConfigService(objCollection) {
         workforceFormMappingHistoryInsert(request);
 
         // Update form
-        const [formEntityUpdateError, formEntityUpdateStatus] = await formEntityMappingUpdateWorkflow(request);
+       const [formEntityUpdateError, formEntityUpdateStatus] = await formEntityMappingUpdateWorkflow(request);
         if (formEntityUpdateError !== false) {
             return [formEntityUpdateError, {
                 formEntityUpdateStatus,
@@ -2075,6 +2084,7 @@ function FormConfigService(objCollection) {
         let paramsArr = new Array(
             request.organization_id,
             request.form_id,
+            request.activity_type_id,
             request.is_workflow_origin,
             request.asset_id,
             util.getCurrentUTCTime(),
