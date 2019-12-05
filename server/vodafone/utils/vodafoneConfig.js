@@ -136,6 +136,12 @@ const digitalVsdmRoms = require("./nfl_digital_vsdm/roms.json");
 const digitalVsdmRomsActions = require("./nfl_digital_vsdm/roms_actions.json");
 // const digitalVsdmBulkOrderToOriginFormMappings = require("./nfl_digital_vsdm/bulk_order_to_origin_form_mappings.json");
 
+// NFL - Digital MSS - 145268
+const digitalVsdmMappings = require("./digital_mss_caf/mappings.json");
+const digitalVsdmLabels = require("./digital_mss_caf/labels.json");
+const digitalVsdmRoms = require("./digital_mss_caf/roms.json");
+const digitalVsdmRomsActions = require("./digital_mss_caf/roms_actions.json");
+
 vodafoneConfig = {
     "860": {
         "NAME": "Vodafone Idea | Production | BETA",
