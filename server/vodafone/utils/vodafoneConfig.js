@@ -137,10 +137,10 @@ const digitalVsdmRomsActions = require("./nfl_digital_vsdm/roms_actions.json");
 // const digitalVsdmBulkOrderToOriginFormMappings = require("./nfl_digital_vsdm/bulk_order_to_origin_form_mappings.json");
 
 // NFL - Digital MSS - 145268
-const digitalVsdmMappings = require("./digital_mss_caf/mappings.json");
-const digitalVsdmLabels = require("./digital_mss_caf/labels.json");
-const digitalVsdmRoms = require("./digital_mss_caf/roms.json");
-const digitalVsdmRomsActions = require("./digital_mss_caf/roms_actions.json");
+const digitalMssMappings = require("./digital_mss_caf/mappings.json");
+const digitalMssLabels = require("./digital_mss_caf/labels.json");
+const digitalMssRoms = require("./digital_mss_caf/roms.json");
+const digitalMssRomsActions = require("./digital_mss_caf/roms_actions.json");
 
 vodafoneConfig = {
     "860": {
@@ -540,5 +540,15 @@ vodafoneConfig = {
         "ROMS": digitalVsdmRoms,
         "ROMS_ACTIONS": digitalVsdmRomsActions,
         "ORIGIN_FORM_ID": 1878
+    },
+    "145268": {
+        "REQUIRED_FORMS": [2185],
+        "TARGET_FORM_ID": 2184,
+        "TARGET_FORM_ACTIVITY_TYPE_ID": 134492,
+        "FORM_FIELD_MAPPING_DATA": digitalMssMappings,
+        "LABELS": digitalMssLabels,
+        "ROMS": digitalMssRoms,
+        "ROMS_ACTIONS": digitalMssRomsActions,
+        "ORIGIN_FORM_ID": 2185
     }
 };
