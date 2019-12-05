@@ -13,12 +13,12 @@ apps:
     instances: 1
     exec_mode: fork
       
-  - name : "Staging_LogConsumerZero"
-    env: {mode: staging, partition:0}
-    script   : ./logConsumer.js
-    out_file: '/dev/null'
-    instances: 1
-    exec_mode: fork
+  # - name : "Staging_LogConsumerZero"
+  #   env: {mode: staging, partition:0}
+  #   script   : ./logConsumer.js
+  #   out_file: '/dev/null'
+  #   instances: 1
+  #   exec_mode: fork
     
   #- name : "Staging_LogConsumerOne"
   #  env: {mode: staging, partition:1}
@@ -34,12 +34,12 @@ apps:
   #  instances: 1
   #  exec_mode: fork
     
-  - name : "Staging_WidgetZero"
-    env: {mode: staging, partition:0}
-    script   : ./consumerServices/widgetEngine/server.js    
-    out_file: '/dev/null'
-    instances: 1
-    exec_mode: fork
+  # - name : "Staging_WidgetZero"
+  #   env: {mode: staging, partition:0}
+  #   script   : ./consumerServices/widgetEngine/server.js    
+  #   out_file: '/dev/null'
+  #   instances: 1
+  #   exec_mode: fork
     
   #- name : "Staging_WidgetOne"
   #  env: {mode: staging, partition:1}

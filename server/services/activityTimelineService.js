@@ -187,7 +187,7 @@ function ActivityTimelineService(objectCollection) {
                             console.log("addTimelineTransaction | fireBotEngineInitWorkflow | Error: ", error);
                         }
                     }).catch(() => {});;
-            }, 1000);
+            }, 2000);
 
         } else {
 
