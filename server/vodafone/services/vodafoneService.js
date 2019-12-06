@@ -5671,8 +5671,8 @@ function VodafoneService(objectCollection) {
             
             targetFormDataMap.size > 0 &&
             setAnnexureMaskRomsAction.length > 0 &&
-            targetFormActivityID !== 0 &&
-            !isParentOrderFlag
+            targetFormActivityID !== 0// &&
+            // !isParentOrderFlag
         ) {
             console.log("setAnnexureMaskRomsAction[0]: ", setAnnexureMaskRomsAction[0]);
 
@@ -5695,8 +5695,8 @@ function VodafoneService(objectCollection) {
             
             targetFormDataMap.size > 0 &&
             setAnnexureMaskRomsAction.length > 0 &&
-            targetFormActivityID !== 0 &&
-            !isParentOrderFlag
+            targetFormActivityID !== 0// &&
+            // !isParentOrderFlag
         ) {
             console.log("setAnnexureMaskRomsAction[0]: ", setAnnexureMaskRomsAction[0]);
 
@@ -5714,7 +5714,11 @@ function VodafoneService(objectCollection) {
                 comboBatch = batch.BATCH.filter(combo => multiSelectFieldValue.includes(combo.COMBO_VALUE));
                 // Select the "TARGET_FIELD_IDS" array from each combo batch and flatten them out
                 // [ [a, b], [c], [x, y] ] => [ a, b, c, x, y ]
-                targetFieldIDs = comboBatch.flatMap(combo => combo.TARGET_FIELD_IDS);
+                // targetFieldIDs = comboBatch.flatMap(combo => combo.TARGET_FIELD_IDS);
+                let targetFieldIDs = [];
+                for (let i = 0; i < comboBatch.length; i++) {
+                    targetFieldIDs = targetFieldIDs.concat(comboBatch[i].TARGET_FIELD_IDS);
+                }
 
                 for (const targetFieldID of targetFieldIDs) {
                     if (targetFormDataMap.has(targetFieldID)) {
