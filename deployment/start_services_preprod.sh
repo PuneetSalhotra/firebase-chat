@@ -1,13 +1,14 @@
 #Pass arguments from command line
 if [ "$DEPLOYMENT_GROUP_NAME" == "tempdeploy-Group" ]
 then
-  cd /preprod_desker_api/
-  #pm2 delete /^Dev_Consumer/
-  #pm2 delete /^Dev_Main/
-  #pm2 delete /^Dev_Log/
-  #pm2 delete /^Dev_Widget/
   pm2 delete all
-  pm2 start preProdProcesses.yml
+  cd /preprod_desker_api/
+  pm2 start preProdProcesses.yml  
+  pm2 stop PreProd_ConsumerZero
+  pm2 stop PreProd_Log_ConsumerZero
+  pm2 stop PreProd_Widget_ConsumerZero
+  cd /preprod_portal_api/portal
+  pm2 start preProdPortalProcesses.yml  
 else    
   echo "Unknown deployment Group"
 fi
