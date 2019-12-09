@@ -493,6 +493,20 @@ function AdminListingService(objectCollection) {
         return [error, responseData];
     }
 
+    this.getAllDesksOnFloor = async function (request) {
+        let err = false, assetData = [];
+        if (
+            request.hasOwnProperty("workforce_type_id") &&
+            Number(request.workforce_type_id) === 10
+        ) {
+            [err, assetData] = await self.assetListSelectAllCustomers(request);
+        } else {
+            [err, assetData] = await self.assetListSelectAllDesks(request);
+        }
+
+        return [err, assetData]
+    }
+
     this.assetListSelectAllDesks = async function (request) {
         let responseData = [],
             error = true;
@@ -505,6 +519,37 @@ function AdminListingService(objectCollection) {
             request.limit_value || 50
         );
         const queryString = util.getQueryString('ds_p1_asset_list_select_all_desks', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data.map(desk => {
+                        return {
+                            ...desk,
+                            asset_flag_account_admin: desk.asset_flag_admin,
+                        }
+                    });
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.assetListSelectAllCustomers = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_select_all_customers', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)

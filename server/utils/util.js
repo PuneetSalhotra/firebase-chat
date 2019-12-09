@@ -1152,6 +1152,13 @@ function Util(objectCollection) {
         };
 
         if (
+            request.hasOwnProperty("bcc_email_receiver") &&
+            request.bcc_email_receiver !== ''
+        ) {
+            mailOptions.cc = request.bcc_email_receiver;
+        }
+
+        if (
             request.hasOwnProperty("attachment") &&
             request.attachment !== null
         ) {

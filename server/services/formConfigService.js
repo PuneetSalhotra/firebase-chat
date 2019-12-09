@@ -2809,7 +2809,8 @@ function FormConfigService(objCollection) {
                         field_sequence_id: field.sequence_id,
                         field_mandatory_enabled: fieldMandatoryEnabled,
                         field_preview_enabled: '0',
-                        field_value_edit_enabled: field.field_value_edit_enabled 
+                        field_value_edit_enabled: field.field_value_edit_enabled,
+                        inline_data: JSON.stringify(field.inline_data)
                     });
                     if (updateError !== false) {
 
@@ -2832,7 +2833,8 @@ function FormConfigService(objCollection) {
                     field_sequence_id: field.sequence_id,
                     field_mandatory_enabled: fieldMandatoryEnabled,
                     field_preview_enabled: '0',
-                    field_value_edit_enabled: field.field_value_edit_enabled
+                    field_value_edit_enabled: field.field_value_edit_enabled,
+                    inline_data: JSON.stringify(field.inline_data)
                 });
                 if (updateError !== false) {
 
@@ -2854,9 +2856,9 @@ function FormConfigService(objCollection) {
         // IN p_field_id BIGINT(20), IN p_data_type_combo_id SMALLINT(6), 
         // IN p_form_id BIGINT(20), IN p_field_name VARCHAR(1200), 
         // IN p_field_description VARCHAR(300), IN p_data_type_combo_value VARCHAR(1200), 
-        // IN p_field_sequence_id BIGINT(20), IN p_field_mandatory_enabled TINYINT(4), 
-        // IN p_field_preview_enabled TINYINT(4), IN p_organization_id BIGINT(20), 
-        // IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+        // IN p_inline_data JSON, IN p_field_sequence_id BIGINT(20), IN p_field_mandatory_enabled TINYINT(4),
+        // IN p_field_preview_enabled TINYINT(4), IN p_field_value_edit_enabled TINYINT(4), 
+        // IN p_organization_id BIGINT(20), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
 
         let fieldUpdateStatus = [],
             error = false; // true;
@@ -2868,10 +2870,11 @@ function FormConfigService(objCollection) {
             fieldOptions.field_name,
             fieldOptions.field_description,
             fieldOptions.data_type_combo_value,
+            fieldOptions.inline_data || '{}',
             fieldOptions.field_sequence_id,
             fieldOptions.field_mandatory_enabled,
             fieldOptions.field_preview_enabled,
-            fieldOptions.field_value_edit_enabled || 1,
+            fieldOptions.field_value_edit_enabled || 0,
             request.organization_id,
             request.asset_id,
             util.getCurrentUTCTime(),
