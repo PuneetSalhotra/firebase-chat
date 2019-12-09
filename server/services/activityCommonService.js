@@ -1,3 +1,4 @@
+/* eslint-disable no-case-declarations */
 /*
  * author: Sri Sai Venkatesh
  */
@@ -3183,6 +3184,18 @@ function ActivityCommonService(db, util, forEachAsync) {
             util.replaceQueryLimit(request.page_limit)
         );
         let queryString = util.getQueryString('ds_p1_bot_list_select', paramsArr);
+        if (queryString != '') {
+            return await (db.executeQueryPromise(1, queryString, request));
+        }
+    };
+
+    this.getBotworkflowSteps = async (request) => {
+        let paramsArr = new Array(
+            request.bot_id,
+            request.page_start || 0,
+            util.replaceQueryLimit(request.page_limit)
+        );
+        let queryString = util.getQueryString('ds_p1_bot_operation_mapping_select', paramsArr);
         if (queryString != '') {
             return await (db.executeQueryPromise(1, queryString, request));
         }
