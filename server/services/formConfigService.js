@@ -4104,7 +4104,7 @@ function FormConfigService(objCollection) {
 
                 let singleSelectionCumulation = {};
                 singleSelectionCumulation.combo_field_sequence_id = -1;
-                singleSelectionCumulation.reference_activity_datatype = singleSelectionDataType;
+                singleSelectionCumulation.single_selection_datatype = singleSelectionDataType;
 
                 botOperations.single_selection_cumulation = singleSelectionCumulation;
 
