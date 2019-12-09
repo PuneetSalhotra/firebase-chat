@@ -2077,7 +2077,7 @@ function ActivityListingService(objCollection) {
 				db.executeQuery(1, queryString, request, async function (err, data) {
 					if (err === false) {
 						try{
-							if(Number(request.flag) == -1) {								
+							if(Number(request.flag) == -1 || Number(request.flag) == -2) {
 								let finalObj = {};
 								let tempObj = {};
 
