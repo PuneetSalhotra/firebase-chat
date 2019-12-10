@@ -1,3 +1,4 @@
+ 
 #Author: V Nani Kalyan
 #Date: 02-Aug-2018
 #Description: yml file to run the PreProd Mobile API Services
@@ -20,4 +21,4 @@ hooks:
   ApplicationStart:
     - location: deployment/start_services_sprint.sh    
       timeout: 300    
-      runas: root  
+      runas: root 

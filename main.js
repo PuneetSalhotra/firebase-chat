@@ -1,6 +1,7 @@
 /* 
  * author: V Nani Kalyan
  */
+var globalConfig = require('./server/utils/globalConfig');
 
 // This line must come before importing any instrumented module.
 const tracer = require('dd-trace').init({
@@ -9,7 +10,6 @@ const tracer = require('dd-trace').init({
     logInjection: true
 });
 
- var globalConfig = require('./server/utils/globalConfig');
 var vodafoneConfig = require('./server/vodafone/utils/vodafoneConfig');
 var Logger = require('./server/utils/logger.js');
 var express = require('express');
