@@ -1983,6 +1983,35 @@ function ActivityService(objectCollection) {
                         activityCommonService.widgetActivityFieldTxnUpdateDatetime(request);
                     }
 
+                    /*Listener - Populate the data in Intermediate Tables for Reference, Combo fields
+                    let activity_id = request.activity_id;
+                    let activity_status_id = request.activity_status_id;
+                    let activity_status_type_id = request.activity_status_type_id;
+                    
+                    let newRequest = Object.assign({}, request);
+                        newRequest.operation_type_id = 16;
+                    
+                    const [err, respData] = await activityListingService.getWorkflowReferenceBots(newRequest);
+                    console.log('Workflow Reference Bots for this activity_type : ', respData.length);
+                    if(respData.length > 0) {
+                        activityCommonService.activityEntityMappingUpdateStatus(request, {
+                            activity_id,
+                            activity_status_id,
+                            activity_status_type_id
+                        }, 1);
+                    }
+                    
+                    newRequest.operation_type_id = 17;
+                    const [err1, respData1] = await activityListingService.getWorkflowReferenceBots(newRequest);
+                    console.log('Combo Field Reference Bots for this activity_type : ', respData1);
+                    if(respData1.length > 0) {
+                        activityCommonService.activityEntityMappingUpdateStatus(request, {
+                            activity_id,
+                            activity_status_id,
+                            activity_status_type_id
+                        }, 2);
+                    }
+                    */////////////////////////////////////////////////////////////////
                  }
                 
                 if (Number(request.device_os_id) === 9) {
