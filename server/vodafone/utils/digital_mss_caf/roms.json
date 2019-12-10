@@ -1,0 +1,123 @@
+[
+    {
+        "form_id": 2184,
+        "field_id": 26060,
+        "field_name": "CPE Charge-Grand Total(A+B)",
+        "field_data_type_id": 6,
+        "field_data_type_category_id": 2,
+        "data_type_combo_id": 0,
+        "data_type_combo_value": "",
+        "field_value": "",
+        "message_unique_id": 2222333344445555
+    },
+    {
+        "form_id": 2184,
+        "field_id": 26063,
+        "field_name": "License/AMC Charge-Grand Total(A+B)",
+        "field_data_type_id": 6,
+        "field_data_type_category_id": 2,
+        "data_type_combo_id": 0,
+        "data_type_combo_value": "",
+        "field_value": "",
+        "message_unique_id": 2222333344445555
+    },
+    {
+        "form_id": 2184,
+        "field_id": 26066,
+        "field_name": "Managed Service Charge-Grand Total(A+B)",
+        "field_data_type_id": 6,
+        "field_data_type_category_id": 2,
+        "data_type_combo_id": 0,
+        "data_type_combo_value": "",
+        "field_value": "",
+        "message_unique_id": 2222333344445555
+    },
+    {
+        "form_id": 2184,
+        "field_id": 26069,
+        "field_name": "Change Management Charge-Grand Total(A+B)",
+        "field_data_type_id": 6,
+        "field_data_type_category_id": 2,
+        "data_type_combo_id": 0,
+        "data_type_combo_value": "",
+        "field_value": "",
+        "message_unique_id": 2222333344445555
+    },
+    {
+        "form_id": 2184,
+        "field_id": 26070,
+        "field_name": "Total MSS Service Charge-One Time(A)",
+        "field_data_type_id": 6,
+        "field_data_type_category_id": 2,
+        "data_type_combo_id": 0,
+        "data_type_combo_value": "",
+        "field_value": "",
+        "message_unique_id": 2222333344445555
+    },
+    {
+        "form_id": 2184,
+        "field_id": 26071,
+        "field_name": "Total MSS Service Charge-Annual Recurring(B)",
+        "field_data_type_id": 6,
+        "field_data_type_category_id": 2,
+        "data_type_combo_id": 0,
+        "data_type_combo_value": "",
+        "field_value": "",
+        "message_unique_id": 2222333344445555
+    },
+    {
+        "form_id": 2184,
+        "field_id": 26072,
+        "field_name": "Total MSS Service Charge-Grand Total(A+B)",
+        "field_data_type_id": 6,
+        "field_data_type_category_id": 2,
+        "data_type_combo_id": 0,
+        "data_type_combo_value": "",
+        "field_value": "",
+        "message_unique_id": 2222333344445555
+    },
+    {
+        "form_id": 2184,
+        "field_id": 26073,
+        "field_name": "Total Order Value",
+        "field_data_type_id": 6,
+        "field_data_type_category_id": 2,
+        "data_type_combo_id": 0,
+        "data_type_combo_value": "",
+        "field_value": "",
+        "message_unique_id": 2222333344445555
+    },
+    {
+        "form_id": 2184,
+        "field_id": 26078,
+        "field_name": "Date",
+        "field_data_type_id": 1,
+        "field_data_type_category_id": 1,
+        "data_type_combo_id": 0,
+        "data_type_combo_value": "",
+        "field_value": "",
+        "message_unique_id": 2222333344445555
+    },
+    {
+        "form_id": 2184,
+        "field_id": 26080,
+        "field_name": "Account Manager Name",
+        "field_data_type_id": 19,
+        "field_data_type_category_id": 7,
+        "data_type_combo_id": 0,
+        "data_type_combo_value": "",
+        "field_value": "",
+        "message_unique_id": 2222333344445555
+    },
+    {
+        "form_id": 2184,
+        "field_id": 26081,
+        "field_name": "Account Manager Circle Office",
+        "field_data_type_id": 19,
+        "field_data_type_category_id": 7,
+        "data_type_combo_id": 0,
+        "data_type_combo_value": "",
+        "field_value": "",
+        "message_unique_id": 2222333344445555
+    }
+]
