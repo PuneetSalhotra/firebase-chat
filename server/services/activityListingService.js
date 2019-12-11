@@ -1461,6 +1461,7 @@ function ActivityListingService(objCollection) {
 				activityCreatorAssetImagePath = util.replaceDefaultString(rowData['activity_creator_asset_image_path']);
 
 			var rowDataArr = {
+				"organization_id": util.replaceDefaultNumber(rowData['organization_id']),
 				"activity_id": util.replaceDefaultNumber(rowData['activity_id']),
 				"activity_title": util.replaceDefaultString(util.ucfirst(util.decodeSpecialChars(rowData['activity_title']))),
 				"activity_description": util.replaceDefaultString(util.decodeSpecialChars(rowData['activity_description'])),

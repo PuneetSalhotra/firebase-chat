@@ -522,6 +522,23 @@ function BotService(objectCollection) {
         }
     };
 
+    this.getBotworkflowStepsByForm = async (request) => {
+        // p_organization_id BIGINT, p_bot_id BIGINT, p_form_id BIGINT, 
+        // p_field_id BIGINT, p_start_from BIGINT, p_limit_value SMALLINT
+        let paramsArr = new Array(
+            request.organization_id,
+            request.bot_id,
+            request.form_id || 0,
+            request.field_id || 0,
+            request.page_start,
+            util.replaceQueryLimit(request.page_limit)
+        );
+        let queryString = util.getQueryString('ds_p1_bot_operation_mapping_select_form', paramsArr);
+        if (queryString != '') {
+            return await (db.executeQueryPromise(1, queryString, request));
+        }
+    };
+
     function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
@@ -554,8 +571,11 @@ function BotService(objectCollection) {
             });
         }*/
 
-        wfSteps = await this.getBotworkflowSteps({
-            "bot_id": request.bot_id,
+        wfSteps = await this.getBotworkflowStepsByForm({
+            "organization_id": 0,
+            "form_id": request.form_id,
+            "field_id": 0,
+            "bot_id": 0, // request.bot_id,
             "page_start": 0,
             "page_limit": 50
         });
@@ -4217,7 +4237,7 @@ function BotService(objectCollection) {
     }
 
     async function updateWFPercentageInIntTablesReferenceDtypes(request) {
-        let activity_id = newrequest.workflow_activity_id;
+        let activity_id = request.workflow_activity_id;
         let workflow_percentage = request.workflow_percentage;
 
         let newRequest = Object.assign({}, request);

@@ -496,6 +496,8 @@ function FormConfigController(objCollection) {
     });
 
     app.post('/' + global.config.version + '/form/entity/list', async function (req, res) {
+        // 0 => Both the origin and non-origin forms
+        // 1 => Only origin forms
 
         const [err, formEntityData] = await formConfigService.formEntityMappingSelect(req.body);
         if (!err) {
