@@ -3816,7 +3816,7 @@ function VodafoneService(objectCollection) {
 
     this.buildAndSubmitCafFormV1 = async function (request) {
 
-        await sleep(2000);
+        await sleep(5000);
 
         let workflowActivityData = [],
             formWorkflowActivityTypeId = 0;
@@ -3828,7 +3828,9 @@ function VodafoneService(objectCollection) {
                 workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
                 if (workflowActivityData.length > 0) {
                     formWorkflowActivityTypeId = workflowActivityData[0].activity_type_id;
-                    console.log("Number(workflowActivityData[0].parent_activity_id): ", Number(workflowActivityData[0].parent_activity_id));
+                    // console.log("Number(workflowActivityData[0].parent_activity_id): ", Number(workflowActivityData[0].parent_activity_id));
+                } else {
+                    logger.error(`Unable to fetch workflow data ${request.workflow_activity_id}`, { type: "vodafone", request_body: request });
                 }
                 // Check for child order for a bulk order
                 // If this workflow has a parent activity, this is a child order and
@@ -3902,7 +3904,7 @@ function VodafoneService(objectCollection) {
         const requiredForms = global.vodafoneConfig[formWorkflowActivityTypeId].REQUIRED_FORMS;
         console.log("buildAndSubmitCafFormV1 | requiredForms: ", requiredForms);
         if (!requiredForms.includes(Number(request.form_id))) {
-            logger.error("Origin Form not found for CAR/CRF generation/re-generation", { type: "vodafone", request_body: request, error: new Error("[MISSION ABORT] Call to build the target forms is not from one of the required forms.") });
+            logger.error("CAF/CRF generation/re-generation request is not from a required form, origin form.", { type: "vodafone", request_body: request, error: new Error("[MISSION ABORT] Call to build the target forms is not from one of the required forms.") });
             return [new Error("[MISSION ABORT] Call to build the target forms is not from one of the required forms."), []];
         }
 
@@ -3915,7 +3917,8 @@ function VodafoneService(objectCollection) {
             );
         }
 
-        let allFormsExist = false;
+        let allFormsExist = false,
+            originFormDataRequestDatetime = moment().utcOffset('+05:30').format('YYYY-MM-DD HH:mm:ss');
         await Promise.all(requiredFormsCheck)
             .then((formEntries) => {
                 // console.log("Promise.all | formEntries: ", formEntries);
@@ -3934,6 +3937,13 @@ function VodafoneService(objectCollection) {
 
         // Do NOT PROCEED further, if all the required forms do not exist
         if (!allFormsExist) {
+            logger.error("Couldn't fetch origin form data for generating CAF/CRF", { type: "vodafone", request_body: request, error: ["Couldn't fetch origin form data for generating CAF/CRF."] });
+            await sendAlertEmail(
+                request,
+                request.workflow_activity_id,
+                requiredForms,
+                `Couldn't fetch origin form data at ${originFormDataRequestDatetime} for generating CAF/CRF`
+            );
             return [new Error("allFormsExist is false, all requried forms have not been submitted."), []];
         }
 
@@ -4098,9 +4108,11 @@ function VodafoneService(objectCollection) {
             if (Number(body.status) === 200) {
                 targetFormActivityId = body.response.activity_id;
                 targetFormTransactionId = body.response.form_transaction_id;
+            } else {
+                logger.error("[Response] Error creating CAF/CRF activity", { type: "vodafone", request_body: request, error: [body] });
             }
         } catch (error) {
-            console.log("addActivityAsync | Error: ", error);
+            logger.error("[Request] Error creating CAF/CRF activity", { type: "vodafone", request_body: request, error });
         }
         // If an activity_id is returned, make an entry to the process's timeline
         if (Number(targetFormActivityId) !== 0 && Number(targetFormActivityId) !== 0) {
@@ -5659,8 +5671,8 @@ function VodafoneService(objectCollection) {
             
             targetFormDataMap.size > 0 &&
             setAnnexureMaskRomsAction.length > 0 &&
-            targetFormActivityID !== 0 &&
-            !isParentOrderFlag
+            targetFormActivityID !== 0// &&
+            // !isParentOrderFlag
         ) {
             console.log("setAnnexureMaskRomsAction[0]: ", setAnnexureMaskRomsAction[0]);
 
@@ -5683,8 +5695,8 @@ function VodafoneService(objectCollection) {
             
             targetFormDataMap.size > 0 &&
             setAnnexureMaskRomsAction.length > 0 &&
-            targetFormActivityID !== 0 &&
-            !isParentOrderFlag
+            targetFormActivityID !== 0// &&
+            // !isParentOrderFlag
         ) {
             console.log("setAnnexureMaskRomsAction[0]: ", setAnnexureMaskRomsAction[0]);
 
@@ -5702,7 +5714,11 @@ function VodafoneService(objectCollection) {
                 comboBatch = batch.BATCH.filter(combo => multiSelectFieldValue.includes(combo.COMBO_VALUE));
                 // Select the "TARGET_FIELD_IDS" array from each combo batch and flatten them out
                 // [ [a, b], [c], [x, y] ] => [ a, b, c, x, y ]
-                targetFieldIDs = comboBatch.flatMap(combo => combo.TARGET_FIELD_IDS);
+                // targetFieldIDs = comboBatch.flatMap(combo => combo.TARGET_FIELD_IDS);
+                let targetFieldIDs = [];
+                for (let i = 0; i < comboBatch.length; i++) {
+                    targetFieldIDs = targetFieldIDs.concat(comboBatch[i].TARGET_FIELD_IDS);
+                }
 
                 for (const targetFieldID of targetFieldIDs) {
                     if (targetFormDataMap.has(targetFieldID)) {
@@ -6011,6 +6027,48 @@ function VodafoneService(objectCollection) {
             return await (db.executeQueryPromise(1, queryString, request));
         }
     };
+
+    async function sendAlertEmail(request, workflowActivityID, requiredForms, message) {
+        let htmlTemplate = `
+        <!DOCTYPE html>
+        <html lang="en">
+        
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        </head>
+        
+        <body>
+            <h3>CAF/CRF Missed For Order ID ${workflowActivityID}</h3>
+            <hr>
+            <p>Required forms: ${requiredForms}</p>
+            <p>Message: ${message}</p>
+            <p>
+                Request parameters: <br>
+                <code>
+                    ${JSON.stringify(request, null, 2)}
+                </code> <br>
+            </p>
+            <br><br>
+        </body>
+        
+        </html>
+        `;
+        await util.sendEmailV3(
+            {
+                email_sender_name: `CAF/CRF Miss Alert Bot`,
+                email_sender: `no-reply@grenerobotics.com`,
+                email_receiver_name: `Ben Sooraj`,
+                // bcc_email_receiver: `sravan@grenerobotics.com `,
+            },
+            `ben@grenerobotics.com`,
+            `CAF/CRF Missed For Order ID ${workflowActivityID} | ${moment().utcOffset('+05:30').format('YYYY-MM-DD HH:mm:ss')} | ${global.mode}`,
+            '',
+            htmlTemplate,
+            () => { }
+        );
+    }
 }
 
 

@@ -56,19 +56,33 @@ function LedgerOpsService(objectCollection) {
                 startOfMonth = moment().startOf('month').format('YYYY-MM-DD');
 
             // Ledger timeline transaction insert
-            let streamTypeID;
+            let streamTypeID, transactionTypeName = '';
             if (transactionTypeID === 1) {
                 streamTypeID = 27007;
+                transactionTypeName = "credited to";
             } else if (transactionTypeID === 2) {
                 streamTypeID = 27008;
+                transactionTypeName = "debited from";
             }
 
             try {
+                let message = `An amount of ${transactionAmount} has been ${transactionTypeName} this account.`;
                 await activityTimelineTransactionInsertV6({
                     ...request,
                     activity_id: ledgerActivityID,
                     entity_decimal_1: transactionAmount,
-                    data_type_id: 62
+                    data_type_id: 62,
+                    data_entity_inline: JSON.stringify({
+                        subject: `Account transaction at ${moment().utcOffset('+05:30').format('LLLL')}`,
+                        content: message,
+                        mail_body: `Account transaction at ${moment().utcOffset('+05:30').format('LLLL')}`,
+                        attachments: [],
+                        asset_reference: [],
+                        form_submitted: [],
+                        activity_reference: [],
+                        form_approval_field_reference: []
+
+                    })
                 }, streamTypeID, organizationID, accountID, workforceID)
             } catch (error) {
                 logger.silly("activityTimelineTransactionInsertV6 | Error: %j", error);
@@ -77,7 +91,8 @@ function LedgerOpsService(objectCollection) {
             // Calculate net
             let netAmountYearly = 0,
                 netAmountQuarterly = 0,
-                netAmountMonthly = 0;
+                netAmountMonthly = 0,
+                ledgerInlineData = {};
             try {
                 // Yearly
                 const [errOne, creditDebitDataYearly] = await ledgerListingService.activityTimelineTransactionSelectLedgerTotals({
@@ -113,7 +128,7 @@ function LedgerOpsService(objectCollection) {
                 // console.log("netAmountMonthly: ", netAmountMonthly);
 
                 // Update the master data column of the ledger
-                const ledgerInlineData = {
+                ledgerInlineData = {
                     monthly: {
                         credit_amount: Number(creditDebitDataMonthly[0].total_credit),
                         debit_amount: Number(creditDebitDataMonthly[0].total_debit),
@@ -144,8 +159,8 @@ function LedgerOpsService(objectCollection) {
                     ...request,
                     activity_id: ledgerActivityID,
                     entity_date_1: startOfMonth,
-                    entity_decimal_1: (transactionTypeID === 1) ? transactionAmount : 0,
-                    entity_decimal_2: (transactionTypeID === 2) ? transactionAmount : 0,
+                    entity_decimal_1: ledgerInlineData.monthly.credit_amount,
+                    entity_decimal_2: ledgerInlineData.monthly.debit_amount,
                     entity_decimal_3: netAmountMonthly
                 }, organizationID, accountID, workforceID)
             } catch (error) {
@@ -158,8 +173,8 @@ function LedgerOpsService(objectCollection) {
                     ...request,
                     activity_id: ledgerActivityID,
                     entity_date_1: startOfQuarter,
-                    entity_decimal_1: (transactionTypeID === 1) ? transactionAmount : 0,
-                    entity_decimal_2: (transactionTypeID === 2) ? transactionAmount : 0,
+                    entity_decimal_1: ledgerInlineData.quarterly.credit_amount,
+                    entity_decimal_2: ledgerInlineData.quarterly.debit_amount,
                     entity_decimal_3: netAmountQuarterly
                 }, organizationID, accountID, workforceID)
             } catch (error) {
@@ -172,8 +187,8 @@ function LedgerOpsService(objectCollection) {
                     ...request,
                     activity_id: ledgerActivityID,
                     entity_date_1: startOfYear,
-                    entity_decimal_1: (transactionTypeID === 1) ? transactionAmount : 0,
-                    entity_decimal_2: (transactionTypeID === 2) ? transactionAmount : 0,
+                    entity_decimal_1: ledgerInlineData.yearly.credit_amount,
+                    entity_decimal_2: ledgerInlineData.yearly.debit_amount,
                     entity_decimal_3: netAmountYearly
                 }, organizationID, accountID, workforceID)
             } catch (error) {

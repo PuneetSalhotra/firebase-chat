@@ -81,7 +81,7 @@ function AdminListingController(objCollection) {
     // Portal: assetListSelectAllDesks
     // DB Call: ds_p1_asset_list_select_all_desks
     app.post('/' + global.config.version + '/admin/workforce/desk_asset/list/all', async function (req, res) {
-        const [err, assetData] = await adminListingService.assetListSelectAllDesks(req.body);
+        const [err, assetData] = await adminListingService.getAllDesksOnFloor(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse({}, assetData, 200, req.body));
         } else {
@@ -128,7 +128,7 @@ function AdminListingController(objCollection) {
 
     // Portal: workforceListSelectAccount1
     // DB Call: ds_p1_1_workforce_list_select_account
-    app.post('/' + global.config.version + '/admin/account/workforce/list', async function (req, res) {
+     app.post('/' + global.config.version + '/admin/account/workforce/list', async function (req, res) {
         const [err, workforceListData] = await adminListingService.workforceListSelectAccount(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse({}, workforceListData, 200, req.body));
