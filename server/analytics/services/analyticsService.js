@@ -1173,32 +1173,39 @@ function AnalyticsService(objectCollection)
                     paramsArray = 
                     new Array
                     (
+                        request.flag || 0,
                         parseInt(request.widget_type_id),
-                        parseInt(request.filter_date_type_id),
+                        parseInt(request.filter_date_type_id),                        
                         parseInt(request.filter_timeline_id),
                         timezoneID,
                         timezoneOffset,
-                        global.analyticsConfig.parameter_flag_sort, //Sort flag
+                        global.analyticsConfig.parameter_flag_sort, //Sort flag                        
                         parseInt(request.organization_id),
                         parseInt(request.filter_account_id),
                         parseInt(request.filter_workforce_type_id),
                         parseInt(request.filter_workforce_id),
-                        parseInt(request.filter_asset_id),
+                        parseInt(request.filter_asset_id),                        
                         parseInt(arrayTagTypes[iteratorX].tag_type_id),
-                        parseInt(request.filter_tag_id),
+                        parseInt(request.filter_tag_id),                        
                         parseInt(request.filter_activity_type_id),
                         global.analyticsConfig.activity_id_all, //Activity ID,
                         parseInt(arrayStatusTypes[iteratorY].activity_status_type_id),
                         parseInt(request.filter_activity_status_tag_id),
-                        parseInt(request.filter_activity_status_id),
+                        parseInt(request.filter_activity_status_id),                        
+                        request.bot_id || 0,
+                        request.bot_operation_id || 0,
+                        request.form_id || 0,
+                        request.field_id || 0,
+                        request.data_type_combo_id || 0,
                         request.datetime_start,
                         request.datetime_end
-                        // parseInt(request.page_start),
-                        // parseInt(util.replaceQueryLimit(request.page_limit))
+                        //parseInt(request.page_start),
+                        //parseInt(util.replaceQueryLimit(request.page_limit))
                     );
 
                     // tempResult = await db.callDBProcedureR2(request, 'ds_p1_activity_list_select_widget_drilldown', paramsArray, 1);
-                    tempResult = await db.callDBProcedureRecursive(request, 1, 0, 50, 'ds_p1_activity_list_select_widget_drilldown', paramsArray, []);
+                    //tempResult = await db.callDBProcedureRecursive(request, 1, 0, 50, 'ds_p1_activity_list_select_widget_drilldown', paramsArray, []);
+                    tempResult = await db.callDBProcedureRecursive(request, 1, 0, 50, 'ds_p1_1_activity_list_select_widget_drilldown', paramsArray, []);
                     //console.log(tempResult);
 
                     results[iterator] =
