@@ -1461,6 +1461,7 @@ function ActivityListingService(objCollection) {
 				activityCreatorAssetImagePath = util.replaceDefaultString(rowData['activity_creator_asset_image_path']);
 
 			var rowDataArr = {
+				"organization_id": util.replaceDefaultNumber(rowData['organization_id']),
 				"activity_id": util.replaceDefaultNumber(rowData['activity_id']),
 				"activity_title": util.replaceDefaultString(util.ucfirst(util.decodeSpecialChars(rowData['activity_title']))),
 				"activity_description": util.replaceDefaultString(util.decodeSpecialChars(rowData['activity_description'])),
@@ -2077,7 +2078,7 @@ function ActivityListingService(objCollection) {
 				db.executeQuery(1, queryString, request, async function (err, data) {
 					if (err === false) {
 						try{
-							if(Number(request.flag) == -1) {								
+							if(Number(request.flag) == -1 || Number(request.flag) == -2) {
 								let finalObj = {};
 								let tempObj = {};
 
