@@ -1090,8 +1090,6 @@ function AnalyticsService(objectCollection)
 
                 case 23: //Cumulated Volume
                 case 24: //Cumulated Value
-                case 37:
-                case 38:
                 case 34: //Cumulated Volume Distribution
                 case 35: //Cumulated Value Distribution
                 case 27: //Status Type Wise TAT
