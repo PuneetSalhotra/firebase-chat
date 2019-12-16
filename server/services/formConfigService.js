@@ -17,6 +17,9 @@ function FormConfigService(objCollection) {
     const BotService = require('../botEngine/services/botService');
     const botService = new BotService(objCollection);
 
+    const ParticipantService = require('../services/activityParticipantService');
+    const participantService = new ParticipantService(objCollection);
+
     const cacheWrapper = objCollection.cacheWrapper;
     const moment = require('moment');
     const nodeUtil = require('util');
@@ -474,7 +477,7 @@ function FormConfigService(objCollection) {
         console.log('newData from Request: ', newData);
         request.new_field_value = newData.field_value;
 
-        //Listener
+        //Listener to update data in Intermediate tables for Reference/combo bots
         switch(Number(newData.field_data_type_id)) {
             case 57: fireBotUpdateIntTables(request, newData);
                      break;
@@ -482,6 +485,9 @@ function FormConfigService(objCollection) {
                      break;
             default: break;
         }
+
+        //If the asset in not a participant on the workflow then add him
+        addAssetToWorkflow(request);
 
         let cnt = 0,
             oldFieldValue,
@@ -2274,7 +2280,7 @@ function FormConfigService(objCollection) {
                 //console.log('**********************************************');
                 //console.log('createWorkflowRequest : ', createWorkflowRequest);
                 //console.log('**********************************************');
-                workflowActivityId = Number(activityId);
+                workflowActivityId = Number(activityId);                
 
                 // Trigger Bot Engine
                 // Bot Engine Trigger
@@ -2330,7 +2336,7 @@ function FormConfigService(objCollection) {
 
             }
 
-            if (isWorkflowEnabled && originFlagSet) {
+            if (isWorkflowEnabled && originFlagSet) {                
                 let activityTitle = "Form Submitted";
                 if (Number(request.organization_id) === 868) {
                     switch (Number(request.activity_form_id)) {
@@ -2373,7 +2379,7 @@ function FormConfigService(objCollection) {
                         default:
                             activityTitle = "Form Submitted";
                     }
-                }
+                }                
 
                 let workflowFile713Request = Object.assign({}, request);
                 workflowFile713Request.activity_id = workflowActivityId;
@@ -2402,7 +2408,7 @@ function FormConfigService(objCollection) {
                 
                 //console.log('**************************************************');
                 //console.log('workflowFile713Request : ', workflowFile713Request);
-                //console.log('**************************************************');
+                //console.log('**************************************************');                
                 
                 await addTimelineTransactionAsync(workflowFile713Request);
 
@@ -4126,7 +4132,8 @@ function FormConfigService(objCollection) {
 
                 newRequest.bot_inline_data = JSON.stringify(botInlineData);
                 newRequest.bot_name = "Workflow reference Bot - " + util.getCurrentUTCTime();
-                newRequest.activity_type_id = Number(newInlineData.workflow_reference_restriction.activity_type_id);
+                //newRequest.activity_type_id = Number(newInlineData.workflow_reference_restriction.activity_type_id);
+                newRequest.activity_type_id = Number(request.form_activity_type_id) || 0;
                 newRequest.bot_operation_type_id = 16;
                 break;
 
@@ -4137,7 +4144,7 @@ function FormConfigService(objCollection) {
 
                 let singleSelectionCumulation = {};
                 singleSelectionCumulation.combo_field_sequence_id = -1;
-                singleSelectionCumulation.reference_activity_datatype = singleSelectionDataType;
+                singleSelectionCumulation.single_selection_datatype = singleSelectionDataType;
 
                 botOperations.single_selection_cumulation = singleSelectionCumulation;
 
@@ -4145,8 +4152,8 @@ function FormConfigService(objCollection) {
                 botInlineData.push(tempObj);
 
                 newRequest.bot_inline_data = JSON.stringify(botInlineData);
-                newRequest.bot_name = "Single selection Bot - " + util.getCurrentUTCTime();
-                newRequest.activity_type_id = 0;
+                newRequest.bot_name = "Single selection Bot - " + util.getCurrentUTCTime();                
+                newRequest.activity_type_id = Number(request.form_activity_type_id) || 0;
                 newRequest.bot_operation_type_id = 17;
                 break;
             case 62:
@@ -4179,6 +4186,12 @@ function FormConfigService(objCollection) {
 
     //update the Intermediate tables - For workflow Reference, Combo Field data types
     async function fireBotUpdateIntTables(request, fieldData) {
+        const [workflowError, workflowData] = await fetchReferredFormActivityIdAsync(request, request.activity_id, request.form_transaction_id, request.form_id);
+        if (workflowError !== false || workflowData.length === 0) {
+            return [workflowError, workflowData];
+        }
+        let workflowActivityId = Number(workflowData[0].activity_id);
+        
         let botIsDefined = 0;
 
         let botEngineRequest = Object.assign({}, request);
@@ -4190,7 +4203,8 @@ function FormConfigService(objCollection) {
             let botsListData = await activityCommonService.getBotsMappedToActType(botEngineRequest);
             if (botsListData.length > 0) {
                 botEngineRequest.bot_id = botsListData[0].bot_id;
-                botEngineRequest.bot_operation_id = botsListData[0].bot_operation_id;
+                let botOperationsData = await activityCommonService.getBotworkflowSteps(botEngineRequest);
+                botEngineRequest.bot_operation_id = botOperationsData[0].bot_operation_id;                
                 botIsDefined = 1;
             }
         } catch (botInitError) {
@@ -4198,19 +4212,23 @@ function FormConfigService(objCollection) {
         }
 
         let newRequest = Object.assign({}, request);
-        newRequest.activity_id = request.activity_id;
+        newRequest.activity_id = workflowActivityId;
         newRequest.form_transaction_id = fieldData.form_transaction_id;
         newRequest.field_id = fieldData.field_id;
         newRequest.data_type_combo_id = fieldData.data_type_combo_id;
         newRequest.bot_operation_id = botEngineRequest.bot_operation_id;
-        newRequest.mapping_activity_id = fieldData.field_value;
+        newRequest.mapping_activity_id = 0;
         newRequest.log_asset_id = request.asset_id;
         newRequest.log_datetime = util.getCurrentUTCTime();
+
+        console.log('botIsDefined : ', botIsDefined);
 
         if (botIsDefined === 1) {
             switch (Number(fieldData.field_data_type_id)) {
                 //Workflow Reference
-                case 57: await activityCommonService.activityEntityMappingUpdateWfValue(newRequest, 1); //1 - activity_entity_mapping
+                case 57:let fieldValue = fieldData.field_value.split('|'); 
+                        newRequest.mapping_activity_id = fieldValue[0];
+                        await activityCommonService.activityEntityMappingUpdateWfValue(newRequest, 1); //1 - activity_entity_mapping
                     break;
 
                 //Combo field
@@ -4220,6 +4238,74 @@ function FormConfigService(objCollection) {
         }
 
         return "success";
+    }   
+    
+    
+    async function addAssetToWorkflow(request){
+        let flag = 1;
+
+        const [workflowError, workflowData] = await fetchReferredFormActivityIdAsync(request, request.activity_id, request.form_transaction_id, request.form_id);
+        if (workflowError !== false || workflowData.length === 0) {
+            return [workflowError, workflowData];
+        }
+        let workflowActivityId = Number(workflowData[0].activity_id);
+        //Get the workflow activity ID        
+        //Get the participants on the workflow
+        //Check whether the current asset is there
+        //If Yes - Do Nothing
+        //If No - Then Add the asset as participant
+        
+        let newReq = Object.assign({}, request);
+            newReq.activity_id = workflowActivityId;
+            newReq.datetime_differential = "1970-01-01 00:00:00";
+            newReq.page_start = 0;
+
+        participantService.getParticipantsList(newReq, async (err, resp)=>{
+            let participantData = resp.data;
+            console.log('********* participantData : ', participantData);
+
+            for(let i = 0; i<participantData.length; i++) {
+                if(Number(participantData[i].asset_id) === Number(request.asset_id)) {
+                    flag = 0;
+                }
+            }
+
+            console.log('FLAG : ', flag);
+            if(flag === 1) {
+                //Add the asset as participant
+                const [err, assetData] = await activityCommonService.getAssetDetailsAsync(request); 
+                if(err) {
+                    return "failure";
+                }               
+                console.log('ASSETDATA : ', assetData[0]);
+
+                let participantCollection = [];
+                let temp = {};
+                    temp.asset_id = assetData[0].asset_id;
+                    temp.organization_id = request.organization_id;
+                    temp.account_id = request.account_id;
+                    temp.workforce_id = request.workforce_id;
+                    temp.access_role_id = 1;
+                    temp.message_unique_id = util.getMessageUniqueId(assetData[0].asset_id);
+                    temp.asset_first_name =  assetData[0].asset_first_name;
+                    temp.operating_asset_first_name = assetData[0].operating_asset_first_name;
+                    temp.workforce_name = assetData[0].workforce_name;
+                    temp.asset_type_id = assetData[0].asset_type_id;
+                    temp.asset_category_id = 1;
+
+                participantCollection.push(temp);
+
+                let addPartipantReq = Object.assign({}, newReq);
+                    addPartipantReq.activity_type_category_id = 48;
+                    addPartipantReq.activity_type_id = Number(workflowData[0].activity_type_id);
+                    addPartipantReq.activity_participant_collection = JSON.stringify(participantCollection);
+                    addPartipantReq.message_unique_id = util.getMessageUniqueId(assetData[0].asset_id);
+
+                participantService.assignCoworker(addPartipantReq, ()=>{});
+            }
+
+            return "success";
+        });
     }
 
 }

@@ -191,7 +191,9 @@ function AnalyticsService(objectCollection)
         widgetInfo.filter_asset_id = util.replaceDefaultNumber(request.filter_asset_id);
         widgetInfo.filter_date_type_id = util.replaceDefaultNumber(request.filter_date_type_id);
         widgetInfo.filter_timeline_id = util.replaceDefaultNumber(request.filter_timeline_id);
-        widgetInfo.filter_timeline_name = util.replaceDefaultNumber(request.filter_timeline_name);  
+        widgetInfo.filter_timeline_name = util.replaceDefaultNumber(request.filter_timeline_name); 
+        widgetInfo.filter_form_id = util.replaceDefaultNumber(request.filter_form_id);
+        widgetInfo.filter_field_id = util.replaceDefaultNumber(request.filter_field_id);
 
         let widgetDetailedInfo = JSON.parse(request.widget_detailed_info) || {};
                
@@ -874,6 +876,43 @@ function AnalyticsService(objectCollection)
                     return results[0];
 
                     break;
+
+                case 18:
+                    paramsArray = 
+                    new Array
+                    (
+                        1,
+                        request.organization_id,
+                        request.account_id,
+                        request.workforce_id,
+                        request.activity_type_id ,
+                        0,
+                        '1970-01-01 00:00:00', //Status
+                        request.page_start,
+                        request.page_limit
+                    );
+
+                    dbCall = "ds_p1_workforce_form_mapping_select_workflow_forms";
+                    results[0] = await db.callDBProcedureR2(request, dbCall, paramsArray, 1);
+                    return results[0];                
+
+                    break;
+                case 19:
+                    paramsArray = 
+                    new Array
+                    (
+                        request.organization_id,
+                        request.form_id,
+                        request.data_type_id,
+                        request.page_start,
+                        request.page_limit
+                    );
+
+                    dbCall = "ds_p1_workforce_form_field_mapping_select_data_type";
+                    results[0] = await db.callDBProcedureR2(request, dbCall, paramsArray, 1);
+                    return results[0];                
+
+                    break;                    
             }
         }
         catch(error)
@@ -1173,32 +1212,39 @@ function AnalyticsService(objectCollection)
                     paramsArray = 
                     new Array
                     (
+                        request.flag || 0,
                         parseInt(request.widget_type_id),
-                        parseInt(request.filter_date_type_id),
+                        parseInt(request.filter_date_type_id),                        
                         parseInt(request.filter_timeline_id),
                         timezoneID,
                         timezoneOffset,
-                        global.analyticsConfig.parameter_flag_sort, //Sort flag
+                        global.analyticsConfig.parameter_flag_sort, //Sort flag                        
                         parseInt(request.organization_id),
                         parseInt(request.filter_account_id),
                         parseInt(request.filter_workforce_type_id),
                         parseInt(request.filter_workforce_id),
-                        parseInt(request.filter_asset_id),
+                        parseInt(request.filter_asset_id),                        
                         parseInt(arrayTagTypes[iteratorX].tag_type_id),
-                        parseInt(request.filter_tag_id),
+                        parseInt(request.filter_tag_id),                        
                         parseInt(request.filter_activity_type_id),
                         global.analyticsConfig.activity_id_all, //Activity ID,
                         parseInt(arrayStatusTypes[iteratorY].activity_status_type_id),
                         parseInt(request.filter_activity_status_tag_id),
-                        parseInt(request.filter_activity_status_id),
+                        parseInt(request.filter_activity_status_id),                        
+                        request.bot_id || 0,
+                        request.bot_operation_id || 0,
+                        request.form_id || 0,
+                        request.field_id || 0,
+                        request.data_type_combo_id || 0,
                         request.datetime_start,
                         request.datetime_end
-                        // parseInt(request.page_start),
-                        // parseInt(util.replaceQueryLimit(request.page_limit))
+                        //parseInt(request.page_start),
+                        //parseInt(util.replaceQueryLimit(request.page_limit))
                     );
 
                     // tempResult = await db.callDBProcedureR2(request, 'ds_p1_activity_list_select_widget_drilldown', paramsArray, 1);
-                    tempResult = await db.callDBProcedureRecursive(request, 1, 0, 50, 'ds_p1_activity_list_select_widget_drilldown', paramsArray, []);
+                    //tempResult = await db.callDBProcedureRecursive(request, 1, 0, 50, 'ds_p1_activity_list_select_widget_drilldown', paramsArray, []);
+                    tempResult = await db.callDBProcedureRecursive(request, 1, 0, 50, 'ds_p1_1_activity_list_select_widget_drilldown', paramsArray, []);
                     //console.log(tempResult);
 
                     results[iterator] =

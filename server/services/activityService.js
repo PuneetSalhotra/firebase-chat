@@ -391,10 +391,11 @@ function ActivityService(objectCollection) {
                                     };
 
                                     queueWrapper.raiseActivityEvent(workflowEngineEvent, request.activity_id, (err, resp) => {
-                                        (err) ?
-                                        global.logger.write('conLog', '\x1b[35m [ERROR] Raising queue activity raised for workflow engine. \x1b[0m', {}, {}):
+                                        if(err) {
+                                            global.logger.write('conLog', '\x1b[35m [ERROR] Raising queue activity raised for workflow engine. \x1b[0m', {}, {});
+                                        } else {
                                             global.logger.write('conLog', '\x1b[35m Queue activity raised for workflow engine. \x1b[0m', {}, {});
-
+                                        }
                                     });
                                 }
                             }
@@ -403,25 +404,6 @@ function ActivityService(objectCollection) {
                             if (activityTypeCategroyId === 9 && request.device_os_id !== 9) {
                                 // Moved to ActivityTimelineService => addTimelineTransaction => fireBotEngineInitForm
                                 // Do nothing
-
-                                //Listener
-                                //Form Submission - When the form has data type reference type
-                                let formInlineData = JSON.parse(request.activity_inline_data);
-                                console.log('formInlineData : ', formInlineData);
-                                let fieldData;
-                                for(let i=0; i<formInlineData.length;i++){                                    
-                                    fieldData = formInlineData[i];
-                                    switch(Number(fieldData.field_data_type_id)) {
-                                        case 57: //Fire the Bot 
-                                                console.log('FIRE THE BOT');
-                                                fireBotInsertIntTables(request, fieldData);
-                                                break;
-                                        case 33: //Fire the Bot 
-                                                console.log('FIRE THE BOT');
-                                                break;
-                                        default: break;
-                                    }
-                                }
                             }
 
                             //  Trigger Bot Engine
@@ -435,7 +417,25 @@ function ActivityService(objectCollection) {
                                 // Do nothing
                             }*/
 
-                            if(activityTypeCategroyId === 48) {
+                            if(activityTypeCategroyId === 48) { 
+                                //Listener
+                                //Form Submission - When the form has data type reference type
+                                let formInlineData = JSON.parse(request.activity_inline_data);
+                                console.log('formInlineData : ', formInlineData);
+                                let fieldData;
+                                for(let i=0; i<formInlineData.length;i++){                                    
+                                    fieldData = formInlineData[i];
+                                    switch(Number(fieldData.field_data_type_id)) {
+                                        case 57: //Fire the Bot                                                 
+                                                fireBotInsertIntTables(request, fieldData);
+                                                break;
+                                        case 33: //Fire the Bot                                                 
+                                                fireBotInsertIntTables(request, fieldData);
+                                                break;
+                                        default: break;
+                                    }
+                                }
+
                                 addValueToWidgetForAnalyticsWF(request, request.activity_id, request.activity_type_id, 0); //0 - Non-Widget
                             }
 
@@ -1983,6 +1983,35 @@ function ActivityService(objectCollection) {
                         activityCommonService.widgetActivityFieldTxnUpdateDatetime(request);
                     }
 
+                    /*Listener - Populate the data in Intermediate Tables for Reference, Combo fields
+                    let activity_id = request.activity_id;
+                    let activity_status_id = request.activity_status_id;
+                    let activity_status_type_id = request.activity_status_type_id;
+                    
+                    let newRequest = Object.assign({}, request);
+                        newRequest.operation_type_id = 16;
+                    
+                    const [err, respData] = await activityListingService.getWorkflowReferenceBots(newRequest);
+                    console.log('Workflow Reference Bots for this activity_type : ', respData.length);
+                    if(respData.length > 0) {
+                        activityCommonService.activityEntityMappingUpdateStatus(request, {
+                            activity_id,
+                            activity_status_id,
+                            activity_status_type_id
+                        }, 1);
+                    }
+                    
+                    newRequest.operation_type_id = 17;
+                    const [err1, respData1] = await activityListingService.getWorkflowReferenceBots(newRequest);
+                    console.log('Combo Field Reference Bots for this activity_type : ', respData1);
+                    if(respData1.length > 0) {
+                        activityCommonService.activityEntityMappingUpdateStatus(request, {
+                            activity_id,
+                            activity_status_id,
+                            activity_status_type_id
+                        }, 2);
+                    }
+                    */////////////////////////////////////////////////////////////////
                  }
                 
                 if (Number(request.device_os_id) === 9) {
@@ -3981,23 +4010,24 @@ function ActivityService(objectCollection) {
 
         try{            
             let botsListData = await activityCommonService.getBotsMappedToActType(botEngineRequest);
-            if (botsListData.length > 0) {
+            if (botsListData.length > 0) {                
                 botEngineRequest.bot_id = botsListData[0].bot_id;
-                botEngineRequest.bot_operation_id = botsListData[0].bot_operation_id;
-                botIsDefined = 1;          
+                let botOperationsData = await activityCommonService.getBotworkflowSteps(botEngineRequest);
+                botEngineRequest.bot_operation_id = botOperationsData[0].bot_operation_id;
+                botIsDefined = 1;
             }
         } catch (botInitError) {
             global.logger.write('error', botInitError, botInitError, request);
         }
 
-      let newRequest = Object.assign({}, request);
-          newRequest.activity_id = request.activity_id;
-          newRequest.mapping_activity_id = "";
+      let newRequest = Object.assign({}, request);          
+          newRequest.activity_id = request.activity_id; //workflow activity id
+          newRequest.mapping_activity_id = 0;
           newRequest.bot_operation_id = botEngineRequest.bot_operation_id;
           newRequest.form_transaction_id = request.form_transaction_id;
           newRequest.form_id = fieldData.form_id;
           newRequest.field_id = fieldData.field_id;
-          newRequest.data_type_combo_id = 0;
+          newRequest.data_type_combo_id = fieldData.data_type_combo_id;
           //newRequest.asset_id = request.asset_id;
           //newRequest.workforce_id = ;
           //newRequest.account_id = "";
@@ -4010,8 +4040,10 @@ function ActivityService(objectCollection) {
       if(botIsDefined === 1) {
         switch(Number(fieldData.field_data_type_id)) {
             //Workflow Reference
-            case 57: newRequest.entity_type_id = 1;
+            case 57: let fieldValue = fieldData.field_value.split('|');
+                     newRequest.entity_type_id = 1;
                      newRequest.entity_level_id = 9;
+                     newRequest.mapping_activity_id = fieldValue[0];
                      await activityCommonService.activityEntityMappingInsert(newRequest, 1); //1 - activity_entity_mapping
                      break;
 
