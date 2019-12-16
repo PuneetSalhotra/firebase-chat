@@ -3809,8 +3809,8 @@ function ActivityCommonService(db, util, forEachAsync) {
       const paramsArr = new Array(
         data.activity_id,
         request.organization_id,
-        data.deferred_datetime,
-        request.log_asset_id,
+        util.getFormatedLogDatetime(data.deferred_datetime),
+        request.asset_id,
         util.getCurrentUTCTime()
       );
       let queryString = "";

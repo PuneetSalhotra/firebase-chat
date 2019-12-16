@@ -2522,6 +2522,8 @@ function ActivityListingService(objCollection) {
 
 	
 	this.getWidgetValues = async (request) =>{
+
+		console.log("request :: ",JSON.stringify(request,null,2));
         let responseData = [],
             error = true;
 
@@ -2530,26 +2532,29 @@ function ActivityListingService(objCollection) {
 			request.flag_datetime,
 			request.timeline_id,
 			request.timezone_id,
-			request.timezone_offset,
-			request.flag_sort,
+			request.timezone_offset || 0,
+			request.flag_sort || 0,
 			request.organization_id,
-			request.account_id,
-			request.workforce_type_id,
-			request.workforce_id,
-			request.asset_id,
+			request.filter_account_id,
+			request.filter_workforce_type_id,
+			request.filter_workforce_id,
+			request.filter_asset_id,
 			request.tag_type_id,
 			request.tag_id,
 			request.activity_type_id,
-			request.activity_id,
+			request.activity_id || 0,
 			request.activity_status_type_id,
 			request.activity_status_tag_id,
 			request.activity_status_id,
-			request.bot_id,
-			request.bot_operation_id,
+			request.bot_id || 0,
+			request.bot_operation_id || 0,
+			request.form_id,
+			request.field_id,
+			request.data_type_combo_id,
 			request.datetime_start,
 			request.datetime_end,
-			request.start_from ,
-			request.limit_value
+			request.page_start ,
+			request.page_limit
         );
         const queryString = util.getQueryString('ds_p1_1_activity_list_select_widget_values', paramsArr);
 
