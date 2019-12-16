@@ -191,7 +191,9 @@ function AnalyticsService(objectCollection)
         widgetInfo.filter_asset_id = util.replaceDefaultNumber(request.filter_asset_id);
         widgetInfo.filter_date_type_id = util.replaceDefaultNumber(request.filter_date_type_id);
         widgetInfo.filter_timeline_id = util.replaceDefaultNumber(request.filter_timeline_id);
-        widgetInfo.filter_timeline_name = util.replaceDefaultNumber(request.filter_timeline_name);  
+        widgetInfo.filter_timeline_name = util.replaceDefaultNumber(request.filter_timeline_name); 
+        widgetInfo.filter_form_id = util.replaceDefaultNumber(request.filter_form_id);
+        widgetInfo.filter_field_id = util.replaceDefaultNumber(request.filter_field_id);
 
         let widgetDetailedInfo = JSON.parse(request.widget_detailed_info) || {};
                
@@ -874,6 +876,43 @@ function AnalyticsService(objectCollection)
                     return results[0];
 
                     break;
+
+                case 18:
+                    paramsArray = 
+                    new Array
+                    (
+                        1,
+                        request.organization_id,
+                        request.account_id,
+                        request.workforce_id,
+                        request.activity_type_id ,
+                        0,
+                        '1970-01-01 00:00:00', //Status
+                        request.page_start,
+                        request.page_limit
+                    );
+
+                    dbCall = "ds_p1_workforce_form_mapping_select_workflow_forms";
+                    results[0] = await db.callDBProcedureR2(request, dbCall, paramsArray, 1);
+                    return results[0];                
+
+                    break;
+                case 19:
+                    paramsArray = 
+                    new Array
+                    (
+                        request.organization_id,
+                        request.form_id,
+                        request.data_type_id,
+                        request.page_start,
+                        request.page_limit
+                    );
+
+                    dbCall = "ds_p1_workforce_form_field_mapping_select_data_type";
+                    results[0] = await db.callDBProcedureR2(request, dbCall, paramsArray, 1);
+                    return results[0];                
+
+                    break;                    
             }
         }
         catch(error)
