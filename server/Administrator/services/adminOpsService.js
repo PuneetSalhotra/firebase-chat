@@ -4512,6 +4512,59 @@ function AdminOpsService(objectCollection) {
         return [error, responseData];
     }
 
+    this.workflowUpdatePersistRoleFlag = async function (request, persistRoleFlag) {
+        const organizationID = Number(request.organization_id),
+            accountID = Number(request.account_id),
+            workforceID = Number(request.workforce_id);
+
+        let responseData = [],
+            error = true;
+        try {
+            responseData = await workforceActivityTypeMappingPersistRoleFlagUpdate({
+                ...request,
+                activity_flag_persist_role: persistRoleFlag
+            }, organizationID, accountID, workforceID);
+            error = false;
+        } catch (err) {
+            error = err;
+        }
+        return [error, responseData];
+    }
+
+    // Workforce Activity Type Mapping Persist Role Flag Update
+    async function workforceActivityTypeMappingPersistRoleFlagUpdate(request, organizationID, accountID, workforceID) {
+        // organization_id, account_id, workforce_id, activity_type_id, activity_type_name, activity_type_description, 
+        // activity_flag_persist_role, access_level_id, log_asset_id, log_datetime
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            organizationID,
+            accountID,
+            workforceID,
+            request.activity_type_id,
+            request.activity_type_name,
+            request.activity_type_description,
+            request.activity_flag_persist_role,
+            request.access_level_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_2_workforce_activity_type_mapping_update', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
 }
 
 module.exports = AdminOpsService;

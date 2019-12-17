@@ -214,6 +214,28 @@ function AdminOpsController(objCollection) {
         
     });
 
+    // Set Persist Role Flag In The Workforce Activity Type Mapping Table
+    app.post('/' + global.config.version + '/admin/workforce/activity_type/flag_persist_role/set', async function (req, res) {
+        const [err, responseData] = await adminOpsService.workflowUpdatePersistRoleFlag(req.body, 1);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/admin/workforce/activity_type/flag_persist_role/set | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+    });
+
+    // Reset Persist Role Flag In The Workforce Activity Type Mapping Table
+    app.post('/' + global.config.version + '/admin/workforce/activity_type/flag_persist_role/reset', async function (req, res) {
+        const [err, responseData] = await adminOpsService.workflowUpdatePersistRoleFlag(req.body, 0);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/admin/workforce/activity_type/flag_persist_role/reset | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = AdminOpsController;
