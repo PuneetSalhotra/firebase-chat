@@ -4603,6 +4603,48 @@ function AdminOpsService(objectCollection) {
         }
         return [error, responseData];
     }
+
+    this.updateRoleName = async function (request) {
+        const organizationID = Number(request.organization_id),
+            accountID = Number(request.account_id),
+            workforceID = Number(request.workforce_id);
+
+        const [error, assetTypeData] = await workforceAssetTypeMappingUpdateRoleName(request, organizationID, accountID, workforceID);
+        if (error) {
+            return [error, { message: "Error update role's name" }];
+        }
+        return [error, assetTypeData];
+    }
+
+    // Workforce Aseet Type Mapping Update Role's Name
+    async function workforceAssetTypeMappingUpdateRoleName(request, organizationID, accountID, workforceID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_type_id,
+            request.asset_type_name,
+            workforceID,
+            accountID,
+            organizationID,
+            util.getCurrentUTCTime(),
+            request.asset_id
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_asset_type_mapping_update', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
 }
 
 module.exports = AdminOpsService;

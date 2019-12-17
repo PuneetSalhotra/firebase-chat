@@ -251,6 +251,17 @@ function AdminOpsController(objCollection) {
         }
     });
 
+    // Update a role's name
+    app.post('/' + global.config.version + '/admin/workforce/asset_type/role/update_name', async function (req, res) {
+        const [err, responseData] = await adminOpsService.updateRoleName(req.body, 0);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/admin/workforce/asset_type/role/update_name | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = AdminOpsController;
