@@ -4645,6 +4645,64 @@ function AdminOpsService(objectCollection) {
         return [error, responseData];
     }
 
+    this.archiveRole = async function (request) {
+        const organizationID = Number(request.organization_id),
+            accountID = Number(request.account_id),
+            workforceID = Number(request.workforce_id);
+
+        // Check if there are assets/desks with this role
+        const [errOne, assetData] = await adminListingService.assetListSelectRole(request);
+        if (errOne) {
+            return [errOne, { message: "Error checking if there are assets with this role" }];
+        } else if (assetData.length > 0) {
+            return [true, { message: "Cannot archive role; delete assets with this role before archiving" }];
+        }
+
+        // Check for status-role bindings
+        const [errTwo, statusData] = await adminListingService.workforceActivityStatusMappingSelectRole(request);
+        if (errTwo) {
+            return [errTwo, { message: "Error checking if there are statuses associated with this role" }];
+        } else if (statusData.length > 0) {
+            return [true, { message: "Cannot archive role; delete statuses associated with this role before archiving" }];
+        }
+
+        try {
+            await workforceAssetTypeMappingDelete(request, organizationID, accountID, workforceID);
+        } catch (error) {
+            return [error, { message: `Error archiving role ${request.asset_type_id}` }]
+        }
+
+        return [false, { message: `Role ${request.asset_type_id} archived successfully` }];
+    }
+
+    // Workforce Aseet Type Mapping Delete Role
+    async function workforceAssetTypeMappingDelete(request, organizationID, accountID, workforceID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_type_id,
+            workforceID,
+            accountID,
+            organizationID,
+            util.getCurrentUTCTime(),
+            request.asset_id
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_asset_type_mapping_delete', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
 }
 
 module.exports = AdminOpsService;

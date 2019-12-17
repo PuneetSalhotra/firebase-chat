@@ -262,6 +262,17 @@ function AdminOpsController(objCollection) {
         }
     });
 
+    // Archive a role
+    app.post('/' + global.config.version + '/admin/workforce/asset_type/role/archive', async function (req, res) {
+        const [err, responseData] = await adminOpsService.archiveRole(req.body, 0);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/admin/workforce/asset_type/role/archive | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = AdminOpsController;
