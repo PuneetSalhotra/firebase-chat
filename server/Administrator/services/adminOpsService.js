@@ -4521,9 +4521,8 @@ function AdminOpsService(objectCollection) {
             ...request,
             activity_flag_persist_role: persistRoleFlag
         }, organizationID, accountID, workforceID);
-            error = false;
-        } catch (err) {
-            error = err;
+        if (error) {
+            return [error, { message: "Error updating role flag" }];
         }
         return [error, responseData];
     }
@@ -4562,6 +4561,48 @@ function AdminOpsService(objectCollection) {
         return [error, responseData];
     }
 
+    this.createRole = async function (request) {
+        const organizationID = Number(request.organization_id),
+            accountID = Number(request.account_id),
+            workforceID = Number(request.workforce_id);
+        const [error, assetTypeData] = await workforceAssetTypeMappingInsertRole(request, organizationID, accountID, workforceID);
+        if (error) {
+            return [error, { message: "Error creating role" }];
+        }
+        return [error, assetTypeData];
+    }
+
+    // Workforce Aseet Type Mapping Insert
+    async function workforceAssetTypeMappingInsertRole(request, organizationID, accountID, workforceID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_type_name || '',
+            request.asset_type_description || '',
+            request.asset_type_category_id || 0,
+            request.asset_type_level_id || 0,
+            request.asset_type_flag_organization_specific,
+            workforceID,
+            accountID,
+            organizationID,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_1_workforce_asset_type_mapping_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = AdminOpsService;

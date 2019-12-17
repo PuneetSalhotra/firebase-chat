@@ -236,6 +236,21 @@ function AdminOpsController(objCollection) {
         }
     });
 
+    // Create a role
+    app.post('/' + global.config.version + '/admin/workforce/asset_type/role/create', async function (req, res) {
+        // asset_type_level_id:
+        // 1: Organization
+        // 2: Account
+        // 3: WorkForce     
+        const [err, responseData] = await adminOpsService.createRole(req.body, 0);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/admin/workforce/asset_type/role/create | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = AdminOpsController;
