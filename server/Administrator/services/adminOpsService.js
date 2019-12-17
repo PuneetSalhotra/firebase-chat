@@ -609,13 +609,16 @@ function AdminOpsService(objectCollection) {
             contact_department: request.workforce_name, // workforce name
             contact_email_id: '',
             contact_asset_type_id: request.asset_type_id,
+            contact_asset_type_name: request.asset_type_name,
             contact_organization: request.organization_name,
             contact_asset_id: 0,
             contact_workforce_id: request.workforce_id,
             contact_account_id: request.account_id,
             contact_organization_id: request.organization_id,
             contact_operating_asset_name: '',
-            contact_operating_asset_id: ''
+            contact_operating_asset_id: '',
+            contact_manager_asset_id: request.manager_asset_id || 0,
+            contact_manager_asset_first_name: request.manager_asset_first_name || ''
         });
 
         // Create the asset
@@ -801,7 +804,11 @@ function AdminOpsService(objectCollection) {
             employee_office_city: (request.account_city) ? request.account_city : '',
             employee_phone_number: request.phone_number,
             employee_phone_country_code: request.country_code,
-            employee_email_id: request.email_id
+            employee_email_id: request.email_id,
+            employee_asset_type_id: request.asset_type_id,
+            employee_asset_type_name: request.asset_type_name,
+            employee_manager_asset_id: request.manager_asset_id || 0,
+            employee_manager_asset_first_name: request.manager_asset_first_name || ''
         });
 
         // Create the asset
