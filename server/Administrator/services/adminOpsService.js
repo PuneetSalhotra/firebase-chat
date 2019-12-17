@@ -4517,13 +4517,10 @@ function AdminOpsService(objectCollection) {
             accountID = Number(request.account_id),
             workforceID = Number(request.workforce_id);
 
-        let responseData = [],
-            error = true;
-        try {
-            responseData = await workforceActivityTypeMappingPersistRoleFlagUpdate({
-                ...request,
-                activity_flag_persist_role: persistRoleFlag
-            }, organizationID, accountID, workforceID);
+        const [error, responseData] = await workforceActivityTypeMappingPersistRoleFlagUpdate({
+            ...request,
+            activity_flag_persist_role: persistRoleFlag
+        }, organizationID, accountID, workforceID);
             error = false;
         } catch (err) {
             error = err;
