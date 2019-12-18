@@ -273,6 +273,27 @@ function AdminOpsController(objCollection) {
         }
     });
 
+    // Update the Asset Type
+    app.post('/' + global.config.version + '/admin/asset_type/alter', async function (req, res) {
+        const [err, responseData] = await adminOpsService.updateAssetType(req.body, 0);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/admin/asset_type/alter | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+    });
+
+    // Update the Asset's Manager Data
+    app.post('/' + global.config.version + '/admin/asset_manager/alter', async function (req, res) {
+        const [err, responseData] = await adminOpsService.updateAssetsManagerDetails(req.body, 0);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/admin/asset_manager/alter | Error: ", err);
+        }
+    });
+    
     // Update the role mapped to a status along with the expected status duration and workflow percentage as well
     app.post('/' + global.config.version + '/admin/workforce/activity_status/role/update', async function (req, res) {
         // flag:

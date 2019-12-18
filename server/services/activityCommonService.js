@@ -644,9 +644,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 activityTimelineCollection = request.activity_timeline_collection;
                 entityText1 = "";
                 entityText2 = JSON.stringify(request.activity_timeline_text);
-                break;  
-            case 27007: //Credit to Account
-            case 27008: //Debit from Account          
+                break;          
             default:
                 entityTypeId = 0;
                 entityText1 = "";
@@ -713,9 +711,14 @@ function ActivityCommonService(db, util, forEachAsync) {
             request.flag_offline || 0,
             request.track_gps_datetime,
             request.datetime_log,
-            request.data_activity_id || 0 //Added on 10-12-2018
+            request.data_activity_id || 0, //Added on 10-12-2018
+            request.trigger_bot_id || 0,
+            request.trigger_bot_operation_id || 0,
+            request.trigger_form_id || 0,
+            request.trigger_form_transaction_id || 0
         );
-        let queryString = util.getQueryString("ds_v1_5_activity_timeline_transaction_insert", paramsArr);
+        //let queryString = util.getQueryString("ds_v1_5_activity_timeline_transaction_insert", paramsArr);
+        let queryString = util.getQueryString("ds_v1_6_activity_timeline_transaction_insert", paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
