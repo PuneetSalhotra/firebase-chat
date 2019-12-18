@@ -508,6 +508,20 @@ function FormConfigController(objCollection) {
         }
     });
 
+    //Returning the global forms in v1
+    app.post('/' + global.config.version + '/form/entity/list/v1', async function (req, res) {
+        // 0 => Both the origin and non-origin forms
+        // 1 => Only origin forms
+
+        const [err, formEntityData] = await formConfigService.formEntityMappingSelectV1(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, formEntityData, 200, req.body));
+        } else {
+            console.log("Error: ", err);
+            res.send(responseWrapper.getResponse(err, formEntityData, -9999, req.body));
+        }
+    });
+
     app.post('/' + global.config.version + '/form/definition/list', async function (req, res) {
 
         const [err, formFieldData] = await formConfigService.workforceFormFieldMappingSelectForm(req.body);
@@ -576,6 +590,18 @@ function FormConfigController(objCollection) {
         }
 
     }); 
+
+    app.post('/' + global.config.version + '/form/global_forms/access/list', async function (req, res) {
+
+        const [err, formData] = await formConfigService.getGlobalForms(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, formData, 200, req.body));
+        } else {
+            console.log("Error: ", err);
+            res.send(responseWrapper.getResponse(err, formData, -9999, req.body));
+        }
+
+    });
 }
 
 module.exports = FormConfigController;
