@@ -4611,7 +4611,7 @@ function AdminOpsService(objectCollection) {
 
         const [error, assetTypeData] = await workforceAssetTypeMappingUpdateRoleName(request, organizationID, accountID, workforceID);
         if (error) {
-            return [error, { message: "Error update role's name" }];
+            return [error, { message: "Error updating role's name" }];
         }
         return [error, assetTypeData];
     }
@@ -4719,7 +4719,7 @@ function AdminOpsService(objectCollection) {
             if (queryString != '') {
                 return await (db.executeQueryPromise(0, queryString, request));
             }
-        }
+    }
     
     //Update the Asset's Manager Data
     this.updateAssetsManagerDetails = async (request) => {
@@ -4829,6 +4829,49 @@ function AdminOpsService(objectCollection) {
     return [error, responseData];
     }
 
+    this.updateStatusRoleMapping = async function (request) {
+        const organizationID = Number(request.organization_id),
+            accountID = Number(request.account_id),
+            workforceID = Number(request.workforce_id);
+
+        const [error, statusData] = await workforceActivityStatusMappingUpdateRole(request, organizationID, accountID, workforceID);
+        if (error) {
+            return [error, { message: "Error updating role mapping, duration and percentage of a status" }];
+        }
+        return [error, statusData];
+    }
+
+    // Workforce Aseet Type Mapping Delete Role
+    async function workforceActivityStatusMappingUpdateRole(request, organizationID, accountID, workforceID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            organizationID,
+            accountID,
+            workforceID,
+            request.activity_status_id,
+            request.flag,
+            request.asset_type_id,
+            request.percentage,
+            request.duration,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_update_role', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = AdminOpsService;
