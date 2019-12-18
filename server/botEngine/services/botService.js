@@ -4216,7 +4216,7 @@ function BotService(objectCollection) {
         console.log('Workflow Reference Bots for this activity_type : ', respData);
         if(respData.length > 0) {
             //for(let i = 0; i<respData.length; i++) {}               
-            activityCommonService.activityEntityMappingUpdateWFPercentage(request, {
+            activityCommonService.activityEntityMappingUpdateStatus(request, {
                 activity_id,
                 activity_status_id,
                 activity_status_type_id
@@ -4228,7 +4228,7 @@ function BotService(objectCollection) {
         console.log('Combo Field Reference Bots for this activity_type : ', respData);
         if(respData1.length > 0) {
             //for(let i = 0; i<respData.length; i++) {}
-            activityCommonService.activityEntityMappingUpdateWFPercentage(request, {
+            activityCommonService.activityEntityMappingUpdateStatus(request, {
                 activity_id,
                 activity_status_id,
                 activity_status_type_id

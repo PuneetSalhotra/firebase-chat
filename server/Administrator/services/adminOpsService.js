@@ -609,13 +609,16 @@ function AdminOpsService(objectCollection) {
             contact_department: request.workforce_name, // workforce name
             contact_email_id: '',
             contact_asset_type_id: request.asset_type_id,
+            contact_asset_type_name: request.asset_type_name,
             contact_organization: request.organization_name,
             contact_asset_id: 0,
             contact_workforce_id: request.workforce_id,
             contact_account_id: request.account_id,
             contact_organization_id: request.organization_id,
             contact_operating_asset_name: '',
-            contact_operating_asset_id: ''
+            contact_operating_asset_id: '',
+            contact_manager_asset_id: request.manager_asset_id || 0,
+            contact_manager_asset_first_name: request.manager_asset_first_name || ''
         });
 
         // Create the asset
@@ -801,7 +804,11 @@ function AdminOpsService(objectCollection) {
             employee_office_city: (request.account_city) ? request.account_city : '',
             employee_phone_number: request.phone_number,
             employee_phone_country_code: request.country_code,
-            employee_email_id: request.email_id
+            employee_email_id: request.email_id,
+            employee_asset_type_id: request.asset_type_id,
+            employee_asset_type_name: request.asset_type_name,
+            employee_manager_asset_id: request.manager_asset_id || 0,
+            employee_manager_asset_first_name: request.manager_asset_first_name || ''
         });
 
         // Create the asset
@@ -4491,6 +4498,197 @@ function AdminOpsService(objectCollection) {
             util.getCurrentUTCTime(),
         );
         const queryString = util.getQueryString('ds_p1_activity_status_tag_list_update', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.workflowUpdatePersistRoleFlag = async function (request, persistRoleFlag) {
+        const organizationID = Number(request.organization_id),
+            accountID = Number(request.account_id),
+            workforceID = Number(request.workforce_id);
+
+        const [error, responseData] = await workforceActivityTypeMappingPersistRoleFlagUpdate({
+            ...request,
+            activity_flag_persist_role: persistRoleFlag
+        }, organizationID, accountID, workforceID);
+        if (error) {
+            return [error, { message: "Error updating role flag" }];
+        }
+        return [error, responseData];
+    }
+
+    // Workforce Activity Type Mapping Persist Role Flag Update
+    async function workforceActivityTypeMappingPersistRoleFlagUpdate(request, organizationID, accountID, workforceID) {
+        // organization_id, account_id, workforce_id, activity_type_id, activity_type_name, activity_type_description, 
+        // activity_flag_persist_role, access_level_id, log_asset_id, log_datetime
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            organizationID,
+            accountID,
+            workforceID,
+            request.activity_type_id,
+            request.activity_type_name,
+            request.activity_type_description,
+            request.activity_flag_persist_role,
+            request.access_level_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_2_workforce_activity_type_mapping_update', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.createRole = async function (request) {
+        const organizationID = Number(request.organization_id),
+            accountID = Number(request.account_id),
+            workforceID = Number(request.workforce_id);
+        const [error, assetTypeData] = await workforceAssetTypeMappingInsertRole(request, organizationID, accountID, workforceID);
+        if (error) {
+            return [error, { message: "Error creating role" }];
+        }
+        return [error, assetTypeData];
+    }
+
+    // Workforce Aseet Type Mapping Insert
+    async function workforceAssetTypeMappingInsertRole(request, organizationID, accountID, workforceID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_type_name || '',
+            request.asset_type_description || '',
+            request.asset_type_category_id || 0,
+            request.asset_type_level_id || 0,
+            request.asset_type_flag_organization_specific,
+            workforceID,
+            accountID,
+            organizationID,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_1_workforce_asset_type_mapping_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.updateRoleName = async function (request) {
+        const organizationID = Number(request.organization_id),
+            accountID = Number(request.account_id),
+            workforceID = Number(request.workforce_id);
+
+        const [error, assetTypeData] = await workforceAssetTypeMappingUpdateRoleName(request, organizationID, accountID, workforceID);
+        if (error) {
+            return [error, { message: "Error update role's name" }];
+        }
+        return [error, assetTypeData];
+    }
+
+    // Workforce Aseet Type Mapping Update Role's Name
+    async function workforceAssetTypeMappingUpdateRoleName(request, organizationID, accountID, workforceID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_type_id,
+            request.asset_type_name,
+            workforceID,
+            accountID,
+            organizationID,
+            util.getCurrentUTCTime(),
+            request.asset_id
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_asset_type_mapping_update', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.archiveRole = async function (request) {
+        const organizationID = Number(request.organization_id),
+            accountID = Number(request.account_id),
+            workforceID = Number(request.workforce_id);
+
+        // Check if there are assets/desks with this role
+        const [errOne, assetData] = await adminListingService.assetListSelectRole(request);
+        if (errOne) {
+            return [errOne, { message: "Error checking if there are assets with this role" }];
+        } else if (assetData.length > 0) {
+            return [true, { message: "Cannot archive role; delete assets with this role before archiving" }];
+        }
+
+        // Check for status-role bindings
+        const [errTwo, statusData] = await adminListingService.workforceActivityStatusMappingSelectRole(request);
+        if (errTwo) {
+            return [errTwo, { message: "Error checking if there are statuses associated with this role" }];
+        } else if (statusData.length > 0) {
+            return [true, { message: "Cannot archive role; delete statuses associated with this role before archiving" }];
+        }
+
+        try {
+            await workforceAssetTypeMappingDelete(request, organizationID, accountID, workforceID);
+        } catch (error) {
+            return [error, { message: `Error archiving role ${request.asset_type_id}` }]
+        }
+
+        return [false, { message: `Role ${request.asset_type_id} archived successfully` }];
+    }
+
+    // Workforce Aseet Type Mapping Delete Role
+    async function workforceAssetTypeMappingDelete(request, organizationID, accountID, workforceID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_type_id,
+            workforceID,
+            accountID,
+            organizationID,
+            util.getCurrentUTCTime(),
+            request.asset_id
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_asset_type_mapping_delete', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
