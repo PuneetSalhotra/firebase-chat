@@ -4703,6 +4703,132 @@ function AdminOpsService(objectCollection) {
         return [error, responseData];
     }
 
+    //Update the Asset Type
+    this.updateAssetType = async (request) => {
+        //async function updateAssetType(request){
+            const paramsArr = new Array(
+                request.asset_id,
+                request.asset_type_id,
+                request.workforce_id,
+                request.account_id,
+                request.organization_id,
+                request.log_asset_id || request.asset_id,
+                util.getCurrentUTCTime()
+            );
+            const queryString = util.getQueryString('ds_p1_asset_list_update_asset_type', paramsArr);
+            if (queryString != '') {
+                return await (db.executeQueryPromise(0, queryString, request));
+            }
+        }
+    
+    //Update the Asset's Manager Data
+    this.updateAssetsManagerDetails = async (request) => {
+        let responseData = [],
+            error = false;
+        //async function updateAssetsManagerDetails(request){
+        //1.Update in asset_list
+        //2.Update Contact Card
+        //3.Update ID Card 
+        let deskAssetID = request.asset_id;
+        let organizationID = request.organization_id;
+        const paramsArr = new Array(
+                deskAssetID, //desk_asset_id
+                request.manager_asset_id,
+                request.workforce_id,
+                request.account_id,
+                request.organization_id,
+                request.log_asset_id || request.asset_id,
+                util.getCurrentUTCTime()
+            );
+            const queryString = util.getQueryString('ds_p1_asset_list_update_manager', paramsArr);
+            if (queryString != '') {
+                await (db.executeQueryPromise(0, queryString, request));
+            }
+
+        //STEP 2. Get Contact Card - AND - Update the data
+        // Fetch the desk's contact card
+        // Fetch the Employee's ID card
+        const [errOne, contactCardData] = await adminListingService.activityListSelectCategoryContact({
+            asset_id: deskAssetID
+        }, organizationID);
+
+        if (errOne || Number(contactCardData.length) === 0
+        ) {
+            logger.error(`upateDeskAndEmployeeAsset.activityListSelectCategoryContact`, { type: 'admin_ops', request_body: request, error: errOne });
+            return [errOne, []]
+        }
+        
+        //console.log('contactCardData : ', contactCardData);
+
+        const contactCardActivityID = Number(contactCardData[0].activity_id);
+        let contactCardJSON = JSON.parse(contactCardData[0].activity_inline_data);
+            contactCardJSON.contact_manager_asset_id = request.manager_asset_id;
+
+        let employeeAssetID = Number(contactCardJSON.contact_operating_asset_id);
+        
+        // Update the Contact Card's Activity List table
+        try {
+            await activityListUpdateInlineData({
+                activity_id: contactCardActivityID,
+                activity_inline_data: JSON.stringify(contactCardJSON)
+            }, organizationID);
+        } catch (error) {
+            logger.error(`upateDeskAndEmployeeAsset.activityListUpdateInlineData_IDCard`, { type: 'admin_ops', request_body: request, error });
+        }
+
+        // Update the Contact Card's Activity Asset Mapping table
+        try {
+            await activityAssetMappingUpdateInlineData({
+                activity_id: contactCardActivityID,
+                asset_id: deskAssetID,
+                activity_inline_data: JSON.stringify(contactCardJSON),
+                pipe_separated_string: '',
+                log_asset_id: request.asset_id
+            }, organizationID);
+        } catch (error) {
+            logger.error(`upateDeskAndEmployeeAsset.activityAssetMappingUpdateInlineData_IDCard`, { type: 'admin_ops', request_body: request, error });
+        }
+
+        //STEP 3. Get ID Card - AND - Update the data
+        // Fetch the Employee's ID card
+        const [errTwo, idCardData] = await adminListingService.activityAssetMappingSelectAssetIdCard({
+            asset_id: employeeAssetID
+        }, organizationID);
+        if (errTwo || Number(idCardData.length) === 0
+        ) {
+            logger.error(`upateDeskAndEmployeeAsset.activityAssetMappingSelectAssetIdCard`, { type: 'admin_ops', request_body: request, error: errOne });
+            return [errTwo, []]
+        }
+        const idCardActivityID = Number(idCardData[0].activity_id);
+        let idCardJSON = JSON.parse(idCardData[0].activity_inline_data);
+            idCardJSON.employee_manager_asset_id = request.manager_asset_id;
+
+        // Update the ID Card's Activity List table
+        try {
+            await activityListUpdateInlineData({
+                activity_id: idCardActivityID,
+                activity_inline_data: JSON.stringify(idCardJSON)
+            }, organizationID);
+        } catch (error) {
+            logger.error(`upateDeskAndEmployeeAsset.activityListUpdateInlineData_IDCard`, { type: 'admin_ops', request_body: request, error });
+        }
+
+        // Update the ID Card's Activity Asset Mapping table
+        try {
+            await activityAssetMappingUpdateInlineData({
+                activity_id: idCardActivityID,
+                asset_id: employeeAssetID,
+                activity_inline_data: JSON.stringify(idCardJSON),
+                pipe_separated_string: '',
+                log_asset_id: request.asset_id
+            }, organizationID);
+        } catch (error) {
+            logger.error(`upateDeskAndEmployeeAsset.activityAssetMappingUpdateInlineData_IDCard`, { type: 'admin_ops', request_body: request, error });
+        }
+     
+    return [error, responseData];
+    }
+
 }
 
 module.exports = AdminOpsService;

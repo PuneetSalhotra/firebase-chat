@@ -4149,7 +4149,8 @@ function AssetService(objectCollection) {
     };
 
     //Update the Asset Type
-    async function updateAssetType(request){
+    /*this.updateAssetType = async (request) => {
+    //async function updateAssetType(request){
         const paramsArr = new Array(
             request.asset_id,
             request.asset_type_id,
@@ -4166,7 +4167,8 @@ function AssetService(objectCollection) {
     }
 
     //Update the Asset's Manager Data
-    async function updateAssetsManagerDetails(request){
+    this.updateAssetsManagerDetails = async (request) => {
+    //async function updateAssetsManagerDetails(request){
         const paramsArr = new Array(
             request.asset_id,
             request.manager_asset_id,
@@ -4180,7 +4182,7 @@ function AssetService(objectCollection) {
         if (queryString != '') {
             return await (db.executeQueryPromise(0, queryString, request));
         }
-    }
+    }*/
 
 }
 
