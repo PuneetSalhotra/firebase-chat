@@ -2955,6 +2955,7 @@ function FormConfigService(objCollection) {
                 data_type_combo_id: 0
             });
             workforceFormMappingUpdate(request);
+            formEntityMappingUpdateFormName(request);
         } catch (error) {
 
         }
@@ -3007,6 +3008,35 @@ function FormConfigService(objCollection) {
             error = true; // true;
 
         let procName = 'ds_p1_workforce_form_mapping_update';
+        let paramsArr = new Array(
+            request.form_name,
+            '',
+            request.form_id,
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+
+        await db.callDBProcedure(request, procName, paramsArr, 0)
+            .then((data) => {
+                updateStatus = data;
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            });
+        return [error, updateStatus];
+    }
+
+    async function formEntityMappingUpdateFormName(request) {
+        // IN p_form_name VARCHAR(100), IN p_form_description VARCHAR(150), 
+        // IN p_form_id BIGINT(20), IN p_organization_id BIGINT(20), 
+        // IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
+
+        let updateStatus = [],
+            error = true; // true;
+
+        let procName = 'ds_p1_form_entity_mapping_update';
         let paramsArr = new Array(
             request.form_name,
             '',
