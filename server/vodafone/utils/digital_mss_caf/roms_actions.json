@@ -104,5 +104,26 @@
                 "TARGET_FIELD_ID": 26081
             }
         ]
+    },
+    {
+        "ACTION": "check_and_set_annexure_defaults",
+        "BATCH": [{
+            "SOURCE_FORM_ID": 2279,
+            "SOURCE_FIELD_ID": 26440,
+            "TARGET_FIELD_IDS": [
+                25962, 25963, 25964, 25965, 
+                25966, 25967, 25968, 25969, 
+                25970, 25971, 25972, 25973, 
+                25974, 26013, 26072, 26073
+            ],
+            "VALUE": "As Per CAF Annexure"
+        }]
+    },
+    {
+        "ACTION": "set_workflow_as_bulk_order",
+        "BATCH": [{
+            "SOURCE_FORM_ID": 2279,
+            "SOURCE_FIELD_ID": 26440
+        }]
     }
 ]
