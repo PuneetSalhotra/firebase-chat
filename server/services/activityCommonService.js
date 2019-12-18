@@ -3773,7 +3773,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         request.organization_id,
         data.activity_id,
         data.workflow_percentage,
-        request.log_asset_id,
+        request.log_asset_id || request.asset_id,
         util.getCurrentUTCTime()
       );
 

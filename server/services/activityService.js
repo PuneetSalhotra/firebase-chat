@@ -1150,12 +1150,16 @@ function ActivityService(objectCollection) {
                 case 48:
                 case 9: // form
                     let activityDescription = request.activity_description;
+                    let activityTitle = request.activity_title;
                     if (typeof request.activity_description === 'object') {
                         activityDescription = JSON.stringify(request.activity_description);
                     }
+                    if (typeof request.activity_title === 'object') {
+                        activityTitle = JSON.stringify(request.activity_title);
+                    }
                     paramsArr = new Array(
                         request.activity_id,
-                        request.activity_title,
+                        activityTitle, //request.activity_title,
                         activityDescription,
                         (request.activity_inline_data),
                         "",

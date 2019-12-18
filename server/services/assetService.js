@@ -4148,6 +4148,40 @@ function AssetService(objectCollection) {
         }
     };
 
+    //Update the Asset Type
+    async function updateAssetType(request){
+        const paramsArr = new Array(
+            request.asset_id,
+            request.asset_type_id,
+            request.workforce_id,
+            request.account_id,
+            request.organization_id,
+            request.log_asset_id || request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_update_asset_type', paramsArr);
+        if (queryString != '') {
+            return await (db.executeQueryPromise(0, queryString, request));
+        }
+    }
+
+    //Update the Asset's Manager Data
+    async function updateAssetsManagerDetails(request){
+        const paramsArr = new Array(
+            request.asset_id,
+            request.manager_asset_id,
+            request.workforce_id,
+            request.account_id,
+            request.organization_id,
+            request.log_asset_id || request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_update_manager', paramsArr);
+        if (queryString != '') {
+            return await (db.executeQueryPromise(0, queryString, request));
+        }
+    }
+
 }
 
 module.exports = AssetService;
