@@ -273,6 +273,22 @@ function AdminOpsController(objCollection) {
         }
     });
 
+    // Update the role mapped to a status along with the expected status duration and workflow percentage as well
+    app.post('/' + global.config.version + '/admin/workforce/activity_status/role/update', async function (req, res) {
+        // flag:
+        // 0 => Update percentage, duration and role
+        // 1 => Updagte percentage ONLY
+        // 2 => Update duration ONLY
+        // 3 => Update role ONLY
+        const [err, responseData] = await adminOpsService.updateStatusRoleMapping(req.body, 0);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/admin/workforce/activity_status/role/update | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = AdminOpsController;
