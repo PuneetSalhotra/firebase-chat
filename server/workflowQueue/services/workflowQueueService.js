@@ -74,15 +74,19 @@ function WorkflowQueueService(objectCollection) {
 
                 results[0] = await db.callDBProcedure(request, 'ds_p1_1_queue_list_insert', paramsArray, 0);
 
-                paramsArray =
-                    new Array(
-                        results[0][0].queue_id,
-                        global.workflowQueueConfig.queueAdded,
-                        request.log_asset_id,
-                        request.log_datetime,
-                    );
+                try {
+                    paramsArray =
+                        new Array(
+                            results[0][0].queue_id,
+                            global.workflowQueueConfig.queueAdded,
+                            request.log_asset_id,
+                            request.log_datetime,
+                        );
 
-                results[1] = await db.callDBProcedure(request, 'ds_p1_queue_list_history_insert', paramsArray, 0);
+                    results[1] = await db.callDBProcedure(request, 'ds_p1_queue_list_history_insert', paramsArray, 0);
+                } catch (error) {
+                    // Do nothing
+                }
 
                 return results[0];
             } catch (error) {

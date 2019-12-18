@@ -266,6 +266,17 @@ function AdminListingController(objCollection) {
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
+
+    // List all roles, asset types at various access levels
+    app.post('/' + global.config.version + '/admin/workforce/asset_type/role/list', async function (req, res) {
+        const [err, data] = await adminListingService.listRolesByAccessLevels(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("/admin/workforce/activity_status/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
 }
 
 module.exports = AdminListingController;

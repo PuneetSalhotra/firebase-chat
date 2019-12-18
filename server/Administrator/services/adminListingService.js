@@ -1087,6 +1087,90 @@ function AdminListingService(objectCollection) {
         }
         return [error, responseData];
     };    
+
+    // Get the list of assets/desks of a role/asset type
+    this.assetListSelectRole = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.asset_type_id,
+            request.page_start || 0,
+            request.page_limit || 10
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_select_role', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    // List statuses associated with this role
+    this.workforceActivityStatusMappingSelectRole = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.asset_type_id,
+            request.page_start || 0,
+            request.page_limit || 10
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_select_role', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    // List roles by access levels
+    this.listRolesByAccessLevels = async function (request) {
+        let responseData = [],
+            error = true;
+
+        // NEEDS WORK
+        // const paramsArr = new Array(
+        //     request.organization_id,
+        //     request.account_id,
+        //     request.workforce_id,
+        //     request.page_start || 0,
+        //     request.page_limit || 10
+        // );
+        // const queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_select_role', paramsArr);
+
+        // if (queryString !== '') {
+        //     await db.executeQueryPromise(1, queryString, request)
+        //         .then((data) => {
+        //             responseData = data;
+        //             error = false;
+        //         })
+        //         .catch((err) => {
+        //             error = err;
+        //         });
+        // }
+        return [error, responseData];
+    };
 }
 
 module.exports = AdminListingService;
