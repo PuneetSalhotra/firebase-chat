@@ -269,6 +269,11 @@ function AdminListingController(objCollection) {
 
     // List all roles, asset types at various access levels
     app.post('/' + global.config.version + '/admin/workforce/asset_type/role/list', async function (req, res) {
+        // flag: 
+        // 0 => Select all based on the parameters given
+        // 1 => Organization level 
+        // 2 => Account level
+        // 3 => Workforce level
         const [err, data] = await adminListingService.listRolesByAccessLevels(req.body);
         if (!err) {
             res.send(responseWrapper.getResponse({}, data, 200, req.body));

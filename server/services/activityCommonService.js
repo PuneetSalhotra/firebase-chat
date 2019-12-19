@@ -644,7 +644,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 activityTimelineCollection = request.activity_timeline_collection;
                 entityText1 = "";
                 entityText2 = JSON.stringify(request.activity_timeline_text);
-                break;            
+                break;          
             default:
                 entityTypeId = 0;
                 entityText1 = "";
@@ -711,9 +711,14 @@ function ActivityCommonService(db, util, forEachAsync) {
             request.flag_offline || 0,
             request.track_gps_datetime,
             request.datetime_log,
-            request.data_activity_id || 0 //Added on 10-12-2018
+            request.data_activity_id || 0, //Added on 10-12-2018
+            request.trigger_bot_id || 0,
+            request.trigger_bot_operation_id || 0,
+            request.trigger_form_id || 0,
+            request.trigger_form_transaction_id || 0
         );
-        let queryString = util.getQueryString("ds_v1_5_activity_timeline_transaction_insert", paramsArr);
+        //let queryString = util.getQueryString("ds_v1_5_activity_timeline_transaction_insert", paramsArr);
+        let queryString = util.getQueryString("ds_v1_6_activity_timeline_transaction_insert", paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
@@ -3889,6 +3894,36 @@ function ActivityCommonService(db, util, forEachAsync) {
         if (queryString !== "") {
           await db
             .executeQueryPromise(0, queryString, request)
+            .then(data => {
+              responseData = data;
+              error = false;
+            })
+            .catch(err => {
+              error = err;
+            });
+        }
+        return [error, responseData];
+      };
+
+    //Get the Global Forms of an organization
+    this.getGlobalForms = async function(request) {
+        let responseData = [],
+          error = true;
+  
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.flag,
+            request.start_from || 0,
+            request.limit_value
+        );
+
+        const queryString = util.getQueryString("ds_v1_workforce_form_mapping_select_global_forms",paramsArr);        
+    
+        if (queryString !== "") {
+          await db
+            .executeQueryPromise(1, queryString, request)
             .then(data => {
               responseData = data;
               error = false;
