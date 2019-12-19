@@ -289,6 +289,21 @@ function AdminOpsController(objCollection) {
         }
     });
 
+    // Update a workflow's value contributors
+    app.post('/' + global.config.version + '/admin/workforce/activity_type/value_contributors/update', async function (req, res) {
+        // flag:
+        // 1 => Update the complete inline data
+        // 2 => Add fields
+        // 3 => Remove fields
+        const [err, responseData] = await adminOpsService.updateWorkflowValueContributors(req.body, 0);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/admin/workforce/activity_type/value_contributors/update | Error: ", err);
+            res.send(responseWrapper.getResponse(err, { message: err.getMessage() }, err.getErrorCode(), req.body));
+        }
+    });
+
 }
 
 module.exports = AdminOpsController;
