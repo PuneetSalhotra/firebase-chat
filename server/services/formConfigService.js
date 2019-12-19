@@ -473,9 +473,10 @@ function FormConfigService(objCollection) {
         request['datetime_log'] = logDatetime;
 
         var activityInlineData = JSON.parse(request.activity_inline_data);
-        var newData = activityInlineData[0];
+        var newData = activityInlineData[0];        
         console.log('newData from Request: ', newData);
         request.new_field_value = newData.field_value;
+        var dataTypeId = Number(newData.field_data_type_id);
 
         //Listener to update data in Intermediate tables for Reference/combo bots
         switch(Number(newData.field_data_type_id)) {
@@ -509,6 +510,24 @@ function FormConfigService(objCollection) {
                         oldFieldValue = row.field_value;
                         row.field_value = newData.field_value;
                         newData.field_name = row.field_name;
+                        if(dataTypeId === 62) {
+                            try{
+                                let oldFieldData;
+                                let jsonData;
+                                (typeof newData.field_value === 'object')?
+                                    jsonData = newData.field_value:
+                                    jsonData = JSON.parse(newData.field_value);
+
+                                (typeof oldFieldValue === 'object')?
+                                    oldFieldData = oldFieldValue:
+                                    oldFieldData = JSON.parse(oldFieldValue);
+                                
+                                newFieldValue = jsonData.transaction_data.transaction_amount;
+                                oldFieldValue = oldFieldData.transaction_data.transaction_amount;
+                            } catch (err) {
+                                console.log(err);
+                            }
+                        }                        
                         cnt++;
                     }
                     next();
@@ -518,11 +537,23 @@ function FormConfigService(objCollection) {
                         newData.update_sequence_id = 1;
                         retrievedInlineData.push(newData);
                         oldFieldValue = newData.field_value;
+                        if(dataTypeId === 62) {
+                            try{
+                                let oldFieldData;
+                                (typeof oldFieldValue === 'object')?
+                                    oldFieldData = oldFieldValue:
+                                    oldFieldData = JSON.parse(oldFieldValue);                               
+                                
+                                oldFieldValue = oldFieldData.transaction_data.transaction_amount;
+                            } catch (err) {
+                                console.log(err);
+                            }
+                        }
                         // newData.field_name = row.field_name;
                     }
 
                     request.activity_inline_data = JSON.stringify(retrievedInlineData);
-
+                    //console.log('oldFieldValue: ', oldFieldValue);
                     let content = '';
                     if (String(oldFieldValue).trim().length === 0) {
                         content = `In the ${newData.form_name}, the field ${newData.field_name} was updated to ${newFieldValue}`;
@@ -1044,11 +1075,28 @@ function FormConfigService(objCollection) {
                         params[18] = row.field_value;
                         break;
                     case 62: //Credit/Debit DataType
-                        try {
-                            let jsonData = JSON.parse(row.field_value);
-                            (Number(jsonData.transaction_type_id) === 1) ?
-                                params[15] = jsonData.transaction_data.transaction_amount: //credit
-                                params[16] = jsonData.transaction_data.transaction_amount; // Debit
+                        try {                            
+                            let jsonData;
+                            let amount;
+                            (typeof row.field_value === 'object')?
+                                jsonData = row.field_value:
+                                jsonData = JSON.parse(row.field_value);
+
+                            let newAmount = Number(jsonData.transaction_data.transaction_amount);
+                            let oldAmount = Number(activityInlineData[0].old_field_value);
+                            
+                            if(oldAmount > newAmount) {
+                                //Decreased so Minus
+                                amount = newAmount - oldAmount;
+                            } else {
+                                //Increased so Plus
+                                amount = newAmount - oldAmount;
+                            }
+                            
+                            //console.log('jsonData : ', jsonData);
+                            (Number(jsonData.transaction_data.transaction_type_id) === 1) ?
+                                params[15] = amount: //credit
+                                params[16] = amount; // Debit
                             params[13] = jsonData.transaction_data.activity_id; //Activity_id i.e account(ledger)_activity_id
                         } catch (err) {
                             console.log(err);
@@ -3804,11 +3852,47 @@ function FormConfigService(objCollection) {
                 })
                 .catch((err) => {
                     error = err;
-                })
+                });
         }
 
         return [error, fieldData];
-    }
+    };
+
+    this.formEntityMappingSelectV1 = async function (request) {
+
+        let fieldData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_id,
+            request.flag,
+            request.datetime,
+            request.page_start,
+            request.page_limit
+        );
+        const queryString = util.getQueryString('ds_p1_form_entity_mapping_select', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then(async (data) => {
+                    fieldData = data;
+                    const [err, globalFormData] = await this.getGlobalForms(request);
+                    if(err === false) {
+                        //console.log('globalFormData : ', globalFormData);
+                        Array.prototype.push.apply(fieldData,globalFormData); 
+                    }
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, fieldData];
+    };
 
     this.workforceFormFieldMappingSelectForm = async function (request) {
 
@@ -4307,6 +4391,36 @@ function FormConfigService(objCollection) {
             return "success";
         });
     }
+
+    //Get the Global Forms of an organization
+    this.getGlobalForms = async function(request) {
+        let responseData = [],
+          error = true;
+  
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.flag || 0,
+            request.start_from || 0,
+            request.limit_value || request.page_limit
+        );
+
+        const queryString = util.getQueryString("ds_v1_workforce_form_mapping_select_global_forms",paramsArr);        
+    
+        if (queryString !== "") {
+          await db
+            .executeQueryPromise(1, queryString, request)
+            .then(data => {
+              responseData = data;
+              error = false;
+            })
+            .catch(err => {
+              error = err;
+            });
+        }
+        return [error, responseData];
+      };
 
 }
 
