@@ -4904,7 +4904,7 @@ function AdminOpsService(objectCollection) {
             !request.hasOwnProperty("tag_type_id") || 
             Number(request.tag_type_id) <= 0
         ) {
-            return [new ClientInputError("Tag Type missing or 0. Tags must be associated with a Tag Type.", -3001), []];
+            return [new ClientInputError("tag_type_id missing or 0. Tags must be associated with a Tag Type.", -3001), []];
         }
 
         const [errOne, tagTypeData] = await tagListInsert(request, organizationID);
@@ -4927,6 +4927,54 @@ function AdminOpsService(objectCollection) {
             util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_tag_list_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.addActivityTypeToTagMapping = async function (request) {
+        const organizationID = Number(request.organization_id),
+            accountID = Number(request.account_id),
+            workforceID = Number(request.workforce_id);
+
+        if (
+            !request.hasOwnProperty("tag_id") ||
+            Number(request.tag_id) <= 0 ||
+            !request.hasOwnProperty("activity_type_id") ||
+            Number(request.activity_type_id) <= 0
+        ) {
+            return [new ClientInputError("tag_id and activity_type_id must be a non-zero positive value. An activity_type_id is mapped to single tag_id.", -3001), []];
+        }
+
+        const [errOne, activityTypeTagMappingData] = await activityTypeTagMappingInsert(request, organizationID);
+        if (errOne) {
+            return [new ClientInputError("Error mapping an activity_type_id to a tag_id", -9998), []];
+        }
+
+        return [errOne, activityTypeTagMappingData];
+    }
+
+    async function activityTypeTagMappingInsert(request, organizationID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.tag_id,
+            request.activity_type_id,
+            organizationID,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_activity_type_tag_mapping_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
