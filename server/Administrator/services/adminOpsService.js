@@ -4894,6 +4894,52 @@ function AdminOpsService(objectCollection) {
         }
         return [error, responseData];
     }
+
+    this.addTag = async function (request) {
+        const organizationID = Number(request.organization_id),
+            accountID = Number(request.account_id),
+            workforceID = Number(request.workforce_id);
+
+        if (
+            !request.hasOwnProperty("tag_type_id") || 
+            Number(request.tag_type_id) <= 0
+        ) {
+            return [new ClientInputError("Tag Type missing or 0. Tags must be associated with a Tag Type.", -3001), []];
+        }
+
+        const [errOne, tagTypeData] = await tagListInsert(request, organizationID);
+        if (errOne) {
+            return [new ClientInputError("Error adding a new Tag to the organization", -9998), []];
+        }
+
+        return [errOne, tagTypeData];
+    }
+
+    async function tagListInsert(request, organizationID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.tag_name,
+            request.tag_type_id,
+            organizationID,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_tag_list_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = AdminOpsService;

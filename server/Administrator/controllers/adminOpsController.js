@@ -315,6 +315,17 @@ function AdminOpsController(objCollection) {
         }
     });
 
+    // Add Tag
+    app.post('/' + global.config.version + '/admin/organization/tag/add', async function (req, res) {
+        const [err, responseData] = await adminOpsService.addTag(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/admin/organization/tag/add | Error: ", err);
+            res.send(responseWrapper.getResponse(err, { message: err.getMessage() }, err.getErrorCode(), req.body));
+        }
+    });
+
 }
 
 module.exports = AdminOpsController;
