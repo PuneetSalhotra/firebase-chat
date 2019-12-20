@@ -141,6 +141,7 @@ const digitalMssMappings = require("./digital_mss_caf/mappings.json");
 const digitalMssLabels = require("./digital_mss_caf/labels.json");
 const digitalMssRoms = require("./digital_mss_caf/roms.json");
 const digitalMssRomsActions = require("./digital_mss_caf/roms_actions.json");
+const digitalMSSBulkOrderToOriginFormMappings = require("./digital_mss_caf/bulk_order_to_origin_form_mappings.json");
 
 vodafoneConfig = {
     "860": {
@@ -549,6 +550,7 @@ vodafoneConfig = {
         "LABELS": digitalMssLabels,
         "ROMS": digitalMssRoms,
         "ROMS_ACTIONS": digitalMssRomsActions,
-        "ORIGIN_FORM_ID": 2185
+        "ORIGIN_FORM_ID": 2185,
+        "BULK_ORDER_ORIGIN_FORM_MAPPING_DATA": digitalMSSBulkOrderToOriginFormMappings
     }
 };
