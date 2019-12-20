@@ -304,6 +304,17 @@ function AdminOpsController(objCollection) {
         }
     });
 
+    // Add Tag Types
+    app.post('/' + global.config.version + '/admin/organization/tag_type/add', async function (req, res) {
+        const [err, responseData] = await adminOpsService.addTagType(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/admin/organization/tag_type/add | Error: ", err);
+            res.send(responseWrapper.getResponse(err, { message: err.getMessage() }, err.getErrorCode(), req.body));
+        }
+    });
+
 }
 
 module.exports = AdminOpsController;

@@ -4854,6 +4854,46 @@ function AdminOpsService(objectCollection) {
         }
         return [error, responseData];
     }
+
+    this.addTagType = async function (request) {
+        const organizationID = Number(request.organization_id),
+            accountID = Number(request.account_id),
+            workforceID = Number(request.workforce_id);
+
+        const [errOne, tagTypeData] = await tagTypeMasterInsert(request, organizationID);
+        if (errOne) {
+            return [new ClientInputError("Error adding a new Tag Type to the organization", -9998), []];
+        }
+
+        return [errOne, tagTypeData];
+    }
+
+    async function tagTypeMasterInsert(request, organizationID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.tag_type_name,
+            request.tag_type_description,
+            request.tag_type_category_id || 1,
+            organizationID,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_tag_type_master_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = AdminOpsService;
