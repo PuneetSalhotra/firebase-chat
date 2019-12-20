@@ -284,6 +284,27 @@ function ActivityService(objectCollection) {
                                 activityCommonService.processReservationBilling(request, request.activity_parent_id).then(() => {});
                             }
 
+                            //Submitted Rollback Form
+                            if (activityTypeCategroyId === 9 && Number(request.activity_form_id) === 803) {
+                                //Perform status alter
+                                let newReq = Object.assign({}, request);
+                                //newReq.activity_id
+                                //newReq.activity_status_id
+                                //newReq.activity_status_type_id
+                                let formInlineData = JSON.parse(request.activity_inline_data);
+                                //console.log('formInlineData : ', formInlineData);
+                                let fieldData;
+                                for(let i=0; i<formInlineData.length;i++){                                    
+                                    fieldData = formInlineData[i];
+                                    if(Number(fieldData.field_data_type_id) === 63) {   
+                                        //newReq.activity_status_id = fieldData.field_value;
+                                        //newReq.activity_status_type_id                          
+                                        this.alterActivityStatus(newReq, ()=>{});
+                                        break;
+                                    }
+                                }
+                            }
+
                             if (request.activity_type_category_id == 48) {
                                 global.logger.write('conLog', '*****ADD ACTIVITY :HITTING WIDGET ENGINE*******', {}, request);
                                 request['source_id'] = 1;
@@ -417,7 +438,7 @@ function ActivityService(objectCollection) {
                                 // Do nothing
                             }*/
 
-                            if(activityTypeCategroyId === 48) { 
+                            if(activityTypeCategroyId === 48 || activityTypeCategroyId === 9) { 
                                 //Listener
                                 //Form Submission - When the form has data type reference type
                                 let formInlineData = JSON.parse(request.activity_inline_data);
@@ -436,6 +457,10 @@ function ActivityService(objectCollection) {
                                     }
                                 }
 
+                                //addValueToWidgetForAnalyticsWF(request, request.activity_id, request.activity_type_id, 0); //0 - Non-Widget
+                            }
+
+                            if(activityTypeCategroyId === 48) { 
                                 addValueToWidgetForAnalyticsWF(request, request.activity_id, request.activity_type_id, 0); //0 - Non-Widget
                             }
 
@@ -4004,8 +4029,26 @@ function ActivityService(objectCollection) {
         return "success";
     }
 
+    function sleep(ms){
+        return new Promise(resolve=>{
+            setTimeout(resolve,ms);
+        });
+    }
+
     //Insert in the Intermediate tables - For workflow Reference, Combo Field data types
     async function fireBotInsertIntTables(request, fieldData) {
+        let workflowActivityId = request.activity_id; //workflow activity id
+        if(Number(request.activity_type_category_id) === 9) {
+            await sleep(2000); 
+            const [workflowError, workflowData] = await activityCommonService.fetchReferredFormActivityIdAsync(request, request.activity_id, request.form_transaction_id, request.form_id);
+            if (workflowError !== false || workflowData.length === 0) {
+                console.log('workflowError : ', workflowError);
+                console.log('workflowData : ', workflowData);
+                return [workflowError, workflowData];
+            }
+            workflowActivityId = Number(workflowData[0].activity_id);
+        }
+        
         let botIsDefined = 0;
         let botEngineRequest = Object.assign({}, request);
             botEngineRequest.form_id = Number(fieldData.form_id);
@@ -4025,7 +4068,8 @@ function ActivityService(objectCollection) {
         }
 
       let newRequest = Object.assign({}, request);          
-          newRequest.activity_id = request.activity_id; //workflow activity id
+          //newRequest.activity_id = request.activity_id; //workflow activity id
+          newRequest.activity_id = workflowActivityId;
           newRequest.mapping_activity_id = 0;
           newRequest.bot_operation_id = botEngineRequest.bot_operation_id;
           newRequest.form_transaction_id = request.form_transaction_id;
