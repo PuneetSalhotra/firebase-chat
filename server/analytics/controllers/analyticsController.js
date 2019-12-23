@@ -48,6 +48,22 @@ function AnalyticsController(objCollection)
             }
         );
 
+    // Update filter label for the organization
+    app.post
+        (
+            '/' + global.config.version + '/analytics/organization/filters/labels/update',
+            async (req, res) => {
+                try {
+                    let result = await analyticsService.updateFilterLabel(req.body);
+                    res.send(responseWrapper.getResponse(false, result, 200, req.body));
+                }
+                catch (err) {
+                    console.log("Error: ", err);
+                    res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+                }
+            }
+        );
+
     //Get the list of filter values for the organization
     //Bharat Masimukku
     //2019-07-11

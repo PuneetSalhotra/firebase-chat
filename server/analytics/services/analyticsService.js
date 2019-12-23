@@ -92,6 +92,34 @@ function AnalyticsService(objectCollection)
         }
     };
 
+    // Update filter label for the organization
+    this.updateFilterLabel =
+        async (request) => {
+            try {
+                let results = new Array();
+                let paramsArray;
+
+                paramsArray =
+                    new Array
+                        (
+                            request.organization_widget_filter_mapping_id,
+                            request.organization_widget_filter_name,
+                            request.widget_filter_sequence_id,
+                            request.organization_id,
+                            request.widget_filter_id,
+                            util.getCurrentUTCTime(),
+                            request.asset_id
+                        );
+
+                results[0] = await db.callDBProcedureR2(request, 'ds_p1_organization_widget_filter_mapping_update', paramsArray, 0);
+
+                return results[0];
+            }
+            catch (error) {
+                return Promise.reject(error);
+            }
+        };
+
     this.analyticsWidgetAdd = async function(request) {
         request.datetime_log = util.getCurrentUTCTime();
         let widgetId;
