@@ -16,6 +16,9 @@ function ActivityUpdateService(objectCollection) {
     const ActivityListingService = require("../services/activityListingService");
     const activityListingService = new ActivityListingService(objectCollection);
 
+    const ActivityParticipantService = require("../services/activityParticipantService");
+    const activityParticipantService = new ActivityParticipantService(objectCollection);
+
     var activityListUpdateInline = function (request, callback) {
 
         var paramsArr = new Array(
@@ -915,9 +918,11 @@ function ActivityUpdateService(objectCollection) {
                     }*/
 
                     //updating log differential datetime for only this asset
-                    activityCommonService.updateActivityLogDiffDatetime(request, 0, function (err, data) {
+                    if(activityTypeCategoryId !== 48) {
+                        activityCommonService.updateActivityLogDiffDatetime(request, 0, function (err, data) {
 
-                    });
+                        });
+                    }
 
                     //activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {
 
@@ -1232,6 +1237,19 @@ function ActivityUpdateService(objectCollection) {
                         try {
                             datetimeEndDeffered = parsedActivityCoverData.duedate.new;
                             updateDuedateForQueueActivityMappingEntries(request, datetimeEndDeffered);
+
+                            //In Due Date update Case - Only update the unread to the owner of the workflow
+                            request.page_start = 0;
+                            request.datetime_differential = "1970-01-01 00:00:00";
+                            activityParticipantService.getParticipantsList(request, (err, data)=>{
+                                if(!err && data.data.length > 0) {
+                                    let ownerAssetID = Number(data.data[0].activity_creator_asset_id);
+                                    console.log('ownerAssetID : ', ownerAssetID);
+                                    if(Number(request.asset_id) !== ownerAssetID) {
+                                        activityCommonService.updateActivityLogDiffDatetime(request, ownerAssetID, function (err, data) {});
+                                    }
+                                }
+                            });
                         } catch (error) {
                             console.log("Workflow Datetime update Error: ", error)
                         }
