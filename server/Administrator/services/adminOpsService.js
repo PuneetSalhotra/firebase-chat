@@ -3339,7 +3339,7 @@ function AdminOpsService(objectCollection) {
                     workforce_id: newUserDefinedWorkforceResponse.workforce_id,
                     workforce_name: userDefinedWorkforceName
                 });
-                // Create the employees/administrator only on the frist floor
+                // Create the employees/administrator only on the first floor
                 if (Number(index) == 0) {
                     const employeeList = JSON.parse(request.employee_list);
 
@@ -3391,6 +3391,18 @@ function AdminOpsService(objectCollection) {
                             }
                             console.log("Desk Asset ID: ", deskAssetID);
                             console.log("Contact Card Activity ID: ", contactCardActivityID);
+                            // Update admin flags for the desk asset
+                            try {
+                                await self.updateAssetFlags({
+                                    ...request,
+                                    asset_id: deskAssetID,
+                                    flag: 0,
+                                    set_admin_flag: 1,
+                                    set_organization_admin_flag: request.asset_flag_organization_admin || 0
+                                });
+                            } catch (error) {
+                                logger.error(`Error setting Admin accesses for the desk asset`, { type: 'admin_ops', request_body: request, error });
+                            }
 
                             // Create the Employee Asset
                             const [errEight, employeeAssetID, idCardActivityID] = await fireEmployeeAssetCreationService(
@@ -3408,6 +3420,20 @@ function AdminOpsService(objectCollection) {
                             }
                             console.log("Employee Asset ID: ", employeeAssetID);
                             console.log("ID Card Activity ID: ", idCardActivityID);
+
+                            // Update admin flags for the employee asset
+                            try {
+                                await self.updateAssetFlags({
+                                    ...request,
+                                    asset_id: employeeAssetID,
+                                    flag: 0,
+                                    set_admin_flag: 1,
+                                    set_organization_admin_flag: request.asset_flag_organization_admin || 0
+                                });
+                            } catch (error) {
+                                logger.error(`Error setting Admin accesses for the employee asset`, { type: 'admin_ops', request_body: request, error });
+                            }
+
                         } catch (error) {
                             console.log("Create the Desk/Employee Asset Error: ", error);
                             continue;
