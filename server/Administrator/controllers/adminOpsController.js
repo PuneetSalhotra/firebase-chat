@@ -358,6 +358,60 @@ function AdminOpsController(objCollection) {
         }
     });
 
+
+    //Set Business Hours @Account Level
+    app.post('/' + global.config.version + '/admin/account_level/business_hours/set', async function (req, res) {
+        try {
+            JSON.parse(req.body.account_inline_data);
+        } catch (exeption) {
+                res.send(responseWrapper.getResponse(false, "Invalid JSON - 'account_inline_data'", -3308, req.body));
+                return;
+        }
+
+        const [err, responseData] = await adminOpsService.setBusinessHoursAccountLevel(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/admin/account_level/business_hours/set | Error: ", err);
+            res.send(responseWrapper.getResponse(err, { message: err.getMessage() }, err.getErrorCode(), req.body));
+        }
+    });
+
+    //Set Business Hours @Floor(Workforce) Level
+    app.post('/' + global.config.version + '/admin/workforce_level/business_hours/set', async function (req, res) {
+        try {
+            JSON.parse(req.body.workforce_inline_data);
+        } catch (exeption) {
+                res.send(responseWrapper.getResponse(false, "Invalid JSON - 'workforce_inline_data'", -3308, req.body));
+                return;
+        }
+
+        const [err, responseData] = await adminOpsService.setBusinessHoursWorkforceLevel(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/admin/workforce_level/business_hours/set | Error: ", err);
+            res.send(responseWrapper.getResponse(err, { message: err.getMessage() }, err.getErrorCode(), req.body));
+        }
+    });
+
+    //Set Business Hours @Individual(Desk) Level
+    app.post('/' + global.config.version + '/admin/desk_level/business_hours/set', async function (req, res) {
+        try {
+            JSON.parse(req.body.asset_inline_data);
+        } catch (exeption) {
+                res.send(responseWrapper.getResponse(false, "Invalid JSON - 'desk_inline_data'", -3308, req.body));
+                return;
+        }
+        const [err, responseData] = await adminOpsService.setBusinessHoursDeskLevel(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/admin/desk_level/business_hours/set | Error: ", err);
+            res.send(responseWrapper.getResponse(err, { message: err.getMessage() }, err.getErrorCode(), req.body));
+        }
+    });
+
 }
 
 module.exports = AdminOpsController;
