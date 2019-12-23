@@ -2402,9 +2402,10 @@ function ActivityTimelineService(objectCollection) {
             //sendRequesttoWidgetEngine(request);
 
             const widgetFieldsStatusesData = util.widgetFieldsStatusesData();
-            let order_caf_approval_form_ids, order_logged_form_ids;
+            let order_caf_approval_form_ids, order_logged_form_ids, order_documents_form_ids;
             order_caf_approval_form_ids = widgetFieldsStatusesData.AUTH_SIGNATORY_FORM_IDS; //new Array(282556, 282586, 282640, 282622, 282669); //
             order_logged_form_ids = widgetFieldsStatusesData.ORDER_CLOSURE_FORM_IDS; //new Array(282624, 282642, 282671, 282557, 282588);//
+            order_documents_form_ids = widgetFieldsStatusesData.ORDER_DOCUMETS_FORM_IDS;
 
             global.logger.write('conLog', '*****order_caf_approval_form_ids*******' + Object.keys(order_caf_approval_form_ids) + ' ' + String(request.form_id), {}, request);
             global.logger.write('conLog', '*****order_logged_form_ids*******' + Object.keys(order_logged_form_ids) + ' ' + String(request.form_id), {}, request);
@@ -2433,7 +2434,14 @@ function ActivityTimelineService(objectCollection) {
                     request['datetime_log'] = util.getCurrentUTCTime();
                     activityCommonService.widgetActivityFieldTxnUpdateDatetime(request);
                 })
-            }
+            } else if (Object.keys(order_documents_form_ids).includes(String(request.form_id))) {
+               activityCommonService.getActivityDetailsPromise(request, 0).then((activityData) => {
+                   global.logger.write('conLog', '***** ORDER DOCUMENTS SUBMITTED*******', {}, request);
+                   request['activity_id'] = activityData[0].channel_activity_id;
+                   request['documents_submitted'] = 1;
+                   activityCommonService.activityUpdateDocumentsSubmitted(request);
+               })
+           }
 
             callback(false, approvalFields);
         });
