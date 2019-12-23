@@ -42,7 +42,6 @@ function AnalyticsController(objCollection)
                     res.send(responseWrapper.getResponse(false, result, 200, req.body));
                 }
                 catch (err) {
-                    console.log("Error: ", err);
                     res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
                 }
             }
@@ -58,7 +57,21 @@ function AnalyticsController(objCollection)
                     res.send(responseWrapper.getResponse(false, result, 200, req.body));
                 }
                 catch (err) {
-                    console.log("Error: ", err);
+                    res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+                }
+            }
+        );
+
+    // Delete filter label for the organization
+    app.post
+        (
+            '/' + global.config.version + '/analytics/organization/filters/labels/delete',
+            async (req, res) => {
+                try {
+                    let result = await analyticsService.deleteFilterLabel(req.body);
+                    res.send(responseWrapper.getResponse(false, result, 200, req.body));
+                }
+                catch (err) {
                     res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
                 }
             }

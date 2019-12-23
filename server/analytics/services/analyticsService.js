@@ -117,6 +117,33 @@ function AnalyticsService(objectCollection)
             }
         };
 
+    // Delete filter label for the organization
+    this.deleteFilterLabel =
+        async (request) => {
+            try {
+                let results = new Array();
+                let paramsArray;
+
+                paramsArray =
+                    new Array
+                        (
+                            request.organization_widget_filter_mapping_id,
+                            request.organization_id,
+                            request.widget_filter_id,
+                            3, // request.log_state
+                            util.getCurrentUTCTime(),
+                            request.asset_id
+                        );
+
+                results[0] = await db.callDBProcedureR2(request, 'ds_p1_organization_widget_filter_mapping_update_log_state', paramsArray, 0);
+
+                return results[0];
+            }
+            catch (error) {
+                return Promise.reject(error);
+            }
+        };
+
     this.analyticsWidgetAdd = async function(request) {
         request.datetime_log = util.getCurrentUTCTime();
         let widgetId;
