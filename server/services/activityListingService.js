@@ -2595,7 +2595,181 @@ function ActivityListingService(objCollection) {
                 });
         }
         return [error, responseData];
+	};
+	
+	this.getParticipantsList = async (request) => {
+		return new Promise((resolve, reject)=>{
+			const paramsArr = new Array(
+				request.organization_id,
+				request.activity_id,
+				request.datetime_differential,
+				request.page_start,
+				util.replaceQueryLimit(request.page_limit)
+			);
+			const queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_participants_differential', paramsArr);
+			if (queryString != '') {
+				db.executeQuery(1, queryString, request, function (err, data) {
+					if (err === false) {
+						formatParticipantList(data, function (err, response) {
+							(err === false) ? resolve(response) : reject();							
+						});
+					} else {                    
+						reject();
+					}
+				});
+			}
+		});
     };
+
+    var formatParticipantList = function (data, callback) {
+        var responseData = new Array();
+        data.forEach(function (rowData, index) {
+            var rowDataArr = {
+                'activity_id': util.replaceDefaultNumber(rowData['activity_id']),
+                'asset_id': util.replaceDefaultNumber(rowData['asset_id']),
+                'account_id': util.replaceDefaultNumber(rowData['account_id']),
+                'organization_id': util.replaceDefaultNumber(rowData['organization_id']),
+                'workforce_id': util.replaceDefaultNumber(rowData['workforce_id']),
+                'workforce_name': util.replaceDefaultString(rowData['workforce_name']),
+                'account_name': util.replaceDefaultString(rowData['account_name']),
+                'asset_first_name': util.replaceDefaultString(rowData['asset_first_name']),
+                'asset_last_name': util.replaceDefaultString(rowData['asset_last_name']),
+                'asset_type_id': util.replaceDefaultNumber(rowData['asset_type_id']),
+                'asset_type_name': util.replaceDefaultString(rowData['asset_type_name']),
+                'asset_type_category_id': util.replaceDefaultNumber(rowData['asset_type_category_id']),
+                'field_id': util.replaceDefaultNumber(rowData['field_id']),
+                'asset_type_category_name': util.replaceDefaultString(rowData['asset_type_category_name']),
+                'asset_image_path': (util.replaceDefaultString(rowData['asset_image_path']) !== ''),
+                'asset_phone_number': util.replaceDefaultString(rowData['asset_phone_number']),
+                'asset_phone_number_code': util.replaceDefaultString(rowData['asset_phone_country_code']),
+                'operating_asset_phone_number': util.replaceDefaultString(rowData['operating_asset_phone_number']),
+                'operating_asset_phone_country_code': util.replaceDefaultString(rowData['operating_asset_phone_country_code']),
+                'log_asset_id': util.replaceDefaultNumber(rowData['log_asset_id']),
+                'log_state': util.replaceDefaultNumber(rowData['log_state']),
+                'log_active': util.replaceDefaultNumber(rowData['log_active']),
+                "operating_asset_id": util.replaceZero(rowData['operating_asset_id']),
+                "operating_asset_first_name": util.replaceDefaultString(rowData['operating_asset_first_name']),
+                "operating_asset_last_name": util.replaceDefaultString(rowData['operating_asset_last_name']),
+                "activity_creator_operating_asset_first_name": util.replaceDefaultString(rowData['activity_creator_operating_asset_first_name']),
+                "asset_datetime_last_seen": util.replaceDefaultDatetime(rowData['asset_datetime_last_seen']),
+                "activity_creator_asset_id": util.replaceDefaultNumber(rowData['activity_creator_asset_id']),
+                "activity_owner_asset_image_path": util.replaceDefaultString(rowData['activity_owner_asset_image_path']),
+                "operating_asset_image_path": util.replaceDefaultString(rowData['operating_asset_image_path'])
+            };
+            responseData.push(rowDataArr);
+        }, this);
+        callback(false, responseData);
+	};
+
+	//Get the asset_type_id(ROLE) for a given status_id - RM
+	this.getAssetTypeIDForAStatusID = async (request, activityStatusId) => {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            activityStatusId
+        );
+        let queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_select_id', paramsArr);
+        if (queryString != '') {
+            //return await db.executeQueryPromise(1, queryString, request);
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
+	
+	//Get the asset for a given asset_type_id(ROLE) - RM
+	this.getAssetForAssetTypeID = async (request) =>{
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.activity_id,
+            request.asset_type_id,
+            request.organization_id
+        );
+        const queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_role_participant', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+	};
+
+	//Set the rollback count for a given asset_id
+	this.setAssetRollBackCnt = async (request) =>{
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.activity_id,
+            request.asset_id,
+            request.organization_id
+        );
+        const queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_rollback_count', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+	};
+
+	//Get the rollback count for a given asset_id
+	this.getAssetRollBackCnt = async (request) =>{
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+			request.account_id,
+			request.workforce_id,
+			request.asset_id,
+			request.activity_type_id,
+			request.activity_type_category_id,
+			request.flag || 0,
+			request.start_datetime, //Monday
+			request.end_datetime, //Sunday
+			request.start_from || 0,
+			request.limit_value || 50
+        );
+        const queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_asset_rollback', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+	};
 	
 }
 
