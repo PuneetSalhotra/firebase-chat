@@ -5140,6 +5140,92 @@ function AdminOpsService(objectCollection) {
         }
         return [error, responseData];
     }
+
+    
+    //Set Business Hours @Account Level
+    this.setBusinessHoursAccountLevel = async (request) =>{
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.account_inline_data,
+            request.flag_enable_desk_workhours,
+            util.getCurrentUTCTime(),
+            request.asset_id
+        );
+        const queryString = util.getQueryString('ds_p1_account_list_update_inline_data', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    //Set Business Hours @Floor(Workforce) Level
+    this.setBusinessHoursWorkforceLevel = async (request) =>{
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.workforce_inline_data,
+            request.flag_enable_desk_workhours,
+            util.getCurrentUTCTime(),
+            request.asset_id
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_list_update_inline_data', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    //Set Business Hours @Individual(Desk) Level
+    this.setBusinessHoursDeskLevel = async (request) =>{
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_id,
+            request.organization_id,
+            request.flag_custom_workhours,
+            request.asset_inline_data,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_update_inline_data', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = AdminOpsService;
