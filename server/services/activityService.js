@@ -4131,8 +4131,8 @@ function ActivityService(objectCollection) {
 
         await sleep(1000);
         //Get Weekly roll back count
-        newReq.start_datetime = "";
-        newReq.end_datetime = "";
+        newReq.start_datetime = util.getStartDateTimeOfWeek();
+        newReq.end_datetime = util.getEndDateTimeOfWeek();
         let [err2, weeklyCount] = await activityListingService.getAssetRollBackCnt(newReq);
         let weeklyRollBackCnt = 0;
         let weeklyTotalCnt = 0;
@@ -4153,8 +4153,8 @@ function ActivityService(objectCollection) {
         await activityCommonService.weeklySummaryInsert(newReq, weeklyObj);
 
         //Get Monthly roll back count
-        newReq.start_datetime =  "";
-        newReq.end_datetime = "";
+        newReq.start_datetime =  util.getStartDateTimeOfMonth();
+        newReq.end_datetime = util.getEndDateTimeOfMonth();
         let [err3, monthlyCount] = await activityListingService.getAssetRollBackCnt(newReq);
         let monthlyRollBackCnt = 0;
         let monthlyTotalCnt = 0;

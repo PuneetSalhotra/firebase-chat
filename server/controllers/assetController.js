@@ -591,5 +591,15 @@ function AssetController(objCollection) {
         }
     });
     
+    //Work Exposure
+    app.post('/' + global.config.version + '/asset/workflow_exposure/matrix', async function (req, res) {
+        const [err, data] = await assetService.assetWFExposureMatrix(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("/asset/workflow_exposure/matrix | Error: ", err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
 }
 module.exports = AssetController;
