@@ -15,24 +15,38 @@ function AnalyticsController(objCollection)
 
     const analyticsService = new AnalyticsService(objCollection);
 
+    // Get the list of filter labels for the organization
+    // Bharat Masimukku
+    // 2019-07-11
+    app.post
+        (
+            '/' + global.config.version + '/analytics/organization/filters/labels/list',
+            async (req, res) => {
+                try {
+                    let result = await analyticsService.getFilterLabels(req.body);
+                    res.send(responseWrapper.getResponse(false, result, 200, req.body));
+                }
+                catch (err) {
+                    res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+                }
+            }
+        );
+
     // Add filter label for the organization
     app.post
-    (
-        '/' + global.config.version + '/analytics/organization/filters/labels/add', 
-        async (req, res) => 
-        {        
-            try 
-            {
-                let result = await analyticsService.addFilterLabel(req.body);
-                res.send(responseWrapper.getResponse(false, result, 200, req.body));
-            } 
-            catch(err) 
-            {
-                console.log("Error: ", err);
-                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
-            } 
-        }
-    );
+        (
+            '/' + global.config.version + '/analytics/organization/filters/labels/add',
+            async (req, res) => {
+                try {
+                    let result = await analyticsService.addFilterLabel(req.body);
+                    res.send(responseWrapper.getResponse(false, result, 200, req.body));
+                }
+                catch (err) {
+                    console.log("Error: ", err);
+                    res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+                }
+            }
+        );
 
     //Get the list of filter values for the organization
     //Bharat Masimukku
