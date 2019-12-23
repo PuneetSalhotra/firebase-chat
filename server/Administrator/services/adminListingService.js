@@ -1175,6 +1175,31 @@ function AdminListingService(objectCollection) {
         }
         return [error, responseData];
     };
+
+    this.workforceActivityTypeMappingSelectID = async function (request, activityTypeID) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            activityTypeID
+        );
+
+        var queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_select_id', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
 }
 
 module.exports = AdminListingService;

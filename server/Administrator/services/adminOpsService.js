@@ -19,6 +19,22 @@ function AdminOpsService(objectCollection) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
+    class ClientInputError extends Error {
+        constructor(message, code) {
+            super(message); // (1)
+            this.name = "ClientInputError"; // (2)
+            this.code = code; // (2)
+        }
+
+        getErrorCode() {
+            return this.code;
+        }
+
+        getMessage() {
+            return this.message;
+        }
+    }
+
     this.createOrganization = async function (request) {
 
         // Check if an organization exists with the same name
@@ -3323,7 +3339,7 @@ function AdminOpsService(objectCollection) {
                     workforce_id: newUserDefinedWorkforceResponse.workforce_id,
                     workforce_name: userDefinedWorkforceName
                 });
-                // Create the employees/administrator only on the frist floor
+                // Create the employees/administrator only on the first floor
                 if (Number(index) == 0) {
                     const employeeList = JSON.parse(request.employee_list);
 
@@ -3375,6 +3391,18 @@ function AdminOpsService(objectCollection) {
                             }
                             console.log("Desk Asset ID: ", deskAssetID);
                             console.log("Contact Card Activity ID: ", contactCardActivityID);
+                            // Update admin flags for the desk asset
+                            try {
+                                await self.updateAssetFlags({
+                                    ...request,
+                                    asset_id: deskAssetID,
+                                    flag: 0,
+                                    set_admin_flag: 1,
+                                    set_organization_admin_flag: request.asset_flag_organization_admin || 0
+                                });
+                            } catch (error) {
+                                logger.error(`Error setting Admin accesses for the desk asset`, { type: 'admin_ops', request_body: request, error });
+                            }
 
                             // Create the Employee Asset
                             const [errEight, employeeAssetID, idCardActivityID] = await fireEmployeeAssetCreationService(
@@ -3392,6 +3420,20 @@ function AdminOpsService(objectCollection) {
                             }
                             console.log("Employee Asset ID: ", employeeAssetID);
                             console.log("ID Card Activity ID: ", idCardActivityID);
+
+                            // Update admin flags for the employee asset
+                            try {
+                                await self.updateAssetFlags({
+                                    ...request,
+                                    asset_id: employeeAssetID,
+                                    flag: 0,
+                                    set_admin_flag: 1,
+                                    set_organization_admin_flag: request.asset_flag_organization_admin || 0
+                                });
+                            } catch (error) {
+                                logger.error(`Error setting Admin accesses for the employee asset`, { type: 'admin_ops', request_body: request, error });
+                            }
+
                         } catch (error) {
                             console.log("Create the Desk/Employee Asset Error: ", error);
                             continue;
@@ -4859,6 +4901,232 @@ function AdminOpsService(objectCollection) {
             util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_update_role', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.updateWorkflowValueContributors = async function (request) {
+        const organizationID = Number(request.organization_id),
+            accountID = Number(request.account_id),
+            workforceID = Number(request.workforce_id),
+            workflowActivityTypeID = Number(request.activity_type_id);
+
+        const [errOne, workflowData] = await adminListingService.workforceActivityTypeMappingSelectID(request, workflowActivityTypeID);
+        if (errOne) {
+            return [new ClientInputError("Error fetching workflow's inline data", -9998), []];
+        }
+
+        if (workflowData.length > 0) {
+            let workflowInlineData = JSON.parse(workflowData[0].activity_type_inline_data);
+            let existingWorkflowFieldsInlineData = workflowInlineData.hasOwnProperty("workflow_fields") ? workflowInlineData.workflow_fields : {};
+            let newWorkflowFieldsInlineData = JSON.parse(request.workflow_fields);
+
+            switch (Number(request.flag)) {
+                case 1: // Update the complete inline data
+                    if (Object.keys(newWorkflowFieldsInlineData).length > 5) {
+                        return [new ClientInputError("A workflow can only have upto 5 value contributors", -3001), []];
+                    }
+                    workflowInlineData.workflow_fields = newWorkflowFieldsInlineData;
+                    break;
+                
+                case 2: // Add fields
+                    if (
+                        (
+                            Object.keys(newWorkflowFieldsInlineData).length +
+                            Object.keys(existingWorkflowFieldsInlineData).length
+                        ) > 5
+                    ) {
+                        return [new ClientInputError("A workflow can only have upto 5 value contributors", -3001), []];
+                    }
+                    workflowInlineData.workflow_fields = {
+                        ...existingWorkflowFieldsInlineData,
+                        ...newWorkflowFieldsInlineData
+                    };
+                    break;
+                
+                case 3: // Remove fields
+                    for (const fieldID of Object.keys(newWorkflowFieldsInlineData)) {
+                        delete existingWorkflowFieldsInlineData[fieldID];
+                    }
+                    workflowInlineData.workflow_fields = existingWorkflowFieldsInlineData;
+                    break;
+
+                default:
+                    return [new ClientInputError("Value of flag is invalid", -3001), []];
+            }
+
+            try {
+                await workforceActivityTypeMappingUpdateInline({
+                    ...request,
+                    activity_type_id: workflowActivityTypeID,
+                    inline_data: JSON.stringify(workflowInlineData)
+                }, organizationID, accountID, workforceID)
+                return [false, [workflowInlineData]];
+            } catch (error) {
+                return [new ClientInputError("Error updating the workflow's inline data", -9998), []];
+            }
+        }
+        return [false, []]
+    }
+
+    async function workforceActivityTypeMappingUpdateInline(request, organizationID, accountID, workforceID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            organizationID,
+            accountID,
+            workforceID,
+            request.activity_type_id,
+            request.inline_data,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_update_inline', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.addTagType = async function (request) {
+        const organizationID = Number(request.organization_id),
+            accountID = Number(request.account_id),
+            workforceID = Number(request.workforce_id);
+
+        const [errOne, tagTypeData] = await tagTypeMasterInsert(request, organizationID);
+        if (errOne) {
+            return [new ClientInputError("Error adding a new Tag Type to the organization", -9998), []];
+        }
+
+        return [errOne, tagTypeData];
+    }
+
+    async function tagTypeMasterInsert(request, organizationID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.tag_type_name,
+            request.tag_type_description,
+            request.tag_type_category_id || 1,
+            organizationID,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_tag_type_master_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.addTag = async function (request) {
+        const organizationID = Number(request.organization_id),
+            accountID = Number(request.account_id),
+            workforceID = Number(request.workforce_id);
+
+        if (
+            !request.hasOwnProperty("tag_type_id") || 
+            Number(request.tag_type_id) <= 0
+        ) {
+            return [new ClientInputError("tag_type_id missing or 0. Tags must be associated with a Tag Type.", -3001), []];
+        }
+
+        const [errOne, tagTypeData] = await tagListInsert(request, organizationID);
+        if (errOne) {
+            return [new ClientInputError("Error adding a new Tag to the organization", -9998), []];
+        }
+
+        return [errOne, tagTypeData];
+    }
+
+    async function tagListInsert(request, organizationID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.tag_name,
+            request.tag_type_id,
+            organizationID,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_tag_list_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.addActivityTypeToTagMapping = async function (request) {
+        const organizationID = Number(request.organization_id),
+            accountID = Number(request.account_id),
+            workforceID = Number(request.workforce_id);
+
+        if (
+            !request.hasOwnProperty("tag_id") ||
+            Number(request.tag_id) <= 0 ||
+            !request.hasOwnProperty("activity_type_id") ||
+            Number(request.activity_type_id) <= 0
+        ) {
+            return [new ClientInputError("tag_id and activity_type_id must be a non-zero positive value. An activity_type_id is mapped to single tag_id.", -3001), []];
+        }
+
+        const [errOne, activityTypeTagMappingData] = await activityTypeTagMappingInsert(request, organizationID);
+        if (errOne) {
+            return [new ClientInputError("Error mapping an activity_type_id to a tag_id", -9998), []];
+        }
+
+        return [errOne, activityTypeTagMappingData];
+    }
+
+    async function activityTypeTagMappingInsert(request, organizationID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.tag_id,
+            request.activity_type_id,
+            organizationID,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_activity_type_tag_mapping_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)

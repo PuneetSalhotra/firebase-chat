@@ -310,6 +310,54 @@ function AdminOpsController(objCollection) {
         }
     });
 
+    // Update a workflow's value contributors
+    app.post('/' + global.config.version + '/admin/workforce/activity_type/value_contributors/update', async function (req, res) {
+        // flag:
+        // 1 => Update the complete inline data
+        // 2 => Add fields
+        // 3 => Remove fields
+        const [err, responseData] = await adminOpsService.updateWorkflowValueContributors(req.body, 0);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/admin/workforce/activity_type/value_contributors/update | Error: ", err);
+            res.send(responseWrapper.getResponse(err, { message: err.getMessage() }, err.getErrorCode(), req.body));
+        }
+    });
+
+    // Add Tag Types
+    app.post('/' + global.config.version + '/admin/organization/tag_type/add', async function (req, res) {
+        const [err, responseData] = await adminOpsService.addTagType(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/admin/organization/tag_type/add | Error: ", err);
+            res.send(responseWrapper.getResponse(err, { message: err.getMessage() }, err.getErrorCode(), req.body));
+        }
+    });
+
+    // Add Tag
+    app.post('/' + global.config.version + '/admin/organization/tag/add', async function (req, res) {
+        const [err, responseData] = await adminOpsService.addTag(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/admin/organization/tag/add | Error: ", err);
+            res.send(responseWrapper.getResponse(err, { message: err.getMessage() }, err.getErrorCode(), req.body));
+        }
+    });
+
+    // Add (Workflow/Activity Type) to (Tag) mapping
+    app.post('/' + global.config.version + '/admin/organization/activity_type/tag/map', async function (req, res) {
+        const [err, responseData] = await adminOpsService.addActivityTypeToTagMapping(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/admin/organization/tag/add | Error: ", err);
+            res.send(responseWrapper.getResponse(err, { message: err.getMessage() }, err.getErrorCode(), req.body));
+        }
+    });
+
 }
 
 module.exports = AdminOpsController;
