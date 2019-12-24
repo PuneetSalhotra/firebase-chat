@@ -87,12 +87,13 @@ function AdminOpsService(objectCollection) {
 
 
         // 1. Asset List Insert
-        const [errOne, assetData] = await assetListInsert(request, workforceID, organizationID, accountID);
+        // const [errOne, assetData] = await assetListInsert(request, workforceID, organizationID, accountID);
+        const [errOne, assetData] = await assetListInsertV1(request, workforceID, organizationID, accountID);
         if (errOne || Number(assetData.length) === 0) {
-            console.log("createAssetBundle | assetListInsert | assetData: ", assetData);
+            console.log("createAssetBundle | assetListInsertV1 | assetData: ", assetData);
             console.log("createAssetBundle | Error: ", errOne);
             return [true, {
-                message: "Error at assetListInsert"
+                message: "Error at assetListInsertV1"
             }]
         }
 
@@ -192,6 +193,55 @@ function AdminOpsService(objectCollection) {
         );
         // const queryString = util.getQueryString('ds_p1_1_asset_list_insert', paramsArr);
         const queryString = util.getQueryString('ds_p1_2_asset_list_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Asset List Insert v1: With provision to add industry and work location
+    async function assetListInsertV1(request, workforceID, organizationID, accountID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_first_name || '',
+            request.asset_last_name || '',
+            request.asset_description || '',
+            request.gender_id || 4,
+            request.customer_unique_id || '',
+            request.asset_image_path || '',
+            request.id_card_json || '{}',
+            request.country_code || 1,
+            request.phone_number || 0,
+            request.email_id || '',
+            request.password || '',
+            request.timezone_id || 22,
+            request.asset_type_id,
+            request.operating_asset_id || 0,
+            request.manager_asset_id || 0,
+            workforceID,
+            accountID,
+            organizationID,
+            request.asset_id || 1,
+            util.getCurrentUTCTime(),
+            request.joined_datetime || util.getCurrentUTCTime(),
+            request.asset_flag_account_admin || 0,
+            request.asset_flag_organization_admin || 0,
+            request.industry_id || 0,
+            request.work_location_latitude || 0,
+            request.work_location_longitude || 0,
+            request.work_location_address || '',
+        );
+        const queryString = util.getQueryString('ds_p1_3_asset_list_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
