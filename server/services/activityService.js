@@ -4033,6 +4033,7 @@ function ActivityService(objectCollection) {
             workflowActivityId = Number(workflowData[0].activity_id);
         }
         
+
         let botIsDefined = 0;
         let botEngineRequest = Object.assign({}, request);
             botEngineRequest.form_id = Number(fieldData.form_id);
