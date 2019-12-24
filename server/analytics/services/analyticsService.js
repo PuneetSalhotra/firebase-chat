@@ -61,6 +61,89 @@ function AnalyticsService(objectCollection)
         }
     };
 
+    // Add filter label for the organization
+    this.addFilterLabel =
+        async (request) => {
+            try {
+                let results = new Array();
+                let paramsArray;
+
+                paramsArray =
+                    new Array
+                        (
+                            request.organization_widget_filter_name,
+                            request.widget_filter_id,
+                            request.widget_filter_sequence_id,
+                            request.widget_filter_flag_enable_all,
+                            request.organization_id,
+                            request.asset_id,
+                            util.getCurrentUTCTime()
+                        );
+
+                results[0] = await db.callDBProcedureR2(request, 'ds_p1_organization_widget_filter_mapping_insert', paramsArray, 0);
+
+                return results[0];
+            }
+            catch (error) {
+                return Promise.reject(error);
+            }
+        };
+
+    // Update filter label for the organization
+    this.updateFilterLabel =
+        async (request) => {
+            try {
+                let results = new Array();
+                let paramsArray;
+
+                paramsArray =
+                    new Array
+                        (
+                            request.organization_widget_filter_mapping_id,
+                            request.organization_widget_filter_name,
+                            request.widget_filter_sequence_id,
+                            request.organization_id,
+                            request.widget_filter_id,
+                            util.getCurrentUTCTime(),
+                            request.asset_id
+                        );
+
+                results[0] = await db.callDBProcedureR2(request, 'ds_p1_organization_widget_filter_mapping_update', paramsArray, 0);
+
+                return results[0];
+            }
+            catch (error) {
+                return Promise.reject(error);
+            }
+        };
+
+    // Delete filter label for the organization
+    this.deleteFilterLabel =
+        async (request) => {
+            try {
+                let results = new Array();
+                let paramsArray;
+
+                paramsArray =
+                    new Array
+                        (
+                            request.organization_widget_filter_mapping_id,
+                            request.organization_id,
+                            request.widget_filter_id,
+                            3, // request.log_state
+                            util.getCurrentUTCTime(),
+                            request.asset_id
+                        );
+
+                results[0] = await db.callDBProcedureR2(request, 'ds_p1_organization_widget_filter_mapping_update_log_state', paramsArray, 0);
+
+                return results[0];
+            }
+            catch (error) {
+                return Promise.reject(error);
+            }
+        };
+
     this.analyticsWidgetAdd = async function(request) {
         request.datetime_log = util.getCurrentUTCTime();
         let widgetId;

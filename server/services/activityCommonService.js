@@ -3935,6 +3935,22 @@ function ActivityCommonService(db, util, forEachAsync) {
         return [error, responseData];
       };
 
+ 	this.activityUpdateDocumentsSubmitted = async function(request, flag) {
+        const paramsArr = new Array(
+            request.organization_id,
+            request.activity_id,
+            1,
+            util.getCurrentUTCTime()
+        );
+        let queryString = util.getQueryString('ds_v1_activity_list_update_documents_submitted', paramsArr);
+        let queryStringMapping = util.getQueryString('ds_v1_activity_asset_mapping_update_documents_submitted', paramsArr);
+        if (queryString != '') {
+                          db.executeQueryPromise(0, queryString, request)
+            return await (db.executeQueryPromise(0, queryStringMapping, request)); 
+                         
+        }
+    };
+
 }
 
 
