@@ -4080,8 +4080,6 @@ function BotService(objectCollection) {
 
         customerData.customer_work_location_coordinates = customerData.customer_work_location_coordinates.split(",");
 
-        console.log("customerData: ", customerData);
-
         // Check if an asset already exists with the given number
         const assetCheckData = await getAssetDetailsOfANumber({
             organization_id: request.organization_id,
