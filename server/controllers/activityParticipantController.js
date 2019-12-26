@@ -4,7 +4,7 @@
  */
 
 var ParticipantService = require("../services/activityParticipantService");
-
+const ActivityListingService = require("../services/activityListingService");
 
 function ActivityParticipantController(objCollection) {
 
@@ -17,6 +17,7 @@ function ActivityParticipantController(objCollection) {
     var activityCommonService = objCollection.activityCommonService;
 
     var participantService = new ParticipantService(objCollection);
+    const activityListingService = new ActivityListingService(objCollection);
 
     app.post('/' + global.config.version + '/activity/participant/list', function (req, res) {
         participantService.getParticipantsList(req.body, function (err, data, statusCode) {
@@ -425,6 +426,15 @@ function ActivityParticipantController(objCollection) {
         
     });
 
+    app.post('/' + global.config.version + '/activity/participant/asset_type/list', async (req, res) => {
+        const [err, result] = await activityListingService.getAssetForAssetTypeID(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            console.log("/activity/participant/asset_type/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
 }
 
 
