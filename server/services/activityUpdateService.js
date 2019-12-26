@@ -1939,7 +1939,7 @@ function ActivityUpdateService(objectCollection) {
         }
 
         for (const activityID of activitySet) {
-            activityCommonService.resetAssetUnreadCount(request, activityID, function (err, data) {
+             activityCommonService.resetAssetUnreadCount(request, activityID, function (err, data) {
                 if (err === false) {
                     if (activityTypeCategoryId === 8 && Number(request.device_os_id) !== 5) {
                         var pubnubMsg = {};
@@ -1972,10 +1972,11 @@ function ActivityUpdateService(objectCollection) {
             }
         }
 
+        console.log("resetUnreadUpdateCountV1 | activityTypeCategoryId: ", activityTypeCategoryId);
         if (request.url.includes('v1')) {
             if (activityTypeCategoryId === 10 || activityTypeCategoryId === 11 || activityTypeCategoryId === 5 ||
                 activityTypeCategoryId === 6 || activityTypeCategoryId === 29 || activityTypeCategoryId === 43 ||
-                activityTypeCategoryId === 44) {
+                activityTypeCategoryId === 44 || activityTypeCategoryId === 48) {
                 activityCommonService.retrieveAccountList(request, (err, data) => {
                     if (err === false) {
                         request.config_resp_hours = data[0].account_config_response_hours;

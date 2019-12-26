@@ -773,7 +773,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             activityId = request.activity_id;
         }
 
-        var duration = util.differenceDatetimes(request.timeline_transaction_datetime, request.datetime_log);
+        var duration = util.differenceDatetimes(request.datetime_log, request.timeline_transaction_datetime);
         //console.log('Duration in Seconds : ', duration);
         global.logger.write('conLog', 'Duration in Seconds : ' + duration, {}, request);
 
