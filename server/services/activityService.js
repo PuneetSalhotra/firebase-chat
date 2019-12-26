@@ -2076,7 +2076,7 @@ function ActivityService(objectCollection) {
                     var timeDuration = util.differenceDatetimes(util.getCurrentUTCTime(), util.replaceDefaultDatetime(data[0].datetimeExistingActivityStatusUpdated));
                     if (Number(data[0].idExistingActivityStatus) > 0 && Number(request.activity_status_id) > 0) {
 
-                        activityCommonService.activityStatusChangeTxnInsertV2(request, Number(timeDuration) / 1000, {
+                        await activityCommonService.activityStatusChangeTxnInsertV2(request, Number(timeDuration) / 1000, {
                             from_status_id: Number(data[0].idExistingActivityStatus),
                             to_status_id: Number(request.activity_status_id),
                             from_status_datetime: util.replaceDefaultDatetime(data[0].datetimeExistingActivityStatusUpdated),
@@ -2086,6 +2086,9 @@ function ActivityService(objectCollection) {
                             request['source_id'] = 3;
                             //sendRequesttoWidgetEngine(request);
                         });
+
+                        // Capture workflow, customer and industry exposure for a desk asset
+                        await captureWorkExperienceForDeskAsset(request);
                     }
                 }
 
@@ -2415,6 +2418,167 @@ function ActivityService(objectCollection) {
             updatePostItProductivityScore(request).then(() => {});
         }
     };
+
+    async function captureWorkExperienceForDeskAsset(request) {
+        let summaryInlineData = {
+            workload_data: {}
+        };
+        let totalExpectedWorkHours = 0,
+            totalActualWorkHours = 0,
+            workflowActivityTypeID = 0,
+            activityOwnerAssetID = 0,
+            activityLeadAssetID = 0;
+
+        try {
+            const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, Number(request.activity_id));
+            if (Number(workflowActivityData.length) > 0) {
+                workflowActivityTypeID = Number(workflowActivityData[0].activity_type_id);
+                activityLeadAssetID = Number(workflowActivityData[0].activity_lead_asset_id);
+                activityOwnerAssetID = Number(workflowActivityData[0].activity_owner_asset_id);
+            }
+        } catch (error) {
+            logger.error("captureWorkExperienceForDeskAsset | No Workflow Data Found in DB", {type: "summary_update", error});
+        }
+
+        for (const workExperienceFlag of [1, 2, 3, 4, 5, 6, 7, 8]) {
+            const [err, workExpData] = await activityStatusChangeTransactionSelectAssetWorkExp({
+                ...request,
+                flag: workExperienceFlag
+            });
+            switch (workExperienceFlag) {
+                case 0:
+                    totalActualWorkHours = workExpData[0].actual_duration;
+                    totalExpectedWorkHours = workExpData[0].expected_duration;
+                    break;
+                
+                case 1:
+                    summaryInlineData.workload_data.workflow_category_workload_data = workExpData.map(work => {
+                        return {
+                            workflow_category_name: work.tag_type_name,
+                            workflow_category_id: work.tag_type_id,
+                            workflow_category_workload_hours: work.actual_duration
+                        };
+                    });
+                    break;
+
+                case 2:
+                    summaryInlineData.workload_data.workflow_type_workload_data = workExpData.map(work => {
+                        return {
+                            workflow_type_name: work.activity_type_tag_name,
+                            workflow_type_id: work.activity_type_tag_id,
+                            workflow_type_workload_hours: work.actual_duration
+                        };
+                    });
+                    break;
+
+                case 3:
+                    summaryInlineData.workload_data.workflow_workload_data = workExpData.map(work => {
+                        return {
+                            workflow_name: work.activity_type_name,
+                            workflow_id: work.activity_type_id,
+                            workflow_workload_hours: work.actual_duration
+                        };
+                    });
+                    break;
+
+                case 4:
+                    summaryInlineData.workload_data.industry_workload_data = workExpData.map(work => {
+                        return {
+                            industry_name: work.industry_name,
+                            industry_id: work.industry_id,
+                            industry_workload_hours: work.actual_duration
+                        };
+                    });
+                    break;
+
+                case 5:
+                    summaryInlineData.workload_data.customer_workload_data = workExpData.map(work => {
+                        return {
+                            customer_name: work.customer_asset_first_name,
+                            customer_asset_id: work.customer_asset_id,
+                            customer_workload_hours: work.actual_duration
+                        };
+                    });
+                    break;
+
+                case 6:
+                    summaryInlineData.workload_data.role_workload_data = workExpData.map(work => {
+                        return {
+                            role_name: work.lead_asset_type_name,
+                            role_id: work.lead_asset_type_id,
+                            role_workload_hours: work.actual_duration
+                        };
+                    });
+                    break;
+
+                case 7:
+                    summaryInlineData.workload_data.status_workload_data = workExpData.map(work => {
+                        return {
+                            status_name: work.from_activity_status_name,
+                            status_id: work.from_activity_status_id,
+                            status_workload_hours: work.actual_duration,
+                            status_expected_hours: work.expected_duration
+                        };
+                    });
+                    break;
+                
+                case 8:
+                    summaryInlineData.workload_data.rollback_data = {
+                        rollback_count: workExpData[0].rollback_data
+                    };
+                    break;
+
+                default:
+                    // Do nothing
+                    break;
+            }
+        }
+
+        try {
+            await activityCommonService.assetSummaryTransactionInsert({
+                ...request,
+                asset_id: activityLeadAssetID || activityOwnerAssetID,
+                monthly_summary_id: 1,
+                entity_decimal_1: totalExpectedWorkHours,
+                entity_decimal_2: totalActualWorkHours,
+                inline_data: JSON.stringify(summaryInlineData)
+            });
+        } catch (error) {
+            logger.error("captureWorkExperienceForDeskAsset | Error updating asset summary", {type: "summary_update", error});
+        }
+
+        return;
+    }
+
+    // Set Business Hours @Individual(Desk) Level
+    async function activityStatusChangeTransactionSelectAssetWorkExp(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.asset_id,
+            request.flag,
+            "1970-01-01 00:00:00", // request.datetime_start
+            util.getCurrentUTCTime() // datetime_end
+            
+        );
+        const queryString = util.getQueryString('ds_p1_activity_status_change_transaction_select_asset_work_exp', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 
     // To calculate productivity scores for Post-Its
     function updatePostItProductivityScore(request) {

@@ -3951,6 +3951,64 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
     };
 
+    this.assetSummaryTransactionInsert = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.monthly_summary_id,
+            request.asset_id,
+            request.workforce_id,
+            request.account_id,
+            request.organization_id,
+            request.inline_data,
+            request.entity_date_1,
+            request.entity_datetime_1,
+            request.entity_tinyint_1,
+            request.entity_bigint_1,
+            request.entity_double_1,
+            request.entity_decimal_1,
+            request.entity_decimal_2,
+            request.entity_decimal_3,
+            request.entity_text_1,
+            request.entity_text_2,
+            request.location_latitude,
+            request.location_longitude,
+            request.location_gps_accuracy,
+            request.location_gps_enabled,
+            request.location_address,
+            request.location_datetime,
+            request.device_manufacturer_name,
+            request.device_model_name,
+            request.device_os_id,
+            request.device_os_name,
+            request.device_os_version,
+            request.device_app_version,
+            request.device_api_version,
+            request.asset_id,
+            request.message_unique_id || 0,
+            request.log_retry || 0,
+            request.log_offline || 0,
+            util.getCurrentUTCTime(), // transaction_datetime
+            util.getCurrentUTCTime() // log_datetime
+        );
+
+        const queryString = util.getQueryString("ds_v1_asset_summary_transaction_insert", paramsArr);
+
+        if (queryString !== "") {
+            await db
+                .executeQueryPromise(1, queryString, request)
+                .then(data => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch(err => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    }
+
 }
 
 
