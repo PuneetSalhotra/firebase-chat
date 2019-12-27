@@ -2771,6 +2771,37 @@ function ActivityListingService(objCollection) {
         return [error, responseData];
 	};
 	
+
+	//Get the workload of lead asset
+	//IF p_flag = 0 THEN RETURNS COUNT of OPEN workflows which are lead by the owner in the given duration
+	//IF p_flag = 1 THEN RETURNS LIST of OPEN workflows which are lead by the owner in the given duration
+	this.getLeadAssetWorkload = async (request) =>{
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,			
+			request.asset_id,
+			request.flag || 0,
+			request.start_datetime, //Monday
+			request.end_datetime, //Sunday
+			request.start_from || 0,
+			request.limit_value || 50
+        );
+        const queryString = util.getQueryString('ds_p1_activity_list_select_asset_lead_tasks', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+	};
 }
 
 module.exports = ActivityListingService;

@@ -213,22 +213,42 @@ function ActivityTimelineService(objectCollection) {
             request.hasOwnProperty("workflow_activity_id") &&
             Number(request.workflow_activity_id) !== 0
         ) {
-            console.log('CALLING buildAndSubmitCafFormV1');
-            const romsTargetFormGenerationEvent = {
-                name: "vodafoneService",
-                service: "vodafoneService",
-                method: "buildAndSubmitCafFormV1",
-                payload: request
-            };
-            queueWrapper.raiseActivityEvent(romsTargetFormGenerationEvent, request.activity_id, (err, resp) => {
-                if (err) {
-                    global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                    global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
-                } else {
-                    global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                    global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
-                }
-            });
+            //Wait for 5 seconds
+            setTimeout(()=>{
+                console.log('CALLING buildAndSubmitCafFormV1');
+                const romsTargetFormGenerationEvent = {
+                    name: "vodafoneService",
+                    service: "vodafoneService",
+                    method: "buildAndSubmitCafFormV1",
+                    payload: request
+                };
+                queueWrapper.raiseActivityEvent(romsTargetFormGenerationEvent, request.activity_id, (err, resp) => {
+                    if (err) {
+                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                    } else {
+                        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                    }
+                });
+            }, 5000);
+            
+            //console.log('CALLING buildAndSubmitCafFormV1');
+            //const romsTargetFormGenerationEvent = {
+            //    name: "vodafoneService",
+            //    service: "vodafoneService",
+            //    method: "buildAndSubmitCafFormV1",
+            //    payload: request
+            //};
+            //queueWrapper.raiseActivityEvent(romsTargetFormGenerationEvent, request.activity_id, (err, resp) => {
+            //    if (err) {
+            //        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+            //        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+            //    } else {
+            //        global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+            //        global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+            //    }
+            //});
         }
     }
 

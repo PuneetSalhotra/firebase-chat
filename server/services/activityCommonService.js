@@ -4007,7 +4007,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 });
         }
         return [error, responseData];
-    }
+    };
 
 }
 

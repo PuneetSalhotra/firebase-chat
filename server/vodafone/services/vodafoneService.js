@@ -6059,10 +6059,10 @@ function VodafoneService(objectCollection) {
             {
                 email_sender_name: `CAF/CRF Miss Alert Bot`,
                 email_sender: `no-reply@grenerobotics.com`,
-                email_receiver_name: `Ben Sooraj`,
+                email_receiver_name: `Vijay`,
                 // bcc_email_receiver: `sravan@grenerobotics.com `,
             },
-            `ben@grenerobotics.com`,
+            `vijay@grenerobotics.com`,
             `CAF/CRF Missed For Order ID ${workflowActivityID} | ${moment().utcOffset('+05:30').format('YYYY-MM-DD HH:mm:ss')} | ${global.mode}`,
             '',
             htmlTemplate,
