@@ -3951,6 +3951,66 @@ function ActivityCommonService(db, util, forEachAsync) {
         }
     };
 
+
+    //Insert workload related stuff in the asset summary transaction
+    this.assetSummaryTransactionInsert = async function(request) {
+        let responseData = [],
+          error = true;
+  
+        const paramsArr = new Array(
+            request.monthly_summary_id, 
+            request.asset_id, 
+            request.workforce_id, 
+            request.account_id, 
+            request.organization_id, 
+            request.inline_data, 
+            request.entity_date_1, 
+            request.entity_datetime_1, 
+            request.entity_tinyint_1, 
+            request.entity_bigint_1, 
+            request.entity_double_1, 
+            request.entity_decimal_1, 
+            request.entity_decimal_2, 
+            request.entity_decimal_3, 
+            request.entity_text_1, 
+            request.entity_text_2, 
+            request.location_latitude, 
+            request.location_longitude, 
+            request.location_gps_accuracy, 
+            request.location_gps_enabled, 
+            request.location_address, 
+            request.location_datetime, 
+            request.device_manufacturer_name, 
+            request.device_model_name, 
+            request.device_os_id, 
+            request.device_os_name, 
+            request.device_os_version, 
+            request.device_app_version, 
+            request.device_api_version, 
+            request.log_asset_id, 
+            request.log_message_unique_id, 
+            request.log_retry, 
+            request.log_offline, 
+            request.transaction_datetime || util.getCurrentUTCTime(), 
+            util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString("ds_v1_asset_summary_transaction_insert",paramsArr);        
+    
+        if (queryString !== "") {
+          await db
+            .executeQueryPromise(0, queryString, request)
+            .then(data => {
+              responseData = data;
+              error = false;
+            })
+            .catch(err => {
+              error = err;
+            });
+        }
+        return [error, responseData];
+      };
+
 }
 
 
