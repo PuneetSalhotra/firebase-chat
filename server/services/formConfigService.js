@@ -2154,6 +2154,47 @@ function FormConfigService(objCollection) {
         // ...
         // ...
         // 
+
+        //Loop on all the fields of the Form
+        //Check if bots are defined on the bot
+        //If Yes
+        //Delete them also
+        const formID = Number(request.form_id);
+        try{
+            let data = await this.getFormFieldMappings(request, formID, 0, 50);
+            //console.log('DATA : ', data);
+            if(data.length > 0) {
+                for(let i=0; i<data.length; i++) {                   
+                    let botEngineRequest = Object.assign({}, request);
+                        botEngineRequest.form_id = formID;
+                        botEngineRequest.field_id = Number(data[i].field_id);
+                        botEngineRequest.flag = 5;
+
+                    try{            
+                        let botsListData = await activityCommonService.getBotsMappedToActType(botEngineRequest);
+                        if (botsListData.length > 0) {                            
+                            console.log('BOTID for Field ID : ', data[i].field_id , ' is : ', botsListData[0].bot_id);
+                            
+                            //Archive the Bot
+                            let botArchiveReq = {};
+                                botArchiveReq.organization_id = request.organization_id;
+                                botArchiveReq.bot_id = botsListData[0].bot_id;
+                                botArchiveReq.log_state = 3;
+                                botArchiveReq.log_asset_id = 100;
+                                botArchiveReq.log_datetime = util.getCurrentUTCTime();           
+                            await botService.archiveBot(botArchiveReq);
+                        } else {
+                            console.log('BOTID : is not defined for Field ID : ', data[i].field_id);
+                        }
+                    } catch (botInitError) {
+                        global.logger.write('error', botInitError, botInitError, request);
+                    }
+                }
+            }
+
+        } catch(err) {
+            console.log('ERROR : ', err);
+        }
         return [false, {
             formUpdateStatus,
             formFieldUpdateStatus
@@ -4215,7 +4256,7 @@ function FormConfigService(objCollection) {
                 botInlineData.push(tempObj);
 
                 newRequest.bot_inline_data = JSON.stringify(botInlineData);
-                newRequest.bot_name = "Workflow reference Bot - " + util.getCurrentUTCTime();
+                newRequest.bot_name = request.form_name + " - WF Ref Bot - " + util.getCurrentUTCTime();
                 //newRequest.activity_type_id = Number(newInlineData.workflow_reference_restriction.activity_type_id);
                 newRequest.activity_type_id = Number(request.form_activity_type_id) || 0;
                 newRequest.bot_operation_type_id = 16;
@@ -4236,7 +4277,7 @@ function FormConfigService(objCollection) {
                 botInlineData.push(tempObj);
 
                 newRequest.bot_inline_data = JSON.stringify(botInlineData);
-                newRequest.bot_name = "Single selection Bot - " + util.getCurrentUTCTime();                
+                newRequest.bot_name = request.form_name + " - SS Bot - " + util.getCurrentUTCTime();
                 newRequest.activity_type_id = Number(request.form_activity_type_id) || 0;
                 newRequest.bot_operation_type_id = 17;
                 break;
@@ -4246,7 +4287,7 @@ function FormConfigService(objCollection) {
                 botInlineData.push(tempObj);
 
                 newRequest.bot_inline_data = JSON.stringify(botInlineData);
-                newRequest.bot_name = "Ledger Transaction Summary - " + util.getCurrentUTCTime();
+                newRequest.bot_name = request.form_name + " - LTS - " + util.getCurrentUTCTime();
                 newRequest.activity_type_id = Number(request.form_activity_type_id) || 0;
                 newRequest.bot_operation_type_id = 14;
                 break;
