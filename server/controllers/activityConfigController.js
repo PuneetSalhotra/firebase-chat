@@ -120,7 +120,7 @@ function ActivityConfigController(objCollection) {
 
     app.post('/' + global.config.version + '/activity_status/add', function (req, res) {
         activityConfigService.workForceActivityStatusInsert(req.body).then((data) => {
-            res.send(responseWrapper.getResponse(data, {}, 200, req.body));
+            res.send(responseWrapper.getResponse(data, data, 200, req.body));
         }).catch((err) => {
             res.send(responseWrapper.getResponse(err, {}, -999, req.body));
         });

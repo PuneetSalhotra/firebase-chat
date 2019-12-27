@@ -4342,6 +4342,74 @@ function ActivityService(objectCollection) {
         }
     }
 
+
+    this.handleRollBackFormSubmissionV1  = async function (request) {
+        let responseData = [],
+            error = false;
+
+        //Perform status alter
+        request.activity_id = request.workflow_activity_id;
+        this.alterActivityStatus(request, ()=>{});
+
+        //Need to get the asset(Role) -- Mapped to that status
+        let [err, roleData] = await activityListingService.getAssetTypeIDForAStatusID(request, request.new_activity_status_id);
+        request.asset_type_id = (!err && roleData[0].length > 0) ? roleData[0].asset_type_id : 0;
+        
+        let [err1, assetData] = await activityListingService.getAssetForAssetTypeID(request);
+        let assetID = (!err1 && assetData[0].length > 0) ? assetData[0].asset_id : 0;
+
+        //Increment the Roll Back count
+        request.asset_id = assetID;
+        await activityListingService.setAssetRollBackCnt(request);
+
+        await sleep(1000);
+        //Get Weekly roll back count
+        request.start_datetime = util.getStartDateTimeOfWeek();
+        request.end_datetime = util.getEndDateTimeOfWeek();
+        let [err2, weeklyCount] = await activityListingService.getAssetRollBackCnt(request);
+        let weeklyRollBackCnt = 0;
+        let weeklyTotalCnt = 0;
+        let weeklyPercentage = 0;
+        if(!err2 && weeklyCount.length > 0) {
+            weeklyRollBackCnt = weeklyCount[0].rollback_count;
+            weeklyTotalCnt = weeklyCount[0].total_count;
+            weeklyPercentage = (weeklyRollBackCnt/ weeklyTotalCnt) * 100;
+        }        
+        let weeklyObj = {
+                summary_id: 27,
+                asset_id: assetID,
+                entity_decimal_2: weeklyRollBackCnt,//numerator
+                entity_bigint_1: weeklyTotalCnt, //denominator
+                entity_double_1: weeklyPercentage, //Percentage
+                entity_decimal_1: weeklyPercentage //Percentage
+            };
+        await activityCommonService.weeklySummaryInsert(request, weeklyObj);
+
+        //Get Monthly roll back count
+        request.start_datetime =  util.getStartDateTimeOfMonth();
+        request.end_datetime = util.getEndDateTimeOfMonth();
+        let [err3, monthlyCount] = await activityListingService.getAssetRollBackCnt(request);
+        let monthlyRollBackCnt = 0;
+        let monthlyTotalCnt = 0;
+        let monthlyPercentage = 0;
+        if(!err3 && monthlyCount.length > 0) {
+            monthlyRollBackCnt = monthlyCount[0].rollback_count;
+            monthlyTotalCnt = monthlyCount[0].total_count;
+            monthlyPercentage = (monthlyRollBackCnt/ monthlyTotalCnt) * 100;
+        }
+        let monthlyObj = {
+                summary_id: 40,
+                asset_id: assetID,
+                entity_decimal_2: monthlyRollBackCnt,//numerator
+                entity_bigint_1: monthlyTotalCnt, //denominator
+                entity_double_1: monthlyPercentage, //Percentage
+                entity_decimal_1: monthlyPercentage //Percentage
+            };
+        await activityCommonService.monthlySummaryInsert(request, monthlyObj);
+        
+        return [error, responseData];
+    }
+
 }
 
 module.exports = ActivityService;

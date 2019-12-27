@@ -826,8 +826,18 @@ function ActivityController(objCollection) {
         // res.send(responseWrapper.getResponse({}, {}, 200, req.body));
     });
 
+    //Rollback Global Form
+    app.post('/' + global.config.version + '/activity/status/roll_back', async function (req, res) {
+        const [err, responseData] = await activityService.handleRollBackFormSubmissionV1(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/activity/status/roll_back | Error: ", err);
+            res.send(responseWrapper.getResponse(err, { message: err.getMessage() }, err.getErrorCode(), req.body));
+        }
+    });
 
-};
+}
 
 
 module.exports = ActivityController;
