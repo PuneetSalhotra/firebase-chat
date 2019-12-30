@@ -3825,7 +3825,7 @@ function VodafoneService(objectCollection) {
         let isParentOrder = false;
         if (request.hasOwnProperty("workflow_activity_id")) {
             try {
-                workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
+                workflowActivityData = await activityCommonService.getActivityDetailsPromiseMaster(request, request.workflow_activity_id);
                 if (workflowActivityData.length > 0) {
                     formWorkflowActivityTypeId = workflowActivityData[0].activity_type_id;
                     // console.log("Number(workflowActivityData[0].parent_activity_id): ", Number(workflowActivityData[0].parent_activity_id));
