@@ -81,7 +81,7 @@ function ActivityTimelineService(objectCollection) {
 
                             } else {
                                 global.logger.write('debug', "\x1b[35m [Log] Activity_ID from request is same as retrived Activity_id hence checking for device os id 7 \x1b[0m", {}, request);
-                                global.logger.write('conLog', "\x1b[35m [Log] Number(request.device_os_id) : ", Number(request.device_os_id), {});
+                                global.logger.write('conLog', "\x1b[35m [Log] Number(request.device_os_id) : " + Number(request.device_os_id), Number(request.device_os_id), {});
                                 global.logger.write('debug', "\x1b[35m [Log] Dedicated File \x1b[0m", {}, request);
 
                                 //705 for Dedicated file
@@ -212,13 +212,21 @@ function ActivityTimelineService(objectCollection) {
         //ELSE IF | 9 & 713
         //ELSE IF | 48,50,51 & 705,713,715,716
         //ELSE
-        
+
         let responseData = [],
             error = true;
 
         request['datetime_log'] = util.getCurrentUTCTime();
         let activityTypeCategoryId = Number(request.activity_type_category_id);
         let activityStreamTypeId = Number(request.activity_stream_type_id);
+
+        console.log(' ');
+        console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒');
+        console.log(' ');
+        console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 ASYNC - ADD Timeline Transaction - ENTRY 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒');
+        console.log(' ');
+        console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒');
+        console.log(' ');
 
         await activityCommonService.updateAssetLocationPromise(request);
 
@@ -269,7 +277,7 @@ function ActivityTimelineService(objectCollection) {
 
                     } else { //Number(request.activity_id) === Number(data[0].activity_id)
                         global.logger.write('debug', "\x1b[35m [Log] Activity_ID from request is same as retrived Activity_id hence checking for device os id 7 \x1b[0m", {}, request);
-                        global.logger.write('conLog', "\x1b[35m [Log] Number(request.device_os_id) : ", Number(request.device_os_id), {});
+                        global.logger.write('conLog', "\x1b[35m [Log] Number(request.device_os_id) : " + Number(request.device_os_id), Number(request.device_os_id), {});
                         global.logger.write('debug', "\x1b[35m [Log] Dedicated File \x1b[0m", {}, request);
 
                         //705 for Dedicated file
@@ -384,6 +392,14 @@ function ActivityTimelineService(objectCollection) {
                 global.logger.write('debug', 'Error in timelineStandardCalls' + err, {}, request):
                 error=false; 
         }
+
+        console.log(' ');
+        console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒');
+        console.log(' ');
+        console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 ASYNC - ADD Timeline Transaction - EXIT 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒');
+        console.log(' ');
+        console.log('🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 ');
+        console.log(' ');
 
         return [error, responseData];
     };
@@ -787,7 +803,7 @@ function ActivityTimelineService(objectCollection) {
                         ) {
                             throw new Error("ChildOrder::NoPush");
                         }
-                        activityPushService.sendPush(request, objectCollection, 0, ()=>{});
+                        await activityPushService.sendPushAsync(request, objectCollection, 0);
                     } catch (err) {
                         console.log("[WARNING] No Push Sent: ", err);
                     }
@@ -2814,12 +2830,12 @@ function ActivityTimelineService(objectCollection) {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
-                    console.log("Data from function 'getActivityIdBasedOnTransId' : ", data);
+                    console.log("Data from function 'getActivityIdBasedOnTransIdAsync' : ", data);
                     error = false;
                 })
                 .catch((err) => {
                     //error = true;
-                    console.log("Error in function 'getActivityIdBasedOnTransId' : ", err);
+                    console.log("Error in function 'getActivityIdBasedOnTransIdAsync' : ", err);
                 });
         }
         return [error, responseData];
@@ -2963,7 +2979,7 @@ function ActivityTimelineService(objectCollection) {
 
 async function addFormEntriesAsync(request) {
     
-    global.logger.write('debug', '\x1b[32m In ActivtiyTimelineService - Inside the addFormEntries() function. \x1b[0m', {}, request)
+    global.logger.write('debug', '\x1b[32m In ActivtiyTimelineServiceAsync - Inside the addFormEntriesAsync() function. \x1b[0m', {}, request)
 
     let responseData = [],
             error = true;
@@ -2977,7 +2993,7 @@ async function addFormEntriesAsync(request) {
         try {
             formDataCollection = JSON.parse(request.activity_timeline_collection);
         } catch (err) {
-            global.logger.write('conLog', '\x1b[32m Error in addFormEntries() function - ONE. JSON Error \x1b[0m', {}, request);
+            global.logger.write('conLog', '\x1b[32m Error in addFormEntriesAsync() function - ONE. JSON Error \x1b[0m', {}, request);
             global.logger.write('debug', err, {}, request);
         }
         if (Array.isArray(formDataCollection.form_submitted) === true || typeof formDataCollection.form_submitted === 'object') {
@@ -2986,7 +3002,7 @@ async function addFormEntriesAsync(request) {
             try {
                 formDataJson = JSON.parse(formDataCollection.form_submitted);
             } catch (err) {
-                global.logger.write('conLog', '\x1b[32m Error in addFormEntries() function - TWO. JSON Error \x1b[0m', {}, request);
+                global.logger.write('conLog', '\x1b[32m Error in addFormEntriesAsync() function - TWO. JSON Error \x1b[0m', {}, request);
                 global.logger.write('debug', err, {}, request);
             }
         }
@@ -3012,267 +3028,265 @@ async function addFormEntriesAsync(request) {
 
     for(let i=0;i<formDataJson.length; i++) {
         row = formDataJson[i];
+        let datatypeComboId = 0;
         if (row.hasOwnProperty('data_type_combo_id')) {
-            var datatypeComboId = row.data_type_combo_id;
-        } else
-            var datatypeComboId = 0;
-            var params = new Array(
-                request.form_transaction_id, //0
-                row.form_id, //1
-                row.field_id, //2
-                datatypeComboId, //3
-                request.activity_id, //4
-                request.asset_id, //5
-                request.workforce_id, //6
-                request.account_id, //7
-                request.organization_id, //8
-                '', //IN p_entity_date_1 DATE                                   9
-                request.entity_datetime_1 || '', //IN p_entity_datetime_1 DATETIME            10
-                '', //IN p_entity_tinyint_1 TINYINT(4)                          11
-                '', //IN p_entity_tinyint_2 TINYINT(4)                          12 BETA
-                '', //IN p_entity_bigint_1 BIGINT(20)                           13
-                '', //IN p_entity_double_1 DOUBLE(16,4),                        14
-                '', //IN p_entity_decimal_1 DECIMAL(14,2)                       15
-                '', //IN p_entity_decimal_2 DECIMAL(14,8)                       16
-                '', //IN p_entity_decimal_3 DECIMAL(14,8)                       17
-                '', //IN p_entity_text_1 VARCHAR(1200)                          18
-                '', //IN p_entity_text_2 VARCHAR(4800)                          19
-                '', //IN p_entity_text_3 VARCHAR(100)                           20 BETA
-                '', //IN p_location_latitude DECIMAL(12,8)                      21
-                '', // IN p_location_longitude DECIMAL(12,8)                    22
-                '', //IN p_location_gps_accuracy DOUBLE(16,4)                   23
-                '', //IN p_location_gps_enabled TINYINT(1)                      24
-                '', //IN p_location_address VARCHAR(300)                        25
-                '' //IN p_location_datetime DATETIME                            26
+            datatypeComboId = row.data_type_combo_id;
+        }
+            
+        const params = new Array(
+            request.form_transaction_id, //0
+            row.form_id, //1
+            row.field_id, //2
+            datatypeComboId, //3
+            request.activity_id, //4
+            request.asset_id, //5
+            request.workforce_id, //6
+            request.account_id, //7
+            request.organization_id, //8
+            '', //IN p_entity_date_1 DATE                                   9
+            request.entity_datetime_1 || '', //IN p_entity_datetime_1 DATETIME            10
+            '', //IN p_entity_tinyint_1 TINYINT(4)                          11
+            '', //IN p_entity_tinyint_2 TINYINT(4)                          12 BETA
+            '', //IN p_entity_bigint_1 BIGINT(20)                           13
+            '', //IN p_entity_double_1 DOUBLE(16,4),                        14
+            '', //IN p_entity_decimal_1 DECIMAL(14,2)                       15
+            '', //IN p_entity_decimal_2 DECIMAL(14,8)                       16
+            '', //IN p_entity_decimal_3 DECIMAL(14,8)                       17
+            '', //IN p_entity_text_1 VARCHAR(1200)                          18
+            '', //IN p_entity_text_2 VARCHAR(4800)                          19
+            '', //IN p_entity_text_3 VARCHAR(100)                           20 BETA
+            '', //IN p_location_latitude DECIMAL(12,8)                      21
+            '', // IN p_location_longitude DECIMAL(12,8)                    22
+            '', //IN p_location_gps_accuracy DOUBLE(16,4)                   23
+            '', //IN p_location_gps_enabled TINYINT(1)                      24
+            '', //IN p_location_address VARCHAR(300)                        25
+            '' //IN p_location_datetime DATETIME                            26
             );
 
-            //global.logger.write('debug', '\x1b[32m addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
+            //global.logger.write('debug', '\x1b[32m addFormEntriesAsync params - \x1b[0m' + JSON.stringify(params), {}, request);
 
-            var dataTypeId = Number(row.field_data_type_id);
-            switch (dataTypeId) {
-                case 1: // Date
-                case 2: // future Date
-                case 3: // past Date
-                    params[9] = row.field_value;
-                    break;
-                case 4: // Date and time
-                    params[10] = row.field_value;
-                    break;
-                case 5: //Number
-                    //params[12] = row.field_value;
+        let dataTypeId = Number(row.field_data_type_id);
+        switch (dataTypeId) {
+            case 1: // Date
+            case 2: // future Date
+            case 3: // past Date
+                params[9] = row.field_value;
+                break;
+            case 4: // Date and time
+                params[10] = row.field_value;
+                break;
+            case 5: //Number
+                //params[12] = row.field_value;
+                params[13] = row.field_value;
+                break;
+            case 6: //Decimal
+                //params[13] = row.field_value;
+                params[14] = row.field_value;
+                break;
+            case 7: //Scale (0 to 100)
+            case 8: //Scale (0 to 5)
+                params[11] = row.field_value;
+                break;
+            case 9: // Reference - Organization
+            case 10: // Reference - Building
+            case 11: // Reference - Floor
+            case 12: // Reference - Person
+            case 13: // Reference - Vehicle
+            case 14: // Reference - Room
+            case 15: // Reference - Desk
+            case 16: // Reference - Assistant
+                //params[12] = row.field_value;
                     params[13] = row.field_value;
                     break;
-                case 6: //Decimal
-                    //params[13] = row.field_value;
-                    params[14] = row.field_value;
-                    break;
-                case 7: //Scale (0 to 100)
-                case 8: //Scale (0 to 5)
-                    params[11] = row.field_value;
-                    break;
-                case 9: // Reference - Organization
-                case 10: // Reference - Building
-                case 11: // Reference - Floor
-                case 12: // Reference - Person
-                case 13: // Reference - Vehicle
-                case 14: // Reference - Room
-                case 15: // Reference - Desk
-                case 16: // Reference - Assistant
-                    //params[12] = row.field_value;
-                    params[13] = row.field_value;
-                    break;
-                case 50: // Reference - File
-                    try {
-                        params[13] = Number(JSON.parse(row.field_value).activity_id); // p_entity_bigint_1
-                        params[18] = row.field_value; // p_entity_text_1
-                    } catch (err) {}
-                    break;
-                case 52: // Excel Document
-                    params[18] = row.field_value;
-                    break;
-                case 53: // IP Address Form
-                    // Format: { "ip_address_data": { "flag_ip_address_available": 1, "ip_address": "0.00.0.0" } }
-                    // Revision 1 | 25th September 2019
-                    // try {
-                    //     const fieldValue = isObject(row.field_value) ? row.field_value : JSON.parse(row.field_value);
-
-                    //     if (Number(fieldValue.ip_address_data.flag_ip_address_available) === 1) {
-                    //         params[18] = fieldValue.ip_address_data.ip_address;
-                    //         // Set the IP address availibility flag
-                    //         params[11] = 1;
-                    //     } else {
-                    //         // Reset the IP address availibility flag
-                    //         params[11] = 0;
-                    //     }
-                    //     break;
-                    // } catch (error) {
-                    //     console.log("Error parsing location data")
-                    //     // Proceed
-                    // }
-                    // Format: X.X.X.X | Legacy | Ensure backward compatibility
-                    params[18] = row.field_value;
-                    if (
-                        row.field_value !== "null" &&
-                        row.field_value !== "" &&
-                        row.field_value !== "undefined" &&
-                        row.field_value !== "NA"
-                    ) {
-                        // Set the IP address availibility flag
-                        params[11] = 1;
-                    }
-                    break;
-                case 54: // MAC Address Form
-                    params[18] = row.field_value;
-                    break;
-                case 55: // Word Document
-                    params[18] = row.field_value;
-                    break;
-                case 56: // Outlook Message
-                    params[18] = row.field_value;
-                    break;
-                case 17: // Location
-                    // Format: { "location_data": { "flag_location_available": 1, "location_latitude": 0.0, "location_longitude": 0.0 } }
-                    // Revision 1 | 25th September 2019
-                    // try {
-                    //     const fieldValue = isObject(row.field_value) ? row.field_value : JSON.parse(row.field_value);
-
-                    //     if (Number(fieldValue.location_data.flag_location_available) === 1) {
-                    //         params[16] = parseFloat(fieldValue.location_data.location_latitude);
-                    //         params[17] = parseFloat(fieldValue.location_data.location_longitude);
-                    //         // Set the location availibility flag
-                    //         params[11] = 1;
-                    //     } else {
-                    //         // Reset the location availibility flag
-                    //         params[11] = 0;
-                    //     }
-                    //     params[18] = JSON.stringify(fieldValue);
-                    //     break;
-                    // } catch (error) {
-                    //     console.log("Error parsing location data")
-                    //     // Proceed
-                    // }
-                    // Format: xx.xxx,yy.yyy | Legacy | Ensure backward compatibility
-                    const location = row.field_value.split(',');
-                    if (
-                        !isNaN(parseFloat(location[0])) ||
-                        !isNaN(parseFloat(location[1]))
-                    ) {
-                        params[16] = parseFloat(location[0]);
-                        params[17] = parseFloat(location[1]);
-                    } else {
-                        params[16] = 0;
-                        params[17] = 0;
-                    }
-
-                    params[18] = row.field_value;
-                    if (
-                        row.field_value !== "null" &&
-                        row.field_value !== "" &&
-                        row.field_value !== "undefined" &&
-                        row.field_value !== "NA"
-                    ) {
-                        // Set the location availibility flag
-                        params[11] = 1;
-                    } else {
-                        // Reset the location availibility flag
-                        params[11] = 0;
-                    }
-                    break;
-                case 18: //Money with currency name
-                    var money = row.field_value.split('|');
-                    params[15] = money[0];
-                    params[18] = money[1];
-                    break;
-                case 19: //Short Text
-                    params[18] = row.field_value;
-                    break;
-                case 20: //Long Text
-                    params[19] = row.field_value;
-                    break;
-                case 21: //Label
-                    params[18] = row.field_value;
-                    break;
-                case 22: //Email ID
-                    params[18] = row.field_value;
-                    break;
-                case 23: //Phone Number with Country Code
-                    /*var phone = row.field_value.split('|');
-                    params[13] = phone[0];  //country code
-                    params[18] = phone[1];  //phone number
-                    break;*/
-                    var phone;
-                    if ((row.field_value).includes('||')) {
-                        phone = row.field_value.split('||');
-                        params[13] = phone[0]; //country code
-                        params[18] = phone[1]; //phone number
-                    } else {
+            case 50: // Reference - File
+                try {
+                    params[13] = Number(JSON.parse(row.field_value).activity_id); // p_entity_bigint_1
+                    params[18] = row.field_value; // p_entity_text_1
+                } catch (err) {}
+                break;
+            case 52: // Excel Document
+                params[18] = row.field_value;
+                break;
+            case 53: // IP Address Form
+                // Format: { "ip_address_data": { "flag_ip_address_available": 1, "ip_address": "0.00.0.0" } }
+                // Revision 1 | 25th September 2019
+                // try {
+                //     const fieldValue = isObject(row.field_value) ? row.field_value : JSON.parse(row.field_value);
+                //     if (Number(fieldValue.ip_address_data.flag_ip_address_available) === 1) {
+                //         params[18] = fieldValue.ip_address_data.ip_address;
+                //         // Set the IP address availibility flag
+                //         params[11] = 1;
+                //     } else {
+                //         // Reset the IP address availibility flag
+                //         params[11] = 0;
+                //     }
+                //     break;
+                // } catch (error) {
+                //     console.log("Error parsing location data")
+                //     // Proceed
+                // }
+                // Format: X.X.X.X | Legacy | Ensure backward compatibility
+                params[18] = row.field_value;
+                if (
+                    row.field_value !== "null" &&
+                    row.field_value !== "" &&
+                    row.field_value !== "undefined" &&
+                    row.field_value !== "NA"
+                ) {
+                    // Set the IP address availibility flag
+                    params[11] = 1;
+                }
+                break;
+            case 54: // MAC Address Form
+                params[18] = row.field_value;
+                break;
+            case 55: // Word Document
+                params[18] = row.field_value;
+                break;
+            case 56: // Outlook Message
+                params[18] = row.field_value;
+                break;
+            case 17: // Location
+                // Format: { "location_data": { "flag_location_available": 1, "location_latitude": 0.0, "location_longitude": 0.0 } }
+                // Revision 1 | 25th September 2019
+                // try {
+                //     const fieldValue = isObject(row.field_value) ? row.field_value : JSON.parse(row.field_value);
+                //     if (Number(fieldValue.location_data.flag_location_available) === 1) {
+                //         params[16] = parseFloat(fieldValue.location_data.location_latitude);
+                //         params[17] = parseFloat(fieldValue.location_data.location_longitude);
+                //         // Set the location availibility flag
+                //         params[11] = 1;
+                //     } else {
+                //         // Reset the location availibility flag
+                //         params[11] = 0;
+                //     }
+                //     params[18] = JSON.stringify(fieldValue);
+                //     break;
+                // } catch (error) {
+                //     console.log("Error parsing location data")
+                //     // Proceed
+                // }
+                // Format: xx.xxx,yy.yyy | Legacy | Ensure backward compatibility
+                const location = row.field_value.split(',');
+                if (
+                    !isNaN(parseFloat(location[0])) ||
+                    !isNaN(parseFloat(location[1]))
+                ) {
+                    params[16] = parseFloat(location[0]);
+                    params[17] = parseFloat(location[1]);
+                } else {
+                    params[16] = 0;
+                    params[17] = 0;
+                }
+                params[18] = row.field_value;
+                if (
+                    row.field_value !== "null" &&
+                    row.field_value !== "" &&
+                    row.field_value !== "undefined" &&
+                    row.field_value !== "NA"
+                ) {
+                    // Set the location availibility flag
+                    params[11] = 1;
+                } else {
+                    // Reset the location availibility flag
+                    params[11] = 0;
+                }
+                break;
+            case 18: //Money with currency name
+                var money = row.field_value.split('|');
+                params[15] = money[0];
+                params[18] = money[1];
+                break;
+            case 19: //Short Text
+                params[18] = row.field_value;
+                break;
+            case 20: //Long Text
+                params[19] = row.field_value;
+                break;
+            case 21: //Label
+                params[18] = row.field_value;
+                break;
+            case 22: //Email ID
+                params[18] = row.field_value;
+                break;
+            case 23: //Phone Number with Country Code
+                /*var phone = row.field_value.split('|');
+                params[13] = phone[0];  //country code
+                params[18] = phone[1];  //phone number
+                break;*/
+                var phone;
+                if ((row.field_value).includes('||')) {
+                    phone = row.field_value.split('||');
+                    params[13] = phone[0]; //country code
+                    params[18] = phone[1]; //phone number
+                } else {
                         phone = row.field_value.split('|');
                         params[13] = phone[0]; //country code
                         params[18] = phone[1]; //phone number
                     }
                     break;
-                case 24: //Gallery Image
-                case 25: //Camera Front Image
-                case 26: //Video Attachment
-                    params[18] = row.field_value;
-                    break;
-                case 27: //General Signature with asset reference
-                case 28: //General Picnature with asset reference
-                    var signatureData = row.field_value.split('|');
-                    params[18] = signatureData[0]; //image path
-                    params[13] = signatureData[1]; // asset reference
-                    params[11] = signatureData[1]; // accepted /rejected flag
-                    break;
-                case 29: //Coworker Signature with asset reference
-                case 30: //Coworker Picnature with asset reference
+            case 24: //Gallery Image
+            case 25: //Camera Front Image
+            case 26: //Video Attachment
+                params[18] = row.field_value;
+                break;
+            case 27: //General Signature with asset reference
+            case 28: //General Picnature with asset reference
+                var signatureData = row.field_value.split('|');
+                params[18] = signatureData[0]; //image path
+                params[13] = signatureData[1]; // asset reference
+                params[11] = signatureData[1]; // accepted /rejected flag
+                break;
+            case 29: //Coworker Signature with asset reference
+            case 30: //Coworker Picnature with asset reference
                     approvalFields.push(row.field_id);
                     var signatureData = row.field_value.split('|');
                     params[18] = signatureData[0]; //image path
                     params[13] = signatureData[1]; // asset reference
                     params[11] = signatureData[1]; // accepted /rejected flag
                     break;
-                case 31: //Cloud Document Link
-                    params[18] = row.field_value;
-                    break;
-                case 32: // PDF Document
-                case 51: // PDF Scan
-                    params[18] = row.field_value;
-                    break;
-                case 33: //Single Selection List
-                    params[18] = row.field_value;
-                    break;
-                case 34: //Multi Selection List
-                    params[18] = row.field_value;
-                    break;
-                case 35: //QR Code
-                case 36: //Barcode
-                    params[18] = row.field_value;
-                    break;
-                case 38: //Audio Attachment
-                    params[18] = row.field_value;
-                    break;
-                case 39: //Flag
-                    params[11] = row.field_value;
-                    break;
-                case 57: //Workflow(/Activity) reference
-                    workflowReference = row.field_value.split('|');
-                    params[13] = workflowReference[0]; //ID
-                    params[18] = workflowReference[1]; //Name
-                    break;
-                case 58://Document reference
-                    // documentReference = row.field_value.split('|');
-                    params[18] = row.field_value;
-                    break;
-                case 59: //Asset reference
-                    assetReference = row.field_value.split('|');
-                    params[13] = assetReference[0]; //ID
-                    params[18] = assetReference[1]; //Name
-                    break;
-                case 61: //Time Datatype
-                    params[18] = row.field_value;
-                    break;
-                case 62: //Credit/Debit DataType
-                    try {
+            case 31: //Cloud Document Link
+                params[18] = row.field_value;
+                break;
+            case 32: // PDF Document
+            case 51: // PDF Scan
+                params[18] = row.field_value;
+                break;
+            case 33: //Single Selection List
+                params[18] = row.field_value;
+                break;
+            case 34: //Multi Selection List
+                params[18] = row.field_value;
+                break;
+            case 35: //QR Code
+            case 36: //Barcode
+                params[18] = row.field_value;
+                break;
+            case 38: //Audio Attachment
+                params[18] = row.field_value;
+                break;
+            case 39: //Flag
+                params[11] = row.field_value;
+                break;
+            case 57: //Workflow(/Activity) reference
+                workflowReference = row.field_value.split('|');
+                params[13] = workflowReference[0]; //ID
+                params[18] = workflowReference[1]; //Name
+                break;
+            case 58://Document reference
+                // documentReference = row.field_value.split('|');
+                params[18] = row.field_value;
+                break;
+            case 59: //Asset reference
+                assetReference = row.field_value.split('|');
+                params[13] = assetReference[0]; //ID
+                params[18] = assetReference[1]; //Name
+                break;
+            case 61: //Time Datatype
+                params[18] = row.field_value;
+                break;
+            case 62: //Credit/Debit DataType
+                try {
                         let jsonData = JSON.parse(row.field_value);
                         (Number(jsonData.transaction_type_id) === 1) ?
                             params[15] = jsonData.transaction_data.transaction_amount: //credit
@@ -3281,7 +3295,7 @@ async function addFormEntriesAsync(request) {
                     } catch (err) {
                         console.log(err);
                     }
-                    break;
+                break;
             }
 
             params.push(''); //IN p_device_manufacturer_name VARCHAR(50)
@@ -3299,7 +3313,7 @@ async function addFormEntriesAsync(request) {
             params.push(request.datetime_log); // IN p_log_datetime DATETIME
             params.push(request.entity_datetime_2); // IN p_entity_datetime_2 DATETIME
 
-            global.logger.write('conLog', '\x1b[32m addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
+            global.logger.write('conLog', '\x1b[32m addFormEntriesAsync params - \x1b[0m' + JSON.stringify(params), {}, request);
 
             const queryString = util.getQueryString('ds_v1_2_activity_form_transaction_insert', params); //BETA
             if (queryString != '') {
@@ -3325,7 +3339,6 @@ async function addFormEntriesAsync(request) {
         request['source_id'] = 2;
         //sendRequesttoWidgetEngine(request);
 
-        const widgetFieldsStatusesData = util.widgetFieldsStatusesData();
         let order_caf_approval_form_ids, order_logged_form_ids, order_documents_form_ids;
         order_caf_approval_form_ids = widgetFieldsStatusesData.AUTH_SIGNATORY_FORM_IDS; //new Array(282556, 282586, 282640, 282622, 282669); //
         order_logged_form_ids = widgetFieldsStatusesData.ORDER_CLOSURE_FORM_IDS; //new Array(282624, 282642, 282671, 282557, 282588);//

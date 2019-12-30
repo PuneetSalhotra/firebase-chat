@@ -1040,6 +1040,305 @@ function ActivityPushService(objectCollection) {
 
         });
     };
-};
+
+    function getPushStringPromise(request, objectCollection, senderName) {
+        return new Promise((resolve, reject)=>{
+            getPushString(request, objectCollection, senderName, (err, pushStringObj, pubnubMsg, smsString) => {
+                resolve([pushStringObj, pubnubMsg]);
+            });
+        });
+      //return Promise.resolve([pushStringObj, pubnubMsg])
+    }
+
+    function getAssetMapPromise(assetID) {
+        return new Promise((resolve, reject)=>{
+            objectCollection.cacheWrapper.getAssetMap(assetID, function (err, assetMap) {
+                resolve(assetMap);
+            });
+        });
+    }
+
+    async function proceedSendPushAsync(request, pushReceivers, senderName, isOrgRateLimitExceeded, objectCollection) {
+        global.logger.write('debug', 'pushReceivers.length : ' + pushReceivers.length, {}, {});
+        if (pushReceivers.length > 0) {
+            let [pushStringObj, pubnubMsg] = await getPushStringPromise(request, objectCollection, senderName);
+                
+            //console.log('PubMSG : ', pubnubMsg);
+            //console.log('pushStringObj : ', pushStringObj);
+            global.logger.write('debug', 'PubMSG: ' + JSON.stringify(pubnubMsg), {}, {});
+            global.logger.write('conLog', pubnubMsg, {}, {});
+            global.logger.write('debug', 'pushStringObj : ' + JSON.stringify(pushStringObj), {}, {});
+            global.logger.write('conLog', pushStringObj, {}, {});
+            
+            if (Object.keys(pushStringObj).length > 0) {
+                let cnt = 0;
+                let i;
+                let rowData;
+                for(i=0;i<pushReceivers.length;i++) {
+                    rowData = pushReceivers[i];
+                    let assetMap = await getAssetMapPromise(rowData.assetId);
+                        
+                    global.logger.write('debug', rowData.assetId + ' is asset for which we are about to send push', {}, {});
+                    
+                    if (Object.keys(assetMap).length > 0) {
+                        let [err, badgeCount] = await getAssetBadgeCountAsync(request, objectCollection, assetMap.asset_id, assetMap.organization_id);
+                        
+                        global.logger.write('debug', badgeCount + ' is badge count obtained from db', {}, {});
+                        global.logger.write('debug', assetMap, {}, {});
+                        global.logger.write('debug', JSON.stringify(pushStringObj) + ' ' + objectCollection.util.replaceOne(badgeCount) + ' ' + assetMap.asset_push_arn, {}, {});
+                        
+                        switch (rowData.pushType) {
+                            default:
+                                //SNS
+                                try {
+                                    objectCollection.sns.publish(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn);
+                                } catch (error) {
+                                    console.log("activityPushService | sendPush | objectCollection.sns.publish | Error: ", error);
+                                    try {
+                                        sns.publish(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn);
+                                    } catch (snsError) {
+                                        console.log("activityPushService | sendPush | sns.publish | Error: ", snsError);
+                                        
+                                    }
+                                }
+                                if (pubnubMsg.activity_type_category_id != 0) {
+                                    pubnubMsg.organization_id = rowData.organizationId;
+                                    pubnubMsg.desk_asset_id = rowData.assetId;
+                                    //console.log('PubNub Message : ', pubnubMsg);
+                                    global.logger.write('debug', 'pubnubMsg: ' + JSON.stringify(pubnubMsg), {}, {});
+                                    if (cnt === 0) { //Pushing org pubnub only once for each activity
+                                        pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
+                                    }
+                                    pubnubWrapper.push(rowData.assetId, pubnubMsg);
+                                }
+                                //PUB
+                                //console.log('pubnubMsg :', pubnubMsg);
+                                global.logger.write('debug', 'pubnubMsg: ' + JSON.stringify(pubnubMsg), {}, {});
+                                break;
+                            } //END of Switch
+                        } else if (rowData.pushType == 'pub') {
+                                if (pubnubMsg.activity_type_category_id != 0) {
+                                    pubnubMsg.organization_id = rowData.organizationId;
+                                    pubnubMsg.desk_asset_id = rowData.assetId;
+                                    //console.log('PubNub Message : ', pubnubMsg);
+                                    global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg), {}, {});
+                                    if (cnt === 0) { //Pushing org pubnub only once for each activity
+                                        pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
+                                    }
+                                    pubnubWrapper.push(rowData.assetId, pubnubMsg);
+                                }
+                            }
+                            cnt++;
+                    } //END of For Loop
+                        
+                } else if (Object.keys(pubnubMsg).length > 0) {
+                    //console.log('Sending PubNub push Alone');
+                    global.logger.write('conLog', 'Sending PubNub push Alone', {}, {});
+                    let cnt = 0;
+                    let i;
+                    let rowData;
+                    for(i=0;i<pushReceivers.length;i++) {
+                        rowData = pushReceivers[i];
+                        let assetMap = await getAssetMapPromise(rowData.assetId);
+                        global.logger.write('debug', rowData.assetId + ' is asset for which we are about to send push', {}, {});
+                        
+                        if (Object.keys(assetMap).length > 0) {
+                            global.logger.write('debug', rowData, {}, {});
+                            switch (rowData.pushType) {
+                                case 'pub':
+                                    //console.log('pubnubMsg :', pubnubMsg);
+                                    global.logger.write('debug', 'pubnubMsg: ' + JSON.stringify(pubnubMsg, null, 2), {}, {});
+                                    if (pubnubMsg.activity_type_category_id != 0) {
+                                        pubnubMsg.organization_id = rowData.organizationId;
+                                        pubnubMsg.desk_asset_id = rowData.assetId;
+                                        //console.log('PubNub Message : ', pubnubMsg);
+                                        global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg), {}, {});
+                                        if (cnt === 0) {
+                                            pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
+                                        }
+                                        pubnubWrapper.push(rowData.assetId, pubnubMsg);
+                                    }
+                                    break;
+                                default:
+                                    //console.log('pubnubMsg :', pubnubMsg);
+                                    //global.logger.write('debug', 'pubnubMsg: ' + JSON.stringify(pubnubMsg, null, 2), {}, {});
+                                    if (pubnubMsg.activity_type_category_id != 0) {
+                                        pubnubMsg.organization_id = rowData.organizationId;
+                                        pubnubMsg.desk_asset_id = rowData.assetId;
+                                        //console.log('PubNub Message : ', pubnubMsg);
+                                        global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg, null, 2), {}, {});
+                                            if (cnt === 0) {
+                                                pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
+                                            }
+                                            pubnubWrapper.push(rowData.assetId, pubnubMsg);
+                                        }
+                                        break;
+                                } //END of Switch
+                                cnt++;
+                            }
+                        } //END of FOR Loop
+                } else {
+                    global.logger.write('conLog', 'push string is retrived as an empty object', {}, {});
+                }
+        }
+    }
+    
+    this.sendPushAsync = async (request, objectCollection, pushAssetId) => {
+        let responseData = [],
+            error = true;
+
+        let isOrgRateLimitExceeded = false;
+        let organizationID = Number(request.organization_id);
+        try {
+            isOrgRateLimitExceeded = await orgRateLimitCheckAndSet(organizationID);
+        } catch (err) {
+            console.log("sendPush | orgRateLimitCheckAndSet | Error: ", err);
+        }
+
+        let pushReceivers = new Array();
+        let [err , participantsList] = await objectCollection.activityCommonService.getAllParticipantsAsync(request);
+        if (!err) {
+            let senderName = '';
+            let reqobj = {};
+
+            //global.logger.write('debug', 'request params in the activityPush Service', {}, request);
+            //global.logger.write('debug', request, {}, request);
+
+            let newParticipantsList = await objectCollection.activityCommonService.getAssetActiveAccount(participantsList);
+            if (pushAssetId > 0) {
+                global.logger.write('debug', 'pushAssetId: ' + pushAssetId, {}, {});
+                let i;
+                let rowData;
+                for(i=0;i<newParticipantsList.length;i++){
+                    rowData = newParticipantsList[i];
+
+                    global.logger.write('debug', 'Number(request.asset_id): ' + JSON.stringify(request.asset_id), {}, request);
+                    global.logger.write('debug', 'Number(rowData[asset_id]): ' + JSON.stringify(rowData.asset_id), {}, request);
+                    global.logger.write('debug', 'Expression: ' + JSON.stringify(Number(request.asset_id) === Number(rowData.asset_id)), {}, request);
+
+                    if (Number(request.asset_id) === Number(rowData.asset_id)) { // sender details in this condition
+                        senderName = rowData.operating_asset_first_name + ' ' + rowData.operating_asset_last_name;
+                    } else if (Number(pushAssetId) === Number(rowData.asset_id)) {
+                        reqobj = {
+                            organization_id: rowData.organization_id,
+                            asset_id: rowData.asset_id
+                        };
+                                    
+                        let [err, data] = await objectCollection.activityCommonService.getAssetDetailsAsync(reqobj);
+                        global.logger.write('debug', 'SESSION DATA: ' + data.asset_session_status_id, {}, request);
+                        if (!err) {
+                            switch (data.asset_session_status_id) {
+                                case 8:
+                                    pushReceivers.push({
+                                        assetId: rowData.asset_id,
+                                        organizationId: rowData['organization_id'],
+                                        pushType: 'sns'
+                                    });
+                                    break;
+                                case 9:
+                                    pushReceivers.push({
+                                        assetId: rowData.asset_id,
+                                        organizationId: rowData['organization_id'],
+                                        pushType: 'pub'
+                                    });
+                                    break;
+                                default:
+                                    pushReceivers.push({
+                                        assetId: rowData.asset_id,
+                                        organizationId: rowData['organization_id'],
+                                        pushType: 'sns'
+                                    });
+                                    break;
+                                } //End of Switch
+                        }
+                    } 
+                }//End of FOR
+                await proceedSendPushAsync(request, pushReceivers, senderName, isOrgRateLimitExceeded,objectCollection);
+                        
+            } else { //pushAssetId > 0 False
+                let i;
+                let rowData;
+                for(i=0;i<newParticipantsList.length;i++){
+                    rowData = newParticipantsList[i];
+                                
+                    global.logger.write('debug', 'Number(request.asset_id): ' + JSON.stringify(request.asset_id), {}, request);
+                    global.logger.write('debug', 'Number(rowData[asset_id]): ' + JSON.stringify(rowData['asset_id']), {}, request);
+                    global.logger.write('debug', 'Expression: ' + JSON.stringify(Number(request.asset_id) !== Number(rowData['asset_id'])), {}, request);
+
+                    if (Number(request.asset_id) !== Number(rowData.asset_id)) {
+                        reqobj = {
+                            organization_id: rowData.organization_id,
+                            asset_id: rowData.asset_id
+                        };
+                    
+                    let [err, data] = await objectCollection.activityCommonService.getAssetDetailsAsync(reqobj);
+                    global.logger.write('debug', 'SESSION DATA: ' + data.asset_session_status_id, {}, request);
+                    if (!err) {
+                        switch (data.asset_session_status_id) {
+                            case 8:
+                                pushReceivers.push({
+                                    assetId: rowData.asset_id,
+                                    organizationId: rowData.organization_id,
+                                    pushType: 'sns'
+                                });
+                                break;
+                            case 9:
+                                pushReceivers.push({
+                                    assetId: rowData.asset_id,
+                                    organizationId: rowData.organization_id,
+                                    pushType: 'pub'
+                                });
+                                break;
+                            default:
+                                pushReceivers.push({
+                                    assetId: rowData.asset_id,
+                                    organizationId: rowData.organization_id,
+                                    pushType: 'sns'
+                                });
+                                break;
+                            } //End of Switch
+                        }
+                    } else { //Number(request.asset_id) === Number(rowData.asset_id)
+                        senderName = rowData['operating_asset_first_name'] + ' ' + rowData['operating_asset_last_name'];
+                        }
+                    } //END of FOR
+                        await proceedSendPushAsync(request, pushReceivers, senderName, isOrgRateLimitExceeded, objectCollection);
+                } //END of //pushAssetId > 0 False
+            } else {
+                global.logger.write('debug', "Unable to retrieve the Receiver's asset phone number : " + err, {}, request);
+            }
+
+            return [error, responseData];
+    };
+
+    async function getAssetBadgeCountAsync(request, objectCollection, assetId, organizationId) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            organizationId,
+            assetId
+        );
+
+        const queryString = objectCollection.util.getQueryString('ds_v1_activity_asset_mapping_select_unread_task_count', paramsArr);
+        
+        if (queryString != '') {
+            await objectCollection.db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data[0]['badge_count'];
+                    error = false;
+                })
+                .catch((err) => {
+                    //error = true;
+                    responseData = 0;
+                    console.log("Error in function 'activityAssetMappingUpdateLastUpdateDateTimeOnlyAsync' : ", err);
+                });
+        }
+
+        return [error, responseData];
+    }
+
+
+} //End of ActivityPushService
 
 module.exports = ActivityPushService;
