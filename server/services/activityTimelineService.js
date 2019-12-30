@@ -220,7 +220,7 @@ function ActivityTimelineService(objectCollection) {
         let activityTypeCategoryId = Number(request.activity_type_category_id);
         let activityStreamTypeId = Number(request.activity_stream_type_id);
 
-        activityCommonService.updateAssetLocation(request, (err, data)=>{});
+        await activityCommonService.updateAssetLocationPromise(request);
 
         if (activityTypeCategoryId === 9 && activityStreamTypeId === 705) { // IF | 9 & 705
             await sleep(2000);
@@ -242,7 +242,7 @@ function ActivityTimelineService(objectCollection) {
                         Number(request.organization_id) === 858 ||
                         Number(request.organization_id) === 868) 
                         {
-                            await retrievingFormIdandProcess(request, data).then(() => {});
+                            await retrievingFormIdandProcessAsync(request, data);
 
                             // [VODAFONE] Patch | Needs to be removed eventually
                             if (
@@ -277,7 +277,7 @@ function ActivityTimelineService(objectCollection) {
                             if (Number(request.organization_id) === 860 || 
                                 Number(request.organization_id) === 858 ||
                                 Number(request.organization_id) === 868) {
-                                    retrievingFormIdandProcess(request, data).then(() => {});
+                                    await retrievingFormIdandProcessAsync(request, data);
                             } else {
                                 let [err, data] = await timelineStandardCallsAsync(request);
                                 (err) ?
@@ -293,7 +293,7 @@ function ActivityTimelineService(objectCollection) {
                             global.logger.write('debug', "\x1b[35m [Log] Activity_ID from request is same as retrived Activity_id and device_os_id 8 \x1b[0m", {}, request);
                             // If request for dedicated file, and if there should not be any form entries for this
                             // timeline transaction request
-                            retrievingFormIdandProcess(request, data).then(() => {});
+                            await retrievingFormIdandProcessAsync(request, data);
                         }
                     }
             } else { // No DATA from getActivityIdBasedOnTransIdAsync(request);
@@ -304,7 +304,7 @@ function ActivityTimelineService(objectCollection) {
                     if (Number(request.organization_id) === 860 || 
                         Number(request.organization_id) === 858 || 
                         Number(request.organization_id) === 868) {
-                            retrievingFormIdandProcess(request, data).then(() => {});
+                            await retrievingFormIdandProcessAsync(request, data);
                     } else {
                         let [err, data] = await timelineStandardCallsAsync(request);
                         (err) ?
@@ -317,7 +317,7 @@ function ActivityTimelineService(objectCollection) {
 
                 if (Number(request.device_os_id) === 8 || Number(request.device_os_id) === 5) {
                     request.non_dedicated_file = 1;
-                    retrievingFormIdandProcess(request, data).then(() => {});
+                    await retrievingFormIdandProcessAsync(request, data);
                 }
                 }
             }
@@ -792,14 +792,14 @@ function ActivityTimelineService(objectCollection) {
                         console.log("[WARNING] No Push Sent: ", err);
                     }
                             
-                    activityCommonService.assetTimelineTransactionInsert(request, {}, activityStreamTypeId, (err, data)=>{});
+                    await activityCommonService.assetTimelineTransactionInsertAsync(request, {}, activityStreamTypeId);
     
                     //updating log differential datetime for only this asset
-                    activityCommonService.updateActivityLogDiffDatetime(request, request.asset_id, (err, data)=>{});
+                    await activityCommonService.updateActivityLogDiffDatetimeAsync(request, request.asset_id);
     
                     (request.hasOwnProperty('signedup_asset_id')) ?
-                        activityCommonService.updateActivityLogLastUpdatedDatetime(request, 0, (err, data)=>{}): //To increase unread cnt for marketing manager
-                        activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), (err, data)=>{});
+                        await activityCommonService.updateActivityLogLastUpdatedDatetimeAsync(request, 0): //To increase unread cnt for marketing manager
+                        await activityCommonService.updateActivityLogLastUpdatedDatetimeAsync(request, Number(request.asset_id));
     
                     // Telephone module
                     // 23003 => Added an update to the chat
@@ -807,10 +807,10 @@ function ActivityTimelineService(objectCollection) {
                         // Update last updated and last differential datetime for the sender
                         await activityCommonService.activityAssetMappingUpdateLastUpdateDateTimeOnlyAsync(request);
                         try{
-                            let [err, data] = await activityCommonService.getActivityDetails(request, request.activity_id); 
+                            let [err, data] = await activityCommonService.getActivityDetailsPromise(request, request.activity_id); 
                             
                             // Replace/append the new chat message to the existing inline data
-                            var updatedActivityInlineData = JSON.parse(data[0].activity_inline_data);
+                            let updatedActivityInlineData = JSON.parse(data[0].activity_inline_data);
                             updatedActivityInlineData.message = JSON.parse(request.activity_timeline_collection);
                             
                             // Update the activity's inline data with the last send chat message
@@ -3368,6 +3368,210 @@ async function addFormEntriesAsync(request) {
         return [error, responseData];
         
     };
+
+
+    async function retrievingFormIdandProcessAsync(request, data) {
+        let responseData = [],
+            error = true;
+
+        let activityStreamTypeId = Number(request.activity_stream_type_id);
+
+        if (!request.hasOwnProperty('form_id')) {
+            let formDataJson = JSON.parse(request.activity_timeline_collection);
+            request.form_id = formDataJson[0]['form_id'];
+            global.logger.write('debug', 'form id extracted from json is: ' + formDataJson[0]['form_id'], {}, request);
+        
+            let lastObject = formDataJson[formDataJson.length - 1];
+            global.logger.write('conLog', 'Last object : ' + JSON.stringify(lastObject, null, 2), {}, request);
+            if (lastObject.hasOwnProperty('field_value')) {
+                global.logger.write('conLog', 'Has the field value in the last object', {}, request);
+                //remote Analytics
+                if (request.form_id == 325) {
+                    monthlySummaryTransInsert(request).then(() => {});
+                }
+            }
+        }
+
+        // Triggering BOT 1
+        if ((Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER))) {
+            if (Number(request.organization_id) !== 868) {
+                global.logger.write('conLog', "\x1b[35m [Log] Triggering the BOT 1 \x1b[0m", {}, request);
+                //makeRequest to /vodafone/neworder_form/queue/add
+                let newRequest = Object.assign({}, request);
+                    newRequest.activity_inline_data = {};
+                
+                activityCommonService.makeRequest(newRequest, "vodafone/neworder_form/queue/add", 1).then((resp) => {
+                    global.logger.write('debug', resp, {}, request);
+                });
+            }
+        }
+
+        //Triggering BOT 2
+        if ((Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.FR) ||
+                Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.CRM))) {
+            global.logger.write('conLog', "\x1b[35m [Log] Triggering the BOT 2 \x1b[0m", {}, request);
+            activityCommonService.makeRequest(request, "vodafone/customer_form/add", 1).then((resp) => {
+                global.logger.write('debug', resp, {}, request);
+            });
+        }
+
+        //BOT to send email on CRM form submission
+        //if (Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.CRM) && Number(request.device_os_id) === 7) {
+        if (Number(request.form_id) === Number(global.vodafoneConfig[request.organization_id].FORM_ID.CRM) && Number(request.non_dedicated_file) === 1) {
+            global.logger.write('conLog', "\x1b[35m [Log] Triggering BOT to send email on CRM form submission \x1b[0m", {}, request);
+            let newRequest = Object.assign({}, request);
+            const crmFormData = JSON.parse(request.activity_inline_data);
+            crmFormData.forEach(formEntry => {
+                switch (Number(formEntry.field_id)) {
+                    case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Company_Name:
+                        newRequest.first_name = formEntry.field_value;
+                        newRequest.contact_company = formEntry.field_value;
+                        break;
+                    case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Number:
+                        if (String(formEntry.field_value).includes('||')) {
+                            newRequest.contact_phone_country_code = String(formEntry.field_value).split('||')[0];
+                            newRequest.contact_phone_number = String(formEntry.field_value).split('||')[1];
+                        } else {
+                            newRequest.contact_phone_country_code = 91;
+                            newRequest.contact_phone_number = formEntry.field_value;
+                        }
+                        break;
+                    case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Email:
+                        newRequest.contact_email_id = formEntry.field_value;
+                        break;
+                    case global.vodafoneConfig[request.organization_id].CRM_FIELDVALUES.Contact_Designation:
+                        newRequest.contact_designation = formEntry.field_value;
+                        break;
+                }
+            });
+                
+            activityCommonService.makeRequest(newRequest, "vodafone/send/email", 1).then((resp) => {
+                    global.logger.write('debug', resp, {}, request);
+                });
+            }
+
+            //Generic Function to updated the CAF percentage
+            updateCAFPercentage(request).then(() => {});
+
+            // [VODAFONE] Listen for Account Manager Approval or Customer (Service Desk) Approval Form
+            // [VODAFONE] The above no longer applies. New trigger on CRM Acknowledgement Form submission.
+
+            const CRM_ACKNOWLEDGEMENT_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CRM_ACKNOWLEDGEMENT;
+
+            if (activityStreamTypeId === 705 && (Number(request.form_id) === Number(CRM_ACKNOWLEDGEMENT_FORM_ID))) {
+                console.log('CALLING approvalFormsSubmissionCheck');
+                const approvalCheckRequestEvent = {
+                    name: "vodafoneService",
+                    service: "vodafoneService",
+                    method: "approvalFormsSubmissionCheck",
+                    payload: request
+                };
+                // queueWrapper.raiseActivityEvent(approvalCheckRequestEvent, request.activity_id, (err, resp) => {
+                //     if (err) {
+                //         global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                //         global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                //     } else {
+                //         global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                //         global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                //     }
+                // });
+            }
+            //
+            // 
+            // [VODAFONE] Provided the form file has submissions for New Order, FR, CRM and HLD, 
+            // only then proceed with CAF Form building
+            const NEW_ORDER_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.NEW_ORDER,
+                FR_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.FR,
+                CRM_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CRM,
+                HLD_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.HLD;
+
+            if (
+                activityStreamTypeId === 705 &&
+                (
+                    Number(request.form_id) === NEW_ORDER_FORM_ID || // New Order
+                    Number(request.form_id) === FR_FORM_ID || // FR
+                    Number(request.form_id) === CRM_FORM_ID || // CRM
+                    Number(request.form_id) === HLD_FORM_ID // HLD
+                )
+            ) {
+                console.log('CALLING buildAndSubmitCafForm');
+                const approvalCheckRequestEvent = {
+                    name: "vodafoneService",
+                    service: "vodafoneService",
+                    method: "buildAndSubmitCafForm",
+                    payload: request
+                };
+                // queueWrapper.raiseActivityEvent(approvalCheckRequestEvent, request.activity_id, (err, resp) => {
+                //     if (err) {
+                //         global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                //         global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                //     } else {
+                //         global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                //         global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                //     }
+                // });
+
+            }
+            //
+            // 
+            // [VODAFONE] Alter the status of the form file to Approval Pending. Also modify the 
+            // last status alter time and current status for all the queue activity mappings.
+            const OMT_APPROVAL_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.OMT_APPROVAL;
+            const CUSTOMER_APPROVAL_FORM_ID = global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_APPROVAL;
+
+            if (
+                activityStreamTypeId === 705 &&
+                (
+                    Number(request.form_id) === CUSTOMER_APPROVAL_FORM_ID
+                )
+            ) {
+                console.log('CALLING setStatusApprovalPendingAndFireEmail');
+                const omtApprovalRequestEvent = {
+                    name: "vodafoneService",
+                    service: "vodafoneService",
+                    method: "setStatusApprovalPendingAndFireEmail",
+                    payload: request
+                };
+                // queueWrapper.raiseActivityEvent(omtApprovalRequestEvent, request.activity_id, (err, resp) => {
+                //     if (err) {
+                //         global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                //         global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                //     } else {
+                //         global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                //         global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                //     }
+                // });
+            }
+            //
+            // 
+            // [VODAFONE] Customer Management Approval Workflow
+            if (activityStreamTypeId === 705 &&
+                (Number(request.form_id) === global.vodafoneConfig[request.organization_id].FORM_ID.CUSTOMER_APPROVAL)) {
+                console.log('CALLING customerManagementApprovalWorkflow');
+                const omtApprovalRequestEvent = {
+                    name: "vodafoneService",
+                    service: "vodafoneService",
+                    method: "customerManagementApprovalWorkflow",
+                    payload: request
+                };
+                // queueWrapper.raiseActivityEvent(omtApprovalRequestEvent, request.activity_id, (err, resp) => {
+                //     if (err) {
+                //         global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                //         global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                //     } else {
+                //         global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                //         global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                //     }
+                // });
+            }
+
+            let [err, data] = await timelineStandardCallsAsync(request);
+            (err) ?
+                global.logger.write('debug', 'Error in timelineStandardCalls' + err, {}, request):
+                error=false;
+
+            return [error, responseData];
+    }
 
 }
 

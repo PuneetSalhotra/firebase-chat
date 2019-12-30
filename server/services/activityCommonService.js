@@ -28,7 +28,7 @@ function ActivityCommonService(db, util, forEachAsync) {
     };
 
     // Promisified version of the above method
-    this.getAllParticipantsPromise = function (request, callback) {
+    this.getAllParticipantsPromise = function (request) {
         return new Promise((resolve, reject) => {
             var paramsArr = new Array(
                 request.activity_id,
@@ -985,16 +985,16 @@ function ActivityCommonService(db, util, forEachAsync) {
 
     };
 
-    this.updateAssetLocationPromise = async function (request) {
+    this.updateAssetLocationPromise = function (request) {
         return new Promise((resolve, reject) => {
             self.updateAssetLocation(request, (err, response) => {
                 if (err) {
                     return reject(err);
                 }
                 return resolve(response);
-            })
+            });
         });
-    }
+    };
 
     this.formatFormDataCollection = function (data, callback) {
         var responseData = new Array();
@@ -4318,6 +4318,223 @@ function ActivityCommonService(db, util, forEachAsync) {
         return [error, responseData];
     };
 
+    this.assetTimelineTransactionInsertAsync = async (request, participantData, streamTypeId) => {
+
+        let responseData = [],
+            error = true;
+
+        let assetId = request.asset_id;
+        let organizationId = request.organization_id;
+        let accountId = request.account_id;
+        let workforceId = request.workforce_id;
+        let messageUniqueId = request.message_unique_id;
+        let entityTypeId = 0;
+        let entityText1 = "";
+        let entityText2 = "";
+        let entityText3 = "";
+        let activityTimelineCollection = "{}"; //BETA
+        let retryFlag = 0;
+        let formTransactionId = 0;
+        let dataTypeId = 0;
+        let formId = 0;
+        if (Number(request.device_os_id) === 5)
+            retryFlag = 1;
+
+        entityText3 = (request.hasOwnProperty('activity_timeline_title')) ? request.activity_timeline_title : "";
+
+        if (request.hasOwnProperty('activity_type_category_id')) {
+            let activityTypeCategoryId = Number(request.activity_type_category_id);
+            if (activityTypeCategoryId === 4) {
+                if (request.hasOwnProperty('activity_inline_data')) {
+                    let inlineJson = JSON.parse(request.activity_inline_data);
+                    assetId = inlineJson.employee_asset_id;
+                } else {
+                    assetId = request.asset_id;
+                }
+            } else {
+                assetId = request.asset_id;
+            }
+        } else {
+            assetId = request.asset_id;
+        }
+
+
+        if (Object.keys(participantData).length > 0) {
+            organizationId = participantData.organization_id;
+            accountId = participantData.account_id;
+            workforceId = participantData.workforce_id;
+            assetId = participantData.asset_id;
+            messageUniqueId = participantData.message_unique_id;
+        }
+
+        switch (streamTypeId) {
+            case 4: // activity updated
+                entityTypeId = 0;
+                entityText1 = "activity updated";
+                entityText2 = request.activity_inline_data;
+                break;
+            case 207: // Contact card has been clipped to a Document
+                entityTypeId = 0;
+                entityText1 = request.activity_timeline_collection;
+                entityText2 = '';
+                break;
+            case 309: // activity cover altered
+                entityTypeId = 0;
+                entityText1 = "";
+                entityText2 = request.activity_cover_collection;
+                break;
+            case 310: // text message     --> File
+            case 607: // text message     --> Customer Request
+            case 1307: // text message    --> Visitor Request
+            case 1507: // text message    --> Time Card
+                entityTypeId = 0;
+                entityText1 = "";
+                entityText2 = request.activity_timeline_text;
+                break;
+            case 311: // image    --> file
+            case 608: // image    --> Customer Request
+            case 1308: // image    --> Visitor Request
+            case 1508: // image   --> Time Card
+                entityTypeId = 0;
+                entityText1 = request.activity_timeline_url;
+                entityText2 = (request.hasOwnProperty('activity_timeline_url_preview')) ? request.activity_timeline_url_preview : '';
+                break;
+            case 313: // form
+                entityTypeId = 0;
+                entityText1 = request.form_transaction_id;
+                entityText2 = request.activity_timeline_collection;
+                break;
+            case 704: // form: status alter
+            case 711: //alered the due date
+            case 717: // Workflow: Percentage alter
+                entityTypeId = 0;
+                entityText2 = request.activity_timeline_collection;
+                activityTimelineCollection = request.activity_timeline_collection || '{}';
+                break;
+            case 705: // form
+            case 713:
+            case 714:
+            case 715:
+            case 716:
+                entityTypeId = 0;
+                entityText1 = request.form_transaction_id;
+                // entityText2 = request.activity_timeline_collection;
+                activityTimelineCollection = request.activity_timeline_collection || '{}';
+                formTransactionId = request.form_transaction_id;
+                formId = request.form_id;
+                dataTypeId = 37; //static for all form submissions
+                break;
+            case 710: // form field alter
+                entityTypeId = 0;
+                //entityText2 = request.activity_timeline_collection;
+                activityTimelineCollection = request.activity_timeline_collection || '{}';
+                break;
+            case 314: // cloud based document -- file
+            case 610: // cloud based document -- Customer Request
+            case 709: // cloud based document -- Form
+            case 1310: // cloud based document -- Visitor Request
+            case 1408: // cloud based document -- Project
+            case 1510: // cloud based document -- Time Card
+                entityTypeId = 0;
+                entityText1 = request.activity_timeline_url;
+                entityText2 = (request.hasOwnProperty('activity_timeline_url_preview')) ? request.activity_timeline_url_preview : '';
+                break;
+            case 315: // clip mail to task
+                entityTypeId = 0;
+                entityText1 = request.activity_timeline_collection;
+                entityText2 = '';
+                break;
+            case 316: // clip notepad
+                entityTypeId = 0;
+                entityText1 = request.activity_timeline_collection;
+                entityText2 = '';
+                break;
+            case 320: // Add video call communication
+            case 321: // Add phone call communication
+            case 322: // Add mobile call communication
+                entityTypeId = 0;
+                entityText1 = request.activity_timeline_url;
+                entityText2 = (request.hasOwnProperty('activity_timeline_url_preview')) ? request.activity_timeline_url_preview : '';
+                break;
+            case 323: // Add message communication
+                entityTypeId = 0;
+                entityText1 = "";
+                entityText2 = request.activity_timeline_text;
+                break;
+            case 325: // Add Participant Collection for taskList BETA
+            case 26004: // [Widget] Comment Added on Widget
+                activityTimelineCollection = request.activity_timeline_collection;
+                entityText1 = "";
+                entityText2 = request.activity_timeline_text;
+                request.entity_tinyint_2 = request.attachment_type_id || 0;
+                break;
+            default:
+                entityTypeId = 0;
+                entityText1 = "";
+                entityText2 = "";
+                break;
+        }
+
+        const paramsArr = new Array(
+            request.activity_id || 0,
+            assetId,
+            workforceId,
+            accountId,
+            organizationId,
+            streamTypeId,
+            entityTypeId, // entity type id
+            request.entity_datetime_1 || '1970-01-01 00:00:00', // entity type id
+            request.entity_datetime_2 || '1970-01-01 00:00:00', // entity type id
+            entityText1, // entity text 1
+            entityText2, // entity text 2
+            entityText3, //Beta
+            activityTimelineCollection, //BETA
+            request.track_latitude,
+            request.track_longitude,
+            request.entity_tinyint_1 || 0,
+            request.entity_tinyint_2 || 0,
+            request.entity_bigint_1 || 0,
+            request.entity_bigint_2 || 0,
+            formTransactionId, //form_transaction_id
+            formId, //form_id
+            dataTypeId, //data_type_id  should be 37 static
+            request.track_latitude, //location latitude
+            request.track_longitude, //location longitude
+            request.track_gps_accuracy,
+            request.track_gps_status,
+            request.track_gps_location,
+            request.track_gps_datetime,
+            "",
+            "",
+            request.device_os_id,
+            "",
+            "",
+            request.app_version,
+            request.service_version,
+            request.log_asset_id || request.asset_id,
+            messageUniqueId,
+            retryFlag,
+            request.flag_offline || 0,
+            request.track_gps_datetime,
+            request.datetime_log,
+            request.data_activity_id || 0
+        );
+        const queryString = util.getQueryString("ds_v1_3_asset_timeline_transaction_insert", paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    //error = true;                
+                    global.logger.write('conLog', JSON.stringify(err), err, request);
+                });
+        }
+
+        return [error, responseData];
+    };
+
 
     // Update the last updated and differential datetime for an asset.
     // This is currently being used by the telephone module to update the same
@@ -4340,12 +4557,166 @@ function ActivityCommonService(db, util, forEachAsync) {
                     error = false;
                 })
                 .catch((err) => {
-                    error = true;                
+                    //error = true;
+                    console.log("Error in function 'activityAssetMappingUpdateLastUpdateDateTimeOnlyAsync' : ", err);
                 });
         }
 
         return [error, responseData];
     };
+
+this.updateActivityLogDiffDatetimeAsync = async (request, assetId) => {
+    let responseData = [],
+        error = true;
+
+    if (assetId > 0) {
+        // update log differential datetime for only the asset id
+        let [err, data] = await updateActivityLogDiffDatetimeAssetAsync(request, assetId);
+        if(!err){
+            error = false;
+        }
+    } else {
+        //update log differential date time for all participants of activity
+        let data = await this.getAllParticipantsPromise(request);
+        error = false;
+        let i;
+        for(i=0; i<data.length; i++) {
+            await updateActivityLogDiffDatetimeAssetAsync(request, data[i].asset_id);
+        }
+    }
+
+    return [error, responseData];
+};
+
+async function updateActivityLogDiffDatetimeAssetAsync(request, assetId){
+    let responseData = [],
+        error = true;
+
+    const paramsArr = new Array(
+        request.activity_id,
+        assetId,
+        request.organization_id,
+        request.datetime_log
+    );
+    
+    const queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_last_differential', paramsArr);
+    
+    if (queryString != '') {
+        await db.executeQueryPromise(0, queryString, request)
+            .then((data) => {
+                responseData = data;
+                error = false;
+            })
+            .catch((err) => {
+                //error = true;
+                global.logger.write('conLog', JSON.stringify(err), err, request);
+                console.log("Error in function 'updateActivityLogDiffDatetimeAssetAsync' : ", err);
+            });
+    }
+
+    return [error, responseData];
+}
+
+async function updateAssetsLogDatetimeAsync(request, assetData) {
+    let i;
+    for(i=0; i<assetData.length; i++) {
+        let assetCollection = {
+            asset_id: assetData[i].asset_id,
+            workforce_id: assetData[i].project_id,
+            account_id: assetData[i].account_id,
+            organization_id: assetData[i].organization_id
+        };
+
+        let [err, data] = await updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetCollection);
+        if(err) {
+            global.logger.write('conLog', err, err, {});
+        }
+    }
+}
+
+this.updateActivityLogLastUpdatedDatetimeAsync = async (request, assetId) =>{
+    if (assetId > 0) {
+        let [err, data] = await this.getAllParticipantsExceptAssetAsync(request, assetId);
+            if (!err) {
+                updateAssetsLogDatetimeAsync(request, data);
+            }
+    } else {
+        let data = this.getAllParticipantsPromise(request);
+        updateAssetsLogDatetimeAsync(request, data);
+    }
+};
+
+this.getAllParticipantsExceptAssetAsync = async (request, assetId) => {
+    let responseData = [],
+        error = true;
+
+    const paramsArr = new Array(
+        request.activity_id,
+        assetId,
+        request.organization_id,
+        request.account_id,
+        request.workforce_id,
+        0,
+        50
+    );
+    
+    const queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_other_participants', paramsArr);
+    
+    global.logger.write('conLog', "getAllParticipantsExceptAssetAsync", {}, request);
+    global.logger.write('conLog', queryString, {}, request);
+
+    if (queryString != '') {
+        await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    //error = true;
+                    console.log("Error in function 'getAllParticipantsExceptAssetAsync' : ", err);
+                });
+    }
+
+    return [error, responseData];
+};
+
+async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetCollection) {
+    let responseData = [],
+        error = true;
+
+    const paramsArr = new Array(
+        request.activity_id,
+        assetCollection.asset_id,
+        assetCollection.organization_id,
+        request.datetime_log
+    );
+
+    let queryString = '';
+    if ((request.activity_status_type_id == 74 && request.activity_type_category_id == 28) ||
+        (request.activity_status_type_id == 37 && request.activity_type_category_id == 14) ||
+        (request.activity_status_type_id == 41 && request.activity_type_category_id == 15)) {
+        queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_last_updated_dt_unrd_reset', paramsArr);
+    } else {
+        queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_last_updated_datetime', paramsArr);
+    }
+
+    global.logger.write('conLog', "Calling updateActivityLogLastUpdatedDatetimeAssetAsync", {}, request);
+    global.logger.write('conLog', queryString, {}, request);
+
+    if (queryString != '') {
+        await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    //error = true;
+                    console.log("Error in function 'updateActivityLogLastUpdatedDatetimeAssetAsync' : ", err);
+                });
+    }
+
+    return [error, responseData];
+}
 
 }
 
