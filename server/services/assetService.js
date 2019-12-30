@@ -4185,7 +4185,7 @@ function AssetService(objectCollection) {
     }*/
 
     this.assetWFExposureMatrix = async (request) => {
-        let responseData = [],
+        let responseData = {},
             error = true;
 
         const paramsArr = new Array(

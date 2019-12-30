@@ -45,6 +45,32 @@ function ActivityCommonService(db, util, forEachAsync) {
         });
     };
 
+    // Async version of the above method
+this.getAllParticipantsAsync = async (request) => {
+    let responseData = [],
+        error = true;
+    
+    const paramsArr = new Array(
+        request.activity_id,
+        request.organization_id,
+        0,
+        50
+    );
+    const queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_participants', paramsArr);
+    if (queryString !== '') {
+        await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    //error = true;
+                    console.log("Error in function 'getAllParticipantsAsync' : ", err);
+                });
+    }
+    return [error, responseData];
+};
+
     this.getAllParticipantsExceptAsset = function (request, assetId, callback) {
         var paramsArr = new Array(
             request.activity_id,
@@ -1194,7 +1220,7 @@ function ActivityCommonService(db, util, forEachAsync) {
         const queryString = util.getQueryString('ds_v1_asset_list_select', paramsArr);
         if (queryString !== '') {
 
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     assetData = data;
                     error = false;
@@ -1204,7 +1230,7 @@ function ActivityCommonService(db, util, forEachAsync) {
                 });
         }
         return [error, assetData];
-    }
+    };
 
     //PAM
     this.inventoryCheck = function (request, activityId, callback) {

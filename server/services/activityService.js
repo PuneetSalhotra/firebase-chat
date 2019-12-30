@@ -255,6 +255,7 @@ function ActivityService(objectCollection) {
                                     name: "addTimelineTransaction",
                                     service: "activityTimelineService",
                                     method: "addTimelineTransaction",
+                                    //method: "addTimelineTransactionAsync",
                                     payload: newRequest
                                 };
 
@@ -4349,7 +4350,12 @@ function ActivityService(objectCollection) {
 
         //Perform status alter
         request.activity_id = request.workflow_activity_id;
+        request.activity_status_id = request.new_activity_status_id;
+        request.activity_status_type_id = request.new_activity_status_type_id;
+        request.message_unique_id = util.getMessageUniqueId(request.asset_id);
+        request.track_gps_datetime = util.getCurrentUTCTime();
         this.alterActivityStatus(request, ()=>{});
+        await sleep(2000);
 
         //Need to get the asset(Role) -- Mapped to that status
         let [err, roleData] = await activityListingService.getAssetTypeIDForAStatusID(request, request.new_activity_status_id);
@@ -4383,7 +4389,7 @@ function ActivityService(objectCollection) {
                 entity_double_1: weeklyPercentage, //Percentage
                 entity_decimal_1: weeklyPercentage //Percentage
             };
-        await activityCommonService.weeklySummaryInsert(request, weeklyObj);
+        if(assetID > 0) await activityCommonService.weeklySummaryInsert(request, weeklyObj);        
 
         //Get Monthly roll back count
         request.start_datetime =  util.getStartDateTimeOfMonth();
@@ -4405,7 +4411,7 @@ function ActivityService(objectCollection) {
                 entity_double_1: monthlyPercentage, //Percentage
                 entity_decimal_1: monthlyPercentage //Percentage
             };
-        await activityCommonService.monthlySummaryInsert(request, monthlyObj);
+        if(assetID > 0) await activityCommonService.monthlySummaryInsert(request, monthlyObj);
         
         return [error, responseData];
     }
