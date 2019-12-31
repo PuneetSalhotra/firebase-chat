@@ -431,6 +431,28 @@ function AssetController(objCollection) {
         });
     });
 
+    // Retrieve asset's monthly summary params for Read Time Efficiency (Response Rate Percentage under 24 hours)
+    app.post('/' + global.config.version + '/asset/monthly/summary/response_rate', async function (req, res) {
+        const [err, responseData] = await assetService.retrieveAssetMonthlySummaryResponseRate(req.body, 32);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/asset/monthly/summary/response_rate | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+    });
+
+    // Retrieve asset's weekly summary params for Read Time Efficiency (Response Rate Percentage under 24 hours)
+    app.post('/' + global.config.version + '/asset/weekly/summary/response_rate', async function (req, res) {
+        const [err, responseData] = await assetService.retrieveAssetWeeklySummaryResponseRate(req.body, 19);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/asset/weekly/summary/response_rate | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+    });
+
     // Service to fire everytime the app is launched.
     app.post('/' + global.config.version + '/asset/signal/app_launch', function (req, res) {
         assetService.assetAppLaunchTransactionInsert(req.body, function (err, data, statusCode) {
