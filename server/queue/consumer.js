@@ -333,7 +333,7 @@ var Consumer = function () {
     }
 
     function consumingMsg(message, kafkaMsgId, objCollection) {
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             //cacheWrapper.getKafkaMessageUniqueId(message.topic + '_' + message.partition, function(err, data){
             //  if(err === false) {
             //console.log('data : ' + data);
@@ -353,6 +353,15 @@ var Consumer = function () {
                 var serviceName = messageJson.service;
                 var method = messageJson['method'];
 
+                let asyncFlag = 0;
+                //console.log('METHOD : ', method);
+                let tempString = method.split('').reverse().join('');
+                //console.log(tempString.substring(0,5));
+                let isAsyncMethod = tempString.substring(0,5);
+                if(isAsyncMethod == 'cnysA') {
+                    asyncFlag = 1;
+                }
+
                 if (!serviceObjectCollection.hasOwnProperty(messageJson['service'])) {
                     var jsFile = "../services/" + serviceFile;
                     var newClass;
@@ -371,21 +380,29 @@ var Consumer = function () {
                     var serviceObj = eval("new " + newClass + "(objCollection)");
                     global.logger.write('conLog', 'serviceObj : ', serviceObj, {}, {});
                     serviceObjectCollection[serviceFile] = serviceObj;
-                    serviceObj[method](messageJson['payload'], function (err, data) {
-                        if (err) {
-                            global.logger.write('debug', err, {}, messageJson['payload']);
-                            resolve();
-                        } else {
-                            global.logger.write('debug', data, {}, messageJson['payload']);
 
-                            //Commit the offset
-                            //commitingOffset(message).then(()=>{}).catch((err)=>{ console.log(err);});
-
-                            //Store the read kafak message ID in the redis
-                            //setkafkaMsgId(message).then(()=>{}).catch((err)=>{ console.log(err);});
+                    if(asyncFlag === 1) {
+                        //Function with Async/Await
+                        let [err, resp] = await serviceObj[method](messageJson['payload']);
                             resolve();
-                        }
-                    });
+                    } else {
+                        //Function with Callback
+                        serviceObj[method](messageJson['payload'], function (err, data) {
+                            if (err) {
+                                global.logger.write('debug', err, {}, messageJson['payload']);
+                                resolve();
+                            } else {
+                                global.logger.write('debug', data, {}, messageJson['payload']);
+    
+                                //Commit the offset
+                                //commitingOffset(message).then(()=>{}).catch((err)=>{ console.log(err);});
+    
+                                //Store the read kafak message ID in the redis
+                                //setkafkaMsgId(message).then(()=>{}).catch((err)=>{ console.log(err);});
+                                resolve();
+                            }
+                        });
+                    }
                 } else {
                     serviceObjectCollection[serviceName][method](messageJson['payload'], function (err, data) {
                         if (err) {
