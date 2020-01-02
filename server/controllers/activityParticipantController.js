@@ -4,7 +4,7 @@
  */
 
 var ParticipantService = require("../services/activityParticipantService");
-
+const ActivityListingService = require("../services/activityListingService");
 
 function ActivityParticipantController(objCollection) {
 
@@ -17,6 +17,7 @@ function ActivityParticipantController(objCollection) {
     var activityCommonService = objCollection.activityCommonService;
 
     var participantService = new ParticipantService(objCollection);
+    const activityListingService = new ActivityListingService(objCollection);
 
     app.post('/' + global.config.version + '/activity/participant/list', function (req, res) {
         participantService.getParticipantsList(req.body, function (err, data, statusCode) {
@@ -425,6 +426,44 @@ function ActivityParticipantController(objCollection) {
         
     });
 
+    app.post('/' + global.config.version + '/activity/participant/asset_type/list', async (req, res) => {
+        const [err, result] = await activityListingService.getAssetForAssetTypeID(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse(false, result.map(participant => {
+                return {
+                    query_status: participant.query_status,
+                    activity_id: participant.activity_id,
+                    activity_title: participant.activity_title,
+                    activity_description: participant.activity_description,
+                    activity_lead_asset_id: participant.activity_lead_asset_id,
+                    activity_lead_asset_first_name: participant.activity_lead_asset_first_name,
+                    activity_lead_asset_last_name: participant.activity_lead_asset_last_name,
+                    activity_lead_asset_image_path: participant.activity_lead_asset_image_path,
+                    activity_lead_asset_type_id: participant.activity_lead_asset_type_id,
+                    activity_lead_asset_type_name: participant.activity_lead_asset_type_name,
+                    activity_owner_asset_id: participant.activity_owner_asset_id,
+                    activity_owner_asset_first_name: participant.activity_owner_asset_first_name,
+                    activity_owner_asset_last_name: participant.activity_owner_asset_last_name,
+                    activity_owner_asset_image_path: participant.activity_owner_asset_image_path,
+                    activity_owner_asset_type_id: participant.activity_owner_asset_type_id,
+                    activity_owner_asset_type_name: participant.activity_owner_asset_type_name,
+                    activity_type_id: participant.activity_type_id,
+                    activity_type_name: participant.activity_type_name,
+                    activity_type_category_id: participant.activity_type_category_id,
+                    activity_type_category_name: participant.activity_type_category_name,
+                    asset_id: participant.asset_id,
+                    asset_first_name: participant.asset_first_name,
+                    asset_last_name: participant.asset_last_name,
+                    operating_asset_id: participant.operating_asset_id,
+                    operating_asset_first_name: participant.operating_asset_first_name,
+                    operating_asset_last_name: participant.operating_asset_last_name
+                };
+            }), 200, req.body));
+        } else {
+            console.log("/activity/participant/asset_type/list | Error: ", err);
+            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
 }
 
 

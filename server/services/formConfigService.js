@@ -2154,6 +2154,47 @@ function FormConfigService(objCollection) {
         // ...
         // ...
         // 
+
+        //Loop on all the fields of the Form
+        //Check if bots are defined on the bot
+        //If Yes
+        //Delete them also
+        const formID = Number(request.form_id);
+        try{
+            let data = await this.getFormFieldMappings(request, formID, 0, 50);
+            //console.log('DATA : ', data);
+            if(data.length > 0) {
+                for(let i=0; i<data.length; i++) {                   
+                    let botEngineRequest = Object.assign({}, request);
+                        botEngineRequest.form_id = formID;
+                        botEngineRequest.field_id = Number(data[i].field_id);
+                        botEngineRequest.flag = 5;
+
+                    try{            
+                        let botsListData = await activityCommonService.getBotsMappedToActType(botEngineRequest);
+                        if (botsListData.length > 0) {                            
+                            console.log('BOTID for Field ID : ', data[i].field_id , ' is : ', botsListData[0].bot_id);
+                            
+                            //Archive the Bot
+                            let botArchiveReq = {};
+                                botArchiveReq.organization_id = request.organization_id;
+                                botArchiveReq.bot_id = botsListData[0].bot_id;
+                                botArchiveReq.log_state = 3;
+                                botArchiveReq.log_asset_id = 100;
+                                botArchiveReq.log_datetime = util.getCurrentUTCTime();           
+                            await botService.archiveBot(botArchiveReq);
+                        } else {
+                            console.log('BOTID : is not defined for Field ID : ', data[i].field_id);
+                        }
+                    } catch (botInitError) {
+                        global.logger.write('error', botInitError, botInitError, request);
+                    }
+                }
+            }
+
+        } catch(err) {
+            console.log('ERROR : ', err);
+        }
         return [false, {
             formUpdateStatus,
             formFieldUpdateStatus
@@ -4035,23 +4076,23 @@ function FormConfigService(objCollection) {
     };
 
     
-    //Update Workflow values in Activity_List for Workflow Form
+    // Update Workflow values in Activity_List for Workflow Form
     async function addValueToWidgetForAnalyticsWF(requestObj, workflowActivityId, workflowActivityTypeID, flag) {
         let request = Object.assign({}, requestObj);
-        
+
         let [err, inlineData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, workflowActivityTypeID);
-        if(err) {
+        if (err) {
             return err;
-        }   
-        
+        }
+
         //console.log('inlineData : ', inlineData[0]);        
         console.log('inlineData.activity_type_inline_data : ', inlineData[0].activity_type_inline_data);
-        
+
         let finalInlineData = JSON.parse(inlineData[0].activity_type_inline_data);
 
         console.log('finalInlineData.hasOwnProperty(workflow_fields) : ', finalInlineData.hasOwnProperty('workflow_fields'));
 
-        if(finalInlineData.hasOwnProperty('workflow_fields')) {
+        if (finalInlineData.hasOwnProperty('workflow_fields')) {
             let i, fieldId;
             let workflowFields = finalInlineData.workflow_fields;
             let activityInlineData = JSON.parse(request.activity_inline_data);
@@ -4062,48 +4103,67 @@ function FormConfigService(objCollection) {
 
             let finalValue = 0;
             let flagExecuteFinalValue = 0;
-            for(i=0; i<activityInlineData.length; i++) {
-                for(fieldId in workflowFields){
-                    if(fieldId === activityInlineData[i].field_id) {
-                        await activityCommonService.analyticsUpdateWidgetValue(request, 
-                                                                               workflowActivityId, 
-                                                                               workflowFields[fieldId].sequence_id, 
-                                                                               activityInlineData[i].field_value);
-                        
+            for (i = 0; i < activityInlineData.length; i++) {
+                for (fieldId in workflowFields) {
+                    if (fieldId === activityInlineData[i].field_id) {
+                        const fieldValue = await getFieldValueByDataTypeID(
+                            Number(activityInlineData[i].field_data_type_id),
+                            activityInlineData[i].field_value
+                        );
+                        await activityCommonService.analyticsUpdateWidgetValue(request,
+                            workflowActivityId,
+                            workflowFields[fieldId].sequence_id,
+                            fieldValue);
+
                         flagExecuteFinalValue = 1;
-                        finalValue += Number(activityInlineData[i].field_value);
+                        finalValue += Number(fieldValue);
                         break;
                     }
-                }   
+                }
             }
 
-            if(flag === 1 && flagExecuteFinalValue === 1) {
-                await activityCommonService.analyticsUpdateWidgetValue(request, 
-                                                                       workflowActivityId, 
-                                                                       0, 
-                                                                       finalValue);
+            if (flag === 1 && flagExecuteFinalValue === 1) {
+                await activityCommonService.analyticsUpdateWidgetValue(request,
+                    workflowActivityId,
+                    0,
+                    finalValue);
             }
         }
 
         return "success";
     }
-    
+
+    function getFieldValueByDataTypeID(fieldDataTypeID, fieldValue) {
+        switch (fieldDataTypeID) {
+            case 62: // Credit/Debit Data Type
+                fieldValue = (typeof fieldValue === 'string') ? JSON.parse(fieldValue) : fieldValue;
+                const transactionTypeID = Number(fieldValue.transaction_data.transaction_type_id),
+                    // ledgerActivityID = Number(fieldValue.transaction_data.activity_id),
+                    transactionAmount = Number(fieldValue.transaction_data.transaction_amount);
+                if (transactionTypeID === 1) {
+                    return Number(transactionAmount);
+                } else if (transactionTypeID === 2) {
+                    return -Number(transactionAmount);
+                }
+            default:
+                return Number(fieldValue);
+        }
+    }
     
     //Update Workflow values in Activity_List for all non-origin Forms - field edits
     async function addValueToWidgetForAnalytics(requestObj) {
         let request = Object.assign({}, requestObj);
 
         let [err, workflowData] = await fetchReferredFormActivityIdAsync(request, request.activity_id, request.form_transaction_id, request.form_id);
-        
         //console.log('workflowData : ', workflowData);
+        if(err || workflowData.length === 0) {
+            return err;
+        }
 
         const workflowActivityId = Number(workflowData[0].activity_id);
         const workflowActivityTypeID = Number(workflowData[0].activity_type_id);
         console.log("workflowActivityId: ", workflowActivityId);
-        console.log("workflowActivityTypeID: ", workflowActivityTypeID);
-        if(err) {
-            return err;
-        }        
+        console.log("workflowActivityTypeID: ", workflowActivityTypeID);        
 
         let [err1, inlineData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, workflowActivityTypeID);
         if(err1) {
@@ -4215,7 +4275,7 @@ function FormConfigService(objCollection) {
                 botInlineData.push(tempObj);
 
                 newRequest.bot_inline_data = JSON.stringify(botInlineData);
-                newRequest.bot_name = "Workflow reference Bot - " + util.getCurrentUTCTime();
+                newRequest.bot_name = request.form_name + " - WF Ref Bot - " + util.getCurrentUTCTime();
                 //newRequest.activity_type_id = Number(newInlineData.workflow_reference_restriction.activity_type_id);
                 newRequest.activity_type_id = Number(request.form_activity_type_id) || 0;
                 newRequest.bot_operation_type_id = 16;
@@ -4236,7 +4296,7 @@ function FormConfigService(objCollection) {
                 botInlineData.push(tempObj);
 
                 newRequest.bot_inline_data = JSON.stringify(botInlineData);
-                newRequest.bot_name = "Single selection Bot - " + util.getCurrentUTCTime();                
+                newRequest.bot_name = request.form_name + " - SS Bot - " + util.getCurrentUTCTime();
                 newRequest.activity_type_id = Number(request.form_activity_type_id) || 0;
                 newRequest.bot_operation_type_id = 17;
                 break;
@@ -4246,7 +4306,7 @@ function FormConfigService(objCollection) {
                 botInlineData.push(tempObj);
 
                 newRequest.bot_inline_data = JSON.stringify(botInlineData);
-                newRequest.bot_name = "Ledger Transaction Summary - " + util.getCurrentUTCTime();
+                newRequest.bot_name = request.form_name + " - LTS - " + util.getCurrentUTCTime();
                 newRequest.activity_type_id = Number(request.form_activity_type_id) || 0;
                 newRequest.bot_operation_type_id = 14;
                 break;

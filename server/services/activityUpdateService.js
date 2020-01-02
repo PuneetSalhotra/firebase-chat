@@ -1975,7 +1975,7 @@ function ActivityUpdateService(objectCollection) {
         if (request.url.includes('v1')) {
             if (activityTypeCategoryId === 10 || activityTypeCategoryId === 11 || activityTypeCategoryId === 5 ||
                 activityTypeCategoryId === 6 || activityTypeCategoryId === 29 || activityTypeCategoryId === 43 ||
-                activityTypeCategoryId === 44) {
+                activityTypeCategoryId === 44 || activityTypeCategoryId === 48) {
                 activityCommonService.retrieveAccountList(request, (err, data) => {
                     if (err === false) {
                         request.config_resp_hours = data[0].account_config_response_hours;
@@ -2017,7 +2017,7 @@ function ActivityUpdateService(objectCollection) {
             var queryString = util.getQueryString('ds_p1_activity_asset_mapping_reset_unread_counts_web', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
-                    (err === false) ? resolve(): reject(err);
+                    (err === false) ? resolve() : reject(err);
                 });
             }
         });
@@ -2056,7 +2056,7 @@ function ActivityUpdateService(objectCollection) {
                 monthlyCollection.entity_double_1 = percentage; //percentage value
                 monthlyCollection.entity_decimal_1 = percentage; //percentage value
                 monthlyCollection.entity_decimal_3 = noOfRespondedFileUpdates; //numerator
-                activityCommonService.monthlySummaryInsert(request, monthlyCollection, (err, data) => {});
+                activityCommonService.monthlySummaryInsert(request, monthlyCollection, (err, data) => { });
             });
 
             //Updating weekly summary Data
@@ -2088,7 +2088,7 @@ function ActivityUpdateService(objectCollection) {
                 weeklyCollection.entity_double_1 = percentage;
                 weeklyCollection.entity_decimal_1 = percentage;
                 weeklyCollection.entity_decimal_3 = noOfRespondedFileUpdates;
-                activityCommonService.weeklySummaryInsert(request, weeklyCollection, (err, data) => {});
+                activityCommonService.weeklySummaryInsert(request, weeklyCollection, (err, data) => { });
             });
 
         }); //closing the promise        
@@ -2115,7 +2115,7 @@ function ActivityUpdateService(objectCollection) {
             var queryString = util.getQueryString('ds_v1_asset_update_transaction_select_response_rate', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
-                    (err === false) ? resolve(data): reject(err);
+                    (err === false) ? resolve(data) : reject(err);
                 });
             }
         });

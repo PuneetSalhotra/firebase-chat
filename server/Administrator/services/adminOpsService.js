@@ -651,6 +651,13 @@ function AdminOpsService(objectCollection) {
 
     this.addNewDeskToWorkforce = async function (request) {
 
+        //Get the asset_type_name i.e. Role Name        
+        let [err, roleData] = await adminListingService.listRolesByAccessLevels(request);
+        if(!err && roleData.length > 0) {
+            request.asset_type_name = roleData[0].asset_type_name;
+            console.log('ROLE NAME for ', request.asset_type_id, 'is : ', request.asset_type_name);
+        }
+        
         const organizationID = Number(request.organization_id),
             accountID = Number(request.account_id),
             workforceID = Number(request.workforce_id);
@@ -811,6 +818,14 @@ function AdminOpsService(objectCollection) {
     }
 
     this.addNewEmployeeToExistingDesk = async function (request) {
+
+        //Get the asset_type_name i.e. Role Name        
+        let [err, roleData] = await adminListingService.listRolesByAccessLevels(request);
+        if(!err && roleData.length > 0) {
+            request.asset_type_name = roleData[0].asset_type_name;
+            console.log('ROLE NAME for ', request.asset_type_id, 'is : ', request.asset_type_name);
+        }
+
         const organizationID = Number(request.organization_id),
             accountID = Number(request.account_id),
             workforceID = Number(request.workforce_id);
@@ -1102,6 +1117,11 @@ function AdminOpsService(objectCollection) {
         } catch (error) {
             console.log("addNewEmployeeToExistingDesk | queueAccessMappingInsert | Error: ", error);
         }
+
+        //Update Manager Details
+        let newReq = Object.assign({}, request);
+            newReq.asset_id = deskAssetID;
+        this.updateAssetsManagerDetails(newReq);
 
         return [false, {
             desk_asset_id: deskAssetID,
@@ -4186,6 +4206,11 @@ function AdminOpsService(objectCollection) {
             }
         }
 
+        //Update Manager Details
+        let newReq = Object.assign({}, request);
+            newReq.asset_id = deskAssetID;
+        this.updateAssetsManagerDetails(newReq);
+
         return [false, []];
     }
 
@@ -5230,7 +5255,7 @@ function AdminOpsService(objectCollection) {
             request.account_id,
             request.workforce_id,
             request.workforce_inline_data,
-            request.flag_enable_desk_workhours,
+            //request.flag_enable_desk_workhours,
             util.getCurrentUTCTime(),
             request.asset_id
         );

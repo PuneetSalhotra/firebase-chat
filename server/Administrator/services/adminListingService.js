@@ -1151,8 +1151,8 @@ function AdminListingService(objectCollection) {
 
         // NEEDS WORK
         const paramsArr = new Array(
-            request.flag,
-            request.level_id,
+            request.flag || 0,
+            request.level_id || 0,
             request.asset_type_id,
             request.asset_type_category_id || 0,
             request.organization_id,
