@@ -4054,20 +4054,20 @@ function ActivityService(objectCollection) {
     // Update Workflow values in Activity_List for Workflow Form (For origin form putting delay is not good idea)
     async function addValueToWidgetForAnalyticsWF(requestObj, workflowActivityId, workflowActivityTypeID, flag) {
         let request = Object.assign({}, requestObj);
-        
+
         let [err, inlineData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, workflowActivityTypeID);
-        if(err) {
+        if (err) {
             return err;
-        }   
-        
+        }
+
         //console.log('inlineData : ', inlineData[0]);        
         console.log('inlineData.activity_type_inline_data : ', inlineData[0].activity_type_inline_data);
-        
+
         let finalInlineData = JSON.parse(inlineData[0].activity_type_inline_data);
 
         console.log('finalInlineData.hasOwnProperty(workflow_fields) : ', finalInlineData.hasOwnProperty('workflow_fields'));
 
-        if(finalInlineData.hasOwnProperty('workflow_fields')) {
+        if (finalInlineData.hasOwnProperty('workflow_fields')) {
             let i, fieldId;
             let workflowFields = finalInlineData.workflow_fields;
             let activityInlineData = JSON.parse(request.activity_inline_data);
@@ -4075,36 +4075,36 @@ function ActivityService(objectCollection) {
             console.log('workflowFields : ', workflowFields);
             console.log('activityInlineData : ', activityInlineData);
             console.log('activityInlineData.length : ', activityInlineData.length);
-            
+
             let finalValue = 0;
             let flagExecuteFinalValue = 0;
-            for(i=0; i<activityInlineData.length; i++) {
-                for(fieldId in workflowFields){
-                    if(fieldId === activityInlineData[i].field_id) {
+            for (i = 0; i < activityInlineData.length; i++) {
+                for (fieldId in workflowFields) {
+                    if (fieldId === activityInlineData[i].field_id) {
                         const fieldValue = await getFieldValueByDataTypeID(
                             Number(activityInlineData[i].field_data_type_id),
                             activityInlineData[i].field_value
                         );
-                        await activityCommonService.analyticsUpdateWidgetValue(request, 
-                                                                               workflowActivityId, 
-                                                                               workflowFields[fieldId].sequence_id, 
-                                                                               fieldValue);
-                        
-                        
+                        await activityCommonService.analyticsUpdateWidgetValue(request,
+                            workflowActivityId,
+                            workflowFields[fieldId].sequence_id,
+                            fieldValue);
+
+
                         flagExecuteFinalValue = 1;
                         finalValue += Number(fieldValue);
                         break;
                     }
-                }   
+                }
             }
 
-            if(flag === 1 && flagExecuteFinalValue === 1) {
-                await activityCommonService.analyticsUpdateWidgetValue(request, 
-                                                                       workflowActivityId, 
-                                                                       0, 
-                                                                       finalValue);
+            if (flag === 1 && flagExecuteFinalValue === 1) {
+                await activityCommonService.analyticsUpdateWidgetValue(request,
+                    workflowActivityId,
+                    0,
+                    finalValue);
             }
-            
+
         }
 
         return "success";
