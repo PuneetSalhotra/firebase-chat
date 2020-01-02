@@ -68,6 +68,30 @@ function LedgerListingService(objectCollection) {
         return [error, responseData];
     };
 
+    this.activityLedgerTransactionSelectLedgerTotals = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.activity_id,
+            request.datetime_start,
+            request.datetime_end
+        );
+        const queryString = util.getQueryString('ds_p1_activity_ledger_transaction_select_ledger_totals', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
     this.getLedgerTransactionSummaryMonthly = async function name(request) {
 
         const [errOne, summaryData] = await self.activityMonthlySummaryTransactionSelectFlag(request);
