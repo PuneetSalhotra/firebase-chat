@@ -88,6 +88,18 @@ function LedgerOpsService(objectCollection) {
                 logger.silly("activityTimelineTransactionInsertV6 | Error: %j", error);
             }
 
+            try {
+                await activityLedgerTransactionInsert({
+                    ...request,
+                    activity_id: ledgerActivityID,
+                    field_id: fieldID,
+                    transaction_type_id: transactionTypeID,
+                    value: transactionAmount,
+                }, organizationID, accountID, workforceID);
+            } catch (error) {
+                logger.silly("activityLedgerTransactionInsert | Error: %j", error);
+            }
+
             // Calculate net
             let netAmountYearly = 0,
                 netAmountQuarterly = 0,
@@ -95,7 +107,7 @@ function LedgerOpsService(objectCollection) {
                 ledgerInlineData = {};
             try {
                 // Yearly
-                const [errOne, creditDebitDataYearly] = await ledgerListingService.activityTimelineTransactionSelectLedgerTotals({
+                const [errOne, creditDebitDataYearly] = await ledgerListingService.activityLedgerTransactionSelectLedgerTotals({
                     activity_id: ledgerActivityID,
                     datetime_start: startOfYear,
                     datetime_end: util.getCurrentUTCTime()
@@ -106,7 +118,7 @@ function LedgerOpsService(objectCollection) {
                 // console.log("netAmountYearly: ", netAmountYearly);
 
                 // Quarterly
-                const [errTwo, creditDebitDataQuarterly] = await ledgerListingService.activityTimelineTransactionSelectLedgerTotals({
+                const [errTwo, creditDebitDataQuarterly] = await ledgerListingService.activityLedgerTransactionSelectLedgerTotals({
                     activity_id: ledgerActivityID,
                     datetime_start: startOfQuarter,
                     datetime_end: util.getCurrentUTCTime()
@@ -117,7 +129,7 @@ function LedgerOpsService(objectCollection) {
                 // console.log("netAmountQuarterly: ", netAmountQuarterly);
 
                 // Monthly
-                const [errThree, creditDebitDataMonthly] = await ledgerListingService.activityTimelineTransactionSelectLedgerTotals({
+                const [errThree, creditDebitDataMonthly] = await ledgerListingService.activityLedgerTransactionSelectLedgerTotals({
                     activity_id: ledgerActivityID,
                     datetime_start: startOfMonth,
                     datetime_end: util.getCurrentUTCTime()
@@ -444,6 +456,41 @@ function LedgerOpsService(objectCollection) {
             request.activity_master_data
         );
         const queryString = util.getQueryString('ds_p1_activity_list_update_master_data', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    // Update ledger inline data stored in the `master_data` in the `activity_list` table
+    async function activityLedgerTransactionInsert(request, organizationID, accountID, workforceID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.transaction_type_id,
+            request.activity_id,
+            request.form_transaction_id,
+            request.form_id,
+            request.field_id,
+            request.data_type_combo_id || 0,
+            request.asset_id,
+            workforceID,
+            accountID,
+            organizationID,
+            request.asset_id,
+            util.getCurrentUTCTime(),
+            request.value
+        );
+        const queryString = util.getQueryString('ds_p1_activity_ledger_transaction_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
