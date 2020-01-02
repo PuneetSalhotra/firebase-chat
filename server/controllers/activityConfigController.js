@@ -93,13 +93,13 @@ function ActivityConfigController(objCollection) {
         });    		
     });
     
-    app.post('/' + global.config.version + '/activity_type/access/list', function (req, res) {
-    	activityConfigService.getAccessLevelActivityTypeList(req.body).then((data)=>{    
-    		console.log(data);
-    		res.send(responseWrapper.getResponse({}, data, 200, req.body));    	
-    	}).catch((err) => {        	
-        	res.send(responseWrapper.getResponse(err, {}, -999, req.body));
-        });    		
+    app.post('/' + global.config.version + '/activity_type/access/list', async function (req, res) {
+        const [err, data] = await activityConfigService.listProcessesByAccessLevel(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
     });
     
     app.post('/' + global.config.version + '/activity_status/mapping/activity_type/list', function (req, res) {

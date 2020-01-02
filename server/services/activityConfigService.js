@@ -2,9 +2,11 @@
  * author: Sri Sai Venkatesh
  */
 const AdminOpsService = require('../Administrator/services/adminOpsService');
+const logger = require('../logger/winstonLogger');
 
 function ActivityConfigService(db, util, objCollection) {
     const adminOpsService = new AdminOpsService(objCollection);
+    const self = this;
 
     this.getWorkforceActivityTypesList = function (request, callback) {
         var paramsArr = new Array(
@@ -273,7 +275,37 @@ function ActivityConfigService(db, util, objCollection) {
             }
         });
     }
-    
+
+    this.listProcessesByAccessLevel = async function (request) {
+        let error = false;
+
+        let tagMappingDataMap = new Map();
+        const [errorOne, tagMappingData] = await activityTypeTagMappingSelect(request);
+        for (const mapping of tagMappingData) {
+            tagMappingDataMap.set(Number(mapping.activity_type_id), mapping);
+        }
+
+        let activityTypeData = await self.getAccessLevelActivityTypeList(request);
+        try {
+            activityTypeData = activityTypeData.map(activityType => {
+                if (tagMappingDataMap.has(Number(activityType.activity_type_id))) {
+                    activityTypeTagMappingData = tagMappingDataMap.get(Number(activityType.activity_type_id))
+                    return {
+                        ...activityType,
+                        tag_id: activityTypeTagMappingData.tag_id,
+                        tag_name: activityTypeTagMappingData.tag_name,
+                        tag_type_id: activityTypeTagMappingData.tag_type_id,
+                        tag_type_name: activityTypeTagMappingData.tag_type_name
+                    }
+                }
+                return activityType
+            });
+        } catch (error) {
+            logger.error("Error appending tag mapping data to process list", { type: "ActivityConfigService", request_body: request, error });
+        }
+        return [error, activityTypeData];
+    }
+
     this.getAccessLevelActivityTypeList = function (request) {
 		return new Promise((resolve, reject)=>{
 	        var paramsArr = new Array(
@@ -291,6 +323,12 @@ function ActivityConfigService(db, util, objCollection) {
 	            db.executeQuery(1, queryString, request, function (err, data) {
 	            	//console.log("err "+err);
 	               if(err === false) {
+                    //    Append tag/tag type information
+                       try {
+                           
+                       } catch (error) {
+                           
+                       }
 	               		console.log('data: '+data.length);
 	               		resolve(data);        				        			      			  
 	                } else {
@@ -300,6 +338,34 @@ function ActivityConfigService(db, util, objCollection) {
 	   		}
 		});
     };
+    
+    async function activityTypeTagMappingSelect(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.tag_type_id || 0,
+            request.tag_id || 0,
+            request.activity_type_id || 0,
+            request.flag || 1,
+            request.start_from || 0,
+            request.limit_value || 50,
+        );
+        const queryString = util.getQueryString('ds_p1_activity_type_tag_mapping_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
     
     this.getEntityActivityStatusList = function (request) {
         // IN p_organization_id bigint(20), IN p_account_id bigint(20), IN p_workforce_id bigint(20), 
