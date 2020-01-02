@@ -4155,16 +4155,15 @@ function FormConfigService(objCollection) {
         let request = Object.assign({}, requestObj);
 
         let [err, workflowData] = await fetchReferredFormActivityIdAsync(request, request.activity_id, request.form_transaction_id, request.form_id);
-        
         //console.log('workflowData : ', workflowData);
+        if(err || workflowData.length === 0) {
+            return err;
+        }
 
         const workflowActivityId = Number(workflowData[0].activity_id);
         const workflowActivityTypeID = Number(workflowData[0].activity_type_id);
         console.log("workflowActivityId: ", workflowActivityId);
-        console.log("workflowActivityTypeID: ", workflowActivityTypeID);
-        if(err) {
-            return err;
-        }        
+        console.log("workflowActivityTypeID: ", workflowActivityTypeID);        
 
         let [err1, inlineData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, workflowActivityTypeID);
         if(err1) {

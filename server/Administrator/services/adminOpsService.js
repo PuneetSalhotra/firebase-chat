@@ -5255,7 +5255,7 @@ function AdminOpsService(objectCollection) {
             request.account_id,
             request.workforce_id,
             request.workforce_inline_data,
-            request.flag_enable_desk_workhours,
+            //request.flag_enable_desk_workhours,
             util.getCurrentUTCTime(),
             request.asset_id
         );
