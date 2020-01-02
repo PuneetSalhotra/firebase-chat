@@ -307,36 +307,30 @@ function ActivityConfigService(db, util, objCollection) {
     }
 
     this.getAccessLevelActivityTypeList = function (request) {
-		return new Promise((resolve, reject)=>{
-	        var paramsArr = new Array(
-	        		request.access_level_id,
-	        		request.organization_id,
-	        		request.account_id,
-	        		request.workforce_id,
-	        		request.activity_type_category_id,
-	        		request.page_start,
-	        		util.replaceQueryLimit(request.page_limit)
-	                );
-	
-	        var queryString = util.getQueryString('ds_p1_1_workforce_activity_type_mapping_select', paramsArr);
-	        if (queryString != '') {
-	            db.executeQuery(1, queryString, request, function (err, data) {
-	            	//console.log("err "+err);
-	               if(err === false) {
-                    //    Append tag/tag type information
-                       try {
-                           
-                       } catch (error) {
-                           
-                       }
-	               		console.log('data: '+data.length);
-	               		resolve(data);        				        			      			  
-	                } else {
-	                   reject(err);
-	               }
-	            });
-	   		}
-		});
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                request.access_level_id,
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.activity_type_category_id,
+                request.page_start,
+                util.replaceQueryLimit(request.page_limit)
+            );
+
+            var queryString = util.getQueryString('ds_p1_1_workforce_activity_type_mapping_select', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    //console.log("err "+err);
+                    if (err === false) {
+                        console.log('data: ' + data.length);
+                        resolve(data);
+                    } else {
+                        reject(err);
+                    }
+                });
+            }
+        });
     };
     
     async function activityTypeTagMappingSelect(request) {
