@@ -12,6 +12,7 @@ function UtilityController(objCollection) {
     var util = objCollection.util;
     var sss = new AwsSss();
     const db = objCollection.db;
+    const activityCommonService = objCollection.activityCommonService;
 
     app.post('/' + global.config.version + '/time/access/global/entry/collection', function (req, res) {
 
@@ -309,6 +310,32 @@ function UtilityController(objCollection) {
         }
 
      });
+
+    app.post('/' + global.config.version + '/send/asset/push_notification', async (req, res) => {
+        // [CHECK] activity_id
+        if (
+            !req.body.hasOwnProperty("activity_id") ||
+            Number(req.body.activity_id) === 0
+        ) {
+            return [true, {
+                message: `Incorrect activity_id specified.`
+            }];
+        }
+        const activityData = await activityCommonService.getActivityDetailsPromise(req.body, req.body.activity_id);
+        if (Number(activityData.length) <= 0) {
+            return res.send(responseWrapper.getResponse(true, {
+                message: `No workflow/activity data found in db`
+            }, -9999, req.body));
+        }
+
+        const [err, responseData] = await util.sendCustomPushNotification(req.body, activityData);
+        if (!err) {
+            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+        } else {
+            console.log("/send/asset/push_notification | Error: ", err);
+            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+    });
 
 }
 module.exports = UtilityController;

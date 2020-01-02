@@ -314,7 +314,7 @@ function AssetService(objectCollection) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (data.length > 0) {
-                    //console.log(data);
+                    console.log(data);
                     formatAssetData(data, function (error, data) {
                         if (error === false)
                             callback(false, {
@@ -715,7 +715,8 @@ function AssetService(objectCollection) {
 
             'asset_flag_admin': util.replaceDefaultNumber(rowArray[0]['asset_flag_admin']), // Legacy
             'asset_flag_account_admin': util.replaceDefaultNumber(rowArray[0]['asset_flag_admin']),
-            'asset_flag_organization_admin': util.replaceDefaultNumber(rowArray[0]['asset_flag_organization_admin'])
+            'asset_flag_organization_admin': util.replaceDefaultNumber(rowArray[0]['asset_flag_organization_admin']),
+            'asset_inline_data': util.replaceDefaultString(rowArray[0]['asset_inline_data']) 
 
         };
 
@@ -4190,7 +4191,7 @@ function AssetService(objectCollection) {
     }*/
 
     this.assetWFExposureMatrix = async (request) => {
-        let responseData = [],
+        let responseData = {},
             error = true;
 
         const paramsArr = new Array(
@@ -4225,6 +4226,99 @@ function AssetService(objectCollection) {
         return [error, responseData];
     }
 
+    // Monthly Response Rate
+    this.retrieveAssetMonthlySummaryResponseRate = async function (request, summaryID) {
+        const organizationID = Number(request.organization_id),
+            accountID = Number(request.account_id),
+            workforceID = Number(request.workforce_id);
+
+        const monthStartDate = util.getStartDateTimeOfMonth(),
+            monthEndDate = util.getEndDateTimeOfMonth();
+        // startDate = util.getStartDateTimeOfWeek();
+        // endDate = util.getEndDateTimeOfWeek();
+        const [error, responseData] = await assetMonthlySummaryTransactionSelect({
+            ...request,
+            monthly_summary_id: summaryID,
+            data_entity_date_1: monthStartDate
+        }, organizationID, accountID, workforceID);
+        if (error) {
+            return [error, { message: "Error retrieving asset's monthly response rate summary" }];
+        }
+        return [error, responseData];
+    }
+
+    async function assetMonthlySummaryTransactionSelect(request, organizationID, accountID, workforceID) {
+
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_id,
+            request.operating_asset_id,
+            organizationID,
+            request.monthly_summary_id,
+            request.data_entity_date_1
+        );
+        const queryString = util.getQueryString('ds_p1_asset_monthly_summary_transaction_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    }
+
+    // Weekly Response Rate
+    this.retrieveAssetWeeklySummaryResponseRate = async function (request, summaryID) {
+        const organizationID = Number(request.organization_id),
+            accountID = Number(request.account_id),
+            workforceID = Number(request.workforce_id);
+
+        const weekStartDate = util.getStartDateTimeOfWeek(),
+            weekEndDate = util.getEndDateTimeOfWeek();
+        const [error, responseData] = await assetWeeklySummaryTransactionSelect({
+            ...request,
+            weekly_summary_id: summaryID,
+            data_entity_date_1: weekStartDate
+        }, organizationID, accountID, workforceID);
+        if (error) {
+            return [error, { message: "Error retrieving asset's weekly response rate summary" }];
+        }
+        return [error, responseData];
+    }
+
+    async function assetWeeklySummaryTransactionSelect(request, organizationID, accountID, workforceID) {
+
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_id,
+            request.operating_asset_id,
+            organizationID,
+            request.weekly_summary_id,
+            request.data_entity_date_1
+        );
+        const queryString = util.getQueryString('ds_p1_asset_weekly_summary_transaction_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = AssetService;

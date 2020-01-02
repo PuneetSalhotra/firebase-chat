@@ -3825,7 +3825,7 @@ function VodafoneService(objectCollection) {
         let isParentOrder = false;
         if (request.hasOwnProperty("workflow_activity_id")) {
             try {
-                workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
+                workflowActivityData = await activityCommonService.getActivityDetailsPromiseMaster(request, request.workflow_activity_id);
                 if (workflowActivityData.length > 0) {
                     formWorkflowActivityTypeId = workflowActivityData[0].activity_type_id;
                     // console.log("Number(workflowActivityData[0].parent_activity_id): ", Number(workflowActivityData[0].parent_activity_id));
@@ -6059,10 +6059,10 @@ function VodafoneService(objectCollection) {
             {
                 email_sender_name: `CAF/CRF Miss Alert Bot`,
                 email_sender: `no-reply@grenerobotics.com`,
-                email_receiver_name: `Ben Sooraj`,
+                email_receiver_name: `Vijay`,
                 // bcc_email_receiver: `sravan@grenerobotics.com `,
             },
-            `ben@grenerobotics.com`,
+            `vijay@grenerobotics.com`,
             `CAF/CRF Missed For Order ID ${workflowActivityID} | ${moment().utcOffset('+05:30').format('YYYY-MM-DD HH:mm:ss')} | ${global.mode}`,
             '',
             htmlTemplate,

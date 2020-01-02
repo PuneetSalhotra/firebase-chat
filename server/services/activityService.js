@@ -23,6 +23,7 @@ function ActivityService(objectCollection) {
     const activityPushService = new ActivityPushService(objectCollection);
 
     const logger = require("../logger/winstonLogger");
+    const self = this;
 
     this.addActivity = function (request, callback) {
 
@@ -254,7 +255,8 @@ function ActivityService(objectCollection) {
                                 let displayFileEvent = {
                                     name: "addTimelineTransaction",
                                     service: "activityTimelineService",
-                                    method: "addTimelineTransaction",
+                                    //method: "addTimelineTransaction",
+                                    method: "addTimelineTransactionAsync",
                                     payload: newRequest
                                 };
 
@@ -285,7 +287,12 @@ function ActivityService(objectCollection) {
                             }
 
                             //Submitted Rollback Form
-                            if (activityTypeCategroyId === 9 && Number(request.activity_form_id) === 803) {
+                            if (activityTypeCategroyId === 9 && 
+                                (
+                                    Number(request.activity_form_id) === 803 || 
+                                    Number(request.form_id) === 803
+                                )
+                                ) {
                                 handleRollBackFormSubmission(request);
                             }
 
@@ -2076,7 +2083,7 @@ function ActivityService(objectCollection) {
                     var timeDuration = util.differenceDatetimes(util.getCurrentUTCTime(), util.replaceDefaultDatetime(data[0].datetimeExistingActivityStatusUpdated));
                     if (Number(data[0].idExistingActivityStatus) > 0 && Number(request.activity_status_id) > 0) {
 
-                        activityCommonService.activityStatusChangeTxnInsertV2(request, Number(timeDuration) / 1000, {
+                        await activityCommonService.activityStatusChangeTxnInsertV2(request, Number(timeDuration) / 1000, {
                             from_status_id: Number(data[0].idExistingActivityStatus),
                             to_status_id: Number(request.activity_status_id),
                             from_status_datetime: util.replaceDefaultDatetime(data[0].datetimeExistingActivityStatusUpdated),
@@ -2085,7 +2092,12 @@ function ActivityService(objectCollection) {
                             global.logger.write('conLog', '*****ALTER STATUS : HITTING WIDGET ENGINE*******', {}, request);
                             request['source_id'] = 3;
                             //sendRequesttoWidgetEngine(request);
-                        });
+                        }).catch((err)=>{
+                            global.logger.write('conLog', '*****ERROR INSERT : activityStatusChangeTxnInsertV2' + err, {}, request);
+                        })
+
+                        // Capture workflow, customer and industry exposure for a desk asset
+                        await captureWorkExperienceForDeskAsset(request);
                     }
                 }
 
@@ -2415,6 +2427,167 @@ function ActivityService(objectCollection) {
             updatePostItProductivityScore(request).then(() => {});
         }
     };
+
+    async function captureWorkExperienceForDeskAsset(request) {
+        let summaryInlineData = {
+            workload_data: {}
+        };
+        let totalExpectedWorkHours = 0,
+            totalActualWorkHours = 0,
+            workflowActivityTypeID = 0,
+            activityOwnerAssetID = 0,
+            activityLeadAssetID = 0;
+
+        try {
+            const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, Number(request.activity_id));
+            if (Number(workflowActivityData.length) > 0) {
+                workflowActivityTypeID = Number(workflowActivityData[0].activity_type_id);
+                activityLeadAssetID = Number(workflowActivityData[0].activity_lead_asset_id);
+                activityOwnerAssetID = Number(workflowActivityData[0].activity_owner_asset_id);
+            }
+        } catch (error) {
+            logger.error("captureWorkExperienceForDeskAsset | No Workflow Data Found in DB", {type: "summary_update", error});
+        }
+
+        for (const workExperienceFlag of [1, 2, 3, 4, 5, 6, 7, 8]) {
+            const [err, workExpData] = await activityStatusChangeTransactionSelectAssetWorkExp({
+                ...request,
+                flag: workExperienceFlag
+            });
+            switch (workExperienceFlag) {
+                case 0:
+                    totalActualWorkHours = workExpData[0].actual_duration;
+                    totalExpectedWorkHours = workExpData[0].expected_duration;
+                    break;
+                
+                case 1:
+                    summaryInlineData.workload_data.workflow_category_workload_data = workExpData.map(work => {
+                        return {
+                            workflow_category_name: work.tag_type_name,
+                            workflow_category_id: work.tag_type_id,
+                            workflow_category_workload_hours: work.actual_duration
+                        };
+                    });
+                    break;
+
+                case 2:
+                    summaryInlineData.workload_data.workflow_type_workload_data = workExpData.map(work => {
+                        return {
+                            workflow_type_name: work.activity_type_tag_name,
+                            workflow_type_id: work.activity_type_tag_id,
+                            workflow_type_workload_hours: work.actual_duration
+                        };
+                    });
+                    break;
+
+                case 3:
+                    summaryInlineData.workload_data.workflow_workload_data = workExpData.map(work => {
+                        return {
+                            workflow_name: work.activity_type_name,
+                            workflow_id: work.activity_type_id,
+                            workflow_workload_hours: work.actual_duration
+                        };
+                    });
+                    break;
+
+                case 4:
+                    summaryInlineData.workload_data.industry_workload_data = workExpData.map(work => {
+                        return {
+                            industry_name: work.industry_name,
+                            industry_id: work.industry_id,
+                            industry_workload_hours: work.actual_duration
+                        };
+                    });
+                    break;
+
+                case 5:
+                    summaryInlineData.workload_data.customer_workload_data = workExpData.map(work => {
+                        return {
+                            customer_name: work.customer_asset_first_name,
+                            customer_asset_id: work.customer_asset_id,
+                            customer_workload_hours: work.actual_duration
+                        };
+                    });
+                    break;
+
+                case 6:
+                    summaryInlineData.workload_data.role_workload_data = workExpData.map(work => {
+                        return {
+                            role_name: work.lead_asset_type_name,
+                            role_id: work.lead_asset_type_id,
+                            role_workload_hours: work.actual_duration
+                        };
+                    });
+                    break;
+
+                case 7:
+                    summaryInlineData.workload_data.status_workload_data = workExpData.map(work => {
+                        return {
+                            status_name: work.from_activity_status_name,
+                            status_id: work.from_activity_status_id,
+                            status_workload_hours: work.actual_duration,
+                            status_expected_hours: work.expected_duration
+                        };
+                    });
+                    break;
+                
+                case 8:
+                    summaryInlineData.workload_data.rollback_data = {
+                        rollback_count: workExpData[0].rollback_data
+                    };
+                    break;
+
+                default:
+                    // Do nothing
+                    break;
+            }
+        }
+
+        try {
+            await activityCommonService.assetSummaryTransactionInsert({
+                ...request,
+                asset_id: activityLeadAssetID || activityOwnerAssetID,
+                monthly_summary_id: 1,
+                entity_decimal_1: totalExpectedWorkHours,
+                entity_decimal_2: totalActualWorkHours,
+                inline_data: JSON.stringify(summaryInlineData)
+            });
+        } catch (error) {
+            logger.error("captureWorkExperienceForDeskAsset | Error updating asset summary", {type: "summary_update", error});
+        }
+
+        return;
+    }
+
+    // Set Business Hours @Individual(Desk) Level
+    async function activityStatusChangeTransactionSelectAssetWorkExp(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.asset_id,
+            request.flag,
+            "1970-01-01 00:00:00", // request.datetime_start
+            util.getCurrentUTCTime() // datetime_end
+            
+        );
+        const queryString = util.getQueryString('ds_p1_activity_status_change_transaction_select_asset_work_exp', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 
     // To calculate productivity scores for Post-Its
     function updatePostItProductivityScore(request) {
@@ -3886,23 +4059,23 @@ function ActivityService(objectCollection) {
         return [error, responseData];
     }
 
-    //Update Workflow values in Activity_List for Workflow Form (For origin form putting delay is not good idea)
+    // Update Workflow values in Activity_List for Workflow Form (For origin form putting delay is not good idea)
     async function addValueToWidgetForAnalyticsWF(requestObj, workflowActivityId, workflowActivityTypeID, flag) {
         let request = Object.assign({}, requestObj);
-        
+
         let [err, inlineData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, workflowActivityTypeID);
-        if(err) {
+        if (err) {
             return err;
-        }   
-        
+        }
+
         //console.log('inlineData : ', inlineData[0]);        
         console.log('inlineData.activity_type_inline_data : ', inlineData[0].activity_type_inline_data);
-        
+
         let finalInlineData = JSON.parse(inlineData[0].activity_type_inline_data);
 
         console.log('finalInlineData.hasOwnProperty(workflow_fields) : ', finalInlineData.hasOwnProperty('workflow_fields'));
 
-        if(finalInlineData.hasOwnProperty('workflow_fields')) {
+        if (finalInlineData.hasOwnProperty('workflow_fields')) {
             let i, fieldId;
             let workflowFields = finalInlineData.workflow_fields;
             let activityInlineData = JSON.parse(request.activity_inline_data);
@@ -3910,37 +4083,57 @@ function ActivityService(objectCollection) {
             console.log('workflowFields : ', workflowFields);
             console.log('activityInlineData : ', activityInlineData);
             console.log('activityInlineData.length : ', activityInlineData.length);
-            
+
             let finalValue = 0;
             let flagExecuteFinalValue = 0;
-            for(i=0; i<activityInlineData.length; i++) {
-                for(fieldId in workflowFields){
-                    if(fieldId === activityInlineData[i].field_id) {
-                        await activityCommonService.analyticsUpdateWidgetValue(request, 
-                                                                               workflowActivityId, 
-                                                                               workflowFields[fieldId].sequence_id, 
-                                                                               activityInlineData[i].field_value);
-                        
-                        
+            for (i = 0; i < activityInlineData.length; i++) {
+                for (fieldId in workflowFields) {
+                    if (fieldId === activityInlineData[i].field_id) {
+                        const fieldValue = await getFieldValueByDataTypeID(
+                            Number(activityInlineData[i].field_data_type_id),
+                            activityInlineData[i].field_value
+                        );
+                        await activityCommonService.analyticsUpdateWidgetValue(request,
+                            workflowActivityId,
+                            workflowFields[fieldId].sequence_id,
+                            fieldValue);
+
+
                         flagExecuteFinalValue = 1;
-                        finalValue += Number(activityInlineData[i].field_value);
+                        finalValue += Number(fieldValue);
                         break;
                     }
-                }   
+                }
             }
 
-            if(flag === 1 && flagExecuteFinalValue === 1) {
-                await activityCommonService.analyticsUpdateWidgetValue(request, 
-                                                                       workflowActivityId, 
-                                                                       0, 
-                                                                       finalValue);
+            if (flag === 1 && flagExecuteFinalValue === 1) {
+                await activityCommonService.analyticsUpdateWidgetValue(request,
+                    workflowActivityId,
+                    0,
+                    finalValue);
             }
-            
+
         }
 
         return "success";
     }
 
+    function getFieldValueByDataTypeID(fieldDataTypeID, fieldValue) {
+        switch (fieldDataTypeID) {
+            case 62: // Credit/Debit Data Type
+                fieldValue = (typeof fieldValue === 'string') ? JSON.parse(fieldValue) : fieldValue;
+                const transactionTypeID = Number(fieldValue.transaction_data.transaction_type_id),
+                    // ledgerActivityID = Number(fieldValue.transaction_data.activity_id),
+                    transactionAmount = Number(fieldValue.transaction_data.transaction_amount);
+                if (transactionTypeID === 1) {
+                    return Number(transactionAmount);
+                } else if (transactionTypeID === 2) {
+                    return -Number(transactionAmount);
+                }
+            default:
+                return Number(fieldValue);
+        }
+    }
     
     //Update Workflow values in Activity_List for all non-origin Forms
     async function addValueToWidgetForAnalytics(requestObj) {
@@ -3967,16 +4160,16 @@ function ActivityService(objectCollection) {
         let [err, workflowData] = await activityCommonService.fetchReferredFormActivityIdAsync(request, request.activity_id, request.form_transaction_id, request.form_id);        
         console.log('workflowData : ', workflowData);
 
+        if(err || workflowData.length === 0) {
+            return err;
+        }
+
         const workflowActivityId = Number(workflowData[0].activity_id);
         const workflowActivityTypeID = Number(workflowData[0].activity_type_id);
         
         console.log("workflowActivityId: ", workflowActivityId);
         console.log("workflowActivityTypeID: ", workflowActivityTypeID);
         
-        if(err) {
-            return err;
-        }
-
         let [err1, inlineData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, workflowActivityTypeID);
         if(err1) {
             return err;
@@ -4092,39 +4285,58 @@ function ActivityService(objectCollection) {
     }
 
     async function handleRollBackFormSubmission(request) {
-        let workflowActivityId = 0;
-        await sleep(2000); 
-        const [workflowError, workflowData] = await activityCommonService.fetchReferredFormActivityIdAsync(request, request.activity_id, request.form_transaction_id, request.form_id);
-        if (workflowError !== false || workflowData.length === 0) {
-            console.log('workflowError : ', workflowError);
-            console.log('workflowData : ', workflowData);
-            //return [workflowError, workflowData];
-        } else {
-            workflowActivityId = Number(workflowData[0].activity_id);
+        console.log('Inside handleRollBackFormSubmission');
+        //if(request.workflow_activity_id)
+        //let workflowActivityId = 0;
+        //await sleep(2000); 
+        //const [workflowError, workflowData] = await activityCommonService.fetchReferredFormActivityIdAsync(request, request.activity_id, request.form_transaction_id, request.form_id);
+        //console.log('HERE IAM');
+        //if (workflowError !== false || workflowData.length === 0) {
+        //    console.log('workflowError : ', workflowError);
+        //    console.log('workflowData : ', workflowData);
+        //    //return [workflowError, workflowData];
+        //} else {
+            //workflowActivityId = Number(workflowData[0].activity_id);
+            workflowActivityId = Number(request.workflow_activity_id);
             //Perform status alter
             let newReq = Object.assign({}, request);
             newReq.activity_id = workflowActivityId;
-            //newReq.activity_status_id
-            //newReq.activity_status_type_id
             let formInlineData = JSON.parse(request.activity_inline_data);
-            //console.log('formInlineData : ', formInlineData);
+            console.log('formInlineData VNK: ', formInlineData);
             let fieldData;
+            let fieldValue;
             for(let i=0; i<formInlineData.length;i++){                                    
                 fieldData = formInlineData[i];
                 if(Number(fieldData.field_data_type_id) === 63) {   
-                    //newReq.activity_status_id = fieldData.field_value;
-                    //newReq.activity_status_type_id                          
-                    this.alterActivityStatus(newReq, ()=>{});
+                    console.log('typeof fieldData : ', typeof fieldData);
+                    (typeof fieldData.field_value === 'string') ?
+                        fieldValue = JSON.parse(fieldData.field_value):
+                        fieldValue = fieldData.field_value;
+                    console.log('fieldValue : ', fieldValue);
+                    newReq.activity_status_id = fieldValue.activity_status_id;
+                    newReq.activity_status_type_id = fieldValue.activity_status_type_id;
+                    newReq.activity_status_name = fieldValue.activity_status_name;
+                    newReq.activity_status_type_name = fieldValue.activity_status_type_name;
+                    //console.log('fieldValue.activity_status_id: ', fieldValue.activity_status_id);
+                    //console.log('fieldValue.activity_status_type_id ', fieldValue.activity_status_type_id);  
+                    
+                    self.alterActivityStatus(newReq, (err, data)=>{});
                     break;
                 }
             }
 
+        await sleep(3000);
+
         //Need to get the asset(Role) -- Mapped to that status
         let [err, roleData] = await activityListingService.getAssetTypeIDForAStatusID(request, newReq.activity_status_id);
+        console.log('ROLEDATA : ', roleData[0]);
         newReq.asset_type_id = (!err && roleData[0].length > 0) ? roleData[0].asset_type_id : 0;
         
         let [err1, assetData] = await activityListingService.getAssetForAssetTypeID(newReq);
         let assetID = (!err1 && assetData[0].length > 0) ? assetData[0].asset_id : 0;
+
+        console.log('ASSET TYPE ID(ROLE) for the Status:', newReq.activity_status_name, ' is : ', newReq.asset_type_id);
+        console.log('ASSET ID for the ROLE:', newReq.asset_type_id, ' is : ', assetID);
 
         //Increment the Roll Back count
         newReq.asset_id = assetID;
@@ -4151,7 +4363,9 @@ function ActivityService(objectCollection) {
                 entity_double_1: weeklyPercentage, //Percentage
                 entity_decimal_1: weeklyPercentage //Percentage
             };
+       if(assetID > 0) {
         await activityCommonService.weeklySummaryInsert(newReq, weeklyObj);
+       }
 
         //Get Monthly roll back count
         newReq.start_datetime =  util.getStartDateTimeOfMonth();
@@ -4173,10 +4387,84 @@ function ActivityService(objectCollection) {
                 entity_double_1: monthlyPercentage, //Percentage
                 entity_decimal_1: monthlyPercentage //Percentage
             };
-        await activityCommonService.monthlySummaryInsert(newReq, monthlyObj);
+        if(assetID > 0) {
+            await activityCommonService.monthlySummaryInsert(newReq, monthlyObj);
+        }
         
         return "success";
+    }
+
+
+    this.handleRollBackFormSubmissionV1  = async function (request) {
+        let responseData = [],
+            error = false;
+
+        //Perform status alter
+        request.activity_id = request.workflow_activity_id;
+        request.activity_status_id = request.new_activity_status_id;
+        request.activity_status_type_id = request.new_activity_status_type_id;
+        request.message_unique_id = util.getMessageUniqueId(request.asset_id);
+        request.track_gps_datetime = util.getCurrentUTCTime();
+        this.alterActivityStatus(request, ()=>{});
+        await sleep(2000);
+
+        //Need to get the asset(Role) -- Mapped to that status
+        let [err, roleData] = await activityListingService.getAssetTypeIDForAStatusID(request, request.new_activity_status_id);
+        request.asset_type_id = (!err && roleData[0].length > 0) ? roleData[0].asset_type_id : 0;
+        
+        let [err1, assetData] = await activityListingService.getAssetForAssetTypeID(request);
+        let assetID = (!err1 && assetData[0].length > 0) ? assetData[0].asset_id : 0;
+
+        //Increment the Roll Back count
+        request.asset_id = assetID;
+        await activityListingService.setAssetRollBackCnt(request);
+
+        await sleep(1000);
+        //Get Weekly roll back count
+        request.start_datetime = util.getStartDateTimeOfWeek();
+        request.end_datetime = util.getEndDateTimeOfWeek();
+        let [err2, weeklyCount] = await activityListingService.getAssetRollBackCnt(request);
+        let weeklyRollBackCnt = 0;
+        let weeklyTotalCnt = 0;
+        let weeklyPercentage = 0;
+        if(!err2 && weeklyCount.length > 0) {
+            weeklyRollBackCnt = weeklyCount[0].rollback_count;
+            weeklyTotalCnt = weeklyCount[0].total_count;
+            weeklyPercentage = (weeklyRollBackCnt/ weeklyTotalCnt) * 100;
+        }        
+        let weeklyObj = {
+                summary_id: 27,
+                asset_id: assetID,
+                entity_decimal_2: weeklyRollBackCnt,//numerator
+                entity_bigint_1: weeklyTotalCnt, //denominator
+                entity_double_1: weeklyPercentage, //Percentage
+                entity_decimal_1: weeklyPercentage //Percentage
+            };
+        if(assetID > 0) await activityCommonService.weeklySummaryInsert(request, weeklyObj);        
+
+        //Get Monthly roll back count
+        request.start_datetime =  util.getStartDateTimeOfMonth();
+        request.end_datetime = util.getEndDateTimeOfMonth();
+        let [err3, monthlyCount] = await activityListingService.getAssetRollBackCnt(request);
+        let monthlyRollBackCnt = 0;
+        let monthlyTotalCnt = 0;
+        let monthlyPercentage = 0;
+        if(!err3 && monthlyCount.length > 0) {
+            monthlyRollBackCnt = monthlyCount[0].rollback_count;
+            monthlyTotalCnt = monthlyCount[0].total_count;
+            monthlyPercentage = (monthlyRollBackCnt/ monthlyTotalCnt) * 100;
         }
+        let monthlyObj = {
+                summary_id: 40,
+                asset_id: assetID,
+                entity_decimal_2: monthlyRollBackCnt,//numerator
+                entity_bigint_1: monthlyTotalCnt, //denominator
+                entity_double_1: monthlyPercentage, //Percentage
+                entity_decimal_1: monthlyPercentage //Percentage
+            };
+        if(assetID > 0) await activityCommonService.monthlySummaryInsert(request, monthlyObj);
+        
+        return [error, responseData];
     }
 
 }
