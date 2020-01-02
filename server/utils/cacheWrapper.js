@@ -96,6 +96,26 @@ function CacheWrapper(client) {
         });
     };
 
+    this.getAssetMapPromise = function (assetID) {
+        return new Promise((resolve, reject) => {
+            client.hget('asset_map', assetID, function (err, reply) {
+                if (err) {
+                    logger.error(`HGET asset_map ${JSON.stringify(assetID)}`, { type: 'redis', cache_response: reply, error: err });
+                    reject(0);
+                } else {
+                    logger.verbose(`HGET asset_map ${JSON.stringify(assetID)}`, { type: 'redis', cache_response: reply, error: err });
+                    var collection = {};
+                    if (typeof reply === 'string') {
+                        collection = JSON.parse(reply);
+                        resolve(collection);
+                    } else {
+                        resolve(collection);
+                    }
+                }
+            });
+        });
+    }
+
 
     this.getActivityId = function (callback) {
 
