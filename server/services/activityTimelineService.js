@@ -3578,7 +3578,8 @@ async function addFormEntriesAsync(request) {
                 // });
             }
 
-            let [err, data] = await timelineStandardCallsAsync(request);
+            let err;
+            [err, data] = await timelineStandardCallsAsync(request);
             (err) ?
                 global.logger.write('debug', 'Error in timelineStandardCalls' + err, {}, request):
                 error=false;
