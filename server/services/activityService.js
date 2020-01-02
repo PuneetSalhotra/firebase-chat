@@ -4051,7 +4051,7 @@ function ActivityService(objectCollection) {
         return [error, responseData];
     }
 
-    //Update Workflow values in Activity_List for Workflow Form (For origin form putting delay is not good idea)
+    // Update Workflow values in Activity_List for Workflow Form (For origin form putting delay is not good idea)
     async function addValueToWidgetForAnalyticsWF(requestObj, workflowActivityId, workflowActivityTypeID, flag) {
         let request = Object.assign({}, requestObj);
         
@@ -4081,14 +4081,18 @@ function ActivityService(objectCollection) {
             for(i=0; i<activityInlineData.length; i++) {
                 for(fieldId in workflowFields){
                     if(fieldId === activityInlineData[i].field_id) {
+                        const fieldValue = await getFieldValueByDataTypeID(
+                            Number(activityInlineData[i].field_data_type_id),
+                            activityInlineData[i].field_value
+                        );
                         await activityCommonService.analyticsUpdateWidgetValue(request, 
                                                                                workflowActivityId, 
                                                                                workflowFields[fieldId].sequence_id, 
-                                                                               activityInlineData[i].field_value);
+                                                                               fieldValue);
                         
                         
                         flagExecuteFinalValue = 1;
-                        finalValue += Number(activityInlineData[i].field_value);
+                        finalValue += Number(fieldValue);
                         break;
                     }
                 }   
@@ -4106,6 +4110,22 @@ function ActivityService(objectCollection) {
         return "success";
     }
 
+    function getFieldValueByDataTypeID(fieldDataTypeID, fieldValue) {
+        switch (fieldDataTypeID) {
+            case 62: // Credit/Debit Data Type
+                fieldValue = (typeof fieldValue === 'string') ? JSON.parse(fieldValue) : fieldValue;
+                const transactionTypeID = Number(fieldValue.transaction_data.transaction_type_id),
+                    // ledgerActivityID = Number(fieldValue.transaction_data.activity_id),
+                    transactionAmount = Number(fieldValue.transaction_data.transaction_amount);
+                if (transactionTypeID === 1) {
+                    return Number(transactionAmount);
+                } else if (transactionTypeID === 2) {
+                    return -Number(transactionAmount);
+                }
+            default:
+                return Number(fieldValue);
+        }
+    }
     
     //Update Workflow values in Activity_List for all non-origin Forms
     async function addValueToWidgetForAnalytics(requestObj) {
