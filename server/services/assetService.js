@@ -314,7 +314,7 @@ function AssetService(objectCollection) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (data.length > 0) {
-                    //console.log(data);
+                    console.log(data);
                     formatAssetData(data, function (error, data) {
                         if (error === false)
                             callback(false, {
@@ -715,7 +715,8 @@ function AssetService(objectCollection) {
 
             'asset_flag_admin': util.replaceDefaultNumber(rowArray[0]['asset_flag_admin']), // Legacy
             'asset_flag_account_admin': util.replaceDefaultNumber(rowArray[0]['asset_flag_admin']),
-            'asset_flag_organization_admin': util.replaceDefaultNumber(rowArray[0]['asset_flag_organization_admin'])
+            'asset_flag_organization_admin': util.replaceDefaultNumber(rowArray[0]['asset_flag_organization_admin']),
+            'asset_inline_data': util.replaceDefaultString(rowArray[0]['asset_inline_data']) 
 
         };
 
