@@ -60,6 +60,11 @@ const mailgun = require('mailgun-js')({
     domain: 'mg.grenerobotics.com'
 });
 
+// AWS SNS
+const AwsSns = require('./snsWrapper');
+const sns = new AwsSns();
+
+
 function Util(objectCollection) {
     let cacheWrapper = {};
     if (
@@ -67,6 +72,7 @@ function Util(objectCollection) {
         objectCollection.hasOwnProperty("cacheWrapper")
     ) {
         cacheWrapper = objectCollection.cacheWrapper;
+        activityCommonService = objectCollection.activityCommonService;
     }
 
     this.getSMSString = function (verificationCode) {
@@ -1733,6 +1739,40 @@ function Util(objectCollection) {
             this.getCurrentYear() + '/' + this.getCurrentMonth() + '/103' + '/' + this.getMessageUniqueId(request.asset_id);
         
         return prefixPath;
+    }
+
+    this.sendCustomPushNotification = async function (request, activityData) {
+        let error = false;
+        // [CHECK] target_asset_id
+        if (
+            !request.hasOwnProperty("target_asset_id") ||
+            Number(request.target_asset_id) === 0
+        ) {
+            return [true, {
+                message: "Incorrect target asset_id specified."
+            }]
+        }
+        
+        let activityID = Number(request.activity_id),
+            activityTypeID = Number(activityData[0].activity_type_id),
+            activityTypeCategoryID = Number(activityData[0].activity_type_category_id),
+            activityTitle = activityData[0].activity_title || '';
+
+        const assetMapData = await cacheWrapper.getAssetMapPromise(request.target_asset_id);
+        const assetPushARN = assetMapData.asset_push_arn;
+
+        sns.publish({
+            description: request.message,
+            title: activityTitle,
+            subtitle: request.message,
+            body: `TONY`,
+            activity_id: activityID,
+            activity_type_category_id: activityTypeCategoryID
+        }, 1, assetPushARN);
+
+        return [error, {
+            message: `Push sent to ${request.target_asset_id}`
+        }];
     }
 }
 
