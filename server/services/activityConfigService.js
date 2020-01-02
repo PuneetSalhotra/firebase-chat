@@ -2,9 +2,11 @@
  * author: Sri Sai Venkatesh
  */
 const AdminOpsService = require('../Administrator/services/adminOpsService');
+const logger = require('../logger/winstonLogger');
 
 function ActivityConfigService(db, util, objCollection) {
     const adminOpsService = new AdminOpsService(objCollection);
+    const self = this;
 
     this.getWorkforceActivityTypesList = function (request, callback) {
         var paramsArr = new Array(
@@ -168,36 +170,36 @@ function ActivityConfigService(db, util, objCollection) {
         }
         callback(false, responseData);
     };
-    
+
     this.workForceActivityTypeInsert = function (request) {
-        return new Promise((resolve, reject)=>{
+        return new Promise((resolve, reject) => {
             var paramsArr = new Array(
-                    request.activity_type_name,
-                    request.activity_type_description,
-                    request.activity_type_category_id,
-                    request.access_level_id,
-                    request.workforce_id,
-                    request.account_id,
-                    request.organization_id,
-                    request.asset_id,
-                    request.datetime_log
-                );
+                request.activity_type_name,
+                request.activity_type_description,
+                request.activity_type_category_id,
+                request.access_level_id,
+                request.workforce_id,
+                request.account_id,
+                request.organization_id,
+                request.asset_id,
+                request.datetime_log
+            );
             var queryString = util.getQueryString('ds_p1_1_workforce_activity_type_mapping_insert', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
-                	if(err === false){
-                		request['activity_type_id'] = data[0].activity_type_id;
-                		request['update_type_id'] = 0;
-                		workForceActivityTypeHistoryInsert(request).then(()=>{});
-                		resolve(data);
-                	}else{
-                		reject(err);
-                	}
+                    if (err === false) {
+                        request['activity_type_id'] = data[0].activity_type_id;
+                        request['update_type_id'] = 0;
+                        workForceActivityTypeHistoryInsert(request).then(() => { });
+                        resolve(data);
+                    } else {
+                        reject(err);
+                    }
                 });
             }
         });
     };
-    
+
     this.workForceActivityTypeUpdate = function (request) {
         return new Promise((resolve, reject) => {
             var paramsArr = new Array(
@@ -231,40 +233,40 @@ function ActivityConfigService(db, util, objCollection) {
             }
         });
     };
-    
+
     this.workForceActivityTypeDelete = function (request) {
-        return new Promise((resolve, reject)=>{
+        return new Promise((resolve, reject) => {
             var paramsArr = new Array(
-                    request.organization_id,
-                    request.account_id,
-                    request.workforce_id,
-                    request.activity_type_id,
-                    request.asset_id,
-                    request.datetime_log
-                );
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.activity_type_id,
+                request.asset_id,
+                request.datetime_log
+            );
             var queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_delete', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
-                	if(err === false){                		
-                		request['update_type_id'] = 902;
-                		workForceActivityTypeHistoryInsert(request).then(()=>{});
-                		resolve(data);
-                	}else{
-                		reject(err);
-                	}
+                    if (err === false) {
+                        request['update_type_id'] = 902;
+                        workForceActivityTypeHistoryInsert(request).then(() => { });
+                        resolve(data);
+                    } else {
+                        reject(err);
+                    }
                 });
             }
         });
     };
-    
+
     function workForceActivityTypeHistoryInsert(request) {
-        return new Promise((resolve, reject)=>{
+        return new Promise((resolve, reject) => {
             var paramsArr = new Array(
                 request.activity_type_id,
                 request.organization_id,
                 request.update_type_id,
                 request.datetime_log
-                );
+            );
             var queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_history_insert', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
@@ -273,129 +275,187 @@ function ActivityConfigService(db, util, objCollection) {
             }
         });
     }
-    
+
+    this.listProcessesByAccessLevel = async function (request) {
+        let error = false;
+
+        let tagMappingDataMap = new Map();
+        const [errorOne, tagMappingData] = await activityTypeTagMappingSelect(request);
+        for (const mapping of tagMappingData) {
+            tagMappingDataMap.set(Number(mapping.activity_type_id), mapping);
+        }
+
+        let activityTypeData = await self.getAccessLevelActivityTypeList(request);
+        try {
+            activityTypeData = activityTypeData.map(activityType => {
+                if (tagMappingDataMap.has(Number(activityType.activity_type_id))) {
+                    activityTypeTagMappingData = tagMappingDataMap.get(Number(activityType.activity_type_id))
+                    return {
+                        ...activityType,
+                        tag_id: activityTypeTagMappingData.tag_id,
+                        tag_name: activityTypeTagMappingData.tag_name,
+                        tag_type_id: activityTypeTagMappingData.tag_type_id,
+                        tag_type_name: activityTypeTagMappingData.tag_type_name
+                    }
+                }
+                return activityType
+            });
+        } catch (error) {
+            logger.error("Error appending tag mapping data to process list", { type: "ActivityConfigService", request_body: request, error });
+        }
+        return [error, activityTypeData];
+    }
+
     this.getAccessLevelActivityTypeList = function (request) {
-		return new Promise((resolve, reject)=>{
-	        var paramsArr = new Array(
-	        		request.access_level_id,
-	        		request.organization_id,
-	        		request.account_id,
-	        		request.workforce_id,
-	        		request.activity_type_category_id,
-	        		request.page_start,
-	        		util.replaceQueryLimit(request.page_limit)
-	                );
-	
-	        var queryString = util.getQueryString('ds_p1_1_workforce_activity_type_mapping_select', paramsArr);
-	        if (queryString != '') {
-	            db.executeQuery(1, queryString, request, function (err, data) {
-	            	//console.log("err "+err);
-	               if(err === false) {
-	               		console.log('data: '+data.length);
-	               		resolve(data);        				        			      			  
-	                } else {
-	                   reject(err);
-	               }
-	            });
-	   		}
-		});
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                request.access_level_id,
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.activity_type_category_id,
+                request.page_start,
+                util.replaceQueryLimit(request.page_limit)
+            );
+
+            var queryString = util.getQueryString('ds_p1_1_workforce_activity_type_mapping_select', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    //console.log("err "+err);
+                    if (err === false) {
+                        console.log('data: ' + data.length);
+                        resolve(data);
+                    } else {
+                        reject(err);
+                    }
+                });
+            }
+        });
     };
-    
+
+    async function activityTypeTagMappingSelect(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.tag_type_id || 0,
+            request.tag_id || 0,
+            request.activity_type_id || 0,
+            request.flag || 1,
+            request.start_from || 0,
+            request.limit_value || 50,
+        );
+        const queryString = util.getQueryString('ds_p1_activity_type_tag_mapping_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
     this.getEntityActivityStatusList = function (request) {
         // IN p_organization_id bigint(20), IN p_account_id bigint(20), IN p_workforce_id bigint(20), 
         // IN p_activity_type_category_id SMALLINT(6), IN p_activity_type_id BIGINT(20), IN p_flag TINYINT(4), 
         // IN p_log_datetime DATETIME, IN p_start_from SMALLINT(6), IN p_limit_value TINYINT(4)
-		return new Promise((resolve, reject)=>{
-        var paramsArr = new Array(
-        		request.organization_id,
-        		request.account_id,
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
                 request.workforce_id,
                 request.activity_type_category_id,
                 request.activity_type_id,
                 request.flag || 1,
-        		request.datetime_log,
-        		request.page_start,
-        		util.replaceQueryLimit(request.page_limit)
-                );
+                request.datetime_log,
+                request.page_start,
+                util.replaceQueryLimit(request.page_limit)
+            );
 
-        var queryString = util.getQueryString('ds_p1_1_workforce_activity_status_mapping_select', paramsArr);
-        if (queryString != '') {
-            db.executeQuery(1, queryString, request, function (err, data) {
-            	//console.log("err "+err);
-               if(err === false) {
-               		console.log('data: '+data.length);
-               		resolve(data);        				        			      			  
-                } else {
-                   reject(err);
-               }
-            });
-   		}
-		});
+            var queryString = util.getQueryString('ds_p1_1_workforce_activity_status_mapping_select', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    //console.log("err "+err);
+                    if (err === false) {
+                        console.log('data: ' + data.length);
+                        resolve(data);
+                    } else {
+                        reject(err);
+                    }
+                });
+            }
+        });
     };
-    
-    this.getCommunicationList = function (request) {    	
-		return new Promise((resolve, reject)=>{
-	        var paramsArr = new Array(
-	        		request.flag,
-	        		request.communication_id,
-	        		request.communication_type_id,
-	        		request.communication_type_category_id,
-	        		request.activity_type_id,
-	        		request.workforce_id,
-	        		request.account_id,
-	        		request.organization_id,
-	        		request.page_start,
-	        		util.replaceQueryLimit(request.page_limit)
-	                );
-	
-	        var queryString = util.getQueryString('ds_p1_communication_list_select', paramsArr);
-	        if (queryString != '') {
-	            db.executeQuery(1, queryString, request, function (err, data) {
-	            	//console.log("err "+err);
-	               if(err === false) {
-	               		console.log('data: '+data.length);
-	               		resolve(data);        				        			      			  
-	                } else {
-	                   reject(err);
-	               }
-	            });
-	   		}
-		});
+
+    this.getCommunicationList = function (request) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                request.flag,
+                request.communication_id,
+                request.communication_type_id,
+                request.communication_type_category_id,
+                request.activity_type_id,
+                request.workforce_id,
+                request.account_id,
+                request.organization_id,
+                request.page_start,
+                util.replaceQueryLimit(request.page_limit)
+            );
+
+            var queryString = util.getQueryString('ds_p1_communication_list_select', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    //console.log("err "+err);
+                    if (err === false) {
+                        console.log('data: ' + data.length);
+                        resolve(data);
+                    } else {
+                        reject(err);
+                    }
+                });
+            }
+        });
     };
 
     this.workForceActivityStatusDelete = function (request) {
-        return new Promise((resolve, reject)=>{
+        return new Promise((resolve, reject) => {
             var paramsArr = new Array(
-                    request.organization_id,
-                    request.account_id,
-                    request.workforce_id,
-                    request.activity_status_id,
-                    request.asset_id,
-                    request.datetime_log
-                );
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.activity_status_id,
+                request.asset_id,
+                request.datetime_log
+            );
             var queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_delete', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
-                	if(err === false){                		
-                		request['update_type_id'] = 1502;
-                		workForceActivityStatusHistoryInsert(request).then(()=>{});
-                		resolve(data);
-                	}else{
-                		reject(err);
-                	}
+                    if (err === false) {
+                        request['update_type_id'] = 1502;
+                        workForceActivityStatusHistoryInsert(request).then(() => { });
+                        resolve(data);
+                    } else {
+                        reject(err);
+                    }
                 });
             }
         });
     }
-    
+
     function workForceActivityStatusHistoryInsert(request) {
-        return new Promise((resolve, reject)=>{
+        return new Promise((resolve, reject) => {
             var paramsArr = new Array(
                 request.activity_status_id,
                 request.organization_id,
                 request.update_type_id,
                 request.datetime_log
-                );
+            );
             var queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_history_insert', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
@@ -404,7 +464,7 @@ function ActivityConfigService(db, util, objCollection) {
             }
         });
     }
-    
+
     this.workForceActivityStatusInsert = function (request) {
         return new Promise((resolve, reject) => {
             var paramsArr = new Array(
@@ -427,7 +487,7 @@ function ActivityConfigService(db, util, objCollection) {
                         request['activity_status_id'] = data[0].activity_status_id;
                         request['update_type_id'] = 0;
                         workForceActivityStatusHistoryInsert(request).then(() => { });
-                        
+
                         // Update the status tag mapping
                         // >0 => Map
                         // 0 => Unmap
@@ -478,7 +538,7 @@ function ActivityConfigService(db, util, objCollection) {
         }
         return [error, responseData];
     }
-    
+
     this.workForceActivityStatusUpdate = function (request) {
         return new Promise((resolve, reject) => {
             var paramsArr = new Array(
