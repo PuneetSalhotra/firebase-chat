@@ -270,7 +270,7 @@ function AdminListingController(objCollection) {
     // List all roles, asset types at various access levels
     app.post('/' + global.config.version + '/admin/workforce/asset_type/role/list', async function (req, res) {
         // flag: 
-        // 0 => Select all based on the parameters given
+        // 0 => all asset types mapped at organization level or mapped at account level or mapped at workforce level
         // 1 => Organization level 
         // 2 => Account level
         // 3 => Workforce level
