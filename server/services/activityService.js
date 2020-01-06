@@ -255,8 +255,8 @@ function ActivityService(objectCollection) {
                                 let displayFileEvent = {
                                     name: "addTimelineTransaction",
                                     service: "activityTimelineService",
-                                    //method: "addTimelineTransaction",
-                                    method: "addTimelineTransactionAsync",
+                                    method: "addTimelineTransaction",
+                                    //method: "addTimelineTransactionAsync",
                                     payload: newRequest
                                 };
 
