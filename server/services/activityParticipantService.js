@@ -134,6 +134,7 @@ function ActivityParticipantService(objectCollection) {
                     addParticipant(request, participantData, newRecordStatus, function (err, data) {
                         if (err === false) {
                             //console.log("participant successfully added");
+                            activityCommonService.activityLeadUpdate(request, false);
                             global.logger.write('conLog', 'participant successfully added', {}, {})
                             //check participant is active in last 48 hrs or not
                             if (activityTypeCategroyId === 28 || activityTypeCategroyId === 8) {
