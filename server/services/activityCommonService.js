@@ -4744,6 +4744,190 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
     return [error, responseData];
 }
 
+    //Get the asset_type_id(ROLE) for a given status_id - RM
+    this.getAssetTypeIDForAStatusID = async (request, activityStatusId) => {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            activityStatusId
+        );
+        let queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_select_id', paramsArr);
+        if (queryString != '') {
+            //return await db.executeQueryPromise(1, queryString, request);
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
+    
+    //Get the asset for a given asset_type_id(ROLE) - RM
+    this.getAssetForAssetTypeID = async (request) =>{
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.activity_id,
+            request.asset_type_id,
+            request.organization_id
+        );
+        const queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_role_participant', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    //Get the workload of lead asset
+    //IF p_flag = -1 THEN RETURNS efficiency (Summation of expected durations - Summation of elapsed durations)
+    //IF p_flag = 0 THEN RETURNS COUNT of OPEN workflows which are lead by the owner in the given duration
+    //IF p_flag = 1 THEN RETURNS LIST of OPEN workflows which are lead by the owner in the given duration
+    this.getLeadAssetWorkload = async (request) =>{
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,            
+            request.asset_id,
+            request.flag || 0,
+            request.start_datetime, //Monday
+            request.end_datetime, //Sunday
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+        const queryString = util.getQueryString('ds_p1_activity_list_select_asset_lead_tasks', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.activityListLeadUpdate = async function (request, lead_asset_id) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.activity_id,
+            lead_asset_id,
+            request.organization_id,
+            null,
+            request.flag || 0,
+            request.asset_id,
+            request.datetime_log
+        );
+
+        var queryString = util.getQueryString('ds_v1_1_activity_list_update_lead', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        var queryString = util.getQueryString('ds_v1_1_activity_asset_mapping_update_lead', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }        
+        return [error, responseData];
+    };
+
+
+    this.activityLeadUpdate = async function (request, isAlterStatus) {
+        //get new Lead
+        self.getActivityDetailsPromise(request, request.activity_id).then(async (data)=>{
+            console.log("getActivityDetailsPromise :: "+data);
+            request.flag = -1;
+            request.start_datetime = '1970-01-01 00:00:00';
+            request.end_datetime = '2049-12-31 18:30:00';
+            request.monthly_summary_id = 1;
+
+            let leadRequest = Object.assign({}, request);
+            leadRequest.asset_id = data[0].activity_lead_asset_id;
+
+            let [err3, exisitngAssetData] = await self.getLeadAssetWorkload(leadRequest);
+            console.log("exisitngAssetData :: "+exisitngAssetData);
+            let existingAssetEfficiency = Number(exisitngAssetData[0].expected_duration)-Number(exisitngAssetData[0].actual_duration);
+            leadRequest.entity_decimal_1 = exisitngAssetData[0].expected_duration;
+            leadRequest.entity_decimal_2 = exisitngAssetData[0].actual_duration;
+            leadRequest.entity_decimal_3 = Number(existingAssetEfficiency);
+
+            console.log('After activityListLeadUpdate : '+leadRequest);
+            leadRequest.asset_id = data[0].activity_lead_asset_id;
+            await self.assetSummaryTransactionInsert(leadRequest);
+            console.log('After assetSummaryTransactionInsert : ');
+            
+            let newReq = Object.assign({}, request);
+            //Need to get the asset(Role) -- Mapped to that status
+            let [err, roleData] = await self.getAssetTypeIDForAStatusID(request, newReq.activity_status_id);
+            console.log('getAssetTypeIDForAStatusID : 1 ', roleData[0].asset_type_id);
+            newReq.asset_type_id = (!err && roleData.length > 0) ? roleData[0].asset_type_id : 0;
+            console.log('getAssetTypeIDForAStatusID : 2 ', roleData[0].asset_type_id);
+
+            let [err1, assetData] = await self.getAssetForAssetTypeID(newReq);
+            console.log('getAssetForAssetTypeID : 1', assetData[0].asset_id);
+            let assetID = (!err1 && assetData.length > 0) ? assetData[0].asset_id : 0;
+            console.log('getAssetForAssetTypeID : ASSET ID', assetID);
+
+            await self.activityListLeadUpdate(request, assetID);
+
+            leadRequest.asset_id = assetID;
+
+            let [err2, newAssetData] = await self.getLeadAssetWorkload(leadRequest);
+            console.log("newAssetData[0].query_status "+newAssetData[0].query_status)
+            let newAssetEfficiency = Number(newAssetData[0].expected_duration)-Number(newAssetData[0].actual_duration);
+            leadRequest.entity_decimal_1 = exisitngAssetData[0].expected_duration;
+            leadRequest.entity_decimal_2 = exisitngAssetData[0].actual_duration;
+            leadRequest.entity_decimal_3 = newAssetEfficiency;
+
+            console.log("Expected Duration :: "+newAssetData[0].expected_duration);
+            console.log("Actual Duration :: "+newAssetData[0].actual_duration);
+            console.log("newAssetEfficiency :: "+newAssetEfficiency);
+
+            leadRequest.asset_id = assetID;
+            await self.assetSummaryTransactionInsert(leadRequest);
+
+            console.log("existingAssetEfficiency "+existingAssetEfficiency);
+            console.log("newAssetEfficiency "+newAssetEfficiency);  
+        });
+    }
+
 }
 
 

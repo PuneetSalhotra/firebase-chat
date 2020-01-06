@@ -255,8 +255,8 @@ function ActivityService(objectCollection) {
                                 let displayFileEvent = {
                                     name: "addTimelineTransaction",
                                     service: "activityTimelineService",
-                                    //method: "addTimelineTransaction",
-                                    method: "addTimelineTransactionAsync",
+                                    method: "addTimelineTransaction",
+                                    //method: "addTimelineTransactionAsync",
                                     payload: newRequest
                                 };
 
@@ -1970,7 +1970,9 @@ function ActivityService(objectCollection) {
 
                 console.log("*****STATUS CHANGE | activityTypeCategroyId: ", activityTypeCategroyId);
                 updateWidgetAggrStatus(request);
-
+                console.log("*****WORKLOAD UPDATE | data: ", JSON.stringify(data));
+                activityCommonService.activityLeadUpdate(request, true);
+                
                 if(activityTypeCategoryId === 48){
 
                     let order_caf_approval_statuses, order_logged_statuses;
