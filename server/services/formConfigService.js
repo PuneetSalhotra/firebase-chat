@@ -2310,15 +2310,27 @@ function FormConfigService(objCollection) {
 
     this.workflowEngine = async function (request) {
 
+        console.log(' ');
+        console.log('# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #');
+        console.log(' ');
+        console.log('# # Add Workflow - File: formConfigService, Func: workflowEngine # # ');
+        console.log(' ');
+        console.log('# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #');
+        console.log(' ');
+
         let workflowActivityId = request.workflow_activity_id || 0;
 
         request.form_id = Number(request.activity_form_id);
 
         // Fetch form's config data
         const [formConfigError, formConfigData] = await workforceFormMappingSelect(request);
+        console.log('formConfigError : ', formConfigError);
+
         if (formConfigError !== false) {
             return [formConfigError, formConfigData];
         }
+
+        console.log('formConfigData.length : ', formConfigData.length);
 
         if (Number(formConfigData.length) > 0) {
             // Check if the form has an origin flag set
@@ -2330,6 +2342,8 @@ function FormConfigService(objCollection) {
                 formName = String(formConfigData[0].form_name),
                 workflowActivityTypeDefaultDurationDays = Number(formConfigData[0].form_workflow_activity_type_default_duration_days);
 
+            console.log('isWorkflowEnabled : ', isWorkflowEnabled);
+            console.log('originFlagSet : ', originFlagSet);
             if (isWorkflowEnabled && originFlagSet) {
                 // Fetch the next activity_id to be inserted
                 await cacheWrapper
