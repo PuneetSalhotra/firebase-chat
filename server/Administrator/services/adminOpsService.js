@@ -5002,7 +5002,7 @@ function AdminOpsService(objectCollection) {
         }
 
         if (workflowData.length > 0) {
-            let workflowInlineData = JSON.parse(workflowData[0].activity_type_inline_data);
+            let workflowInlineData = JSON.parse(workflowData[0].activity_type_inline_data) || {};
             let existingWorkflowFieldsInlineData = workflowInlineData.hasOwnProperty("workflow_fields") ? workflowInlineData.workflow_fields : {};
             let newWorkflowFieldsInlineData = JSON.parse(request.workflow_fields);
 

@@ -1080,6 +1080,11 @@ function AnalyticsService(objectCollection)
             console.log(JSON.parse(request.filter_activity_status_type_id).length);
             arrayStatusTypes = JSON.parse(request.filter_activity_status_type_id);
 
+            // YTD widget's start date should be the Unix epoch
+            if (parseInt(request.filter_timeline_id) === 8) {
+                request.datetime_start = '1970-01-01 00:00:00';
+            }
+
             switch (parseInt(request.widget_type_id))
             {
                 case 18: //Volume
@@ -1283,6 +1288,11 @@ function AnalyticsService(objectCollection)
             //Get the number of selections for status category
             console.log(JSON.parse(request.filter_activity_status_type_id).length);
             arrayStatusTypes = JSON.parse(request.filter_activity_status_type_id);
+
+            // YTD widget's start date should be the Unix epoch
+            if (parseInt(request.filter_timeline_id) === 8) {
+                request.datetime_start = '1970-01-01 00:00:00';
+            }
 
             for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
             {
